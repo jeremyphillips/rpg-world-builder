@@ -89,7 +89,7 @@ export function getArmorConfigOptions(
   intrinsicEffects: Effect[] = []
 ): ArmorConfigOption[] {
   const edition = character.edition ?? '5e'
-  if (edition !== '5e') return []
+  // if (edition !== '5e') return []
 
   const context = buildCharacterContext(character)
   const { armorEffects, shieldEffects, magicItemEffects } =

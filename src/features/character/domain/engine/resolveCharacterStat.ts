@@ -23,9 +23,9 @@ export function resolveCharacterStat(
   target: StatTarget
 ): number {
   const edition = character.edition ?? '5e'
-  if (target === 'armor_class' && edition !== '5e') {
-    return character.armorClass?.base ?? 10
-  }
+  // if (target === 'armor_class' && edition !== '5e') {
+  //   return character.armorClass?.base ?? 10
+  // }
 
   const context = buildCharacterContext(character)
   const intrinsicEffects = collectIntrinsicEffects(character)

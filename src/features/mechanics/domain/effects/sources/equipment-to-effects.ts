@@ -159,7 +159,7 @@ export function getEquipmentEffects(
   equipment: Equipment | undefined,
   edition: string
 ): Effect[] {
-  if (edition !== '5e') return []
+  // if (edition !== '5e') return []
 
   const ownedArmorIds = equipment?.armor ?? []
   const effects: Effect[] = []

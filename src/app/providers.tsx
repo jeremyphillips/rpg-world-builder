@@ -6,6 +6,7 @@ import { CharacterBuilderProvider } from '@/features/characterBuilder/context/Ch
 import { AuthProvider } from './providers/AuthProvider'
 import { NotificationProvider } from './providers/NotificationProvider'
 import { ActiveCampaignProvider } from './providers/ActiveCampaignProvider'
+import { CampaignRulesProvider } from './providers/CampaignRulesProvider'
 import { MessagingProvider } from './providers/MessagingProvider'
 
 interface AppProvidersProps {
@@ -18,6 +19,7 @@ export function AppProviders({ children }: AppProvidersProps) {
       <CssBaseline />
       <AuthProvider>
         <ActiveCampaignProvider>
+          <CampaignRulesProvider>
           <MessagingProvider>
           <NotificationProvider>
             <CharacterBuilderProvider>
@@ -25,6 +27,7 @@ export function AppProviders({ children }: AppProvidersProps) {
             </CharacterBuilderProvider>
           </NotificationProvider>
           </MessagingProvider>
+          </CampaignRulesProvider>
         </ActiveCampaignProvider>
       </AuthProvider>
     </ThemeProvider>

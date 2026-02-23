@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import type { CharacterDoc, CharacterClassInfo } from '@/shared'
-import { classes as classesData } from '@/data'
-import { getById } from '@/domain/lookups'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getClassProgression } from '@/features/mechanics/domain/progression'
 import type { ClassProgression } from '@/data/classes/types'
 import { useCombatStats } from '@/features/character/hooks'
@@ -31,12 +30,6 @@ import Divider from '@mui/material/Divider'
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function getClassName(classId?: string): string {
-  if (!classId) return 'Unknown'
-  const c = getById(classesData, classId)
-  return c?.name ?? classId
-}
 
 function formatHitDie(prog: ClassProgression): string {
   if (prog.hitDie === 0 && prog.hpPerLevel) return `${prog.hpPerLevel} HP/level`
@@ -83,8 +76,14 @@ export default function CombatStatsCard({
     calculatedArmorClass, loadoutOptions, activeOption, activeLoadout,
     attacks, maxHp, initiative, weaponOptions, wieldedWeaponIds,
   } = useCombatStats(character)
+  const { catalog } = useCampaignRules()
   const [configOpen, setConfigOpen] = useState(false)
   const [weaponPickerOpen, setWeaponPickerOpen] = useState(false)
+
+  const getClassName = (classId?: string): string => {
+    if (!classId) return 'Unknown'
+    return catalog.classesById[classId]?.name ?? classId
+  }
 
   const hasCombat = true
   const hasMultipleConfigs = loadoutOptions.length > 1

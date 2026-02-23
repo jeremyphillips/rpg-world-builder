@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import type { Character } from '@/shared/types/character.core'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
-import { weapons as weaponCatalog } from '@/data/equipment/weapons'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { resolveEquipmentEdition } from '@/features/equipment/domain'
-import type { WeaponEditionDatum } from '@/data/equipment/weapons.types'
+import type { WeaponItem, WeaponEditionDatum } from '@/data/equipment/weapons.types'
 import { buildCharacterContext } from '../domain/engine/buildCharacterContext'
 import { collectIntrinsicEffects } from '../domain/engine/collectCharacterEffects'
 import { getLoadoutPickerOptions } from '../domain/engine/getLoadoutPickerOptions'
@@ -48,9 +48,13 @@ export interface AttackEntry {
 // Attack helpers (catalog lookup — math is in attack-resolver)
 // ---------------------------------------------------------------------------
 
-function getWeaponEditionData(weaponId: string, editionId: string): WeaponEditionDatum | undefined {
+function getWeaponEditionData(
+  weaponId: string,
+  editionId: string,
+  weaponsById: Record<string, WeaponItem>,
+): WeaponEditionDatum | undefined {
   const resolved = resolveEquipmentEdition(editionId)
-  const weapon = weaponCatalog.find(w => w.id === weaponId)
+  const weapon = weaponsById[weaponId]
   return weapon?.editionData?.find(d => d.edition === resolved)
 }
 
@@ -58,7 +62,8 @@ export function getCharacterAttacks(
   character: Character,
   context: EvaluationContext,
   effects: Effect[],
-  wieldedWeaponIds: string[]
+  wieldedWeaponIds: string[],
+  weaponsById: Record<string, WeaponItem>,
 ): AttackEntry[] {
   if (wieldedWeaponIds.length === 0) return []
 
@@ -66,8 +71,8 @@ export function getCharacterAttacks(
 
   return wieldedWeaponIds.map((id, idx) => {
     const hand: AttackHand = idx === 0 ? 'main' : 'off'
-    const weapon = weaponCatalog.find(w => w.id === id)
-    const edData = getWeaponEditionData(id, editionId)
+    const weapon = weaponsById[id]
+    const edData = getWeaponEditionData(id, editionId, weaponsById)
 
     const weaponInput = {
       type: edData?.type,
@@ -105,6 +110,7 @@ export type UseCombatStatsReturn = ReturnType<typeof useCombatStats>
 
 export function useCombatStats(character: Character) {
   const { editionId: activeEditionId } = useActiveCampaign()
+  const { catalog } = useCampaignRules()
   const edition = activeEditionId ?? character.edition ?? '5e'
 
   return useMemo(() => {
@@ -145,8 +151,8 @@ export function useCombatStats(character: Character) {
 
     const ownedWeaponIds = character.equipment?.weapons ?? []
     const wieldedWeaponIds = resolveWieldedWeaponIds(resolved, ownedWeaponIds)
-    const attacks = getCharacterAttacks(character, context, allEffects, wieldedWeaponIds)
-    const weaponOptions = getWeaponPickerOptions(character)
+    const attacks = getCharacterAttacks(character, context, allEffects, wieldedWeaponIds, catalog.weaponsById)
+    const weaponOptions = getWeaponPickerOptions(character, catalog.weaponsById)
 
     return {
       armorClass: acResult.value,
@@ -163,5 +169,5 @@ export function useCombatStats(character: Character) {
       weaponOptions,
       wieldedWeaponIds,
     }
-  }, [character, edition])
+  }, [character, edition, catalog])
 }

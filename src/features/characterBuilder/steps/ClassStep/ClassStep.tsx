@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
-import { classes } from '@/data'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getAllowedClassIds } from '@/features/mechanics/domain/character-build/options'
 import { evaluateClassEligibility, getClassRestrictionNotes } from '@/features/mechanics/domain/character-build/rules'
 import { getSubclassUnlockLevel } from '@/features/mechanics/domain/progression'
@@ -10,9 +10,7 @@ import { canAddClass } from '@/features/character/domain/validation'
 import { getClassProgression } from '@/features/mechanics/domain/progression'
 import type { ClassProgression } from '@/data/classes/types'
 import { ButtonGroup } from '@/ui/elements'
-import { getNameById } from '@/domain/lookups'
 import { getSubclassNameById } from '@/features/character/domain/reference'
-import { classes as classesData } from '@/data'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -69,7 +67,8 @@ const ClassStep = () => {
     allocateRemainingLevels,
     stepNotices,
     dismissNotice
-  } = useCharacterBuilder()  
+  } = useCharacterBuilder()
+  const { catalog } = useCampaignRules()
 
   const {
     step,
@@ -109,13 +108,13 @@ const ClassStep = () => {
   const allowedClassIds = getAllowedClassIds(edition, setting)
 
   const classOptions = allowedClassIds
-    .map(id => classes.find(c => c.id === id))
+    .map(id => catalog.classesById[id])
     .filter(Boolean)
     .map(cls => {
-      const { allowed } = evaluateClassEligibility(cls!.id, state)
-      const label = (edition && cls!.displayNameByEdition?.[edition]) ?? cls!.name
+      const { allowed } = evaluateClassEligibility(cls.id, state)
+      const label = (edition && cls.displayNameByEdition?.[edition]) ?? cls.name
       return {
-        id: cls!.id,
+        id: cls.id,
         label,
         disabled: !allowed
       }
@@ -210,7 +209,7 @@ const ClassStep = () => {
                       sx={{ mb: 1 }}
                     />
                     <Typography variant="h6" sx={{ lineHeight: 1.3 }}>
-                      {getNameById(classesData, cls.classId) || 'Choose a class'}
+                      {(cls.classId && catalog.classesById[cls.classId]?.name) || 'Choose a class'}
                       {cls.classDefinitionId && ` — ${getSubclassNameById(cls.classId, cls.classDefinitionId)}`}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" my={1.5}>

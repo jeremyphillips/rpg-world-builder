@@ -81,7 +81,7 @@ export function getArmorConfigurations(
   character: Character,
   edition: string,
 ): ArmorConfiguration[] {
-  if (edition !== '5e') return []
+  // if (edition !== '5e') return []
 
   const dexScore = character.abilityScores?.dexterity ?? 10
   const dexMod = Math.floor((dexScore - 10) / 2)

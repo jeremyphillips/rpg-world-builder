@@ -3,17 +3,17 @@
 import type { EditionId, SettingId } from "@/data"
 
 // 2e specific
-export type AbilityScores2e = AbilityScores & {
-  strengthPercentile?: number
-}
+// export type AbilityScores2e = AbilityScores & {
+//   strengthPercentile?: number
+// }
 
-export type SavingThrows2e = {
-  paralyzationPoisonDeath?: number
-  rodStaffWand?: number
-  petrificationPolymorph?: number
-  breathWeapon?: number
-  spell?: number
-}
+// export type SavingThrows2e = {
+//   paralyzationPoisonDeath?: number
+//   rodStaffWand?: number
+//   petrificationPolymorph?: number
+//   breathWeapon?: number
+//   spell?: number
+// }
 
 export type AbilityScores = {
   strength?: number | null
@@ -123,11 +123,11 @@ export type CharacterCore = {
   narrative?: CharacterNarrative
 }
 
-export type Rules2e = {
-  stats?: AbilityScores2e
-  thac0?: number
-  savingThrows?: SavingThrows2e
-}
+// export type Rules2e = {
+//   stats?: AbilityScores2e
+//   thac0?: number
+//   savingThrows?: SavingThrows2e
+// }
 
 // export type Character5e = CharacterCore & {
 //   edition: '5e'
@@ -162,7 +162,7 @@ export type CharacterSheet = Omit<Partial<CharacterCore>, 'classes'> & {
   classes: CharacterClassInfo[]
 }
 
-export type Character =
-  | (CharacterCore & { edition: '5e' })
-  | (CharacterCore & { edition: '2e'; rules?: Rules2e })
-  | CharacterCore
+export type Character = CharacterCore
+  // | (CharacterCore & { edition: '5e' })
+  // | (CharacterCore & { edition: '2e'; rules?: Rules2e })
+  // | CharacterCore

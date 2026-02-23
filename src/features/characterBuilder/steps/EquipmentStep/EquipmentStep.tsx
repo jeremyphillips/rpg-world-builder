@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
 import { ButtonGroup } from '@/ui/elements'
-import { classes, equipment, type EditionId } from '@/data'
-import { getById } from '@/domain/lookups'
+import type { EditionId } from '@/data'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getClassRequirement } from '@/features/mechanics/domain/character-build/rules'
 import {
   calculateEquipmentCost,
@@ -32,6 +32,7 @@ const EquipmentStep = () => {
     stepNotices,
     dismissNotice
   } = useCharacterBuilder()
+  const { catalog } = useCampaignRules()
 
   const { 
     step, 
@@ -120,13 +121,17 @@ const EquipmentStep = () => {
 
   const baseGp = wealth?.baseGp ?? 0
 
+  const weaponsCatalog = Object.values(catalog.weaponsById)
+  const armorCatalog = Object.values(catalog.armorById)
+  const gearCatalog = Object.values(catalog.gearById)
+
   const currentCost = calculateEquipmentCost(
     selectedWeapons,
     selectedArmor,
     selectedGear,
-    equipment.weapons,
-    equipment.armor,
-    equipment.gear,
+    weaponsCatalog,
+    armorCatalog,
+    gearCatalog,
     edition
   )
 
@@ -164,11 +169,11 @@ const EquipmentStep = () => {
       })
   }
 
-  const weaponOptions = buildOptions(equipment.weapons, selectedWeapons, weaponProf)
-  const armorOptions  = buildOptions(equipment.armor, selectedArmor, armorProf)
-  const gearOptions   = buildOptions(equipment.gear, selectedGear, gearProf)
+  const weaponOptions = buildOptions(weaponsCatalog, selectedWeapons, weaponProf)
+  const armorOptions  = buildOptions(armorCatalog, selectedArmor, armorProf)
+  const gearOptions   = buildOptions(gearCatalog, selectedGear, gearProf)
 
-  const cls = selectedClassId ? getById(classes, selectedClassId) : undefined
+  const cls = selectedClassId ? catalog.classesById[selectedClassId] : undefined
   const requirements = cls?.requirements
 
   const armorNotes = requirements
