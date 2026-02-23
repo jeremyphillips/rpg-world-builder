@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react'
 import type { LevelUpStepConfig, LevelUpState } from './levelUp.types'
-import { getClassProgression, getSubclassUnlockLevel } from '@/features/character/domain/progression'
+import { getClassProgression, getSubclassUnlockLevel } from '@/features/mechanics/domain/progression'
 import { getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/spells'
 
 /**

@@ -1,12 +1,12 @@
 import type { CharacterClassInfo, CharacterSheet } from '@/shared'
-import type { CharacterType, CharacterProficiencies } from '@/shared/types/character.core'
-import type { HitPointMode } from '@/features/character/domain/progression'
+import type { CharacterType, CharacterProficiencies, EquipmentLoadout, EquipmentItemInstance } from '@/shared/types/character.core'
+import type { HitPointMode } from '@/features/mechanics/domain/progression'
 import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
 
 export type { CharacterClassInfo, CharacterSheet, CharacterProficiencies }
 export type { HitPointMode }
 
-export type StepId = 'edition' | 'setting' | 'class' | 'spells' | 'equipment' | 'race' | 'level' | 'alignment' | 'proficiencies' | 'confirmation'
+export type StepId = 'edition' | 'setting' | 'class' | 'spells' | 'equipment' | 'loadout' | 'magicItems' | 'race' | 'level' | 'alignment' | 'proficiencies' | 'confirmation'
 
 export type EditMode = {
   characterId: string
@@ -97,6 +97,17 @@ export type CharacterBuilderContextValue = {
   updateGear: (ids: string[]) => void
   updateMagicItems: (ids: string[]) => void
   setWeight: (lbs: number) => void
+
+  // equipment instances
+  addWeaponInstance: (baseId: string) => void
+  addArmorInstance: (baseId: string) => void
+  updateWeaponInstance: (instanceId: string, patch: Partial<EquipmentItemInstance>) => void
+  updateArmorInstance: (instanceId: string, patch: Partial<EquipmentItemInstance>) => void
+  removeWeaponInstance: (instanceId: string) => void
+  removeArmorInstance: (instanceId: string) => void
+
+  // loadout
+  updateLoadout: (patch: Partial<EquipmentLoadout>) => void
 
   // flow control
   start: () => void

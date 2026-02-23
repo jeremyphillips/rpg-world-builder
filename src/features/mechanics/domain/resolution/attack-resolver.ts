@@ -3,7 +3,7 @@ import type { EvaluationContext } from '../conditions/evaluation-context.types'
 import type { Effect } from '../effects/effects.types'
 import { getAbilityModifier } from '../core/ability.utils'
 import { getProficiencyBonus } from '../core/progression/proficiency'
-import { resolveStat, type BreakdownToken } from './stat-resolver'
+import { resolveStatDetailed, type BreakdownToken } from './stat-resolver'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -42,10 +42,6 @@ export type DamageResult = {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function sign(n: number): string {
-  return n >= 0 ? `+${n}` : `${n}`
-}
 
 /**
  * Determine which ability score drives the attack/damage roll.
@@ -115,25 +111,14 @@ export function resolveWeaponAttackBonus(
     source: 'weapon',
   } as Effect
 
-  const bonus = resolveStat('attack_roll', context, [weaponFormula, ...effects])
-
-  const abilityLabel = abilityUsed.slice(0, 3).toUpperCase()
-  const breakdown: BreakdownToken[] = [
-    { label: 'Prof', value: sign(proficiencyBonus), type: 'proficiency' },
-    { label: abilityLabel, value: sign(abilityMod), type: 'ability' },
-  ]
-
-  const extraMod = bonus - proficiencyBonus - abilityMod
-  if (extraMod !== 0) {
-    breakdown.push({ label: 'Bonus', value: sign(extraMod), type: 'modifier' })
-  }
+  const result = resolveStatDetailed('attack_roll', context, [weaponFormula, ...effects])
 
   return {
-    bonus,
+    bonus: result.value,
     abilityUsed,
     abilityMod,
     proficiencyBonus,
-    breakdown,
+    breakdown: result.breakdown,
   }
 }
 
@@ -161,7 +146,6 @@ export function resolveWeaponDamage(
 ): DamageResult {
   const hand = options.hand ?? 'main'
   const abilityUsed = pickAttackAbility(context, weapon)
-  const abilityMod = getAbilityModifier(context.self, abilityUsed)
 
   // Off-hand attacks don't add ability mod to damage (5e default).
   // TODO: Check for Two-Weapon Fighting style to override this.
@@ -174,28 +158,19 @@ export function resolveWeaponDamage(
     source: 'weapon',
   } as Effect
 
-  const modifier = resolveStat('damage', context, [damageFormula, ...effects])
+  const result = resolveStatDetailed('damage', context, [damageFormula, ...effects])
 
   const dice = selectDamageDice(weapon.damage, weapon.edition)
   const damageType = weapon.damageType ?? ''
 
   const totalParts = [dice]
-  if (modifier > 0) totalParts.push(`+ ${modifier}`)
-  else if (modifier < 0) totalParts.push(`- ${Math.abs(modifier)}`)
+  if (result.value > 0) totalParts.push(`+ ${result.value}`)
+  else if (result.value < 0) totalParts.push(`- ${Math.abs(result.value)}`)
 
-  const abilityLabel = abilityUsed.slice(0, 3).toUpperCase()
   const breakdown: BreakdownToken[] = [
     { label: dice, value: dice, type: 'dice' },
+    ...result.breakdown,
   ]
-
-  if (abilityMod !== 0) {
-    breakdown.push({ label: abilityLabel, value: sign(abilityMod), type: 'ability' })
-  }
-
-  const extraMod = modifier - abilityMod
-  if (extraMod !== 0) {
-    breakdown.push({ label: 'Bonus', value: sign(extraMod), type: 'modifier' })
-  }
 
   if (damageType) {
     breakdown.push({ label: damageType, value: damageType, type: 'damage_type' })
@@ -203,7 +178,7 @@ export function resolveWeaponDamage(
 
   return {
     dice,
-    modifier,
+    modifier: result.value,
     total: totalParts.join(' '),
     damageType,
     breakdown,

@@ -13,7 +13,7 @@ import type { EditionId } from '@/data/editions/edition.types'
 import type { SettingId } from '@/data/types'
 import type { OverrideConfig } from '@/data'
 import { settings } from '@/data/settings'
-import { resolveClassId } from '@/features/character/domain/reference/classAliases'
+import { resolveClassId } from '../../progression/reference/classAliases'
 import { getEditionBaseRaceIds, getEditionBaseClassIds } from './edition-gate'
 import { applySettingOverrides } from './setting-overrides'
 

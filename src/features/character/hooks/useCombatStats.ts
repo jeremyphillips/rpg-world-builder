@@ -20,8 +20,14 @@ import {
   getEquipmentEffects,
   selectActiveEquipmentEffects,
   resolveLoadout,
+  resolveEquipmentLoadoutDetailed,
   resolveWieldedWeaponIds,
 } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
+import {
+  getMagicItemCandidateEffects,
+  selectActiveMagicItemEffects,
+} from '@/features/mechanics/domain/effects/sources/magic-items-to-effects'
+import { getEnchantmentCandidateEffects } from '@/features/mechanics/domain/effects/sources/enchantments-to-effects'
 
 // ---------------------------------------------------------------------------
 // Attack types
@@ -105,10 +111,26 @@ export function useCombatStats(character: Character) {
     const context = buildCharacterContext(character)
     const intrinsicEffects = collectIntrinsicEffects(character)
     const candidateEffects = getEquipmentEffects(character.equipment, edition)
-    const loadout = resolveLoadout(character.combat)
-    const activeEquipmentEffects = selectActiveEquipmentEffects(candidateEffects, loadout)
 
-    const allEffects = [...intrinsicEffects, ...activeEquipmentEffects]
+    const loadout = resolveLoadout(character.combat)
+    const resolved = resolveEquipmentLoadoutDetailed(character.combat, character.equipment)
+
+    const activeEquipmentEffects = selectActiveEquipmentEffects(candidateEffects, resolved)
+    const enchantmentEffects = getEnchantmentCandidateEffects({ edition, resolved })
+
+    const ownedMagicItemIds = character.equipment?.magicItems ?? []
+    const magicCandidates = getMagicItemCandidateEffects(ownedMagicItemIds, edition)
+    const activeMagicEffects = selectActiveMagicItemEffects(magicCandidates, {
+      equippedIds: ownedMagicItemIds,
+      attunedIds: ownedMagicItemIds,
+    })
+
+    const allEffects = [
+      ...intrinsicEffects,
+      ...activeEquipmentEffects,
+      ...enchantmentEffects,
+      ...activeMagicEffects,
+    ]
 
     const acResult = resolveStatDetailed('armor_class', context, allEffects)
     const maxHp = resolveStat('hp_max', context, allEffects)
@@ -117,12 +139,12 @@ export function useCombatStats(character: Character) {
     const loadoutOptions = getLoadoutPickerOptions(character, intrinsicEffects)
     const activeOption = loadoutOptions.find(
       (o) =>
-        o.loadout.armorId === loadout.armorId &&
-        o.loadout.shieldId === loadout.shieldId
+        o.loadout.armorId === resolved.armor.baseId &&
+        o.loadout.shieldId === resolved.shield.baseId
     ) ?? loadoutOptions[0] ?? null
 
     const ownedWeaponIds = character.equipment?.weapons ?? []
-    const wieldedWeaponIds = resolveWieldedWeaponIds(loadout, ownedWeaponIds)
+    const wieldedWeaponIds = resolveWieldedWeaponIds(resolved, ownedWeaponIds)
     const attacks = getCharacterAttacks(character, context, allEffects, wieldedWeaponIds)
     const weaponOptions = getWeaponPickerOptions(character)
 

@@ -16,13 +16,15 @@ type ProficienciesCardProps = {
   proficiencies: CharacterDoc['proficiencies']
   wealth: CharacterDoc['wealth']
   edition?: string
-  /** When provided, renders an Edit button. */
+  /** When provided, renders an Edit button for skills. */
   onEdit?: () => void
-  /** Disables the Edit button (e.g. no proficiency slots available for the character's class). */
+  /** Disables the skills Edit button (e.g. no proficiency slots available for the character's class). */
   editDisabled?: boolean
+  /** When provided, renders an Edit button for wealth. */
+  onEditWealth?: () => void
 }
 
-export default function ProficienciesCard({ proficiencies, wealth, edition, onEdit, editDisabled }: ProficienciesCardProps) {
+export default function ProficienciesCard({ proficiencies, wealth, edition, onEdit, editDisabled, onEditWealth }: ProficienciesCardProps) {
   const skillIds = proficiencies?.skills ?? []
 
   const editionObj = edition ? editions.find(e => e.id === edition) : undefined
@@ -63,9 +65,20 @@ export default function ProficienciesCard({ proficiencies, wealth, edition, onEd
 
         {/* Wealth */}
         <Divider sx={{ my: 1.5 }} />
-        <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
-          Wealth
-        </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
+            Wealth
+          </Typography>
+          {onEditWealth && (
+            <Button
+              size="small"
+              startIcon={<EditIcon fontSize="small" />}
+              onClick={onEditWealth}
+            >
+              Edit
+            </Button>
+          )}
+        </Stack>
         <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
           <Typography variant="body2" fontWeight={600}>{wealth?.gp ?? 0} gp</Typography>
           <Typography variant="body2">{wealth?.sp ?? 0} sp</Typography>

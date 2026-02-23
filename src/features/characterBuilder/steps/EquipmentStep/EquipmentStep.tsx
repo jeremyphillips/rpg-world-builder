@@ -7,12 +7,10 @@ import { getById } from '@/domain/lookups'
 import { getClassRequirement } from '@/features/mechanics/domain/character-build/rules'
 import {
   calculateEquipmentCost,
-  getEquipmentNotes,
   getItemCostGp,
-  getAvailableMagicItems,
-  getMagicItemBudget,
   resolveEquipmentEdition
 } from '@/features/equipment/domain'
+import { getEquipmentNotes } from '@/features/equipment/ui/notes'
 import { collectIntrinsicEffects } from '@/features/character/domain/engine/collectCharacterEffects'
 import {
   deriveEquipmentProficiency,
@@ -31,7 +29,6 @@ const EquipmentStep = () => {
     updateWeapons,
     updateArmor,
     updateGear,
-    updateMagicItems,
     stepNotices,
     dismissNotice
   } = useCharacterBuilder()
@@ -186,48 +183,6 @@ const EquipmentStep = () => {
     ? getEquipmentNotes({ requirements, edition, slot: 'tools' })
     : []
 
-  // ── Magic items ──
-  const characterLevel = totalLevel ?? 0
-  const magicItemBudget = getMagicItemBudget(edition as EditionId, characterLevel)
-  const availableMagicItems = getAvailableMagicItems(edition as EditionId, characterLevel)
-  const selectedMagicItems = selectedEquipment?.magicItems ?? []
-
-  const selectedPermanentCount = selectedMagicItems.filter(id => {
-    const item = availableMagicItems.find(m => m.id === id)
-    return item && !item.consumable
-  }).length
-
-  const selectedConsumableCount = selectedMagicItems.filter(id => {
-    const item = availableMagicItems.find(m => m.id === id)
-    return item?.consumable
-  }).length
-
-  const magicItemOptions = availableMagicItems.map(item => {
-    const datum = item.editionData.find(
-      (d: { edition: string }) => d.edition === resolveEquipmentEdition(edition)
-    )
-    const isSelected = selectedMagicItems.includes(item.id)
-
-    // Budget enforcement: disable unselected items if budget is full
-    let disabled = false
-    if (!isSelected && magicItemBudget) {
-      if (item.consumable) {
-        disabled = selectedConsumableCount >= magicItemBudget.consumableSlots
-      } else {
-        disabled = selectedPermanentCount >= magicItemBudget.permanentSlots
-      }
-    }
-
-    const rarityLabel = datum?.rarity ? ` [${datum.rarity}]` : ''
-    const costLabel = datum?.cost && datum.cost !== '—' ? ` (${datum.cost})` : ''
-
-    return {
-      id: item.id,
-      label: `${item.name}${rarityLabel}${costLabel}`,
-      disabled
-    }
-  })
-
   const equipmentNotices = stepNotices.get('equipment') ?? []
 
   return (
@@ -296,28 +251,6 @@ const EquipmentStep = () => {
         </ul>
       )}
 
-      {/* Magic items — only shown for editions with a magic item budget */}
-      {magicItemBudget && availableMagicItems.length > 0 && (
-        <>
-          <h4>Magic Items</h4>
-          <small>
-            Permanent: {selectedPermanentCount} / {magicItemBudget.permanentSlots}
-            {' · '}
-            Consumable: {selectedConsumableCount} / {magicItemBudget.consumableSlots}
-            {magicItemBudget.maxAttunement != null && (
-              <> · Attunement slots: {magicItemBudget.maxAttunement}</>
-            )}
-          </small>
-          <ButtonGroup
-            options={magicItemOptions}
-            value={selectedMagicItems}
-            onChange={updateMagicItems}
-            multiSelect
-            autoSelectSingle={false}
-            size="sm"
-          />
-        </>
-      )}
     </>
   )
 }

@@ -1,12 +1,14 @@
 import type { MagicItem, MagicItemEditionDatum } from '@/data/equipment/magicItems.types'
 
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
 import Chip from '@mui/material/Chip'
 import Alert from '@mui/material/Alert'
+import EditIcon from '@mui/icons-material/Edit'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 
 // ---------------------------------------------------------------------------
@@ -45,6 +47,7 @@ type MagicItemsCardProps = {
   magicItemBudget: MagicItemBudget | null
   permanentCount: number
   consumableCount: number
+  onEdit?: () => void
 }
 
 export default function MagicItemsCard({
@@ -52,6 +55,7 @@ export default function MagicItemsCard({
   magicItemBudget,
   permanentCount,
   consumableCount,
+  onEdit,
 }: MagicItemsCardProps) {
   const hasBudget = magicItemBudget != null
   const permanentSlotsAvail = hasBudget ? magicItemBudget.permanentSlots - permanentCount : 0
@@ -61,9 +65,20 @@ export default function MagicItemsCard({
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
       <CardContent>
-        <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
-          Magic Items
-        </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
+            Magic Items
+          </Typography>
+          {onEdit && (
+            <Button
+              size="small"
+              startIcon={<EditIcon fontSize="small" />}
+              onClick={onEdit}
+            >
+              Edit
+            </Button>
+          )}
+        </Stack>
 
         {resolvedMagicItems.length > 0 ? (
           <Stack spacing={1.5} sx={{ mt: 1 }}>

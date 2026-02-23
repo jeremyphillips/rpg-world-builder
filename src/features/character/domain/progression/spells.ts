@@ -5,7 +5,7 @@
  * These functions are kept for backward compatibility.
  */
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
-import { getClassProgression } from '@/features/character/domain/progression'
+import { getClassProgression } from '@/features/mechanics/domain/progression'
 import { getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/spells/progression'
 import { getAvailableSpells } from '@/features/mechanics/domain/spells/catalog'
 

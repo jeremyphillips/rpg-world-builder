@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react'
 import { getSubclassNameById } from '@/features/character/domain/reference'
-import { getClassProgression } from '@/features/character/domain/progression'
+import { getClassProgression } from '@/features/mechanics/domain/progression'
 import { spells as spellCatalog } from '@/data/classes/spells'
 import type { LevelUpState } from '../levelUp.types'
 

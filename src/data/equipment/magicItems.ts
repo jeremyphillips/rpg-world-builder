@@ -18,117 +18,118 @@ export const magicItems: readonly MagicItem[] = [
   // ═══════════════════════════════════════════════════════════════════════════
   // WEAPONS — Enhancement bonuses
   // ═══════════════════════════════════════════════════════════════════════════
-  {
-    id: 'weapon-plus-1',
-    name: '+1 Weapon',
-    slot: 'weapon',
-    weight: '—',
-    editionData: [
-      {
-        edition: '5e',
-        cost: '1,000 gp',
-        rarity: 'uncommon',
-        requiresAttunement: false,
-        bonus: 1,
-        effect: '+1 bonus to attack and damage rolls'
-      },
-      {
-        edition: '4e',
-        cost: '360 gp',
-        bonus: 1,
-        enhancementLevel: 1,
-        effect: '+1 enhancement bonus to attack and damage rolls'
-      },
-      {
-        edition: '3e',
-        cost: '2,000 gp',
-        bonus: 1,
-        effect: '+1 enhancement bonus to attack and damage rolls'
-      },
-      {
-        edition: '2e',
-        cost: '—',
-        bonus: 1,
-        xpValue: 400,
-        gpValue: 2000,
-        effect: '+1 bonus to attack and damage rolls'
-      }
-    ]
-  },
-  {
-    id: 'weapon-plus-2',
-    name: '+2 Weapon',
-    slot: 'weapon',
-    weight: '—',
-    editionData: [
-      {
-        edition: '5e',
-        cost: '4,000 gp',
-        rarity: 'rare',
-        requiresAttunement: false,
-        bonus: 2,
-        effect: '+2 bonus to attack and damage rolls'
-      },
-      {
-        edition: '4e',
-        cost: '1,800 gp',
-        bonus: 2,
-        enhancementLevel: 6,
-        effect: '+2 enhancement bonus to attack and damage rolls'
-      },
-      {
-        edition: '3e',
-        cost: '8,000 gp',
-        bonus: 2,
-        effect: '+2 enhancement bonus to attack and damage rolls'
-      },
-      {
-        edition: '2e',
-        cost: '—',
-        bonus: 2,
-        xpValue: 800,
-        gpValue: 4000,
-        effect: '+2 bonus to attack and damage rolls'
-      }
-    ]
-  },
-  {
-    id: 'weapon-plus-3',
-    name: '+3 Weapon',
-    slot: 'weapon',
-    weight: '—',
-    editionData: [
-      {
-        edition: '5e',
-        cost: '16,000 gp',
-        rarity: 'very-rare',
-        requiresAttunement: false,
-        bonus: 3,
-        effect: '+3 bonus to attack and damage rolls'
-      },
-      {
-        edition: '4e',
-        cost: '9,000 gp',
-        bonus: 3,
-        enhancementLevel: 11,
-        effect: '+3 enhancement bonus to attack and damage rolls'
-      },
-      {
-        edition: '3e',
-        cost: '18,000 gp',
-        bonus: 3,
-        effect: '+3 enhancement bonus to attack and damage rolls'
-      },
-      {
-        edition: '2e',
-        cost: '—',
-        bonus: 3,
-        xpValue: 1400,
-        gpValue: 7000,
-        effect: '+3 bonus to attack and damage rolls'
-      }
-    ]
-  },
+  // {
+  //   id: 'dagger-plus-1',
+  //   name: '+1 Dagger',
+  //   slot: 'weapon',
+  //   weight: '—',
+  //   baseItemId: 'dagger',
+  //   editionData: [
+  //     {
+  //       edition: '5e',
+  //       cost: '1,000 gp',
+  //       rarity: 'uncommon',
+  //       requiresAttunement: false,
+  //       bonus: 1,
+  //       effect: '+1 bonus to attack and damage rolls'
+  //     },
+  //     {
+  //       edition: '4e',
+  //       cost: '360 gp',
+  //       bonus: 1,
+  //       enhancementLevel: 1,
+  //       effect: '+1 enhancement bonus to attack and damage rolls'
+  //     },
+  //     {
+  //       edition: '3e',
+  //       cost: '2,000 gp',
+  //       bonus: 1,
+  //       effect: '+1 enhancement bonus to attack and damage rolls'
+  //     },
+  //     {
+  //       edition: '2e',
+  //       cost: '—',
+  //       bonus: 1,
+  //       xpValue: 400,
+  //       gpValue: 2000,
+  //       effect: '+1 bonus to attack and damage rolls'
+  //     }
+  //   ]
+  // },
+  // {
+  //   id: 'weapon-plus-2',
+  //   name: '+2 Weapon',
+  //   slot: 'weapon',
+  //   weight: '—',
+  //   editionData: [
+  //     {
+  //       edition: '5e',
+  //       cost: '4,000 gp',
+  //       rarity: 'rare',
+  //       requiresAttunement: false,
+  //       bonus: 2,
+  //       effect: '+2 bonus to attack and damage rolls'
+  //     },
+  //     {
+  //       edition: '4e',
+  //       cost: '1,800 gp',
+  //       bonus: 2,
+  //       enhancementLevel: 6,
+  //       effect: '+2 enhancement bonus to attack and damage rolls'
+  //     },
+  //     {
+  //       edition: '3e',
+  //       cost: '8,000 gp',
+  //       bonus: 2,
+  //       effect: '+2 enhancement bonus to attack and damage rolls'
+  //     },
+  //     {
+  //       edition: '2e',
+  //       cost: '—',
+  //       bonus: 2,
+  //       xpValue: 800,
+  //       gpValue: 4000,
+  //       effect: '+2 bonus to attack and damage rolls'
+  //     }
+  //   ]
+  // },
+  // {
+  //   id: 'weapon-plus-3',
+  //   name: '+3 Weapon',
+  //   slot: 'weapon',
+  //   weight: '—',
+  //   editionData: [
+  //     {
+  //       edition: '5e',
+  //       cost: '16,000 gp',
+  //       rarity: 'very-rare',
+  //       requiresAttunement: false,
+  //       bonus: 3,
+  //       effect: '+3 bonus to attack and damage rolls'
+  //     },
+  //     {
+  //       edition: '4e',
+  //       cost: '9,000 gp',
+  //       bonus: 3,
+  //       enhancementLevel: 11,
+  //       effect: '+3 enhancement bonus to attack and damage rolls'
+  //     },
+  //     {
+  //       edition: '3e',
+  //       cost: '18,000 gp',
+  //       bonus: 3,
+  //       effect: '+3 enhancement bonus to attack and damage rolls'
+  //     },
+  //     {
+  //       edition: '2e',
+  //       cost: '—',
+  //       bonus: 3,
+  //       xpValue: 1400,
+  //       gpValue: 7000,
+  //       effect: '+3 bonus to attack and damage rolls'
+  //     }
+  //   ]
+  // },
 
   // ═══════════════════════════════════════════════════════════════════════════
   // WEAPONS — Named legendary weapons
@@ -208,90 +209,142 @@ export const magicItems: readonly MagicItem[] = [
   // ═══════════════════════════════════════════════════════════════════════════
   // ARMOR — Enhancement bonuses
   // ═══════════════════════════════════════════════════════════════════════════
-  {
-    id: 'armor-plus-1',
-    name: '+1 Armor',
-    slot: 'armor',
-    weight: '—',
-    editionData: [
-      {
-        edition: '5e',
-        cost: '1,500 gp',
-        rarity: 'uncommon',
-        requiresAttunement: false,
-        bonus: 1,
-        effect: '+1 bonus to AC'
-      },
-      {
-        edition: '4e',
-        cost: '360 gp',
-        bonus: 1,
-        enhancementLevel: 1,
-        effect: '+1 enhancement bonus to AC'
-      },
-      {
-        edition: '3e',
-        cost: '1,000 gp',
-        bonus: 1,
-        effect: '+1 enhancement bonus to AC'
-      },
-      {
-        edition: '2e',
-        cost: '—',
-        bonus: 1,
-        xpValue: 400,
-        gpValue: 2500,
-        effect: '+1 bonus to AC (lowers AC by 1)'
-      }
-    ]
-  },
-  {
-    id: 'armor-plus-2',
-    name: '+2 Armor',
-    slot: 'armor',
-    weight: '—',
-    editionData: [
-      {
-        edition: '5e',
-        cost: '6,000 gp',
-        rarity: 'rare',
-        requiresAttunement: false,
-        bonus: 2,
-        effect: '+2 bonus to AC'
-      },
-      {
-        edition: '4e',
-        cost: '1,800 gp',
-        bonus: 2,
-        enhancementLevel: 6,
-        effect: '+2 enhancement bonus to AC'
-      },
-      {
-        edition: '3e',
-        cost: '4,000 gp',
-        bonus: 2,
-        effect: '+2 enhancement bonus to AC'
-      },
-      {
-        edition: '2e',
-        cost: '—',
-        bonus: 2,
-        xpValue: 800,
-        gpValue: 5000,
-        effect: '+2 bonus to AC (lowers AC by 2)'
-      }
-    ]
-  },
+  // {
+  //   id: 'studded-leather-plus-1',
+  //   name: '+1 Studded Leather Armor',
+  //   slot: 'armor',
+  //   weight: '—',
+  //   baseItemId: 'studded-leather',
+  //   editionData: [
+  //     {
+  //       edition: '5e',
+  //       cost: '1,500 gp',
+  //       rarity: 'uncommon',
+  //       requiresAttunement: false,
+  //       bonus: 1,
+  //       effect: '+1 bonus to AC',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
+  //     },
+  //     {
+  //       edition: '4e',
+  //       cost: '360 gp',
+  //       bonus: 1,
+  //       enhancementLevel: 1,
+  //       effect: '+1 enhancement bonus to AC',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
+  //     },
+  //     {
+  //       edition: '3e',
+  //       cost: '1,000 gp',
+  //       bonus: 1,
+  //       effect: '+1 enhancement bonus to AC',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
+  //     },
+  //     {
+  //       edition: '2e',
+  //       cost: '—',
+  //       bonus: 1,
+  //       xpValue: 400,
+  //       gpValue: 2500,
+  //       effect: '+1 bonus to AC (lowers AC by 1)',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
+  //     }
+  //   ]
+  // },
+  // {
+  //   id: 'armor-plus-2',
+  //   name: '+2 Armor',
+  //   slot: 'armor',
+  //   weight: '—',
+  //   editionData: [
+  //     {
+  //       edition: '5e',
+  //       cost: '6,000 gp',
+  //       rarity: 'rare',
+  //       requiresAttunement: false,
+  //       bonus: 2,
+  //       effect: '+2 bonus to AC',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 2 }]
+  //     },
+  //     {
+  //       edition: '4e',
+  //       cost: '1,800 gp',
+  //       bonus: 2,
+  //       enhancementLevel: 6,
+  //       effect: '+2 enhancement bonus to AC',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 2 }]
+  //     },
+  //     {
+  //       edition: '3e',
+  //       cost: '4,000 gp',
+  //       bonus: 2,
+  //       effect: '+2 enhancement bonus to AC',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 2 }]
+  //     },
+  //     {
+  //       edition: '2e',
+  //       cost: '—',
+  //       bonus: 2,
+  //       xpValue: 800,
+  //       gpValue: 5000,
+  //       effect: '+2 bonus to AC (lowers AC by 2)',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 2 }]
+  //     }
+  //   ]
+  // },
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SHIELD
   // ═══════════════════════════════════════════════════════════════════════════
+  // {
+  //   id: 'shield-plus-1',
+  //   name: '+1 Shield',
+  //   slot: 'shield',
+  //   weight: '6 lb.',
+  //   baseItemId: 'shield-steel',
+  //   editionData: [
+  //     {
+  //       edition: '5e',
+  //       cost: '1,500 gp',
+  //       rarity: 'uncommon',
+  //       requiresAttunement: false,
+  //       bonus: 1,
+  //       effect: '+1 bonus to AC (in addition to shield\'s +2)',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
+  //     },
+  //     {
+  //       edition: '4e',
+  //       cost: '360 gp',
+  //       bonus: 1,
+  //       enhancementLevel: 1,
+  //       effect: '+1 enhancement bonus to AC',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
+  //     },
+  //     {
+  //       edition: '3e',
+  //       cost: '1,000 gp',
+  //       bonus: 1,
+  //       effect: '+1 enhancement bonus to AC',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
+  //     },
+  //     {
+  //       edition: '2e',
+  //       cost: '—',
+  //       bonus: 1,
+  //       xpValue: 250,
+  //       gpValue: 1500,
+  //       effect: '+1 bonus to AC from shield',
+  //       effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
+  //     }
+  //   ]
+  // },
+
   {
-    id: 'shield-plus-1',
-    name: '+1 Shield',
+    id: 'shield-steel-plus-1',
+    name: '+1 Shield (Steel)',
     slot: 'shield',
     weight: '6 lb.',
-    baseItemId: 'shield',
+    baseItemId: 'shield-steel',
     editionData: [
       {
         edition: '5e',
@@ -299,20 +352,23 @@ export const magicItems: readonly MagicItem[] = [
         rarity: 'uncommon',
         requiresAttunement: false,
         bonus: 1,
-        effect: '+1 bonus to AC (in addition to shield\'s +2)'
+        effect: '+1 bonus to AC (in addition to shield\'s +2)',
+        effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
       },
       {
         edition: '4e',
         cost: '360 gp',
         bonus: 1,
         enhancementLevel: 1,
-        effect: '+1 enhancement bonus to AC'
+        effect: '+1 enhancement bonus to AC',
+        effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
       },
       {
         edition: '3e',
         cost: '1,000 gp',
         bonus: 1,
-        effect: '+1 enhancement bonus to AC'
+        effect: '+1 enhancement bonus to AC',
+        effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
       },
       {
         edition: '2e',
@@ -320,11 +376,11 @@ export const magicItems: readonly MagicItem[] = [
         bonus: 1,
         xpValue: 250,
         gpValue: 1500,
-        effect: '+1 bonus to AC from shield'
+        effect: '+1 bonus to AC from shield',
+        effects: [{ kind: 'bonus', target: 'armor_class', value: 1 }]
       }
     ]
   },
-
   // ═══════════════════════════════════════════════════════════════════════════
   // POTIONS
   // ═══════════════════════════════════════════════════════════════════════════

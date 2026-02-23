@@ -8,7 +8,7 @@
  *
  * Both SpellStep and the invalidation pruner call into this module.
  */
-import { getClassProgression } from '@/features/character/domain/progression'
+import { getClassProgression } from '../../progression'
 import { getAvailableSpells, type SpellWithEntry } from '../catalog'
 import { groupSpellsByLevel } from '../utils/groupSpellsByLevel'
 import { getClassSpellLimitsAtLevel, type CastingMode } from '../progression'

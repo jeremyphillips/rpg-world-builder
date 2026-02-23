@@ -8,7 +8,7 @@
  */
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
 import { getAvailableSpells } from '../catalog'
-import { getClassProgression } from '@/features/character/domain/progression'
+import { getClassProgression } from '../../progression'
 import { getClassSpellLimitsAtLevel } from '../progression'
 
 export type SpellPruneResult = {

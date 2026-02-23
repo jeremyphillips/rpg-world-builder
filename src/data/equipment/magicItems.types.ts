@@ -36,6 +36,20 @@ export type MagicItemSlot =
   | 'staff'
   | 'rod'
 
+// ─── Effect descriptors ─────────────────────────────────────────────────────
+/**
+ * Structured, machine-readable description of a magic item's mechanical
+ * effect.  Intended to replace the free-text `effect` string over time.
+ *
+ * Engine code does NOT consume these yet — they exist to prepare the data
+ * model for gradual migration.
+ */
+export type EffectDescriptor =
+  | { kind: 'bonus'; target: 'armor_class' | 'attack' | 'damage'; value: number }
+  | { kind: 'stat_bonus'; stat: string; value: number }
+  | { kind: 'grant'; grantType: string; value: unknown }
+  | { kind: 'custom'; id: string; params?: Record<string, unknown> }
+
 // ─── Edition-specific data ───────────────────────────────────────────────────
 /** Per-edition stats for a magic item. */
 export interface MagicItemEditionDatum extends EquipmentEditionDatumBase {
@@ -51,6 +65,8 @@ export interface MagicItemEditionDatum extends EquipmentEditionDatumBase {
   properties?: string[]
   /** Brief mechanical description of the item's effect */
   effect?: string
+  /** Structured effect descriptors (future replacement for `effect`). */
+  effects?: EffectDescriptor[]
 
   // ——— 1e / 2e ———
   /** XP value for identifying / possessing the item */

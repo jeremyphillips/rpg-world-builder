@@ -1,7 +1,107 @@
 import type { Effect } from '../effects.types'
-import type { Equipment, EquipmentLoadout } from '@/shared/types/character.core'
+import type { Equipment, EquipmentLoadout, EquipmentItemInstance } from '@/shared/types/character.core'
 import { equipment as equipmentData } from '@/data'
 import type { ArmorEditionDatum } from '@/data/equipment/armor.types'
+
+// ---------------------------------------------------------------------------
+// Resolved loadout (instance-aware)
+// ---------------------------------------------------------------------------
+
+export type ResolvedSlot = {
+  baseId?: string
+  instanceId?: string
+  enhancementTemplateId?: string
+}
+
+export type ResolvedEquipmentLoadout = {
+  armor: ResolvedSlot
+  shield: ResolvedSlot
+  mainHand: ResolvedSlot
+  offHand: ResolvedSlot
+}
+
+function findInstance(
+  instances: EquipmentItemInstance[] | undefined,
+  instanceId: string | undefined,
+): EquipmentItemInstance | undefined {
+  if (!instanceId || !instances) return undefined
+  return instances.find(i => i.instanceId === instanceId)
+}
+
+function resolveSlot(
+  instanceId: string | undefined,
+  instances: EquipmentItemInstance[] | undefined,
+  legacyBaseId: string | undefined,
+  legacyEnhancementId: string | undefined,
+): ResolvedSlot {
+  const inst = findInstance(instances, instanceId)
+  if (inst) {
+    return {
+      baseId: inst.baseId,
+      instanceId: inst.instanceId,
+      enhancementTemplateId: inst.enhancementTemplateId,
+    }
+  }
+
+  // Legacy path: loadout stores only a base ID (no instanceId).
+  // Match an instance by baseId so enchantments on instances are surfaced.
+  if (legacyBaseId && instances) {
+    const byBase = instances.find(i => i.baseId === legacyBaseId)
+    if (byBase) {
+      return {
+        baseId: byBase.baseId,
+        instanceId: byBase.instanceId,
+        enhancementTemplateId: byBase.enhancementTemplateId ?? legacyEnhancementId,
+      }
+    }
+  }
+
+  return {
+    baseId: legacyBaseId,
+    enhancementTemplateId: legacyEnhancementId,
+  }
+}
+
+/**
+ * Resolve the full equipment loadout into a normalized, instance-aware shape.
+ *
+ * Resolution order per slot:
+ * 1. If loadout has a `<slot>InstanceId`, look up the instance for baseId + enhancementTemplateId
+ * 2. Else fall back to legacy flat fields (`<slot>Id`, `<slot>EnhancementId`)
+ */
+export function resolveEquipmentLoadoutDetailed(
+  combat: { loadout?: EquipmentLoadout; selectedArmorConfigId?: string | null } | undefined,
+  equipment: Equipment | undefined,
+): ResolvedEquipmentLoadout {
+  const loadout = resolveLoadout(combat)
+
+  return {
+    armor: resolveSlot(
+      loadout.armorInstanceId,
+      equipment?.armorInstances,
+      loadout.armorId,
+      loadout.armorEnhancementId,
+    ),
+    shield: resolveSlot(
+      loadout.shieldInstanceId,
+      equipment?.armorInstances,
+      loadout.shieldId,
+      loadout.shieldEnhancementId,
+    ),
+    mainHand: resolveSlot(
+      loadout.mainHandWeaponInstanceId,
+      equipment?.weaponInstances,
+      loadout.mainHandWeaponId,
+      loadout.weaponEnhancementId,
+    ),
+    offHand: resolveSlot(
+      loadout.offHandWeaponInstanceId,
+      equipment?.weaponInstances,
+      loadout.offHandWeaponId,
+      undefined,
+    ),
+  }
+}
 
 function getArmorEditionData(
   armorId: string,
@@ -95,16 +195,25 @@ export function getEquipmentEffects(
 /**
  * Filter candidate equipment effects down to only the active loadout.
  *
- * - Keeps the armor effect matching loadout.armorId (or none if unarmored)
- * - Keeps the shield effect matching loadout.shieldId (or none if no shield)
- * - Keeps all non-armor/shield effects (magic items, etc.)
+ * Accepts either a flat `EquipmentLoadout` or a `ResolvedEquipmentLoadout`.
  */
 export function selectActiveEquipmentEffects(
   candidateEffects: Effect[],
-  loadout: EquipmentLoadout | undefined
+  loadout: EquipmentLoadout | ResolvedEquipmentLoadout | undefined
 ): Effect[] {
-  const activeArmorSource = loadout?.armorId ? `armor:${loadout.armorId}` : null
-  const activeShieldSource = loadout?.shieldId ? `shield:${loadout.shieldId}` : null
+  let armorBaseId: string | undefined
+  let shieldBaseId: string | undefined
+
+  if (loadout && 'armor' in loadout) {
+    armorBaseId = (loadout as ResolvedEquipmentLoadout).armor.baseId
+    shieldBaseId = (loadout as ResolvedEquipmentLoadout).shield.baseId
+  } else {
+    armorBaseId = (loadout as EquipmentLoadout | undefined)?.armorId
+    shieldBaseId = (loadout as EquipmentLoadout | undefined)?.shieldId
+  }
+
+  const activeArmorSource = armorBaseId ? `armor:${armorBaseId}` : null
+  const activeShieldSource = shieldBaseId ? `shield:${shieldBaseId}` : null
 
   return candidateEffects.filter((e) => {
     const source = 'source' in e ? (e as { source?: string }).source : undefined
@@ -137,16 +246,26 @@ export function resolveLoadout(
 /**
  * Resolve the actively wielded weapon IDs.
  *
- * If the loadout has explicit weapon selections, use those.
- * Otherwise fall back to the first owned weapon as main hand
- * (preserves pre-loadout behavior).
+ * Accepts either a flat `EquipmentLoadout` or a `ResolvedEquipmentLoadout`.
+ * Falls back to the first owned weapon as main hand when nothing is selected.
  */
 export function resolveWieldedWeaponIds(
-  loadout: EquipmentLoadout,
+  loadout: EquipmentLoadout | ResolvedEquipmentLoadout,
   ownedWeaponIds: string[]
 ): string[] {
-  const mainHand = loadout.mainHandWeaponId ?? ownedWeaponIds[0]
-  const offHand = loadout.offHandWeaponId
+  let mainHandId: string | undefined
+  let offHandId: string | undefined
+
+  if ('mainHand' in loadout) {
+    mainHandId = (loadout as ResolvedEquipmentLoadout).mainHand.baseId
+    offHandId = (loadout as ResolvedEquipmentLoadout).offHand.baseId
+  } else {
+    mainHandId = (loadout as EquipmentLoadout).mainHandWeaponId
+    offHandId = (loadout as EquipmentLoadout).offHandWeaponId
+  }
+
+  const mainHand = mainHandId ?? ownedWeaponIds[0]
+  const offHand = offHandId
 
   const ids: string[] = []
   if (mainHand) ids.push(mainHand)

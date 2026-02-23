@@ -6,6 +6,7 @@ import { LevelUpWizard } from '@/features/character/levelUp'
 import CancelLevelUpModal from './CancelLevelUpModal'
 import CharacterDeleteModal from './CharacterDeleteModal'
 import CharacterStatusChangeModal from './CharacterStatusChangeModal'
+import EditWealthModal from './EditWealthModal'
 
 type CharacterModalManagerProps = {
   character: CharacterDoc
@@ -39,6 +40,10 @@ type CharacterModalManagerProps = {
   } | null
   onStatusActionClose: () => void
   onStatusActionConfirm: () => Promise<void>
+
+  editWealthOpen: boolean
+  onEditWealthClose: () => void
+  onEditWealthSave: (wealth: { gp: number; sp: number; cp: number }) => Promise<void>
 }
 
 export default function CharacterModalManager({
@@ -64,6 +69,9 @@ export default function CharacterModalManager({
   statusAction,
   onStatusActionClose,
   onStatusActionConfirm,
+  editWealthOpen,
+  onEditWealthClose,
+  onEditWealthSave,
 }: CharacterModalManagerProps) {
   return (
     <>
@@ -117,6 +125,14 @@ export default function CharacterModalManager({
         isAdmin={isAdmin}
         onCancel={onStatusActionClose}
         onConfirm={onStatusActionConfirm}
+      />
+
+      {/* Edit wealth */}
+      <EditWealthModal
+        open={editWealthOpen}
+        onClose={onEditWealthClose}
+        currentWealth={character.wealth ?? {}}
+        onSave={onEditWealthSave}
       />
     </>
   )

@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom'
+import { useAuth } from '@/app/providers/AuthProvider'
 import { Breadcrumbs } from '@/ui/elements'
 import { useBreadcrumbs } from '@/hooks'
 import { CharacterView } from '@/features/character/view'
@@ -11,6 +12,8 @@ import Box from '@mui/material/Box'
 
 export default function NpcRoute() {
   const { npcId } = useParams<{ npcId: string }>()
+  const { user } = useAuth()
+  const isPlatformAdmin = user?.role === 'admin' || user?.role === 'superadmin'
   
   const breadcrumbs = useBreadcrumbs()
 
@@ -61,6 +64,7 @@ export default function NpcRoute() {
         pendingMemberships={[]}
         isOwner={isOwner}
         isAdmin={isAdmin}
+        isPlatformAdmin={isPlatformAdmin}
         ownerName={undefined}
         error={error}
         success={success}

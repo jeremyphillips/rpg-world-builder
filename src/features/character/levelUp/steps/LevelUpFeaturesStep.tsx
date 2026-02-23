@@ -4,7 +4,7 @@
 // Also flags ASI levels (placeholder for future feat/ASI selection).
 
 import { useMemo } from 'react'
-import { getClassProgression } from '@/features/character/domain/progression'
+import { getClassProgression } from '@/features/mechanics/domain/progression'
 import type { LevelUpState } from '../levelUp.types'
 import type { ClassFeature } from '@/data/classes/types'
 

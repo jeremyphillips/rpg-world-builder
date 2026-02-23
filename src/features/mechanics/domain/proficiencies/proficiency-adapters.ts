@@ -1,5 +1,5 @@
 import type { Effect, GrantEffect, ProficiencyGrantValue } from '../effects/effects.types'
-import { resolveEquipmentEdition } from '@/features/equipment/domain/editionResolution'
+import { resolveEquipmentEdition } from '@/features/equipment/domain'
 
 // ---------------------------------------------------------------------------
 // Types

@@ -114,6 +114,7 @@ export default function CharacterView({
     newStatus: 'inactive' | 'deceased'
   } | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [editWealthOpen, setEditWealthOpen] = useState(false)
 
   // ── Single-step edit via builder ────────────────────────────────────
   const [editingStep, setEditingStep] = useState<StepId | null>(null)
@@ -122,6 +123,7 @@ export default function CharacterView({
   const STEP_FIELDS: Partial<Record<StepId, (s: typeof builderState) => Record<string, unknown>>> = {
     alignment: (s) => ({ alignment: s.alignment }),
     equipment: (s) => ({ equipment: s.equipment, wealth: s.wealth }),
+    magicItems: (s) => ({ equipment: s.equipment }),
     proficiencies: (s) => ({ proficiencies: s.proficiencies }),
   }
 
@@ -204,6 +206,14 @@ export default function CharacterView({
     }
   }
 
+  const onEditWealthSave = async (wealth: { gp: number; sp: number; cp: number }) => {
+    const currentBaseGp = character.wealth?.baseGp ?? 0
+    const newBaseGp = Math.max(currentBaseGp, wealth.gp)
+    await actions.saveCharacter({
+      wealth: { ...character.wealth, gp: wealth.gp, sp: wealth.sp, cp: wealth.cp, baseGp: newBaseGp },
+    })
+  }
+
   return (
     <Box sx={{ maxWidth: 920, mx: 'auto' }}>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -273,6 +283,7 @@ export default function CharacterView({
             edition={character.edition}
             onEdit={canEdit ? () => openStepEditor('proficiencies') : undefined}
             editDisabled={!profSlots.hasAvailableSlots || profSlots.allFilled}
+            onEditWealth={canEditAll ? () => setEditWealthOpen(true) : undefined}
           />
         </Grid>
       </Grid>
@@ -291,6 +302,7 @@ export default function CharacterView({
             magicItemBudget={magicItemBudget}
             permanentCount={permanentMagicCount}
             consumableCount={consumableMagicCount}
+            onEdit={canEdit ? () => openStepEditor('magicItems') : undefined}
           />
         </Grid>
       </Grid>
@@ -355,6 +367,9 @@ export default function CharacterView({
         statusAction={statusAction}
         onStatusActionClose={() => setStatusAction(null)}
         onStatusActionConfirm={onStatusChange}
+        editWealthOpen={editWealthOpen}
+        onEditWealthClose={() => setEditWealthOpen(false)}
+        onEditWealthSave={onEditWealthSave}
       />
 
       {/* Single-step edit modal — reuses CharacterBuilderWizard in edit mode */}

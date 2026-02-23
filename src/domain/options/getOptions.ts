@@ -1,7 +1,7 @@
 import { editions, settings } from '@/data'
 import type { OverrideConfig } from '@/data'
 import type { EditionId, SettingId } from '@/data/types'
-import { resolveClassId } from '@/features/character/domain/reference/classAliases'
+import { resolveClassId } from '@/features/mechanics/domain/progression/reference/classAliases'
 
 type OptionType = 'races' | 'classes'
 
