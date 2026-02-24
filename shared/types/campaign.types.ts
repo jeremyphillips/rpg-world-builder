@@ -38,11 +38,11 @@ export interface Campaign extends CampaignBase {
   membership: {
     adminId: string
   }
+  rulesetId?: string
+  rulesetVersion?: number
   configuration?: CampaignConfiguration
   createdAt: Date
   updatedAt: Date
-  rulesetId: string;          // points at campaign’s rules doc
-  rulesetVersion?: number;    // optional, for safe migrations
 }
 
 export interface CampaignSummary extends CampaignBase {
@@ -57,6 +57,3 @@ export interface PendingMembership {
   campaignName: string
   campaignMemberId: string
 }
-
-
-

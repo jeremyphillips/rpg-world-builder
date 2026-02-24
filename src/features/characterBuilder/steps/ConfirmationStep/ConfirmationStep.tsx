@@ -1,12 +1,22 @@
 import { useCharacterBuilder } from '../../context'
-import { editions, settings, races, classes } from '@/data'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import { races } from '@/data'
 import { standardAlignments, fourEAlignments, basicAlignments } from '@/data/alignments'
-import { spells as spellCatalog } from '@/data/classes/spells'
 import { getNameById } from '@/domain/lookups'
-import { getClassProgression } from '@/features/mechanics/domain/progression'
 import type { ClassProgression } from '@/data/classes/types'
-import type { EditionProficiency } from '@/data/types'
 import type { StepId } from '../../types'
+import {
+  FIVE_E_STRENGTH_SKILLS,
+  FIVE_E_DEXTERITY_SKILLS,
+  FIVE_E_INTELLIGENCE_SKILLS,
+  FIVE_E_WISDOM_SKILLS,
+  FIVE_E_CHARISMA_SKILLS,
+  TWOE_GENERAL_PROFICIENCY_SKILLS,
+  TWOE_PRIEST_GROUP_PROFICIENCY_SKILLS,
+  TWOE_WARRIOR_GROUP_PROFICIENCY_SKILLS,
+  TWOE_ROGUE_GROUP_PROFICIENCY_SKILLS,
+  TWOE_WIZARD_GROUP_PROFICIENCY_SKILLS,
+} from '@/data/editions/proficiencySkillsByEdition'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -21,41 +31,34 @@ import EditIcon from '@mui/icons-material/Edit'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 
 // ---------------------------------------------------------------------------
+// Skill name lookup
+// ---------------------------------------------------------------------------
+
+const SKILL_NAME_MAP: Record<string, string> = Object.fromEntries(
+  [
+    FIVE_E_STRENGTH_SKILLS,
+    FIVE_E_DEXTERITY_SKILLS,
+    FIVE_E_INTELLIGENCE_SKILLS,
+    FIVE_E_WISDOM_SKILLS,
+    FIVE_E_CHARISMA_SKILLS,
+    TWOE_GENERAL_PROFICIENCY_SKILLS,
+    TWOE_PRIEST_GROUP_PROFICIENCY_SKILLS,
+    TWOE_WARRIOR_GROUP_PROFICIENCY_SKILLS,
+    TWOE_ROGUE_GROUP_PROFICIENCY_SKILLS,
+    TWOE_WIZARD_GROUP_PROFICIENCY_SKILLS,
+  ].flatMap(group =>
+    Object.entries(group).map(([id, def]) => [id, def.name])
+  )
+)
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function getAlignmentName(alignmentId: string | undefined): string {
   if (!alignmentId) return '—'
-
   const allAlignments = [...standardAlignments, ...fourEAlignments, ...basicAlignments]
-  const found = allAlignments.find((a) => a.id === alignmentId)
-  return found?.name ?? alignmentId
-}
-
-function getClassLine(
-  cls: { classId?: string; classDefinitionId?: string; level: number },
-  allClasses: typeof classes,
-  isPrimary: boolean,
-  isMulticlass: boolean,
-  edition?: string,
-): string {
-  const classData = allClasses.find((c) => c.id === cls.classId)
-  const name = (edition && classData?.displayNameByEdition?.[edition]) ?? classData?.name ?? cls.classId ?? 'Unknown'
-
-  let subclassName = ''
-  if (cls.classDefinitionId && classData) {
-    for (const def of classData.definitions) {
-      const opt = def.options.find((o) => o.id === cls.classDefinitionId)
-      if (opt) { subclassName = opt.name; break }
-    }
-  }
-
-  let line = name
-  if (subclassName) line += `, ${subclassName}`
-  line += ` (Lvl ${cls.level})`
-  if (isPrimary && isMulticlass) line += ' (primary)'
-
-  return line
+  return allAlignments.find(a => a.id === alignmentId)?.name ?? alignmentId
 }
 
 function formatHitDie(prog: ClassProgression): string {
@@ -123,41 +126,47 @@ function SummaryCard({ label, stepId, value, onEdit, filled = true }: SummaryCar
 
 const ConfirmationStep = () => {
   const { state, goToStep, setName } = useCharacterBuilder()
+  const { catalog } = useCampaignRules()
 
-  const editionName = getNameById(editions as unknown as { id: string; name: string }[], state.edition) ?? state.edition ?? '—'
-  const settingName = getNameById(settings as unknown as { id: string; name: string }[], state.setting) ?? state.setting ?? 'None'
   const raceName = getNameById(races as unknown as { id: string; name: string }[], state.race) ?? state.race ?? '—'
   const alignmentName = getAlignmentName(state.alignment)
 
-  const filledClasses = state.classes.filter((cls) => cls.classId)
+  const filledClasses = state.classes.filter(cls => cls.classId)
   const isMulticlass = filledClasses.length > 1
-  const classLines = filledClasses.map((cls, i) =>
-    getClassLine(cls, classes, i === 0, isMulticlass, state.edition),
-  )
+
+  const classLines = filledClasses.map((cls, i) => {
+    const classDef = cls.classId ? catalog.classesById[cls.classId] : undefined
+    const name = classDef?.name ?? cls.classId ?? 'Unknown'
+
+    let subclassName = ''
+    if (cls.classDefinitionId && classDef) {
+      const opt = classDef.definitions?.options?.find(o => o.id === cls.classDefinitionId)
+      if (opt) subclassName = opt.name
+    }
+
+    let line = name
+    if (subclassName) line += `, ${subclassName}`
+    line += ` (Lvl ${cls.level})`
+    if (i === 0 && isMulticlass) line += ' (primary)'
+    return line
+  })
 
   const equipmentCount =
     (state.equipment?.weapons?.length ?? 0) +
     (state.equipment?.armor?.length ?? 0) +
     (state.equipment?.gear?.length ?? 0)
 
-  // Resolve selected skill IDs to display names via edition catalogue
+  // Resolve skill IDs to display names
   const selectedSkillIds = state.proficiencies?.skills ?? []
-  const editionObj = editions.find(e => e.id === state.edition)
-  const editionSkillMap: Record<string, EditionProficiency> =
-    (editionObj?.proficiencies as any)?.[state.edition ?? '']?.skills ?? {}
-  const resolvedSkillNames = selectedSkillIds.map(
-    id => editionSkillMap[id]?.name ?? id,
-  )
+  const resolvedSkillNames = selectedSkillIds.map(id => SKILL_NAME_MAP[id] ?? id)
   const totalProfs = selectedSkillIds.length
 
-  // Resolve selected spell IDs to name + level for the summary card
-  const selectedSpells = state.spells ?? []
-  const resolvedSpells = selectedSpells
-    .map((id) => {
-      const spell = spellCatalog.find((s) => s.id === id)
-      if (!spell) return null
-      const entry = spell.editions.find((e) => e.edition === state.edition)
-      return entry ? { name: spell.name, level: entry.level } : null
+  // Resolve spell IDs to name + level from catalog
+  const selectedSpellIds = state.spells ?? []
+  const resolvedSpells = selectedSpellIds
+    .map(id => {
+      const spell = catalog.spellsCoreById[id]
+      return spell ? { name: spell.name, level: spell.level } : null
     })
     .filter(Boolean) as { name: string; level: number }[]
   const spellsByLevel = resolvedSpells.reduce<Map<number, string[]>>((map, s) => {
@@ -182,49 +191,17 @@ const ConfirmationStep = () => {
 
       <Stack spacing={1.5}>
         {/* Name */}
-
         <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: '0.08em' }}>
           Character Name
         </Typography>
         <TextField
           fullWidth
           size="small"
-          placeholder="Optional — will be generate"
+          placeholder="Optional — will be generated"
           value={state.name ?? ''}
           onChange={(e) => setName(e.target.value)}
           sx={{ mt: 0.5 }}
         />
-  
-
-        {/* Edition */}
-        {!state.lockedFields?.has('edition') && (
-          <SummaryCard
-            label="Edition"
-            stepId="edition"
-            filled={!!state.edition}
-            onEdit={goToStep}
-            value={
-              <Typography variant="body1" fontWeight={600}>
-                {editionName}
-              </Typography>
-            }
-          />
-        )}
-
-        {/* Setting */}
-        {!state.lockedFields?.has('setting') && (
-          <SummaryCard
-            label="Setting"
-            stepId="setting"
-            filled={!!state.setting}
-            onEdit={goToStep}
-            value={
-              <Typography variant="body1" fontWeight={600}>
-                {settingName}
-              </Typography>
-            }
-          />
-        )}
 
         {/* Race */}
         {!state.lockedFields?.has('race') && (
@@ -269,7 +246,8 @@ const ConfirmationStep = () => {
             classLines.length > 0 ? (
               <Box>
                 {filledClasses.map((cls, i) => {
-                  const prog = getClassProgression(cls.classId, state.edition)
+                  const classDef = cls.classId ? catalog.classesById[cls.classId] : undefined
+                  const prog = classDef?.progression
                   const spellLabel = prog ? formatSpellcasting(prog) : null
                   return (
                     <Box key={i} sx={{ mb: i < filledClasses.length - 1 ? 1 : 0 }}>
@@ -287,7 +265,7 @@ const ConfirmationStep = () => {
                           )}
                           {prog.savingThrows && prog.savingThrows.length > 0 && (
                             <Chip
-                              label={`Saves: ${prog.savingThrows.map((s) => s.toUpperCase()).join(', ')}`}
+                              label={`Saves: ${prog.savingThrows.map(s => s.toUpperCase()).join(', ')}`}
                               size="small"
                               variant="outlined"
                             />
@@ -328,7 +306,7 @@ const ConfirmationStep = () => {
           value={
             totalProfs > 0 ? (
               <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                {resolvedSkillNames.map((name) => (
+                {resolvedSkillNames.map(name => (
                   <Chip key={name} label={name} size="small" variant="outlined" />
                 ))}
               </Stack>
@@ -358,7 +336,7 @@ const ConfirmationStep = () => {
                         {level === 0 ? 'Cantrips' : `Level ${level}`}
                       </Typography>
                       <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.25 }}>
-                        {names.sort().map((name) => (
+                        {names.sort().map(name => (
                           <Chip key={name} label={name} size="small" variant="outlined" />
                         ))}
                       </Stack>

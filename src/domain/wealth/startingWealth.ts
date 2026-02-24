@@ -1,5 +1,5 @@
-import type { EditionId } from '@/data'
-import type { StartingWealth } from '@/data/classes/types'
+// import type { StartingWealth } from '@/data/classes/types'
+import type { WealthTier } from '@/data/classes/types'
 
 /**
  * Unified wealth calculation for all editions.
@@ -11,12 +11,12 @@ import type { StartingWealth } from '@/data/classes/types'
  */
 export const calculateWealth = (
   totalLevel: number,
-  _edition: EditionId,
-  startingWealth: StartingWealth
+  startingWealthTiers: WealthTier[]
+  // startingWealth: StartingWealth
 ) => {
   // 1. Tier-based: find matching tier
-  if (startingWealth.tiers?.length) {
-    const tier = startingWealth.tiers.find(
+  if (startingWealthTiers?.length) {
+    const tier = startingWealthTiers.find(
       t => totalLevel >= t.levelRange[0] && totalLevel <= t.levelRange[1]
     )
     if (tier) {
@@ -24,12 +24,13 @@ export const calculateWealth = (
     }
   }
 
+  // TODO: Add formula-based calculation
   // 2. Formula-based: avgGold + goldPerLevel × (level − 1)
-  if (startingWealth.avgGold != null) {
-    const gp = startingWealth.avgGold
-      + (startingWealth.goldPerLevel ?? 0) * Math.max(0, totalLevel - 1)
-    return { gp, sp: 0, cp: 0 }
-  }
+  // if (startingWealth.avgGold != null) {
+  //   const gp = startingWealth.avgGold
+  //     + (startingWealth.goldPerLevel ?? 0) * Math.max(0, totalLevel - 1)
+  //   return { gp, sp: 0, cp: 0 }
+  // }
 
   return null
 }

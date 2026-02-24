@@ -15,7 +15,7 @@ export {
 export { getSubclassUnlockLevel } from './subclass/subclassUnlock'
 
 // XP
-export { getXpByLevelAndEdition, getLevelForXp } from './xp/xp'
+export { getXpForLevel, getXpByLevelAndEdition, getLevelForXp } from './xp/xp'
 
 // Hit points
 export {

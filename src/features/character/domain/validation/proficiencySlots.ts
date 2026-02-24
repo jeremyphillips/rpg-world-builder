@@ -1,5 +1,5 @@
-import { classes } from '@/data'
-import type { ClassProficiencyEntry, ClassProficienciesByEdition } from '@/data/classes/types'
+import { systemCatalog } from '@/features/mechanics/domain/core/rules/systemCatalog'
+import type { ClassProficiencySkill, CharacterClass } from '@/data/classes/types'
 import type { CharacterClassInfo, CharacterProficiencies } from '@/shared/types/character.core'
 
 export interface ProficiencySlotSummary {
@@ -15,32 +15,26 @@ export interface ProficiencySlotSummary {
   hasAvailableSlots: boolean
 }
 
-/**
- * Extract skill choice entries for a class + edition from the new proficiency data.
- */
 function getClassSkillChoices(
   classId: string | undefined,
-  edition: string | undefined,
-): ClassProficiencyEntry[] {
-  if (!classId || !edition) return []
-  const cls = classes.find(c => c.id === classId)
-  if (!cls) return []
-  const profs = cls.proficiencies
-  if (Array.isArray(profs)) return []
-  const edProfs = (profs as ClassProficienciesByEdition)[edition]
-  if (!edProfs?.skills) return []
-  const entries = Array.isArray(edProfs.skills) ? edProfs.skills : [edProfs.skills]
-  return entries.filter(e => e.type === 'choice')
+  classesById: Record<string, CharacterClass>,
+): ClassProficiencySkill[] {
+  if (!classId) return []
+  const cls = classesById[classId]
+  if (!cls?.proficiencies?.skills) return []
+  const skill = cls.proficiencies.skills
+  return skill.type === 'choice' ? [skill] : []
 }
 
 /**
- * Aggregate all skill choice entries for a character's class list + edition.
+ * Aggregate all skill choice entries for a character's class list.
+ * Falls back to the full system catalog when no classesById is supplied.
  */
 export function getAllSkillChoices(
   characterClasses: CharacterClassInfo[],
-  edition: string | undefined,
-): ClassProficiencyEntry[] {
-  return characterClasses.flatMap(c => getClassSkillChoices(c.classId, edition))
+  classesById: Record<string, CharacterClass> = systemCatalog.classesById,
+): ClassProficiencySkill[] {
+  return characterClasses.flatMap(c => getClassSkillChoices(c.classId, classesById))
 }
 
 /**
@@ -48,11 +42,11 @@ export function getAllSkillChoices(
  */
 export function getProficiencySlotSummary(
   characterClasses: CharacterClassInfo[],
-  edition: string | undefined,
   proficiencies: CharacterProficiencies | undefined,
+  classesById: Record<string, CharacterClass> = systemCatalog.classesById,
 ): ProficiencySlotSummary {
-  const choices = getAllSkillChoices(characterClasses, edition)
-  const totalSlots = choices.reduce((sum, e) => sum + (e.count ?? e.slots ?? 0), 0)
+  const choices = getAllSkillChoices(characterClasses, classesById)
+  const totalSlots = choices.reduce((sum, e) => sum + (e.choose ?? 0), 0)
   const filled = proficiencies?.skills?.length ?? 0
   const remaining = Math.max(0, totalSlots - filled)
 

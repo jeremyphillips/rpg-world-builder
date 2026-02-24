@@ -73,19 +73,16 @@ export function deriveEquipmentProficiency(
  *  3. Item's id appears in the explicit items list
  */
 export function isItemProficient(
-  item: { id: string; editionData?: { edition: string; category?: string }[] },
-  edition: string,
+  item: { id: string },
   proficiency: EquipmentProficiency
 ): boolean {
-  if (!Array.isArray(item.editionData)) return false
-
-  const effectiveEdition = resolveEquipmentEdition(edition)
-  const editionEntry = item.editionData.find((e) => e.edition === effectiveEdition)
-  if (!editionEntry) return false
+  //const effectiveEdition = resolveEquipmentEdition(edition)
+  // const editionEntry = item.editionData.find((e) => e.edition === effectiveEdition)
+  // if (!editionEntry) return false
 
   const { categories, items } = proficiency
   if (categories.includes('all') || categories.includes('allArmor')) return true
-  if (categories.length > 0 && editionEntry.category && categories.includes(editionEntry.category)) return true
+  if (categories.length > 0 ) return true
   if (items.includes(item.id)) return true
 
   return false
@@ -103,11 +100,10 @@ export function isItemProficient(
  *       attunement limits, edition restrictions, etc.
  */
 export function evaluateEquipmentEligibility(
-  item: { id: string; editionData?: { edition: string; category?: string }[] },
-  edition: string,
+  item: { id: string },
   proficiency: EquipmentProficiency
 ): EquipmentEligibility {
-  if (isItemProficient(item, edition, proficiency)) {
+  if (isItemProficient(item, proficiency)) {
     return { allowed: true, reasons: [] }
   }
   return { allowed: false, reasons: ['Not proficient'] }

@@ -300,8 +300,6 @@ export const fighter = {
       hitDie: 10,
       attackProgression: 'good',
       primaryAbilities: ['str', 'con'],
-      armorProficiency: ['all'],
-      weaponProficiency: ['all'],
       savingThrows: ['str', 'con'],
       spellcasting: 'none',
       extraAttackLevel: 5,

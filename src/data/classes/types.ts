@@ -25,7 +25,7 @@ export interface EquipmentRequirement {
 }
 
 export interface ClassRequirement {
-  edition: EditionId
+  //edition: EditionId
   allowedRaces: 'all' | string[]
   allowedAlignments: 'any' | AlignmentId[]
   levelCaps?: Record<string, number | 'unlimited'>
@@ -35,12 +35,12 @@ export interface ClassRequirement {
     note: string
     options: AbilityScores[]
   }
-  equipment: {
-    armor: EquipmentRequirement
-    weapons: EquipmentRequirement
-    tools?: EquipmentRequirement
-    notes?: Note[]
-  }
+  // equipment: {
+  //   armor: EquipmentRequirement
+  //   weapons: EquipmentRequirement
+  //   tools?: EquipmentRequirement
+  //   notes?: Note[]
+  // }
   startingWealth?: StartingWealth
   generationNotes?: Note[]
 }
@@ -86,7 +86,7 @@ export interface SubclassOption {
 }
 
 export interface ClassDefinition {
-  edition: EditionId | string
+  // edition: EditionId | string
   id?: string
   name: string
   selectionLevel?: number | null
@@ -128,24 +128,36 @@ export interface ProficiencyOption {
 //   // }
 // }
 
-export interface ClassProficiencyEntry {
-  type?: 'choice' | 'fixed'
-  level?: number
-  count?: number
-  slots?: number
-  from?: string[]
-  categories?: string[]
-  items?: string[]
+export interface ClassProficiencySkill {
+  type: 'choice' | 'fixed'
+  level: number
+  choose: number
+  from: string[]
   // canSpecialize?: boolean
 }
 
-export type EditionClassProficiencies = {
-  skills?: ClassProficiencyEntry[]
-  weapons?: ClassProficiencyEntry[]
-  armor?: ClassProficiencyEntry[]
+export interface ClassProficiencyWeapon {
+  type: 'fixed' | 'choice'
+  level: number
+  categories?: string[]
+  items?: string[]
 }
 
-export type ClassProficienciesByEdition = Partial<Record<EditionId | string, EditionClassProficiencies>>
+export interface ClassProficiencyArmor {
+  type: 'fixed' | 'choice'
+  level: number
+  categories?: string[]
+  items?: string[]
+  disallowedMaterials?: Material[]
+}
+
+// export type EditionClassProficiencies = {
+//   skills?: ClassProficiencyEntry[]
+//   weapons?: ClassProficiencyEntry[]
+//   armor?: ClassProficiencyEntry[]
+// }
+
+// export type ClassProficienciesByEdition = Partial<Record<EditionId | string, EditionClassProficiencies>>
 
 // ---------------------------------------------------------------------------
 // Spell Progression
@@ -208,7 +220,7 @@ export interface ClassFeature {
 }
 
 export interface ClassProgression {
-  edition: EditionId | string
+  // edition: EditionId | string
   hitDie: number                              // d6=6, d8=8, d10=10, d12=12; 4e: 0 (use hpPerLevel)
   hpPerLevel?: number                         // 4e flat HP per level; other editions: derived from hitDie
   attackProgression: AttackProgression         // normalized: good/average/poor
@@ -264,13 +276,18 @@ export interface ClassProgression {
 export interface CharacterClass {
   id: string
   name: string
+  description?: string
   parentId?: string
   rolesByEdition?: Record<string, string>
   displayNameByEdition?: Partial<Record<string, string>>  // edition-specific display name (e.g. wizard -> "Mage" in 2e)
-  definitions: ClassDefinition[]
-  requirements: ClassRequirement[]
-  proficiencies: ClassProficiencyEntry[] | ClassProficienciesByEdition
-  progression?: ClassProgression[],
+  definitions: ClassDefinition
+  requirements: ClassRequirement
+  proficiencies: {
+    skills: ClassProficiencySkill
+    weapons: ClassProficiencyWeapon
+    armor: ClassProficiencyArmor
+  }
+  progression?: ClassProgression,
   generation?: {
     abilityPriority: (keyof AbilityScores)[]
   }

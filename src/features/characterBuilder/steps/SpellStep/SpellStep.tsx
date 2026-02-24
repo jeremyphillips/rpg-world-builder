@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
-import { classes } from '@/data'
-import type { SpellWithEntry } from '@/features/mechanics/domain/spells'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import type { Spell } from '@/data/spellsCore'
 import { SpellHorizontalCard } from '@/domain/spells/components'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
 import {
@@ -31,13 +31,18 @@ function levelHeading(level: number): string {
 
 const SpellStep = () => {
   const { state, setSpells, stepNotices, dismissNotice } = useCharacterBuilder()
-  const { classes: selectedClasses, edition, spells: selectedSpells = [], step } = state
+  const { catalog } = useCampaignRules()
+  const { classes: selectedClasses, spells: selectedSpells = [], step } = state
 
   const notices = stepNotices.get('spells') ?? []
 
   const model = useMemo(
-    () => buildSpellSelectionModel({ edition, classes: selectedClasses, spells: selectedSpells }),
-    [edition, selectedClasses, selectedSpells]
+    () => buildSpellSelectionModel(
+      { classes: selectedClasses, spells: selectedSpells },
+      catalog.classesById,
+      catalog.spellsCoreById,
+    ),
+    [selectedClasses, selectedSpells, catalog.classesById, catalog.spellsCoreById]
   )
 
   const { availableByLevel, limits, selectedPerLevel, totalSelectedLeveled } = model
@@ -56,7 +61,7 @@ const SpellStep = () => {
       <div>
         <h2>{step.name}</h2>
         <Typography variant="body2" color="text.secondary">
-          No spells available for the selected class and edition.
+          No spells available for the selected class.
         </Typography>
       </div>
     )
@@ -65,8 +70,8 @@ const SpellStep = () => {
   const classNames = selectedClasses
     .filter((c: { classId?: string }) => c.classId)
     .map((c: { classId?: string }) => {
-      const cls = classes.find(cl => cl.id === c.classId)
-      return (edition && cls?.displayNameByEdition?.[edition]) ?? cls?.name ?? c.classId
+      const cls = c.classId ? catalog.classesById[c.classId] : undefined
+      return cls?.name ?? c.classId
     })
     .join(' / ')
 
@@ -115,7 +120,7 @@ const SpellStep = () => {
           ? (perLevelMax.get(0) ?? 0) > 0
           : level <= maxSpellLevel
         )
-        .map(([level, spells]: [number, SpellWithEntry[]]) => {
+        .map(([level, spells]: [number, Spell[]]) => {
         const levelFull = isSpellLevelFull(model, level)
 
         return (
@@ -130,14 +135,13 @@ const SpellStep = () => {
 
             <Stack spacing={1}>
               {spells
-                .sort((a, b) => a.spell.name.localeCompare(b.spell.name))
-                .map(({ spell, entry }) => {
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((spell) => {
                   const isSelected = selectedSpells.includes(spell.id)
                   return (
                     <SpellHorizontalCard
                       key={spell.id}
                       spell={spell}
-                      editionEntry={entry}
                       selected={isSelected}
                       disabled={levelFull && !isSelected}
                       onToggle={() => toggleSpell(spell.id, level)}

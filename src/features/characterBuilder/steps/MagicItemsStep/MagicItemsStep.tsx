@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { ButtonGroup } from '@/ui/elements'
 import { ConfirmModal } from '@/ui/modals'
 import FormControl from '@mui/material/FormControl'
@@ -9,20 +10,9 @@ import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import type { EditionId } from '@/data'
-import { equipment as equipmentCatalog } from '@/data'
-import type { MagicItemSlot } from '@/data/equipment/magicItems.types'
-import type { ArmorEditionDatum } from '@/data/equipment/armor.types'
+import type { MagicItemSlot, MagicItem } from '@/data/equipmentCore/magicItemsCore'
 import type { EquipmentItemInstance } from '@/shared/types/character.core'
 import type { EnchantableSlot } from '@/data/equipment/enchantments/enchantmentTemplates.types'
-import {
-  getAvailableMagicItems,
-  getMagicItemBudget,
-  resolveEquipmentEdition,
-  getAvailableEnhancementTemplates,
-  calculateEquipmentCost,
-  resolveEnchantmentTemplateDatum,
-} from '@/features/equipment/domain'
 
 // ---------------------------------------------------------------------------
 // Enhancement types & constants
@@ -108,75 +98,6 @@ function parseGpCost(costStr: string | undefined): number {
   }
 }
 
-function isShieldBaseId(baseId: string, equipEdition: string): boolean {
-  const item = equipmentCatalog.armor.find(a => a.id === baseId)
-  if (!item) return false
-  const datum = item.editionData.find(d => d.edition === equipEdition) as
-    | ArmorEditionDatum
-    | undefined
-  return (
-    datum?.category === 'shields' ||
-    (!datum?.category && item.name.toLowerCase().includes('shield'))
-  )
-}
-
-function enhancementCostGp(templateId: string | undefined, edition: string): number {
-  if (!templateId) return 0
-  const template = equipmentCatalog.enchantments.enhancementTemplates.find(
-    t => t.id === templateId,
-  )
-  if (!template) return 0
-  const datum = resolveEnchantmentTemplateDatum(template, edition)
-  return parseGpCost(datum?.cost)
-}
-
-function baseItemName(baseId: string, kind: 'weapon' | 'armor'): string {
-  if (kind === 'weapon') {
-    return equipmentCatalog.weapons.find(w => w.id === baseId)?.name ?? baseId
-  }
-  return equipmentCatalog.armor.find(a => a.id === baseId)?.name ?? baseId
-}
-
-function instanceLabel(inst: EquipmentItemInstance, kind: 'weapon' | 'armor'): string {
-  const name = baseItemName(inst.baseId, kind)
-  if (!inst.enhancementTemplateId) return name
-  const t = equipmentCatalog.enchantments.enhancementTemplates.find(
-    x => x.id === inst.enhancementTemplateId,
-  )
-  if (!t) return name
-  const short = t.name.replace(' Enhancement', '')
-  return `${name} (${short})`
-}
-
-function sumEnhancementCost(instances: EquipmentItemInstance[], edition: string): number {
-  return instances.reduce(
-    (sum, i) => sum + enhancementCostGp(i.enhancementTemplateId, edition),
-    0,
-  )
-}
-
-/** Returns template IDs that would push the build over budget for a given instance. */
-function computeDisabledIds(
-  templateIds: string[],
-  currentTemplateId: string | undefined,
-  totalEnhCost: number,
-  mundaneCost: number,
-  baseGp: number,
-  edition: string,
-): Set<string> {
-  const disabled = new Set<string>()
-  const currentCost = enhancementCostGp(currentTemplateId, edition)
-  const costWithoutThis = totalEnhCost - currentCost
-  for (const tid of templateIds) {
-    if (tid === currentTemplateId) continue
-    const optCost = enhancementCostGp(tid, edition)
-    if (mundaneCost + costWithoutThis + optCost > baseGp) {
-      disabled.add(tid)
-    }
-  }
-  return disabled
-}
-
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -196,18 +117,49 @@ const MagicItemsStep = () => {
     addArmorInstance,
   } = useCharacterBuilder()
 
+  const { catalog } = useCampaignRules()
+
   const {
     step,
-    edition,
     equipment: selectedEquipment,
-    totalLevel,
     wealth,
   } = state
 
-  if (!edition) return null
+  // =========================================================================
+  // Catalog lookups
+  // =========================================================================
 
-  const characterLevel = totalLevel ?? 0
-  const equipEdition = resolveEquipmentEdition(edition)
+  // Catalog armor type hasn't been migrated yet; runtime data has `category`
+  const isShieldBaseId = (baseId: string): boolean => {
+    const item = catalog.armorById[baseId] as any
+    return item?.category === 'shields'
+  }
+
+  const getBaseItemName = (baseId: string, kind: 'weapon' | 'armor'): string => {
+    if (kind === 'weapon') return catalog.weaponsById[baseId]?.name ?? baseId
+    return catalog.armorById[baseId]?.name ?? baseId
+  }
+
+  const getInstanceLabel = (inst: EquipmentItemInstance, kind: 'weapon' | 'armor'): string => {
+    const name = getBaseItemName(inst.baseId, kind)
+    if (!inst.enhancementTemplateId) return name
+    const t = catalog.enhancementTemplatesById[inst.enhancementTemplateId]
+    if (!t) return name
+    const short = t.name.replace(' Enhancement', '')
+    return `${name} (${short})`
+  }
+
+  // Enhancement cost: use the first editionData entry as the canonical cost
+  const getEnhancementCostGp = (templateId: string | undefined): number => {
+    if (!templateId) return 0
+    const t = catalog.enhancementTemplatesById[templateId]
+    if (!t) return 0
+    const datum = t.editionData?.[0]
+    return parseGpCost(datum?.cost)
+  }
+
+  const sumEnhancementCost = (instances: EquipmentItemInstance[]): number =>
+    instances.reduce((sum, i) => sum + getEnhancementCostGp(i.enhancementTemplateId), 0)
 
   // =========================================================================
   // Enhancement data
@@ -215,12 +167,8 @@ const MagicItemsStep = () => {
 
   const weaponInstances = selectedEquipment?.weaponInstances ?? []
   const allArmorInstances = selectedEquipment?.armorInstances ?? []
-  const armorInstances = allArmorInstances.filter(
-    i => !isShieldBaseId(i.baseId, equipEdition),
-  )
-  const shieldInstances = allArmorInstances.filter(i =>
-    isShieldBaseId(i.baseId, equipEdition),
-  )
+  const armorInstances = allArmorInstances.filter(i => !isShieldBaseId(i.baseId))
+  const shieldInstances = allArmorInstances.filter(i => isShieldBaseId(i.baseId))
 
   const instancesForGroup: Record<EnhancementGroup, EquipmentItemInstance[]> = {
     weapons: weaponInstances,
@@ -232,7 +180,7 @@ const MagicItemsStep = () => {
     activeEnhGroup === 'weapons' ? 'weapon' : 'armor'
 
   const slot = GROUP_TO_SLOT[activeEnhGroup]
-  const availableTemplates = getAvailableEnhancementTemplates(edition, characterLevel).filter(
+  const availableTemplates = Object.values(catalog.enhancementTemplatesById).filter(
     t => t.appliesTo.includes(slot),
   )
   const templateIds = availableTemplates.map(t => t.id)
@@ -240,95 +188,96 @@ const MagicItemsStep = () => {
   // Budget
   const baseGp = wealth?.baseGp ?? 0
 
-  const mundaneCostGp = useMemo(
-    () =>
-      calculateEquipmentCost(
-        selectedEquipment?.weapons ?? [],
-        selectedEquipment?.armor ?? [],
-        selectedEquipment?.gear ?? [],
-        equipmentCatalog.weapons,
-        equipmentCatalog.armor,
-        equipmentCatalog.gear,
-        edition,
-      ),
-    [selectedEquipment?.weapons, selectedEquipment?.armor, selectedEquipment?.gear, edition],
-  )
+  const mundaneCostGp = useMemo(() => {
+    const weapons = selectedEquipment?.weapons ?? []
+    const armor = selectedEquipment?.armor ?? []
+    const gear = selectedEquipment?.gear ?? []
 
-  const totalEnhCost = sumEnhancementCost(
-    [...weaponInstances, ...allArmorInstances],
-    edition,
-  )
+    const costOf = (item: any) => parseGpCost(item?.cost)
+    const wCost = weapons.reduce((sum, id) => sum + costOf(catalog.weaponsById[id]), 0)
+    const aCost = armor.reduce((sum, id) => sum + costOf(catalog.armorById[id]), 0)
+    const gCost = gear.reduce((sum, id) => sum + costOf(catalog.gearById[id]), 0)
+    return wCost + aCost + gCost
+  }, [selectedEquipment?.weapons, selectedEquipment?.armor, selectedEquipment?.gear, catalog])
+
+  const totalEnhCost = sumEnhancementCost([...weaponInstances, ...allArmorInstances])
   const remainingGp = baseGp - mundaneCostGp - totalEnhCost
   const overBudget = remainingGp < 0
 
   // Add-copy options
   const ownedWeaponBaseIds = [...new Set(selectedEquipment?.weapons ?? [])]
   const ownedArmorBaseIds = [
-    ...new Set((selectedEquipment?.armor ?? []).filter(id => !isShieldBaseId(id, equipEdition))),
+    ...new Set((selectedEquipment?.armor ?? []).filter(id => !isShieldBaseId(id))),
   ]
   const ownedShieldBaseIds = [
-    ...new Set((selectedEquipment?.armor ?? []).filter(id => isShieldBaseId(id, equipEdition))),
+    ...new Set((selectedEquipment?.armor ?? []).filter(id => isShieldBaseId(id))),
   ]
   const addCopyOpts: Record<EnhancementGroup, { value: string; label: string }[]> = {
-    weapons: ownedWeaponBaseIds.map(id => ({ value: id, label: baseItemName(id, 'weapon') })),
-    armor: ownedArmorBaseIds.map(id => ({ value: id, label: baseItemName(id, 'armor') })),
-    shields: ownedShieldBaseIds.map(id => ({ value: id, label: baseItemName(id, 'armor') })),
+    weapons: ownedWeaponBaseIds.map(id => ({ value: id, label: getBaseItemName(id, 'weapon') })),
+    armor: ownedArmorBaseIds.map(id => ({ value: id, label: getBaseItemName(id, 'armor') })),
+    shields: ownedShieldBaseIds.map(id => ({ value: id, label: getBaseItemName(id, 'armor') })),
   }
 
   const hasAnyInstances = weaponInstances.length > 0 || allArmorInstances.length > 0
 
+  // Disabled template IDs — those that would exceed the budget
+  const computeDisabledIds = (
+    currentTemplateId: string | undefined,
+  ): Set<string> => {
+    const disabled = new Set<string>()
+    const currentCost = getEnhancementCostGp(currentTemplateId)
+    const costWithoutThis = totalEnhCost - currentCost
+    for (const tid of templateIds) {
+      if (tid === currentTemplateId) continue
+      const optCost = getEnhancementCostGp(tid)
+      if (mundaneCostGp + costWithoutThis + optCost > baseGp) {
+        disabled.add(tid)
+      }
+    }
+    return disabled
+  }
+
   // =========================================================================
-  // Magic-items data (unchanged logic)
+  // Magic-items data — sourced from catalog, no edition gating
   // =========================================================================
 
-  const magicItemBudget = getMagicItemBudget(edition as EditionId, characterLevel)
-  const availableMagicItems = getAvailableMagicItems(edition as EditionId, characterLevel)
+  const allMagicItems = useMemo(
+    () => Object.values(catalog.magicItemsById) as MagicItem[],
+    [catalog.magicItemsById],
+  )
+
   const selectedMagicItems = selectedEquipment?.magicItems ?? []
 
   const selectedPermanentCount = selectedMagicItems.filter(id => {
-    const item = availableMagicItems.find(m => m.id === id)
+    const item = catalog.magicItemsById[id]
     return item && !item.consumable
   }).length
 
   const selectedConsumableCount = selectedMagicItems.filter(id => {
-    const item = availableMagicItems.find(m => m.id === id)
+    const item = catalog.magicItemsById[id]
     return item?.consumable
   }).length
 
-  const visibleItems = availableMagicItems.filter(
+  const visibleItems = allMagicItems.filter(
     item => SLOT_TO_GROUP[item.slot] === activeGroup,
   )
 
   const visibleGroupOptions = GROUP_OPTIONS.filter(g =>
-    availableMagicItems.some(item => SLOT_TO_GROUP[item.slot] === g.id),
+    allMagicItems.some(item => SLOT_TO_GROUP[item.slot] === g.id),
   )
 
   const magicItemOptions = visibleItems.map(item => {
-    const datum = item.editionData.find(
-      (d: { edition: string }) => d.edition === resolveEquipmentEdition(edition),
-    )
-    const isSelected = selectedMagicItems.includes(item.id)
-
-    let disabled = false
-    if (!isSelected && magicItemBudget) {
-      if (item.consumable) {
-        disabled = selectedConsumableCount >= magicItemBudget.consumableSlots
-      } else {
-        disabled = selectedPermanentCount >= magicItemBudget.permanentSlots
-      }
-    }
-
-    const rarityLabel = datum?.rarity ? ` [${datum.rarity}]` : ''
-    const costLabel = datum?.cost && datum.cost !== '—' ? ` (${datum.cost})` : ''
+    const rarityLabel = item.rarity ? ` [${item.rarity}]` : ''
+    const costLabel = item.cost && item.cost !== '—' ? ` (${item.cost})` : ''
 
     return {
       id: item.id,
       label: `${item.name}${rarityLabel}${costLabel}`,
-      disabled,
+      disabled: false,
     }
   })
 
-  const hasMagicItems = magicItemBudget && availableMagicItems.length > 0
+  const hasMagicItems = allMagicItems.length > 0
 
   // =========================================================================
   // Handlers
@@ -370,7 +319,7 @@ const MagicItemsStep = () => {
     return (
       <>
         <h2>{step.name}</h2>
-        <p>No enhancements or magic items available for this edition and level.</p>
+        <p>No enhancements or magic items available at this level.</p>
       </>
     )
   }
@@ -410,14 +359,7 @@ const MagicItemsStep = () => {
 
           {activeInstances.length > 0 ? (
             activeInstances.map(inst => {
-              const disabled = computeDisabledIds(
-                templateIds,
-                inst.enhancementTemplateId,
-                totalEnhCost,
-                mundaneCostGp,
-                baseGp,
-                edition,
-              )
+              const disabled = computeDisabledIds(inst.enhancementTemplateId)
 
               return (
                 <Box
@@ -425,7 +367,7 @@ const MagicItemsStep = () => {
                   sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}
                 >
                   <Typography sx={{ minWidth: 160, fontWeight: 500 }}>
-                    {instanceLabel(inst, activeInstanceKind)}
+                    {getInstanceLabel(inst, activeInstanceKind)}
                   </Typography>
 
                   <FormControl size="small" sx={{ minWidth: 220 }}>
@@ -444,7 +386,7 @@ const MagicItemsStep = () => {
                     >
                       <MenuItem value="">No Enhancement</MenuItem>
                       {availableTemplates.map(t => {
-                        const datum = resolveEnchantmentTemplateDatum(t, edition)
+                        const datum = t.editionData?.[0]
                         const costSuffix = datum?.cost ? ` (${datum.cost})` : ''
                         return (
                           <MenuItem
@@ -505,12 +447,9 @@ const MagicItemsStep = () => {
             Magic Items
           </Typography>
           <small>
-            Permanent: {selectedPermanentCount} / {magicItemBudget.permanentSlots}
+            Permanent: {selectedPermanentCount}
             {' · '}
-            Consumable: {selectedConsumableCount} / {magicItemBudget.consumableSlots}
-            {magicItemBudget.maxAttunement != null && (
-              <> · Attunement slots: {magicItemBudget.maxAttunement}</>
-            )}
+            Consumable: {selectedConsumableCount}
           </small>
 
           <ButtonGroup

@@ -1,8 +1,7 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
-import { equipment as equipmentCatalog } from '@/data'
-import type { ArmorItem, ArmorEditionDatum } from '@/data/equipment/armor.types'
-import type { WeaponItem } from '@/data/equipment/weapons.types'
-import { resolveEquipmentEdition, getAvailableEnhancementTemplates } from '@/features/equipment/domain'
+import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
+import type { ArmorItem } from '@/data/equipmentCore/armorCore'
+import type { WeaponItem } from '@/data/equipmentCore/weaponsCore'
 import { resolveLoadout } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
 
 // ---------------------------------------------------------------------------
@@ -24,17 +23,12 @@ function getOwnedItemsByIds<T extends { id: string }>(
 
 function partitionArmor(
   items: ArmorItem[],
-  equipEdition: string,
 ): { armorItems: ArmorItem[]; shieldItems: ArmorItem[] } {
   const armorItems: ArmorItem[] = []
   const shieldItems: ArmorItem[] = []
 
   for (const item of items) {
-    const datum = item.editionData.find(d => d.edition === equipEdition) as ArmorEditionDatum | undefined
-    const isShield = datum?.category === 'shields'
-      || (!datum?.category && item.name.toLowerCase().includes('shield'))
-
-    if (isShield) {
+    if (item.category === 'shields') {
       shieldItems.push(item)
     } else {
       armorItems.push(item)
@@ -44,15 +38,13 @@ function partitionArmor(
   return { armorItems, shieldItems }
 }
 
-function armorToOption(item: ArmorItem, equipEdition: string): SelectOption {
-  const datum = item.editionData.find(d => d.edition === equipEdition)
-  const costSuffix = datum?.cost && datum.cost !== '—' ? ` (${datum.cost})` : ''
+function armorToOption(item: ArmorItem): SelectOption {
+  const costSuffix = item.cost ? ` (${item.cost})` : ''
   return { value: item.id, label: `${item.name}${costSuffix}` }
 }
 
-function weaponToOption(item: WeaponItem, equipEdition: string): SelectOption {
-  const datum = item.editionData.find(d => d.edition === equipEdition)
-  const costSuffix = datum?.cost && datum.cost !== '—' ? ` (${datum.cost})` : ''
+function weaponToOption(item: WeaponItem): SelectOption {
+  const costSuffix = item.cost ? ` (${item.cost})` : ''
   return { value: item.id, label: `${item.name}${costSuffix}` }
 }
 
@@ -96,28 +88,18 @@ const LoadoutStep = () => {
 
   const {
     step,
-    edition,
     equipment: selectedEquipment,
-    totalLevel,
   } = state
 
-  if (!edition) return null
-
-  const level = totalLevel ?? 1
-  const equipEdition = resolveEquipmentEdition(edition)
   const loadout = resolveLoadout(state.combat)
 
-  const ownedWeapons = getOwnedItemsByIds(equipmentCatalog.weapons, selectedEquipment?.weapons ?? [])
-  const ownedArmor = getOwnedItemsByIds(equipmentCatalog.armor, selectedEquipment?.armor ?? [])
-  const { armorItems, shieldItems } = partitionArmor(ownedArmor, equipEdition)
+  const ownedWeapons = getOwnedItemsByIds(equipmentCore.weapons, selectedEquipment?.weapons ?? [])
+  const ownedArmor = getOwnedItemsByIds(equipmentCore.armor, selectedEquipment?.armor ?? [])
+  const { armorItems, shieldItems } = partitionArmor(ownedArmor)
 
-  const weaponOpts = ownedWeapons.map(w => weaponToOption(w, equipEdition))
-  const armorOpts = armorItems.map(a => armorToOption(a, equipEdition))
-  const shieldOpts = shieldItems.map(s => armorToOption(s, equipEdition))
-  const enhOpts = getAvailableEnhancementTemplates(edition, level).map(t => ({
-    value: t.id,
-    label: t.name,
-  }))
+  const weaponOpts = ownedWeapons.map(w => weaponToOption(w))
+  const armorOpts = armorItems.map(a => armorToOption(a))
+  const shieldOpts = shieldItems.map(s => armorToOption(s))
 
   return (
     <>
@@ -156,36 +138,6 @@ const LoadoutStep = () => {
         allowNone
         onChange={val => updateLoadout({ shieldId: val })}
       />
-
-      {enhOpts.length > 0 && (
-        <>
-          <h4>Enhancements</h4>
-
-          <LoadoutSelect
-            label="Weapon enhancement"
-            value={loadout.weaponEnhancementId}
-            options={enhOpts}
-            allowNone
-            onChange={val => updateLoadout({ weaponEnhancementId: val })}
-          />
-
-          <LoadoutSelect
-            label="Armor enhancement"
-            value={loadout.armorEnhancementId}
-            options={enhOpts}
-            allowNone
-            onChange={val => updateLoadout({ armorEnhancementId: val })}
-          />
-
-          <LoadoutSelect
-            label="Shield enhancement"
-            value={loadout.shieldEnhancementId}
-            options={enhOpts}
-            allowNone
-            onChange={val => updateLoadout({ shieldEnhancementId: val })}
-          />
-        </>
-      )}
     </>
   )
 }

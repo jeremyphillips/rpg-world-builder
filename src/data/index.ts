@@ -13,3 +13,6 @@ export * from './worlds'
 export * from './types'
 export * from './classes/types'
 export * from './monsters'
+
+export * from './classes.core'
+export * from './races.core'

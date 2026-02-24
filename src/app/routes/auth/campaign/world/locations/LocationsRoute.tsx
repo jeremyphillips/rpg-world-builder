@@ -116,8 +116,9 @@ export default function LocationsRoute() {
   const {
     loading: activeCampaignLoading,
     campaignId: activeCampaignId,
-    settingId: activeSettingId,
+    campaign: activeCampaign,
   } = useActiveCampaign()
+  const activeSettingId = activeCampaign?.identity?.setting ?? null
   const { party: partyMembers } = useCampaignParty('approved')
   const world = getWorldForSetting(activeSettingId ?? '')
 

@@ -8,9 +8,8 @@
  *
  * Both SpellStep and the invalidation pruner call into this module.
  */
-import { getClassProgression } from '../../progression'
-import { getAvailableSpells, type SpellWithEntry } from '../catalog'
-import { groupSpellsByLevel } from '../utils/groupSpellsByLevel'
+import type { Spell } from '@/data/spellsCore'
+import type { CharacterClass } from '@/data/classes/types'
 import { getClassSpellLimitsAtLevel, type CastingMode } from '../progression'
 
 // ---------------------------------------------------------------------------
@@ -18,7 +17,6 @@ import { getClassSpellLimitsAtLevel, type CastingMode } from '../progression'
 // ---------------------------------------------------------------------------
 
 export type SpellSelectionLimits = {
-  /** Casting modes present across selected classes (e.g. ['known', 'prepared']). */
   castingModes: CastingMode[]
   perLevelMax: Map<number, number>
   maxSpellLevel: number
@@ -26,14 +24,13 @@ export type SpellSelectionLimits = {
 }
 
 export type SpellSelectionModel = {
-  availableByLevel: Map<number, SpellWithEntry[]>
+  availableByLevel: Map<number, Spell[]>
   limits: SpellSelectionLimits
   selectedPerLevel: Map<number, number>
   totalSelectedLeveled: number
 }
 
 export type SpellSelectionDraft = {
-  edition?: string
   classes: Array<{ classId?: string; level: number }>
   spells?: string[]
 }
@@ -48,8 +45,19 @@ export type ToggleResult = {
 // Model builder
 // ---------------------------------------------------------------------------
 
-export function buildSpellSelectionModel(draft: SpellSelectionDraft): SpellSelectionModel {
-  const { edition, classes, spells: selectedSpells = [] } = draft
+/**
+ * Build the spell selection model from catalog data (no edition lookup).
+ *
+ * @param draft       Current builder state (selected classes + spells)
+ * @param classesById Catalog class definitions (used for progression data)
+ * @param allSpells   Catalog spells (flat core spells, filtered by campaign policy)
+ */
+export function buildSpellSelectionModel(
+  draft: SpellSelectionDraft,
+  classesById: Record<string, CharacterClass>,
+  allSpells: Record<string, Spell>,
+): SpellSelectionModel {
+  const { classes, spells: selectedSpells = [] } = draft
 
   const emptyLimits: SpellSelectionLimits = {
     castingModes: [],
@@ -58,7 +66,11 @@ export function buildSpellSelectionModel(draft: SpellSelectionDraft): SpellSelec
     totalKnown: 0,
   }
 
-  if (!edition) {
+  const classIds = classes
+    .map(c => c.classId)
+    .filter((id): id is string => !!id)
+
+  if (classIds.length === 0) {
     return {
       availableByLevel: new Map(),
       limits: emptyLimits,
@@ -67,11 +79,21 @@ export function buildSpellSelectionModel(draft: SpellSelectionDraft): SpellSelec
     }
   }
 
-  // 1. Gather available spells (deduplicated across classes)
-  const allAvailable: SpellWithEntry[] = []
-  const seenIds = new Set<string>()
+  // Gather available spells: any spell whose `classes` array overlaps with
+  // the character's selected class IDs
+  const classIdSet = new Set(classIds)
+  const available: Spell[] = Object.values(allSpells).filter(spell =>
+    spell.classes.some(c => classIdSet.has(c))
+  )
 
-  // 2. Accumulate limits from each class's spell progression
+  // Group by spell level
+  const availableByLevel = new Map<number, Spell[]>()
+  for (const spell of available) {
+    if (!availableByLevel.has(spell.level)) availableByLevel.set(spell.level, [])
+    availableByLevel.get(spell.level)!.push(spell)
+  }
+
+  // Accumulate limits from each class's spell progression
   const perLevelMax = new Map<number, number>()
   let maxSpellLevel = 0
   let totalKnown = 0
@@ -79,7 +101,8 @@ export function buildSpellSelectionModel(draft: SpellSelectionDraft): SpellSelec
 
   for (const cls of classes) {
     if (!cls.classId) continue
-    const prog = getClassProgression(cls.classId, edition)
+    const classDef = classesById[cls.classId]
+    const prog = classDef?.progression
     if (!prog?.spellProgression) continue
 
     const lim = getClassSpellLimitsAtLevel(prog, cls.level)
@@ -96,18 +119,9 @@ export function buildSpellSelectionModel(draft: SpellSelectionDraft): SpellSelec
     }
     maxSpellLevel = Math.max(maxSpellLevel, lim.maxSpellLevel)
     totalKnown += lim.totalKnown
-
-    for (const s of getAvailableSpells(cls.classId, edition)) {
-      if (!seenIds.has(s.spell.id)) {
-        seenIds.add(s.spell.id)
-        allAvailable.push(s)
-      }
-    }
   }
 
-  const availableByLevel = groupSpellsByLevel(allAvailable)
-
-  // 3. Count current selections per level
+  // Count current selections per level
   const selectedSet = new Set(selectedSpells)
   const selectedPerLevel = new Map<number, number>()
   let totalSelectedLeveled = 0
@@ -115,7 +129,7 @@ export function buildSpellSelectionModel(draft: SpellSelectionDraft): SpellSelec
   for (const [level, spells] of availableByLevel) {
     let count = 0
     for (const s of spells) {
-      if (selectedSet.has(s.spell.id)) count++
+      if (selectedSet.has(s.id)) count++
     }
     if (count > 0) selectedPerLevel.set(level, count)
     if (level !== 0) totalSelectedLeveled += count
@@ -147,9 +161,6 @@ export function isSpellLevelFull(model: SpellSelectionModel, level: number): boo
 
 /**
  * Toggle a spell in/out of the selection, enforcing all limits.
- *
- * Returns the updated spell list and whether the selection actually changed.
- * If adding is blocked, `blockedReason` explains why.
  */
 export function toggleSpellSelection(
   currentSpells: string[],
@@ -161,14 +172,12 @@ export function toggleSpellSelection(
     return { spells: currentSpells.filter(id => id !== spellId), changed: true }
   }
 
-  // Check per-level cap
   const levelMax = model.limits.perLevelMax.get(spellLevel) ?? 0
   const levelCount = model.selectedPerLevel.get(spellLevel) ?? 0
   if (levelMax > 0 && levelCount >= levelMax) {
     return { spells: currentSpells, changed: false, blockedReason: 'level_full' }
   }
 
-  // Check overall known cap (leveled spells only)
   if (
     spellLevel > 0 &&
     model.limits.totalKnown > 0 &&

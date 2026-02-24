@@ -1,18 +1,18 @@
 import { getById } from '@/domain/lookups'
-import { classes } from '@/data'
+import { classesCore } from '@/data'
 
 export const getSubclassUnlockLevel = (
-  classId?: string,
-  edition?: string
+  classId?: string
 ): number | null => {
-  if (!classId || !edition) return null
+  if (!classId) return null
 
-  const cls = getById(classes, classId)
+  const cls = getById(classesCore, classId)
   if (!cls) return null
 
-  const definition = cls.definitions.find(
-    (d) => d.edition === edition && typeof d.selectionLevel === 'number'
-  )
+  const definition = cls.definitions
+  // const definition = cls.definitions.find(
+  //   (d) => d.edition === edition && typeof d.selectionLevel === 'number'
+  // )
 
   return definition?.selectionLevel ?? null
 }

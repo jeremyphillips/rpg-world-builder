@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import type { CharacterDoc } from '@/shared'
-import type { EditionId } from '@/data'
 import type { LevelUpResult } from '@/features/character/levelUp'
-import { getXpByLevelAndEdition } from '@/features/mechanics/domain/progression'
+import { getXpForLevel } from '@/features/mechanics/domain/progression'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { apiFetch } from '@/app/api'
 import type { CampaignSummary, PendingMembership } from '@/shared/types/campaign.types'
 
@@ -22,7 +22,7 @@ export interface UseCharacterActionsReturn {
   handleApprove: (campaignMemberId: string) => Promise<void>
   handleReject: (campaignMemberId: string) => Promise<void>
   handleAwardXp: (params: { newXp: number; triggersLevelUp: boolean; pendingLevel?: number }) => Promise<void>
-  handleCancelLevelUp: (currentLevel: number, primaryClassId: string | undefined) => Promise<void>
+  handleCancelLevelUp: (currentLevel: number) => Promise<void>
   handleLevelUpComplete: (result: LevelUpResult) => Promise<void>
   handleCharacterStatusChange: (statusAction: {
     campaignMemberId: string
@@ -41,6 +41,9 @@ export function useCharacterActions(
     character, setCharacter, setCampaigns, setPendingMemberships,
     setError, setSuccess, syncFromCharacter,
   } = deps
+
+  const { ruleset } = useCampaignRules()
+  const xpTable = ruleset.mechanics.progression.experience
 
   const isNpc = character?.type === 'npc'
   const notify = (msg: string) => { if (!isNpc) setSuccess(msg) }
@@ -114,10 +117,9 @@ export function useCharacterActions(
 
   const handleCancelLevelUp = useCallback(async (
     currentLevel: number,
-    primaryClassId: string | undefined,
   ) => {
     if (!id || !character) return
-    const revertedXp = getXpByLevelAndEdition(currentLevel, character.edition as EditionId, primaryClassId)
+    const revertedXp = getXpForLevel(currentLevel, xpTable)
     const data = await apiFetch<{ character: CharacterDoc }>(`/api/characters/${id}`, {
       method: 'PATCH',
       body: {
@@ -129,7 +131,7 @@ export function useCharacterActions(
     setCharacter(data.character)
     syncFromCharacter(data.character)
     notify('Level-up cancelled. XP has been reverted.')
-  }, [id, character, setCharacter, syncFromCharacter, setSuccess])
+  }, [id, character, xpTable, setCharacter, syncFromCharacter, setSuccess])
 
   const handleLevelUpComplete = useCallback(async (result: LevelUpResult) => {
     if (!id) return

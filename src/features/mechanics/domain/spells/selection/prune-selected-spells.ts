@@ -1,15 +1,13 @@
 /**
- * Spell pruning — single source of truth for deciding which selected
- * spell IDs survive a constraint change.
+ * Spell pruning — decides which selected spell IDs survive a constraint change.
  *
- * Delegates to buildSpellSelectionModel for limits and availability,
- * then walks the selection list applying the same rules the toggle
- * command would enforce.
+ * Uses catalog data directly (no edition lookup).
  */
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
-import { getAvailableSpells } from '../catalog'
-import { getClassProgression } from '../../progression'
+import type { Spell } from '@/data/spellsCore'
+import type { CharacterClass } from '@/data/classes/types'
 import { getClassSpellLimitsAtLevel } from '../progression'
+import { systemCatalog } from '../../core/rules/systemCatalog'
 
 export type SpellPruneResult = {
   kept: string[]
@@ -20,39 +18,52 @@ export type SpellPruneResult = {
  * Given the selected spell IDs and the *new* builder state, return
  * which spells should be kept and which should be pruned.
  *
- * Pruning rules (in evaluation order per spell):
- *  1. Spell no longer in the available catalog for this edition/class combo
- *  2. Spell level exceeds maximum castable level
- *  3. Cantrips no longer granted (per-level max for level 0 is 0)
- *  4. Per-level slot cap exceeded
- *  5. Overall "known" cap exceeded (known casters)
+ * @param state       Current builder state
+ * @param classesById Catalog class definitions
+ * @param allSpells   Catalog spells (flat core spells)
  */
-export function pruneSelectedSpells(state: CharacterBuilderState): SpellPruneResult {
+export function pruneSelectedSpells(
+  state: CharacterBuilderState,
+  classesById?: Record<string, CharacterClass>,
+  allSpells?: Record<string, Spell>,
+): SpellPruneResult {
+  const resolvedClasses = classesById ?? systemCatalog.classesById
+  const resolvedSpells = allSpells ?? systemCatalog.spellsCoreById
   const selected = state.spells ?? []
   if (selected.length === 0) return { kept: [], removed: [] }
 
-  const { edition, classes } = state
-  if (!edition) return { kept: [], removed: [...selected] }
+  const { classes } = state
 
-  // Build availability + level map
+  const classIds = classes
+    .map(c => c.classId)
+    .filter((id): id is string => !!id)
+
+  if (classIds.length === 0) return { kept: [], removed: [...selected] }
+
+  // Build availability + level map from catalog
+  const classIdSet = new Set(classIds)
   const availableIds = new Set<string>()
   const spellLevelMap = new Map<string, number>()
+
+  for (const spell of Object.values(resolvedSpells)) {
+    if (spell.classes.some(c => classIdSet.has(c))) {
+      availableIds.add(spell.id)
+      spellLevelMap.set(spell.id, spell.level)
+    }
+  }
+
+  // Accumulate limits from class progressions
   const perLevelMax = new Map<number, number>()
   let maxSpellLevel = 0
   let totalKnown = 0
 
   for (const cls of classes) {
     if (!cls.classId) continue
-
-    for (const s of getAvailableSpells(cls.classId, edition)) {
-      availableIds.add(s.spell.id)
-      spellLevelMap.set(s.spell.id, s.entry.level)
-    }
-
-    const prog = getClassProgression(cls.classId, edition)
+    const classDef = resolvedClasses[cls.classId]
+    const prog = classDef?.progression
     if (!prog?.spellProgression) continue
-    const lim = getClassSpellLimitsAtLevel(prog, cls.level)
 
+    const lim = getClassSpellLimitsAtLevel(prog, cls.level)
     if (lim.cantrips > 0) {
       perLevelMax.set(0, (perLevelMax.get(0) ?? 0) + lim.cantrips)
     }

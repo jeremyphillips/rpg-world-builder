@@ -2,9 +2,9 @@ import { useEffect, useRef } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
 import { ButtonGroup } from '@/ui/elements'
-import type { EditionId } from '@/data'
+// import type { EditionId } from '@/data'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { getClassRequirement } from '@/features/mechanics/domain/character-build/rules'
+// import { getClassRequirement } from '@/features/mechanics/domain/character-build/rules'
 import {
   calculateEquipmentCost,
   getItemCostGp,
@@ -32,11 +32,13 @@ const EquipmentStep = () => {
     stepNotices,
     dismissNotice
   } = useCharacterBuilder()
-  const { catalog } = useCampaignRules()
+
+  const { catalog, ruleset } = useCampaignRules()
+
+  const { tiers: startingWealthTiers } = ruleset.mechanics.progression.starting.wealth
 
   const { 
     step, 
-    edition, 
     classes: selectedClasses,
     equipment: selectedEquipment,
     totalLevel,
@@ -47,7 +49,6 @@ const EquipmentStep = () => {
 
   useEffect(() => {
     if (initializedRef.current) return
-    if (!edition) return
 
     // Skip wealth initialization when editing an existing character
     if (isEditMode) {
@@ -61,17 +62,17 @@ const EquipmentStep = () => {
       return
     }
 
-    // Look up the selected primary class's requirements (with edition fallback)
+    // Look up the selected primary class's requirements
     const primaryClassId = selectedClasses[0]?.classId
     if (!primaryClassId) return
 
-    const wealthReq = getClassRequirement(primaryClassId, edition as EditionId)
-    if (!wealthReq?.startingWealth) return
+    // const wealthReq = getClassRequirement(primaryClassId)
+    // if (!wealthReq?.startingWealth) return
 
     const resolved = calculateWealth(
       totalLevel ?? 0,
-      edition as EditionId,
-      wealthReq.startingWealth
+      startingWealthTiers ?? []
+      // wealthReq.startingWealth
     )
 
     if (!resolved) return
@@ -83,7 +84,7 @@ const EquipmentStep = () => {
     })
 
     initializedRef.current = true
-  }, [edition, totalLevel, selectedClasses, setWealth, wealth?.baseGp, isEditMode])
+  }, [totalLevel, selectedClasses, setWealth, wealth?.baseGp, isEditMode])
 
   const { 
     weapons: selectedWeapons = [], 
@@ -103,14 +104,11 @@ const EquipmentStep = () => {
     // level: selectedLevel
   } = activeClass ?? {}
 
-  if (!edition) return null
-
-  const equipEdition = resolveEquipmentEdition(edition)
+  // const equipEdition = resolveEquipmentEdition(edition)
 
   // Derive allowed equipment from the engine's collected effects.
   // Build a minimal Character shape from the builder state so the collector can read it.
   const characterLike = {
-    edition,
     classes: selectedClasses,
     totalLevel: totalLevel ?? 1,
   } as Character
@@ -132,7 +130,6 @@ const EquipmentStep = () => {
     weaponsCatalog,
     armorCatalog,
     gearCatalog,
-    edition
   )
 
   const buildOptions = (
@@ -141,17 +138,17 @@ const EquipmentStep = () => {
     proficiency: { categories: string[]; items: string[] },
   ) => {
     return items
-      .filter(item => {
-        if (!Array.isArray(item.editionData)) return false
-        return item.editionData.some((d: { edition: string }) => d.edition === equipEdition)
-      })
+      // .filter(item => {
+      //   if (!Array.isArray(item.editionData)) return false
+      //   return item.editionData.some((d: { edition: string }) => d.edition === equipEdition)
+      // })
       .map(item => {
-        const cost = getItemCostGp(item, edition)
+        const costGp = getItemCostGp(item)
         const isSelected = selected.includes(item.id)
-        const costWithoutThis = isSelected ? currentCost - cost : currentCost
-        const wouldExceedGold = costWithoutThis + cost > baseGp
+        const costWithoutThis = isSelected ? currentCost - costGp : currentCost
+        const wouldExceedGold = costWithoutThis + costGp > baseGp
 
-        const eligibility = evaluateEquipmentEligibility(item, edition, proficiency)
+        const eligibility = evaluateEquipmentEligibility(item, proficiency)
         const notProficient = !eligibility.allowed
         const disabled = !isSelected && (notProficient || wouldExceedGold)
 
@@ -162,7 +159,7 @@ const EquipmentStep = () => {
 
         return {
           id: item.id,
-          label: `${item.name} (${item.editionData.find((d: { edition: string; cost?: string }) => d.edition === equipEdition)?.cost ?? '—'})`,
+          label: item.cost ? `${item.name} (${item.cost})` : item.name,
           disabled,
           tooltip,
         }
@@ -176,17 +173,20 @@ const EquipmentStep = () => {
   const cls = selectedClassId ? catalog.classesById[selectedClassId] : undefined
   const requirements = cls?.requirements
 
-  const armorNotes = requirements
-    ? getEquipmentNotes({ requirements, edition, slot: 'armor' })
-    : []
+  const armorNotes = []
+  // const armorNotes = requirements
+  //   ? getEquipmentNotes({ requirements, edition, slot: 'armor' })
+  //   : []
 
-  const weaponNotes = requirements
-    ? getEquipmentNotes({ requirements, edition, slot: 'weapons' })
-    : []
+  const weaponNotes = []
+  // const weaponNotes = requirements
+  //   ? getEquipmentNotes({ requirements, edition, slot: 'weapons' })
+  //   : []
 
-  const gearNotes = requirements
-    ? getEquipmentNotes({ requirements, edition, slot: 'tools' })
-    : []
+  const gearNotes = []
+  // const gearNotes = requirements
+  //   ? getEquipmentNotes({ requirements, edition, slot: 'tools' })
+  //   : []
 
   const equipmentNotices = stepNotices.get('equipment') ?? []
 

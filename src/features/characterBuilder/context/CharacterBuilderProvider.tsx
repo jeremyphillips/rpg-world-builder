@@ -3,6 +3,8 @@ import CharacterBuilderContext from './CharacterBuilderContext'
 import type { CharacterBuilderState, CharacterClassInfo, StepId } from '../types'
 import type { CharacterProficiencies, EquipmentItemInstance } from '@/shared/types/character.core'
 import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+
 import {
   detectInvalidations,
   resolveInvalidations,
@@ -12,28 +14,30 @@ import {
   getStepConfig,
   createInitialBuilderState
 } from '../constants'
-import { getById } from '@/domain/lookups'
-import { getAllowedRaceIdsFromDraft, getAllowedClassIdsFromDraft } from '@/features/mechanics/domain/character-build/options'
+//import { getById } from '@/domain/lookups'
+// import { getAllowedRaceIdsFromDraft, getAllowedClassIdsFromDraft } from '@/features/mechanics/domain/character-build/options'
 import { 
   getSubclassUnlockLevel,
-  getXpByLevelAndEdition 
+  getXpForLevel,
 } from '@/features/mechanics/domain/progression'
 import {
   calculateEquipmentWeight,
   calculateEquipmentCost,
   normalizeEquipmentInstances,
 } from '@/features/equipment/domain'
-import { races, equipment } from "@/data"
-import type { EditionId, SettingId } from "@/data"
+import { equipmentCore } from "@/data/equipmentCore/equipmentCore"
+// import type { EditionId, SettingId } from "@/data"
 import type { CharacterType } from "@/shared/types/character.core"
-
 const {
   weapons: weaponsData,
   armor: armorData,
   gear: gearData
-} = equipment
+} = equipmentCore
 
 export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
+  const { ruleset } = useCampaignRules()
+  const xpTable = ruleset.mechanics.progression.experience
+
   const [state, setState] = useState<CharacterBuilderState>(
     () => createInitialBuilderState('pc')
   )
@@ -44,16 +48,16 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
     //console.groupEnd()
   }, [state])
 
-  const raceOptions = useMemo(() => {
-    if (!state.edition) return []
-    const ids = getAllowedRaceIdsFromDraft(state)
-    return ids.map(id => getById(races, id)).filter(Boolean)
-  }, [state.edition, state.setting])
+  // const raceOptions = useMemo(() => {
+  //   if (!state.edition) return []
+  //   const ids = getAllowedRaceIdsFromDraft(state)
+  //   return ids.map(id => getById(races, id)).filter(Boolean)
+  // }, [state.edition, state.setting])
 
-  const classOptions = useMemo(() => {
-    if (!state.edition) return []
-    return getAllowedClassIdsFromDraft(state)
-  }, [state.edition, state.setting])
+  // const classOptions = useMemo(() => {
+  //   if (!state.edition) return []
+  //   return getAllowedClassIdsFromDraft(state)
+  // }, [state.edition, state.setting])
 
   const updateState = (
     updater: (state: CharacterBuilderState) => CharacterBuilderState
@@ -200,8 +204,8 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
       type: mode,
       name: character.name,
       hitPointMode: 'average',
-      edition: character.edition as EditionId | undefined,
-      setting: character.setting as SettingId | undefined,
+      // edition: character.edition as EditionId | undefined,
+      // setting: character.setting as SettingId | undefined,
       race: character.race,
       alignment: character.alignment,
       classes,
@@ -220,11 +224,11 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
   const setName = (name: string) =>
     updateState(s => ({ ...s, name }))
 
-  const setEdition = (edition: string) =>
-    guardedUpdate(s => ({ ...s, edition: edition as EditionId }))
+  // const setEdition = (edition: string) =>
+  //   guardedUpdate(s => ({ ...s, edition: edition as EditionId }))
 
-  const setSetting = (setting: string) =>
-    guardedUpdate(s => ({ ...s, setting: setting as SettingId }))
+  // const setSetting = (setting: string) =>
+  //   guardedUpdate(s => ({ ...s, setting: setting as SettingId }))
 
   const setRace = (race: string) =>
     guardedUpdate(s => ({ ...s, race }))
@@ -257,8 +261,8 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
       // runs before the Class step, so setTotalLevels may have set xp to 0
       // if classId wasn't available yet — this corrects it.
       const isPrimaryClass = index === 0
-      const xp = isPrimaryClass && s.edition && s.totalLevel
-        ? getXpByLevelAndEdition(s.totalLevel, s.edition, classId)
+      const xp = isPrimaryClass && s.totalLevel
+        ? getXpForLevel(s.totalLevel, xpTable)
         : s.xp
 
       return { ...s, classes, xp: xp ?? s.xp }
@@ -306,7 +310,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
 
       const unlockLevel = getSubclassUnlockLevel(
         cls.classId,
-        s.edition
+        //s.edition
       )
 
       const classDefinitionId =
@@ -455,10 +459,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
     guardedUpdate(s => {
       // Pass primary class ID so pre-3e editions resolve to the correct
       // class-specific XP table.  Universal-table editions ignore it.
-      const primaryClassId = s.classes[0]?.classId
-      const newXp = s.edition
-        ? getXpByLevelAndEdition(totalLevel, s.edition, primaryClassId)
-        : 0
+      const newXp = getXpForLevel(totalLevel, xpTable)
 
       // Clamp existing class allocations so they don't exceed the new total
       let budget = totalLevel
@@ -508,18 +509,17 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
     weaponIds: string[],
     armorIds: string[],
     gearIds: string[],
-    edition: string
   ) => ({
     weight: calculateEquipmentWeight(weaponIds, armorIds, gearIds, weaponsData, armorData, gearData),
-    equipmentCost: calculateEquipmentCost(weaponIds, armorIds, gearIds, weaponsData, armorData, gearData, edition),
+    equipmentCost: calculateEquipmentCost(weaponIds, armorIds, gearIds, weaponsData, armorData, gearData),
   })
 
   const updateWeapons = (weaponIds: string[]) => {
     setState(prev => {
-      if (!prev.edition) return prev
+      // if (!prev.edition) return prev
       const armorIds = prev.equipment?.armor ?? []
       const gearIds = prev.equipment?.gear ?? []
-      const { weight, equipmentCost } = computeEquipmentTotals(weaponIds, armorIds, gearIds, prev.edition)
+      const { weight, equipmentCost } = computeEquipmentTotals(weaponIds, armorIds, gearIds)
       const baseGp = prev.wealth?.baseGp ?? 0
       const remainingGp = Math.max(baseGp - equipmentCost, 0)
 
@@ -533,10 +533,10 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
 
   const updateArmor = (armorIds: string[]) => {
     setState(prev => {
-      if (!prev.edition) return prev
+      // if (!prev.edition) return prev
       const weaponIds = prev.equipment?.weapons ?? []
       const gearIds = prev.equipment?.gear ?? []
-      const { weight, equipmentCost } = computeEquipmentTotals(weaponIds, armorIds, gearIds, prev.edition)
+      const { weight, equipmentCost } = computeEquipmentTotals(weaponIds, armorIds, gearIds)
       const baseGp = prev.wealth?.baseGp ?? 0
       const remainingGp = Math.max(baseGp - equipmentCost, 0)
 
@@ -550,10 +550,10 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
 
   const updateGear = (gearIds: string[]) => {
     setState(prev => {
-      if (!prev.edition) return prev
+      // if (!prev.edition) return prev
       const weaponIds = prev.equipment?.weapons ?? []
       const armorIds = prev.equipment?.armor ?? []
-      const { weight, equipmentCost } = computeEquipmentTotals(weaponIds, armorIds, gearIds, prev.edition)
+      const { weight, equipmentCost } = computeEquipmentTotals(weaponIds, armorIds, gearIds)
       const baseGp = prev.wealth?.baseGp ?? 0
       const remainingGp = Math.max(baseGp - equipmentCost, 0)
 
@@ -733,10 +733,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
 
   const resetState = () => {
     setState(
-      createInitialBuilderState(state.type ?? 'pc', {
-        edition: state.edition,
-        setting: state.setting,
-      })
+      createInitialBuilderState(state.type ?? 'pc')
     )
   }
 
@@ -757,8 +754,8 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
         setCharacterType,
         openBuilder,
         setName,
-        setEdition,
-        setSetting,
+        // setEdition,
+        // setSetting,
         setRace,
 
         setClassId,
@@ -808,8 +805,8 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
         cancelChange,
         dismissNotice,
 
-        raceOptions,
-        classOptions
+        // raceOptions,
+        // classOptions
       }}
     >
       {children}

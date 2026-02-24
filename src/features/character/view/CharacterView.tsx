@@ -1,11 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { CharacterDoc } from '@/shared'
-import type { EditionId } from '@/data'
-import { editions, equipment } from '@/data'
-import { getMagicItemBudget } from '@/features/equipment/domain'
-import { resolveEquipmentEdition } from '@/features/equipment/domain'
-import type { MagicItem, MagicItemEditionDatum } from '@/data/equipment/magicItems.types'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { ROUTES } from '@/app/routes'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { CharacterBuilderWizard } from '@/features/characterBuilder/components'
@@ -103,6 +99,8 @@ export default function CharacterView({
   actions
 }: CharacterViewProps) {
   const navigate = useNavigate()
+  const { ruleset, catalog } = useCampaignRules()
+  const xpTable = ruleset.mechanics?.progression?.experience
 
   // ── UI toggle state ────────────────────────────────────────────────
   const [awardXpOpen, setAwardXpOpen] = useState(false)
@@ -128,8 +126,8 @@ export default function CharacterView({
   }
 
   const profSlots = useMemo(
-    () => getProficiencySlotSummary(character.classes, character.edition, character.proficiencies),
-    [character.classes, character.edition, character.proficiencies],
+    () => getProficiencySlotSummary(character.classes, character.proficiencies, catalog.classesById),
+    [character.classes, character.proficiencies, catalog.classesById],
   )
 
   const openStepEditor = useCallback((stepId: StepId) => {
@@ -159,34 +157,26 @@ export default function CharacterView({
   const filledClasses = (character.classes ?? []).filter((c) => c.classId)
   const isMulticlass = filledClasses.length > 1
   const currentLevel = character.totalLevel ?? character.level ?? 1
-  const primaryClassId = filledClasses[0]?.classId
-  const editionObj = editions.find(e => e.id === character.edition)
-  const maxLevel = editionObj?.progression?.maxLevel ?? 20
+  const maxLevel = xpTable?.length ? Math.max(...xpTable.map(e => e.level)) : 20
 
   const hasStats = character.abilityScores && Object.values(character.abilityScores).some(v => v != null)
 
-  // Magic items
+  // Magic items — resolved from the catalog
   const charMagicItemIds = character.equipment?.magicItems ?? []
-  const effectiveEdition = character.edition ? resolveEquipmentEdition(character.edition) : undefined
-  const magicItemBudget = getMagicItemBudget(character.edition as EditionId, currentLevel)
-
   const resolvedMagicItems = charMagicItemIds
     .map(itemId => {
-      const item = equipment.magicItems.find((m: MagicItem) => m.id === itemId)
+      const item = catalog.magicItemsById[itemId]
       if (!item) return null
-      const datum = effectiveEdition
-        ? item.editionData.find((d: MagicItemEditionDatum) => d.edition === effectiveEdition)
-        : undefined
-      return { item, datum }
+      return { item }
     })
-    .filter(Boolean) as { item: MagicItem; datum?: MagicItemEditionDatum }[]
+    .filter(Boolean) as { item: typeof catalog.magicItemsById[string] }[]
 
   const permanentMagicCount = resolvedMagicItems.filter(r => !r.item.consumable).length
   const consumableMagicCount = resolvedMagicItems.filter(r => r.item.consumable).length
 
   // ── Modal-closing action wrappers ──────────────────────────────────
   const onCancelLevelUp = async () => {
-    await actions.handleCancelLevelUp(currentLevel, primaryClassId)
+    await actions.handleCancelLevelUp(currentLevel)
     setCancelLevelUpOpen(false)
   }
 
@@ -280,7 +270,6 @@ export default function CharacterView({
           <ProficienciesCard
             proficiencies={character.proficiencies}
             wealth={character.wealth}
-            edition={character.edition}
             onEdit={canEdit ? () => openStepEditor('proficiencies') : undefined}
             editDisabled={!profSlots.hasAvailableSlots || profSlots.allFilled}
             onEditWealth={canEditAll ? () => setEditWealthOpen(true) : undefined}
@@ -299,7 +288,6 @@ export default function CharacterView({
         <Grid size={{ xs: 12, md: 6 }}>
           <MagicItemsCard
             resolvedMagicItems={resolvedMagicItems}
-            magicItemBudget={magicItemBudget}
             permanentCount={permanentMagicCount}
             consumableCount={consumableMagicCount}
             onEdit={canEdit ? () => openStepEditor('magicItems') : undefined}
@@ -315,10 +303,7 @@ export default function CharacterView({
       />
 
       {/* Spells */}
-      <SpellsCard
-        spells={character.spells ?? []}
-        edition={character.edition}
-      />
+      <SpellsCard spells={character.spells ?? []} />
 
       {/* Narrative */}
       {narrative && (
@@ -348,7 +333,6 @@ export default function CharacterView({
         character={character}
         currentLevel={currentLevel}
         maxLevel={maxLevel}
-        primaryClassId={primaryClassId}
         activeCampaignCount={activeCampaignCount}
         isOwner={isOwner}
         isAdmin={isAdmin}

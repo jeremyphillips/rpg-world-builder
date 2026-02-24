@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { CharacterClassInfo } from '@/shared'
-import { classes as classesData } from '@/data'
+import { classesCore as classesData } from '@/data/classes.core'
 import { resolveImageUrl } from '@/utils/image'
 import { Breadcrumbs } from '@/ui/elements'
 import { useBreadcrumbs } from '@/hooks'
@@ -35,9 +35,8 @@ function formatClassLine(
 
   let subclassName = ''
   if (cls.classDefinitionId && classData) {
-    const sub = (classData as { definitions?: { id: string; name?: string }[] }).definitions?.find(
-      (d) => d.id === cls.classDefinitionId,
-    )
+    const options = (classData as any).definitions?.options as { id: string; name?: string }[] | undefined
+    const sub = options?.find((d) => d.id === cls.classDefinitionId)
     if (sub?.name) subclassName = sub.name
   }
 

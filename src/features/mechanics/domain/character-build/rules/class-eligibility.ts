@@ -5,31 +5,31 @@
  * returning structured reason codes instead of display strings.
  * UI maps codes to friendly copy.
  */
-import { classes } from '@/data'
+import { classesCore } from '@/data'
 import { getById } from '@/domain/lookups'
 import type { ClassRequirement } from '@/data/classes/types'
 import type { AlignmentId } from '@/data'
-import type { EditionId } from '@/data/editions/edition.types'
 import type { BuildDraft } from '../types'
+import type { CharacterClass } from '@/data/classes/types'
 
 // ---------------------------------------------------------------------------
 // Edition fallback for class requirements
 // ---------------------------------------------------------------------------
 
-const CLASS_EDITION_FALLBACK: Record<string, string> = {
-  'becmi': 'b',
-  'bx':    'b',
-}
+// const CLASS_EDITION_FALLBACK: Record<string, string> = {
+//   'becmi': 'b',
+//   'bx':    'b',
+// }
 
-function findRequirement(
-  requirements: ClassRequirement[],
-  edition: string,
-): ClassRequirement | undefined {
-  return (
-    requirements.find(r => r.edition === edition)
-    ?? requirements.find(r => r.edition === CLASS_EDITION_FALLBACK[edition])
-  )
-}
+// function findRequirement(
+//   requirements: ClassRequirement[],
+//   edition: string,
+// ): ClassRequirement | undefined {
+//   return (
+//     requirements.find(r => r.edition === edition)
+//     ?? requirements.find(r => r.edition === CLASS_EDITION_FALLBACK[edition])
+//   )
+// }
 
 // ---------------------------------------------------------------------------
 // Reason codes
@@ -58,17 +58,17 @@ export type ClassEligibilityResult = {
  */
 export function evaluateClassEligibility(
   classId: string | undefined,
-  draft: BuildDraft,
+  draft: BuildDraft
 ): ClassEligibilityResult {
   if (!classId) return { allowed: true, reasons: [] }
 
-  const { edition, race, alignment } = draft
-  if (!edition) return { allowed: true, reasons: [] }
+  const { race, alignment } = draft
 
-  const cls = getById(classes, classId)
-  if (!cls || cls.requirements.length === 0) return { allowed: true, reasons: [] }
+  const cls = getById(classesCore, classId)
+  if (!cls || !cls.requirements) return { allowed: true, reasons: [] }
 
-  const req = findRequirement(cls.requirements, edition)
+  const req = cls.requirements
+  console.log('REQ', req)
   if (!req) return { allowed: true, reasons: [] }
 
   const reasons: ClassEligibilityReason[] = []
@@ -101,14 +101,13 @@ export function evaluateClassEligibility(
 
 export function getClassRequirement(
   classId?: string,
-  edition?: EditionId | string,
 ): ClassRequirement | undefined {
-  if (!classId || !edition) return undefined
+  if (!classId) return undefined
 
-  const cls = getById(classes, classId)
+  const cls = getById(classesCore, classId)
   if (!cls) return undefined
 
-  return findRequirement(cls.requirements, edition)
+  return cls.requirements
 }
 
 // ---------------------------------------------------------------------------
@@ -120,29 +119,26 @@ export function getClassRequirement(
  * Surfaces race-as-class restrictions as grouped informational notes.
  */
 export function getClassRestrictionNotes(
-  edition: EditionId | string,
-  classIds: string[],
+  classIds: string[]
 ): string[] {
   const notes: string[] = []
   const humanOnly: string[] = []
   const openToAll: string[] = []
 
   for (const classId of classIds) {
-    const cls = getById(classes, classId)
+    const cls = getById(classesCore, classId)
     if (!cls) continue
 
-    const req = findRequirement(cls.requirements, edition)
+    const req = cls.requirements
     if (!req) continue
 
-    const displayName = cls.displayNameByEdition?.[edition] ?? cls.name
-
     if (req.allowedRaces === 'all') {
-      openToAll.push(displayName)
+      openToAll.push(cls.name)
     } else if (
       req.allowedRaces.length === 1 &&
       req.allowedRaces[0] === 'human'
     ) {
-      humanOnly.push(displayName)
+      humanOnly.push(cls.name)
     }
   }
 

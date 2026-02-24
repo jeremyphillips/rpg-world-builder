@@ -88,7 +88,7 @@ export interface Race {
   id: string;
   name: string;
   description: string;
-  campaigns: SettingId[];
+  campaigns?: SettingId[];
 }
 
 export type SettingId = 

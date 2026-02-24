@@ -35,9 +35,7 @@
 //   difference between any two non-favored classes).  This is a display
 //   concern (showing a warning) rather than a hard restriction.
 
-import { editions, type EditionId } from '@/data'
-import { getById } from '@/domain/lookups'
-import type { Edition } from '@/data'
+import type { MulticlassingRules } from '@/data/ruleSets'
 
 export interface CanMulticlassResult {
   /** Whether the "Add another class" action should be available */
@@ -54,33 +52,24 @@ export interface CanMulticlassResult {
  * @param remainingLevels - Levels still available to allocate
  */
 export const canAddClass = (
-  edition: EditionId | undefined,
+  multiClassingRules: MulticlassingRules,
   currentClasses: number,
   remainingLevels: number
 ): CanMulticlassResult => {
-  if (!edition) {
-    return { allowed: false, reason: 'No edition selected' }
-  }
-
-  const ed = getById<Edition>(editions, edition)
-  if (!ed) {
-    return { allowed: false, reason: 'Unknown edition' }
-  }
-
-  // --- Check 1: Does this edition support multiclassing at all? ---
-  if (!ed.multiclassing?.allowed) {
+  // --- Check 1: Does this ruleset support multiclassing at all? ---
+  if (!multiClassingRules.enabled) {
     return {
       allowed: false,
-      reason: `${ed.name} does not support multiclassing`
+      reason: `Campaign does not support multiclassing`
     }
   }
 
-  // --- Check 2: Has the character hit the edition's class cap? ---
-  const maxClasses = ed.multiclassing.maxClasses
+  // --- Check 2: Has the character hit the ruleset's class cap? ---
+  const maxClasses = multiClassingRules?.maxClasses ?? null
   if (maxClasses != null && currentClasses >= maxClasses) {
     return {
       allowed: false,
-      reason: `${ed.name} allows a maximum of ${maxClasses} classes`
+      reason: `Campaign allows a maximum of ${maxClasses} classes`
     }
   }
 

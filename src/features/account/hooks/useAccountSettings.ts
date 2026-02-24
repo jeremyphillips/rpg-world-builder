@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { apiFetch } from '@/app/api'
+import { useMemo } from 'react'
+import { useAuth } from '@/app/providers/AuthProvider'
 
 export type NotificationPreferences = {
   sessionScheduled: boolean
@@ -18,60 +18,37 @@ export type AccountSettings = {
   notificationPreferences: NotificationPreferences
 }
 
-type MeResponse = {
-  user: {
-    id: string
-    username?: string
-    email?: string
-    firstName?: string
-    lastName?: string
-    avatarKey?: string | null
-    avatarUrl?: string
-    bio?: string
-    website?: string
-    notificationPreferences?: Partial<NotificationPreferences>
-  } | null
-}
-
 const DEFAULT_NOTIFICATION_PREFS: NotificationPreferences = {
   sessionScheduled: true,
   inviteReceived: true,
   mentionedInChat: true,
 }
 
+/**
+ * Derives account-settings form values from the already-loaded AuthProvider
+ * user, avoiding a duplicate `/api/auth/me` fetch.
+ */
 export function useAccountSettings() {
-  const [data, setData] = useState<AccountSettings | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { user, loading } = useAuth()
 
-  useEffect(() => {
-    setLoading(true)
-    setError(null)
+  const data = useMemo<AccountSettings | null>(() => {
+    if (!user) return null
+    return {
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
+      username: user.username ?? '',
+      avatarKey: user.avatarUrl ?? null,
+      bio: user.bio ?? '',
+      website: user.website ?? '',
+      email: user.email ?? '',
+      notificationPreferences: {
+        ...DEFAULT_NOTIFICATION_PREFS,
+        ...user.notificationPreferences,
+      },
+    }
+  }, [user])
 
-    apiFetch<MeResponse>('/api/auth/me')
-      .then((res) => {
-        const u = res.user
-        if (!u) {
-          setError('Not authenticated')
-          return
-        }
-        setData({
-          firstName: u.firstName ?? '',
-          lastName: u.lastName ?? '',
-          username: u.username ?? '',
-          avatarKey: u.avatarKey ?? null,
-          bio: u.bio ?? '',
-          website: u.website ?? '',
-          email: u.email ?? '',
-          notificationPreferences: {
-            ...DEFAULT_NOTIFICATION_PREFS,
-            ...u.notificationPreferences,
-          },
-        })
-      })
-      .catch(() => setError('Failed to load account settings'))
-      .finally(() => setLoading(false))
-  }, [])
+  const error: string | null = !loading && !user ? 'Not authenticated' : null
 
   return { data, loading, error }
 }

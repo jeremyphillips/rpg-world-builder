@@ -1,5 +1,4 @@
 import type { CharacterDoc } from '@/shared'
-import type { EditionId } from '@/data'
 import type { LevelUpResult } from '@/features/character/levelUp'
 import { AwardXpModal } from '@/features/character/modals'
 import { LevelUpWizard } from '@/features/character/levelUp'
@@ -12,7 +11,6 @@ type CharacterModalManagerProps = {
   character: CharacterDoc
   currentLevel: number
   maxLevel: number
-  primaryClassId: string | undefined
   activeCampaignCount: number
   isOwner: boolean
   isAdmin: boolean
@@ -50,7 +48,6 @@ export default function CharacterModalManager({
   character,
   currentLevel,
   maxLevel,
-  primaryClassId,
   activeCampaignCount,
   isOwner,
   isAdmin,
@@ -82,8 +79,6 @@ export default function CharacterModalManager({
         characterName={character.name}
         currentXp={character.xp ?? 0}
         currentLevel={currentLevel}
-        editionId={character.edition as EditionId}
-        primaryClassId={primaryClassId}
         maxLevel={maxLevel}
         onAward={onAwardXp}
       />

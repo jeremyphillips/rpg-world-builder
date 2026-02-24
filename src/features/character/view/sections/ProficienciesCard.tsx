@@ -1,6 +1,16 @@
 import type { CharacterDoc } from '@/shared'
-import { editions } from '@/data'
-import type { EditionProficiency } from '@/data/types'
+import {
+  FIVE_E_STRENGTH_SKILLS,
+  FIVE_E_DEXTERITY_SKILLS,
+  FIVE_E_INTELLIGENCE_SKILLS,
+  FIVE_E_WISDOM_SKILLS,
+  FIVE_E_CHARISMA_SKILLS,
+  TWOE_GENERAL_PROFICIENCY_SKILLS,
+  TWOE_PRIEST_GROUP_PROFICIENCY_SKILLS,
+  TWOE_WARRIOR_GROUP_PROFICIENCY_SKILLS,
+  TWOE_ROGUE_GROUP_PROFICIENCY_SKILLS,
+  TWOE_WIZARD_GROUP_PROFICIENCY_SKILLS,
+} from '@/data/editions/proficiencySkillsByEdition'
 
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -12,24 +22,34 @@ import Divider from '@mui/material/Divider'
 import Tooltip from '@mui/material/Tooltip'
 import EditIcon from '@mui/icons-material/Edit'
 
+// Consolidated skill name lookup across all supported systems
+const SKILL_NAME_MAP: Record<string, string> = Object.fromEntries(
+  [
+    FIVE_E_STRENGTH_SKILLS,
+    FIVE_E_DEXTERITY_SKILLS,
+    FIVE_E_INTELLIGENCE_SKILLS,
+    FIVE_E_WISDOM_SKILLS,
+    FIVE_E_CHARISMA_SKILLS,
+    TWOE_GENERAL_PROFICIENCY_SKILLS,
+    TWOE_PRIEST_GROUP_PROFICIENCY_SKILLS,
+    TWOE_WARRIOR_GROUP_PROFICIENCY_SKILLS,
+    TWOE_ROGUE_GROUP_PROFICIENCY_SKILLS,
+    TWOE_WIZARD_GROUP_PROFICIENCY_SKILLS,
+  ].flatMap(group =>
+    Object.entries(group).map(([id, def]) => [id, def.name])
+  )
+)
+
 type ProficienciesCardProps = {
   proficiencies: CharacterDoc['proficiencies']
   wealth: CharacterDoc['wealth']
-  edition?: string
-  /** When provided, renders an Edit button for skills. */
   onEdit?: () => void
-  /** Disables the skills Edit button (e.g. no proficiency slots available for the character's class). */
   editDisabled?: boolean
-  /** When provided, renders an Edit button for wealth. */
   onEditWealth?: () => void
 }
 
-export default function ProficienciesCard({ proficiencies, wealth, edition, onEdit, editDisabled, onEditWealth }: ProficienciesCardProps) {
+export default function ProficienciesCard({ proficiencies, wealth, onEdit, editDisabled, onEditWealth }: ProficienciesCardProps) {
   const skillIds = proficiencies?.skills ?? []
-
-  const editionObj = edition ? editions.find(e => e.id === edition) : undefined
-  const skillMap: Record<string, EditionProficiency> =
-    (editionObj?.proficiencies as any)?.[edition ?? '']?.skills ?? {}
 
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
@@ -56,7 +76,7 @@ export default function ProficienciesCard({ proficiencies, wealth, edition, onEd
         {skillIds.length > 0 ? (
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
             {skillIds.map((id) => (
-              <Chip key={id} label={skillMap[id]?.name ?? id} size="small" variant="outlined" />
+              <Chip key={id} label={SKILL_NAME_MAP[id] ?? id} size="small" variant="outlined" />
             ))}
           </Stack>
         ) : (

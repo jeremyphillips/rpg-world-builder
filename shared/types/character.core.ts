@@ -95,8 +95,8 @@ export type CharacterType = 'pc' | 'npc'
 export type CharacterCore = {
   name: string
   type: CharacterType
-  edition: EditionId
-  setting?: SettingId
+  // edition: EditionId
+  // setting?: SettingId
 
   race?: string
   alignment?: string

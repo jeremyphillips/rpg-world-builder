@@ -7,7 +7,7 @@ import type { AbilityScoreMode } from '@/features/characterBuilder/components/Ch
 import { AppModal, ConfirmModal } from '@/ui/modals'
 import { apiFetch } from '@/app/api'
 import { type CharacterClassInfo } from '@/shared'
-import { editions, classes as classesData } from '@/data'
+import { classesCore } from '@/data/classes.core'
 import { generateAbilityScores, prioritizeAbilityScores } from '@/features/mechanics/domain/generation/ability-scores'
 import { generateHitPoints } from '@/features/mechanics/domain/progression'
 import { LoadingOverlay } from '@/ui/elements'
@@ -81,14 +81,11 @@ function parseAiResponse(message: ChatMessage): Record<string, unknown> | null {
 // Ability score generation helpers
 // ---------------------------------------------------------------------------
 
-function getEditionAbilityScoreMethod(editionId: string | undefined): AbilityScoreMethod {
-  const ed = editions.find(e => e.id === editionId)
-  return ed?.generation?.abilityScoreMethod ?? '4d6-drop-lowest'
-}
+const DEFAULT_ABILITY_SCORE_METHOD: AbilityScoreMethod = '4d6-drop-lowest'
 
 function getClassAbilityPriority(classId: string | undefined): (keyof AbilityScores)[] {
   if (!classId) return []
-  const cls = classesData.find(c => c.id === classId)
+  const cls = classesCore.find(c => c.id === classId)
   return cls?.generation?.abilityPriority ?? []
 }
 
@@ -107,14 +104,13 @@ function resolveAbilityScores(
   // TODO: implement custom score entry UI
   if (mode === 'custom') return null
 
-  const method = getEditionAbilityScoreMethod(builderState.edition)
   const primaryClassId = builderState.classes[0]?.classId
   const priority = getClassAbilityPriority(primaryClassId)
 
   if (priority.length > 0) {
-    return prioritizeAbilityScores(method, priority)
+    return prioritizeAbilityScores(DEFAULT_ABILITY_SCORE_METHOD, priority)
   }
-  return generateAbilityScores(method)
+  return generateAbilityScores(DEFAULT_ABILITY_SCORE_METHOD)
 }
 
 // ---------------------------------------------------------------------------
@@ -146,8 +142,6 @@ function mergeCharacterData(
     level: builderState.totalLevel || 1,
     totalLevel: builderState.totalLevel || 1,
     alignment: builderState.alignment ?? '',
-    edition: builderState.edition ?? '',
-    setting: builderState.setting ?? '',
     xp: builderState.xp ?? 0,
     equipment: builderState.equipment ?? { armor: [], weapons: [], gear: [], weight: 0 },
     proficiencies: proficiencies,
@@ -158,7 +152,7 @@ function mergeCharacterData(
     },
 
     // Hit points generated from builder state
-    hitPoints: generateHitPoints(builderState.classes, builderState.edition, builderState.hitPointMode),
+    hitPoints: generateHitPoints(builderState.classes, undefined, builderState.hitPointMode),
 
     // Ability scores: use generated scores when available, otherwise fall back to AI
     abilityScores: generatedScores ?? ai.stats ?? {},
@@ -220,16 +214,11 @@ const ChatContainer = ({ isModalOpen, onCloseModal }: ChatContainerProps) => {
 
   const formatPrompt = (s: CharacterBuilderState) => {
     const scores = resolveAbilityScores(abilityScoreMode, s)
-    const method = getEditionAbilityScoreMethod(s.edition)
 
     const baseCharacter = {
       character: {
         type: s.type ?? 'pc',
         name: (s.name && s.name.trim()) || '',
-
-        edition: s.edition ?? '',
-        setting: s.setting,
-
         race: s.race,
         classes: s.classes.map((cls: CharacterClassInfo, i: number) => ({
           id: cls.classId,
@@ -252,7 +241,7 @@ const ChatContainer = ({ isModalOpen, onCloseModal }: ChatContainerProps) => {
         },
         hitPoints: {
           total: null,
-          generationMethod: method,
+          generationMethod: DEFAULT_ABILITY_SCORE_METHOD,
         },
         armorClass: {
           base: 10,

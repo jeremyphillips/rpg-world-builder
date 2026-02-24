@@ -1,6 +1,6 @@
 import HorizontalCompactCard from '@/ui/cards/HorizontalCompactCard'
 import type { CardBadgeItem } from '@/ui/cards/HorizontalCompactCard'
-import type { Spell, SpellEditionEntry } from '@/data/classes/spells'
+import type { Spell } from '@/data/spellsCore'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -8,13 +8,8 @@ import type { Spell, SpellEditionEntry } from '@/data/classes/spells'
 
 export interface SpellHorizontalCardProps {
   spell: Spell
-  /** Edition entry to display (determines level, classes, ritual, etc.) */
-  editionEntry?: SpellEditionEntry
-  /** Whether the spell is currently selected */
   selected?: boolean
-  /** Whether the spell card is disabled (level cap reached) */
   disabled?: boolean
-  /** Called when the card is clicked */
   onToggle?: () => void
 }
 
@@ -37,23 +32,19 @@ function levelLabel(level: number): string {
 
 const SpellHorizontalCard = ({
   spell,
-  editionEntry,
   selected = false,
   disabled = false,
   onToggle,
 }: SpellHorizontalCardProps) => {
-  const entry = editionEntry ?? spell.editions[0]
-  if (!entry) return null
-
   const badges: CardBadgeItem[] = [
-    { type: 'tag', value: levelLabel(entry.level) },
+    { type: 'tag', value: levelLabel(spell.level) },
     { type: 'tag', value: schoolLabel(spell.school) },
   ]
 
-  if (entry.ritual) badges.push({ type: 'tag', value: 'Ritual' })
-  if (entry.concentration) badges.push({ type: 'tag', value: 'Concentration' })
+  if (spell.ritual) badges.push({ type: 'tag', value: 'Ritual' })
+  if (spell.concentration) badges.push({ type: 'tag', value: 'Concentration' })
 
-  const classNames = entry.classes
+  const classNames = spell.classes
     .map(c => c.charAt(0).toUpperCase() + c.slice(1))
     .join(', ')
 
@@ -70,7 +61,7 @@ const SpellHorizontalCard = ({
         headline={spell.name}
         subheadline={classNames}
         badges={badges}
-        description={entry.source ? `Source: ${entry.source}` : undefined}
+        description={spell.source ? `Source: ${spell.source}` : undefined}
         actions={
           onToggle ? (
             <span

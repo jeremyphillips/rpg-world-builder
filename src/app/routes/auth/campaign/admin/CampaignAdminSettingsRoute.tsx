@@ -55,7 +55,7 @@ const buildFields = (edition?: string): FieldConfig[] => [
 ]
 
 export default function CampaignAdminSettingsRoute() {
-  const { activeCampaignId } = useActiveCampaign()
+  const { campaignId: activeCampaignId } = useActiveCampaign()
 
   const { data, edition, loading, error: fetchError } =
     useCampaignSettings(activeCampaignId)

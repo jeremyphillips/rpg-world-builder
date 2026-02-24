@@ -5,7 +5,6 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { ChatContainer } from '@/chat'
 import type { CharacterType } from '@/shared/types/character.core'
-import type { EditionId, SettingId } from '@/data'
 
 type CharacterBuilderLauncherProps = {
   buttonLabel?: string
@@ -13,8 +12,6 @@ type CharacterBuilderLauncherProps = {
   size?: 'small' | 'medium' | 'large'
   onCharacterCreated?: (character: unknown) => void
   characterType?: CharacterType
-  campaignEdition?: EditionId
-  campaignSetting?: SettingId
 }
 
 const CharacterBuilderLauncher = ({
@@ -22,8 +19,6 @@ const CharacterBuilderLauncher = ({
   buttonLabel = 'Create Character',
   variant = 'contained',
   size = 'large',
-  campaignEdition,
-  campaignSetting
 }: CharacterBuilderLauncherProps) => {
   const [isModalOpen, setModalOpen] = useState(false)
   const { openBuilder } = useCharacterBuilder()
@@ -35,7 +30,7 @@ const CharacterBuilderLauncher = ({
         size={size}
         startIcon={<AutoFixHighIcon />}
         onClick={() => {
-          openBuilder(characterType, { edition: campaignEdition, setting: campaignSetting })
+          openBuilder(characterType)
           setModalOpen(true)
         }}
       >
