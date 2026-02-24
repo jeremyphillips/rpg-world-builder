@@ -5,9 +5,8 @@
  * is handled in one place (resolveEquipmentLoadoutDetailed).
  */
 import type { Effect } from '../effects.types'
-import type { EnchantableSlot } from '@/data/equipment/enchantments/enchantmentTemplates.types'
-import { equipment as equipmentCatalog } from '@/data'
-import { resolveEquipmentEdition } from '@/features/equipment/domain'
+import type { EnchantableSlot } from '@/data/equipmentCore/enchantments/enchantmentTemplates.types'
+import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
 import { resolveEffectDescriptors } from '../descriptors/resolveEffectDescriptors'
 import type { ResolvedEquipmentLoadout, ResolvedSlot } from './equipment-to-effects'
 
@@ -42,12 +41,10 @@ function getSlotEntries(resolved: ResolvedEquipmentLoadout): SlotEnhancementEntr
  * Slots without an enhancement produce no effects.
  */
 export function getEnchantmentCandidateEffects(args: {
-  edition: string
   resolved: ResolvedEquipmentLoadout
 }): Effect[] {
-  const { edition, resolved } = args
-  const resolvedEdition = resolveEquipmentEdition(edition)
-  const templates = equipmentCatalog.enchantments.enhancementTemplates
+  const { resolved } = args
+  const templates = equipmentCore.enchantments.enhancementTemplates
   const effects: Effect[] = []
 
   const slotSourceLabel: Record<EnchantableSlot, string> = {
@@ -62,10 +59,7 @@ export function getEnchantmentCandidateEffects(args: {
     const template = templates.find(t => t.id === templateId)
     if (!template) continue
 
-    const datum = template.editionData.find(d => d.edition === resolvedEdition)
-    if (!datum) continue
-
-    const descriptors = datum.effectsBySlot[slot]
+    const descriptors = template.effectsBySlot[slot]
     if (!descriptors || descriptors.length === 0) continue
 
     effects.push(

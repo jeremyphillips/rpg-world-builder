@@ -1,6 +1,3 @@
-import type { Spell, SpellEditionEntry } from '@/data/classes/spells'
+import type { SpellData } from '@/data/spellsCore'
 
-export interface SpellWithEntry {
-  spell: Spell
-  entry: SpellEditionEntry
-}
+export type SpellWithEntry = SpellData

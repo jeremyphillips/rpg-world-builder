@@ -1,13 +1,11 @@
-import type {
-  EnchantmentTemplate,
-  EnchantmentTemplateEditionDatum,
-} from '@/data/equipment/enchantments/enchantmentTemplates.types'
-import { resolveEquipmentEdition } from '@/features/equipment/domain'
+import type { EnchantmentTemplate } from '@/data/equipmentCore/enchantments/enchantmentTemplates.types'
+import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
 
-export function resolveEnchantmentTemplateDatum(
-  template: EnchantmentTemplate,
-  edition: string,
-): EnchantmentTemplateEditionDatum | undefined {
-  const resolved = resolveEquipmentEdition(edition)
-  return template.editionData.find(d => d.edition === resolved)
+/**
+ * Look up an enchantment template by ID.
+ */
+export function resolveEnchantmentTemplate(
+  templateId: string,
+): EnchantmentTemplate | undefined {
+  return equipmentCore.enchantments.enhancementTemplates.find(t => t.id === templateId)
 }

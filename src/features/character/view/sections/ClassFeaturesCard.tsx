@@ -1,5 +1,5 @@
 import type { CharacterDoc, CharacterClassInfo } from '@/shared'
-import { classes as classesData } from '@/data'
+import { classesCore as classesData } from '@/data'
 import { getById } from '@/domain/lookups'
 import { getClassProgression, getSubclassFeatures } from '@/features/mechanics/domain/progression'
 

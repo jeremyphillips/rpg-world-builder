@@ -14,10 +14,8 @@ import {
 } from '../steps'
 import { type CharacterBuilderState, type StepId, type BuilderOverrides } from '../types'
 import type { CharacterType } from '@/shared/types/character.core'
-import type { EditionId, SettingId } from '@/data'
 import { classesCore } from '@/data/classes.core'
 import { getById } from '@/domain/lookups'
-import { getMagicItemBudget } from '@/features/equipment/domain'
 
 // ---------------------------------------------------------------------------
 // Step config
@@ -103,8 +101,6 @@ export function getStepConfig(mode: CharacterType): StepConfig[] {
       selector: (state: CharacterBuilderState) =>
         (state.equipment?.magicItems?.length ?? 0) > 0,
       optional: true,
-      shouldSkip: (state: CharacterBuilderState) =>
-        !getMagicItemBudget(state.edition as EditionId, state.totalLevel ?? 0),
     },
     {
       id: 'proficiencies',

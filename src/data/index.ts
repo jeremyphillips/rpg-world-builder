@@ -1,6 +1,7 @@
 export * from './alignments'
 export * from './settings'
-export * from './classes/index.ts'
+// export * from './classes/index.ts'
+
 // editions
 export * from './editions/editions.ts'
 export * from './editions/edition.types.ts'

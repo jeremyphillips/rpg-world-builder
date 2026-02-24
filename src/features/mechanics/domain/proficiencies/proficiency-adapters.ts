@@ -1,5 +1,4 @@
 import type { Effect, GrantEffect, ProficiencyGrantValue } from '../effects/effects.types'
-import { resolveEquipmentEdition } from '@/features/equipment/domain'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -67,22 +66,17 @@ export function deriveEquipmentProficiency(
 /**
  * Check whether a single equipment item is covered by a proficiency.
  *
- * Resolves the edition to the equipment-edition key, then checks:
- *  1. 'all' / 'allArmor' in categories → always allowed
- *  2. Item's editionData.category appears in categories
+ *  1. 'all' or 'allArmor' in granted categories → always allowed
+ *  2. Item's category matches a granted category
  *  3. Item's id appears in the explicit items list
  */
 export function isItemProficient(
-  item: { id: string },
+  item: { id: string; category?: string },
   proficiency: EquipmentProficiency
 ): boolean {
-  //const effectiveEdition = resolveEquipmentEdition(edition)
-  // const editionEntry = item.editionData.find((e) => e.edition === effectiveEdition)
-  // if (!editionEntry) return false
-
   const { categories, items } = proficiency
   if (categories.includes('all') || categories.includes('allArmor')) return true
-  if (categories.length > 0 ) return true
+  if (item.category && categories.includes(item.category)) return true
   if (items.includes(item.id)) return true
 
   return false
@@ -100,7 +94,7 @@ export function isItemProficient(
  *       attunement limits, edition restrictions, etc.
  */
 export function evaluateEquipmentEligibility(
-  item: { id: string },
+  item: { id: string; category?: string },
   proficiency: EquipmentProficiency
 ): EquipmentEligibility {
   if (isItemProficient(item, proficiency)) {

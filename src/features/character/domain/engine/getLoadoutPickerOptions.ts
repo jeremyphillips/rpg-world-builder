@@ -1,8 +1,7 @@
 import type { Character } from '@/shared/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { EquipmentLoadout } from '@/shared/types/character.core'
-import { equipment as equipmentData } from '@/data'
-import type { ArmorEditionDatum } from '@/data/equipment/armor.types'
+import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
 import { resolveStatDetailed, type BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
 import { buildCharacterContext } from './buildCharacterContext'
 import {
@@ -23,32 +22,24 @@ type InventoryItem = {
 }
 
 function getOwnedArmors(character: Character): InventoryItem[] {
-  const edition = character.edition ?? '5e'
   const items: InventoryItem[] = []
-
   for (const id of character.equipment?.armor ?? []) {
-    const item = equipmentData.armor.find((a) => a.id === id)
+    const item = equipmentCore.armor.find((a) => a.id === id)
     if (!item) continue
-    const ed = item.editionData?.find((e) => e.edition === edition) as ArmorEditionDatum | undefined
-    if (ed?.category === 'shields') continue
+    if (item.category === 'shields') continue
     items.push({ id, name: item.name })
   }
-
   return items
 }
 
 function getOwnedShields(character: Character): InventoryItem[] {
-  const edition = character.edition ?? '5e'
   const items: InventoryItem[] = []
-
   for (const id of character.equipment?.armor ?? []) {
-    const item = equipmentData.armor.find((a) => a.id === id)
+    const item = equipmentCore.armor.find((a) => a.id === id)
     if (!item) continue
-    const ed = item.editionData?.find((e) => e.edition === edition) as ArmorEditionDatum | undefined
-    if (ed?.category !== 'shields') continue
+    if (item.category !== 'shields') continue
     items.push({ id, name: item.name })
   }
-
   return items
 }
 
@@ -63,11 +54,8 @@ export function getLoadoutPickerOptions(
   character: Character,
   intrinsicEffects: Effect[]
 ): LoadoutOption[] {
-  const edition = character.edition ?? '5e'
-  // if (edition !== '5e') return []
-
   const context = buildCharacterContext(character)
-  const candidateEffects = getEquipmentEffects(character.equipment, edition)
+  const candidateEffects = getEquipmentEffects(character.equipment)
 
   const armors = getOwnedArmors(character)
   const shields = getOwnedShields(character)

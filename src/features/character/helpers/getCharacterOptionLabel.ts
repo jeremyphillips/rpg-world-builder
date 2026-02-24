@@ -1,4 +1,4 @@
-import { classes } from '@/data'
+import { classesCore as classes } from '@/data/classes.core'
 import { getById } from '@/domain/lookups'
 import { getSubclassNameById } from '@/features/character/domain/reference'
 

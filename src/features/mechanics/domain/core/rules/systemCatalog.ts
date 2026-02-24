@@ -6,7 +6,6 @@
  */
 // import { classes } from '@/data/classes'
 // import { races } from '@/data/races'
-import { equipment } from '@/data/equipment'
 import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
 import { spells } from '@/data/classes/spells/spells'
 import { spellsCore } from '@/data/spellsCore'
@@ -20,7 +19,7 @@ import type { WeaponItem } from '@/data/equipment/weapons.types'
 import type { ArmorItem } from '@/data/equipment/armor.types'
 import type { GearItem } from '@/data/equipment/gear.types'
 import type { MagicItem } from '@/data/equipment/magicItems.types'
-import type { EnchantmentTemplate } from '@/data/equipment/enchantments/enchantmentTemplates.types'
+import type { EnchantmentTemplate } from '@/data/equipmentCore/enchantments/enchantmentTemplates.types'
 import type { Spell } from '@/data/classes/spells/spells.types'
 import type { Monster } from '@/data/monsters/monsters.types'
 
@@ -80,7 +79,7 @@ export const systemCatalog: CampaignCatalog = {
   // magicItemsById:           keyBy(equipment.magicItems),
   magicItemsById:           keyBy(equipmentCore.magicItems),
 
-  enhancementTemplatesById: keyBy(equipment.enchantments.enhancementTemplates),
+  enhancementTemplatesById: keyBy(equipmentCore.enchantments.enhancementTemplates),
   spellsById:               keyBy(spells),
   spellsCoreById:           keyBy(spellsCore),
   monstersById:             keyBy(monsters),

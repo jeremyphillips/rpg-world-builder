@@ -1,9 +1,6 @@
 import { useMemo } from 'react'
 import type { Character } from '@/shared/types/character.core'
-import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { resolveEquipmentEdition } from '@/features/equipment/domain'
-import type { WeaponItem, WeaponEditionDatum } from '@/data/equipment/weapons.types'
 import { buildCharacterContext } from '../domain/engine/buildCharacterContext'
 import { collectIntrinsicEffects } from '../domain/engine/collectCharacterEffects'
 import { getLoadoutPickerOptions } from '../domain/engine/getLoadoutPickerOptions'
@@ -48,38 +45,24 @@ export interface AttackEntry {
 // Attack helpers (catalog lookup — math is in attack-resolver)
 // ---------------------------------------------------------------------------
 
-function getWeaponEditionData(
-  weaponId: string,
-  editionId: string,
-  weaponsById: Record<string, WeaponItem>,
-): WeaponEditionDatum | undefined {
-  const resolved = resolveEquipmentEdition(editionId)
-  const weapon = weaponsById[weaponId]
-  return weapon?.editionData?.find(d => d.edition === resolved)
-}
-
 export function getCharacterAttacks(
-  character: Character,
+  _character: Character,
   context: EvaluationContext,
   effects: Effect[],
   wieldedWeaponIds: string[],
-  weaponsById: Record<string, WeaponItem>,
+  weaponsById: Record<string, { id: string; name: string; type?: string; properties?: string[]; damage?: { default?: string }; damageType?: string }>,
 ): AttackEntry[] {
   if (wieldedWeaponIds.length === 0) return []
-
-  const editionId = character.edition
 
   return wieldedWeaponIds.map((id, idx) => {
     const hand: AttackHand = idx === 0 ? 'main' : 'off'
     const weapon = weaponsById[id]
-    const edData = getWeaponEditionData(id, editionId, weaponsById)
 
     const weaponInput = {
-      type: edData?.type,
-      properties: edData?.properties,
-      damage: edData?.damage,
+      type: weapon?.type as 'melee' | 'ranged' | undefined,
+      properties: weapon?.properties,
+      damage: weapon?.damage,
       damageType: weapon?.damageType,
-      edition: editionId,
     }
 
     const atk = resolveWeaponAttackBonus(context, weaponInput, effects, { hand })
@@ -109,23 +92,21 @@ export type UseCombatStatsReturn = ReturnType<typeof useCombatStats>
 // ---------------------------------------------------------------------------
 
 export function useCombatStats(character: Character) {
-  const { editionId: activeEditionId } = useActiveCampaign()
   const { catalog } = useCampaignRules()
-  const edition = activeEditionId ?? character.edition ?? '5e'
 
   return useMemo(() => {
     const context = buildCharacterContext(character)
     const intrinsicEffects = collectIntrinsicEffects(character)
-    const candidateEffects = getEquipmentEffects(character.equipment, edition)
+    const candidateEffects = getEquipmentEffects(character.equipment)
 
     const loadout = resolveLoadout(character.combat)
     const resolved = resolveEquipmentLoadoutDetailed(character.combat, character.equipment)
 
     const activeEquipmentEffects = selectActiveEquipmentEffects(candidateEffects, resolved)
-    const enchantmentEffects = getEnchantmentCandidateEffects({ edition, resolved })
+    const enchantmentEffects = getEnchantmentCandidateEffects({ resolved })
 
     const ownedMagicItemIds = character.equipment?.magicItems ?? []
-    const magicCandidates = getMagicItemCandidateEffects(ownedMagicItemIds, edition)
+    const magicCandidates = getMagicItemCandidateEffects(ownedMagicItemIds)
     const activeMagicEffects = selectActiveMagicItemEffects(magicCandidates, {
       equippedIds: ownedMagicItemIds,
       attunedIds: ownedMagicItemIds,
@@ -151,8 +132,8 @@ export function useCombatStats(character: Character) {
 
     const ownedWeaponIds = character.equipment?.weapons ?? []
     const wieldedWeaponIds = resolveWieldedWeaponIds(resolved, ownedWeaponIds)
-    const attacks = getCharacterAttacks(character, context, allEffects, wieldedWeaponIds, catalog.weaponsById)
-    const weaponOptions = getWeaponPickerOptions(character, catalog.weaponsById)
+    const attacks = getCharacterAttacks(character, context, allEffects, wieldedWeaponIds, catalog.weaponsById as any)
+    const weaponOptions = getWeaponPickerOptions(character, catalog.weaponsById as any)
 
     return {
       armorClass: acResult.value,
@@ -169,5 +150,5 @@ export function useCombatStats(character: Character) {
       weaponOptions,
       wieldedWeaponIds,
     }
-  }, [character, edition, catalog])
+  }, [character, catalog])
 }

@@ -1,7 +1,6 @@
 import type { Effect } from '../effects.types'
 import type { Equipment, EquipmentLoadout, EquipmentItemInstance } from '@/shared/types/character.core'
-import { equipment as equipmentData } from '@/data'
-import type { ArmorEditionDatum } from '@/data/equipment/armor.types'
+import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
 
 // ---------------------------------------------------------------------------
 // Resolved loadout (instance-aware)
@@ -103,12 +102,8 @@ export function resolveEquipmentLoadoutDetailed(
   }
 }
 
-function getArmorEditionData(
-  armorId: string,
-  edition: string
-): ArmorEditionDatum | null {
-  const item = equipmentData.armor.find((a) => a.id === armorId)
-  return (item?.editionData?.find((e) => e.edition === edition) as ArmorEditionDatum) ?? null
+function findCoreArmor(armorId: string) {
+  return equipmentCore.armor.find((a) => a.id === armorId) ?? null
 }
 
 function buildArmorFormulaEffect(
@@ -157,20 +152,16 @@ function buildArmorFormulaEffect(
  */
 export function getEquipmentEffects(
   equipment: Equipment | undefined,
-  edition: string
 ): Effect[] {
-  // if (edition !== '5e') return []
-
   const ownedArmorIds = equipment?.armor ?? []
   const effects: Effect[] = []
 
   for (const id of ownedArmorIds) {
-    const item = equipmentData.armor.find((a) => a.id === id)
-    const ed = getArmorEditionData(id, edition)
-    if (!item || !ed) continue
+    const item = findCoreArmor(id)
+    if (!item) continue
 
-    if (ed.category === 'shields') {
-      const bonus = ed.acBonus ?? 0
+    if (item.category === 'shields') {
+      const bonus = item.acBonus ?? 0
       if (bonus > 0) {
         effects.push({
           kind: 'modifier',
@@ -181,13 +172,11 @@ export function getEquipmentEffects(
         })
       }
     } else {
-      const baseAC = ed.baseAC ?? 10
-      const category = ed.category ?? 'light'
+      const baseAC = item.baseAC ?? 10
+      const category = item.category ?? 'light'
       effects.push(buildArmorFormulaEffect(baseAC, category, `armor:${id}`))
     }
   }
-
-  // TODO: magic item effects (e.g. +1 armor, stat bonuses)
 
   return effects
 }

@@ -1,17 +1,12 @@
 /**
  * Magic item → Effect[] translation layer.
  *
- * When an item's edition datum carries structured `effects` descriptors,
- * those are resolved via `resolveEffectDescriptors`.  Otherwise the
- * Phase 1 fallback derives effects from `datum.bonus` + `item.slot`.
- *
+ * Reads flat core magic-item data (no edition indirection).
  * Each effect carries `source: 'magic_item:<id>'`.
  */
 import type { Effect, ModifierEffect } from '../effects.types'
 import type { StatTarget } from '../../resolution/stat-resolver'
-import { equipment as equipmentCatalog } from '@/data'
-import type { MagicItem, MagicItemEditionDatum } from '@/data/equipment/magicItems.types'
-import { resolveEquipmentEdition } from '@/features/equipment/domain'
+import { magicItemsCore, type MagicItem } from '@/data/equipmentCore/magicItemsCore'
 import { resolveEffectDescriptors } from '../descriptors/resolveEffectDescriptors'
 
 // ---------------------------------------------------------------------------
@@ -35,61 +30,51 @@ function bonusModifier(
   return { kind: 'modifier', target, mode: 'add', value: bonus, source }
 }
 
-function effectsForItem(item: MagicItem, datum: MagicItemEditionDatum): Effect[] {
-  const bonus = datum.bonus
-  if (bonus == null || bonus === 0) return []
-
-  const source = `magic_item:${item.id}`
+function effectsForItem(item: MagicItem): Effect[] {
   const effects: Effect[] = []
+  const source = `magic_item:${item.id}`
 
-  switch (item.slot) {
-    case 'weapon':
-      effects.push(bonusModifier('attack_roll', bonus, source))
-      effects.push(bonusModifier('damage', bonus, source))
-      break
+  if (item.effects) {
+    for (const fx of item.effects) {
+      if (fx.kind === 'bonus') {
+        effects.push(bonusModifier(fx.target as StatTarget, fx.value, source))
+      }
+    }
+  }
 
-    case 'armor':
-    case 'shield':
-      effects.push(bonusModifier('armor_class', bonus, source))
-      break
+  if (effects.length === 0 && item.enhancementLevel && item.enhancementLevel > 0) {
+    switch (item.slot) {
+      case 'weapon':
+        effects.push(bonusModifier('attack_roll', item.enhancementLevel, source))
+        effects.push(bonusModifier('damage', item.enhancementLevel, source))
+        break
+      case 'armor':
+      case 'shield':
+        effects.push(bonusModifier('armor_class', item.enhancementLevel, source))
+        break
+    }
   }
 
   return effects
 }
 
+const magicItemsById = new Map(magicItemsCore.map(m => [m.id, m]))
+
 /**
  * Produce candidate effects for ALL owned magic items.
  * Call `selectActiveMagicItemEffects` afterwards to narrow to the active set.
- *
- * If an item's edition datum has structured `effects`, those take priority.
- * Otherwise the Phase 1 fallback derives effects from `datum.bonus` + `item.slot`.
  */
 export function getMagicItemCandidateEffects(
   magicItemIds: string[],
-  edition: string,
 ): Effect[] {
   if (magicItemIds.length === 0) return []
 
-  const resolved = resolveEquipmentEdition(edition)
   const effects: Effect[] = []
 
   for (const id of magicItemIds) {
-    const item = equipmentCatalog.magicItems.find((m: MagicItem) => m.id === id)
+    const item = magicItemsById.get(id)
     if (!item) continue
-
-    const datum = item.editionData.find(d => d.edition === resolved)
-    if (!datum) continue
-
-    if (datum.effects && datum.effects.length > 0) {
-      effects.push(
-        ...resolveEffectDescriptors(datum.effects, {
-          source: `magic_item:${item.id}`,
-          label: item.name,
-        }),
-      )
-    } else {
-      effects.push(...effectsForItem(item, datum))
-    }
+    effects.push(...effectsForItem(item))
   }
 
   return effects
@@ -117,11 +102,10 @@ export function selectActiveMagicItemEffects(
     const itemId = source.slice('magic_item:'.length)
     if (!equippedSet.has(itemId)) return false
 
-    const item = equipmentCatalog.magicItems.find((m: MagicItem) => m.id === itemId)
+    const item = magicItemsById.get(itemId)
     if (!item) return false
 
-    const datum = item.editionData.find(d => d.edition !== undefined) as MagicItemEditionDatum | undefined
-    if (datum?.requiresAttunement && !attunedSet.has(itemId)) return false
+    if ((item as any).requiresAttunement && !attunedSet.has(itemId)) return false
 
     return true
   })

@@ -5,6 +5,6 @@
  * reaching into @/data directly. This makes it straightforward to swap
  * in a pre-indexed structure later without touching call sites.
  */
-import { spells } from '@/data/classes/spells'
+import { spellsCore as spells } from '@/data/spellsCore'
 
 export { spells as spellCatalog }

@@ -4,9 +4,8 @@ import type { SpellWithEntry } from '../catalog/types'
 export function groupSpellsByLevel(spells: SpellWithEntry[]): Map<number, SpellWithEntry[]> {
   const groups = new Map<number, SpellWithEntry[]>()
   for (const s of spells) {
-    const level = s.entry.level
-    if (!groups.has(level)) groups.set(level, [])
-    groups.get(level)!.push(s)
+    if (!groups.has(s.level)) groups.set(s.level, [])
+    groups.get(s.level)!.push(s)
   }
   return new Map([...groups.entries()].sort(([a], [b]) => a - b))
 }

@@ -10,44 +10,22 @@
 import type { InvalidationRule, InvalidationItem } from './types'
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
 
-import { getAllowedRaceIdsFromDraft, getAllowedClassIdsFromDraft } from '../options'
 import { evaluateClassEligibility } from '../rules'
-import { 
-  classes as classCatalog,  
-  equipment 
-} from '@/data'
-import { racesCore as raceCatalog } from '@/data/races.core'
+import { classesCore as classCatalog } from '@/data'
 import { spells as spellCatalog } from '@/data/classes/spells'
-import { resolveEquipmentEdition } from '@/features/equipment/domain'
 import { getById } from '@/domain/lookups'
 import { pruneSelectedSpells } from '../../spells/selection/prune-selected-spells'
-
-const { weapons: weaponsData, armor: armorData, gear: gearData } = equipment
 
 // ---------------------------------------------------------------------------
 // Label helpers (engine-internal — only used to populate InvalidationItem.label)
 // ---------------------------------------------------------------------------
 
 const spellLabel = (id: string) => spellCatalog.find(s => s.id === id)?.name ?? id
-const weaponLabel = (id: string) => getById(weaponsData, id)?.name ?? id
-const armorLabel = (id: string) => getById(armorData, id)?.name ?? id
-const gearLabel = (id: string) => getById(gearData, id)?.name ?? id
 const classLabel = (id: string) => getById(classCatalog, id)?.name ?? id
-const raceLabel = (id: string) => getById(raceCatalog, id)?.name ?? id
 
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
-
-function itemHasEdition(
-  items: readonly { id: string; editionData: { edition: string }[] }[],
-  itemId: string,
-  edition: string
-): boolean {
-  const item = items.find(i => i.id === itemId)
-  if (!item) return false
-  return item.editionData.some(d => d.edition === edition)
-}
 
 /**
  * Semantic comparator for the `classes` array.
@@ -108,172 +86,6 @@ function resolveInvalidClasses(
 // ---------------------------------------------------------------------------
 
 export const INVALIDATION_RULES: InvalidationRule[] = [
-
-  // ── Edition changes ─────────────────────────────────────────────────────
-
-  // {
-  //   id: 'edition→race',
-  //   triggers: ['edition'],
-  //   affectedStep: 'race',
-  //   label: 'Race',
-  //   detect: (_prev, next) => {
-  //     if (!next.edition || !next.race) return []
-  //     const allowed = getAllowedRaceIdsFromDraft(next)
-  //     if (allowed.includes(next.race)) return []
-  //     return [{ id: next.race, kind: 'race', label: raceLabel(next.race) }]
-  //   },
-  //   resolve: (state) => ({ ...state, race: undefined }),
-  // },
-
-  // {
-  //   id: 'edition→class',
-  //   triggers: ['edition'],
-  //   affectedStep: 'class',
-  //   label: 'Classes',
-  //   detect: (_prev, next) => {
-  //     if (!next.edition) return []
-  //     const allowed = new Set(getAllowedClassIdsFromDraft(next))
-  //     const invalid: InvalidationItem[] = []
-  //     for (const cls of next.classes) {
-  //       if (cls.classId && !allowed.has(cls.classId)) {
-  //         invalid.push({ id: cls.classId, kind: 'class', label: classLabel(cls.classId) })
-  //       }
-  //     }
-  //     return invalid
-  //   },
-  //   resolve: resolveInvalidClasses,
-  // },
-
-  // {
-  //   id: 'edition→alignment',
-  //   triggers: ['edition'],
-  //   affectedStep: 'alignment',
-  //   label: 'Alignment',
-  //   detect: (_prev, next) => {
-  //     if (!next.edition || !next.alignment) return []
-  //     const alignments = getAlignmentsByEdition(next.edition as EditionId)
-  //     const validIds = new Set(alignments.map((a: { id: string }) => a.id))
-  //     if (validIds.has(next.alignment)) return []
-  //     return [{ id: next.alignment, kind: 'alignment', label: next.alignment }]
-  //   },
-  //   resolve: (state) => ({ ...state, alignment: undefined }),
-  // },
-
-  // {
-  //   id: 'edition→spells',
-  //   triggers: ['edition'],
-  //   affectedStep: 'spells',
-  //   label: 'Spells',
-  //   detect: detectInvalidSpellItems,
-  //   resolve: resolveInvalidSpells,
-  // },
-
-  // {
-  //   id: 'edition→weapons',
-  //   triggers: ['edition'],
-  //   affectedStep: 'equipment',
-  //   label: 'Weapons',
-  //   detect: (_prev, next) => {
-  //     if (!next.edition) return []
-  //     const ids = next.equipment?.weapons ?? []
-  //     if (ids.length === 0) return []
-  //     const eqEdition = resolveEquipmentEdition(next.edition)
-  //     return ids
-  //       .filter(id => !itemHasEdition(weaponsData, id, eqEdition))
-  //       .map(id => ({ id, kind: 'equipment' as const, label: weaponLabel(id) }))
-  //   },
-  //   resolve: (state) => {
-  //     if (!state.edition) return state
-  //     const eqEdition = resolveEquipmentEdition(state.edition)
-  //     const weapons = (state.equipment?.weapons ?? []).filter(
-  //       id => itemHasEdition(weaponsData, id, eqEdition)
-  //     )
-  //     return { ...state, equipment: { ...state.equipment, weapons } }
-  //   },
-  // },
-
-  // {
-  //   id: 'edition→armor',
-  //   triggers: ['edition'],
-  //   affectedStep: 'equipment',
-  //   label: 'Armor',
-  //   detect: (_prev, next) => {
-  //     if (!next.edition) return []
-  //     const ids = next.equipment?.armor ?? []
-  //     if (ids.length === 0) return []
-  //     const eqEdition = resolveEquipmentEdition(next.edition)
-  //     return ids
-  //       .filter(id => !itemHasEdition(armorData, id, eqEdition))
-  //       .map(id => ({ id, kind: 'equipment' as const, label: armorLabel(id) }))
-  //   },
-  //   resolve: (state) => {
-  //     if (!state.edition) return state
-  //     const eqEdition = resolveEquipmentEdition(state.edition)
-  //     const armor = (state.equipment?.armor ?? []).filter(
-  //       id => itemHasEdition(armorData, id, eqEdition)
-  //     )
-  //     return { ...state, equipment: { ...state.equipment, armor } }
-  //   },
-  // },
-
-  // {
-  //   id: 'edition→gear',
-  //   triggers: ['edition'],
-  //   affectedStep: 'equipment',
-  //   label: 'Gear',
-  //   detect: (_prev, next) => {
-  //     if (!next.edition) return []
-  //     const ids = next.equipment?.gear ?? []
-  //     if (ids.length === 0) return []
-  //     const eqEdition = resolveEquipmentEdition(next.edition)
-  //     return ids
-  //       .filter(id => !itemHasEdition(gearData, id, eqEdition))
-  //       .map(id => ({ id, kind: 'equipment' as const, label: gearLabel(id) }))
-  //   },
-  //   resolve: (state) => {
-  //     if (!state.edition) return state
-  //     const eqEdition = resolveEquipmentEdition(state.edition)
-  //     const gear = (state.equipment?.gear ?? []).filter(
-  //       id => itemHasEdition(gearData, id, eqEdition)
-  //     )
-  //     return { ...state, equipment: { ...state.equipment, gear } }
-  //   },
-  // },
-
-  // ── Setting changes ─────────────────────────────────────────────────────
-
-  // {
-  //   id: 'setting→race',
-  //   triggers: ['setting'],
-  //   affectedStep: 'race',
-  //   label: 'Race',
-  //   detect: (_prev, next) => {
-  //     if (!next.edition || !next.race) return []
-  //     const allowed = getAllowedRaceIdsFromDraft(next)
-  //     if (allowed.includes(next.race)) return []
-  //     return [{ id: next.race, kind: 'race', label: raceLabel(next.race) }]
-  //   },
-  //   resolve: (state) => ({ ...state, race: undefined }),
-  // },
-
-  // {
-  //   id: 'setting→class',
-  //   triggers: ['setting'],
-  //   affectedStep: 'class',
-  //   label: 'Classes',
-  //   detect: (_prev, next) => {
-  //     if (!next.edition) return []
-  //     const allowed = new Set(getAllowedClassIdsFromDraft(next))
-  //     const invalid: InvalidationItem[] = []
-  //     for (const cls of next.classes) {
-  //       if (cls.classId && !allowed.has(cls.classId)) {
-  //         invalid.push({ id: cls.classId, kind: 'class', label: classLabel(cls.classId) })
-  //       }
-  //     }
-  //     return invalid
-  //   },
-  //   resolve: resolveInvalidClasses,
-  // },
 
   // ── Level changes ───────────────────────────────────────────────────────
 

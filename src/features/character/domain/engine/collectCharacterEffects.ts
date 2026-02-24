@@ -1,6 +1,7 @@
 import type { Character } from '@/shared/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
-import { classes } from '@/data'
+import { classesCore as classes } from '@/data/classes.core'
+import type { ClassDefinition } from '@/data/classes/types'
 
 type FeatureRecord = Record<string, unknown>
 
@@ -42,36 +43,31 @@ function extractEffects(node: FeatureRecord, clsLevel: number, out: Effect[]): v
 }
 
 /**
- * Convert base class proficiency entries (class.proficiencies[edition])
- * into GrantEffects so they flow through the engine alongside subclass grants.
+ * Convert base class proficiency entries into GrantEffects so they flow
+ * through the engine alongside subclass grants.
+ *
+ * Reads the flat `proficiencies.weapons` / `proficiencies.armor` objects
+ * from classesCore (ClassProficiencyWeapon / ClassProficiencyArmor).
  */
 function collectBaseProficiencyEffects(character: Character): Effect[] {
   const effects: Effect[] = []
-  const edition = character.edition ?? '5e'
 
   for (const cls of character.classes ?? []) {
     const classDef = classes.find((c) => c.id === cls.classId)
     if (!classDef) continue
 
     const profs = classDef.proficiencies
-    if (Array.isArray(profs)) continue
-
-    const editionProfs = profs[edition]
-    if (!editionProfs) continue
+    if (!profs || Array.isArray(profs)) continue
 
     const slots = ['weapons', 'armor'] as const
     const targetMap = { weapons: 'weapon', armor: 'armor' } as const
 
     for (const slot of slots) {
-      const entries = editionProfs[slot]
-      if (!entries || !Array.isArray(entries)) continue
+      const entry = profs[slot]
+      if (!entry) continue
 
-      const categories: string[] = []
-      const items: string[] = []
-      for (const entry of entries) {
-        if (entry.categories) categories.push(...entry.categories)
-        if (entry.items) items.push(...entry.items)
-      }
+      const categories = entry.categories ?? []
+      const items = entry.items ?? []
 
       if (categories.length > 0 || items.length > 0) {
         effects.push({
@@ -87,37 +83,74 @@ function collectBaseProficiencyEffects(character: Character): Effect[] {
   return effects
 }
 
+type ClassOption =
+  | string
+  | {
+      id?: string
+      features?: FeatureRecord[]
+    }
+    
+function normalizeDefinitions(defs?: ClassDefinition) {
+  if (!defs) return []
+  return Array.isArray(defs) ? defs : [defs]
+}
+
+function optionId(opt: ClassOption): string | undefined {
+  return typeof opt === 'string' ? opt : opt?.id
+}
+
+function optionFeatures(opt: ClassOption): FeatureRecord[] | undefined {
+  return typeof opt === 'object' && opt && 'features' in opt ? opt.features : undefined
+}
+
+function resolveSelectedOption(
+  options: ClassOption[],
+  selectedId?: string | null
+): ClassOption | undefined {
+  if (!options.length) return undefined
+
+  // If only one option exists, use it (nice for classes without choices)
+  if (options.length === 1) return options[0]
+
+  if (!selectedId) return undefined
+
+  return options.find(o => optionId(o) === selectedId)
+}
+
 /**
  * Collect effects from character's class and subclass features.
  * Returns all effect kinds (modifier, formula, grant, etc.) — not filtered by target.
  */
-function collectClassEffects(character: Character): Effect[] {
+export function collectClassEffects(
+  character: Character
+): Effect[] {
   const effects: Effect[] = []
-  const edition = character.edition ?? '5e'
 
   for (const cls of character.classes ?? []) {
-    const classDef = classes.find((c) => c.id === cls.classId)
+    const classDef = classes.find(c => c.id === cls.classId)
     if (!classDef) continue
 
-    const def = classDef.definitions?.find(
-      (d) => d.edition === edition && (d.id === cls.classDefinitionId || !cls.classDefinitionId)
-    )
-    const defToUse = def ?? classDef.definitions?.[0]
-    if (!defToUse?.options) continue
+    const defs = normalizeDefinitions(classDef.definitions)
 
-    const subclass = defToUse.options.find(
-      (o) => o.id === cls.classDefinitionId ||
-        (typeof o === 'object' && (o as { id?: string }).id === cls.classDefinitionId)
-    )
-    const sub = typeof subclass === 'object' && subclass && 'features' in subclass
-      ? (subclass as { features?: FeatureRecord[] })
-      : null
+    // pick a definitions object:
+    // - if there are multiple, prefer one matching the chosen subclass/definition id (if you store it at defs-level)
+    // - otherwise just take the first
+    const selectedId = cls.classDefinitionId ?? null
+    const defToUse =
+      defs.find(d => d?.id && d.id === selectedId) ??
+      defs[0]
 
-    if (sub?.features) {
-      const clsLevel = cls.level ?? character.totalLevel ?? 1
-      for (const feat of sub.features) {
-        extractEffects(feat, clsLevel, effects)
-      }
+    const options = defToUse?.options ?? []
+    if (!options.length) continue
+
+    const chosen = resolveSelectedOption(options, selectedId)
+    const features = chosen ? optionFeatures(chosen) : undefined
+    if (!features?.length) continue
+
+    const clsLevel = (cls.level ?? character.totalLevel ?? 1) || 1
+
+    for (const feat of features) {
+      extractEffects(feat, clsLevel, effects)
     }
   }
 

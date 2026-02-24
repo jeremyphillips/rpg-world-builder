@@ -1,4 +1,4 @@
-export interface Spell {
+export interface SpellData {
   id: string
   name: string
   school: string                          // 'evocation', 'abjuration', 'conjuration', etc.
@@ -9,7 +9,7 @@ export interface Spell {
   source?: string
 }
 
-export const spellsCore: Spell[] = [
+export const spellsCore: SpellData[] = [
   {
     id: 'fireBolt',
     name: 'Fire Bolt',

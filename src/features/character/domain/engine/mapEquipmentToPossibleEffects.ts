@@ -3,7 +3,7 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { FormulaEffect } from '@/features/mechanics/domain/resolution/formula.engine'
 import type { Equipment } from '@/shared/types/character.core'
-import { equipment as equipmentData } from '@/data'
+import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
 import { getEquipmentEffects } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
 
 export type ArmorEffectEntry = {
@@ -22,17 +22,15 @@ export type ShieldEffectEntry = {
 
 /**
  * @deprecated Thin wrapper over getEquipmentEffects. Use getEquipmentEffects directly.
- * Kept for getArmorConfigOptions compatibility during migration.
  */
 export function mapEquipmentToPossibleEffects(
   equipment: Equipment | undefined,
-  edition: string
 ): {
   armorEffects: ArmorEffectEntry[]
   shieldEffects: ShieldEffectEntry[]
   magicItemEffects: Effect[]
 } {
-  const allEffects = getEquipmentEffects(equipment, edition)
+  const allEffects = getEquipmentEffects(equipment)
 
   const armorEffects: ArmorEffectEntry[] = []
   const shieldEffects: ShieldEffectEntry[] = []
@@ -47,17 +45,16 @@ export function mapEquipmentToPossibleEffects(
 
     if (source.startsWith('armor:')) {
       const armorId = source.slice('armor:'.length)
-      const item = equipmentData.armor.find((a) => a.id === armorId)
-      const ed = item?.editionData?.find((e) => e.edition === edition)
+      const item = equipmentCore.armor.find((a) => a.id === armorId)
       armorEffects.push({
         armorId,
         name: item?.name ?? armorId,
-        category: (ed && 'category' in ed ? (ed as { category?: string }).category : undefined) ?? 'light',
+        category: item?.category ?? 'light',
         effect: effect as unknown as FormulaEffect,
       })
     } else if (source.startsWith('shield:')) {
       const shieldId = source.slice('shield:'.length)
-      const item = equipmentData.armor.find((a) => a.id === shieldId)
+      const item = equipmentCore.armor.find((a) => a.id === shieldId)
       const bonus = effect.kind === 'modifier' && typeof effect.value === 'number' ? effect.value : 0
       shieldEffects.push({
         shieldId,

@@ -84,7 +84,7 @@ function computeFlags(_character: Character): Record<string, boolean> {
 function deriveHitDie(character: Character): number {
   const primaryClass = character.classes?.[0]
   if (!primaryClass?.classId) return 8
-  const prog = getClassProgression(primaryClass.classId, character.edition)
+  const prog = getClassProgression(primaryClass.classId)
   return prog?.hitDie ?? 8
 }
 

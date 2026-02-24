@@ -1,6 +1,7 @@
 // Cross-edition class progression conversions.
 
-import { classes } from '@/data'
+// import { classes } from '@/data'
+import { classesCore as classes } from '@/data/classes.core'
 import type { EditionId } from '@/data'
 import type {
   ClassProgression,
@@ -26,28 +27,29 @@ export type SubclassFeature = {
 export function getSubclassFeatures(
   classId: string | undefined,
   classDefinitionId: string | undefined,
-  edition: EditionId | string | undefined,
   characterLevel: number
 ): SubclassFeature[] {
-  if (!classId || !classDefinitionId || !edition) return []
+  if (!classId || !classDefinitionId) return [];
 
-  const cls = getById(classes, classId)
-  if (!cls) return []
+  const cls = getById(classes, classId);
+  if (!cls) return [];
 
-  const def = cls.definitions?.find((d) => d.edition === edition)
-  if (!def?.options) return []
+  // flattened: no edition filtering
+  // definitions can be an object (your new shape) OR an array (older shape) — handle both.
+  const def = Array.isArray(cls.definitions) ? cls.definitions[0] : cls.definitions;
+  if (!def?.options) return [];
 
-  const subclass = def.options.find((o) => o.id === classDefinitionId)
-  if (!subclass?.features) return []
+  const subclass = def.options.find((o: any) => o?.id === classDefinitionId);
+  if (!subclass?.features) return [];
 
   return subclass.features
-    .filter((f) => typeof f.name === 'string')
-    .map((f) => ({
+    .filter((f: any) => typeof f?.name === 'string')
+    .map((f: any) => ({
       name: f.name!,
       level: f.level ?? def.selectionLevel ?? 1,
       description: typeof f.description === 'string' ? f.description : undefined,
     }))
-    .filter((f) => f.level <= characterLevel)
+    .filter((f) => f.level <= characterLevel);
 }
 
 // ---------------------------------------------------------------------------
@@ -78,13 +80,12 @@ export interface CoreFeature {
 
 /** Get progression entry for a given class + edition */
 export function getClassProgression(
-  classId?: string,
-  edition?: EditionId | string
+  classId?: string
 ): ClassProgression | undefined {
-  if (!classId || !edition) return undefined
+  if (!classId) return undefined
   const cls = getById(classes, classId)
   if (!cls?.progression) return undefined
-  return cls.progression.find((p) => p.edition === edition)
+  return cls.progression //.find((p) => p.edition === edition)
 }
 
 /** Get all progression entries for a given class */

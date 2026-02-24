@@ -15,11 +15,11 @@ export function computeSpellLimits(state: CharacterBuilderState) {
   let maxSpellLevel = 0
   let totalKnown = 0
 
-  if (!state.edition) return { perLevelMax, maxSpellLevel, totalKnown }
+  // if (!state.edition) return { perLevelMax, maxSpellLevel, totalKnown }
 
   for (const cls of state.classes) {
     if (!cls.classId) continue
-    const prog = getClassProgression(cls.classId, state.edition)
+    const prog = getClassProgression(cls.classId)
     if (!prog?.spellProgression) continue
 
     const limits = getClassSpellLimitsAtLevel(prog, cls.level)
@@ -44,13 +44,11 @@ export function getAvailableSpellsByEditionAndClass(character: CharacterBuilderS
   const availableIds = new Set<string>()
   const spellLevelMap = new Map<string, number>()
 
-  if (!character.edition) return { availableIds, spellLevelMap }
-
   for (const cls of character.classes) {
     if (!cls.classId) continue
-    for (const s of getAvailableSpells(cls.classId, character.edition)) {
-      availableIds.add(s.spell.id)
-      spellLevelMap.set(s.spell.id, s.entry.level)
+    for (const s of getAvailableSpells(cls.classId)) {
+      availableIds.add(s.id)
+      spellLevelMap.set(s.id, s.level)
     }
   }
 

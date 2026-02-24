@@ -12,7 +12,7 @@ import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import type { MagicItemSlot, MagicItem } from '@/data/equipmentCore/magicItemsCore'
 import type { EquipmentItemInstance } from '@/shared/types/character.core'
-import type { EnchantableSlot } from '@/data/equipment/enchantments/enchantmentTemplates.types'
+import type { EnchantableSlot } from '@/data/equipmentCore/enchantments/enchantmentTemplates.types'
 
 // ---------------------------------------------------------------------------
 // Enhancement types & constants
@@ -149,13 +149,11 @@ const MagicItemsStep = () => {
     return `${name} (${short})`
   }
 
-  // Enhancement cost: use the first editionData entry as the canonical cost
   const getEnhancementCostGp = (templateId: string | undefined): number => {
     if (!templateId) return 0
     const t = catalog.enhancementTemplatesById[templateId]
     if (!t) return 0
-    const datum = t.editionData?.[0]
-    return parseGpCost(datum?.cost)
+    return parseGpCost(t.cost)
   }
 
   const sumEnhancementCost = (instances: EquipmentItemInstance[]): number =>
@@ -386,8 +384,7 @@ const MagicItemsStep = () => {
                     >
                       <MenuItem value="">No Enhancement</MenuItem>
                       {availableTemplates.map(t => {
-                        const datum = t.editionData?.[0]
-                        const costSuffix = datum?.cost ? ` (${datum.cost})` : ''
+                        const costSuffix = t.cost ? ` (${t.cost})` : ''
                         return (
                           <MenuItem
                             key={t.id}

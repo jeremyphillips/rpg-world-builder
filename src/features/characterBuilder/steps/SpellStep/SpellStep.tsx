@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import type { Spell } from '@/data/spellsCore'
+import type { SpellData } from '@/data/spellsCore'
 import { SpellHorizontalCard } from '@/domain/spells/components'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
 import {
@@ -120,7 +120,7 @@ const SpellStep = () => {
           ? (perLevelMax.get(0) ?? 0) > 0
           : level <= maxSpellLevel
         )
-        .map(([level, spells]: [number, Spell[]]) => {
+        .map(([level, spells]: [number, SpellData[]]) => {
         const levelFull = isSpellLevelFull(model, level)
 
         return (

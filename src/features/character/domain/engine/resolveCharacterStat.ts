@@ -22,14 +22,9 @@ export function resolveCharacterStat(
   character: Character,
   target: StatTarget
 ): number {
-  const edition = character.edition ?? '5e'
-  // if (target === 'armor_class' && edition !== '5e') {
-  //   return character.armorClass?.base ?? 10
-  // }
-
   const context = buildCharacterContext(character)
   const intrinsicEffects = collectIntrinsicEffects(character)
-  const candidateEffects = getEquipmentEffects(character.equipment, edition)
+  const candidateEffects = getEquipmentEffects(character.equipment)
   const loadout = resolveLoadout(character.combat)
   const activeEquipmentEffects = selectActiveEquipmentEffects(candidateEffects, loadout)
 

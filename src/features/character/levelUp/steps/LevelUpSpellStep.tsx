@@ -7,7 +7,7 @@
 
 import { useMemo, useCallback } from 'react'
 import { getClassProgression } from '@/features/mechanics/domain/progression'
-import { getAvailableSpells, groupSpellsByLevel, getClassSpellLimitsAtLevel, type SpellWithEntry } from '@/features/mechanics/domain/spells'
+import { getAvailableSpells, groupSpellsByLevel, getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/spells'
 import { SpellHorizontalCard } from '@/domain/spells/components'
 import type { LevelUpState } from '../levelUp.types'
 
@@ -44,7 +44,6 @@ export default function LevelUpSpellStep({
   onChange,
 }: LevelUpSpellStepProps) {
   const {
-    edition,
     primaryClassId,
     classes,
     currentSpells,
@@ -58,10 +57,9 @@ export default function LevelUpSpellStep({
   const oldClassLevel = primaryClass?.level ?? 1
   const newClassLevel = oldClassLevel + (pendingLevel - currentLevel)
 
-  // Get progression and limits for old and new levels
   const prog = useMemo(
-    () => getClassProgression(primaryClassId, edition),
-    [primaryClassId, edition],
+    () => getClassProgression(primaryClassId),
+    [primaryClassId],
   )
 
   const oldLimits = useMemo(
@@ -74,12 +72,10 @@ export default function LevelUpSpellStep({
     [prog, newClassLevel],
   )
 
-  // Available spells for this class + edition
   const availableByLevel = useMemo(() => {
-    if (!edition) return new Map<number, SpellWithEntry[]>()
-    const available = getAvailableSpells(primaryClassId, edition)
+    const available = getAvailableSpells(primaryClassId)
     return groupSpellsByLevel(available)
-  }, [primaryClassId, edition])
+  }, [primaryClassId])
 
   // Compute effective spell list: current - removed + new
   const effectiveSpells = useMemo(() => {
@@ -125,7 +121,7 @@ export default function LevelUpSpellStep({
     for (const [level, spells] of availableByLevel) {
       let count = 0
       for (const s of spells) {
-        if (effectiveSpells.has(s.spell.id)) count++
+        if (effectiveSpells.has(s.id)) count++
       }
       if (count > 0) map.set(level, count)
     }
@@ -286,14 +282,13 @@ export default function LevelUpSpellStep({
 
               <Stack spacing={1}>
                 {spells
-                  .sort((a, b) => a.spell.name.localeCompare(b.spell.name))
-                  .map(({ spell, entry }) => {
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((spell) => {
                     const isSelected = effectiveSpells.has(spell.id)
                     return (
                       <SpellHorizontalCard
                         key={spell.id}
                         spell={spell}
-                        editionEntry={entry}
                         selected={isSelected}
                         disabled={levelFull && !isSelected}
                         onToggle={() => toggleSpell(spell.id, level)}

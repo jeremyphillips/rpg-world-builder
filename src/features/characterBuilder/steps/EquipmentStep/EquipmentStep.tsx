@@ -2,15 +2,11 @@ import { useEffect, useRef } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
 import { ButtonGroup } from '@/ui/elements'
-// import type { EditionId } from '@/data'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-// import { getClassRequirement } from '@/features/mechanics/domain/character-build/rules'
 import {
   calculateEquipmentCost,
   getItemCostGp,
-  resolveEquipmentEdition
 } from '@/features/equipment/domain'
-import { getEquipmentNotes } from '@/features/equipment/ui/notes'
 import { collectIntrinsicEffects } from '@/features/character/domain/engine/collectCharacterEffects'
 import {
   deriveEquipmentProficiency,
@@ -99,7 +95,7 @@ const EquipmentStep = () => {
   if (!activeClass) return null
   
   const {
-    classId: selectedClassId,
+    // classId: selectedClassId,
     // classDefinitionId: selectedClassDefinitionId,
     // level: selectedLevel
   } = activeClass ?? {}
@@ -170,23 +166,9 @@ const EquipmentStep = () => {
   const armorOptions  = buildOptions(armorCatalog, selectedArmor, armorProf)
   const gearOptions   = buildOptions(gearCatalog, selectedGear, gearProf)
 
-  const cls = selectedClassId ? catalog.classesById[selectedClassId] : undefined
-  const requirements = cls?.requirements
-
-  const armorNotes = []
-  // const armorNotes = requirements
-  //   ? getEquipmentNotes({ requirements, edition, slot: 'armor' })
-  //   : []
-
-  const weaponNotes = []
-  // const weaponNotes = requirements
-  //   ? getEquipmentNotes({ requirements, edition, slot: 'weapons' })
-  //   : []
-
-  const gearNotes = []
-  // const gearNotes = requirements
-  //   ? getEquipmentNotes({ requirements, edition, slot: 'tools' })
-  //   : []
+  const armorNotes: { id: string; text: string }[] = []
+  const weaponNotes: { id: string; text: string }[] = []
+  const gearNotes: { id: string; text: string }[] = []
 
   const equipmentNotices = stepNotices.get('equipment') ?? []
 
