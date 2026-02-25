@@ -1,10 +1,11 @@
 import type { CharacterDoc, CharacterClassInfo } from '@/shared'
 import type { CampaignSummary } from '@/shared/types/campaign.types'
-import type { EditionId } from '@/data'
-import { classes as classesData, editions, settings, races } from '@/data'
-import { getNameById, getById } from '@/domain/lookups'
+import { classes as classesData } from '@/data'
+import { races } from '@/data/races'
+import { getNameById, getById } from '@/utils'
 import { getSubclassNameById } from '@/features/character/domain/reference'
-import { getXpByLevelAndEdition } from '@/features/character/domain/progression'
+import { getXpForLevel } from '@/features/mechanics/domain/progression'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { CampaignHorizontalCard }from '@/features/campaign/components'
 import {
   ImageUploadField,
@@ -90,14 +91,12 @@ export default function IdentityBanner({
   onReactivate,
   onEditAlignment,
 }: IdentityBannerProps) {
-  // const editionName = getNameById(editions as unknown as { id: string; name: string }[], character.edition) ?? character.edition ?? '—'
-  // const settingName = getNameById(settings as unknown as { id: string; name: string }[], character.setting) ?? character.setting ?? '—'
+  const { ruleset } = useCampaignRules()
+  const xpTable = ruleset.mechanics?.progression?.experience
   const raceName = (getNameById(races as unknown as { id: string; name: string }[], character.race) ?? character.race) || '—'
   const alignmentName = getAlignmentName(alignmentOptions, character.alignment)
   const currentLevel = character.totalLevel ?? character.level ?? 1
-  const primaryClassId = filledClasses[0]?.classId
-  const editionObj = editions.find(e => e.id === character.edition)
-  const maxLevel = editionObj?.progression?.maxLevel ?? 20
+  const maxLevel = xpTable?.length ? Math.max(...xpTable.map(e => e.level)) : 20
 
   const classSummary = filledClasses.length > 0
     ? filledClasses.map(cls => {
@@ -115,7 +114,7 @@ export default function IdentityBanner({
     if (effectiveLevel >= maxLevel) {
       xpDescription = `Level-up to ${effectiveLevel} pending · Max level`
     } else {
-      const beyondPendingXp = getXpByLevelAndEdition(effectiveLevel + 1, character.edition as EditionId, primaryClassId)
+      const beyondPendingXp = getXpForLevel(effectiveLevel + 1, xpTable)
       xpDescription = beyondPendingXp > 0
         ? `Level-up to ${effectiveLevel} pending · ${beyondPendingXp.toLocaleString()} XP for level ${effectiveLevel + 1}`
         : `Level-up to ${effectiveLevel} pending`
@@ -123,7 +122,7 @@ export default function IdentityBanner({
   } else if (currentLevel >= maxLevel) {
     xpDescription = `Max level (${maxLevel}) reached`
   } else {
-    const nextLevelXp = getXpByLevelAndEdition(currentLevel + 1, character.edition as EditionId, primaryClassId)
+    const nextLevelXp = getXpForLevel(currentLevel + 1, xpTable)
     if (nextLevelXp > 0) {
       xpDescription = `${nextLevelXp.toLocaleString()} XP required for level ${currentLevel + 1}`
     }
@@ -275,8 +274,6 @@ export default function IdentityBanner({
                       description={c.identity.description}
                       imageUrl={c.identity.imageUrl}
                       dmName={c.dmName}
-                      edition={c.identity.edition}
-                      setting={c.identity.setting}
                       memberCount={c.memberCount}
                       characterStatus={charStatus !== 'active' ? charStatus : undefined}
                       actions={campaignActions}

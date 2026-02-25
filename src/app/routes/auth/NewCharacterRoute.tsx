@@ -4,7 +4,6 @@ import { CharacterBuilderWizard } from '@/features/characterBuilder/components'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { apiFetch } from '@/app/api'
 import { ROUTES } from '@/app/routes'
-import type { EditionId, SettingId } from '@/data'
 import type { InviteCampaignState } from '@/features/auth/invite'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -23,20 +22,12 @@ export default function NewCharacterRoute() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [initialized, setInitialized] = useState(false)
 
-  // Initialize builder with campaign overrides from location state
   useEffect(() => {
     if (initialized) return
 
-    const edition = locState.campaignEdition as EditionId | undefined
-    const setting = locState.campaignSetting as SettingId | undefined
-
-    if (edition || setting) {
-      openBuilder('pc', { edition, setting })
-    } else {
-      openBuilder('pc')
-    }
+    openBuilder('pc')
     setInitialized(true)
-  }, [initialized, locState.campaignEdition, locState.campaignSetting, openBuilder])
+  }, [initialized, openBuilder])
 
   const handleGenerate = useCallback(async () => {
     setSaving(true)
@@ -50,8 +41,6 @@ export default function NewCharacterRoute() {
         classes: builderState.classes ?? [],
         totalLevel: builderState.totalLevel ?? 1,
         alignment: builderState.alignment ?? '',
-        edition: builderState.edition ?? '',
-        setting: builderState.setting ?? '',
         xp: builderState.xp ?? 0,
         equipment: builderState.equipment,
         wealth: builderState.wealth,

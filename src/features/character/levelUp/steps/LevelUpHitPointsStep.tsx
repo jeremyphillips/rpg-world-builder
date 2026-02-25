@@ -4,7 +4,7 @@
 // take the average or roll.
 
 import { useMemo, useCallback } from 'react'
-import { getHitPointInfo, getAverageHpForLevel, rollHitDie } from '@/features/character/domain/progression/hitPoints'
+import { getHitPointInfo, getAverageHpForLevel, rollHitDie } from '@/features/mechanics/domain/progression'
 import type { LevelUpState } from '../levelUp.types'
 
 import Box from '@mui/material/Box'

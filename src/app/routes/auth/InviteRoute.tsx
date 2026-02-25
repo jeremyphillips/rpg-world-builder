@@ -4,8 +4,6 @@ import { ROUTES } from '@/app/routes'
 import { apiFetch } from '@/app/api'
 import { InviteConfirmationBox } from '@/ui/components'
 import { getCharacterOptionLabel } from '@/features/character/helpers'
-import { getNameById } from '@/domain/lookups'
-import { settings, editions } from '@/data'
 import { CampaignHorizontalCard } from '@/features/campaign/components'
 import { useAvailableCharacters } from '@/features/character/hooks'
 import type { FieldConfig } from '@/ui/components/form/form.types'
@@ -25,8 +23,7 @@ interface InviteData {
   campaign: {
     _id: string
     name: string
-    setting: string
-    edition: string
+    setting?: string
     description?: string
   } | null
 }
@@ -57,18 +54,11 @@ export default function InviteRoute() {
   const { availableCharacters } = useAvailableCharacters(invite?.status === 'pending')
 
   const characterOptions = useMemo(() => {
-    const campaignSettingId = invite?.campaign?.setting
-    const campaignEditionId = invite?.campaign?.edition
-    const filtered = availableCharacters.filter((c) => {
-      const matchesSetting = !campaignSettingId || c.setting === campaignSettingId
-      const matchesEdition = !campaignEditionId || c.edition === campaignEditionId
-      return matchesSetting && matchesEdition
-    })
-    return filtered.map((c) => ({
+    return availableCharacters.map((c) => ({
       value: c._id,
       label: getCharacterOptionLabel(c),
     }))
-  }, [availableCharacters, invite?.campaign?.setting, invite?.campaign?.edition])
+  }, [availableCharacters])
 
   // ── Sync form values back to local state ───────────────────────────
   const handleFormValuesChange = useCallback(
@@ -116,25 +106,6 @@ export default function InviteRoute() {
     )
   }
 
-  // ── Derived display values ─────────────────────────────────────────
-
-  const settingName = invite.campaign?.setting
-    ? getNameById(settings as unknown as { id: string; name: string }[], invite.campaign!.setting) ?? invite.campaign.setting
-    : undefined
-
-  const editionName = invite.campaign?.edition
-    ? getNameById(editions as unknown as { id: string; name: string }[], invite.campaign!.edition) ?? invite.campaign.edition
-    : undefined
-
-  const characterRestrictionMessage =
-    settingName && editionName
-      ? `This campaign only allows characters generated for ${settingName} in ${editionName}.`
-      : settingName
-        ? `This campaign only allows characters generated for ${settingName}.`
-        : editionName
-          ? `This campaign only allows characters generated for ${editionName}.`
-          : undefined
-
   // ── Build form fields for character select ─────────────────────────
 
   const formFields: FieldConfig[] =
@@ -147,22 +118,9 @@ export default function InviteRoute() {
             options: characterOptions,
             placeholder: 'Select a character',
             required: true,
-            helperText: characterRestrictionMessage,
           },
         ]
-      : characterRestrictionMessage
-        ? [
-            {
-              type: 'select' as const,
-              name: 'characterId',
-              label: 'Character to join with',
-              options: [],
-              placeholder: 'No characters for this setting',
-              disabled: true,
-              helperText: characterRestrictionMessage,
-            },
-          ]
-        : []
+      : []
 
   return (
     <InviteConfirmationBox
@@ -180,8 +138,6 @@ export default function InviteRoute() {
             campaignId={invite.campaign._id}
             name={invite.campaign.name}
             description={invite.campaign.description}
-            edition={invite.campaign.edition}
-            setting={invite.campaign.setting}
           />
         ) : undefined
       }

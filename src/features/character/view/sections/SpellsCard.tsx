@@ -1,5 +1,5 @@
-import { spells as spellCatalog } from '@/data/classes/spells'
-import { SpellHorizontalCard } from '@/domain/spells/components'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import { SpellHorizontalCard } from '@/features/spell/cards'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -9,10 +9,11 @@ import Chip from '@mui/material/Chip'
 
 type SpellsCardProps = {
   spells: string[]
-  edition?: string
 }
 
-export default function SpellsCard({ spells, edition }: SpellsCardProps) {
+export default function SpellsCard({ spells }: SpellsCardProps) {
+  const { catalog } = useCampaignRules()
+
   if (spells.length === 0) return null
 
   return (
@@ -23,10 +24,9 @@ export default function SpellsCard({ spells, edition }: SpellsCardProps) {
         </Typography>
         <Stack spacing={1} sx={{ mt: 0.5 }}>
           {spells.map(spellId => {
-            const spell = spellCatalog.find(s => s.id === spellId)
+            const spell = catalog.spellsById[spellId]
             if (!spell) return <Chip key={spellId} label={spellId} size="small" variant="outlined" />
-            const editionEntry = spell.editions.find(e => e.edition === edition)
-            return <SpellHorizontalCard key={spellId} spell={spell} editionEntry={editionEntry} />
+            return <SpellHorizontalCard key={spellId} spell={spell} />
           })}
         </Stack>
       </CardContent>

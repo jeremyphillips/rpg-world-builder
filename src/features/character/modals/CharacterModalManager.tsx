@@ -1,17 +1,16 @@
 import type { CharacterDoc } from '@/shared'
-import type { EditionId } from '@/data'
 import type { LevelUpResult } from '@/features/character/levelUp'
 import { AwardXpModal } from '@/features/character/modals'
 import { LevelUpWizard } from '@/features/character/levelUp'
 import CancelLevelUpModal from './CancelLevelUpModal'
 import CharacterDeleteModal from './CharacterDeleteModal'
 import CharacterStatusChangeModal from './CharacterStatusChangeModal'
+import EditWealthModal from './EditWealthModal'
 
 type CharacterModalManagerProps = {
   character: CharacterDoc
   currentLevel: number
   maxLevel: number
-  primaryClassId: string | undefined
   activeCampaignCount: number
   isOwner: boolean
   isAdmin: boolean
@@ -39,13 +38,16 @@ type CharacterModalManagerProps = {
   } | null
   onStatusActionClose: () => void
   onStatusActionConfirm: () => Promise<void>
+
+  editWealthOpen: boolean
+  onEditWealthClose: () => void
+  onEditWealthSave: (wealth: { gp: number; sp: number; cp: number }) => Promise<void>
 }
 
 export default function CharacterModalManager({
   character,
   currentLevel,
   maxLevel,
-  primaryClassId,
   activeCampaignCount,
   isOwner,
   isAdmin,
@@ -64,6 +66,9 @@ export default function CharacterModalManager({
   statusAction,
   onStatusActionClose,
   onStatusActionConfirm,
+  editWealthOpen,
+  onEditWealthClose,
+  onEditWealthSave,
 }: CharacterModalManagerProps) {
   return (
     <>
@@ -74,8 +79,6 @@ export default function CharacterModalManager({
         characterName={character.name}
         currentXp={character.xp ?? 0}
         currentLevel={currentLevel}
-        editionId={character.edition as EditionId}
-        primaryClassId={primaryClassId}
         maxLevel={maxLevel}
         onAward={onAwardXp}
       />
@@ -117,6 +120,14 @@ export default function CharacterModalManager({
         isAdmin={isAdmin}
         onCancel={onStatusActionClose}
         onConfirm={onStatusActionConfirm}
+      />
+
+      {/* Edit wealth */}
+      <EditWealthModal
+        open={editWealthOpen}
+        onClose={onEditWealthClose}
+        currentWealth={character.wealth ?? {}}
+        onSave={onEditWealthSave}
       />
     </>
   )

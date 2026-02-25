@@ -2,21 +2,19 @@ import { useEffect, useRef } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
 import { ButtonGroup } from '@/ui/elements'
-import { classes, equipment, type EditionId } from '@/data'
-import { getById } from '@/domain/lookups'
-import { getClassRequirement } from '@/features/character/domain/validation'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import {
   calculateEquipmentCost,
-  getEquipmentNotes,
   getItemCostGp,
-  getAvailableMagicItems,
-  getMagicItemBudget,
-  getAllowedEquipment, 
-  getClassEquipmentProficiency, 
-  resolveEquipmentEdition
 } from '@/features/equipment/domain'
+import { collectIntrinsicEffects } from '@/features/character/domain/engine/collectCharacterEffects'
+import {
+  deriveEquipmentProficiency,
+  evaluateEquipmentEligibility,
+} from '@/features/mechanics/domain/proficiencies/proficiency-adapters'
+import type { Character } from '@/shared/types/character.core'
 
-import { calculateWealth } from '@/domain/wealth'
+import { calculateWealth } from '@/features/mechanics/domain/core/progression'
 
 const EquipmentStep = () => {
   const initializedRef = useRef(false)
@@ -27,14 +25,16 @@ const EquipmentStep = () => {
     updateWeapons,
     updateArmor,
     updateGear,
-    updateMagicItems,
     stepNotices,
     dismissNotice
   } = useCharacterBuilder()
 
+  const { catalog, ruleset } = useCampaignRules()
+
+  const { tiers: startingWealthTiers } = ruleset.mechanics.progression.starting.wealth
+
   const { 
     step, 
-    edition, 
     classes: selectedClasses,
     equipment: selectedEquipment,
     totalLevel,
@@ -45,7 +45,6 @@ const EquipmentStep = () => {
 
   useEffect(() => {
     if (initializedRef.current) return
-    if (!edition) return
 
     // Skip wealth initialization when editing an existing character
     if (isEditMode) {
@@ -59,17 +58,17 @@ const EquipmentStep = () => {
       return
     }
 
-    // Look up the selected primary class's requirements (with edition fallback)
+    // Look up the selected primary class's requirements
     const primaryClassId = selectedClasses[0]?.classId
     if (!primaryClassId) return
 
-    const wealthReq = getClassRequirement(primaryClassId, edition as EditionId)
-    if (!wealthReq?.startingWealth) return
+    // const wealthReq = getClassRequirement(primaryClassId)
+    // if (!wealthReq?.startingWealth) return
 
     const resolved = calculateWealth(
       totalLevel ?? 0,
-      edition as EditionId,
-      wealthReq.startingWealth
+      startingWealthTiers ?? []
+      // wealthReq.startingWealth
     )
 
     if (!resolved) return
@@ -81,7 +80,7 @@ const EquipmentStep = () => {
     })
 
     initializedRef.current = true
-  }, [edition, totalLevel, selectedClasses, setWealth, wealth?.baseGp, isEditMode])
+  }, [totalLevel, selectedClasses, setWealth, wealth?.baseGp, isEditMode])
 
   const { 
     weapons: selectedWeapons = [], 
@@ -96,111 +95,78 @@ const EquipmentStep = () => {
   if (!activeClass) return null
   
   const {
-    classId: selectedClassId,
+    // classId: selectedClassId,
     // classDefinitionId: selectedClassDefinitionId,
     // level: selectedLevel
   } = activeClass ?? {}
 
-  if (!edition) return null
-
-  const equipEdition = resolveEquipmentEdition(edition)
-
-  // Derive allowed equipment from the class proficiency data.
-  const weaponProf = getClassEquipmentProficiency(selectedClassId, edition, 'weapons')
-  const armorProf  = getClassEquipmentProficiency(selectedClassId, edition, 'armor')
-  // Gear is edition-catalogue–wide; proficiency data doesn't restrict it.
+  // Derive allowed equipment from the engine's collected effects.
+  // Build a minimal Character shape from the builder state so the collector can read it.
+  const characterLike = {
+    classes: selectedClasses,
+    totalLevel: totalLevel ?? 1,
+  } as Character
+  const intrinsicEffects = collectIntrinsicEffects(characterLike)
+  const weaponProf = deriveEquipmentProficiency(intrinsicEffects, 'weapon')
+  const armorProf  = deriveEquipmentProficiency(intrinsicEffects, 'armor')
   const gearProf   = { categories: ['all'], items: [] as string[] }
 
   const baseGp = wealth?.baseGp ?? 0
+
+  const weaponsCatalog = Object.values(catalog.weaponsById)
+  const armorCatalog = Object.values(catalog.armorById)
+  const gearCatalog = Object.values(catalog.gearById)
 
   const currentCost = calculateEquipmentCost(
     selectedWeapons,
     selectedArmor,
     selectedGear,
-    equipment.weapons,
-    equipment.armor,
-    equipment.gear,
-    edition
+    weaponsCatalog,
+    armorCatalog,
+    gearCatalog,
   )
 
-  const allowedWeapons = getAllowedEquipment({ items: equipment.weapons, edition, proficiency: weaponProf })
-  const allowedArmor   = getAllowedEquipment({ items: equipment.armor,   edition, proficiency: armorProf })
-  const allowedGear    = getAllowedEquipment({ items: equipment.gear,    edition, proficiency: gearProf })
+  const buildOptions = (
+    items: readonly any[],
+    selected: string[],
+    proficiency: { categories: string[]; items: string[] },
+  ) => {
+    return items
+      // .filter(item => {
+      //   if (!Array.isArray(item.editionData)) return false
+      //   return item.editionData.some((d: { edition: string }) => d.edition === equipEdition)
+      // })
+      .map(item => {
+        const costGp = getItemCostGp(item)
+        const isSelected = selected.includes(item.id)
+        const costWithoutThis = isSelected ? currentCost - costGp : currentCost
+        const wouldExceedGold = costWithoutThis + costGp > baseGp
 
-  const buildOptions = (allowed: any[], selected: string[]) =>
-    allowed.map(item => {
-      const cost = getItemCostGp(item, edition)
-      const isSelected = selected.includes(item.id)
-      const costWithoutThis = isSelected ? currentCost - cost : currentCost
-      const wouldExceedGold = costWithoutThis + cost > baseGp
+        const eligibility = evaluateEquipmentEligibility(item, proficiency)
+        const notProficient = !eligibility.allowed
+        const disabled = !isSelected && (notProficient || wouldExceedGold)
 
-      return {
-        id: item.id,
-        label: `${item.name} (${item.editionData.find((d: { edition: string; cost?: string }) => d.edition === equipEdition)?.cost ?? '—'})`,
-        disabled: !isSelected && wouldExceedGold,
-      }
-    })
+        const reasons: string[] = []
+        if (notProficient) reasons.push(...eligibility.reasons)
+        if (wouldExceedGold) reasons.push('Exceeds gold budget')
+        const tooltip = reasons.length > 0 ? reasons.join('; ') : undefined
 
-  const weaponOptions = buildOptions(allowedWeapons, selectedWeapons)
-  const armorOptions  = buildOptions(allowedArmor, selectedArmor)
-  const gearOptions   = buildOptions(allowedGear, selectedGear)
+        return {
+          id: item.id,
+          label: item.cost ? `${item.name} (${item.cost})` : item.name,
+          disabled,
+          tooltip,
+        }
+      })
+  }
 
-  const cls = selectedClassId ? getById(classes, selectedClassId) : undefined
-  const requirements = cls?.requirements
+  const weaponOptions = buildOptions(weaponsCatalog, selectedWeapons, weaponProf)
+  const armorOptions  = buildOptions(armorCatalog, selectedArmor, armorProf)
+  const gearOptions   = buildOptions(gearCatalog, selectedGear, gearProf)
 
-  const armorNotes = requirements
-    ? getEquipmentNotes({ requirements, edition, slot: 'armor' })
-    : []
-
-  const weaponNotes = requirements
-    ? getEquipmentNotes({ requirements, edition, slot: 'weapons' })
-    : []
-
-  const gearNotes = requirements
-    ? getEquipmentNotes({ requirements, edition, slot: 'tools' })
-    : []
-
-  // ── Magic items ──
-  const characterLevel = totalLevel ?? 0
-  const magicItemBudget = getMagicItemBudget(edition as EditionId, characterLevel)
-  const availableMagicItems = getAvailableMagicItems(edition as EditionId, characterLevel)
-  const selectedMagicItems = selectedEquipment?.magicItems ?? []
-
-  const selectedPermanentCount = selectedMagicItems.filter(id => {
-    const item = availableMagicItems.find(m => m.id === id)
-    return item && !item.consumable
-  }).length
-
-  const selectedConsumableCount = selectedMagicItems.filter(id => {
-    const item = availableMagicItems.find(m => m.id === id)
-    return item?.consumable
-  }).length
-
-  const magicItemOptions = availableMagicItems.map(item => {
-    const datum = item.editionData.find(
-      (d: { edition: string }) => d.edition === resolveEquipmentEdition(edition)
-    )
-    const isSelected = selectedMagicItems.includes(item.id)
-
-    // Budget enforcement: disable unselected items if budget is full
-    let disabled = false
-    if (!isSelected && magicItemBudget) {
-      if (item.consumable) {
-        disabled = selectedConsumableCount >= magicItemBudget.consumableSlots
-      } else {
-        disabled = selectedPermanentCount >= magicItemBudget.permanentSlots
-      }
-    }
-
-    const rarityLabel = datum?.rarity ? ` [${datum.rarity}]` : ''
-    const costLabel = datum?.cost && datum.cost !== '—' ? ` (${datum.cost})` : ''
-
-    return {
-      id: item.id,
-      label: `${item.name}${rarityLabel}${costLabel}`,
-      disabled
-    }
-  })
+  const armorNotes: { id: string; text: string }[] = []
+  const weaponNotes: { id: string; text: string }[] = []
+  const gearNotes: { id: string; text: string }[] = []
 
   const equipmentNotices = stepNotices.get('equipment') ?? []
 
@@ -270,28 +236,6 @@ const EquipmentStep = () => {
         </ul>
       )}
 
-      {/* Magic items — only shown for editions with a magic item budget */}
-      {magicItemBudget && availableMagicItems.length > 0 && (
-        <>
-          <h4>Magic Items</h4>
-          <small>
-            Permanent: {selectedPermanentCount} / {magicItemBudget.permanentSlots}
-            {' · '}
-            Consumable: {selectedConsumableCount} / {magicItemBudget.consumableSlots}
-            {magicItemBudget.maxAttunement != null && (
-              <> · Attunement slots: {magicItemBudget.maxAttunement}</>
-            )}
-          </small>
-          <ButtonGroup
-            options={magicItemOptions}
-            value={selectedMagicItems}
-            onChange={updateMagicItems}
-            multiSelect
-            autoSelectSingle={false}
-            size="sm"
-          />
-        </>
-      )}
     </>
   )
 }

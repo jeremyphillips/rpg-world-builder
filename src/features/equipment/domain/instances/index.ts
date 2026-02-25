@@ -1,0 +1,1 @@
+export { normalizeEquipmentInstances } from './normalizeEquipmentInstances'

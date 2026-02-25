@@ -7,8 +7,8 @@ import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 
 import { AppModal } from '@/ui/modals'
-import { getLevelForXp, getXpByLevelAndEdition } from '@/features/character/domain/progression'
-import type { EditionId } from '@/data'
+import { getLevelForXp, getXpForLevel } from '@/features/mechanics/domain/progression'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -23,11 +23,7 @@ export interface AwardXpModalProps {
   currentXp: number
   /** Current character level */
   currentLevel: number
-  /** Edition ID for XP table lookups */
-  editionId: EditionId
-  /** Primary class ID (needed for pre-3e class-specific XP tables) */
-  primaryClassId?: string
-  /** Max level for this edition */
+  /** Max level for this campaign */
   maxLevel: number
   /**
    * Called when the admin confirms the XP award.
@@ -52,11 +48,12 @@ export default function AwardXpModal({
   characterName,
   currentXp,
   currentLevel,
-  editionId,
-  primaryClassId,
   maxLevel,
   onAward,
 }: AwardXpModalProps) {
+  const { ruleset } = useCampaignRules()
+  const xpTable = ruleset.mechanics.progression.experience
+
   const [step, setStep] = useState<ModalStep>('input')
   const [amount, setAmount] = useState('')
   const [saving, setSaving] = useState(false)
@@ -67,13 +64,13 @@ export default function AwardXpModal({
   const isValidAmount = !isNaN(parsedAmount) && parsedAmount > 0
   const newXp = currentXp + (isValidAmount ? parsedAmount : 0)
   const calculatedLevel = isValidAmount
-    ? getLevelForXp(newXp, editionId, primaryClassId)
+    ? getLevelForXp(newXp, xpTable)
     : currentLevel
   const triggersLevelUp = calculatedLevel > currentLevel
   const levelsGained = calculatedLevel - currentLevel
   const isMultiLevelJump = levelsGained > 1
   const nextLevelXp = currentLevel < maxLevel
-    ? getXpByLevelAndEdition(currentLevel + 1, editionId, primaryClassId)
+    ? getXpForLevel(currentLevel + 1, xpTable)
     : 0
 
   // ── Reset on open/close ──────────────────────────────────────────────
@@ -90,12 +87,10 @@ export default function AwardXpModal({
     if (!isValidAmount) return
 
     if (triggersLevelUp && step === 'input') {
-      // Show confirmation step
       setStep('confirm')
       return
     }
 
-    // Either no level-up (submit from input) or confirmed (submit from confirm)
     setSaving(true)
     setError(null)
     try {

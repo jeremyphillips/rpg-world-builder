@@ -292,15 +292,6 @@ export async function getPartyCharacters(campaignId: string, status?: string) {
   })
 }
 
-/** @deprecated Use CampaignMember creation via invite accept instead. Kept for backward compatibility. */
-export async function addMember(
-  _campaignId: string,
-  _userId: string,
-  _role: CampaignRole = 'pc'
-) {
-  return null
-}
-
 export async function updateMemberRole(
   campaignId: string,
   userId: string,

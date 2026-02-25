@@ -1,6 +1,6 @@
 import type { CharacterDoc } from '@/shared'
-import { getNameById } from '@/domain/lookups'
-import { equipment as equipmentData } from '@/data'
+import { getNameById } from '@/utils'
+import { equipment as equipmentData } from '@/data/equipment/equipment'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'

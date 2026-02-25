@@ -3,17 +3,17 @@
 import type { EditionId, SettingId } from "@/data"
 
 // 2e specific
-export type AbilityScores2e = AbilityScores & {
-  strengthPercentile?: number
-}
+// export type AbilityScores2e = AbilityScores & {
+//   strengthPercentile?: number
+// }
 
-export type SavingThrows2e = {
-  paralyzationPoisonDeath?: number
-  rodStaffWand?: number
-  petrificationPolymorph?: number
-  breathWeapon?: number
-  spell?: number
-}
+// export type SavingThrows2e = {
+//   paralyzationPoisonDeath?: number
+//   rodStaffWand?: number
+//   petrificationPolymorph?: number
+//   breathWeapon?: number
+//   spell?: number
+// }
 
 export type AbilityScores = {
   strength?: number | null
@@ -31,11 +31,19 @@ export type Wealth = {
   baseGp?: number | null
 }
 
+export type EquipmentItemInstance = {
+  instanceId: string
+  baseId: string
+  enhancementTemplateId?: string
+}
+
 export type Equipment = {
   armor?: string[]
   weapons?: string[]
   gear?: string[]
   magicItems?: string[]
+  armorInstances?: EquipmentItemInstance[]
+  weaponInstances?: EquipmentItemInstance[]
   weight?: number
 }
 
@@ -64,6 +72,20 @@ export type ArmorClass = {
   calculation?: string
 }
 
+export type EquipmentLoadout = {
+  armorId?: string
+  shieldId?: string
+  mainHandWeaponId?: string
+  offHandWeaponId?: string
+  armorInstanceId?: string
+  shieldInstanceId?: string
+  mainHandWeaponInstanceId?: string
+  offHandWeaponInstanceId?: string
+  armorEnhancementId?: string
+  shieldEnhancementId?: string
+  weaponEnhancementId?: string
+}
+
 export type CharacterProficiencies = {
   skills?: string[]
 }
@@ -73,8 +95,8 @@ export type CharacterType = 'pc' | 'npc'
 export type CharacterCore = {
   name: string
   type: CharacterType
-  edition: EditionId
-  setting?: SettingId
+  // edition: EditionId
+  // setting?: SettingId
 
   race?: string
   alignment?: string
@@ -89,7 +111,7 @@ export type CharacterCore = {
   hitPoints?: HitPoints
   armorClass?: ArmorClass
   combat?: {
-    selectedArmorConfigId?: string | null
+    loadout?: EquipmentLoadout
   }
 
   proficiencies?: CharacterProficiencies
@@ -99,11 +121,11 @@ export type CharacterCore = {
   narrative?: CharacterNarrative
 }
 
-export type Rules2e = {
-  stats?: AbilityScores2e
-  thac0?: number
-  savingThrows?: SavingThrows2e
-}
+// export type Rules2e = {
+//   stats?: AbilityScores2e
+//   thac0?: number
+//   savingThrows?: SavingThrows2e
+// }
 
 // export type Character5e = CharacterCore & {
 //   edition: '5e'
@@ -138,7 +160,7 @@ export type CharacterSheet = Omit<Partial<CharacterCore>, 'classes'> & {
   classes: CharacterClassInfo[]
 }
 
-export type Character =
-  | (CharacterCore & { edition: '5e' })
-  | (CharacterCore & { edition: '2e'; rules?: Rules2e })
-  | CharacterCore
+export type Character = CharacterCore
+  // | (CharacterCore & { edition: '5e' })
+  // | (CharacterCore & { edition: '2e'; rules?: Rules2e })
+  // | CharacterCore

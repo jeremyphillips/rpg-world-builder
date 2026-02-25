@@ -38,7 +38,6 @@ export default function CampaignRoute() {
     campaignId: activeCampaignId,
     campaign: activeCampaign,
     campaignName: activeCampaignName,
-    settingName: activeSettingName,
     loading: activeCampaignLoading,
   } = useActiveCampaign()
 
@@ -108,11 +107,7 @@ export default function CampaignRoute() {
   // Render child route (e.g. sessions) when URL goes deeper than /campaigns/:id
   if (!isExactCampaign) return <Outlet />
 
-  const subheadline = [
-    activeSettingName,
-    activeSettingName,
-    `${activeCampaign.memberCount} member${activeCampaign.memberCount !== 1 ? 's' : ''}`,
-  ].join(' · ')
+  const subheadline = `${activeCampaign.memberCount} member${activeCampaign.memberCount !== 1 ? 's' : ''}`
 
   return (
     <div>

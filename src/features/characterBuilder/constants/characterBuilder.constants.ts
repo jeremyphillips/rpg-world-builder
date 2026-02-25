@@ -2,18 +2,18 @@ import {
   AlignmentStep,
   ConfirmationStep,
   ProficiencyStep,
-  SettingStep,
   ClassStep,
-  EditionStep,
   EquipmentStep,
+  LoadoutStep,
+  MagicItemsStep,
   LevelStep,
   RaceStep,
   SpellStep
 } from '../steps'
 import { type CharacterBuilderState, type StepId, type BuilderOverrides } from '../types'
 import type { CharacterType } from '@/shared/types/character.core'
-import type { EditionId, SettingId } from '@/data'
-import { getClassProgression } from '@/features/character/domain/progression'
+import { classes } from '@/data/classes'
+import { getById } from '@/utils'
 
 // ---------------------------------------------------------------------------
 // Step config
@@ -28,12 +28,12 @@ export interface StepConfig {
   optional?: boolean
 }
 
-/** Returns true if at least one selected class has a spellProgression for the current edition. */
+/** Returns true if at least one selected class has spellcasting progression. */
 function isSpellcaster(state: CharacterBuilderState): boolean {
   return state.classes.some(cls => {
-    if (!cls.classId || !state.edition) return false
-    const prog = getClassProgression(cls.classId, state.edition)
-    return prog?.spellProgression != null
+    if (!cls.classId) return false
+    const classDef = getById(classes, cls.classId)
+    return classDef?.progression?.spellProgression != null
   })
 }
 
@@ -42,7 +42,7 @@ function isLocked(state: CharacterBuilderState, stepId: StepId): boolean {
   return state.lockedFields?.has(stepId) ?? false
 }
 
-export function getStepConfig(mode: CharacterType): StepConfig[] {
+export function getStepConfig(_mode: CharacterType): StepConfig[] {
   const baseSteps: StepConfig[] = [
     {
       id: 'race',
@@ -86,6 +86,21 @@ export function getStepConfig(mode: CharacterType): StepConfig[] {
       selector: (state: CharacterBuilderState) => state.equipment
     },
     {
+      id: 'loadout',
+      label: 'Loadout',
+      component: LoadoutStep,
+      selector: (state: CharacterBuilderState) => state.combat?.loadout,
+      optional: true,
+    },
+    {
+      id: 'magicItems',
+      label: 'Magic Items',
+      component: MagicItemsStep,
+      selector: (state: CharacterBuilderState) =>
+        (state.equipment?.magicItems?.length ?? 0) > 0,
+      optional: true,
+    },
+    {
       id: 'proficiencies',
       label: 'Proficiencies',
       component: ProficiencyStep,
@@ -100,28 +115,6 @@ export function getStepConfig(mode: CharacterType): StepConfig[] {
     }
   ]
 
-  if (mode === 'pc') {
-    const pcSteps: StepConfig[] = [
-      {
-        id: 'edition',
-        label: 'Edition',
-        component: EditionStep,
-        selector: (state: CharacterBuilderState) => state.edition,
-        shouldSkip: (state) => isLocked(state, 'edition'),
-      },
-      {
-        id: 'setting',
-        label: 'Setting',
-        component: SettingStep,
-        selector: (state: CharacterBuilderState) => state.setting,
-        optional: true,
-        shouldSkip: (state) => isLocked(state, 'setting'),
-      },
-      ...baseSteps
-    ]
-    return pcSteps
-  }
-
   return baseSteps
 }
 
@@ -131,8 +124,6 @@ export function createInitialBuilderState(
 ): CharacterBuilderState {
   // Build the set of locked (pre-filled) step IDs
   const lockedFields = new Set<StepId>()
-  if (overrides?.edition) lockedFields.add('edition')
-  if (overrides?.setting) lockedFields.add('setting')
   if (overrides?.race) lockedFields.add('race')
   if (overrides?.alignment) lockedFields.add('alignment')
 
@@ -145,8 +136,6 @@ export function createInitialBuilderState(
     name: undefined,
     hitPointMode: 'average',
     xp: 0,
-    edition: (overrides?.edition ?? undefined) as EditionId | undefined,
-    setting: (overrides?.setting ?? undefined) as SettingId | undefined,
     race: overrides?.race ?? undefined,
     classes: [{ level: 1 }],
     activeClassIndex: 0,

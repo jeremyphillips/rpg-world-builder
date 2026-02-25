@@ -4,3 +4,4 @@ export type {
   CampaignMemberStatus, CampaignRole, CampaignMemberRole, CampaignCharacterStatus,
   CampaignIdentity, CampaignConfiguration, CampaignBase, Campaign, CampaignSummary, PendingMembership,
 } from './campaign.types'
+export * from './status'

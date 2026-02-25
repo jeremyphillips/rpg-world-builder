@@ -4,6 +4,7 @@ export type SelectableOption = {
   id: string
   label: string
   disabled?: boolean
+  tooltip?: string
 }
 
 type ButtonGroupProps<T extends string | string[] | number> = {
@@ -64,6 +65,7 @@ const ButtonGroup = <T extends string | string[] | number>({
         <button
           key={opt.id}
           disabled={opt.disabled}
+          title={opt.tooltip}
           className={`btn-theme-${theme} btn-size-${size} ${isSelected(opt.id) ? 'selected' : ''}`}
           onClick={() => toggle(opt.id)}
         >

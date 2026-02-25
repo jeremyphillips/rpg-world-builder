@@ -1,20 +1,25 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
-import type { EditionId } from '@/data'
 import { ButtonGroup } from '@/ui/elements'
 import { getAlignmentOptionsForCharacter } from '@/features/character/domain/reference'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 
 const AlignmentStep = () => {
   const { state, setAlignment, stepNotices, dismissNotice } = useCharacterBuilder()
   const {
     alignment: selectedAlignment,
     classes: selectedClasses,
-    edition: selectedEdition,
     step
   } = state
 
+  const { ruleset, catalog } = useCampaignRules()
+  const { classesById } = catalog
+  const { alignment: alignmentRules } = ruleset.mechanics.character
+
   const classIds = selectedClasses.map((c) => c.classId).filter(Boolean) as string[]
-  const allowedAlignmentOptions = getAlignmentOptionsForCharacter(selectedEdition as EditionId | undefined, classIds)
+
+  const allowedAlignmentOptions = getAlignmentOptionsForCharacter(classIds, alignmentRules.options, classesById)
+
   const notices = stepNotices.get('alignment') ?? []
 
   return (

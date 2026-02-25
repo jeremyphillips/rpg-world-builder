@@ -1,8 +1,13 @@
 import { useMemo, useCallback } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
-import { classes, editions } from '@/data'
-import type { ClassProficiencyEntry, ClassProficienciesByEdition } from '@/data/classes/types'
-import type { EditionProficiency } from '@/data/types'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import {
+  FIVE_E_STRENGTH_SKILLS,
+  FIVE_E_DEXTERITY_SKILLS,
+  FIVE_E_INTELLIGENCE_SKILLS,
+  FIVE_E_WISDOM_SKILLS,
+  FIVE_E_CHARISMA_SKILLS
+} from '@/data'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -13,35 +18,23 @@ import Stack from '@mui/material/Stack'
 import LockIcon from '@mui/icons-material/Lock'
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Skill name lookup — merged from all reference tables
 // ---------------------------------------------------------------------------
 
-/** All skills defined for an edition, keyed by ID. */
-function getEditionSkills(editionId: string): Record<string, EditionProficiency> {
-  const ed = editions.find(e => e.id === editionId)
-  if (!ed?.proficiencies) return {}
-  const edProfs = ed.proficiencies as Partial<Record<string, { skills: Record<string, EditionProficiency> }>>
-  return edProfs[editionId]?.skills ?? {}
-}
+const SKILL_NAME_MAP: Record<string, string> = Object.fromEntries(
+  [
+    FIVE_E_STRENGTH_SKILLS,
+    FIVE_E_DEXTERITY_SKILLS,
+    FIVE_E_INTELLIGENCE_SKILLS,
+    FIVE_E_WISDOM_SKILLS,
+    FIVE_E_CHARISMA_SKILLS
+  ].flatMap(group =>
+    Object.entries(group).map(([id, def]) => [id, def.name])
+  )
+)
 
-/** Resolve a skill ID to a display name via the edition catalogue. */
-function getSkillName(skillId: string, editionSkills: Record<string, EditionProficiency>): string {
-  return editionSkills[skillId]?.name ?? skillId
-}
-
-/** Extract skill proficiency entries for a class + edition from the new data. */
-function getClassSkillEntries(
-  classId: string | undefined,
-  edition: string | undefined,
-): ClassProficiencyEntry[] {
-  if (!classId || !edition) return []
-  const cls = classes.find(c => c.id === classId)
-  if (!cls) return []
-  const profs = cls.proficiencies
-  if (Array.isArray(profs)) return []
-  const edProfs = (profs as ClassProficienciesByEdition)[edition]
-  if (!edProfs?.skills) return []
-  return Array.isArray(edProfs.skills) ? edProfs.skills : [edProfs.skills]
+function getSkillName(skillId: string): string {
+  return SKILL_NAME_MAP[skillId] ?? skillId
 }
 
 // ---------------------------------------------------------------------------
@@ -51,8 +44,6 @@ function getClassSkillEntries(
 interface SkillGroup {
   classId: string
   className: string
-  entry: ClassProficiencyEntry
-  /** Skill IDs available for selection. */
   options: string[]
   choiceCount: number
   key: string
@@ -64,42 +55,40 @@ interface SkillGroup {
 
 const ProficiencyStep = () => {
   const { state, setProficiencies } = useCharacterBuilder()
-  const { classes: selectedClasses, edition, proficiencies, editMode } = state
-  const selectedSkills = proficiencies?.skills ?? []
+  const { catalog } = useCampaignRules()
 
-  const editionSkills = useMemo(() => getEditionSkills(edition ?? ''), [edition])
+  const { classes: selectedClasses, proficiencies, editMode, step } = state
+  const selectedSkills = proficiencies?.skills ?? []
 
   const lockedSkillIds = useMemo(() => {
     const ids = editMode?.lockedSelections?.['skills']
     return ids ? new Set(ids) : new Set<string>()
   }, [editMode?.lockedSelections])
 
-  // Build one SkillGroup per class per 'choice' skill entry
   const skillGroups: SkillGroup[] = useMemo(() => {
-    if (!edition) return []
     const result: SkillGroup[] = []
     for (const cls of selectedClasses) {
       if (!cls.classId) continue
-      const entries = getClassSkillEntries(cls.classId, edition)
-      const className = classes.find(c => c.id === cls.classId)?.name ?? cls.classId
-      for (const entry of entries) {
-        if (entry.type !== 'choice') continue
-        const count = entry.count ?? entry.slots ?? 0
-        if (count === 0) continue
-        result.push({
-          classId: cls.classId,
-          className,
-          entry,
-          options: entry.from ?? [],
-          choiceCount: count,
-          key: `${cls.classId}::skills`,
-        })
-      }
+      const classDef = catalog.classesById[cls.classId]
+      if (!classDef) continue
+
+      const skills = classDef.proficiencies?.skills
+      if (!skills || skills.type !== 'choice') continue
+
+      const count = skills.choose ?? 0
+      if (count === 0) continue
+
+      result.push({
+        classId: cls.classId,
+        className: classDef.name,
+        options: skills.from ?? [],
+        choiceCount: count,
+        key: `${cls.classId}::skills`,
+      })
     }
     return result
-  }, [selectedClasses, edition])
+  }, [selectedClasses, catalog.classesById])
 
-  // Total allowed across all groups
   const totalSlots = useMemo(
     () => skillGroups.reduce((sum, g) => sum + g.choiceCount, 0),
     [skillGroups],
@@ -138,7 +127,7 @@ const ProficiencyStep = () => {
 
   return (
     <>
-      <h2>Choose Proficiencies</h2>
+      <h2>Choose {step.name}</h2>
 
       <Stack spacing={2}>
         {skillGroups.map((group) => (
@@ -169,7 +158,7 @@ const ProficiencyStep = () => {
                     return (
                       <Chip
                         key={skillId}
-                        label={getSkillName(skillId, editionSkills)}
+                        label={getSkillName(skillId)}
                         icon={isLocked ? <LockIcon sx={{ fontSize: 14 }} /> : undefined}
                         color={isChosen ? 'primary' : 'default'}
                         variant={isChosen ? 'filled' : 'outlined'}

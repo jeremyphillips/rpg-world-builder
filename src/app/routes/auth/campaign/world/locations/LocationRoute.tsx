@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
-import { settings } from '@/data'
-import type { Location, LocationType, Visibility } from '@/data/types'
+// import { settings } from '@/data'
+import type { Visibility } from '@/data/types'
+import type { Location } from '@/data/locations'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { ROUTES } from '@/app/routes'
 import { apiFetch } from '@/app/api'
@@ -50,10 +51,10 @@ const TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'success' | 'warning
 // Helpers
 // ---------------------------------------------------------------------------
 
-function getSettingLocations(settingId: string): Location[] {
-  const setting = settings.find((s) => s.id === settingId)
-  return setting?.locations ?? []
-}
+// function getSettingLocations(settingId: string): Location[] {
+//   const setting = settings.find((s) => s.id === settingId)
+//   return setting?.locations ?? []
+// }
 
 interface LocationOverride {
   name?: string
@@ -101,43 +102,43 @@ export default function LocationRoute() {
   const activeSetting = campaign?.identity.setting ?? ''
 
   // ── Load location data ───────────────────────────────────────────────
-  useEffect(() => {
-    if (!activeSetting || !locationId) return
-    let cancelled = false
+  // useEffect(() => {
+  //   if (!activeSetting || !locationId) return
+  //   let cancelled = false
 
-    async function load() {
-      const data = await fetchSettingData(activeSetting)
-      if (cancelled || !data) {
-        setLoading(false)
-        return
-      }
+  //   async function load() {
+  //     const data = await fetchSettingData(activeSetting)
+  //     if (cancelled || !data) {
+  //       setLoading(false)
+  //       return
+  //     }
 
-      const dataLocations = getSettingLocations(activeSetting)
-      const overrides = data.locationOverrides ?? {}
-      const merged = dataLocations.map((loc) => {
-        const o = overrides[loc.id]
-        if (!o) return loc
-        return {
-          ...loc,
-          name: o.name ?? loc.name,
-          type: (o.type as LocationType) ?? loc.type,
-          description: o.description ?? loc.description,
-          imageUrl: o.imageUrl === null ? undefined : (o.imageUrl ?? loc.imageUrl),
-          visibility: o.visibility ?? loc.visibility,
-        }
-      })
-      const customs = data.customLocations ?? []
-      const all = [...merged, ...customs]
-      setAllLocations(all)
+  //     const dataLocations = getSettingLocations(activeSetting)
+  //     const overrides = data.locationOverrides ?? {}
+  //     const merged = dataLocations.map((loc) => {
+  //       const o = overrides[loc.id]
+  //       if (!o) return loc
+  //       return {
+  //         ...loc,
+  //         name: o.name ?? loc.name,
+  //         type: (o.type as LocationType) ?? loc.type,
+  //         description: o.description ?? loc.description,
+  //         imageUrl: o.imageUrl === null ? undefined : (o.imageUrl ?? loc.imageUrl),
+  //         visibility: o.visibility ?? loc.visibility,
+  //       }
+  //     })
+  //     const customs = data.customLocations ?? []
+  //     const all = [...merged, ...customs]
+  //     setAllLocations(all)
 
-      const found = all.find((l) => l.id === locationId) ?? null
-      setLocation(found)
-      setLoading(false)
-    }
+  //     const found = all.find((l) => l.id === locationId) ?? null
+  //     setLocation(found)
+  //     setLoading(false)
+  //   }
 
-    load()
-    return () => { cancelled = true }
-  }, [activeSetting, locationId])
+  //   load()
+  //   return () => { cancelled = true }
+  // }, [activeSetting, locationId])
 
   // ── Save field ───────────────────────────────────────────────────────
   const saveField = useCallback(

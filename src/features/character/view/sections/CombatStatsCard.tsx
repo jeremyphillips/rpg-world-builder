@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import type { CharacterDoc, CharacterClassInfo } from '@/shared'
-import { classes as classesData } from '@/data'
-import { getById } from '@/domain/lookups'
-import { getClassProgression } from '@/features/character/domain/progression'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import { getClassProgression } from '@/features/mechanics/domain/progression'
 import type { ClassProgression } from '@/data/classes/types'
 import { useCombatStats } from '@/features/character/hooks'
-import type { ArmorConfiguration } from '@/features/character/domain/combat'
+import type { LoadoutOption } from '@/features/character/domain/engine/getLoadoutPickerOptions'
+import type { WeaponPickerOption } from '@/features/character/domain/engine/getWeaponPickerOptions'
 import type { AttackEntry } from '@/features/character/hooks/useCombatStats'
+import { formatBreakdown } from '@/features/mechanics/domain/resolution/stat-resolver'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -19,6 +20,8 @@ import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Link from '@mui/material/Link'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
 import Tooltip from '@mui/material/Tooltip'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { StatShield } from '@/ui/stats'
@@ -27,12 +30,6 @@ import Divider from '@mui/material/Divider'
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function getClassName(classId?: string): string {
-  if (!classId) return 'Unknown'
-  const c = getById(classesData, classId)
-  return c?.name ?? classId
-}
 
 function formatHitDie(prog: ClassProgression): string {
   if (prog.hitDie === 0 && prog.hpPerLevel) return `${prog.hpPerLevel} HP/level`
@@ -75,15 +72,34 @@ export default function CombatStatsCard({
   canEdit = false,
   onSave,
 }: CombatStatsCardProps) {
-  const { calculatedArmorClass, armorConfigurations, activeArmorConfig, attacks } = useCombatStats(character)
+  const {
+    calculatedArmorClass, loadoutOptions, activeOption, activeLoadout,
+    attacks, maxHp, initiative, weaponOptions, wieldedWeaponIds,
+  } = useCombatStats(character)
+  const { catalog } = useCampaignRules()
   const [configOpen, setConfigOpen] = useState(false)
+  const [weaponPickerOpen, setWeaponPickerOpen] = useState(false)
+
+  const getClassName = (classId?: string): string => {
+    if (!classId) return 'Unknown'
+    return catalog.classesById[classId]?.name ?? classId
+  }
 
   const hasCombat = true
-  const hasMultipleConfigs = armorConfigurations.length > 1
+  const hasMultipleConfigs = loadoutOptions.length > 1
+  const hasMultipleWeapons = weaponOptions.length > 1
 
-  const handleConfigChange = async (configId: string) => {
-    await onSave({ combat: { selectedArmorConfigId: configId } })
+  const handleLoadoutChange = async (index: string) => {
+    const option = loadoutOptions[Number(index)]
+    if (!option) return
+    await onSave({ combat: { loadout: option.loadout } })
     setConfigOpen(false)
+  }
+
+  const handleWeaponChange = async (slot: 'mainHandWeaponId' | 'offHandWeaponId', weaponId: string) => {
+    const value = weaponId === '' ? undefined : weaponId
+    const newLoadout = { ...activeLoadout, [slot]: value }
+    await onSave({ combat: { loadout: newLoadout } })
   }
 
   return (
@@ -101,9 +117,9 @@ export default function CombatStatsCard({
                 value={calculatedArmorClass.value}
               />
 
-              {activeArmorConfig && (
+              {activeOption && (
                 <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem', mt: 0.5 }}>
-                  {activeArmorConfig.label}
+                  {activeOption.label}
                 </Typography>
               )}
 
@@ -120,14 +136,14 @@ export default function CombatStatsCard({
 
               {!hasMultipleConfigs && calculatedArmorClass && (
                 <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem' }}>
-                  {calculatedArmorClass.breakdown}
+                  {formatBreakdown(calculatedArmorClass.breakdown)}
                 </Typography>
               )}
             </Box>
 
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h4" fontWeight={700}>
-                {character.hitPoints?.total ?? '—'}
+                {character.hitPoints?.total ?? '—'}{maxHp > 0 ? ` / ${maxHp}` : ''}
               </Typography>
               <Typography variant="caption" color="text.secondary">HP</Typography>
               {character.hitPoints?.generationMethod && (
@@ -135,6 +151,13 @@ export default function CombatStatsCard({
                   {character.hitPoints.generationMethod}
                 </Typography>
               )}
+            </Box>
+
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" fontWeight={700}>
+                {initiative >= 0 ? `+${initiative}` : initiative}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Init</Typography>
             </Box>
           </Stack>
         ) : (
@@ -145,22 +168,22 @@ export default function CombatStatsCard({
         <Collapse in={configOpen}>
           <Box sx={{ mb: 2, px: 0.5 }}>
             <Typography variant="caption" fontWeight={600} sx={{ mb: 0.5, display: 'block' }}>
-              Armor Configurations
+              Equipment Loadout
             </Typography>
             <RadioGroup
-              value={activeArmorConfig?.id ?? ''}
-              onChange={(_, val) => handleConfigChange(val)}
+              value={String(loadoutOptions.indexOf(activeOption!))}
+              onChange={(_, val) => handleLoadoutChange(val)}
             >
-              {armorConfigurations.map((config: ArmorConfiguration) => (
+              {loadoutOptions.map((option: LoadoutOption, idx: number) => (
                 <FormControlLabel
-                  key={config.id}
-                  value={config.id}
+                  key={idx}
+                  value={String(idx)}
                   control={<Radio size="small" />}
                   label={
                     <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
-                      <strong>{config.totalAC}</strong>
+                      <strong>{option.totalAC}</strong>
                       {'  '}
-                      {config.breakdown}
+                      {option.label}
                     </Typography>
                   }
                   sx={{ ml: 0, mr: 0, '.MuiFormControlLabel-label': { ml: 0.5 } }}
@@ -198,9 +221,58 @@ export default function CombatStatsCard({
         })}
 
         <Divider sx={{ my: 3 }} />
-        <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem', mt: 1, display: 'block' }}>
-          Attacks
-        </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.5 }}>
+          <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
+            Attacks
+          </Typography>
+          {canEdit && hasMultipleWeapons && (
+            <Link
+              component="button"
+              variant="caption"
+              onClick={() => setWeaponPickerOpen(prev => !prev)}
+              sx={{ fontSize: '0.65rem' }}
+            >
+              {weaponPickerOpen ? 'Hide' : 'Wield'}
+            </Link>
+          )}
+        </Stack>
+
+        <Collapse in={weaponPickerOpen}>
+          <Box sx={{ mb: 2, px: 0.5 }}>
+            <Typography variant="caption" fontWeight={600} sx={{ mb: 0.5, display: 'block' }}>
+              Main Hand
+            </Typography>
+            <Select
+              size="small"
+              fullWidth
+              value={wieldedWeaponIds[0] ?? ''}
+              onChange={(e) => handleWeaponChange('mainHandWeaponId', e.target.value)}
+              sx={{ fontSize: '0.8rem', mb: 1 }}
+            >
+              <MenuItem value=""><em>None</em></MenuItem>
+              {weaponOptions.map((w: WeaponPickerOption) => (
+                <MenuItem key={w.weaponId} value={w.weaponId}>{w.name}</MenuItem>
+              ))}
+            </Select>
+
+            <Typography variant="caption" fontWeight={600} sx={{ mb: 0.5, display: 'block' }}>
+              Off Hand
+            </Typography>
+            <Select
+              size="small"
+              fullWidth
+              value={wieldedWeaponIds[1] ?? ''}
+              onChange={(e) => handleWeaponChange('offHandWeaponId', e.target.value)}
+              sx={{ fontSize: '0.8rem' }}
+            >
+              <MenuItem value=""><em>None</em></MenuItem>
+              {weaponOptions.map((w: WeaponPickerOption) => (
+                <MenuItem key={w.weaponId} value={w.weaponId}>{w.name}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+        </Collapse>
+
         {attacks.length > 0 ? (
           <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse', mt: 0.5, '& td, & th': { py: 0.5, px: 0.75, textAlign: 'left' } }}>
             <thead>
@@ -219,15 +291,22 @@ export default function CombatStatsCard({
                       <Typography variant="body2" fontWeight={600} sx={{ fontSize: '0.8rem' }}>
                         {atk.attackBonus >= 0 ? `+${atk.attackBonus}` : atk.attackBonus}
                       </Typography>
-                      <Tooltip title={atk.attackBreakdown} arrow placement="top">
+                      <Tooltip title={formatBreakdown(atk.attackBreakdown)} arrow placement="top">
                         <InfoOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary', cursor: 'help' }} />
                       </Tooltip>
                     </Stack>
                   </Box>
                   <Box component="td">
-                    <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
-                      {atk.damage}{atk.damageType ? ` ${atk.damageType}` : ''}
-                    </Typography>
+                    <Stack direction="row" alignItems="center" spacing={0.5}>
+                      <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                        {atk.damage}{atk.damageType ? ` ${atk.damageType}` : ''}
+                      </Typography>
+                      {atk.damageBreakdown.length > 1 && (
+                        <Tooltip title={formatBreakdown(atk.damageBreakdown)} arrow placement="top">
+                          <InfoOutlinedIcon sx={{ fontSize: 14, color: 'text.secondary', cursor: 'help' }} />
+                        </Tooltip>
+                      )}
+                    </Stack>
                   </Box>
                 </tr>
               ))}
@@ -235,7 +314,7 @@ export default function CombatStatsCard({
           </Box>
         ) : (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.8rem' }}>
-            No weapons equipped.
+            No weapons wielded.
           </Typography>
         )}
       </CardContent>

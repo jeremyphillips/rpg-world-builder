@@ -1,6 +1,11 @@
 import type { CharacterDoc } from '@/shared'
-import { editions } from '@/data'
-import type { EditionProficiency } from '@/data/types'
+import {
+  FIVE_E_STRENGTH_SKILLS,
+  FIVE_E_DEXTERITY_SKILLS,
+  FIVE_E_INTELLIGENCE_SKILLS,
+  FIVE_E_WISDOM_SKILLS,
+  FIVE_E_CHARISMA_SKILLS
+} from '@/data'
 
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -12,22 +17,29 @@ import Divider from '@mui/material/Divider'
 import Tooltip from '@mui/material/Tooltip'
 import EditIcon from '@mui/icons-material/Edit'
 
+// Consolidated skill name lookup across all supported systems
+const SKILL_NAME_MAP: Record<string, string> = Object.fromEntries(
+  [
+    FIVE_E_STRENGTH_SKILLS,
+    FIVE_E_DEXTERITY_SKILLS,
+    FIVE_E_INTELLIGENCE_SKILLS,
+    FIVE_E_WISDOM_SKILLS,
+    FIVE_E_CHARISMA_SKILLS
+  ].flatMap(group =>
+    Object.entries(group).map(([id, def]) => [id, def.name])
+  )
+)
+
 type ProficienciesCardProps = {
   proficiencies: CharacterDoc['proficiencies']
   wealth: CharacterDoc['wealth']
-  edition?: string
-  /** When provided, renders an Edit button. */
   onEdit?: () => void
-  /** Disables the Edit button (e.g. no proficiency slots available for the character's class). */
   editDisabled?: boolean
+  onEditWealth?: () => void
 }
 
-export default function ProficienciesCard({ proficiencies, wealth, edition, onEdit, editDisabled }: ProficienciesCardProps) {
+export default function ProficienciesCard({ proficiencies, wealth, onEdit, editDisabled, onEditWealth }: ProficienciesCardProps) {
   const skillIds = proficiencies?.skills ?? []
-
-  const editionObj = edition ? editions.find(e => e.id === edition) : undefined
-  const skillMap: Record<string, EditionProficiency> =
-    (editionObj?.proficiencies as any)?.[edition ?? '']?.skills ?? {}
 
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
@@ -54,7 +66,7 @@ export default function ProficienciesCard({ proficiencies, wealth, edition, onEd
         {skillIds.length > 0 ? (
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
             {skillIds.map((id) => (
-              <Chip key={id} label={skillMap[id]?.name ?? id} size="small" variant="outlined" />
+              <Chip key={id} label={SKILL_NAME_MAP[id] ?? id} size="small" variant="outlined" />
             ))}
           </Stack>
         ) : (
@@ -63,9 +75,20 @@ export default function ProficienciesCard({ proficiencies, wealth, edition, onEd
 
         {/* Wealth */}
         <Divider sx={{ my: 1.5 }} />
-        <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
-          Wealth
-        </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem' }}>
+            Wealth
+          </Typography>
+          {onEditWealth && (
+            <Button
+              size="small"
+              startIcon={<EditIcon fontSize="small" />}
+              onClick={onEditWealth}
+            >
+              Edit
+            </Button>
+          )}
+        </Stack>
         <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
           <Typography variant="body2" fontWeight={600}>{wealth?.gp ?? 0} gp</Typography>
           <Typography variant="body2">{wealth?.sp ?? 0} sp</Typography>

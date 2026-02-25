@@ -1,6 +1,5 @@
-import { useEffect, useRef, useMemo } from 'react'
-import { useWatch, useFormContext } from 'react-hook-form'
-import { editions, settings } from '@/data'
+import { useMemo } from 'react'
+
 import {
   AppForm,
   DynamicFormRenderer,
@@ -21,27 +20,6 @@ export interface CampaignFormData {
 // ---------------------------------------------------------------------------
 
 function CampaignFields({ canEdit }: { canEdit: boolean }) {
-  const { setValue } = useFormContext<CampaignFormData>()
-  const edition = useWatch<CampaignFormData, 'edition'>({ name: 'edition' })
-  const prevEdition = useRef(edition)
-
-  // Reset setting when the edition changes (skip initial render)
-  useEffect(() => {
-    if (prevEdition.current !== edition) {
-      setValue('setting', '')
-      prevEdition.current = edition
-    }
-  }, [edition, setValue])
-
-  const selectedEdition = editions.find(e => e.id === edition)
-
-  const settingOptions = useMemo(() => {
-    if (!selectedEdition) return []
-    return selectedEdition.settings
-      .map((id: string) => settings.find(s => s.id === id))
-      .filter(Boolean)
-      .map(s => ({ value: s!.id, label: s!.name }))
-  }, [selectedEdition])
 
   const fields: FieldConfig[] = useMemo(() => [
     {
@@ -52,25 +30,7 @@ function CampaignFields({ canEdit }: { canEdit: boolean }) {
       required: true,
       disabled: !canEdit,
     },
-    {
-      type: 'select' as const,
-      name: 'edition',
-      label: 'Edition',
-      options: editions.map(ed => ({ value: ed.id, label: ed.name })),
-      placeholder: 'Select edition…',
-      required: true,
-      disabled: !canEdit,
-    },
-    {
-      type: 'select' as const,
-      name: 'setting',
-      label: 'Setting',
-      options: settingOptions,
-      placeholder: edition ? 'Select setting…' : 'Choose an edition first',
-      required: true,
-      disabled: !edition || !canEdit,
-    },
-  ], [canEdit, edition, settingOptions])
+  ], [canEdit])
 
   return <DynamicFormRenderer fields={fields} />
 }

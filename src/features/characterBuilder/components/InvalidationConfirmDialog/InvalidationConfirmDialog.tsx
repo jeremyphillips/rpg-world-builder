@@ -3,7 +3,7 @@ import Box from '@mui/material/Box'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 
 import { ConfirmModal } from '@/ui/modals'
-import type { InvalidationResult } from '../../validation'
+import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -31,15 +31,19 @@ const InvalidationConfirmDialog = ({
 
   // Group affected items by label, deduplicating items that appear in
   // multiple rules targeting the same step (e.g. level→spells + class→spells).
-  const groups = new Map<string, string[]>()
+  const groups = new Map<string, InvalidationItem[]>()
   if (invalidations) {
     for (const inv of invalidations.affected) {
       const existing = groups.get(inv.label) ?? []
       groups.set(inv.label, [...existing, ...inv.items])
     }
-    // Deduplicate within each group
     for (const [label, items] of groups) {
-      groups.set(label, [...new Set(items)])
+      const seen = new Set<string>()
+      groups.set(label, items.filter(item => {
+        if (seen.has(item.id)) return false
+        seen.add(item.id)
+        return true
+      }))
     }
   }
 
@@ -70,8 +74,8 @@ const InvalidationConfirmDialog = ({
 
           <Box component="ul" sx={{ mt: 0.5, mb: 0, pl: 2.5 }}>
             {items.map((item) => (
-              <li key={item}>
-                <Typography variant="body2">{item}</Typography>
+              <li key={item.id}>
+                <Typography variant="body2">{item.label}</Typography>
               </li>
             ))}
           </Box>

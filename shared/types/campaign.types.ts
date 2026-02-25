@@ -38,6 +38,8 @@ export interface Campaign extends CampaignBase {
   membership: {
     adminId: string
   }
+  rulesetId?: string
+  rulesetVersion?: number
   configuration?: CampaignConfiguration
   createdAt: Date
   updatedAt: Date

@@ -7,10 +7,10 @@ import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
-import { CardBadge } from './CardBadge'
-import UserAvatar from '@/domain/user/components/UserAvatar/UserAvatar'
-
 import MoreVertIcon from '@mui/icons-material/MoreVert'
+
+import { CardBadge } from './CardBadge'
+import { UserAvatar } from '@/features/user/components'
 
 export interface CardBadgeItem {
   type: 'status' | 'tag' | 'role'

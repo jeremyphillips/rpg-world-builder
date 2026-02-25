@@ -1,8 +1,6 @@
 import { type Monster } from '@/data'
 import { StatRow } from '../../components'
 import { MONSTER_LABELS } from '@/data'
-import { getNameById } from '@/domain/lookups'
-import { settings } from '@/data'
 
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
@@ -11,13 +9,6 @@ import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
 
 const L = MONSTER_LABELS
-
-function resolveSettingNames(settingIds: string[] | undefined): string {
-  if (!settingIds?.length) return '—'
-  return settingIds
-    .map((id) => getNameById(settings as unknown as { id: string; name: string }[], id) ?? id)
-    .join(', ')
-}
 
 export function MonsterHeader({ monster }: { monster: Monster }) {
   return (
@@ -42,7 +33,6 @@ export function MonsterHeader({ monster }: { monster: Monster }) {
       </Stack>
 
       <StatRow label={L.languages} value={monster.languages?.length ? monster.languages.join(', ') : 'None'} />
-      <StatRow label={L.setting} value={resolveSettingNames(monster.setting)} />
 
       <Divider sx={{ my: 3 }} />
     </div>

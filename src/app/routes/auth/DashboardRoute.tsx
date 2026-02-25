@@ -23,8 +23,6 @@ export default function DashboardRoute() {
               campaignId={c._id}
               name={c.identity.name ?? ''}
               description={c.identity.description}
-              edition={c.identity.edition}
-              setting={c.identity.setting}
               memberCount={c.memberCount}
               imageUrl={c.identity?.imageUrl}
             />

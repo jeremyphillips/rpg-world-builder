@@ -1,19 +1,15 @@
 import { useEffect } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
-import { classes } from '@/data'
-import { getOptions } from '@/domain/options'
-import { getSubclassUnlockLevel } from '@/features/character/domain/progression'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import { evaluateClassEligibility, getClassRestrictionNotes } from '@/features/mechanics/domain/character-build/rules'
+import { getSubclassUnlockLevel } from '@/features/mechanics/domain/progression'
 import { getClassDefinitions } from '@/features/character/domain/reference'
-import { meetsClassRequirements } from '@/features/character/domain/validation'
-import { getClassRestrictionNotes } from '@/features/character/domain/validation'
 import { canAddClass } from '@/features/character/domain/validation'
-import { getClassProgression } from '@/features/character/domain/progression'
+import { getClassProgression } from '@/features/mechanics/domain/progression'
 import type { ClassProgression } from '@/data/classes/types'
 import { ButtonGroup } from '@/ui/elements'
-import { getNameById } from '@/domain/lookups'
 import { getSubclassNameById } from '@/features/character/domain/reference'
-import { classes as classesData } from '@/data'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -70,12 +66,13 @@ const ClassStep = () => {
     allocateRemainingLevels,
     stepNotices,
     dismissNotice
-  } = useCharacterBuilder()  
+  } = useCharacterBuilder()
+  const { catalog, ruleset } = useCampaignRules()
+  const { classesById } = catalog
+  const { multiclassing: multiclassingRules } = ruleset.mechanics.progression
 
   const {
     step,
-    edition,
-    setting,
     classes: selectedClasses,
     activeClassIndex,
     totalLevel
@@ -94,39 +91,32 @@ const ClassStep = () => {
 
   const remainingLevels = (totalLevel ?? 0) - allocatedLevels
 
-  // Does this edition support multiclassing at all? (ignoring current class
-  // count / remaining levels — just the edition-level rule)
-  const editionAllowsMulticlass = canAddClass(edition, 1, 1).allowed
+  // Does this campaign support multiclassing at all? (ignoring current class
+  // count / remaining levels — just the campaign-level rule)
+  const campaignAllowsMulticlass = canAddClass(multiclassingRules, 1, 1).allowed
 
   // When multiclassing is disabled, auto-allocate all levels to the primary
   // class so the user doesn't need to interact with a level spinner.
   useEffect(() => {
-    if (!editionAllowsMulticlass && remainingLevels > 0) {
+    if (!campaignAllowsMulticlass && remainingLevels > 0) {
       allocateRemainingLevels()
     }
-  }, [editionAllowsMulticlass, remainingLevels, allocateRemainingLevels])
+  }, [campaignAllowsMulticlass, remainingLevels, allocateRemainingLevels])
 
   /* ---------- Primary class options ---------- */
-  const allowedClassIds = getOptions('classes', edition, setting)
-
-  const classOptions = allowedClassIds
-    .map(id => classes.find(c => c.id === id))
-    .filter(Boolean)
+  const classOptions = Object.values(catalog.classesById)
     .map(cls => {
-      const { allowed } = meetsClassRequirements(cls!, state)
-      const label = (edition && cls!.displayNameByEdition?.[edition]) ?? cls!.name
+      const { allowed } = evaluateClassEligibility(cls.id, state, classesById)
       return {
-        id: cls!.id,
-        label,
-        disabled: !allowed
+        id: cls.id,
+        label: cls.name,
+        disabled: !allowed,
       }
     })
 
   const primaryClassSelected = Boolean(selectedClasses[0]?.classId)
 
-  const restrictionNotes = edition
-    ? getClassRestrictionNotes(edition, allowedClassIds)
-    : []
+  const restrictionNotes = getClassRestrictionNotes(Object.keys(classesById), classesById)
 
   const classNotices = stepNotices.get('class') ?? []
 
@@ -137,7 +127,7 @@ const ClassStep = () => {
         <InvalidationNotice items={classNotices} onDismiss={() => dismissNotice('class')} />
 
         {/* Level allocation summary — only relevant for multiclass editions */}
-        {editionAllowsMulticlass && (
+        {campaignAllowsMulticlass && (
           <Box sx={{ mt: 1 }}>
             <Typography variant="body2" sx={{ mb: 1 }}>
               Allocate your {totalLevel ?? 0} total level{(totalLevel ?? 0) > 1 ? 's' : ''} across one or more classes.
@@ -168,22 +158,20 @@ const ClassStep = () => {
           const isActive = activeClass && index === activeClassIndex
           const isPrimary = index === 0
 
-          const subclassUnlockLevel = getSubclassUnlockLevel(cls.classId, edition)
+          const subclassUnlockLevel = getSubclassUnlockLevel(cls.classId)
           const canChooseSubclass =
             cls.classId &&
             subclassUnlockLevel &&
             cls.level >= subclassUnlockLevel
 
           const definitions = canChooseSubclass
-            ? getClassDefinitions(cls.classId, edition, cls.level)
+            ? getClassDefinitions(cls.classId, cls.level)
             : []
 
-          const subclassOptions = definitions.flatMap((d: { options: { id: string; name: string }[] }) =>
-            d.options.map((opt: { id: string; name: string }) => ({
-              id: opt.id,
-              label: opt.name
-            }))
-          )
+          const subclassOptions = definitions.map(opt => ({
+            id: opt.id ?? '',
+            label: opt.name,
+          }))
 
           return (
             <Card
@@ -211,7 +199,7 @@ const ClassStep = () => {
                       sx={{ mb: 1 }}
                     />
                     <Typography variant="h6" sx={{ lineHeight: 1.3 }}>
-                      {getNameById(classesData, cls.classId) || 'Choose a class'}
+                      {(cls.classId && catalog.classesById[cls.classId]?.name) || 'Choose a class'}
                       {cls.classDefinitionId && ` — ${getSubclassNameById(cls.classId, cls.classDefinitionId)}`}
                     </Typography>
                     <Typography variant="body2" color="text.secondary" my={1.5}>
@@ -275,7 +263,7 @@ const ClassStep = () => {
 
                     {/* Progression info panel */}
                     {cls.classId && (() => {
-                      const prog = getClassProgression(cls.classId, edition)
+                      const prog = classesById[cls.classId]?.progression
                       if (!prog) return null
                       const spellLabel = formatSpellcasting(prog)
                       const savesLabel = formatSavingThrows(prog)
@@ -304,7 +292,7 @@ const ClassStep = () => {
                     })()}
 
                     {/* Level spinner — only shown when multiclassing is available */}
-                    {editionAllowsMulticlass && (
+                    {campaignAllowsMulticlass && (
                       <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 3 }}>
                         <IconButton
                           size="medium"
@@ -385,7 +373,7 @@ const ClassStep = () => {
 
       {/* Add class — gated by edition multiclassing rules */}
       {primaryClassSelected && (() => {
-        const mc = canAddClass(edition, selectedClasses.length, remainingLevels)
+        const mc = canAddClass(multiclassingRules, selectedClasses.length, remainingLevels)
         return mc.allowed ? (
           <CardActions sx={{ px: 0, pt: 2 }}>
             <Button

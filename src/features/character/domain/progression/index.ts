@@ -1,6 +1,0 @@
-export * from './classProgression'
-// export * from 'levelProgression'
-export * from './hitPoints'
-export * from './subclassUnlock'
-export * from './spells'
-export * from './xp'

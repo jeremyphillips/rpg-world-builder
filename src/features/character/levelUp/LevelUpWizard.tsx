@@ -49,7 +49,6 @@ function buildInitialState(character: CharacterDoc): LevelUpState {
 
   return {
     characterName: character.name,
-    edition: character.edition as EditionId,
     currentLevel: character.totalLevel ?? 1,
     pendingLevel: character.pendingLevel ?? (character.totalLevel ?? 1) + 1,
     classes: character.classes ?? [],

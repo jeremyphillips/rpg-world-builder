@@ -41,7 +41,11 @@
       "@/features/characterBuilder/context": ["features/characterBuilder/context/index.ts"],
       "@/features/location/*": ["features/location/*"],
       "@/features/mechanics/*": ["features/mechanics/*"],
+      "@/features/notification": ["features/notification/index.ts"],
+      "@/features/notification/*": ["features/notification/*"],
       "@/features/session/*": ["features/session/*"],
+      "@/features/spell/*": ["features/spell/*"],
+      "@/features/user/*": ["features/user/*"],
       "@/ui/elements": ["ui/elements/index.ts"],
       "@/ui/elements/*": ["ui/elements/*"],
       "@/ui/fields": ["ui/components/fields/index.ts"],
@@ -62,6 +66,7 @@
       "@/ui/stats/*": ["ui/stats/*"],
       "@/data": ["data/index.ts"],
       "@/data/*": ["data/*"],
+      "@/data/ruleSets": ["data/ruleSets/index.ts"],
       "@/domain/*": ["domain/*"],
       "@/domain/shared": ["domain/shared/index.ts"],
       "@/chat": ["features/chat/index.ts"],
@@ -72,7 +77,8 @@
       "@/hooks/*": ["hooks/*"],
       "@/shared": ["../shared/types/index.ts"],
       "@/shared/*": ["../shared/*"],
-      "@/utils/*": ["utils/*"]
+      "@/utils/*": ["utils/*"],
+      "@/utils": ["utils/index.ts"]
     }  
   },
   "include": ["src"]

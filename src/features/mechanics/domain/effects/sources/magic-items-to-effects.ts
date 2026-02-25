@@ -1,0 +1,112 @@
+/**
+ * Magic item → Effect[] translation layer.
+ *
+ * Reads flat core magic-item data (no edition indirection).
+ * Each effect carries `source: 'magic_item:<id>'`.
+ */
+import type { Effect, ModifierEffect } from '../effects.types'
+import type { StatTarget } from '../../resolution/stat-resolver'
+import { magicItems, type MagicItem } from '@/data/equipment/magicItems'
+import { resolveEffectDescriptors } from '../descriptors/resolveEffectDescriptors'
+
+// ---------------------------------------------------------------------------
+// Magic item loadout (minimal — no UI for equip/attune yet)
+// ---------------------------------------------------------------------------
+
+export type MagicItemLoadout = {
+  equippedIds: string[]
+  attunedIds: string[]
+}
+
+// ---------------------------------------------------------------------------
+// Candidate effects (all owned magic items)
+// ---------------------------------------------------------------------------
+
+function bonusModifier(
+  target: StatTarget,
+  bonus: number,
+  source: string,
+): ModifierEffect {
+  return { kind: 'modifier', target, mode: 'add', value: bonus, source }
+}
+
+function effectsForItem(item: MagicItem): Effect[] {
+  const effects: Effect[] = []
+  const source = `magic_item:${item.id}`
+
+  if (item.effects) {
+    for (const fx of item.effects) {
+      if (fx.kind === 'bonus') {
+        effects.push(bonusModifier(fx.target as StatTarget, fx.value, source))
+      }
+    }
+  }
+
+  if (effects.length === 0 && item.enhancementLevel && item.enhancementLevel > 0) {
+    switch (item.slot) {
+      case 'weapon':
+        effects.push(bonusModifier('attack_roll', item.enhancementLevel, source))
+        effects.push(bonusModifier('damage', item.enhancementLevel, source))
+        break
+      case 'armor':
+      case 'shield':
+        effects.push(bonusModifier('armor_class', item.enhancementLevel, source))
+        break
+    }
+  }
+
+  return effects
+}
+
+const magicItemsById = new Map(magicItems.map(m => [m.id, m]))
+
+/**
+ * Produce candidate effects for ALL owned magic items.
+ * Call `selectActiveMagicItemEffects` afterwards to narrow to the active set.
+ */
+export function getMagicItemCandidateEffects(
+  magicItemIds: string[],
+): Effect[] {
+  if (magicItemIds.length === 0) return []
+
+  const effects: Effect[] = []
+
+  for (const id of magicItemIds) {
+    const item = magicItemsById.get(id)
+    if (!item) continue
+    effects.push(...effectsForItem(item))
+  }
+
+  return effects
+}
+
+// ---------------------------------------------------------------------------
+// Active selection filter
+// ---------------------------------------------------------------------------
+
+/**
+ * Filter candidate magic item effects to only those currently equipped
+ * (and attuned, if the item requires it).
+ */
+export function selectActiveMagicItemEffects(
+  candidateEffects: Effect[],
+  loadout: MagicItemLoadout,
+): Effect[] {
+  const equippedSet = new Set(loadout.equippedIds)
+  const attunedSet = new Set(loadout.attunedIds)
+
+  return candidateEffects.filter(e => {
+    const source = 'source' in e ? (e as { source?: string }).source : undefined
+    if (!source?.startsWith('magic_item:')) return true
+
+    const itemId = source.slice('magic_item:'.length)
+    if (!equippedSet.has(itemId)) return false
+
+    const item = magicItemsById.get(itemId)
+    if (!item) return false
+
+    if ((item as any).requiresAttunement && !attunedSet.has(itemId)) return false
+
+    return true
+  })
+}

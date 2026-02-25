@@ -3,7 +3,7 @@ import type { ChipProps } from '@mui/material'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'
 import CancelIcon from '@mui/icons-material/Cancel'
-import type { StatusType } from '@/domain/shared'
+import type { StatusType } from '@/shared/types'
 
 interface StatusBadgeProps {
   status: StatusType

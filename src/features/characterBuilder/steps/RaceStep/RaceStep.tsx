@@ -1,14 +1,15 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
-import type { EditionId, SettingId } from '@/data'
 import { ButtonGroup } from '@/ui/elements'
-import { getAllowedRaces } from '@/features/character/domain/validation'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 
 const RaceStep = () => {
   const { state, setRace, stepNotices, dismissNotice } = useCharacterBuilder()
-  const { step, edition, setting, race: selectedRace } = state
+  const { step, race: selectedRace } = state
 
-  const allowedRaces = getAllowedRaces(edition as EditionId, setting as SettingId)
+  const { catalog } = useCampaignRules()
+  const { racesById } = catalog
+
   const notices = stepNotices.get('race') ?? []
 
   return (
@@ -16,7 +17,7 @@ const RaceStep = () => {
       <h2>Choose {step.name}</h2>
       <InvalidationNotice items={notices} onDismiss={() => dismissNotice('race')} />
       <ButtonGroup
-        options={allowedRaces.map(race => ({
+        options={Object.values(racesById).map(race => ({
           id: race.id,
           label: race.name
         }))}

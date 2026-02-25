@@ -1,19 +1,13 @@
 import { MediaTopCard, type CardBadgeItem } from '@/ui/cards'
-import { getById } from '@/domain/lookups'
-import { classes } from '@/data'
-import { standardAlignments } from '@/data'
-import type { Character } from '@/shared/types'
 import type { CharacterClassInfo } from '@/shared/types'
 import Box from '@mui/material/Box'
 import PersonIcon from '@mui/icons-material/Person'
-// type NpcWithId = Character & { id: string }
-import { getNameById } from '@/domain/lookups'
-import { classes as classesData } from '@/data'
-import { races as racesData } from '@/data'
+import { getNameById } from '@/utils'
+import { classes as classesData } from '@/data/classes'
+import { races as racesData } from '@/data/races'
 import type { Race } from '@/data/types'
 import { ROUTES } from '@/app/routes'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
-import { useParams } from 'react-router-dom'
 
 interface NpcMediaTopCardProps {
   characterId: string

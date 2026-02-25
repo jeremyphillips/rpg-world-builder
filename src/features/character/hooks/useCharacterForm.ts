@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { CharacterDoc } from '@/shared'
-import type { EditionId, SettingId } from '@/data'
-import { getAllowedRaces } from '@/features/character/domain/validation'
 import { getAlignmentOptionsForCharacter } from '@/features/character/domain/reference'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 
 export interface CharacterNarrative {
   personalityTraits: string[]
@@ -47,6 +46,10 @@ export function useCharacterForm(character: CharacterDoc | null): UseCharacterFo
   const [totalLevel, setTotalLevel] = useState(0)
   const [xp, setXp] = useState(0)
 
+  const { catalog, ruleset } = useCampaignRules()
+  const { racesById } = catalog
+  const { alignment: alignmentRules } = ruleset.mechanics.character
+
   const syncFromCharacter = useCallback((c: CharacterDoc) => {
     setName(c.name ?? '')
     setImageKey(c.imageKey ?? null)
@@ -71,16 +74,21 @@ export function useCharacterForm(character: CharacterDoc | null): UseCharacterFo
   const alignmentOptions = useMemo(() => {
     if (!character) return []
     const classIds = (character.classes ?? []).map((c) => c.classId).filter(Boolean) as string[]
-    return getAlignmentOptionsForCharacter(character.edition as EditionId, classIds)
-  }, [character?.edition, character?.classes])
+    return getAlignmentOptionsForCharacter(classIds, alignmentRules.options, catalog.classesById)
+  }, [character?.classes, alignmentRules.options, catalog.classesById])
 
-  const raceOptions = useMemo(() => {
-    if (!character) return []
-    return getAllowedRaces(character.edition as EditionId, character.setting as SettingId).map((r) => ({
-      id: r.id,
-      label: r.name,
-    }))
-  }, [character?.edition, character?.setting])
+  // const raceOptions = useMemo(() => {
+  //   if (!character) return []
+  //   return Object.values(racesById).map((r) => ({
+  //     id: r.id,
+  //     label: r.name,
+  //   }))
+  // }, [])
+
+  const raceOptions = Object.values(racesById).map((r) => ({
+    id: r.id,
+    label: r.name,
+  }))
 
   return {
     name,

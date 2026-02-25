@@ -1,3 +1,7 @@
+import type { EditionRule1e, EditionRuleHolmes } from "@/features/mechanics/domain/edition"
+import type { Monster } from "@/data/monsters/monsters.types"
+import type { CoreMechanics } from "@/features/mechanics/domain/core/combat.types"
+
 // ---------------------------------------------------------------------------
 // 1e / Holmes → Core
 // ---------------------------------------------------------------------------

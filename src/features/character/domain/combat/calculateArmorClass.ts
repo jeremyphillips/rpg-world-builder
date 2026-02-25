@@ -1,21 +1,15 @@
 import type { Character } from '@/shared/types'
-import { getArmorConfigurations, getActiveArmorConfig } from './armorConfigurations'
+import { resolveCharacterStat } from '../engine/resolveCharacterStat'
 
 /**
  * Calculate the character's effective armor class.
- * Uses the stored config preference when available, otherwise picks the highest AC.
+ * Delegates to the mechanics engine for 5e.
  */
 export function calculateArmorClass(character: Character, edition: string) {
-  if (edition !== '5e') {
-    return { value: character.armorClass?.base ?? 10, breakdown: 'Unsupported edition' }
-  }
+  // if (edition !== '5e') {
+  //   return { value: character.armorClass?.base ?? 10, breakdown: 'Unsupported edition' }
+  // }
 
-  const configs = getArmorConfigurations(character, edition)
-  const active = getActiveArmorConfig(configs, character.combat?.selectedArmorConfigId)
-
-  if (!active) {
-    return { value: 10, breakdown: '10 (base)' }
-  }
-
-  return { value: active.totalAC, breakdown: active.breakdown }
+  const value = resolveCharacterStat(character, 'armor_class')
+  return { value, breakdown: `${value} (mechanics engine)` }
 }

@@ -1,8 +1,5 @@
 import { useBreadcrumbs } from '@/hooks'
 import { CharacterBuilderLauncher } from '@/features/characterBuilder/components'
-// import NpcMediaTopCard from '@/domain/npc/components/NpcMediaTopCard/NpcMediaTopCard'
-//import { npcs } from '@/data/npcs/npcs'
-import type { EditionId, SettingId } from '@/data'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { NpcGallerySection } from '@/features/npc/sections' 
 
@@ -13,18 +10,7 @@ import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 
 export default function NpcsRoute() {
-  const {
-    campaignId: activeCampaignId, 
-    loading: activeCampaignLoading,
-    editionId: activeEditionId,
-    settingId: activeSettingId,
-  } = useActiveCampaign()
-
-  const gridSx = {
-    display: 'grid',
-    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' },
-    gap: 2,
-  } as const
+  const { loading: activeCampaignLoading } = useActiveCampaign()
 
   const breadcrumbs = useBreadcrumbs()
 
@@ -40,8 +26,6 @@ export default function NpcsRoute() {
         <CharacterBuilderLauncher
           buttonLabel="Create NPC"
           characterType="npc"
-          campaignEdition={activeEditionId as EditionId | undefined}
-          campaignSetting={activeSettingId as SettingId | undefined}
         />
       </Stack>
 
