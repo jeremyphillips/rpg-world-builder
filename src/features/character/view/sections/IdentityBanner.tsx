@@ -1,8 +1,8 @@
 import type { CharacterDoc, CharacterClassInfo } from '@/shared'
 import type { CampaignSummary } from '@/shared/types/campaign.types'
-import { classesCore as classesData } from '@/data'
-import { racesCore as races } from '@/data/races.core'
-import { getNameById, getById } from '@/domain/lookups'
+import { classes as classesData } from '@/data'
+import { races } from '@/data/races'
+import { getNameById, getById } from '@/utils'
 import { getSubclassNameById } from '@/features/character/domain/reference'
 import { getXpForLevel } from '@/features/mechanics/domain/progression'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
@@ -274,8 +274,6 @@ export default function IdentityBanner({
                       description={c.identity.description}
                       imageUrl={c.identity.imageUrl}
                       dmName={c.dmName}
-                      edition={c.identity.edition}
-                      setting={c.identity.setting}
                       memberCount={c.memberCount}
                       characterStatus={charStatus !== 'active' ? charStatus : undefined}
                       actions={campaignActions}

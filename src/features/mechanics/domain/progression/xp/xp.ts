@@ -40,6 +40,3 @@ export const getXpForLevel = (
   const entry = xpTable.find(e => e.level === target)
   return entry?.xpRequired ?? 0
 }
-
-/** @deprecated Use `getXpForLevel` — this alias exists for migration. */
-export const getXpByLevelAndEdition = getXpForLevel

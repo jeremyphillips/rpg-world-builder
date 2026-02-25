@@ -1,19 +1,19 @@
-import type { MagicItemRarity, EffectDescriptor } from '../magicItems.types'
+import type { MagicItemRarity } from '../magicItems'
 
 export type EnchantableSlot = 'weapon' | 'armor' | 'shield'
 
-export type EnchantmentTemplateEditionDatum = {
-  edition: string
-  rarity?: MagicItemRarity
-  cost?: string
-  enhancementLevel?: number
-  requiresAttunement?: boolean | string
-  effectsBySlot: Partial<Record<EnchantableSlot, EffectDescriptor[]>>
-}
+export type EffectDescriptor =
+  | { kind: 'bonus'; target: 'armor_class' | 'attack' | 'damage'; value: number }
+  | { kind: 'stat_bonus'; stat: string; value: number }
+  | { kind: 'grant'; grantType: string; value: unknown }
+  | { kind: 'custom'; id: string; params?: Record<string, unknown> }
 
 export type EnchantmentTemplate = {
   id: string
   name: string
   appliesTo: EnchantableSlot[]
-  editionData: EnchantmentTemplateEditionDatum[]
+  rarity?: MagicItemRarity
+  cost?: string
+  requiresAttunement?: boolean | string
+  effectsBySlot: Partial<Record<EnchantableSlot, EffectDescriptor[]>>
 }

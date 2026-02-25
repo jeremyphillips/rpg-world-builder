@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, useRef, useState, useEffect, useCal
 import type { ReactNode } from 'react'
 import { useAuth } from './AuthProvider'
 import { apiFetch } from '../api'
-import type { NotificationContextType, AppNotification } from '@/domain/notification'
+import type { NotificationContextType, AppNotification } from '@/features/notification'
 
 const NotificationContext = createContext<NotificationContextType | null>(null)
 

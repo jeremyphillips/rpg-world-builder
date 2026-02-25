@@ -1,8 +1,8 @@
 import { useMemo, useCallback } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import type { SpellData } from '@/data/spellsCore'
-import { SpellHorizontalCard } from '@/domain/spells/components'
+import type { SpellData } from '@/data/spells'
+import { SpellHorizontalCard } from '@/features/spell/cards'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
 import {
   buildSpellSelectionModel,
@@ -40,9 +40,9 @@ const SpellStep = () => {
     () => buildSpellSelectionModel(
       { classes: selectedClasses, spells: selectedSpells },
       catalog.classesById,
-      catalog.spellsCoreById,
+      catalog.spellsById,
     ),
-    [selectedClasses, selectedSpells, catalog.classesById, catalog.spellsCoreById]
+    [selectedClasses, selectedSpells, catalog.classesById, catalog.spellsById]
   )
 
   const { availableByLevel, limits, selectedPerLevel, totalSelectedLeveled } = model

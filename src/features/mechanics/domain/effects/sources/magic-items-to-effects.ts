@@ -6,7 +6,7 @@
  */
 import type { Effect, ModifierEffect } from '../effects.types'
 import type { StatTarget } from '../../resolution/stat-resolver'
-import { magicItemsCore, type MagicItem } from '@/data/equipmentCore/magicItemsCore'
+import { magicItems, type MagicItem } from '@/data/equipment/magicItems'
 import { resolveEffectDescriptors } from '../descriptors/resolveEffectDescriptors'
 
 // ---------------------------------------------------------------------------
@@ -58,7 +58,7 @@ function effectsForItem(item: MagicItem): Effect[] {
   return effects
 }
 
-const magicItemsById = new Map(magicItemsCore.map(m => [m.id, m]))
+const magicItemsById = new Map(magicItems.map(m => [m.id, m]))
 
 /**
  * Produce candidate effects for ALL owned magic items.

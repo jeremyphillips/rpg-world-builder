@@ -8,7 +8,7 @@
 import { useMemo, useCallback } from 'react'
 import { getClassProgression } from '@/features/mechanics/domain/progression'
 import { getAvailableSpells, groupSpellsByLevel, getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/spells'
-import { SpellHorizontalCard } from '@/domain/spells/components'
+import { SpellHorizontalCard } from '@/features/spell/cards'
 import type { LevelUpState } from '../levelUp.types'
 
 import Box from '@mui/material/Box'

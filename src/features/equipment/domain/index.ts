@@ -1,4 +1,3 @@
-export * from './edition/resolveEquipmentEdition'
 export * from './pricing/pricing'
 export * from './weight/weight'
 export * from './magic-items/magicItems'

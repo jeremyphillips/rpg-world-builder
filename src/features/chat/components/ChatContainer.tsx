@@ -7,7 +7,7 @@ import type { AbilityScoreMode } from '@/features/characterBuilder/components/Ch
 import { AppModal, ConfirmModal } from '@/ui/modals'
 import { apiFetch } from '@/app/api'
 import { type CharacterClassInfo } from '@/shared'
-import { classesCore } from '@/data/classes.core'
+import { classes } from '@/data/classes'
 import { generateAbilityScores, prioritizeAbilityScores } from '@/features/mechanics/domain/generation/ability-scores'
 import { generateHitPoints } from '@/features/mechanics/domain/progression'
 import { LoadingOverlay } from '@/ui/elements'
@@ -85,7 +85,7 @@ const DEFAULT_ABILITY_SCORE_METHOD: AbilityScoreMethod = '4d6-drop-lowest'
 
 function getClassAbilityPriority(classId: string | undefined): (keyof AbilityScores)[] {
   if (!classId) return []
-  const cls = classesCore.find(c => c.id === classId)
+  const cls = classes.find(c => c.id === classId)
   return cls?.generation?.abilityPriority ?? []
 }
 

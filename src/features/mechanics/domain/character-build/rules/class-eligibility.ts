@@ -5,8 +5,8 @@
  * returning structured reason codes instead of display strings.
  * UI maps codes to friendly copy.
  */
-import { classesCore } from '@/data'
-import { getById } from '@/domain/lookups'
+import { classes } from '@/data'
+import { getById } from '@/utils'
 import type { ClassRequirement } from '@/data/classes/types'
 import type { AlignmentId } from '@/data'
 import type { BuildDraft } from '../types'
@@ -64,7 +64,7 @@ export function evaluateClassEligibility(
 
   const { race, alignment } = draft
 
-  const cls = getById(classesCore, classId)
+  const cls = getById(classes, classId)
   if (!cls || !cls.requirements) return { allowed: true, reasons: [] }
 
   const req = cls.requirements
@@ -104,7 +104,7 @@ export function getClassRequirement(
 ): ClassRequirement | undefined {
   if (!classId) return undefined
 
-  const cls = getById(classesCore, classId)
+  const cls = getById(classes, classId)
   if (!cls) return undefined
 
   return cls.requirements
@@ -126,7 +126,7 @@ export function getClassRestrictionNotes(
   const openToAll: string[] = []
 
   for (const classId of classIds) {
-    const cls = getById(classesCore, classId)
+    const cls = getById(classes, classId)
     if (!cls) continue
 
     const req = cls.requirements

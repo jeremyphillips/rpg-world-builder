@@ -1,12 +1,12 @@
-import { getById } from '@/domain/lookups'
-import { classesCore } from '@/data'
+import { getById } from '@/utils'
+import { classes } from '@/data'
 
 export const getSubclassUnlockLevel = (
   classId?: string
 ): number | null => {
   if (!classId) return null
 
-  const cls = getById(classesCore, classId)
+  const cls = getById(classes, classId)
   if (!cls) return null
 
   const definition = cls.definitions

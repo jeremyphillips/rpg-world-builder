@@ -1,23 +1,17 @@
 import { useCharacterBuilder } from '../../context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-// import { races } from '@/data'
-import { racesCore as races } from '@/data/races.core'
-import { standardAlignments, fourEAlignments, basicAlignments } from '@/data/alignments'
-import { getNameById } from '@/domain/lookups'
-import type { ClassProgression } from '@/data/classes/types'
+import { races } from '@/data/races'
+import { standardAlignments, fourEAlignments, basicAlignments } from '@/data/ruleSets'
+import { getNameById } from '@/utils'
+import type { ClassProgression } from '@/data'
 import type { StepId } from '../../types'
 import {
   FIVE_E_STRENGTH_SKILLS,
   FIVE_E_DEXTERITY_SKILLS,
   FIVE_E_INTELLIGENCE_SKILLS,
   FIVE_E_WISDOM_SKILLS,
-  FIVE_E_CHARISMA_SKILLS,
-  TWOE_GENERAL_PROFICIENCY_SKILLS,
-  TWOE_PRIEST_GROUP_PROFICIENCY_SKILLS,
-  TWOE_WARRIOR_GROUP_PROFICIENCY_SKILLS,
-  TWOE_ROGUE_GROUP_PROFICIENCY_SKILLS,
-  TWOE_WIZARD_GROUP_PROFICIENCY_SKILLS,
-} from '@/data/editions/proficiencySkillsByEdition'
+  FIVE_E_CHARISMA_SKILLS
+} from '@/data'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -41,12 +35,7 @@ const SKILL_NAME_MAP: Record<string, string> = Object.fromEntries(
     FIVE_E_DEXTERITY_SKILLS,
     FIVE_E_INTELLIGENCE_SKILLS,
     FIVE_E_WISDOM_SKILLS,
-    FIVE_E_CHARISMA_SKILLS,
-    TWOE_GENERAL_PROFICIENCY_SKILLS,
-    TWOE_PRIEST_GROUP_PROFICIENCY_SKILLS,
-    TWOE_WARRIOR_GROUP_PROFICIENCY_SKILLS,
-    TWOE_ROGUE_GROUP_PROFICIENCY_SKILLS,
-    TWOE_WIZARD_GROUP_PROFICIENCY_SKILLS,
+    FIVE_E_CHARISMA_SKILLS
   ].flatMap(group =>
     Object.entries(group).map(([id, def]) => [id, def.name])
   )
@@ -166,7 +155,7 @@ const ConfirmationStep = () => {
   const selectedSpellIds = state.spells ?? []
   const resolvedSpells = selectedSpellIds
     .map(id => {
-      const spell = catalog.spellsCoreById[id]
+      const spell = catalog.spellsById[id]
       return spell ? { name: spell.name, level: spell.level } : null
     })
     .filter(Boolean) as { name: string; level: number }[]

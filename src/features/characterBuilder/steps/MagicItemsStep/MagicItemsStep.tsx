@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import { getMagicItemBudget } from '@/features/equipment/domain/magic-items/magicItems'
 import { ButtonGroup } from '@/ui/elements'
 import { ConfirmModal } from '@/ui/modals'
 import FormControl from '@mui/material/FormControl'
@@ -10,9 +11,9 @@ import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import type { MagicItemSlot, MagicItem } from '@/data/equipmentCore/magicItemsCore'
+import type { MagicItemSlot, MagicItem, MagicItemRarity } from '@/data/equipment/magicItems'
 import type { EquipmentItemInstance } from '@/shared/types/character.core'
-import type { EnchantableSlot } from '@/data/equipmentCore/enchantments/enchantmentTemplates.types'
+import type { EnchantableSlot } from '@/data/equipment/enchantments/enchantmentTemplates.types'
 
 // ---------------------------------------------------------------------------
 // Enhancement types & constants
@@ -117,13 +118,17 @@ const MagicItemsStep = () => {
     addArmorInstance,
   } = useCharacterBuilder()
 
-  const { catalog } = useCampaignRules()
+  const { catalog, ruleset } = useCampaignRules()
 
   const {
     step,
+    totalLevel,
     equipment: selectedEquipment,
     wealth,
   } = state
+
+  const magicItemBudget = ruleset.mechanics?.progression?.magicItemBudget
+  const budgetTier = getMagicItemBudget(magicItemBudget, totalLevel ?? 1)
 
   // =========================================================================
   // Catalog lookups
@@ -236,13 +241,22 @@ const MagicItemsStep = () => {
   }
 
   // =========================================================================
-  // Magic-items data — sourced from catalog, no edition gating
+  // Magic-items data — filtered by ruleset budget rarity ceiling
   // =========================================================================
 
-  const allMagicItems = useMemo(
-    () => Object.values(catalog.magicItemsById) as MagicItem[],
-    [catalog.magicItemsById],
-  )
+  const RARITY_ORDER: MagicItemRarity[] = [
+    'common', 'uncommon', 'rare', 'very-rare', 'legendary', 'artifact',
+  ]
+
+  const allMagicItems = useMemo(() => {
+    const items = Object.values(catalog.magicItemsById) as MagicItem[]
+    if (!budgetTier?.maxRarity) return items
+    const maxIdx = RARITY_ORDER.indexOf(budgetTier.maxRarity)
+    return items.filter(item => {
+      if (!item.rarity) return true
+      return RARITY_ORDER.indexOf(item.rarity) <= maxIdx
+    })
+  }, [catalog.magicItemsById, budgetTier])
 
   const selectedMagicItems = selectedEquipment?.magicItems ?? []
 
@@ -256,6 +270,15 @@ const MagicItemsStep = () => {
     return item?.consumable
   }).length
 
+  const maxPermanent = budgetTier?.permanentItems
+  const maxConsumable = budgetTier?.consumableItems
+  const maxAttunement = budgetTier?.maxAttunement
+
+  const selectedAttunedCount = selectedMagicItems.filter(id => {
+    const item = catalog.magicItemsById[id]
+    return item?.requiresAttunement
+  }).length
+
   const visibleItems = allMagicItems.filter(
     item => SLOT_TO_GROUP[item.slot] === activeGroup,
   )
@@ -267,11 +290,26 @@ const MagicItemsStep = () => {
   const magicItemOptions = visibleItems.map(item => {
     const rarityLabel = item.rarity ? ` [${item.rarity}]` : ''
     const costLabel = item.cost && item.cost !== '—' ? ` (${item.cost})` : ''
+    const isSelected = selectedMagicItems.includes(item.id)
+
+    let disabled = false
+    if (!isSelected) {
+      const isConsumable = !!item.consumable
+      if (isConsumable && maxConsumable != null && selectedConsumableCount >= maxConsumable) {
+        disabled = true
+      }
+      if (!isConsumable && maxPermanent != null && selectedPermanentCount >= maxPermanent) {
+        disabled = true
+      }
+      if (item.requiresAttunement && maxAttunement != null && selectedAttunedCount >= maxAttunement) {
+        disabled = true
+      }
+    }
 
     return {
       id: item.id,
       label: `${item.name}${rarityLabel}${costLabel}`,
-      disabled: false,
+      disabled,
     }
   })
 
@@ -443,11 +481,23 @@ const MagicItemsStep = () => {
           <Typography variant="h6" gutterBottom>
             Magic Items
           </Typography>
-          <small>
-            Permanent: {selectedPermanentCount}
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Permanent: {selectedPermanentCount}{maxPermanent != null ? ` / ${maxPermanent}` : ''}
             {' · '}
-            Consumable: {selectedConsumableCount}
-          </small>
+            Consumable: {selectedConsumableCount}{maxConsumable != null ? ` / ${maxConsumable}` : ''}
+            {maxAttunement != null && (
+              <>
+                {' · '}
+                Attuned: {selectedAttunedCount} / {maxAttunement}
+              </>
+            )}
+            {budgetTier?.maxRarity && (
+              <>
+                {' · '}
+                Max rarity: {budgetTier.maxRarity}
+              </>
+            )}
+          </Typography>
 
           <ButtonGroup
             options={visibleGroupOptions}

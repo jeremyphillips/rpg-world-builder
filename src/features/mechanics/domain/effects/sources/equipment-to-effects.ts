@@ -1,6 +1,6 @@
 import type { Effect } from '../effects.types'
 import type { Equipment, EquipmentLoadout, EquipmentItemInstance } from '@/shared/types/character.core'
-import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
+import { equipment } from '@/data/equipment/equipment'
 
 // ---------------------------------------------------------------------------
 // Resolved loadout (instance-aware)
@@ -103,7 +103,7 @@ export function resolveEquipmentLoadoutDetailed(
 }
 
 function findCoreArmor(armorId: string) {
-  return equipmentCore.armor.find((a) => a.id === armorId) ?? null
+  return equipment.armor.find((a) => a.id === armorId) ?? null
 }
 
 function buildArmorFormulaEffect(

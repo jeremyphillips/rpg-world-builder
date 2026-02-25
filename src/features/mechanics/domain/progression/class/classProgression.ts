@@ -1,14 +1,12 @@
 // Cross-edition class progression conversions.
 
-// import { classes } from '@/data'
-import { classesCore as classes } from '@/data/classes.core'
-import type { EditionId } from '@/data'
+import { classes } from '@/data/classes'
 import type {
   ClassProgression,
   AttackProgression,
   ClassFeature,
-} from '@/data/classes/types'
-import { getById } from '@/domain/lookups'
+} from '@/data/classes.types'
+import { getById } from '@/utils'
 
 // ---------------------------------------------------------------------------
 // Subclass feature extraction (for UI display)
@@ -34,8 +32,6 @@ export function getSubclassFeatures(
   const cls = getById(classes, classId);
   if (!cls) return [];
 
-  // flattened: no edition filtering
-  // definitions can be an object (your new shape) OR an array (older shape) — handle both.
   const def = Array.isArray(cls.definitions) ? cls.definitions[0] : cls.definitions;
   if (!def?.options) return [];
 
@@ -85,7 +81,7 @@ export function getClassProgression(
   if (!classId) return undefined
   const cls = getById(classes, classId)
   if (!cls?.progression) return undefined
-  return cls.progression //.find((p) => p.edition === edition)
+  return cls.progression
 }
 
 /** Get all progression entries for a given class */

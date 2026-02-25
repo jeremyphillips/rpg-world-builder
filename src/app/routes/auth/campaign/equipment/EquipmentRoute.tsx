@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import { Breadcrumbs } from '@/ui/elements'
 import { useBreadcrumbs } from '@/hooks'
-import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
-// import { getEquipmentCostByEdition } from '@/features/equipment/domain'
+import { equipment } from '@/data/equipment/equipment'
 import { EquipmentMediaTopCard } from '@/features/equipment/cards'
 import { ROUTES } from '@/app/routes'
 import { apiFetch } from '@/app/api'
@@ -13,18 +12,15 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 export default function EquipmentRoute() {
   const { 
     campaignId: activeCampaignId, 
-    // editionId: activeEditionId
   } = useActiveCampaign()
-  // const [edition, setEdition] = useState<string>('5e')
-  const weaponsFirst12 = equipmentCore.weapons.slice(0, 12)
-  const armorFirst12 = equipmentCore.armor.slice(0, 12)
-  const gearFirst12 = equipmentCore.gear.slice(0, 12)
+  const weaponsFirst12 = equipment.weapons.slice(0, 12)
+  const armorFirst12 = equipment.armor.slice(0, 12)
+  const gearFirst12 = equipment.gear.slice(0, 12)
   
 
   useEffect(() => {
     if (!activeCampaignId) return
     apiFetch<{ campaign?: { identity: { edition?: string } } }>(`/api/campaigns/${activeCampaignId}`)
-      //.then((data) => (data.campaign?.identity?.edition ? setEdition(activeEditionId) : undefined))
       .catch(() => {})
   }, [activeCampaignId])
 

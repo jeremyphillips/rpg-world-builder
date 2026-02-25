@@ -1,6 +1,6 @@
-import { classesCore } from '@/data'
-import type { SubclassOption } from '@/data/classes/types'
-import { getById } from '@/domain/lookups'
+import { classes } from '@/data'
+import type { SubclassOption } from '@/data/classes.types'
+import { getById } from '@/utils'
 
 export const getClassDefinitions = (
   classId?: string,
@@ -8,7 +8,7 @@ export const getClassDefinitions = (
 ): SubclassOption[] => {
   if (!classId) return []
 
-  const cls = getById(classesCore, classId)
+  const cls = getById(classes, classId)
   if (!cls) return []
 
   const definitions = cls.definitions
@@ -24,7 +24,7 @@ export const getClassDefinitions = (
 /** Resolve subclass display name by class id and definition id. */
 export function getSubclassNameById(classId?: string, defId?: string): string | null {
   if (!classId || !defId) return null
-  const cls = getById(classesCore, classId)
+  const cls = getById(classes, classId)
   if (!cls) return defId
 
   const opt = cls.definitions?.options?.find(o => o.id === defId)

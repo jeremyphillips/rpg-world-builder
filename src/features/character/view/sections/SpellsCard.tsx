@@ -1,5 +1,5 @@
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { SpellHorizontalCard } from '@/domain/spells/components'
+import { SpellHorizontalCard } from '@/features/spell/cards'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -24,7 +24,7 @@ export default function SpellsCard({ spells }: SpellsCardProps) {
         </Typography>
         <Stack spacing={1} sx={{ mt: 0.5 }}>
           {spells.map(spellId => {
-            const spell = catalog.spellsCoreById[spellId]
+            const spell = catalog.spellsById[spellId]
             if (!spell) return <Chip key={spellId} label={spellId} size="small" variant="outlined" />
             return <SpellHorizontalCard key={spellId} spell={spell} />
           })}

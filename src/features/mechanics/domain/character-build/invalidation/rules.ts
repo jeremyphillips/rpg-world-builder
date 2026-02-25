@@ -11,9 +11,9 @@ import type { InvalidationRule, InvalidationItem } from './types'
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
 
 import { evaluateClassEligibility } from '../rules'
-import { classesCore as classCatalog } from '@/data'
-import { spells as spellCatalog } from '@/data/classes/spells'
-import { getById } from '@/domain/lookups'
+import { classes as classCatalog } from '@/data'
+import { spells as spellCatalog } from '@/data'
+import { getById } from '@/utils'
 import { pruneSelectedSpells } from '../../spells/selection/prune-selected-spells'
 
 // ---------------------------------------------------------------------------

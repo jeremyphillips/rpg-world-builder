@@ -14,7 +14,7 @@ import {
 } from '@/features/mechanics/domain/proficiencies/proficiency-adapters'
 import type { Character } from '@/shared/types/character.core'
 
-import { calculateWealth } from '@/domain/wealth'
+import { calculateWealth } from '@/features/mechanics/domain/core/progression'
 
 const EquipmentStep = () => {
   const initializedRef = useRef(false)
@@ -99,8 +99,6 @@ const EquipmentStep = () => {
     // classDefinitionId: selectedClassDefinitionId,
     // level: selectedLevel
   } = activeClass ?? {}
-
-  // const equipEdition = resolveEquipmentEdition(edition)
 
   // Derive allowed equipment from the engine's collected effects.
   // Build a minimal Character shape from the builder state so the collector can read it.

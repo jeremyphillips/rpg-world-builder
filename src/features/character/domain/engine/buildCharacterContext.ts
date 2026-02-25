@@ -1,7 +1,7 @@
 import type { Character } from '@/shared/types'
 import type { AbilityScores } from '@/shared/types/character.core'
 import type { EvaluationContext, CreatureSnapshot } from '@/features/mechanics/domain/conditions/evaluation-context.types'
-import { getClassProgression } from '../progression/classProgression'
+import { getClassProgression } from '@/features/mechanics/domain/progression'
 import { resolveLoadout, resolveWieldedWeaponIds } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
 
 const ABILITY_KEYS = [

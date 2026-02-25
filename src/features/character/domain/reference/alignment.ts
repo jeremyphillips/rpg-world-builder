@@ -1,4 +1,4 @@
-import type { CharacterClass } from '@/data/classes/types'
+import type { CharacterClass } from '@/data/classes.types'
 import type { AlignmentOption as RulesetAlignmentOption } from '@/data/ruleSets'
 
 export type AlignmentOption = {

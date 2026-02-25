@@ -1,6 +1,6 @@
 import type { CharacterDoc, CharacterClassInfo } from '@/shared'
-import { classesCore as classesData } from '@/data'
-import { getById } from '@/domain/lookups'
+import { classes as classesData } from '@/data'
+import { getById } from '@/utils'
 import { getClassProgression, getSubclassFeatures } from '@/features/mechanics/domain/progression'
 
 import Box from '@mui/material/Box'
@@ -27,7 +27,7 @@ export default function ClassFeaturesCard({
   filledClasses,
   isMulticlass,
 }: ClassFeaturesCardProps) {
-  const hasFeatures = filledClasses.some(cls => getClassProgression(cls.classId, character.edition))
+  const hasFeatures = filledClasses.some(cls => getClassProgression(cls.classId))
   if (!hasFeatures) return null
 
   return (
@@ -38,11 +38,11 @@ export default function ClassFeaturesCard({
         </Typography>
 
         {filledClasses.map((cls, i) => {
-          const prog = getClassProgression(cls.classId, character.edition)
+          const prog = getClassProgression(cls.classId)
           if (!prog) return null
           const clsLevel = cls.level ?? character.totalLevel ?? 1
           const activeFeatures = (prog.features ?? []).filter(f => f.level <= clsLevel)
-          const subFeatures = getSubclassFeatures(cls.classId, cls.classDefinitionId, character.edition, clsLevel)
+          const subFeatures = getSubclassFeatures(cls.classId, cls.classDefinitionId, clsLevel)
 
           if (activeFeatures.length === 0 && subFeatures.length === 0) return null
 

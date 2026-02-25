@@ -1,5 +1,5 @@
-import type { EnchantmentTemplate } from '@/data/equipmentCore/enchantments/enchantmentTemplates.types'
-import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
+import type { EnchantmentTemplate } from '@/data/equipment/enchantments/enchantmentTemplates.types'
+import { equipment } from '@/data/equipment/equipment'
 
 /**
  * Look up an enchantment template by ID.
@@ -7,5 +7,5 @@ import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
 export function resolveEnchantmentTemplate(
   templateId: string,
 ): EnchantmentTemplate | undefined {
-  return equipmentCore.enchantments.enhancementTemplates.find(t => t.id === templateId)
+  return equipment.enchantments.enhancementTemplates.find(t => t.id === templateId)
 }

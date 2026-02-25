@@ -5,8 +5,8 @@
  * is handled in one place (resolveEquipmentLoadoutDetailed).
  */
 import type { Effect } from '../effects.types'
-import type { EnchantableSlot } from '@/data/equipmentCore/enchantments/enchantmentTemplates.types'
-import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
+import type { EnchantableSlot } from '@/data/equipment/enchantments/enchantmentTemplates.types'
+import { equipment } from '@/data/equipment/equipment'
 import { resolveEffectDescriptors } from '../descriptors/resolveEffectDescriptors'
 import type { ResolvedEquipmentLoadout, ResolvedSlot } from './equipment-to-effects'
 
@@ -44,7 +44,7 @@ export function getEnchantmentCandidateEffects(args: {
   resolved: ResolvedEquipmentLoadout
 }): Effect[] {
   const { resolved } = args
-  const templates = equipmentCore.enchantments.enhancementTemplates
+  const templates = equipment.enchantments.enhancementTemplates
   const effects: Effect[] = []
 
   const slotSourceLabel: Record<EnchantableSlot, string> = {

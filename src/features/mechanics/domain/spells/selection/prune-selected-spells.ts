@@ -4,7 +4,7 @@
  * Uses catalog data directly (no edition lookup).
  */
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
-import type { SpellData } from '@/data/spellsCore'
+import type { SpellData } from '@/data/spells'
 import type { CharacterClass } from '@/data/classes/types'
 import { getClassSpellLimitsAtLevel } from '../progression'
 import { systemCatalog } from '../../core/rules/systemCatalog'
@@ -28,7 +28,7 @@ export function pruneSelectedSpells(
   allSpells?: Record<string, SpellData>,
 ): SpellPruneResult {
   const resolvedClasses = classesById ?? systemCatalog.classesById
-  const resolvedSpells = allSpells ?? systemCatalog.spellsCoreById
+  const resolvedSpells = allSpells ?? systemCatalog.spellsById
   const selected = state.spells ?? []
   if (selected.length === 0) return { kept: [], removed: [] }
 

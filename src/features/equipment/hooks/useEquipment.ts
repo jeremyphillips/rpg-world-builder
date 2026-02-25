@@ -6,7 +6,6 @@ import type { CampaignFormData } from "@/features/campaign/components/CampaignFo
 
 export function useEquipment(filters?: {
   campaignId?: string;
-  edition?: string;
 }) {
   const [equipment, setEquipment] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,14 +14,13 @@ export function useEquipment(filters?: {
 
   useEffect(() => {
     fetchEquipment();
-  }, [filters?.campaignId, filters?.edition]);
+  }, [filters?.campaignId]);
   
 
   async function fetchEquipment() {
     const params = new URLSearchParams()
 
     if (filters?.campaignId) params.append("campaignId", filters.campaignId);
-    if (filters?.edition) params.append("edition", filters.edition)
   
     try {
       const data = await apiFetch<{ equipment: Campaign[] }>(`/api/equipment?${params.toString()}`);

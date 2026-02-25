@@ -1,7 +1,7 @@
 import type { Character } from '@/shared/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { EquipmentLoadout } from '@/shared/types/character.core'
-import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
+import { equipment } from '@/data/equipment/equipment'
 import { resolveStatDetailed, type BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
 import { buildCharacterContext } from './buildCharacterContext'
 import {
@@ -24,7 +24,7 @@ type InventoryItem = {
 function getOwnedArmors(character: Character): InventoryItem[] {
   const items: InventoryItem[] = []
   for (const id of character.equipment?.armor ?? []) {
-    const item = equipmentCore.armor.find((a) => a.id === id)
+    const item = equipment.armor.find((a) => a.id === id)
     if (!item) continue
     if (item.category === 'shields') continue
     items.push({ id, name: item.name })
@@ -35,7 +35,7 @@ function getOwnedArmors(character: Character): InventoryItem[] {
 function getOwnedShields(character: Character): InventoryItem[] {
   const items: InventoryItem[] = []
   for (const id of character.equipment?.armor ?? []) {
-    const item = equipmentCore.armor.find((a) => a.id === id)
+    const item = equipment.armor.find((a) => a.id === id)
     if (!item) continue
     if (item.category !== 'shields') continue
     items.push({ id, name: item.name })

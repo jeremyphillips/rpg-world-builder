@@ -1,7 +1,7 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { settings, editions } from '@/data'
 import { ButtonGroup } from '@/ui/elements'
-import { getById } from '@/domain/lookups'
+import { getById } from '@/utils'
 
 const SettingStep = () => {
   const { state, setSetting } = useCharacterBuilder()

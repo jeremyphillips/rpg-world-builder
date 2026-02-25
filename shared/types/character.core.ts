@@ -111,8 +111,6 @@ export type CharacterCore = {
   hitPoints?: HitPoints
   armorClass?: ArmorClass
   combat?: {
-    /** @deprecated Use loadout instead. Kept for backward compatibility. */
-    selectedArmorConfigId?: string | null
     loadout?: EquipmentLoadout
   }
 

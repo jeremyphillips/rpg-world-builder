@@ -1,4 +1,4 @@
-import type { MagicItem } from '@/data/equipmentCore/magicItemsCore'
+import type { MagicItem } from '@/data/equipment/magicItems'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'

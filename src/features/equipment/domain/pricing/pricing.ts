@@ -1,7 +1,7 @@
-import type { ArmorItem } from '@/data/equipmentCore/armorCore'
-import type { WeaponItem } from '@/data/equipmentCore/weaponsCore'
-import type { GearItem } from '@/data/equipmentCore/gearCore'
-import { parseCurrencyToGold } from '@/domain/wealth'
+import type { ArmorItem } from '@/data/equipment/armor'
+import type { WeaponItem } from '@/data/equipment/weapons'
+import type { GearItem } from '@/data/equipment/gear'
+import { parseCurrencyToGold } from '@/utils'
 
 type CatalogItem = ArmorItem | WeaponItem | GearItem
 

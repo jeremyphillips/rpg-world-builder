@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { CharacterClassInfo } from '@/shared'
-import { classesCore as classesData } from '@/data/classes.core'
+import { classes as classesData } from '@/data/classes'
 import { resolveImageUrl } from '@/utils/image'
 import { Breadcrumbs } from '@/ui/elements'
 import { useBreadcrumbs } from '@/hooks'

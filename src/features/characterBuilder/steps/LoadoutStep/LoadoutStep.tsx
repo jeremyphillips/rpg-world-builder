@@ -1,7 +1,7 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
-import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
-import type { ArmorItem } from '@/data/equipmentCore/armorCore'
-import type { WeaponItem } from '@/data/equipmentCore/weaponsCore'
+import { equipment } from '@/data/equipment/equipment'
+import type { ArmorItem } from '@/data/equipment/armor'
+import type { WeaponItem } from '@/data/equipment/weapons'
 import { resolveLoadout } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
 
 // ---------------------------------------------------------------------------
@@ -93,8 +93,8 @@ const LoadoutStep = () => {
 
   const loadout = resolveLoadout(state.combat)
 
-  const ownedWeapons = getOwnedItemsByIds(equipmentCore.weapons, selectedEquipment?.weapons ?? [])
-  const ownedArmor = getOwnedItemsByIds(equipmentCore.armor, selectedEquipment?.armor ?? [])
+  const ownedWeapons = getOwnedItemsByIds(equipment.weapons, selectedEquipment?.weapons ?? [])
+  const ownedArmor = getOwnedItemsByIds(equipment.armor, selectedEquipment?.armor ?? [])
   const { armorItems, shieldItems } = partitionArmor(ownedArmor)
 
   const weaponOpts = ownedWeapons.map(w => weaponToOption(w))

@@ -1,5 +1,5 @@
-import { classesCore as classes } from '@/data/classes.core'
-import { getById } from '@/domain/lookups'
+import { classes } from '@/data/classes'
+import { getById } from '@/utils'
 import { getSubclassNameById } from '@/features/character/domain/reference'
 
 export interface CharacterForLabel {

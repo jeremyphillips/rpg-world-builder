@@ -4,23 +4,19 @@
  * This is the "base library" that rulesets filter/override via ContentPolicy.
  * All entries are indexed by `id` for O(1) lookup.
  */
-// import { classes } from '@/data/classes'
-// import { races } from '@/data/races'
-import { equipmentCore } from '@/data/equipmentCore/equipmentCore'
-import { spells } from '@/data/classes/spells/spells'
-import { spellsCore } from '@/data/spellsCore'
-import type { Spell as SpellCore } from '@/data/spellsCore'
+import { equipment } from '@/data/equipment/equipment'
+import { spells } from '@/data/spells'
+import type { SpellData } from '@/data/spells'
 import { monsters } from '@/data/monsters'
-import { classesCore } from "@/data/classes.core"
-import { racesCore } from "@/data/races.core"
-import type { CharacterClass } from '@/data/classes/types'
+import { classes } from "@/data/classes"
+import { races } from "@/data/races"
+import type { CharacterClass } from '@/data/classes.types'
 import type { Race } from '@/data/types'
-import type { WeaponItem } from '@/data/equipment/weapons.types'
-import type { ArmorItem } from '@/data/equipment/armor.types'
-import type { GearItem } from '@/data/equipment/gear.types'
-import type { MagicItem } from '@/data/equipment/magicItems.types'
-import type { EnchantmentTemplate } from '@/data/equipmentCore/enchantments/enchantmentTemplates.types'
-import type { Spell } from '@/data/classes/spells/spells.types'
+import type { WeaponItem } from '@/data/equipment'
+import type { ArmorItem } from '@/data/equipment'
+import type { GearItem } from '@/data/equipment'
+import type { MagicItem } from '@/data/equipment'
+import type { EnchantmentTemplate } from '@/data/equipment'
 import type { Monster } from '@/data/monsters/monsters.types'
 
 // ---------------------------------------------------------------------------
@@ -51,9 +47,8 @@ export type CampaignCatalog = {
   gearById:                 Record<string, GearItem>
   magicItemsById:           Record<string, MagicItem>
   enhancementTemplatesById: Record<string, EnchantmentTemplate>
-  /** @deprecated Use spellsCoreById — edition-based spell data */
-  spellsById:               Record<string, Spell>
-  spellsCoreById:           Record<string, SpellCore>
+  
+  spellsById:               Record<string, SpellData>
   monstersById:             Record<string, Monster>
 }
 
@@ -63,24 +58,24 @@ export type CampaignCatalog = {
 
 export const systemCatalog: CampaignCatalog = {
   // classesById:              keyBy(classes),
-  classesById:              keyBy(classesCore),
-  classIds:                 Object.keys(classesCore),
+  classesById:              keyBy(classes),
+  classIds:                 Object.keys(classes),
   //racesById:                keyBy(races),
-  racesById:                keyBy(racesCore),
-  raceIds:                  Object.keys(racesCore),
+  racesById:                keyBy(races),
+  raceIds:                  Object.keys(races),
 
   // weaponsById:              keyBy(equipment.weapons),
-  weaponsById:              keyBy(equipmentCore.weapons),
+  weaponsById:              keyBy(equipment.weapons),
   // armorById:                keyBy(equipment.armor),
-  armorById:                keyBy(equipmentCore.armor),
+  armorById:                keyBy(equipment.armor),
 
   // gearById:                 keyBy(equipment.gear),
-  gearById:                 keyBy(equipmentCore.gear),
+  gearById:                 keyBy(equipment.gear),
   // magicItemsById:           keyBy(equipment.magicItems),
-  magicItemsById:           keyBy(equipmentCore.magicItems),
+  magicItemsById:           keyBy(equipment.magicItems),
 
-  enhancementTemplatesById: keyBy(equipmentCore.enchantments.enhancementTemplates),
+  enhancementTemplatesById: keyBy(equipment.enchantments.enhancementTemplates),
   spellsById:               keyBy(spells),
-  spellsCoreById:           keyBy(spellsCore),
+  spellsById:           keyBy(spells),
   monstersById:             keyBy(monsters),
 }

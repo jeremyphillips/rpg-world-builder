@@ -1,6 +1,6 @@
 import { Chip } from '@mui/material'
 import { StatusBadge } from '@/ui/badges/StatusBadge/StatusBadge'
-import type { StatusType } from '@/domain/shared'
+import type { StatusType } from '@/shared/types'
 
 export interface CardBadgeProps {
   type: 'status' | 'tag' | 'role'

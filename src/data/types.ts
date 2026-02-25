@@ -24,8 +24,6 @@ export interface ClassOverrideConfig extends OverrideConfig {
   subclassOverrides?: Record<string, OverrideConfig>
 }
 
-export type LocationType = 'region' | 'city' | 'town' | 'dungeon' | 'landmark' | 'other'
-
 export interface World {
   id: string
   name: string
@@ -33,22 +31,11 @@ export interface World {
   description?: string
 }
 
-export interface Visibility {
-  allCharacters: boolean
-  characterIds: string[]
-}
-
-export interface Location {
-  id: string
-  settingId: string
-  name: string
-  type: LocationType
-  description?: string
-  imageUrl?: string
-  parentLocationId?: string
-  visibility: Visibility
-  isCustom?: boolean
-}
+export interface Visibility { 
+  scope: 'public' | 'dm' | 'restricted'; 
+  allowCharacterIds?: string[]; 
+  allowFactionIds?: string[]
+};
 
 export interface MapMarker {
   locationId: string

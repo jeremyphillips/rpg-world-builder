@@ -94,7 +94,7 @@ export function buildCampaignCatalog(
     magicItemsById:           applyPolicy(system.magicItemsById,           c.equipment),
     enhancementTemplatesById: applyPolicy(system.enhancementTemplatesById, c.equipment),
     spellsById:               applyPolicy(system.spellsById,               c.spells),
-    spellsCoreById:           applyPolicy(system.spellsCoreById,           c.spells),
+    spellsById:           applyPolicy(system.spellsById,           c.spells),
     monstersById:             applyPolicy(system.monstersById,             c.monsters),
   }
 }

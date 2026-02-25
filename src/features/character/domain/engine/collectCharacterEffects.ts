@@ -1,7 +1,7 @@
 import type { Character } from '@/shared/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
-import { classesCore as classes } from '@/data/classes.core'
-import type { ClassDefinition } from '@/data/classes/types'
+import { classes } from '@/data/classes'
+import type { ClassDefinition } from '@/data/classes.types'
 
 type FeatureRecord = Record<string, unknown>
 
@@ -47,7 +47,7 @@ function extractEffects(node: FeatureRecord, clsLevel: number, out: Effect[]): v
  * through the engine alongside subclass grants.
  *
  * Reads the flat `proficiencies.weapons` / `proficiencies.armor` objects
- * from classesCore (ClassProficiencyWeapon / ClassProficiencyArmor).
+ * from classes (ClassProficiencyWeapon / ClassProficiencyArmor).
  */
 function collectBaseProficiencyEffects(character: Character): Effect[] {
   const effects: Effect[] = []
