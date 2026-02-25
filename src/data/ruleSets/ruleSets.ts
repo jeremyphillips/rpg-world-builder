@@ -3,7 +3,7 @@ import { FULL_CASTER_SLOTS_5E, HALF_CASTER_SLOTS_5E } from './spellSlotTables'
 import type { WealthTier } from '@/data/classes.types'
 import type { MagicItemRarity } from '@/data/equipment/magicItems'
 import type { AbilityId } from '@/shared/types/character.core'
-import { CAMPAIGN_TAG_OPTIONS } from './campaignTags'
+// import { CAMPAIGN_TAG_OPTIONS } from './campaignTags'
 
 // ---------------------------------------------------------------------------
 // Ruleset types
@@ -18,13 +18,71 @@ export type DerivedCombat = {
   armorClass: number
 }
 
-export type MulticlassingRules = {
+// TODO: dervive from core class data and user-defined classes
+export type ClassId = string;
+// TODO: dervive from core race data and user-defined classes
+export type RaceId = string;
+
+export type ResolveMode = 'use_default' | 'override' | 'merge';
+
+export type RuleOverrideMap<O, ClassId extends string = string, RaceId extends string = string> = {
+  byClass?: Record<ClassId, O>;
+  byRace?: Record<RaceId, O>;
+};
+
+export type RuleConfig<T, O = Partial<T>> = {
+  mode?: ResolveMode;
+  default: T;
+  overrides?: RuleOverrideMap<O>;
+  mergePolicy?: MergePolicy;
+};
+
+export type ArrayMergeMode = 'replace' | 'concat' | 'union';
+
+export type MergePolicy = {
+  arrays?: ArrayMergeMode;
+};
+
+
+export type AbilityRequirement = {
+  ability: AbilityId;
+  min: number;
+};
+
+/**
+ * One AND group: all requirements must be met
+ */
+export type AbilityRequirementGroup = {
+  all: AbilityRequirement[];
+};
+
+/**
+ * OR across groups: any group can satisfy the requirement
+ */
+export type ClassEntryRequirement = {
+  // if anyOf array is empty or undefined, the requirement is not met
+  anyOf: AbilityRequirementGroup[];
+};
+
+
+export type MulticlassingRuleSet = {
   enabled: boolean
   maxClasses?: number
   minLevelToMulticlass?: number
-  abilityScoreRequirements?: Record<string, Record<string, number>>; // by classId
+  /**
+   * Requirements to take the first level in the *target* class.
+   * Keyed by target classId.
+   */
+  defaultEntryRequirement?: ClassEntryRequirement; // applies to any target class unless overridden
+  entryRequirementsByTargetClass?: Record<ClassId, ClassEntryRequirement>; // overrides per target
+
   xpMode?: 'shared' | 'per_class'
 }
+
+export type MulticlassingRules = RuleConfig<
+  MulticlassingRuleSet,
+  Partial<MulticlassingRuleSet> | ClassEntryRequirement
+>;
 
 export type AlignmentOption = {
   id: string;        // stored on character
@@ -218,6 +276,21 @@ export const startingWealthTiersDefault: WealthTier[] = [
   { levelRange: [11, 20], baseGold: 5000, maxItemValue: 2000 }
 ]
 
+// TODO: keep CAMPAIGN_TAG_OPTIONS somewhere else (a config fetch / separate field / UI state).
+export type CampaignTagsVM = CampaignTagsState & {
+  options: CampaignTagsOptions;
+};
+
+export const toCampaignTagsVM = (
+  state: CampaignTagsState | undefined,
+  options: CampaignTagsOptions
+): CampaignTagsVM => ({
+  selected: state?.selected ?? [],
+  allowCustom: state?.allowCustom ?? true,
+  custom: state?.custom ?? [],
+  options,
+})
+
 export const ruleSets: Ruleset[] = [
   {
     _id: 'testruleset01',
@@ -228,8 +301,9 @@ export const ruleSets: Ruleset[] = [
       version: 1,
       campaignTags: {
         selected: [],
-        options: CAMPAIGN_TAG_OPTIONS,
-        allowCustom: true
+        // options: CAMPAIGN_TAG_OPTIONS,
+        allowCustom: true,
+        custom: []
       }
     },
     content: {
@@ -243,7 +317,39 @@ export const ruleSets: Ruleset[] = [
     mechanics: {
       progression: {
         multiclassing: {
-          enabled: true
+          mode: 'use_default',
+          default: {
+            enabled: true,
+            minLevelToMulticlass: 2,
+            xpMode: 'shared',
+          },
+          overrides: {
+            byClass: {
+              wizard: {
+                anyOf: [
+                  {
+                    all: [
+                      { ability: 'intelligence', min: 16 },
+                    ]
+                  }
+                ]
+              }
+            },
+            byRace: {},
+          },
+          // // Initial implentation: one rule for all classes and races
+          // // TODO: support per-class/race rules
+          // enabled: true,
+          // maxClasses: undefined,
+          // // Initial implentation: one rule for all classes and races
+          // // TODO: support per-class/race rules
+          // minLevelToMulticlass: 2,
+          // // Initial implentation: only target class's progression.primaryAbilities
+          // // do not hardcode stats here
+          // entryRequirementsByTargetClass: undefined,
+          // // Initial implentation: one rule for all classes and races
+          // // TODO: support per-class/race rules
+          // xpMode: 'shared'
         },
         starting: {
           wealth: {
@@ -257,6 +363,7 @@ export const ruleSets: Ruleset[] = [
           slotTables: {
             fullCaster: FULL_CASTER_SLOTS_5E,
             halfCaster: HALF_CASTER_SLOTS_5E,
+            // TODO: support third casters
             // thirdCaster: THIRD_CASTER_SLOTS_5E,
           }
         },

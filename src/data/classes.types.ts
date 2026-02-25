@@ -24,22 +24,26 @@ export interface EquipmentRequirement {
   notes?: Note[]
 }
 
+export type AbilityRequirement = {
+  ability: AbilityId;
+  min: number;
+};
+
+export type AbilityRequirementGroup = {
+  all: AbilityRequirement[];
+};
+
+export type RequirementExpr = {
+  anyOf: AbilityRequirementGroup[];
+  note?: string;
+}
+
 export interface ClassRequirement {
   allowedRaces: 'all' | string[]
   allowedAlignments: 'any' | AlignmentId[]
   levelCaps?: Record<string, number | 'unlimited'>
   minStats?: AbilityScores
-  multiclassing?: {
-    logic: LogicalOperator
-    note: string
-    options: AbilityScores[]
-  }
-  // equipment: {
-  //   armor: EquipmentRequirement
-  //   weapons: EquipmentRequirement
-  //   tools?: EquipmentRequirement
-  //   notes?: Note[]
-  // }
+  multiclassing?: RequirementExpr
   startingWealth?: StartingWealth
   generationNotes?: Note[]
 }

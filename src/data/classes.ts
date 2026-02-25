@@ -80,13 +80,13 @@ export const classes: readonly CharacterClass[] = [
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
       features: [
         { level: 1, name: 'Fighting Style' },
-        { level: 1, name: 'Second Wind' },
-        { level: 2, name: 'Action Surge' },
-        { level: 3, name: 'Martial Archetype' },
-        { level: 5, name: 'Extra Attack' },
-        { level: 9, name: 'Indomitable' },
-        { level: 11, name: 'Extra Attack (2)' },
-        { level: 20, name: 'Extra Attack (3)' },
+        { id: 'second-wind', level: 1, name: 'Second Wind' },
+        { id: 'action-surge', level: 2, name: 'Action Surge' },
+        { id: 'martial-archetype', level: 3, name: 'Martial Archetype' },
+        { id: 'extra-attack', level: 5, name: 'Extra Attack' },
+        { id: 'indomitable', level: 9, name: 'Indomitable' },
+        { id: 'extra-attack-2', level: 11, name: 'Extra Attack (2)' },
+        { id: 'extra-attack-3', level: 20, name: 'Extra Attack (3)' },
       ],
     },
     proficiencies: {
@@ -121,6 +121,17 @@ export const classes: readonly CharacterClass[] = [
     requirements: {
       allowedRaces: ['human'],
       allowedAlignments: 'any',
+      multiclassing: {
+        note: 'Requires Strength or Dexterity of 13+',
+        anyOf: [
+          {
+            all: [{ ability: 'strength', min: 13 }],
+          },
+          {
+            all: [{ ability: 'dexterity', min: 13 }],
+          },
+        ],
+      },
     } 
   },
   { 
@@ -165,12 +176,12 @@ export const classes: readonly CharacterClass[] = [
       },
       asiLevels: [4, 8, 12, 16, 19],
       features: [
-        { level: 1, name: 'Spellcasting' },
-        { level: 1, name: 'Divine Domain' },
-        { level: 2, name: 'Channel Divinity' },
-        { level: 5, name: 'Destroy Undead' },
-        { level: 10, name: 'Divine Intervention' },
-        { level: 20, name: 'Divine Intervention Improvement' },
+        { id: 'spellcasting', level: 1, name: 'Spellcasting' },
+        { id: 'divine-domain', level: 1, name: 'Divine Domain' },
+        { id: 'channel-divinity', level: 2, name: 'Channel Divinity' },
+        { id: 'destroy-undead', level: 5, name: 'Destroy Undead' },
+        { id: 'divine-intervention', level: 10, name: 'Divine Intervention' },
+        { id: 'divine-intervention-improvement', level: 20, name: 'Divine Intervention Improvement' },
       ],
     },
     proficiencies: {
@@ -925,11 +936,11 @@ export const classes: readonly CharacterClass[] = [
       },
       asiLevels: [4, 8, 12, 16, 19],
       features: [
-        { level: 1, name: 'Spellcasting' },
-        { level: 1, name: 'Arcane Recovery' },
-        { level: 2, name: 'Arcane Tradition' },
-        { level: 18, name: 'Spell Mastery' },
-        { level: 20, name: 'Signature Spells' },
+        { id: 'spellcasting', level: 1, name: 'Spellcasting' },
+        { id: 'arcane-recovery', level: 1, name: 'Arcane Recovery' },
+        { id: 'arcane-tradition', level: 2, name: 'Arcane Tradition' },
+        { id: 'spell-mastery', level: 18, name: 'Spell Mastery' },
+        { id: 'signature-spells', level: 20, name: 'Signature Spells' },
       ],
     },
     proficiencies: {
@@ -958,6 +969,12 @@ export const classes: readonly CharacterClass[] = [
     requirements: {
       allowedRaces: 'all',
       allowedAlignments: 'any',
+      multiclassing: {
+        note: 'Requires 13 Intelligence',
+        anyOf: [
+          { all: [{ ability: 'intelligence', min: 13 }] },
+        ],
+      }
     } 
   }
 ] satisfies CharacterClass[]
