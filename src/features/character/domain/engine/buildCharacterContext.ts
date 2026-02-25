@@ -1,5 +1,5 @@
 import type { Character } from '@/shared/types'
-import type { AbilityScores } from '@/shared/types/character.core'
+import type { AbilityScores, EquipmentLoadout } from '@/shared/types/character.core'
 import type { EvaluationContext, CreatureSnapshot } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import { getClassProgression } from '@/features/mechanics/domain/progression'
 import { resolveLoadout, resolveWieldedWeaponIds } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
@@ -107,4 +107,25 @@ export function buildCharacterContext(character: Character): EvaluationContext {
   }
 
   return { self }
+}
+
+/**
+ * Return a copy of the context with equipment state reflecting the given loadout.
+ * Used by the loadout picker to evaluate conditions per-option.
+ */
+export function withLoadout(
+  context: EvaluationContext,
+  loadout: EquipmentLoadout,
+): EvaluationContext {
+  return {
+    ...context,
+    self: {
+      ...context.self,
+      equipment: {
+        ...context.self.equipment,
+        armorEquipped: loadout.armorId ?? null,
+        shieldEquipped: loadout.shieldId != null,
+      },
+    },
+  }
 }

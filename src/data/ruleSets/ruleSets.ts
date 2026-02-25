@@ -1,7 +1,9 @@
 import { standardAlignments } from './alignments'
 import { FULL_CASTER_SLOTS_5E, HALF_CASTER_SLOTS_5E } from './spellSlotTables'
-import type { WealthTier } from './classes.types'
+import type { WealthTier } from '@/data/classes.types'
 import type { MagicItemRarity } from '@/data/equipment/magicItems'
+import type { AbilityId } from '@/shared/types/character.core'
+import { CAMPAIGN_TAG_OPTIONS } from './campaignTags'
 
 // ---------------------------------------------------------------------------
 // Ruleset types
@@ -63,12 +65,37 @@ export type StartingWealthRules = {
   currency?: { base: 'gp' | 'sp' | 'cp' };
 }
 
+export type LevelingRules = {
+  levelCap: number
+  mode: 'xp' | 'milestone'
+  xpTable?: Array<{ level: number; xpRequired: number }>
+}
+
+export type ProficiencyRules = {
+  bonusByLevel: number[] // index 1..20
+}
+
+export type AbilityRules = {
+  ids: AbilityId[]
+  mod: { kind: '5e_default' } // or formula later
+}
+
+export type RestRules = {
+  shortRestMinutes: number
+  longRestMinutes: number
+  hitDiceRecoveryOnLongRest: { kind: 'half_total' | 'all' | 'none' }
+}
+
+
 export type MechanicsRules = {
   progression: Progression
   combat: DerivedCombat
   character: {
     alignment: AlignmentRules
+    abilities?: AbilityRules
+    proficiency?: ProficiencyRules
   }
+  resting?: RestRules
 }
 
 export type SpellSlotTable = readonly number[][]
@@ -107,8 +134,17 @@ export type Progression = {
   starting: {
     wealth: StartingWealthRules
   },
+  leveling?: LevelingRules
   spellcasting: SpellcastingProgression
   magicItemBudget: MagicItemBudget
+  // stores class-specific overrides to the default ruleset
+  overrides?: {
+    byClassId?: Record<string, {
+      levelCap?: number
+      xpTable?: Array<{ level: number; xpRequired: number }>
+      startingWealthFormula?: string
+    }>
+  }
 }
 
 export type Patch = unknown
@@ -131,6 +167,26 @@ export type RulesetContent = {
   equipment: ContentPolicy
   spells: ContentPolicy
   monsters: ContentPolicy
+  locations: ContentPolicy
+}
+
+export type CampaignTagOption = {
+  id: string
+  name: string
+  description?: string
+}
+
+export type CampaignTagCategory = {
+  id: string
+  name: string
+  options: CampaignTagOption[]
+}
+
+export type CampaignTags = {
+  selected: string[]
+  allowCustom?: boolean
+  custom?: string[]
+  options: CampaignTagCategory[]
 }
 
 export type Ruleset = {
@@ -140,6 +196,8 @@ export type Ruleset = {
     name: string
     basedOn?: string
     version: number
+    /** Campaign tone + content descriptors chosen by the campaign owner */
+    campaignTags?: CampaignTags
   }
   content: RulesetContent
   mechanics: MechanicsRules
@@ -159,13 +217,23 @@ export const ruleSets: Ruleset[] = [
   {
     _id: 'testruleset01',
     campaignId: '698a7c82c35d1758cfa4f4c3',
-    meta: { name: 'Lankhmar 5e Ruleset', basedOn: '5e', version: 1 },
+    meta: { 
+      name: 'Lankhmar 5e Ruleset', 
+      basedOn: '5e', 
+      version: 1,
+      campaignTags: {
+        selected: [],
+        options: CAMPAIGN_TAG_OPTIONS,
+        allowCustom: true
+      }
+    },
     content: {
       classes:    { allowAll: true, deny: ['warlock'] },
       races:      { allowAll: true },
       equipment:  { allowAll: true },
       spells:     { allowAll: true },
       monsters:   { allowAll: true },
+      locations:   { allowAll: true },
     },
     mechanics: {
       progression: {

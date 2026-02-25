@@ -130,11 +130,18 @@ export function collectClassEffects(
     const classDef = classes.find(c => c.id === cls.classId)
     if (!classDef) continue
 
-    const defs = normalizeDefinitions(classDef.definitions)
+    const clsLevel = (cls.level ?? character.totalLevel ?? 1) || 1
 
-    // pick a definitions object:
-    // - if there are multiple, prefer one matching the chosen subclass/definition id (if you store it at defs-level)
-    // - otherwise just take the first
+    // Base class features (e.g. Unarmored Defense, Extra Attack)
+    const progFeatures = (classDef as any).progression?.features as FeatureRecord[] | undefined
+    if (progFeatures) {
+      for (const feat of progFeatures) {
+        extractEffects(feat, clsLevel, effects)
+      }
+    }
+
+    // Subclass / definition features
+    const defs = normalizeDefinitions(classDef.definitions)
     const selectedId = cls.classDefinitionId ?? null
     const defToUse =
       defs.find(d => d?.id && d.id === selectedId) ??
@@ -146,8 +153,6 @@ export function collectClassEffects(
     const chosen = resolveSelectedOption(options, selectedId)
     const features = chosen ? optionFeatures(chosen) : undefined
     if (!features?.length) continue
-
-    const clsLevel = (cls.level ?? character.totalLevel ?? 1) || 1
 
     for (const feat of features) {
       extractEffects(feat, clsLevel, effects)

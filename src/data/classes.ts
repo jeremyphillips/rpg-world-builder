@@ -659,12 +659,12 @@ export const classes: readonly CharacterClass[] = [
       },
       asiLevels: [4, 8, 12, 16, 19],
       features: [
-        { level: 1, name: 'Otherworldly Patron' },
-        { level: 1, name: 'Pact Magic' },
-        { level: 2, name: 'Eldritch Invocations' },
-        { level: 3, name: 'Pact Boon' },
-        { level: 11, name: 'Mystic Arcanum' },
-        { level: 20, name: 'Eldritch Master' },
+        { id: 'otherworldly-patron', level: 1, name: 'Otherworldly Patron' },
+        { id: 'pact-magic', level: 1, name: 'Pact Magic' },
+        { id: 'eldritch-invocations', level: 2, name: 'Eldritch Invocations' },
+        { id: 'pact-boon', level: 3, name: 'Pact Boon' },
+        { id: 'mystic-arcanum', level: 11, name: 'Mystic Arcanum' },
+        { id: 'eldritch-master', level: 20, name: 'Eldritch Master' },
       ],  
     },
     proficiencies: {
@@ -753,11 +753,11 @@ export const classes: readonly CharacterClass[] = [
       },
       asiLevels: [4, 8, 12, 16, 19],
       features: [
-        { level: 1, name: 'Spellcasting' },
-        { level: 1, name: 'Sorcerous Origin' },
-        { level: 2, name: 'Font of Magic' },
-        { level: 3, name: 'Metamagic' },
-        { level: 20, name: 'Sorcerous Restoration' },
+        { id: 'spellcasting', level: 1, name: 'Spellcasting' },
+        { id: 'sorcerous-origin', level: 1, name: 'Sorcerous Origin' },
+        { id: 'font-of-magic', level: 2, name: 'Font of Magic' },
+        { id: 'metamagic', level: 3, name: 'Metamagic' },
+        { id: 'sorcerous-restoration', level: 20, name: 'Sorcerous Restoration' },
       ],
     },
     proficiencies: {
@@ -818,6 +818,43 @@ export const classes: readonly CharacterClass[] = [
       spellcasting: 'none',
       extraAttackLevel: 3,
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
+      features: [
+        {
+          id: 'unarmored-defense',
+          name: 'Unarmored Defense',
+          level: 1,
+          effects: [
+            {
+              kind: 'formula',
+              target: 'armor_class',
+              formula: {
+                base: 10,
+                abilities: ['dexterity', 'constitution'],
+              },
+              source: 'barbarian.unarmored_defense',
+              condition: {
+                kind: 'state',
+                target: 'self',
+                property: 'equipment.armorEquipped',
+                equals: null,
+              }
+            },
+          ],
+        },
+        { id: 'rage', level: 1, name: 'Rage' },
+        { id: 'unarmored-defense', level: 1, name: 'Unarmored Defense' },
+        { id: 'reckless-attack', level: 2, name: 'Reckless Attack' },
+        { id: 'danger-sense', level: 2, name: 'Danger Sense' },
+        { id: 'primal-path', level: 3, name: 'Primal Path' },
+        { id: 'extra-attack', level: 5, name: 'Extra Attack' },
+        { id: 'fast-movement', level: 5, name: 'Fast Movement' },
+        { id: 'feral-instinct', level: 7, name: 'Feral Instinct' },
+        { id: 'brutal-critical', level: 9, name: 'Brutal Critical' },
+        { id: 'relentless-rage', level: 11, name: 'Relentless Rage' },
+        { id: 'persistent-rage', level: 15, name: 'Persistent Rage' },
+        { id: 'indomitable-might', level: 18, name: 'Indomitable Might' },
+        { id: 'primal-champion', level: 20, name: 'Primal Champion' },
+      ]
     },
     proficiencies: {
       skills: {
@@ -845,7 +882,7 @@ export const classes: readonly CharacterClass[] = [
     requirements: {
       allowedRaces: 'all',
       allowedAlignments: 'any',
-    } 
+    }
   },
   {
     id: 'wizard',
@@ -923,4 +960,4 @@ export const classes: readonly CharacterClass[] = [
       allowedAlignments: 'any',
     } 
   }
-]
+] satisfies CharacterClass[]

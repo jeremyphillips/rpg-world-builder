@@ -68,7 +68,7 @@ export function evaluateClassEligibility(
   if (!cls || !cls.requirements) return { allowed: true, reasons: [] }
 
   const req = cls.requirements
-  console.log('REQ', req)
+
   if (!req) return { allowed: true, reasons: [] }
 
   const reasons: ClassEligibilityReason[] = []

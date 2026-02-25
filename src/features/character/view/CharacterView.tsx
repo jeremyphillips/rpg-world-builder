@@ -102,6 +102,8 @@ export default function CharacterView({
   const { ruleset, catalog } = useCampaignRules()
   const xpTable = ruleset.mechanics?.progression?.experience
 
+console.log('characterView', character)
+  
   // ── UI toggle state ────────────────────────────────────────────────
   const [awardXpOpen, setAwardXpOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)

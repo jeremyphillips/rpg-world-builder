@@ -1,7 +1,5 @@
 // shared/types/character.core.ts
 
-import type { EditionId, SettingId } from "@/data"
-
 // 2e specific
 // export type AbilityScores2e = AbilityScores & {
 //   strengthPercentile?: number
@@ -15,14 +13,15 @@ import type { EditionId, SettingId } from "@/data"
 //   spell?: number
 // }
 
-export type AbilityScores = {
-  strength?: number | null
-  dexterity?: number | null
-  constitution?: number | null
-  intelligence?: number | null
-  wisdom?: number | null
-  charisma?: number | null
-}
+export type AbilityId =
+  | 'strength'
+  | 'dexterity'
+  | 'constitution'
+  | 'intelligence'
+  | 'wisdom'
+  | 'charisma'
+
+export type AbilityScores = Partial<Record<AbilityId, number | null>>
 
 export type Wealth = {
   gp?: number | null

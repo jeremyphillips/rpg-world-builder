@@ -48,8 +48,6 @@ export async function createCharacter(userId: string, data: CharacterDoc) {
     classes: data.classes ?? [],
     totalLevel: data.totalLevel ?? 1,
     alignment: data.alignment ?? '',
-    edition: data.edition ?? '',
-    setting: data.setting ?? '',
     xp: data.xp ?? 0,
     equipment: data.equipment ?? { armor: [], weapons: [], gear: [], weight: 0 },
     wealth: data.wealth ?? { gp: 0, sp: 0, cp: 0 },

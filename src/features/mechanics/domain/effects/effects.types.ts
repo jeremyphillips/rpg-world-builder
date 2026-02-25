@@ -2,10 +2,11 @@ import type { AbilityScores } from '@/shared/types/character.core'
 import type { Condition } from '../conditions/condition.types'
 import type { TriggerType } from '../triggers/trigger.types'
 import type { StatTarget } from '../resolution/stat-resolver'
+import type { FormulaEffect } from '../resolution/formula.engine'
+
+export type { FormulaDefinition, FormulaEffect } from '../resolution/formula.engine'
 
 export type Duration = '1 minute' | '1 hour' | '1 day' | '1 week' | '1 month' | '1 year' | 'instant'
-
-export type FormulaDefinition = {}
 
 export type ScalingRule = {}
 
@@ -22,14 +23,6 @@ export type ModifierEffect = {
   source?: string
   condition?: Condition
   duration?: Duration
-}
-
-export type FormulaEffect = {
-  kind: 'formula'
-  target: StatTarget
-  formula: FormulaDefinition
-  source?: string
-  condition?: Condition
 }
 
 export type ProficiencyGrantValue = {

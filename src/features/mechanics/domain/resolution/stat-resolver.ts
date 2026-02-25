@@ -1,22 +1,19 @@
 import type { EvaluationContext } from "../conditions/evaluation-context.types"
 import type { Effect, ModifierEffect } from "../effects/effects.types"
+import { evaluateCondition } from "../effects/effect-engine"
 import { resolveFormulaValue } from "./formula.engine"
 import type { FormulaEffect, FormulaDefinition } from "./formula.engine"
 import { getBaseStat } from "../core/base-stat-resolver"
 import { getAbilityModifier } from "../core/ability.utils"
 import { getProficiencyBonus } from "../core/progression/proficiency"
+import type { AbilityId } from "@/shared/types/character.core"
 
 // ---------------------------------------------------------------------------
 // Stat target
 // ---------------------------------------------------------------------------
 
 export type StatTarget =
-  | 'strength'
-  | 'dexterity'
-  | 'constitution'
-  | 'intelligence'
-  | 'wisdom'
-  | 'charisma'
+  | AbilityId
   | 'armor_class'
   | 'attack_roll'
   | 'damage'
@@ -215,11 +212,17 @@ export function resolveStatDetailed(
 ): StatResult {
   const base = getBaseStat(target, context)
 
-  const formulaEffects = effects.filter((e) =>
+  const applicable = effects.filter(e => {
+    const cond = 'condition' in e ? (e as { condition?: unknown }).condition : undefined
+    if (!cond) return true
+    return evaluateCondition(cond as import('../conditions/condition.types').Condition, context)
+  })
+
+  const formulaEffects = applicable.filter((e) =>
     isFormulaEffectForTarget(e, target)
   ) as FormulaEffect[]
 
-  const modifierEffects = effects.filter((e) =>
+  const modifierEffects = applicable.filter((e) =>
     isModifierEffectForTarget(e, target)
   ) as ModifierEffect[]
 

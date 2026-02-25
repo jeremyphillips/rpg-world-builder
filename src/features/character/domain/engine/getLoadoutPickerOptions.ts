@@ -3,7 +3,7 @@ import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { EquipmentLoadout } from '@/shared/types/character.core'
 import { equipment } from '@/data/equipment/equipment'
 import { resolveStatDetailed, type BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
-import { buildCharacterContext } from './buildCharacterContext'
+import { buildCharacterContext, withLoadout } from './buildCharacterContext'
 import {
   getEquipmentEffects,
   selectActiveEquipmentEffects,
@@ -72,9 +72,10 @@ export function getLoadoutPickerOptions(
         shieldId: shield?.id,
       }
 
+      const optionContext = withLoadout(context, loadout)
       const activeEffects = selectActiveEquipmentEffects(candidateEffects, loadout)
       const allEffects = [...intrinsicEffects, ...activeEffects]
-      const result = resolveStatDetailed('armor_class', context, allEffects)
+      const result = resolveStatDetailed('armor_class', optionContext, allEffects)
 
       const label = [armor?.name ?? 'Unarmored', shield?.name].filter(Boolean).join(' + ')
 

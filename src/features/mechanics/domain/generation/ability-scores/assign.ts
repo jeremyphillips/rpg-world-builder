@@ -1,8 +1,8 @@
-import type { AbilityScores } from '@/shared/types/character.core'
+import type { AbilityScores, AbilityId } from '@/shared/types/character.core'
 import type { AbilityScoreMethod } from '@/data/types'
 import { generateScoreArray, type Rng } from './methods'
 
-const ABILITY_KEYS: (keyof AbilityScores)[] = [
+const ABILITY_KEYS: AbilityId[] = [
   'strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma',
 ]
 

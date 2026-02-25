@@ -26,10 +26,18 @@ import Tooltip from '@mui/material/Tooltip'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { StatShield } from '@/ui/stats'
 import Divider from '@mui/material/Divider'
+import type { BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function formatAbilityContributions(breakdown: BreakdownToken[]): string {
+  return breakdown
+    .filter(t => t.type === 'ability')
+    .map(t => `${t.value} ${t.label}`)
+    .join('  ')
+}
 
 function formatHitDie(prog: ClassProgression): string {
   if (prog.hitDie === 0 && prog.hpPerLevel) return `${prog.hpPerLevel} HP/level`
@@ -120,6 +128,10 @@ export default function CombatStatsCard({
               {activeOption && (
                 <Typography variant="caption" color="text.secondary" display="block" sx={{ fontSize: '0.65rem', mt: 0.5 }}>
                   {activeOption.label}
+                  {(() => {
+                    const abilities = formatAbilityContributions(activeOption.breakdown)
+                    return abilities ? `  ${abilities}` : ''
+                  })()}
                 </Typography>
               )}
 
@@ -174,28 +186,36 @@ export default function CombatStatsCard({
               value={String(loadoutOptions.indexOf(activeOption!))}
               onChange={(_, val) => handleLoadoutChange(val)}
             >
-              {loadoutOptions.map((option: LoadoutOption, idx: number) => (
-                <FormControlLabel
-                  key={idx}
-                  value={String(idx)}
-                  control={<Radio size="small" />}
-                  label={
-                    <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
-                      <strong>{option.totalAC}</strong>
-                      {'  '}
-                      {option.label}
-                    </Typography>
-                  }
-                  sx={{ ml: 0, mr: 0, '.MuiFormControlLabel-label': { ml: 0.5 } }}
-                />
-              ))}
+              {loadoutOptions.map((option: LoadoutOption, idx: number) => {
+                const abilities = formatAbilityContributions(option.breakdown)
+                return (
+                  <FormControlLabel
+                    key={idx}
+                    value={String(idx)}
+                    control={<Radio size="small" />}
+                    label={
+                      <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                        <strong>{option.totalAC}</strong>
+                        {':  '}
+                        {option.label}
+                        {abilities && (
+                          <Typography component="span" variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                            {'  '}{abilities}
+                          </Typography>
+                        )}
+                      </Typography>
+                    }
+                    sx={{ ml: 0, mr: 0, '.MuiFormControlLabel-label': { ml: 0.5 } }}
+                  />
+                )
+              })}
             </RadioGroup>
           </Box>
         </Collapse>
 
         {/* Class quick stats */}
         {filledClasses.map((cls, i) => {
-          const prog = getClassProgression(cls.classId, character.edition)
+          const prog = getClassProgression(cls.classId)
           if (!prog) return null
           const spellLabel = formatSpellcasting(prog)
           return (
