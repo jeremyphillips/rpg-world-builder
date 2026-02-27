@@ -1,8 +1,17 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
-import type { CampaignMemberStatus, CampaignMemberStoredRole, CampaignCharacterStatus } from '../../shared/types'
+import { getPublicUrl } from './image.service'
+import type {
+  CampaignMemberStatus,
+  CampaignMemberStoredRole,
+  CampaignCharacterStatus,
+  CampaignMemberView,
+} from '../../shared/types'
+
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const campaignMembersCollection = () => db().collection('campaignMembers')
+const usersCollection = () => db().collection('users')
+const charactersCollection = () => db().collection('characters')
 
 export interface CampaignMemberDoc {
   _id: mongoose.Types.ObjectId
@@ -96,6 +105,92 @@ export async function getViewerMembershipContext(
     viewerHasApproved: viewerApproved.length > 0,
     allMembers,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Hydration — batch-resolve user + character info for member rows
+// ---------------------------------------------------------------------------
+
+/**
+ * Builds the `CampaignMemberView[]` array for API responses.
+ *
+ * Fetches User and Character docs in two `$in` queries (one per collection),
+ * then joins them with the member docs.  The resulting rows are sorted by
+ * `joinedAt` ascending (matching the service sort).
+ */
+export async function hydrateMemberViews(
+  members: CampaignMemberDoc[],
+): Promise<CampaignMemberView[]> {
+  if (members.length === 0) return []
+
+  const uniqueUserIds = [
+    ...new Map(
+      members.map((m) => [m.userId.toString(), m.userId]),
+    ).values(),
+  ]
+  const uniqueCharIds = [
+    ...new Map(
+      members.map((m) => [m.characterId.toString(), m.characterId]),
+    ).values(),
+  ]
+
+  const [userDocs, charDocs] = await Promise.all([
+    usersCollection()
+      .find(
+        { _id: { $in: uniqueUserIds } },
+        { projection: { username: 1, avatarKey: 1 } },
+      )
+      .toArray(),
+    charactersCollection()
+      .find(
+        { _id: { $in: uniqueCharIds } },
+        { projection: { name: 1, imageKey: 1 } },
+      )
+      .toArray(),
+  ])
+
+  const userMap = new Map(
+    userDocs.map((u) => [
+      u._id.toString(),
+      {
+        name: (u.username as string) ?? 'Unknown',
+        avatarUrl: getPublicUrl(u.avatarKey as string) ?? null,
+      },
+    ]),
+  )
+  const charMap = new Map(
+    charDocs.map((c) => [
+      c._id.toString(),
+      {
+        name: (c.name as string) ?? 'Unnamed',
+        imageUrl: getPublicUrl(c.imageKey as string) ?? null,
+      },
+    ]),
+  )
+
+  return members.map((m): CampaignMemberView => {
+    const uid = m.userId.toString()
+    const cid = m.characterId.toString()
+    const user = userMap.get(uid)
+    const char = charMap.get(cid)
+
+    return {
+      campaignMemberId: m._id.toString(),
+      status: m.status as CampaignMemberStatus,
+      characterStatus: (m.characterStatus as CampaignCharacterStatus) ?? 'active',
+      joinedAt: m.joinedAt ? m.joinedAt.toISOString() : null,
+      user: {
+        id: uid,
+        name: user?.name ?? 'Unknown',
+        avatarUrl: user?.avatarUrl ?? null,
+      },
+      character: {
+        id: cid,
+        name: char?.name ?? 'Unnamed',
+        imageUrl: char?.imageUrl ?? null,
+      },
+    }
+  })
 }
 
 // ---------------------------------------------------------------------------

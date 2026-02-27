@@ -4,7 +4,7 @@ export type CampaignMemberStatus =
   | 'declined'
 
 /** All campaign-scoped viewer roles (never includes platform-level concepts). */
-export type CampaignRole = 'dm' | 'pc' | 'observer'
+export type CampaignRole = 'dm' | 'pc' | 'co_dm' | 'observer'
 
 /**
  * Roles that may be stored on CampaignMember docs.
@@ -56,14 +56,33 @@ export interface CampaignViewer {
   isOwner: boolean
 }
 
-/** Summary counts derived from CampaignMember docs. */
-export interface CampaignMembersSummary {
+/** Hydrated member row for UI consumption. */
+export interface CampaignMemberView {
+  campaignMemberId: string
+  status: CampaignMemberStatus
+  characterStatus: CampaignCharacterStatus
+  joinedAt: string | null
+  user: {
+    id: string
+    name: string
+    avatarUrl: string | null
+  }
+  character: {
+    id: string
+    name: string
+    imageUrl: string | null
+  }
+}
+
+/** Full members payload attached to the campaign response. */
+export interface CampaignMembersPayload {
   counts: {
     pending: number
     approved: number
     declined: number
     total: number
   }
+  items: CampaignMemberView[]
   viewerCharacterIds: string[]
 }
 
@@ -76,8 +95,8 @@ export interface Campaign extends CampaignBase {
   configuration?: CampaignConfiguration
   /** Populated by GET /api/campaigns/:id with the requesting user's context. */
   viewer?: CampaignViewer
-  /** Member summary derived from CampaignMember docs (not legacy fields). */
-  members?: CampaignMembersSummary
+  /** Hydrated member list derived from CampaignMember docs (not legacy fields). */
+  members?: CampaignMembersPayload
   createdAt: Date
   updatedAt: Date
 }

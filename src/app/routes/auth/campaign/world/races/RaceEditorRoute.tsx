@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
@@ -10,7 +10,7 @@ import type { Visibility } from '@/data/types';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/components/fields';
 import { EntryEditorLayout } from '@/features/content/components';
-import { useCampaignParty } from '@/features/campaign/hooks';
+import { useCampaignMembers } from '@/features/campaign/hooks';
 import { raceRepo } from '@/features/content/domain/repo';
 import { validateRaceDelete } from '@/features/content/domain/validateRaceDelete';
 import { DEFAULT_SYSTEM_ID } from '@/features/mechanics/domain/core/rules/campaignRulesetRepo';
@@ -33,11 +33,7 @@ export default function RaceEditorRoute() {
     (viewer?.isPlatformAdmin || viewer?.isOwner),
   );
 
-  const { party } = useCampaignParty();
-  const policyCharacters = useMemo(
-    () => party.map(c => ({ id: c._id, name: c.name })),
-    [party],
-  );
+  const { approvedCharacters: policyCharacters } = useCampaignMembers();
 
   const [loading, setLoading] = useState(!isNew);
   const [loadError, setLoadError] = useState<string | null>(null);

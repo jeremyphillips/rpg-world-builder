@@ -78,6 +78,7 @@
       "@/hooks/*": ["hooks/*"],
       "@/shared": ["../shared/types/index.ts"],
       "@/shared/*": ["../shared/*"],
+      "@/shared/permissions": ["../shared/permissions/index.ts"],
       "@/utils/*": ["utils/*"],
       "@/utils": ["utils/index.ts"]
     }  

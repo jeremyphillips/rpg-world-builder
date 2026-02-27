@@ -17,8 +17,6 @@ const campaignSchema = new Schema(
 
     membership: {
       ownerId: { type: Schema.Types.ObjectId, ref: 'User' },
-      /** @deprecated Renamed to ownerId. Kept for backward-compat reads during migration. */
-      adminId: { type: Schema.Types.ObjectId, ref: 'User' },
     },
 
     participation: {

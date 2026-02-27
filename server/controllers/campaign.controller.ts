@@ -1,8 +1,12 @@
 import type { Request, Response } from 'express'
 import mongoose from 'mongoose'
-import type { CampaignMemberStoredRole, ViewerCampaignRole, CampaignRole } from '../../shared/types'
+import type { CampaignMemberStoredRole, ViewerCampaignRole } from '../../shared/types'
 import * as campaignService from '../services/campaign.service'
-import { getViewerMembershipContext } from '../services/campaignMember.service'
+import {
+  getViewerMembershipContext,
+  hydrateMemberViews,
+  type CampaignMemberDoc,
+} from '../services/campaignMember.service'
 
 // ---------------------------------------------------------------------------
 // Campaign CRUD
@@ -35,6 +39,10 @@ export async function getCampaign(req: Request, res: Response) {
     viewerCampaignRole = 'observer'
   }
 
+  // ------------------------------------------------------------------
+  // Status counts (always computed from all members, regardless of
+  // the viewer's privilege level — counts are non-sensitive metadata).
+  // ------------------------------------------------------------------
   const counts = { pending: 0, approved: 0, declined: 0, total: ctx.allMembers.length }
   for (const m of ctx.allMembers) {
     const s = m.status as string
@@ -42,6 +50,24 @@ export async function getCampaign(req: Request, res: Response) {
     else if (s === 'approved') counts.approved++
     else if (s === 'declined') counts.declined++
   }
+
+  // ------------------------------------------------------------------
+  // Visibility-filtered member list
+  // ------------------------------------------------------------------
+  const canSeeAll = isOwner || isPlatformAdmin
+  const uid = new mongoose.Types.ObjectId(req.userId!)
+
+  const visibleMembers: CampaignMemberDoc[] = canSeeAll
+    ? ctx.allMembers
+    : ctx.allMembers.filter((m) => {
+        const status = m.status as string
+        if (status === 'approved') return true
+        if (status === 'pending' && (m.userId as mongoose.Types.ObjectId).equals(uid))
+          return true
+        return false
+      })
+
+  const items = await hydrateMemberViews(visibleMembers)
 
   const campaign = {
     ...raw,
@@ -52,6 +78,7 @@ export async function getCampaign(req: Request, res: Response) {
     },
     members: {
       counts,
+      items,
       viewerCharacterIds: ctx.viewerCharacterIds,
     },
   }

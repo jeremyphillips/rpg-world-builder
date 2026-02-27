@@ -1,3 +1,5 @@
+import type { CampaignViewer } from '../types/campaign.types'
+
 /**
  * Centralized capability helpers for campaign-scoped access control.
  *
@@ -16,6 +18,18 @@ export interface ViewerContext {
 }
 
 const DM_LEVEL_ROLES: ReadonlySet<string> = new Set(['dm', 'co_dm'])
+
+export function toViewerContext(
+  viewer: CampaignViewer | null | undefined,
+  characterIds: string[] = [],
+): ViewerContext {
+  return {
+    campaignRole: viewer?.campaignRole ?? null,
+    isOwner: Boolean(viewer?.isOwner),
+    isPlatformAdmin: Boolean(viewer?.isPlatformAdmin),
+    characterIds,
+  };
+}
 
 export function canBypassVisibility(ctx: ViewerContext): boolean {
   return (
@@ -77,4 +91,16 @@ export function canViewContent(
   const allowed = policy.allowCharacterIds ?? []
   if (allowed.length === 0) return false
   return intersects(ctx.characterIds, allowed)
+}
+
+export function canManageCampaignContent(ctx: ViewerContext): boolean {
+  return ctx.isOwner || (ctx.campaignRole !== null && DM_LEVEL_ROLES.has(ctx.campaignRole));
+}
+
+export function getCapabilities(ctx: ViewerContext) {
+  return {
+    canBypassVisibility: canBypassVisibility(ctx),
+    canViewDmScoped: canViewDmScoped(ctx),
+    canManageContent: canManageCampaignContent(ctx),
+  };
 }

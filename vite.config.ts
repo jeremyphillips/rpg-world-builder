@@ -57,6 +57,7 @@ export default defineConfig({
       "@/services": path.resolve(__dirname, "src/services"),
       "@/shared/domain": path.resolve(__dirname, "shared/domain"),
       "@/shared": path.resolve(__dirname, "shared/types"),
+      "@/shared/permissions": path.resolve(__dirname, "shared/permissions"),
       "@/steps": path.resolve(__dirname, "src/steps"),
       "@/ui/badges": path.resolve(__dirname, "src/ui/badges"),
       "@/ui/avatar": path.resolve(__dirname, "src/ui/avatar"),

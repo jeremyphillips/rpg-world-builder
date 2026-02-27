@@ -5,9 +5,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { useAuth } from '@/app/providers/AuthProvider';
 import { ContentTypeListPage, type ContentListItem, type ContentViewerContext } from '@/features/content/components';
-import { useCampaignParty } from '@/features/campaign/hooks/useCampaignParty';
+import { useCampaignMembers } from '@/features/campaign/hooks/useCampaignMembers';
 import { raceRepo } from '@/features/content/domain/repo';
 import type { RaceSummary } from '@/features/content/domain/types';
 import type { ContentPolicy, ContentRule } from '@/data/ruleSets/ruleSets.types';
@@ -18,6 +17,7 @@ import {
   DEFAULT_SYSTEM_ID,
 } from '@/features/mechanics/domain/core/rules/campaignRulesetRepo';
 import type { CampaignRulesetPatch } from '@/features/mechanics/domain/core/rules/ruleset.types';
+import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capabilities';
 
 function getAllowedSet(rule: ContentRule | undefined, allIds: string[]): Set<string> {
   if (!rule) return new Set(allIds);
@@ -30,28 +30,22 @@ function getAllowedSet(rule: ContentRule | undefined, allIds: string[]): Set<str
 
 export default function RaceListRoute() {
   const { campaignId, campaign } = useActiveCampaign();
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const { party } = useCampaignParty();
+  const { viewerCharacterIds } = useCampaignMembers();
 
   const viewer = campaign?.viewer;
-  const canManage = Boolean(
-    viewer?.isPlatformAdmin ||
-    viewer?.isOwner,
-  );
+  const ctx = toViewerContext(viewer);
+  const canManage = canManageCampaignContent(ctx);
 
   const viewerContext = useMemo<ContentViewerContext | undefined>(() => {
     if (!viewer) return undefined;
-    const characterIds = user
-      ? party.filter(m => m.userId === user.id).map(m => m._id)
-      : [];
     return {
       campaignRole: viewer.campaignRole,
       isOwner: viewer.isOwner,
-      isPlatformAdmin: viewer.isPlatformAdmin,
-      characterIds,
+      isPlatformAdmin: viewer.isOwner,
+      characterIds: viewerCharacterIds,
     };
-  }, [viewer, party, user]);
+  }, [viewer, viewerCharacterIds]);
 
   const [summaries, setSummaries] = useState<RaceSummary[]>([]);
   const [patch, setPatch] = useState<CampaignRulesetPatch | null>(null);

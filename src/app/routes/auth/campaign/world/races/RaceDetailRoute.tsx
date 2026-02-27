@@ -16,17 +16,15 @@ import { DEFAULT_SYSTEM_ID } from '@/features/mechanics/domain/core/rules/campai
 import type { Race } from '@/features/content/domain/types';
 import { PageHeader } from '@/ui/elements';
 import { useBreadcrumbs } from '@/hooks';
+import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capabilities';
 
 export default function RaceDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();
   const { raceId } = useParams<{ raceId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
-  const viewer = campaign?.viewer;
-  const canManage = Boolean(
-    viewer?.isPlatformAdmin ||
-    viewer?.isOwner,
-  );
+  const ctx = toViewerContext(campaign?.viewer);
+  const canManage = canManageCampaignContent(ctx);
 
   const [race, setRace] = useState<Race | null>(null);
   const [loading, setLoading] = useState(true);

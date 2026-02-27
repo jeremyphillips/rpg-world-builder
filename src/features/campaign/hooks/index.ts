@@ -2,3 +2,4 @@ export { useCampaignSettings, type CampaignSettings } from './useCampaignSetting
 export { useUpdateCampaignSettings } from './useUpdateCampaignSettings'
 export { useCampaigns } from './useCampaigns'
 export { useCampaignParty } from './useCampaignParty'
+export { useCampaignMembers } from './useCampaignMembers'

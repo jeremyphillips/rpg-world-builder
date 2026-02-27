@@ -8,7 +8,7 @@ import { ROUTES } from '@/app/routes'
 import { apiFetch } from '@/app/api'
 import { Hero, Breadcrumbs } from '@/ui/elements'
 import { useBreadcrumbs } from '@/hooks'
-import  { useCampaignParty } from '@/features/campaign/hooks/useCampaignParty'
+import { useCampaignMembers } from '@/features/campaign/hooks/useCampaignMembers'
 import { useCampaigns } from '@/features/campaign/hooks/useCampaigns'
 import {
   EditableTextField,
@@ -93,7 +93,7 @@ export default function LocationRoute() {
   const { user } = useAuth()
   const canEdit = user?.role === 'admin' || user?.role === 'superadmin'
   const { campaigns } = useCampaigns({ campaignId })
-  const { party: partyMembers } = useCampaignParty('approved')
+  const { approvedCharacters } = useCampaignMembers()
   const [loading, setLoading] = useState(true)
   const [location, setLocation] = useState<Location | null>(null)
   const [allLocations, setAllLocations] = useState<Location[]>([])
@@ -254,7 +254,7 @@ export default function LocationRoute() {
             value={location.visibility}
             onChange={(v) => saveField('visibility', v)}
             disabled={!canEdit}
-            characters={partyMembers.map((m) => ({ id: m._id, name: m.name }))}
+            characters={approvedCharacters}
           />
         </Box>
       </Stack>

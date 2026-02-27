@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { apiFetch } from '@/app/api'
 import { ROUTES } from '@/app/routes'
-import { useCampaignParty } from '@/features/campaign/hooks/useCampaignParty'
+import { useCampaignMembers } from '@/features/campaign/hooks/useCampaignMembers'
 import type { Session } from '@/features/session'
 import { formatSessionDateTime } from '@/features/session'
 import { Breadcrumbs } from '@/ui/elements'
@@ -22,7 +22,7 @@ export default function SessionsRoute() {
   const { id: campaignId } = useParams<{ id: string }>()
   const { user } = useAuth()
   const [sessions, setSessions] = useState<Session[]>([])
-  const { party: partyMembers } = useCampaignParty('approved')
+  const { approvedCharacters } = useCampaignMembers()
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const breadcrumbs = useBreadcrumbs()
@@ -53,8 +53,8 @@ export default function SessionsRoute() {
     { type: 'text', name: 'title', label: 'Name' },
     { type: 'textarea', name: 'notes', label: 'Notes', rows: 3 },
     { type: 'datetime', name: 'date', label: 'Date & time', required: true },
-    { type: 'visibility', name: 'visibility', label: 'Visibility', characters: partyMembers, allowHidden: false },
-  ], [partyMembers])
+    { type: 'visibility', name: 'visibility', label: 'Visibility', characters: approvedCharacters, allowHidden: false },
+  ], [approvedCharacters])
 
   const defaultValues = {
     title: '',
