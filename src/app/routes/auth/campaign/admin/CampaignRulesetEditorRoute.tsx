@@ -14,6 +14,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 
+import { JsonPreviewField } from '@/ui/components/form';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import {
   getCampaignRulesetPatch,
@@ -255,7 +256,6 @@ export default function CampaignRulesetEditorRoute() {
     xpMode: 'shared',
   });
   const [entryReqsJson, setEntryReqsJson] = useState('');
-  const [jsonError, setJsonError] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -305,23 +305,11 @@ export default function CampaignRulesetEditorRoute() {
     }
   }, [patch, fields, contentFields, entryReqsJson]);
 
-  // ---- JSON validation on change ----
-  const handleEntryReqsChange = useCallback((value: string) => {
-    setEntryReqsJson(value);
-    setSuccess(false);
-    setValidationErrors([]);
-
-    if (value.trim().length === 0) {
-      setJsonError(null);
-      return;
-    }
-    try {
-      JSON.parse(value);
-      setJsonError(null);
-    } catch (e) {
-      setJsonError((e as Error).message);
-    }
-  }, []);
+  const hasJsonError = useMemo(() => {
+    const trimmed = entryReqsJson.trim();
+    if (trimmed.length === 0) return false;
+    try { JSON.parse(trimmed); return false; } catch { return true; }
+  }, [entryReqsJson]);
 
   // ---- Content field change ----
   const updateContentField = useCallback(<K extends keyof ContentFields>(key: K, value: ContentFields[K]) => {
@@ -355,7 +343,7 @@ export default function CampaignRulesetEditorRoute() {
   // ---- Save ----
   const handleSave = useCallback(async () => {
     if (!patch) return;
-    if (jsonError) return;
+    if (hasJsonError) return;
 
     setSaving(true);
     setSuccess(false);
@@ -384,7 +372,7 @@ export default function CampaignRulesetEditorRoute() {
     } finally {
       setSaving(false);
     }
-  }, [patch, fields, contentFields, entryReqsJson, jsonError]);
+  }, [patch, fields, contentFields, entryReqsJson, hasJsonError]);
 
   // ---- Render ----
 
@@ -524,32 +512,13 @@ export default function CampaignRulesetEditorRoute() {
 
             <Divider />
 
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Entry Requirements by Target Class (JSON)
-              </Typography>
-              <TextField
-                multiline
-                minRows={4}
-                maxRows={16}
-                fullWidth
-                size="small"
-                placeholder={ENTRY_REQ_EXAMPLE}
-                value={entryReqsJson}
-                onChange={e => handleEntryReqsChange(e.target.value)}
-                error={!!jsonError}
-                helperText={jsonError ?? 'OR-of-AND structure: { classId: { anyOf: [{ all: [{ ability, min }] }] } }'}
-                slotProps={{ input: { sx: { fontFamily: 'monospace', fontSize: 13 } } }}
-              />
-              <Button
-                size="small"
-                variant="text"
-                sx={{ mt: 0.5 }}
-                onClick={() => handleEntryReqsChange(ENTRY_REQ_EXAMPLE)}
-              >
-                Insert example
-              </Button>
-            </Box>
+            <JsonPreviewField
+              label="Entry Requirements by Target Class (JSON)"
+              value={entryReqsJson}
+              onChange={(next) => { setEntryReqsJson(next); setSuccess(false); setValidationErrors([]); }}
+              placeholder={ENTRY_REQ_EXAMPLE}
+              helperText="OR-of-AND structure: { classId: { anyOf: [{ all: [{ ability, min }] }] } }"
+            />
           </Stack>
         </CardContent>
       </Card>
@@ -558,7 +527,7 @@ export default function CampaignRulesetEditorRoute() {
       <Button
         variant="contained"
         onClick={handleSave}
-        disabled={saving || !!jsonError}
+        disabled={saving || hasJsonError}
         sx={{ mb: 4 }}
       >
         {saving ? 'Saving...' : 'Save Patch'}

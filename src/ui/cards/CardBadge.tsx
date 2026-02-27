@@ -1,4 +1,4 @@
-import { Chip } from '@mui/material'
+import { AppBadge } from '@/ui/badges/AppBadge/AppBadge'
 import { StatusBadge } from '@/ui/badges/StatusBadge/StatusBadge'
 import type { StatusType } from '@/shared/types'
 
@@ -12,11 +12,11 @@ const CardBadge = ({ type, value }: CardBadgeProps) => {
     return <StatusBadge status={value as StatusType} size="small" />
   }
   return (
-    <Chip
+    <AppBadge
       label={value}
-      size="small"
       variant="outlined"
-      sx={{ textTransform: type === 'role' ? 'capitalize' : undefined }}
+      size="small"
+      sx={type === 'role' ? { textTransform: 'capitalize' } : undefined}
     />
   )
 }
