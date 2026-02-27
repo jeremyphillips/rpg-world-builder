@@ -1,18 +1,4 @@
-// import type { ArmorItem } from '../equipment/armor.types';
-
-export interface ArmorItem {
-  id: string
-  name: string
-  material: string
-  category: string
-  cost: string
-  baseAC: number
-  stealthDisadvantage: boolean
-  properties: string[]
-  weight: string
-  minStrength?: number
-  acBonus?: number
-}
+import type { ArmorItem } from './equipment.types'
 
 export const armor: readonly ArmorItem[] = [
   // LIGHT ARMOR
@@ -21,7 +7,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Leather',
     material: 'organic',
     category: 'light',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     baseAC: 11,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-full'],
@@ -32,7 +18,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Studded Leather',
     material: 'metal',
     category: 'light',
-    cost: '45 gp',
+    cost: { coin: 'gp', value: 45 },
     baseAC: 12,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-full'],
@@ -45,7 +31,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Hide',
     material: 'organic',
     category: 'medium',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     baseAC: 12,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-max-2'],
@@ -56,7 +42,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Chain Shirt',
     material: 'metal',
     category: 'medium',
-    cost: '50 gp',
+    cost: { coin: 'gp', value: 50 },
     baseAC: 13,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-max-2'],
@@ -67,7 +53,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Scale Mail',
     material: 'metal',
     category: 'medium',
-    cost: '50 gp',
+    cost: { coin: 'gp', value: 50 },
     baseAC: 14,
     stealthDisadvantage: true,
     properties: ['dexterity-modifier-max-2'],
@@ -78,7 +64,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Breastplate',
     material: 'metal',
     category: 'medium',
-    cost: '400 gp',
+    cost: { coin: 'gp', value: 400 },
     baseAC: 14,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-max-2'],
@@ -89,7 +75,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Half Plate',
     material: 'metal',
     category: 'medium',
-    cost: '750 gp',
+    cost: { coin: 'gp', value: 750 },
     baseAC: 15,
     stealthDisadvantage: true,
     properties: ['dexterity-modifier-max-2'],
@@ -102,7 +88,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Ring Mail',
     material: 'metal',
     category: 'heavy',
-    cost: '30 gp',
+    cost: { coin: 'gp', value: 30 },
     baseAC: 14,
     stealthDisadvantage: true,
     properties: ['dexterity-modifier-none'],
@@ -113,7 +99,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Chain Mail',
     material: 'metal',
     category: 'heavy',
-    cost: '75 gp',
+    cost: { coin: 'gp', value: 75 },
     baseAC: 16,
     stealthDisadvantage: true,
     minStrength: 13,
@@ -125,7 +111,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Splint',
     material: 'metal',
     category: 'heavy',
-    cost: '200 gp',
+    cost: { coin: 'gp', value: 200 },
     baseAC: 17,
     stealthDisadvantage: true,
     minStrength: 15,
@@ -137,7 +123,7 @@ export const armor: readonly ArmorItem[] = [
     name: 'Plate',
     material: 'metal',
     category: 'heavy',
-    cost: '1500 gp',
+    cost: { coin: 'gp', value: 1500 },
     baseAC: 18,
     stealthDisadvantage: true,
     minStrength: 15,
@@ -151,7 +137,9 @@ export const armor: readonly ArmorItem[] = [
     name: 'Shield (Wood)',
     material: 'organic',
     category: 'shields',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
+    stealthDisadvantage: false,
+    properties: ['dexterity-modifier-none'],
     acBonus: 2,
     weight: '6 lb.',
   },
@@ -160,7 +148,9 @@ export const armor: readonly ArmorItem[] = [
     name: 'Shield (Steel)',
     material: 'metal',
     category: 'shields',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
+    stealthDisadvantage: false,
+    properties: ['dexterity-modifier-none'],
     acBonus: 2,
     weight: '6 lb.',
   },

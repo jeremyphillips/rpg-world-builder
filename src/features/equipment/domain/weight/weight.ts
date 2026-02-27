@@ -1,4 +1,4 @@
-import type { ArmorItem, GearItem, WeaponItem } from '@/data'
+import type { ArmorItem, GearItem, WeaponItem } from '@/data/equipment'
 
 export const parseWeight = (weightStr?: string): number => {
   if (!weightStr) return 0

@@ -6,7 +6,10 @@ export const enhancementTemplates: EnchantmentTemplate[] = [
     name: '+1 Enhancement',
     appliesTo: ['weapon', 'armor', 'shield'],
     rarity: 'uncommon',
-    cost: '1,500 gp',
+    cost: {
+      coin: 'gp',
+      value: 1500,
+    },
     requiresAttunement: false,
     effectsBySlot: {
       weapon: [
@@ -22,7 +25,10 @@ export const enhancementTemplates: EnchantmentTemplate[] = [
     name: '+2 Enhancement',
     appliesTo: ['weapon', 'armor', 'shield'],
     rarity: 'rare',
-    cost: '6,000 gp',
+    cost: {
+      coin: 'gp',
+      value: 6000,
+    },
     requiresAttunement: false,
     effectsBySlot: {
       weapon: [
@@ -38,7 +44,10 @@ export const enhancementTemplates: EnchantmentTemplate[] = [
     name: '+3 Enhancement',
     appliesTo: ['weapon', 'armor', 'shield'],
     rarity: 'very-rare',
-    cost: '24,000 gp',
+    cost: {
+      coin: 'gp',
+      value: 24000,
+    },
     requiresAttunement: false,
     effectsBySlot: {
       weapon: [

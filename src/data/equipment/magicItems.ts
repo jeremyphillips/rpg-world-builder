@@ -1,73 +1,12 @@
-export type MagicItemSlot =
-  | 'weapon'
-  | 'armor'
-  | 'shield'
-  | 'potion'
-  | 'ring'
-  | 'cloak'
-  | 'boots'
-  | 'gloves'
-  | 'helm'
-  | 'belt'
-  | 'amulet'
-  | 'helm'
-  | 'wand'
-  | 'staff'
-  | 'rod'
-  | 'scroll'
-  | 'wondrous'
-
-export type MagicItemEffect =
-  | { kind: 'bonus'; target: string; value: number }
-  | { kind: 'modifier'; target: string; mode: 'add' | 'mul' | 'set'; value: any }
-  | { kind: 'note'; text: string };
-
-export type MagicItemRarity =
-  | 'common'
-  | 'uncommon'
-  | 'rare'
-  | 'very-rare'
-  | 'legendary'
-  | 'artifact';
-
-export type MagicItemCore = {
-  id: string;
-  name: string;
-
-  slot: MagicItemSlot;
-  weight?: string;
-
-  // “derived”/composition
-  baseItemId?: string;
-
-  consumable?: boolean;
-
-  // flattened “default ruleset” fields (whatever you treat as canonical for now)
-  cost?: string;
-  rarity?: MagicItemRarity;
-  requiresAttunement?: boolean;
-
-  bonus?: number;
-  charges?: number;
-
-  effect?: string;
-  effects?: MagicItemEffect[];
-
-  // legacy / alt-systems metadata (optional but handy to keep)
-  enhancementLevel?: number;
-  xpValue?: number;
-  gpValue?: number;
-};
-
-export type MagicItem = MagicItemCore;
+import type { MagicItem } from './equipment.types'
 
 export const magicItems: MagicItem[] = [
   {
     id: 'flame-tongue',
     name: 'Flame Tongue',
     slot: 'weapon',
-    weight: '—',
-    cost: '5,000 gp',
+    weight: undefined,
+    cost: { coin: 'gp', value: 5000 },
     rarity: 'rare',
     requiresAttunement: true,
     effect:
@@ -80,8 +19,8 @@ export const magicItems: MagicItem[] = [
     id: 'frost-brand',
     name: 'Frost Brand',
     slot: 'weapon',
-    weight: '—',
-    cost: '22,000 gp',
+    weight: undefined,
+    cost: { coin: 'gp', value: 22000 },
     rarity: 'very-rare',
     requiresAttunement: true,
     bonus: 3,
@@ -100,7 +39,7 @@ export const magicItems: MagicItem[] = [
     slot: 'potion',
     weight: '0.5 lb.',
     consumable: true,
-    cost: '50 gp',
+    cost: { coin: 'gp', value: 50 },
     rarity: 'common',
     effect: 'Regain 2d4 + 2 hit points',
     effects: [
@@ -113,7 +52,7 @@ export const magicItems: MagicItem[] = [
     slot: 'potion',
     weight: '0.5 lb.',
     consumable: true,
-    cost: '180 gp',
+    cost: { coin: 'gp', value: 180 },
     rarity: 'very-rare',
     effect:
       'Invisible for 1 hour. Ends early if you attack or cast a spell'
@@ -124,7 +63,7 @@ export const magicItems: MagicItem[] = [
     slot: 'potion',
     weight: '0.5 lb.',
     consumable: true,
-    cost: '400 gp',
+    cost: { coin: 'gp', value: 400 },
     rarity: 'very-rare',
     effect:
       'Haste for 1 minute (no concentration). +2 AC, advantage on Dex saves, extra action',
@@ -138,8 +77,8 @@ export const magicItems: MagicItem[] = [
     id: 'ring-of-protection',
     name: 'Ring of Protection',
     slot: 'ring',
-    weight: '—',
-    cost: '3,500 gp',
+    weight: undefined,
+    cost: { coin: 'gp', value: 3500 },
     rarity: 'rare',
     requiresAttunement: true,
     bonus: 1,
@@ -153,8 +92,8 @@ export const magicItems: MagicItem[] = [
     id: 'ring-of-invisibility',
     name: 'Ring of Invisibility',
     slot: 'ring',
-    weight: '—',
-    cost: '50,000 gp',
+    weight: undefined,
+    cost: { coin: 'gp', value: 50000 },
     rarity: 'legendary',
     requiresAttunement: true,
     effect:
@@ -164,8 +103,8 @@ export const magicItems: MagicItem[] = [
     id: 'ring-of-spell-storing',
     name: 'Ring of Spell Storing',
     slot: 'ring',
-    weight: '—',
-    cost: '24,000 gp',
+    weight: undefined,
+    cost: { coin: 'gp', value: 24000 },
     rarity: 'rare',
     requiresAttunement: true,
     charges: 5,
@@ -179,7 +118,7 @@ export const magicItems: MagicItem[] = [
     name: 'Cloak of Protection',
     slot: 'cloak',
     weight: '1 lb.',
-    cost: '3,500 gp',
+    cost: { coin: 'gp', value: 3500 },
     rarity: 'uncommon',
     requiresAttunement: true,
     bonus: 1,
@@ -194,7 +133,7 @@ export const magicItems: MagicItem[] = [
     name: 'Cloak of Elvenkind',
     slot: 'cloak',
     weight: '1 lb.',
-    cost: '5,000 gp',
+    cost: { coin: 'gp', value: 5000 },
     rarity: 'uncommon',
     requiresAttunement: true,
     effect:
@@ -207,7 +146,7 @@ export const magicItems: MagicItem[] = [
     name: 'Boots of Elvenkind',
     slot: 'boots',
     weight: '1 lb.',
-    cost: '2,500 gp',
+    cost: { coin: 'gp', value: 2500 },
     rarity: 'uncommon',
     requiresAttunement: false,
     effect:
@@ -218,7 +157,7 @@ export const magicItems: MagicItem[] = [
     name: 'Boots of Speed',
     slot: 'boots',
     weight: '1 lb.',
-    cost: '4,000 gp',
+    cost: { coin: 'gp', value: 4000 },
     rarity: 'rare',
     requiresAttunement: true,
     effect:
@@ -231,7 +170,7 @@ export const magicItems: MagicItem[] = [
     name: 'Gauntlets of Ogre Power',
     slot: 'gloves',
     weight: '1 lb.',
-    cost: '8,000 gp',
+    cost: { coin: 'gp', value: 8000 },
     rarity: 'uncommon',
     requiresAttunement: true,
     effect: 'Strength becomes 19 while worn',
@@ -244,7 +183,7 @@ export const magicItems: MagicItem[] = [
     name: 'Bracers of Defense',
     slot: 'gloves',
     weight: '1 lb.',
-    cost: '6,000 gp',
+    cost: { coin: 'gp', value: 6000 },
     rarity: 'rare',
     requiresAttunement: true,
     bonus: 2,
@@ -260,7 +199,7 @@ export const magicItems: MagicItem[] = [
     name: 'Belt of Giant Strength',
     slot: 'belt',
     weight: '1 lb.',
-    cost: '24,000 gp',
+    cost: { coin: 'gp', value: 24000 },
     rarity: 'very-rare',
     requiresAttunement: true,
     effect:
@@ -280,7 +219,7 @@ export const magicItems: MagicItem[] = [
     name: 'Amulet of Health',
     slot: 'amulet',
     weight: '1 lb.',
-    cost: '8,000 gp',
+    cost: { coin: 'gp', value: 8000 },
     rarity: 'rare',
     requiresAttunement: true,
     effect: 'Constitution score becomes 19 while wearing this amulet',
@@ -293,7 +232,7 @@ export const magicItems: MagicItem[] = [
     name: 'Helm of Brilliance',
     slot: 'helm',
     weight: '3 lb.',
-    cost: '—',
+    cost: undefined,
     rarity: 'very-rare',
     requiresAttunement: true,
     effect:
@@ -313,7 +252,7 @@ export const magicItems: MagicItem[] = [
     name: 'Bag of Holding',
     slot: 'wondrous',
     weight: '15 lb.',
-    cost: '4,000 gp',
+    cost: { coin: 'gp', value: 4000 },
     rarity: 'uncommon',
     requiresAttunement: false,
     effect:
@@ -327,7 +266,7 @@ export const magicItems: MagicItem[] = [
     name: 'Portable Hole',
     slot: 'wondrous',
     weight: '0 lb.',
-    cost: '20,000 gp',
+    cost: { coin: 'gp', value: 20000 },
     rarity: 'rare',
     requiresAttunement: false,
     effect:
@@ -342,7 +281,7 @@ export const magicItems: MagicItem[] = [
     name: 'Decanter of Endless Water',
     slot: 'wondrous',
     weight: '2 lb.',
-    cost: '135,000 gp',
+    cost: { coin: 'gp', value: 135000 },
     rarity: 'uncommon',
     requiresAttunement: false,
     effect:
@@ -356,7 +295,7 @@ export const magicItems: MagicItem[] = [
     name: 'Immovable Rod',
     slot: 'wondrous',
     weight: '2 lb.',
-    cost: '5,000 gp',
+    cost: { coin: 'gp', value: 5000 },
     rarity: 'uncommon',
     requiresAttunement: false,
     effect:
@@ -370,7 +309,7 @@ export const magicItems: MagicItem[] = [
     name: 'Wand of Magic Missiles',
     slot: 'wand',
     weight: '1 lb.',
-    cost: '8,000 gp',
+    cost: { coin: 'gp', value: 8000 },
     rarity: 'uncommon',
     requiresAttunement: false,
     charges: 7,
@@ -387,7 +326,7 @@ export const magicItems: MagicItem[] = [
     name: 'Wand of Fireballs',
     slot: 'wand',
     weight: '1 lb.',
-    cost: '32,000 gp',
+    cost: { coin: 'gp', value: 32000 },
     rarity: 'rare',
     requiresAttunement: true,
     effect:
@@ -407,7 +346,7 @@ export const magicItems: MagicItem[] = [
     name: 'Staff of Healing',
     slot: 'staff',
     weight: '4 lb.',
-    cost: '13,000 gp',
+    cost: { coin: 'gp', value: 13000 },
     rarity: 'rare',
     requiresAttunement: true,
     charges: 10,
@@ -424,7 +363,7 @@ export const magicItems: MagicItem[] = [
     name: 'Staff of Power',
     slot: 'staff',
     weight: '4 lb.',
-    cost: '—',
+    cost: undefined,
     rarity: 'very-rare',
     requiresAttunement: true,
     charges: 20,
@@ -447,7 +386,7 @@ export const magicItems: MagicItem[] = [
     slot: 'scroll',
     weight: '0 lb.',
     consumable: true,
-    cost: '75 gp',
+    cost: { coin: 'gp', value: 75 },
     rarity: 'common',
     requiresAttunement: false,
     effect:
@@ -463,7 +402,7 @@ export const magicItems: MagicItem[] = [
     slot: 'scroll',
     weight: '0 lb.',
     consumable: true,
-    cost: '200 gp',
+    cost: { coin: 'gp', value: 200 },
     rarity: 'uncommon',
     requiresAttunement: false,
     effect: 'Contains one 3rd-level spell. Save DC 15, attack bonus +7',

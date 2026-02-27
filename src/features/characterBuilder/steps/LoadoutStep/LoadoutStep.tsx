@@ -1,8 +1,9 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { equipment } from '@/data/equipment/equipment'
-import type { ArmorItem } from '@/data/equipment/armor'
-import type { WeaponItem } from '@/data/equipment/weapons'
+import type { ArmorItem } from '@/data/equipment'
+import type { WeaponItem } from '@/data/equipment'
 import { resolveLoadout } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
+import { moneyToGp } from '@/features/equipment/domain/pricing/pricing'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -39,12 +40,12 @@ function partitionArmor(
 }
 
 function armorToOption(item: ArmorItem): SelectOption {
-  const costSuffix = item.cost ? ` (${item.cost})` : ''
+  const costSuffix = item.cost ? ` (${moneyToGp(item.cost)} gp)` : ''
   return { value: item.id, label: `${item.name}${costSuffix}` }
 }
 
 function weaponToOption(item: WeaponItem): SelectOption {
-  const costSuffix = item.cost ? ` (${item.cost})` : ''
+  const costSuffix = item.cost ? ` (${moneyToGp(item.cost)} gp)` : ''
   return { value: item.id, label: `${item.name}${costSuffix}` }
 }
 

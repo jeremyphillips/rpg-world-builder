@@ -11,9 +11,11 @@ import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import type { MagicItemSlot, MagicItem, MagicItemRarity } from '@/data/equipment/magicItems'
+import type { MagicItemSlot, MagicItem, MagicItemRarity } from '@/data/equipment'
 import type { EquipmentItemInstance } from '@/shared/types/character.core'
 import type { EnchantableSlot } from '@/data/equipment/enchantments/enchantmentTemplates.types'
+import { moneyToGp } from '@/features/equipment/domain/pricing/pricing'
+import type { Coin, Money } from '@/data/equipment'
 
 // ---------------------------------------------------------------------------
 // Enhancement types & constants
@@ -80,26 +82,6 @@ const GROUP_OPTIONS: { id: ItemGroup; label: string }[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// Pure helpers
-// ---------------------------------------------------------------------------
-
-function parseGpCost(costStr: string | undefined): number {
-  if (!costStr || costStr === '—') return 0
-  const cleaned = costStr.replace(/,/g, '')
-  const parts = cleaned.split(' ')
-  const num = parseFloat(parts[0])
-  if (isNaN(num)) return 0
-  switch (parts[1]?.toLowerCase()) {
-    case 'sp':
-      return num / 10
-    case 'cp':
-      return num / 100
-    default:
-      return num
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -156,14 +138,23 @@ const MagicItemsStep = () => {
 
   const getEnhancementCostGp = (templateId: string | undefined): number => {
     if (!templateId) return 0
-    const t = catalog.enhancementTemplatesById[templateId]
-    if (!t) return 0
-    return parseGpCost(t.cost)
+    const tpl = catalog.enhancementTemplatesById[templateId]
+    if (!tpl) return 0
+    return moneyToGp(tpl.cost as Money)
   }
 
-  const sumEnhancementCost = (instances: EquipmentItemInstance[]): number =>
-    instances.reduce((sum, i) => sum + getEnhancementCostGp(i.enhancementTemplateId), 0)
+  const asFinite = (n: unknown): number => {
+    const x = typeof n === 'number' ? n : typeof n === 'string' ? Number(n) : NaN;
+    return Number.isFinite(x) ? x : 0;
+  };
 
+  const sumEnhancementCost = (instances: any[]): number => {
+    return instances.reduce((sum: number, inst: any) => {
+      // wherever you compute enhancement cost:
+      const costGp = getEnhancementCostGp(inst.enhancementTemplateId);
+      return sum + asFinite(costGp);
+    }, 0);
+  };
   // =========================================================================
   // Enhancement data
   // =========================================================================
@@ -196,7 +187,7 @@ const MagicItemsStep = () => {
     const armor = selectedEquipment?.armor ?? []
     const gear = selectedEquipment?.gear ?? []
 
-    const costOf = (item: any) => parseGpCost(item?.cost)
+    const costOf = (item: any) => moneyToGp(item?.cost as unknown as { coin: Coin; value: number })
     const wCost = weapons.reduce((sum, id) => sum + costOf(catalog.weaponsById[id]), 0)
     const aCost = armor.reduce((sum, id) => sum + costOf(catalog.armorById[id]), 0)
     const gCost = gear.reduce((sum, id) => sum + costOf(catalog.gearById[id]), 0)
@@ -205,8 +196,16 @@ const MagicItemsStep = () => {
 
   const totalEnhCost = sumEnhancementCost([...weaponInstances, ...allArmorInstances])
   const remainingGp = baseGp - mundaneCostGp - totalEnhCost
+  
   const overBudget = remainingGp < 0
-
+  console.log({
+    baseGp,
+    mundaneCostGp,
+    totalEnhCost,
+    baseGpIsNaN: Number.isNaN(baseGp),
+    mundaneIsNaN: Number.isNaN(mundaneCostGp),
+    enhIsNaN: Number.isNaN(totalEnhCost),
+  });
   // Add-copy options
   const ownedWeaponBaseIds = [...new Set(selectedEquipment?.weapons ?? [])]
   const ownedArmorBaseIds = [
@@ -289,7 +288,7 @@ const MagicItemsStep = () => {
 
   const magicItemOptions = visibleItems.map(item => {
     const rarityLabel = item.rarity ? ` [${item.rarity}]` : ''
-    const costLabel = item.cost && item.cost !== '—' ? ` (${item.cost})` : ''
+    const costLabel = item.cost ? ` (${item.cost.value} ${item.cost.coin})` : ''
     const isSelected = selectedMagicItems.includes(item.id)
 
     let disabled = false
@@ -422,7 +421,7 @@ const MagicItemsStep = () => {
                     >
                       <MenuItem value="">No Enhancement</MenuItem>
                       {availableTemplates.map(t => {
-                        const costSuffix = t.cost ? ` (${t.cost})` : ''
+                        const costSuffix = t.cost ? ` (${t.cost.value} ${t.cost.coin})` : ''
                         return (
                           <MenuItem
                             key={t.id}

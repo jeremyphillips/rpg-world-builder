@@ -5,7 +5,7 @@ import { ButtonGroup } from '@/ui/elements'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import {
   calculateEquipmentCost,
-  getItemCostGp,
+  getItemCostGp
 } from '@/features/equipment/domain'
 import { collectIntrinsicEffects } from '@/features/character/domain/engine/collectCharacterEffects'
 import {
@@ -93,12 +93,6 @@ const EquipmentStep = () => {
   const activeClass = selectedClasses[activeIndex]
   
   if (!activeClass) return null
-  
-  const {
-    // classId: selectedClassId,
-    // classDefinitionId: selectedClassDefinitionId,
-    // level: selectedLevel
-  } = activeClass ?? {}
 
   // Derive allowed equipment from the engine's collected effects.
   // Build a minimal Character shape from the builder state so the collector can read it.
@@ -132,10 +126,6 @@ const EquipmentStep = () => {
     proficiency: { categories: string[]; items: string[] },
   ) => {
     return items
-      // .filter(item => {
-      //   if (!Array.isArray(item.editionData)) return false
-      //   return item.editionData.some((d: { edition: string }) => d.edition === equipEdition)
-      // })
       .map(item => {
         const costGp = getItemCostGp(item)
         const isSelected = selected.includes(item.id)
@@ -151,9 +141,11 @@ const EquipmentStep = () => {
         if (wouldExceedGold) reasons.push('Exceeds gold budget')
         const tooltip = reasons.length > 0 ? reasons.join('; ') : undefined
 
+        const costStr = `${item.cost.value} ${item.cost.coin}`
+        
         return {
           id: item.id,
-          label: item.cost ? `${item.name} (${item.cost})` : item.name,
+          label: item.cost ? `${item.name} (${costStr})` : item.name,
           disabled,
           tooltip,
         }

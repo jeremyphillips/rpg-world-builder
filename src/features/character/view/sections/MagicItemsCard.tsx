@@ -1,4 +1,4 @@
-import type { MagicItem } from '@/data/equipment/magicItems'
+import type { MagicItem } from '@/data/equipment'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
 import Chip from '@mui/material/Chip'
 import EditIcon from '@mui/icons-material/Edit'
+import { moneyToGp } from '@/features/equipment/domain/pricing/pricing'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -87,8 +88,8 @@ export default function MagicItemsCard({
                       Charges: {item.charges}
                     </Typography>
                   )}
-                  {item.cost && item.cost !== '—' && (
-                    <Typography variant="caption" color="text.secondary" display="block">Value: {item.cost}</Typography>
+                  {item.cost && (
+                    <Typography variant="caption" color="text.secondary" display="block">Value: {moneyToGp(item.cost)} gp</Typography>
                   )}
                 </Box>
               )

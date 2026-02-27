@@ -1,14 +1,25 @@
-import type { ArmorItem } from '@/data/equipment/armor'
-import type { WeaponItem } from '@/data/equipment/weapons'
-import type { GearItem } from '@/data/equipment/gear'
-import { parseCurrencyToGold } from '@/utils'
+import type { ArmorItem, WeaponItem, GearItem, EquipmentBase } from '@/data/equipment'
+import type { Coin } from '@/data/equipment'
 
-type CatalogItem = ArmorItem | WeaponItem | GearItem
+const COIN_TO_CP: Record<Coin, number> = {
+  cp: 1,
+  sp: 10,
+  ep: 50,
+  gp: 100,
+  pp: 1000,
+}
 
-export const getItemCostGp = (
-  item: CatalogItem | undefined
-): number => {
-  return item?.cost ? parseCurrencyToGold(item.cost) : 0
+export const moneyToCp = (money?: { coin: Coin; value: number }): number => {
+  if (!money) return 0
+  return money.value * COIN_TO_CP[money.coin]
+}
+
+export const moneyToGp = (money?: { coin: Coin; value: number }): number => {
+  return moneyToCp(money) / 100
+}
+
+export const getItemCostGp = (item?: { cost?: { coin: Coin; value: number } }) => {
+  return moneyToGp(item?.cost)
 }
 
 export const calculateEquipmentCost = (

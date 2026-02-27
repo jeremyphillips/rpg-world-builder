@@ -1,16 +1,4 @@
-export interface WeaponItem {
-  id: string
-  name: string
-  category: string
-  type: string
-  properties: string[]
-  damage: { default: string }
-  damageType: string
-  weight: string
-  cost: string
-  mastery: string
-  range?: string
-}
+import type { WeaponItem } from './equipment.types'
 
 export const weapons: readonly WeaponItem[] = [
   // SIMPLE MELEE WEAPONS
@@ -23,7 +11,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d4' },
     damageType: 'bludgeoning', 
     weight: '2 lb.',
-    cost: '1 sp',
+    cost: { coin: 'sp', value: 1 },
     mastery: 'slow'
   },
   { 
@@ -35,7 +23,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d4' },
     damageType: 'piercing', 
     weight: '1 lb.',
-    cost: '2 gp',
+    cost: { coin: 'gp', value: 2 },
     range: '20/60',
     mastery: 'nick'
   },
@@ -48,7 +36,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8' },
     damageType: 'bludgeoning', 
     weight: '10 lb.',
-    cost: '2 sp',
+    cost: { coin: 'sp', value: 2 },
     mastery: 'push'
   },
   { 
@@ -60,7 +48,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6' },
     damageType: 'slashing', 
     weight: '2 lb.',
-    cost: '5 gp',
+    cost: { coin: 'gp', value: 5 },
     range: '20/60',
     mastery: 'vex'
   },
@@ -73,7 +61,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6' },
     damageType: 'piercing', 
     weight: '2 lb.',
-    cost: '5 sp',
+    cost: { coin: 'sp', value: 5 },
     range: '30/120',
     mastery: 'slow'
   },
@@ -86,7 +74,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d4' },
     damageType: 'bludgeoning', 
     weight: '2 lb.',
-    cost: '2 gp',
+    cost: { coin: 'gp', value: 2 },
     range: '20/60',
     mastery: 'nick'
   },
@@ -99,7 +87,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6' },
     damageType: 'bludgeoning', 
     weight: '4 lb.',
-    cost: '5 gp',
+    cost: { coin: 'gp', value: 5 },
     mastery: 'sap'
   },
   { 
@@ -111,7 +99,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6', versatile: '1d8' },
     damageType: 'bludgeoning', 
     weight: '4 lb.',
-    cost: '2 sp',
+    cost: { coin: 'sp', value: 2 },
     mastery: 'topple'
   },
   { 
@@ -123,7 +111,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d4' },
     damageType: 'slashing', 
     weight: '2 lb.',
-    cost: '1 gp',
+    cost: { coin: 'gp', value: 1 },
     mastery: 'nick'
   },
   { 
@@ -135,7 +123,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6', versatile: '1d8' },
     damageType: 'piercing', 
     weight: '3 lb.',
-    cost: '1 gp',
+    cost: { coin: 'gp', value: 1 },
     range: '20/60',
     mastery: 'sap'
   },
@@ -149,7 +137,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8' },
     damageType: 'piercing', 
     weight: '5 lb.',
-    cost: '25 gp',
+    cost: { coin: 'gp', value: 25 },
     range: '80/320',
     mastery: 'slow'
   },
@@ -162,7 +150,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d4' },
     damageType: 'piercing', 
     weight: '0.25 lb.',
-    cost: '5 cp',
+    cost: { coin: 'cp', value: 5 },
     range: '20/60',
     mastery: 'vex'
   },
@@ -175,7 +163,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6' },
     damageType: 'piercing', 
     weight: '2 lb.',
-    cost: '25 gp',
+    cost: { coin: 'gp', value: 25 },
     range: '80/320',
     mastery: 'vex'
   },
@@ -188,7 +176,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d4' },
     damageType: 'bludgeoning', 
     weight: '0 lb.',
-    cost: '1 sp',
+    cost: { coin: 'sp', value: 1 },
     range: '30/120',
     mastery: 'slow'
   },
@@ -203,7 +191,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8', versatile: '1d10' },
     damageType: 'slashing', 
     weight: '4 lb.',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     mastery: 'topple'
   },
   { 
@@ -215,7 +203,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8' },
     damageType: 'bludgeoning', 
     weight: '2 lb.',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     mastery: 'sap'
   },
   { 
@@ -227,7 +215,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d10' },
     damageType: 'slashing', 
     weight: '6 lb.',
-    cost: '20 gp',
+    cost: { coin: 'gp', value: 20 },
     mastery: 'graze'
   },
   { 
@@ -239,7 +227,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d12' },
     damageType: 'slashing', 
     weight: '7 lb.',
-    cost: '30 gp',
+    cost: { coin: 'gp', value: 30 },
     mastery: 'cleave'
   },
   { 
@@ -251,7 +239,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '2d6' },
     damageType: 'slashing', 
     weight: '6 lb.',
-    cost: '50 gp',
+    cost: { coin: 'gp', value: 50 },
     mastery: 'graze'
   },
   { 
@@ -263,7 +251,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d10' },
     damageType: 'slashing', 
     weight: '6 lb.',
-    cost: '20 gp',
+    cost: { coin: 'gp', value: 20 },
     mastery: 'cleave'
   },
   { 
@@ -275,7 +263,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d12' },
     damageType: 'piercing', 
     weight: '6 lb.',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     mastery: 'topple'
   },
   { 
@@ -287,7 +275,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8', versatile: '1d10' },
     damageType: 'slashing', 
     weight: '3 lb.',
-    cost: '15 gp',
+    cost: { coin: 'gp', value: 15 },
     mastery: 'sap'
   },
   { 
@@ -299,7 +287,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '2d6' },
     damageType: 'bludgeoning', 
     weight: '10 lb.',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     mastery: 'topple'
   },
   { 
@@ -311,7 +299,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8' },
     damageType: 'piercing', 
     weight: '4 lb.',
-    cost: '15 gp',
+    cost: { coin: 'gp', value: 15 },
     mastery: 'sap'
   },
   { 
@@ -323,7 +311,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d10' },
     damageType: 'piercing', 
     weight: '18 lb.',
-    cost: '5 gp',
+    cost: { coin: 'gp', value: 5 },
     mastery: 'push'
   },
   { 
@@ -335,7 +323,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8' },
     damageType: 'piercing', 
     weight: '2 lb.',
-    cost: '25 gp',
+    cost: { coin: 'gp', value: 25 },
     mastery: 'vex'
   },
   { 
@@ -347,7 +335,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6' },
     damageType: 'slashing', 
     weight: '3 lb.',
-    cost: '25 gp',
+    cost: { coin: 'gp', value: 25 },
     mastery: 'nick'
   },
   { 
@@ -359,7 +347,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6' },
     damageType: 'piercing', 
     weight: '2 lb.',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     mastery: 'vex'
   },
   { 
@@ -371,7 +359,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6', versatile: '1d8' },
     damageType: 'piercing', 
     weight: '4 lb.',
-    cost: '5 gp',
+    cost: { coin: 'gp', value: 5 },
     range: '20/60',
     mastery: 'topple'
   },
@@ -384,7 +372,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8' },
     damageType: 'piercing', 
     weight: '2 lb.',
-    cost: '5 gp',
+    cost: { coin: 'gp', value: 5 },
     mastery: 'sap'
   },
   { 
@@ -396,7 +384,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8', versatile: '1d10' },
     damageType: 'bludgeoning', 
     weight: '2 lb.',
-    cost: '15 gp',
+    cost: { coin: 'gp', value: 15 },
     mastery: 'push'
   },
   { 
@@ -408,7 +396,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d4' },
     damageType: 'slashing', 
     weight: '3 lb.',
-    cost: '2 gp',
+    cost: { coin: 'gp', value: 2 },
     mastery: 'slow'
   },
 
@@ -422,7 +410,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1' },
     damageType: 'piercing', 
     weight: '1 lb.',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     range: '25/100',
     mastery: 'vex'
   },
@@ -435,7 +423,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d6' },
     damageType: 'piercing', 
     weight: '3 lb.',
-    cost: '75 gp',
+    cost: { coin: 'gp', value: 75 },
     range: '30/120',
     mastery: 'vex'
   },
@@ -448,7 +436,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d10' },
     damageType: 'piercing', 
     weight: '18 lb.',
-    cost: '50 gp',
+    cost: { coin: 'gp', value: 50 },
     range: '100/400',
     mastery: 'push'
   },
@@ -461,7 +449,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '1d8' },
     damageType: 'piercing', 
     weight: '2 lb.',
-    cost: '50 gp',
+    cost: { coin: 'gp', value: 50 },
     range: '150/600',
     mastery: 'slow'
   },
@@ -474,7 +462,7 @@ export const weapons: readonly WeaponItem[] = [
     damage: { default: '-' },
     damageType: 'none', 
     weight: '3 lb.',
-    cost: '1 gp',
+    cost: { coin: 'gp', value: 1 },
     range: '5/15',
     mastery: 'topple'
   }

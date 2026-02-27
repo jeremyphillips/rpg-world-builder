@@ -6,7 +6,7 @@
  */
 import type { Effect, ModifierEffect } from '../effects.types'
 import type { StatTarget } from '../../resolution/stat-resolver'
-import { magicItems, type MagicItem } from '@/data/equipment/magicItems'
+import { magicItems, type MagicItem } from '@/data/equipment'
 import { resolveEffectDescriptors } from '../descriptors/resolveEffectDescriptors'
 
 // ---------------------------------------------------------------------------

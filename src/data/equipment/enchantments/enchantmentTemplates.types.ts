@@ -1,4 +1,4 @@
-import type { MagicItemRarity } from '../magicItems'
+import type { MagicItemRarity, Money } from '../equipment.types'
 
 export type EnchantableSlot = 'weapon' | 'armor' | 'shield'
 
@@ -13,7 +13,7 @@ export type EnchantmentTemplate = {
   name: string
   appliesTo: EnchantableSlot[]
   rarity?: MagicItemRarity
-  cost?: string
+  cost?: Money
   requiresAttunement?: boolean | string
   effectsBySlot: Partial<Record<EnchantableSlot, EffectDescriptor[]>>
 }

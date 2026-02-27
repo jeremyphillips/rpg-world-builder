@@ -6,7 +6,7 @@ import type {
   MergePolicy,
 } from '@/features/mechanics/domain/core/rules/ruleConfig';
 import type { WealthTier } from '@/data/classes.types';
-import type { MagicItemRarity } from '@/data/equipment/magicItems';
+import type { MagicItemRarity } from '@/data/equipment';
 import type { AbilityId } from '@/shared/types/character.core';
 
 export type {
