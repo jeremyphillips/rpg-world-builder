@@ -11,7 +11,7 @@ export const armor: readonly ArmorItem[] = [
     baseAC: 11,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-full'],
-    weight: '10 lb.',
+    weight: { value: 10, unit: 'lb' },
   },
   {
     id: 'studded-leather',
@@ -22,7 +22,7 @@ export const armor: readonly ArmorItem[] = [
     baseAC: 12,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-full'],
-    weight: '13 lb.',
+    weight: { value: 13, unit: 'lb' },
   },
 
   // MEDIUM ARMOR
@@ -35,7 +35,7 @@ export const armor: readonly ArmorItem[] = [
     baseAC: 12,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-max-2'],
-    weight: '12 lb.',
+    weight: { value: 12, unit: 'lb' },
   },
   {
     id: 'chain-shirt',
@@ -46,7 +46,7 @@ export const armor: readonly ArmorItem[] = [
     baseAC: 13,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-max-2'],
-    weight: '20 lb.',
+    weight: { value: 20, unit: 'lb' },
   },
   {
     id: 'scale-mail',
@@ -57,7 +57,7 @@ export const armor: readonly ArmorItem[] = [
     baseAC: 14,
     stealthDisadvantage: true,
     properties: ['dexterity-modifier-max-2'],
-    weight: '45 lb.',
+    weight: { value: 45, unit: 'lb' },
   },
   {
     id: 'breastplate',
@@ -68,7 +68,7 @@ export const armor: readonly ArmorItem[] = [
     baseAC: 14,
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-max-2'],
-    weight: '20 lb.',
+    weight: { value: 20, unit: 'lb' },
   },
   {
     id: 'half-plate',
@@ -79,7 +79,7 @@ export const armor: readonly ArmorItem[] = [
     baseAC: 15,
     stealthDisadvantage: true,
     properties: ['dexterity-modifier-max-2'],
-    weight: '40 lb.',
+    weight: { value: 40, unit: 'lb' },
   },
 
   // HEAVY ARMOR
@@ -92,7 +92,7 @@ export const armor: readonly ArmorItem[] = [
     baseAC: 14,
     stealthDisadvantage: true,
     properties: ['dexterity-modifier-none'],
-    weight: '40 lb.',
+    weight: { value: 40, unit: 'lb' },
   },
   {
     id: 'chain-mail',
@@ -104,7 +104,7 @@ export const armor: readonly ArmorItem[] = [
     stealthDisadvantage: true,
     minStrength: 13,
     properties: ['dexterity-modifier-none'],
-    weight: '55 lb.',
+    weight: { value: 55, unit: 'lb' },
   },
   {
     id: 'splint',
@@ -116,7 +116,7 @@ export const armor: readonly ArmorItem[] = [
     stealthDisadvantage: true,
     minStrength: 15,
     properties: ['dexterity-modifier-none'],
-    weight: '60 lb.',
+    weight: { value: 60, unit: 'lb' },
   },
   {
     id: 'plate',
@@ -128,7 +128,7 @@ export const armor: readonly ArmorItem[] = [
     stealthDisadvantage: true,
     minStrength: 15,
     properties: ['dexterity-modifier-none'],
-    weight: '65 lb.',
+    weight: { value: 65, unit: 'lb' },
   },
 
   // SHIELDS
@@ -141,7 +141,7 @@ export const armor: readonly ArmorItem[] = [
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-none'],
     acBonus: 2,
-    weight: '6 lb.',
+    weight: { value: 6, unit: 'lb' },
   },
   {
     id: 'shield-steel',
@@ -152,6 +152,6 @@ export const armor: readonly ArmorItem[] = [
     stealthDisadvantage: false,
     properties: ['dexterity-modifier-none'],
     acBonus: 2,
-    weight: '6 lb.',
+    weight: { value: 6, unit: 'lb' },
   },
 ];

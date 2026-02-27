@@ -1,9 +1,14 @@
 import type { ArmorItem, GearItem, WeaponItem } from '@/data/equipment'
+import type { WeightUnit, Weight } from '@/shared/weight/types'
 
-export const parseWeight = (weightStr?: string): number => {
-  if (!weightStr) return 0
-  const match = weightStr.match(/([\d.]+)/)
-  return match ? Number(match[1]) : 0
+const WEIGHT_TO_LB: Record<WeightUnit, number> = {
+  lb: 1,
+  oz: 1 / 16,
+}
+
+export const weightToLb = (weight?: Weight): number => {
+  if (!weight) return 0
+  return weight.value * WEIGHT_TO_LB[weight.unit as WeightUnit]
 }
 
 export const calculateEquipmentWeight = (
@@ -14,20 +19,17 @@ export const calculateEquipmentWeight = (
   armorData: readonly ArmorItem[],
   gearData: readonly GearItem[] = []
 ): number => {
-  const weaponWeight = weapons.reduce((sum, id) => {
-    const item = weaponData.find(w => w.id === id)
-    return sum + parseWeight(item?.weight)
-  }, 0)
 
-  const armorWeight = armor.reduce((sum, id) => {
-    const item = armorData.find(a => a.id === id)
-    return sum + parseWeight(item?.weight)
-  }, 0)
+  const weaponMap = new Map(weaponData.map(w => [w.id, w]))
+  const armorMap = new Map(armorData.map(a => [a.id, a]))
+  const gearMap = new Map(gearData.map(g => [g.id, g]))
 
-  const gearWeight = gear.reduce((sum, id) => {
-    const item = gearData.find(g => g.id === id)
-    return sum + parseWeight(item?.weight)
-  }, 0)
+  const sumWeight = (ids: string[], map: Map<string, { weight?: Weight }>) =>
+    ids.reduce((sum, id) => sum + weightToLb(map.get(id)?.weight), 0)
+
+  const weaponWeight = sumWeight(weapons, weaponMap)
+  const armorWeight = sumWeight(armor, armorMap)
+  const gearWeight = sumWeight(gear, gearMap)
 
   return weaponWeight + armorWeight + gearWeight
 }

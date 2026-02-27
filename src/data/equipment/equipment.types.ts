@@ -5,7 +5,10 @@ export type EquipmentBase = {
   name: string
   category: string
   description?: string
-  weight: string
+  weight?: {
+    value: number
+    unit: string
+  }
   cost: Money
 }
 
@@ -14,7 +17,6 @@ export interface ArmorItem extends EquipmentBase {
   baseAC?: number
   stealthDisadvantage: boolean
   properties: string[]
-  weight: string
   minStrength?: number
   acBonus?: number
 }

@@ -79,7 +79,7 @@ export default function EquipmentCard({ equipment, onEdit }: EquipmentCardProps)
 
         {(equipment?.weight ?? 0) > 0 && (
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
-            Total weight: {equipment?.weight ?? 0} lbs
+            Total weight: {equipment?.weight ?? 0} {equipment?.weight?.unit ?? 'lbs'}
           </Typography>
         )}
       </CardContent>
