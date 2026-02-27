@@ -43,7 +43,6 @@ export async function getSessionsForUser(userId: string, role: string) {
     .find({
       $or: [
         { 'membership.ownerId': oid },
-        { 'membership.adminId': oid },
         { _id: { $in: memberCampaignIds } },
       ],
     })

@@ -116,11 +116,10 @@ export async function getCampaignsForCharacter(characterId: string) {
     .find({
       $or: [
         { 'membership.ownerId': userId },
-        { 'membership.adminId': userId },
         { _id: { $in: memberCampaignIds } },
       ],
     })
-    .project({ identity: 1, 'membership.ownerId': 1, 'membership.adminId': 1 })
+    .project({ identity: 1, 'membership.ownerId': 1 })
     .toArray()
 
   const resolveOwner = (m: any) => m?.ownerId ?? m?.adminId
@@ -218,7 +217,7 @@ export async function isCampaignAdminForCharacter(
     .collection('campaigns')
     .findOne({
       _id: { $in: campaignIds },
-      $or: [{ 'membership.ownerId': uid }, { 'membership.adminId': uid }],
+      $or: [{ 'membership.ownerId': uid }],
     })
 
   return match !== null

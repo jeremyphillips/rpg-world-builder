@@ -25,7 +25,7 @@ export default function EquipmentRoute() {
   }, [activeCampaignId])
 
   const equipmentLink = (itemId: string) =>
-    activeCampaignId ? ROUTES.EQUIPMENT_DETAILS.replace(':id', activeCampaignId).replace(':equipmentId', itemId) : undefined
+    activeCampaignId ? ROUTES.WORLD_EQUIPMENT_DETAILS.replace(':id', activeCampaignId).replace(':equipmentId', itemId) : undefined
 
   const breadcrumbs = useBreadcrumbs()
 

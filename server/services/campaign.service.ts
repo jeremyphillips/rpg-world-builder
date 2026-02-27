@@ -55,7 +55,6 @@ export async function getCampaignsForUser(userId: string, role: string) {
     .find({
       $or: [
         { 'membership.ownerId': oid },
-        { 'membership.adminId': oid },
         { _id: { $in: memberCampaignIds } },
       ],
     })
@@ -85,7 +84,7 @@ export async function getOwnedCampaignIds(
   const campaigns = await campaignsCollection()
     .find({
       _id: { $in: campaignIds.map((id) => new mongoose.Types.ObjectId(id)) },
-      $or: [{ 'membership.ownerId': oid }, { 'membership.adminId': oid }],
+      $or: [{ 'membership.ownerId': oid }],
     })
     .project({ _id: 1 })
     .toArray()

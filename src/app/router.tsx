@@ -76,19 +76,17 @@ export const router = createBrowserRouter([
           { path: ROUTES.NEW_CHARACTER, element: <NewCharacterRoute /> },
           { path: ROUTES.CHARACTER, element: <CharacterRoute /> },
           { path: ROUTES.CAMPAIGNS, element: <CampaignsRoute /> },
-          { path: ROUTES.RULES, element: <RulesRoute /> },
-          { path: ROUTES.PARTY, element: <PartyRoute /> },
           {
             path: ROUTES.CAMPAIGN,
             element: <CampaignRoute />,
             children: [
-              { path: 'equipment', element: <EquipmentRoute /> },
-              { path: 'equipment/:equipmentId', element: <EquipmentDetailsRoute /> },
               {
                 path: 'world',
                 element: <WorldLayout />,
                 children: [
                   { index: true, element: <Navigate to="locations" replace /> },
+                  { path: 'equipment', element: <EquipmentRoute /> },
+                  { path: 'equipment/:equipmentId', element: <EquipmentDetailsRoute /> },
                   { path: 'locations', element: <LocationsRoute /> },
                   { path: 'locations/:locationId', element: <LocationRoute /> },
                   { path: 'npcs', element: <NpcsRoute /> },
@@ -105,18 +103,12 @@ export const router = createBrowserRouter([
               { path: 'sessions/:sessionId', element: <SessionRoute /> },
               { path: 'messages', element: <MessagingRoute /> },
               { path: 'messages/:conversationId', element: <MessagingRoute /> },
-            ],
-          },
-          { path: ROUTES.INVITE, element: <InviteRoute /> },
-          { path: ROUTES.ACCOUNT_SETTINGS, element: <AccountSettingsRoute /> },
-          {
-            path: ROUTES.ADMIN,
-            element: <AdminGuard />,
-            children: [
+              { path: 'party', element: <PartyRoute /> },
+              { path: 'rules', element: <RulesRoute /> },
               {
-                element: <CampaignAdminRoute />,
+                path: 'admin',
+                element: <AdminGuard />,
                 children: [
-                  { index: true, element: <Navigate to={ROUTES.ADMIN_INVITES} replace /> },
                   { path: 'invites', element: <CampaignAdminInvitesRoute /> },
                   { path: 'settings', element: <CampaignAdminSettingsRoute /> },
                   { path: 'ruleset', element: <CampaignRulesetEditorRoute /> },
@@ -124,6 +116,23 @@ export const router = createBrowserRouter([
               },
             ],
           },
+          // { path: ROUTES.INVITE, element: <InviteRoute /> },
+          // { path: ROUTES.ACCOUNT_SETTINGS, element: <AccountSettingsRoute /> },
+          // {
+          //   path: ROUTES.ADMIN,
+          //   element: <AdminGuard />,
+          //   children: [
+          //     {
+          //       element: <CampaignAdminRoute />,
+          //       children: [
+          //         { index: true, element: <Navigate to={ROUTES.ADMIN_INVITES} replace /> },
+          //         { path: 'invites', element: <CampaignAdminInvitesRoute /> },
+          //         { path: 'settings', element: <CampaignAdminSettingsRoute /> },
+          //         { path: 'ruleset', element: <CampaignRulesetEditorRoute /> },
+          //       ],
+          //     },
+          //   ],
+          // },
         ],
       },
     ],

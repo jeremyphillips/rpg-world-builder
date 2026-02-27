@@ -12,7 +12,7 @@ import {
   createDefaultCampaignRulesetPatch,
   DEFAULT_SYSTEM_ID,
 } from '@/features/mechanics/domain/core/rules/campaignRulesetRepo';
-import { buildItemsWithAllowed, toggleAllowedIds } from '../domain/contentPolicy';
+import { buildItemsWithAllowed, toggleAllowedIds } from '@/features/content/domain/contentPolicy';
 import { toContentViewerContext } from '../domain/viewerContext';
 
 export interface UseCampaignContentListControllerOptions {

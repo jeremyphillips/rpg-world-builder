@@ -41,8 +41,8 @@ async function enrichConversation(
 
 async function getCampaignMemberUserIds(campaignId: string): Promise<string[]> {
   const campaign = await getCampaignById(campaignId)
-  const ownerId = (campaign?.membership?.ownerId ?? campaign?.membership?.adminId)
-    ? (campaign.membership.ownerId ?? campaign.membership.adminId).toString()
+  const ownerId = (campaign?.membership?.ownerId)
+    ? (campaign.membership.ownerId).toString()
     : null
   const members = await campaignMemberService.getCampaignMembersByCampaign(campaignId)
   const memberIds = (

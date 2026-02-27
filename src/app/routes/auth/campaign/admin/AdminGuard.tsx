@@ -10,7 +10,7 @@ type CampaignWithViewer = { _id: string; viewer?: CampaignViewer }
 
 export default function AdminGuard() {
   const { user } = useAuth()
-  const { activeCampaignId } = useActiveCampaign()
+  const { campaignId: activeCampaignId } = useActiveCampaign()
   const [canAccess, setCanAccess] = useState(false)
   const [checking, setChecking] = useState(true)
 

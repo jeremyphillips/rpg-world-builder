@@ -30,7 +30,7 @@ export async function approveCampaignMember(req: Request, res: Response) {
     return
   }
 
-  const ownerId = campaign.membership.ownerId ?? campaign.membership.adminId
+  const ownerId = campaign.membership.ownerId
   const isOwner = ownerId?.equals(new mongoose.Types.ObjectId(userId)) ?? false
   if (!isOwner) {
     res.status(403).json({ error: 'Only the campaign owner can approve characters' })
@@ -106,7 +106,7 @@ export async function rejectCampaignMember(req: Request, res: Response) {
     return
   }
 
-  const rejectOwnerId = campaign.membership.ownerId ?? campaign.membership.adminId
+  const rejectOwnerId = campaign.membership.ownerId
   const isRejectOwner = rejectOwnerId?.equals(new mongoose.Types.ObjectId(userId)) ?? false
   if (!isRejectOwner) {
     res.status(403).json({ error: 'Only the campaign owner can reject characters' })
@@ -175,7 +175,7 @@ export async function updateCharacterStatus(req: Request, res: Response) {
     return
   }
 
-  const statusOwnerId = campaign.membership.ownerId ?? campaign.membership.adminId
+  const statusOwnerId = campaign.membership.ownerId
   const isCampaignOwner = statusOwnerId?.equals(new mongoose.Types.ObjectId(userId)) ?? false
   const isCharacterOwner = m.userId.equals(new mongoose.Types.ObjectId(userId))
 

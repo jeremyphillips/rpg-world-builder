@@ -37,7 +37,7 @@ import ShieldIcon from '@mui/icons-material/Shield'
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'
 import SettingsIcon from '@mui/icons-material/Settings'
 import GroupAddIcon from '@mui/icons-material/GroupAdd'
-import LightbulbIcon from '@mui/icons-material/Lightbulb'
+import GavelIcon from '@mui/icons-material/Gavel'
 import EventIcon from '@mui/icons-material/Event'
 import PlaceIcon from '@mui/icons-material/Place'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
@@ -281,6 +281,16 @@ export default function AuthLayout() {
                   <ListItemIcon sx={{ minWidth: 36 }}><DashboardIcon fontSize="small" /></ListItemIcon>
                   <ListItemText primary="Overview" slotProps={{ primary: { fontSize: '0.85rem' } }} />
                 </ListItemButton>
+                <ListItemButton
+                  component={NavLink}
+                  to={activeCampaignId ? ROUTES.CAMPAIGN_RULES.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
+                  selected={activeCampaignId ? location.pathname === `/campaigns/${activeCampaignId}/rules` : false}
+                  disabled={!activeCampaignId}
+                  sx={{ pl: 0 }}
+                >
+                  <ListItemIcon sx={{ minWidth: 36 }}><GavelIcon fontSize="small" /></ListItemIcon>
+                  <ListItemText primary="Rules" slotProps={{ primary: { fontSize: '0.85rem' } }} />
+                </ListItemButton>
                 {/* World */}
                 <ListItemButton
                   onClick={() => activeCampaignId && setWorldExpanded((v) => !v)}
@@ -301,6 +311,15 @@ export default function AuthLayout() {
                         sx={{ pl: 2 }}
                       >
                         <ListItemText primary="Races" slotProps={{ primary: { fontSize: '0.8rem' } }} />
+                      </ListItemButton>
+                      <ListItemButton
+                        component={NavLink}
+                        to={activeCampaignId ? ROUTES.WORLD_EQUIPMENT.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
+                        selected={activeCampaignId ? location.pathname.startsWith(`/campaigns/${activeCampaignId}/equipment`) : false}
+                        disabled={!activeCampaignId}
+                        sx={{ pl: 2 }}
+                      >
+                        <ListItemText primary="Equipment" slotProps={{ primary: { fontSize: '0.85rem' } }} />
                       </ListItemButton>
                       <ListItemButton
                         component={NavLink}
@@ -331,16 +350,6 @@ export default function AuthLayout() {
                 )}
                 <ListItemButton
                   component={NavLink}
-                  to={activeCampaignId ? ROUTES.EQUIPMENT.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
-                  selected={activeCampaignId ? location.pathname.startsWith(`/campaigns/${activeCampaignId}/equipment`) : false}
-                  disabled={!activeCampaignId}
-                  sx={{ pl: 0 }}
-                >
-                  <ListItemIcon sx={{ minWidth: 36 }}><Inventory2Icon fontSize="small" /></ListItemIcon>
-                  <ListItemText primary="Equipment" slotProps={{ primary: { fontSize: '0.85rem' } }} />
-                </ListItemButton>
-                <ListItemButton
-                  component={NavLink}
                   to={activeCampaignId ? ROUTES.SESSIONS.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
                   selected={activeCampaignId ? location.pathname.startsWith(`/campaigns/${activeCampaignId}/sessions`) : false}
                   disabled={!activeCampaignId}
@@ -349,15 +358,6 @@ export default function AuthLayout() {
                   <ListItemIcon sx={{ minWidth: 36 }}><EventIcon fontSize="small" /></ListItemIcon>
                   <ListItemText primary="Sessions" slotProps={{ primary: { fontSize: '0.85rem' } }} />
                 </ListItemButton>
-                {/* <ListItemButton
-                  component={NavLink}
-                  to={ROUTES.PARTY}
-                  selected={location.pathname === ROUTES.PARTY}
-                  sx={{ pl: 0 }}
-                >
-                  <ListItemIcon sx={{ minWidth: 36 }}><GroupsIcon fontSize="small" /></ListItemIcon>
-                  <ListItemText primary="Party" slotProps={{ primary: { fontSize: '0.85rem' } }} />
-                </ListItemButton> */}
                 <ListItemButton
                   component={NavLink}
                   to={activeCampaignId ? ROUTES.MESSAGING.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
@@ -380,7 +380,7 @@ export default function AuthLayout() {
                 </ListItemButton>
                 {canAccessAdmin && (
                   <>
-                    <ListItemButton
+                    {/* <ListItemButton
                       component={NavLink}
                       to={ROUTES.ADMIN_INVITES}
                       selected={location.pathname.startsWith(ROUTES.ADMIN)}
@@ -388,24 +388,32 @@ export default function AuthLayout() {
                     >
                       <ListItemIcon sx={{ minWidth: 36 }}><GroupAddIcon fontSize="small" /></ListItemIcon>
                       <ListItemText primary="Invites" slotProps={{ primary: { fontSize: '0.85rem' } }} />
-                    </ListItemButton>
+                    </ListItemButton> */}
+                    
+                    <Divider />
+
+                    <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 1, mt: 2, fontSize: '0.7rem' }}>
+                      Campaign Settings
+                    </Typography>
+
                     <ListItemButton
                       component={NavLink}
-                      to={ROUTES.ADMIN_BRAINSTORMING}
-                      selected={location.pathname === ROUTES.ADMIN_BRAINSTORMING}
-                      sx={{ pl: 0 }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 36 }}><LightbulbIcon fontSize="small" /></ListItemIcon>
-                      <ListItemText primary="Brainstorming" slotProps={{ primary: { fontSize: '0.85rem' } }} />
-                    </ListItemButton>
-                    <ListItemButton
-                      component={NavLink}
-                      to={ROUTES.ADMIN_SETTINGS}
-                      selected={location.pathname === ROUTES.ADMIN_SETTINGS}
+                      to={activeCampaignId ? ROUTES.CAMPAIGN_ADMIN_SETTINGS.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
+                      selected={activeCampaignId ? location.pathname === ROUTES.CAMPAIGN_ADMIN_SETTINGS.replace(':id', activeCampaignId) : false}
                       sx={{ pl: 0 }}
                     >
                       <ListItemIcon sx={{ minWidth: 36 }}><SettingsIcon fontSize="small" /></ListItemIcon>
                       <ListItemText primary="Settings" slotProps={{ primary: { fontSize: '0.85rem' } }} />
+                    </ListItemButton>
+
+                    <ListItemButton
+                      component={NavLink}
+                      to={activeCampaignId ? ROUTES.CAMPAIGN_ADMIN_RULESET.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
+                      selected={activeCampaignId ? location.pathname === ROUTES.CAMPAIGN_ADMIN_RULESET.replace(':id', activeCampaignId) : false}
+                      sx={{ pl: 0 }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 36 }}><GavelIcon fontSize="small" /></ListItemIcon>
+                      <ListItemText primary="Ruleset" slotProps={{ primary: { fontSize: '0.85rem' } }} />
                     </ListItemButton>
                   </>
                 )}
