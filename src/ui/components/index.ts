@@ -8,6 +8,7 @@ export {
   ImageUploadField,
   VisibilityField,
   VisibilityChip,
+  DEFAULT_VISIBILITY_PUBLIC,
   EditableField,
   EditableTextField,
   EditableSelect,

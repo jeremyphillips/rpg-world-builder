@@ -13,6 +13,8 @@ export default function CampaignsRoute() {
     createCampaign
   } = useCampaigns()
 
+  console.log('campaigns', campaigns);
+  
   const [showCreateForm, setShowCreateForm] = useState(false)
 
   const canCreate = user?.role === 'admin' || user?.role === 'superadmin'

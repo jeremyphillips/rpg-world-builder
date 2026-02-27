@@ -111,8 +111,9 @@ export async function respondToSessionInvite(
   const campaign = await campaignsCollection().findOne({
     _id: invite.campaignId,
   })
-  if (campaign?.membership?.adminId) {
-    const adminUserId = campaign.membership.adminId.toString()
+  const sessionOwner = campaign?.membership?.ownerId ?? campaign?.membership?.adminId
+  if (sessionOwner) {
+    const adminUserId = sessionOwner.toString()
     if (adminUserId !== userId) {
       // Look up the user's name for the notification message
       const userDoc = await db().collection('users').findOne({

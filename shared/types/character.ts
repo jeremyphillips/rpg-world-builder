@@ -17,10 +17,5 @@ export type CharacterDoc = Character & {
 
   createdAt: string
   updatedAt: string
-
-  /** @deprecated Legacy field from pre-multiclass schema — use `classes[0].classId` instead. */
-  class?: string
-  /** @deprecated Legacy field from pre-multiclass schema — use `totalLevel` instead. */
-  level?: number
 }
 

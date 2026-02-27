@@ -117,12 +117,12 @@ export async function createCharacter(req: Request, res: Response) {
       )
 
       if (campaign && user) {
-        const adminId = campaign.membership?.adminId
+        const charCtrlOwnerId = campaign.membership?.ownerId ?? campaign.membership?.adminId
         const campaignName = campaign.identity?.name as string
 
-        if (adminId) {
+        if (charCtrlOwnerId) {
           await notificationService.createNotification({
-            userId: adminId,
+            userId: charCtrlOwnerId,
             type: 'character_pending_approval',
             requiresAction: true,
             context: {

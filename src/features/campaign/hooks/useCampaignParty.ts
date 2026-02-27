@@ -5,6 +5,7 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 /** Party member (character in a campaign party) as returned from the API. */
 export type PartyMemberApiRow = {
   _id: string
+  userId?: string
   name?: string
   race?: string
   class?: string
@@ -19,6 +20,7 @@ export type PartyMemberApiRow = {
 /** Normalized party member for use in the app. */
 export type PartyMember = {
   _id: string
+  userId: string
   name: string
   race: string
   class: string
@@ -66,6 +68,7 @@ export function useCampaignParty(status: string = 'approved') {
 
         const mapped = rows.map((c) => ({
           _id: c._id,
+          userId: c.userId ?? '',
           name: c.name ?? "Unnamed",
           race: c.race ?? "—",
           class: c.class ?? "—",

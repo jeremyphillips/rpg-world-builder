@@ -71,12 +71,12 @@ export interface Setting {
   locations?: Location[]
 }
 
-export interface Race {
-  id: string;
-  name: string;
-  description: string;
-  campaigns?: SettingId[];
-}
+export type {
+  Race,
+  RaceId,
+  RaceSummary,
+  RaceInput,
+} from '@/features/content/domain/types';
 
 export type SettingId = 
   | 'alQadim'

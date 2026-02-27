@@ -9,6 +9,7 @@ import MenuItem from '@mui/material/MenuItem'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiLink from '@mui/material/Link'
+import Switch from '@mui/material/Switch'
 
 import SearchIcon from '@mui/icons-material/Search'
 
@@ -37,6 +38,12 @@ export interface AppDataGridColumn<T> {
   valueFormatter?: (value: unknown) => string
   /** Custom cell renderer — escape hatch for rich cell content (e.g. Chips) */
   renderCell?: (params: GridRenderCellParams) => ReactNode
+  /** If true, renders a MUI Switch. The field value is read as a boolean. */
+  switchColumn?: boolean
+  /** Called when the switch is toggled (requires switchColumn) */
+  onSwitchChange?: (row: T, checked: boolean) => void
+  /** Disable the switch for specific rows (requires switchColumn) */
+  isSwitchDisabled?: (row: T) => boolean
 }
 
 export interface AppDataGridProps<T> {
@@ -151,7 +158,6 @@ export default function AppDataGrid<T>({
         renderCell: col.renderCell,
       }
 
-      // Render link column cells as router Links (overrides renderCell)
       if (col.linkColumn && getDetailLink) {
         def.renderCell = (params) => {
           const row = params.row as T
@@ -171,6 +177,20 @@ export default function AppDataGrid<T>({
             >
               {params.value as string}
             </MuiLink>
+          )
+        }
+      }
+
+      if (col.switchColumn) {
+        def.renderCell = (params) => {
+          const row = params.row as T
+          return (
+            <Switch
+              checked={Boolean(params.value)}
+              disabled={col.isSwitchDisabled?.(row)}
+              onChange={(_e, checked) => col.onSwitchChange?.(row, checked)}
+              size="small"
+            />
           )
         }
       }

@@ -30,7 +30,7 @@ export function resolveCampaignRulesContext(
     (campaign?.rulesetId ? ruleSetsById[campaign.rulesetId] : undefined)
     ?? defaultRuleset
 
-  const catalog = buildCampaignCatalog(systemCatalog, ruleset)
+  const catalog = buildCampaignCatalog(systemCatalog, {}, ruleset)
 
   return { ruleset, catalog }
 }

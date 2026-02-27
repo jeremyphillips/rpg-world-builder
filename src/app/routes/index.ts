@@ -34,8 +34,11 @@ export {
   AdminGuard,
   CampaignAdminRoute,
   CampaignAdminInvitesRoute,
-  CampaignAdminBrainstormingRoute,
   CampaignAdminSettingsRoute,
+  CampaignRulesetEditorRoute,
+  RaceListRoute,
+  RaceDetailRoute,
+  RaceEditorRoute,
   AccountRoute,
   AccountSettingsRoute
 } from './auth'

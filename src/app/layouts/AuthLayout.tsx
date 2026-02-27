@@ -11,8 +11,8 @@ import { UserAvatar } from '@/features/user/components'
 
 import { alpha } from '@mui/material/styles'
 import Box from '@mui/material/Box'
-// import AppBar from '@mui/material/AppBar'
-// import Toolbar from '@mui/material/Toolbar'
+import AppBar from '@mui/material/AppBar'
+import Toolbar from '@mui/material/Toolbar'
 import Drawer from '@mui/material/Drawer'
 import List from '@mui/material/List'
 import ListItemButton from '@mui/material/ListItemButton'
@@ -48,7 +48,10 @@ import LogoutIcon from '@mui/icons-material/Logout'
 // import NotificationsIcon from '@mui/icons-material/Notifications'
 import DoneAllIcon from '@mui/icons-material/DoneAll'
 import MailOutlineIcon from '@mui/icons-material/MailOutline'
+import NotificationsIcon from '@mui/icons-material/Notifications'
+
 import type { Campaign } from '@/shared/types/campaign.types'
+
 const DRAWER_WIDTH = 260
 const HEADER_HEIGHT = 48
 
@@ -83,7 +86,7 @@ export default function AuthLayout() {
   const [worldExpanded, setWorldExpanded] = useState(false)
   const popoverOpen = Boolean(anchorEl)
 
-  const canAccessAdmin = user?.role === 'superadmin' || (activeCampaignId && user && String(campaigns.find((c) => c._id === activeCampaignId)?.membership?.adminId) === user.id)
+  const canAccessAdmin = user?.role === 'superadmin' || (activeCampaignId && user && String(campaigns.find((c) => c._id === activeCampaignId)?.membership?.ownerId) === user.id)
 
   // AbortController prevents StrictMode from completing both duplicate fetches,
   // which would overwrite campaigns state with a second object reference and
@@ -291,6 +294,14 @@ export default function AuthLayout() {
                 {activeCampaignId && (
                   <Collapse in={worldExpanded} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
+                    <ListItemButton
+                        component={NavLink}
+                        to={ROUTES.WORLD_RACES.replace(':id', activeCampaignId)}
+                        selected={location.pathname === `/campaigns/${activeCampaignId}/world/races`}
+                        sx={{ pl: 2 }}
+                      >
+                        <ListItemText primary="Races" slotProps={{ primary: { fontSize: '0.8rem' } }} />
+                      </ListItemButton>
                       <ListItemButton
                         component={NavLink}
                         to={ROUTES.WORLD_LOCATIONS.replace(':id', activeCampaignId)}
@@ -421,7 +432,7 @@ export default function AuthLayout() {
       </Drawer>
 
       {/* Top header bar */}
-      {/* <AppBar
+      <AppBar
         position="fixed"
         elevation={0}
         sx={{
@@ -439,9 +450,17 @@ export default function AuthLayout() {
             pr: 2,
           }}
         >
-
+          <IconButton
+            size="small"
+            onClick={(e) => setAnchorEl(e.currentTarget)}
+            sx={{ color: 'var(--mui-palette-text-primary)' }}
+          >
+            <Badge badgeContent={unreadCount} color="error" max={99}>
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
         </Toolbar>
-      </AppBar> */}
+      </AppBar>
 
       {/* Notification popover */}
       <Popover

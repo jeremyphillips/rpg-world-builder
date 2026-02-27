@@ -55,7 +55,7 @@ export default function CampaignRoute() {
   } | null>(null)
   const [confirming, setConfirming] = useState(false)
 
-  const isOwner = activeCampaign?.membership.adminId === user?.id
+  const isOwner = activeCampaign?.membership.ownerId === user?.id
 
   async function sendInvite(email: string) {
     const data = await apiFetch<{ message?: string }>(

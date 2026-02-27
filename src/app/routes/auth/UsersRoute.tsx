@@ -38,6 +38,7 @@ function roleColor(role: string): 'error' | 'warning' | 'default' {
 // ---------------------------------------------------------------------------
 const columns: AppDataGridColumn<UserRow>[] = [
   { field: 'username', headerName: 'Name', flex: 1, minWidth: 140 },
+  { field: 'id', headerName: 'id', flex: 1, minWidth: 140 },
   { field: 'email', headerName: 'Email', flex: 1.5, minWidth: 200 },
   {
     field: 'role',

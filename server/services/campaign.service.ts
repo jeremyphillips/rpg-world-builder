@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
-import type { CampaignRole } from '../../shared/types'
+import type { CampaignMemberStoredRole } from '../../shared/types'
 import { getPublicUrl } from '../services/image.service'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
@@ -10,6 +10,11 @@ const campaignMembersCollection = () => db().collection('campaignMembers')
 // ---------------------------------------------------------------------------
 // Normalization
 // ---------------------------------------------------------------------------
+
+/** Resolve the campaign owner ID, preferring ownerId with adminId as migration fallback. */
+function resolveOwnerId(membership: any) {
+  return membership?.ownerId ?? membership?.adminId
+}
 
 export function normalizeCampaign(campaign: any, memberCount?: number) {
   if (!campaign) return null
@@ -25,7 +30,7 @@ export function normalizeCampaign(campaign: any, memberCount?: number) {
     },
     configuration: campaign.configuration,
     membership: {
-      adminId: campaign.membership?.adminId,
+      ownerId: resolveOwnerId(campaign.membership),
     },
     participation: campaign.participation,
     memberCount: memberCount ?? 0,
@@ -49,6 +54,7 @@ export async function getCampaignsForUser(userId: string, role: string) {
   const campaigns = await campaignsCollection()
     .find({
       $or: [
+        { 'membership.ownerId': oid },
         { 'membership.adminId': oid },
         { _id: { $in: memberCampaignIds } },
       ],
@@ -69,6 +75,23 @@ export async function getCampaignsForUser(userId: string, role: string) {
   return campaigns.map((c) => normalizeCampaign(c, countMap.get(c._id.toString()) ?? 0))
 }
 
+/** Returns the set of campaign IDs (from `campaignIds`) that `userId` owns. */
+export async function getOwnedCampaignIds(
+  userId: string,
+  campaignIds: string[],
+): Promise<Set<string>> {
+  if (campaignIds.length === 0) return new Set()
+  const oid = new mongoose.Types.ObjectId(userId)
+  const campaigns = await campaignsCollection()
+    .find({
+      _id: { $in: campaignIds.map((id) => new mongoose.Types.ObjectId(id)) },
+      $or: [{ 'membership.ownerId': oid }, { 'membership.adminId': oid }],
+    })
+    .project({ _id: 1 })
+    .toArray()
+  return new Set(campaigns.map((c) => c._id.toString()))
+}
+
 export async function getCampaignById(id: string) {
   const campaignId = new mongoose.Types.ObjectId(id)
   const campaign = await campaignsCollection().findOne({ _id: campaignId })
@@ -83,11 +106,11 @@ export async function getCampaignById(id: string) {
 }
 
 export async function createCampaign(
-  adminId: string,
+  ownerId: string,
   data: { name: string; setting: string; edition: string; description?: string }
 ) {
   const now = new Date()
-  const adminOid = new mongoose.Types.ObjectId(adminId)
+  const ownerOid = new mongoose.Types.ObjectId(ownerId)
 
   const result = await campaignsCollection().insertOne({
     identity: {
@@ -101,7 +124,7 @@ export async function createCampaign(
       rules: {}
     },
     membership: {
-      adminId: adminOid,
+      ownerId: ownerOid,
     },
     participation: {
       characters: []
@@ -197,7 +220,7 @@ export async function getMembersForMessaging(campaignId: string) {
   if (!campaign) return []
 
   const usersCollection = () => db().collection('users')
-  const adminId = campaign.membership.adminId as mongoose.Types.ObjectId
+  const ownerId = resolveOwnerId(campaign.membership) as mongoose.Types.ObjectId
 
   const approvedMembers = await campaignMembersCollection()
     .find({
@@ -207,7 +230,7 @@ export async function getMembersForMessaging(campaignId: string) {
     .toArray()
 
   const memberUserIds = new Set<string>()
-  memberUserIds.add(adminId.toString())
+  memberUserIds.add(ownerId.toString())
   ;(approvedMembers as { userId: mongoose.Types.ObjectId }[]).forEach((m) =>
     memberUserIds.add(m.userId.toString())
   )
@@ -295,7 +318,7 @@ export async function getPartyCharacters(campaignId: string, status?: string) {
 export async function updateMemberRole(
   campaignId: string,
   userId: string,
-  role: CampaignRole
+  role: CampaignMemberStoredRole
 ) {
   const uid = new mongoose.Types.ObjectId(userId)
   await campaignMembersCollection().updateMany(

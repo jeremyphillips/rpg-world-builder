@@ -4,31 +4,30 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { ROUTES } from '@/app/routes'
 import { apiFetch } from '@/app/api'
 import { useState, useEffect } from 'react'
+import type { CampaignViewer } from '@/shared/types/campaign.types'
 
-type CampaignWithAdmin = { _id: string; membership?: { adminId?: string } }
+type CampaignWithViewer = { _id: string; viewer?: CampaignViewer }
 
 export default function AdminGuard() {
   const { user } = useAuth()
   const { activeCampaignId } = useActiveCampaign()
-  const [isCampaignOwner, setIsCampaignOwner] = useState(false)
+  const [canAccess, setCanAccess] = useState(false)
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     if (!user || !activeCampaignId) {
-      setIsCampaignOwner(false)
+      setCanAccess(false)
       setChecking(false)
       return
     }
-    apiFetch<{ campaign?: CampaignWithAdmin }>(`/api/campaigns/${activeCampaignId}`)
+    apiFetch<{ campaign?: CampaignWithViewer }>(`/api/campaigns/${activeCampaignId}`)
       .then((data) => {
-        const adminId = data.campaign?.membership?.adminId
-        setIsCampaignOwner(String(adminId) === user.id)
+        const viewer = data.campaign?.viewer
+        setCanAccess(viewer?.isOwner || viewer?.isPlatformAdmin || false)
       })
-      .catch(() => setIsCampaignOwner(false))
+      .catch(() => setCanAccess(false))
       .finally(() => setChecking(false))
   }, [user, activeCampaignId])
-
-  const canAccess = user?.role === 'superadmin' || isCampaignOwner
 
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />
   if (checking) return null

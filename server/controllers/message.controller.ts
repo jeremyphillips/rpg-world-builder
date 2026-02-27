@@ -41,7 +41,9 @@ async function enrichConversation(
 
 async function getCampaignMemberUserIds(campaignId: string): Promise<string[]> {
   const campaign = await getCampaignById(campaignId)
-  const adminId = campaign?.membership?.adminId ? campaign.membership.adminId.toString() : null
+  const ownerId = (campaign?.membership?.ownerId ?? campaign?.membership?.adminId)
+    ? (campaign.membership.ownerId ?? campaign.membership.adminId).toString()
+    : null
   const members = await campaignMemberService.getCampaignMembersByCampaign(campaignId)
   const memberIds = (
     members as { userId: mongoose.Types.ObjectId; status: string }[]
@@ -49,7 +51,7 @@ async function getCampaignMemberUserIds(campaignId: string): Promise<string[]> {
     .filter((m) => m.status === 'approved')
     .map((m) => m.userId.toString())
   const all = new Set(memberIds)
-  if (adminId) all.add(adminId)
+  if (ownerId) all.add(ownerId)
   return [...all]
 }
 

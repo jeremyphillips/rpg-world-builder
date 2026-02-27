@@ -1,8 +1,7 @@
 import type { CharacterDoc, CharacterClassInfo } from '@/shared'
 import type { CampaignSummary } from '@/shared/types/campaign.types'
 import { classes as classesData } from '@/data'
-import { races } from '@/data/races'
-import { getNameById, getById } from '@/utils'
+import { getById } from '@/utils'
 import { getSubclassNameById } from '@/features/character/domain/reference'
 import { getXpForLevel } from '@/features/mechanics/domain/progression'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
@@ -13,7 +12,7 @@ import {
   EditableNumberField,
   EditableSelect
 } from '@/ui/fields'
-import type { Race, Alignment } from '@/data/types'
+import type { Alignment } from '@/data/types'
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -91,9 +90,9 @@ export default function IdentityBanner({
   onReactivate,
   onEditAlignment,
 }: IdentityBannerProps) {
-  const { ruleset } = useCampaignRules()
+  const { ruleset, catalog } = useCampaignRules()
   const xpTable = ruleset.mechanics?.progression?.experience
-  const raceName = (getNameById(races as unknown as { id: string; name: string }[], character.race) ?? character.race) || '—'
+  const raceName = catalog.racesById[character.race]?.name ?? character.race ?? '—'
   const alignmentName = getAlignmentName(alignmentOptions, character.alignment)
   const currentLevel = character.totalLevel ?? character.level ?? 1
   const maxLevel = xpTable?.length ? Math.max(...xpTable.map(e => e.level)) : 20

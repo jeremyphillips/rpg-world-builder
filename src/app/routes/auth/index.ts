@@ -31,5 +31,8 @@ export {
   CampaignAdminRoute,
   CampaignAdminSettingsRoute,
   CampaignAdminInvitesRoute,
-  CampaignAdminBrainstormingRoute,
+  CampaignRulesetEditorRoute,
+  RaceListRoute,
+  RaceDetailRoute,
+  RaceEditorRoute,
 } from './campaign'

@@ -1,15 +1,15 @@
 /**
- * Build a campaign-specific catalog by applying a Ruleset's ContentPolicies
- * to the system catalog.
+ * Build a campaign-specific catalog by merging system + campaign content and
+ * then applying the Ruleset's ContentRules.
  *
  * For each content category the logic is:
- *   1. `allow === true`  → pass through all system entries
- *   2. `allow` is string[] → pick only those ids
+ *   1. Merge: system entries + campaign entries (campaign wins on id collision)
+ *   2. Filter by policy ("all_except" / "only")
  *   3. Apply `overrides` (shallow merge per entry)
- *   4. Merge `custom` entries (custom wins on id collision)
+ *   4. Merge `custom` entries from the ruleset itself (custom wins on id collision)
  */
 import type { CampaignCatalog } from './systemCatalog'
-import type { Ruleset, ContentPolicy } from '@/data/ruleSets'
+import type { Ruleset, ContentRule } from '@/data/ruleSets'
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -24,50 +24,64 @@ function applyOverride<T extends Record<string, unknown>>(
 }
 
 /**
- * Filter + override + merge custom + deny for a single content category.
- *
- * Precedence: allowAll/allow → overrides → custom → **deny** (applied last).
+ * Filter + override + merge custom for a single content category.
  *
  * @param systemById  The full system map for this category
- * @param policy      The ruleset's ContentPolicy (may be undefined → allow all)
+ * @param rule        The ruleset's ContentRule (may be undefined → allow all)
  */
-function applyPolicy<T extends { id: string }>(
+function applyContentRule<T extends { id: string }>(
   systemById: Record<string, T>,
-  policy: ContentPolicy | undefined,
+  rule: ContentRule | undefined,
 ): Record<string, T> {
-  let result: Record<string, T>
+  if (!rule) return { ...systemById };
 
-  if (!policy || policy.allowAll === true) {
-    result = { ...systemById }
+  let result: Record<string, T>;
+
+  if (rule.policy === 'only') {
+    result = {};
+    for (const id of rule.ids) {
+      const entry = systemById[id];
+      if (entry) result[id] = entry;
+    }
   } else {
-    result = {}
-    for (const id of policy.allow ?? []) {
-      const entry = systemById[id]
-      if (entry) result[id] = entry
+    const excluded = new Set(rule.ids);
+    result = {};
+    for (const [id, entry] of Object.entries(systemById)) {
+      if (!excluded.has(id)) result[id] = entry;
     }
   }
 
-  if (policy?.overrides) {
-    for (const [id, patch] of Object.entries(policy.overrides)) {
+  if (rule.overrides) {
+    for (const [id, patch] of Object.entries(rule.overrides)) {
       if (result[id]) {
-        result[id] = applyOverride(result[id], patch as Record<string, unknown>)
+        result[id] = applyOverride(result[id], patch as Record<string, unknown>);
       }
     }
   }
 
-  if (policy?.custom) {
-    for (const [id, entry] of Object.entries(policy.custom)) {
-      result[id] = entry as T
+  if (rule.custom) {
+    for (const [id, entry] of Object.entries(rule.custom)) {
+      result[id] = entry as T;
     }
   }
 
-  if (policy?.deny) {
-    for (const id of policy.deny) {
-      delete result[id]
-    }
-  }
+  return result;
+}
 
-  return result
+/**
+ * Merge system + campaign entries, then apply content rules.
+ *
+ * Campaign entries override system entries on id collision.
+ */
+function resolveContent<T extends { id: string }>(
+  systemById: Record<string, T>,
+  campaignById: Record<string, T> | undefined,
+  rule: ContentRule | undefined,
+): Record<string, T> {
+  const merged = campaignById
+    ? { ...systemById, ...campaignById }
+    : systemById;
+  return applyContentRule(merged, rule);
 }
 
 // ---------------------------------------------------------------------------
@@ -76,25 +90,25 @@ function applyPolicy<T extends { id: string }>(
 
 export function buildCampaignCatalog(
   system: CampaignCatalog,
+  campaign: Partial<CampaignCatalog>,
   ruleset: Ruleset,
 ): CampaignCatalog {
-  const c = ruleset.content
+  const c = ruleset.content;
 
-  const classesById = applyPolicy(system.classesById, c.classes)
-  const racesById = applyPolicy(system.racesById, c.races)
+  const classesById = resolveContent(system.classesById, campaign.classesById, c.classes);
+  const racesById   = resolveContent(system.racesById,   campaign.racesById,   c.races);
 
   return {
     classesById,
     classIds:                 Object.keys(classesById),
     racesById,
     raceIds:                  Object.keys(racesById),
-    weaponsById:              applyPolicy(system.weaponsById,              c.equipment),
-    armorById:                applyPolicy(system.armorById,                c.equipment),
-    gearById:                 applyPolicy(system.gearById,                 c.equipment),
-    magicItemsById:           applyPolicy(system.magicItemsById,           c.equipment),
-    enhancementTemplatesById: applyPolicy(system.enhancementTemplatesById, c.equipment),
-    spellsById:               applyPolicy(system.spellsById,               c.spells),
-    spellsById:           applyPolicy(system.spellsById,           c.spells),
-    monstersById:             applyPolicy(system.monstersById,             c.monsters),
-  }
+    weaponsById:              resolveContent(system.weaponsById,              campaign.weaponsById,              c.equipment),
+    armorById:                resolveContent(system.armorById,                campaign.armorById,                c.equipment),
+    gearById:                 resolveContent(system.gearById,                 campaign.gearById,                 c.equipment),
+    magicItemsById:           resolveContent(system.magicItemsById,           campaign.magicItemsById,           c.equipment),
+    enhancementTemplatesById: resolveContent(system.enhancementTemplatesById, campaign.enhancementTemplatesById, c.equipment),
+    spellsById:               resolveContent(system.spellsById,              campaign.spellsById,               c.spells),
+    monstersById:             resolveContent(system.monstersById,             campaign.monstersById,             c.monsters),
+  };
 }

@@ -2,12 +2,9 @@ import { MediaTopCard, type CardBadgeItem } from '@/ui/cards'
 import type { CharacterClassInfo } from '@/shared/types'
 import Box from '@mui/material/Box'
 import PersonIcon from '@mui/icons-material/Person'
-import { getNameById } from '@/utils'
-import { classes as classesData } from '@/data/classes'
-import { races as racesData } from '@/data/races'
-import type { Race } from '@/data/types'
 import { ROUTES } from '@/app/routes'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 
 interface NpcMediaTopCardProps {
   characterId: string
@@ -24,8 +21,14 @@ interface NpcMediaTopCardProps {
   actions?: React.ReactNode
 }
 
-const formatClassesAndLevelToString = (classes: CharacterClassInfo[]): string => {
-  return Array.isArray(classes) ? classes.map(cls => `${getNameById(classesData as unknown as { id: string; name: string }[], cls.classId)}, Lvl ${cls.level}`).join(' / ') : ''
+function formatClassesAndLevel(
+  classes: CharacterClassInfo[],
+  classesById: Record<string, { name: string }>,
+): string {
+  if (!Array.isArray(classes)) return '';
+  return classes
+    .map(cls => `${classesById[cls.classId]?.name ?? cls.classId}, Lvl ${cls.level}`)
+    .join(' / ');
 }
 
 // const formatNpcSubheadline = (
@@ -63,6 +66,7 @@ const NpcMediaTopCard = ({
   status,
 }: NpcMediaTopCardProps) => {
   const { campaignId: activeCampaignId } = useActiveCampaign()
+  const { catalog } = useCampaignRules()
   const badges: CardBadgeItem[] = status ? [{ type: 'status', value: status }] : []
 
   const placeholder = (
@@ -79,7 +83,7 @@ const NpcMediaTopCard = ({
     </Box>
   )
 
-  const raceName = getNameById(racesData as Race[], raceId)
+  const raceName = catalog.racesById[raceId]?.name ?? raceId
   
   const npcLink = (npcId: string) =>
     activeCampaignId ? ROUTES.WORLD_NPC.replace(':id', activeCampaignId).replace(':npcId', npcId) : undefined
@@ -89,7 +93,7 @@ const NpcMediaTopCard = ({
       image={imageUrl}
       imageFallback={placeholder}
       headline={name}
-      subheadline={formatClassesAndLevelToString(classes)}
+      subheadline={formatClassesAndLevel(classes, catalog.classesById)}
       description={raceName}
       link={npcLink(characterId)}
       badges={badges}

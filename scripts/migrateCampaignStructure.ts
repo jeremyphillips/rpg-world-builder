@@ -43,7 +43,7 @@ async function migrate() {
             rules: {}
           },
           membership: {
-            adminId: doc.adminId,
+            ownerId: doc.adminId,
             members: doc.members ?? []
           },
           participation: {

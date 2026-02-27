@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
-import type { CampaignMemberStatus, CampaignMemberRole, CampaignCharacterStatus } from '../../shared/types'
+import type { CampaignMemberStatus, CampaignMemberStoredRole, CampaignCharacterStatus } from '../../shared/types'
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const campaignMembersCollection = () => db().collection('campaignMembers')
 
@@ -9,7 +9,7 @@ export interface CampaignMemberDoc {
   campaignId: mongoose.Types.ObjectId
   characterId: mongoose.Types.ObjectId
   userId: mongoose.Types.ObjectId
-  role: CampaignMemberRole
+  role: CampaignMemberStoredRole
   status: CampaignMemberStatus
   /** Character's in-campaign status (active by default, can be set to inactive/deceased) */
   characterStatus?: CampaignCharacterStatus
@@ -61,7 +61,7 @@ export async function createCampaignMember(data: {
   campaignId: string
   characterId: string
   userId: string
-  role: CampaignMemberRole
+  role: CampaignMemberStoredRole
   status?: CampaignMemberStatus
 }) {
   const now = new Date()
@@ -133,4 +133,61 @@ export async function deleteCampaignMember(campaignId: string, characterId: stri
     campaignId: new mongoose.Types.ObjectId(campaignId),
     characterId: new mongoose.Types.ObjectId(characterId),
   })
+}
+
+/** Returns the character IDs belonging to `userId` in the given campaign. */
+export async function getUserCharacterIds(
+  campaignId: string,
+  userId: string,
+): Promise<string[]> {
+  const members = await campaignMembersCollection()
+    .find({
+      campaignId: new mongoose.Types.ObjectId(campaignId),
+      userId: new mongoose.Types.ObjectId(userId),
+      status: 'approved',
+    })
+    .toArray()
+
+  return members.map((m) => (m.characterId as mongoose.Types.ObjectId).toString())
+}
+
+/**
+ * Batch-resolves a user's campaign membership across multiple campaigns.
+ *
+ * Returns a map of campaignId → { campaignRole, characterIds } where
+ * `campaignRole` is the effective CampaignRole ('dm' | 'pc').
+ */
+export async function getUserMembershipsMap(
+  userId: string,
+  campaignIds: string[],
+): Promise<Map<string, { campaignRole: 'dm' | 'pc'; characterIds: string[] }>> {
+  if (campaignIds.length === 0) return new Map()
+
+  const members = await campaignMembersCollection()
+    .find({
+      userId: new mongoose.Types.ObjectId(userId),
+      campaignId: { $in: campaignIds.map((id) => new mongoose.Types.ObjectId(id)) },
+      status: 'approved',
+    })
+    .toArray()
+
+  const map = new Map<string, { campaignRole: 'dm' | 'pc'; characterIds: string[] }>()
+  for (const m of members) {
+    const cid = (m.campaignId as mongoose.Types.ObjectId).toString()
+    const charId = (m.characterId as mongoose.Types.ObjectId).toString()
+    const storedRole = m.role as string
+    const isDmLevel = storedRole === 'dm' || storedRole === 'co_dm'
+
+    const existing = map.get(cid)
+    if (existing) {
+      existing.characterIds.push(charId)
+      if (isDmLevel) existing.campaignRole = 'dm'
+    } else {
+      map.set(cid, {
+        campaignRole: isDmLevel ? 'dm' : 'pc',
+        characterIds: [charId],
+      })
+    }
+  }
+  return map
 }

@@ -1,8 +1,6 @@
 import { useCharacterBuilder } from '../../context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { races } from '@/data/races'
 import { standardAlignments, fourEAlignments, basicAlignments } from '@/data/ruleSets'
-import { getNameById } from '@/utils'
 import type { ClassProgression } from '@/data'
 import type { StepId } from '../../types'
 import {
@@ -118,7 +116,7 @@ const ConfirmationStep = () => {
   const { state, goToStep, setName } = useCharacterBuilder()
   const { catalog } = useCampaignRules()
 
-  const raceName = getNameById(races as unknown as { id: string; name: string }[], state.race) ?? state.race ?? '—'
+  const raceName = catalog.racesById[state.race]?.name ?? state.race ?? '—'
   const alignmentName = getAlignmentName(state.alignment)
 
   const filledClasses = state.classes.filter(cls => cls.classId)

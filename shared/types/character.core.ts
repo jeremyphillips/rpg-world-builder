@@ -91,7 +91,7 @@ export type CharacterProficiencies = {
 
 export type CharacterType = 'pc' | 'npc'
 
-export type CharacterCore = {
+export type Character = {
   name: string
   type: CharacterType
   // edition: EditionId
@@ -126,11 +126,11 @@ export type CharacterCore = {
 //   savingThrows?: SavingThrows2e
 // }
 
-// export type Character5e = CharacterCore & {
+// export type Character5e = Character & {
 //   edition: '5e'
 // }
 
-// export type Character2e = Omit<CharacterCore,
+// export type Character2e = Omit<Character,
 //   | 'stats'
 // > & {
 //   edition: '2e'
@@ -140,11 +140,11 @@ export type CharacterCore = {
 // }
 
 
-export type PlayerCharacter = CharacterCore & {
+export type PlayerCharacter = Character & {
   type: 'pc'
 }
 
-export type NonPlayerCharacter = CharacterCore & {
+export type NonPlayerCharacter = Character & {
   type: 'npc'
   source?: 'generated' | 'platform'
   id: string
@@ -152,14 +152,9 @@ export type NonPlayerCharacter = CharacterCore & {
 
 /**
  * Working state used by the character builder.
- * Fields that are required on the final CharacterCore are optional here
+ * Fields that are required on the final Character are optional here
  * because they're filled in progressively during the build flow.
  */
-export type CharacterSheet = Omit<Partial<CharacterCore>, 'classes'> & {
+export type CharacterSheet = Omit<Partial<Character>, 'classes'> & {
   classes: CharacterClassInfo[]
 }
-
-export type Character = CharacterCore
-  // | (CharacterCore & { edition: '5e' })
-  // | (CharacterCore & { edition: '2e'; rules?: Rules2e })
-  // | CharacterCore

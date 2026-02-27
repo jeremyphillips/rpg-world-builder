@@ -7,7 +7,9 @@ declare namespace Express {
 
     /** Attached by requireCampaignRole middleware */
     campaign?: import('mongodb').WithId<import('mongodb').Document>
-    /** The user's effective role within the attached campaign */
-    campaignRole?: CampaignRole | 'admin'
+    /** The user's effective campaign-scoped role (never includes platform concepts) */
+    campaignRole?: CampaignRole
+    /** True when the requesting user is the campaign owner (set by requireCampaignRole) */
+    isOwner?: boolean
   }
 }

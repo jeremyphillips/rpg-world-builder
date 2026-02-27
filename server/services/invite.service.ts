@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import mongoose from 'mongoose'
 import { env } from '../config/env'
 import * as notificationService from './notification.service'
-import type { CampaignMemberStatus, CampaignRole } from '../../shared/types'
+import type { CampaignMemberStatus, CampaignMemberStoredRole } from '../../shared/types'
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const invitesCollection = () => db().collection('campaignInvites')
 const inviteTokensCollection = () => db().collection('inviteTokens')
@@ -17,7 +17,7 @@ export interface CampaignInviteDoc {
   campaignId: mongoose.Types.ObjectId
   invitedUserId: mongoose.Types.ObjectId
   invitedByUserId: mongoose.Types.ObjectId
-  role: CampaignRole
+  role: CampaignMemberStoredRole
   status: CampaignMemberStatus
   createdAt: Date
   respondedAt: Date | null
@@ -59,7 +59,7 @@ export async function createInvite(data: {
   campaignId: string
   invitedUserId: string
   invitedByUserId: string
-  role: CampaignRole
+  role: CampaignMemberStoredRole
   campaignName: string
   invitedByName: string
 }) {
@@ -132,7 +132,7 @@ export async function respondToInvite(
   // If accepted, create CampaignMember with status pending (awaiting DM approval)
   if (accept && characterId) {
     const campaignMemberService = await import('./campaignMember.service')
-    const role = invite.role === 'dm' ? 'dm' : 'pc'
+    const role = invite.role === 'dm' ? 'dm' : invite.role === 'co_dm' ? 'co_dm' : 'pc'
     const member = await campaignMemberService.createCampaignMember({
       campaignId: invite.campaignId.toString(),
       characterId,
@@ -145,10 +145,10 @@ export async function respondToInvite(
     const campaign = await db().collection('campaigns').findOne({ _id: invite.campaignId })
     const character = await db().collection('characters').findOne({ _id: new mongoose.Types.ObjectId(characterId) })
     const invitedUser = await db().collection('users').findOne({ _id: invite.invitedUserId })
-    const adminId = campaign?.membership?.adminId
-    if (adminId && member && character && invitedUser) {
+    const campaignOwnerId = campaign?.membership?.ownerId ?? campaign?.membership?.adminId
+    if (campaignOwnerId && member && character && invitedUser) {
       await notificationService.createNotification({
-        userId: adminId,
+        userId: campaignOwnerId,
         type: 'character_pending_approval',
         requiresAction: true,
         context: {
@@ -188,7 +188,7 @@ export interface InviteTokenDoc {
   campaignId: mongoose.Types.ObjectId
   email: string
   invitedByUserId: mongoose.Types.ObjectId
-  role: CampaignRole
+  role: CampaignMemberStoredRole
   expiresAt: Date
   usedAt: Date | null
   usedByUserId: mongoose.Types.ObjectId | null
@@ -198,7 +198,7 @@ export async function createInviteToken(data: {
   campaignId: string
   email: string
   invitedByUserId: string
-  role?: CampaignRole
+  role?: CampaignMemberStoredRole
 }): Promise<string> {
   const token = crypto.randomBytes(32).toString('hex')
   const expiresAt = new Date()

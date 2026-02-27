@@ -30,9 +30,10 @@ export async function approveCampaignMember(req: Request, res: Response) {
     return
   }
 
-  const isAdmin = campaign.membership.adminId.equals(new mongoose.Types.ObjectId(userId))
-  if (!isAdmin) {
-    res.status(403).json({ error: 'Only the campaign admin can approve characters' })
+  const ownerId = campaign.membership.ownerId ?? campaign.membership.adminId
+  const isOwner = ownerId?.equals(new mongoose.Types.ObjectId(userId)) ?? false
+  if (!isOwner) {
+    res.status(403).json({ error: 'Only the campaign owner can approve characters' })
     return
   }
 
@@ -105,9 +106,10 @@ export async function rejectCampaignMember(req: Request, res: Response) {
     return
   }
 
-  const isAdmin = campaign.membership.adminId.equals(new mongoose.Types.ObjectId(userId))
-  if (!isAdmin) {
-    res.status(403).json({ error: 'Only the campaign admin can reject characters' })
+  const rejectOwnerId = campaign.membership.ownerId ?? campaign.membership.adminId
+  const isRejectOwner = rejectOwnerId?.equals(new mongoose.Types.ObjectId(userId)) ?? false
+  if (!isRejectOwner) {
+    res.status(403).json({ error: 'Only the campaign owner can reject characters' })
     return
   }
 
@@ -173,16 +175,17 @@ export async function updateCharacterStatus(req: Request, res: Response) {
     return
   }
 
-  const isCampaignAdmin = campaign.membership.adminId.equals(new mongoose.Types.ObjectId(userId))
+  const statusOwnerId = campaign.membership.ownerId ?? campaign.membership.adminId
+  const isCampaignOwner = statusOwnerId?.equals(new mongoose.Types.ObjectId(userId)) ?? false
   const isCharacterOwner = m.userId.equals(new mongoose.Types.ObjectId(userId))
 
-  // Campaign admin can set any status; character owner can only set 'inactive' (leave)
-  if (!isCampaignAdmin && !isCharacterOwner) {
+  // Campaign owner can set any status; character owner can only set 'inactive' (leave)
+  if (!isCampaignOwner && !isCharacterOwner) {
     res.status(403).json({ error: 'You do not have permission to update this character\'s status' })
     return
   }
 
-  if (isCharacterOwner && !isCampaignAdmin && characterStatus !== 'inactive') {
+  if (isCharacterOwner && !isCampaignOwner && characterStatus !== 'inactive') {
     res.status(403).json({ error: 'You can only set your character to inactive (leave campaign)' })
     return
   }

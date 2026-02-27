@@ -3,10 +3,17 @@ export type CampaignMemberStatus =
   | 'approved'
   | 'declined'
 
-/** All assignable campaign roles */
+/** All campaign-scoped viewer roles (never includes platform-level concepts). */
 export type CampaignRole = 'dm' | 'pc' | 'observer'
 
-/** Roles stored on campaign member docs (observer is a computed state, not stored) */
+/**
+ * Roles that may be stored on CampaignMember docs.
+ * 'observer' is a computed state (pending member), not stored.
+ * 'co_dm' enables future co-DM support.
+ */
+export type CampaignMemberStoredRole = 'dm' | 'co_dm' | 'pc'
+
+/** @deprecated Use CampaignMemberStoredRole instead. Kept for backward compat. */
 export type CampaignMemberRole = Exclude<CampaignRole, 'observer'>
 
 export type CampaignCharacterStatus =
@@ -34,13 +41,22 @@ export interface CampaignBase {
   updatedAt?: Date
 }
 
+/** Viewer-specific context attached by the API when fetching a campaign. */
+export interface CampaignViewer {
+  campaignRole: CampaignRole | null
+  isPlatformAdmin: boolean
+  isOwner: boolean
+}
+
 export interface Campaign extends CampaignBase {
   membership: {
-    adminId: string
+    ownerId: string
   }
   rulesetId?: string
   rulesetVersion?: number
   configuration?: CampaignConfiguration
+  /** Populated by GET /api/campaigns/:id with the requesting user's context. */
+  viewer?: CampaignViewer
   createdAt: Date
   updatedAt: Date
 }

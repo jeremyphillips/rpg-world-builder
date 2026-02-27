@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import mongoose from 'mongoose'
-import type { CampaignRole } from '../../shared/types'
+import type { CampaignMemberStoredRole } from '../../shared/types'
 import * as campaignService from '../services/campaign.service'
 
 // ---------------------------------------------------------------------------
@@ -13,8 +13,15 @@ export async function getCampaigns(req: Request, res: Response) {
 }
 
 export async function getCampaign(req: Request, res: Response) {
-  // req.campaign is attached by requireCampaignRole middleware
-  res.json({ campaign: req.campaign })
+  const campaign = {
+    ...req.campaign!,
+    viewer: {
+      campaignRole: req.campaignRole ?? null,
+      isPlatformAdmin: req.userRole === 'admin' || req.userRole === 'superadmin',
+      isOwner: req.isOwner ?? false,
+    },
+  }
+  res.json({ campaign })
 }
 
 export async function createCampaign(req: Request, res: Response) {
@@ -45,7 +52,6 @@ export async function createCampaign(req: Request, res: Response) {
 }
 
 export async function updateCampaign(req: Request, res: Response) {
-  // req.campaign attached by requireCampaignRole('admin')
   const { name, setting, edition, description, imageKey, allowLegacyEditionNpcs } = req.body
   const updated = await campaignService.updateCampaign(req.params.id, {
     name,
@@ -59,7 +65,6 @@ export async function updateCampaign(req: Request, res: Response) {
 }
 
 export async function deleteCampaign(req: Request, res: Response) {
-  // req.campaign attached by requireCampaignRole('admin')
   await campaignService.deleteCampaign(req.params.id)
   res.json({ message: 'Campaign deleted' })
 }
@@ -72,6 +77,17 @@ export async function getPartyCharacters(req: Request, res: Response) {
   try {
     const status = req.query.status as string | undefined
     const characters = await campaignService.getPartyCharacters(req.params.id, status)
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[getPartyCharacters] character IDs returned', {
+        campaignId: req.params.id,
+        characters: characters.map((c: any) => ({
+          _id: c._id?.toString(),
+          campaignMemberId: c.campaignMemberId,
+        })),
+      })
+    }
+
     res.json({ characters })
   } catch (err) {
     console.error('Failed to get party characters:', err)
@@ -146,7 +162,7 @@ export async function addMember(req: Request, res: Response) {
     return
   }
 
-  const validRoles: CampaignRole[] = ['dm', 'pc', 'observer']
+  const validRoles: CampaignMemberStoredRole[] = ['dm', 'co_dm', 'pc']
   const memberRole = validRoles.includes(role) ? role : 'pc'
 
   // Look up user by email
@@ -165,14 +181,14 @@ export async function addMember(req: Request, res: Response) {
       role: memberRole,
     })
 
-    const adminUser = await db.collection('users').findOne(
-      { _id: campaign.membership.adminId },
+    const ownerUser = await db.collection('users').findOne(
+      { _id: campaign.membership.ownerId },
       { projection: { username: 1 } },
     )
     await sendCampaignInvite({
       to: email,
       campaignName: campaign.identity.name as string,
-      invitedBy: (adminUser?.username as string) ?? 'A dungeon master',
+      invitedBy: (ownerUser?.username as string) ?? 'A dungeon master',
       inviteToken,
     })
     res.status(200).json({ message: `Invite email sent to ${email}` })
@@ -182,8 +198,8 @@ export async function addMember(req: Request, res: Response) {
   // User exists — create a campaign invite (with notification)
   try {
     const { createInvite } = await import('../services/invite.service')
-    const adminUser = await db.collection('users').findOne(
-      { _id: campaign.membership.adminId },
+    const ownerUser = await db.collection('users').findOne(
+      { _id: campaign.membership.ownerId },
       { projection: { username: 1 } },
     )
 
@@ -193,7 +209,7 @@ export async function addMember(req: Request, res: Response) {
       invitedByUserId: req.userId!,
       role: memberRole,
       campaignName: campaign.identity.name as string,
-      invitedByName: (adminUser?.username as string) ?? 'A dungeon master',
+      invitedByName: (ownerUser?.username as string) ?? 'A dungeon master',
     })
 
     res.status(201).json({ invite, message: `Invite sent to ${email}` })
@@ -206,7 +222,7 @@ export async function addMember(req: Request, res: Response) {
 export async function updateMember(req: Request, res: Response) {
   const { role } = req.body
 
-  const validRoles: CampaignRole[] = ['dm', 'pc', 'observer']
+  const validRoles: CampaignMemberStoredRole[] = ['dm', 'co_dm', 'pc']
   if (!role || !validRoles.includes(role)) {
     res.status(400).json({ error: `role must be one of: ${validRoles.join(', ')}` })
     return

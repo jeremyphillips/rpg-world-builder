@@ -62,6 +62,11 @@ function getAncestorPaths(pathname: string): string[] {
   return paths
 }
 
+const humanizeSegment = (seg: string) =>
+  decodeURIComponent(seg)
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+
 // ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
@@ -85,6 +90,8 @@ export default function useBreadcrumbs(): BreadcrumbItem[] {
     const pending: { path: string; params: Record<string, string>; pattern: string }[] = []
 
     for (const ancestorPath of ancestors) {
+      let matched = false
+
       for (const pattern of patterns) {
         const params = matchPattern(ancestorPath, pattern)
         if (!params) continue
@@ -98,7 +105,19 @@ export default function useBreadcrumbs(): BreadcrumbItem[] {
         if (config.resolveLabel && !labelCache.has(ancestorPath)) {
           pending.push({ path: ancestorPath, params, pattern })
         }
+        matched = true
         break // first match wins
+      }
+
+      if (!matched) {
+        const seg = ancestorPath.split('/').filter(Boolean).slice(-1)[0];
+        if (seg) {
+          items.push({
+            path: ancestorPath,
+            label: humanizeSegment(seg),
+            pattern: '__fallback__',
+          });
+        }
       }
     }
 
