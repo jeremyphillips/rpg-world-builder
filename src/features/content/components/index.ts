@@ -9,3 +9,4 @@ export {
   type DeleteBlockReason,
   type BlockingEntity,
 } from './EntryEditorLayout';
+export { default as ContentDetailScaffold } from './ContentDetailScaffold';
