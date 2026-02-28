@@ -18,6 +18,7 @@ import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capab
 import { AppBadge } from '@/ui/badges/AppBadge/AppBadge';
 import { KeyValueSection } from '@/ui/components/content';
 import { VisibilityChip } from '@/ui/components/fields';
+import { resolveImageUrl } from '@/utils/image'
 
 // TODO: reuse SystemContentPatchModal for other system content detail routes (equipment, spells, etc.)
 
@@ -91,6 +92,12 @@ export default function RaceDetailRoute() {
         {!canPatch && race.patched && (
           <Box sx={{ mb: 2 }}>
             <AppBadge label="Patched" tone="warning" size="small" />
+          </Box>
+        )}
+
+        {race?.imageKey && (
+          <Box sx={{ mb: 2 }}>
+            <img src={resolveImageUrl(race.imageKey)} alt={race.name} />
           </Box>
         )}
 

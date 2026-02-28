@@ -10,9 +10,11 @@ import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiLink from '@mui/material/Link'
 import Switch from '@mui/material/Switch'
+import Avatar from '@mui/material/Avatar'
 
 import SearchIcon from '@mui/icons-material/Search'
 
+import { resolveImageUrl } from '@/utils/image'
 import type { FilterOption } from '../FilterableCardGroup/FilterableCardGroup'
 
 // ---------------------------------------------------------------------------
@@ -35,6 +37,17 @@ import type { FilterOption } from '../FilterableCardGroup/FilterableCardGroup'
 // 3. Update renderCell to (row, value) signature
 //
 // ContentTypeListPage still uses legacy API and should NOT be updated yet.
+//
+// ---------------------------------------------------------------------------
+// COLUMN SPECIAL BEHAVIORS (applied in order, later wins):
+// ---------------------------------------------------------------------------
+// 1. renderCell    — custom cell renderer (baseline)
+// 2. imageColumn   — renders an Avatar thumbnail via resolveImageUrl
+// 3. linkColumn    — wraps whatever is rendered above in a router Link
+// 4. switchColumn  — renders a toggle Switch; overrides everything above
+//
+// imageColumn + linkColumn can be combined (Avatar wrapped in a Link).
+// switchColumn always takes final priority.
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
@@ -73,6 +86,34 @@ export interface AppDataGridColumn<T> {
    * on the column, params.value reflects the accessor result.
    */
   renderCell?: (params: GridRenderCellParams) => ReactNode
+  /**
+   * If true, renders a thumbnail Avatar in the cell.
+   * The image key is read from `imageKeyField` (or `field` if not set) and
+   * resolved via `resolveImageUrl`.
+   *
+   * Can be combined with `linkColumn` — the Avatar is wrapped in a Link.
+   * `switchColumn` takes priority over `imageColumn` if both are set.
+   *
+   * @example
+   * ```ts
+   * columns: [
+   *   { field: 'imageKey', headerName: '', width: 56, imageColumn: true },
+   *   { field: 'name', headerName: 'Name', flex: 1, linkColumn: true },
+   * ]
+   * ```
+   */
+  imageColumn?: boolean
+  /** Row field that holds the image storage key. Defaults to `field`. */
+  imageKeyField?: string
+  /** Row field used as alt text for the image. Defaults to 'name' if present. */
+  imageAltField?: string
+  /** Avatar size in px (default 32). */
+  imageSize?: number
+  /** Avatar shape (default 'rounded'). */
+  imageShape?: 'rounded' | 'circle'
+  /** Fallback content rendered inside the Avatar when no image is available. */
+  imageFallback?: ReactNode
+
   /** If true, renders a MUI Switch. The field value is read as a boolean. */
   switchColumn?: boolean
   /** Called when the switch is toggled (requires switchColumn) */
@@ -308,12 +349,46 @@ export default function AppDataGrid<T>({
         def.renderCell = col.renderCell
       }
 
-      if (col.linkColumn && getDetailLink) {
-        const customRender = col.renderCell
+      if (col.imageColumn) {
+        def.sortable = false
         def.renderCell = (params: GridRenderCellParams) => {
           const row = params.row as T
-          const content = customRender
-            ? customRender(params)
+          const rec = row as Record<string, unknown>
+          const keyField = col.imageKeyField ?? col.field
+          const imageKey = rec[keyField] as string | null | undefined
+          const src = resolveImageUrl(imageKey)
+
+          const altField =
+            col.imageAltField ?? ('name' in rec ? 'name' : undefined)
+          const alt = altField ? String(rec[altField] ?? '') : ''
+
+          const size = col.imageSize ?? 32
+          const variant =
+            col.imageShape === 'circle' ? 'circular' : 'rounded'
+
+          const fallback =
+            col.imageFallback ??
+            (alt ? alt.charAt(0).toUpperCase() : '?')
+
+          return (
+            <Avatar
+              src={src}
+              alt={alt}
+              variant={variant}
+              sx={{ width: size, height: size, fontSize: size * 0.45 }}
+            >
+              {src ? undefined : fallback}
+            </Avatar>
+          )
+        }
+      }
+
+      if (col.linkColumn && getDetailLink) {
+        const innerRender = def.renderCell
+        def.renderCell = (params: GridRenderCellParams) => {
+          const row = params.row as T
+          const content = innerRender
+            ? innerRender(params)
             : (params.value as string)
 
           return (

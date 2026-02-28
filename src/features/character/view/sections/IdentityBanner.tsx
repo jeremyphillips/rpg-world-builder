@@ -78,7 +78,6 @@ export default function IdentityBanner({
   name,
   totalLevel,
   alignmentOptions,
-  raceOptions,
   canEdit,
   canEditAll,
   isOwner,

@@ -76,6 +76,8 @@
       "@/steps": ["features/characterBuilder/steps/index.ts"],
       "@/hooks": ["hooks/index.ts"],
       "@/hooks/*": ["hooks/*"],
+      "@/server/services": ["server/services/index.ts"],
+      "@/server/services/*": ["server/services/*"],
       "@/shared": ["../shared/types/index.ts"],
       "@/shared/*": ["../shared/*"],
       "@/shared/money": ["../shared/money/index.ts"],

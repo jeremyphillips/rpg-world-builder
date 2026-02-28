@@ -85,6 +85,15 @@ const ContentTypeListPage = ({
 
   const columns: AppDataGridColumn<ContentListItem>[] = useMemo(() => {
     const cols: AppDataGridColumn<ContentListItem>[] = [
+      {
+        field: 'imageKey',
+        headerName: '',
+        width: 56,
+        imageColumn: true,
+        imageSize: 32,
+        imageShape: 'rounded',
+        imageAltField: 'name',
+      },
       { field: 'name', headerName: 'Name', flex: 1, linkColumn: true },
       {
         field: 'source',

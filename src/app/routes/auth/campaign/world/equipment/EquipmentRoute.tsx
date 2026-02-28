@@ -8,6 +8,7 @@ import { EquipmentMediaTopCard } from '@/features/equipment/cards'
 import { ROUTES } from '@/app/routes'
 import { apiFetch } from '@/app/api'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
+import { formatMoney } from '@/shared/money'
 
 export default function EquipmentRoute() {
   const { 
@@ -50,7 +51,7 @@ export default function EquipmentRoute() {
           <EquipmentMediaTopCard
             key={item.id}
             name={item.name}
-            subheadline={[item.damageType, item.cost].filter(Boolean).join(' · ')}
+            subheadline={[item.damageType, formatMoney(item.cost)].filter(Boolean).join(' · ')}
             link={equipmentLink(item.id)}
           />
         ))}
@@ -64,7 +65,7 @@ export default function EquipmentRoute() {
           <EquipmentMediaTopCard
             key={item.id}
             name={item.name}
-            subheadline={[item.material, item.cost].filter(Boolean).join(' · ')}
+            subheadline={[item.material, formatMoney(item.cost)].filter(Boolean).join(' · ')}
             link={equipmentLink(item.id)}
           />
         ))}
@@ -78,7 +79,7 @@ export default function EquipmentRoute() {
           <EquipmentMediaTopCard
             key={item.id}
             name={item.name}
-            subheadline={[item.category, item.cost].filter(Boolean).join(' · ')}
+            subheadline={[item.category, formatMoney(item.cost)].filter(Boolean).join(' · ')}
             link={equipmentLink(item.id)}
           />
         ))}

@@ -15,6 +15,8 @@ export interface ContentSummary {
   id: ContentId;
   name: string;
   source: ContentSource;
+  /** Storage key (or URL) for a thumbnail image. */
+  imageKey?: string | null;
   /** Who can see this entry. Missing = public. */
   accessPolicy?: Visibility;
   /** True when a campaign content patch has been applied to a system entry. */
@@ -23,7 +25,8 @@ export interface ContentSummary {
 
 /** Full content item with ownership metadata. */
 export interface ContentItem extends ContentSummary {
-  description: string;
+  imageKey?: string;
+  description?: string;
   systemId?: string;
   campaignId?: string;
   /** True when a campaign content patch has been applied to a system entry. */

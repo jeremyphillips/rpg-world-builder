@@ -39,6 +39,7 @@ function toSummary(race: Race): RaceSummary {
     id: race.id,
     name: race.name,
     source: race.source,
+    imageKey: race.imageKey,
     campaigns: race.campaigns,
     accessPolicy: race.accessPolicy,
     patched: race.patched,
