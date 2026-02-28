@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { DEFAULT_SYSTEM_ID } from '@/features/mechanics/domain/core/rules/campaignRulesetRepo';
 
 export interface UseCampaignContentEntryResult<T> {
@@ -6,6 +6,8 @@ export interface UseCampaignContentEntryResult<T> {
   loading: boolean;
   error: string | null;
   notFound: boolean;
+  /** Bump the internal key to re-fetch the entry. */
+  refetch: () => void;
 }
 
 export interface UseCampaignContentEntryOptions<T> {
@@ -29,6 +31,9 @@ export function useCampaignContentEntry<T>(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   useEffect(() => {
     if (!campaignId || !entryId) return;
@@ -60,7 +65,7 @@ export function useCampaignContentEntry<T>(
       });
 
     return () => { cancelled = true; };
-  }, [campaignId, entryId, fetchEntry, systemId]);
+  }, [campaignId, entryId, fetchEntry, systemId, refreshKey]);
 
-  return { entry, loading, error, notFound };
+  return { entry, loading, error, notFound, refetch };
 }

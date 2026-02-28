@@ -17,6 +17,8 @@ export interface ContentSummary {
   source: ContentSource;
   /** Who can see this entry. Missing = public. */
   accessPolicy?: Visibility;
+  /** True when a campaign content patch has been applied to a system entry. */
+  patched?: boolean;
 }
 
 /** Full content item with ownership metadata. */
@@ -24,6 +26,8 @@ export interface ContentItem extends ContentSummary {
   description: string;
   systemId?: string;
   campaignId?: string;
+  /** True when a campaign content patch has been applied to a system entry. */
+  patched?: boolean;
 }
 
 /** Shape for creating or editing a campaign-owned content item. */

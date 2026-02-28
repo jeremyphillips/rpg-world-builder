@@ -27,6 +27,10 @@ import {
   upsertRulesetPatch,
 } from '../controllers/rulesetPatch.controller'
 import {
+  getContentPatch,
+  upsertContentPatch,
+} from '../controllers/contentPatch.controller'
+import {
   listCampaignRaces,
   getCampaignRace,
   createCampaignRace,
@@ -70,6 +74,10 @@ router.delete('/:id/notes/:noteId', requireCampaignRole('observer'), requireCamp
 // Ruleset patches — owner can read/write
 router.get('/:id/ruleset-patch', requireCampaignRole('observer'), requireCampaignOwner(), getRulesetPatch)
 router.put('/:id/ruleset-patch', requireCampaignRole('observer'), requireCampaignOwner(), upsertRulesetPatch)
+
+// Content patches — owner can read/write
+router.get('/:id/content-patch', requireCampaignRole('observer'), requireCampaignOwner(), getContentPatch)
+router.put('/:id/content-patch', requireCampaignRole('observer'), requireCampaignOwner(), upsertContentPatch)
 
 // Campaign races — any member can read, owner can manage
 router.get('/:id/races', requireCampaignRole('observer'), listCampaignRaces)
