@@ -14,7 +14,7 @@ import { raceRepo } from '@/features/content/domain/repo';
 import type { Race } from '@/features/content/domain/types';
 import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/hooks';
-import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capabilities';
+import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppBadge } from '@/ui/badges/AppBadge/AppBadge';
 import { KeyValueSection } from '@/ui/components/content';
 import { VisibilityChip } from '@/ui/components/fields';
@@ -28,7 +28,7 @@ export default function RaceDetailRoute() {
   const breadcrumbs = useBreadcrumbs();
 
   const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageCampaignContent(ctx);
+  const canManage = canManageContent(ctx);
 
   const { entry: race, loading, error, notFound, refetch } = useCampaignContentEntry<Race>({
     campaignId: campaignId ?? undefined,

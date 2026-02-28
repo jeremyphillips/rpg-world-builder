@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import mongoose from 'mongoose'
-import type { CampaignMemberStoredRole, ViewerCampaignRole } from '../../shared/types'
+import type { CampaignMemberStoredRole } from '../../shared/types'
 import * as campaignService from '../services/campaign.service'
 import {
   getViewerMembershipContext,
@@ -19,32 +19,16 @@ export async function getCampaigns(req: Request, res: Response) {
 
 export async function getCampaign(req: Request, res: Response) {
   const raw = req.campaign!
-  const isPlatformAdmin = req.userRole === 'superadmin'
+  const viewerCtx = req.viewerContext!
 
-  const ownerId = raw.membership?.ownerId
-  const isOwner = ownerId
-    ? new mongoose.Types.ObjectId(req.userId!).equals(
-        new mongoose.Types.ObjectId(ownerId),
-      )
-    : false
-
-  const ctx = await getViewerMembershipContext(req.params.id, req.userId!)
-
-  let viewerCampaignRole: ViewerCampaignRole | null = null
-  if (isOwner) {
-    viewerCampaignRole = 'owner'
-  } else if (ctx.viewerHasApproved) {
-    viewerCampaignRole = 'pc'
-  } else if (ctx.viewerHasPending) {
-    viewerCampaignRole = 'observer'
-  }
+  const memberCtx = await getViewerMembershipContext(req.params.id, req.userId!)
 
   // ------------------------------------------------------------------
   // Status counts (always computed from all members, regardless of
   // the viewer's privilege level — counts are non-sensitive metadata).
   // ------------------------------------------------------------------
-  const counts = { pending: 0, approved: 0, declined: 0, total: ctx.allMembers.length }
-  for (const m of ctx.allMembers) {
+  const counts = { pending: 0, approved: 0, declined: 0, total: memberCtx.allMembers.length }
+  for (const m of memberCtx.allMembers) {
     const s = m.status as string
     if (s === 'pending') counts.pending++
     else if (s === 'approved') counts.approved++
@@ -54,12 +38,12 @@ export async function getCampaign(req: Request, res: Response) {
   // ------------------------------------------------------------------
   // Visibility-filtered member list
   // ------------------------------------------------------------------
-  const canSeeAll = isOwner || isPlatformAdmin
+  const canSeeAll = viewerCtx.isOwner || viewerCtx.isPlatformAdmin
   const uid = new mongoose.Types.ObjectId(req.userId!)
 
   const visibleMembers: CampaignMemberDoc[] = canSeeAll
-    ? ctx.allMembers
-    : ctx.allMembers.filter((m) => {
+    ? memberCtx.allMembers
+    : memberCtx.allMembers.filter((m) => {
         const status = m.status as string
         if (status === 'approved') return true
         if (status === 'pending' && (m.userId as mongoose.Types.ObjectId).equals(uid))
@@ -72,14 +56,14 @@ export async function getCampaign(req: Request, res: Response) {
   const campaign = {
     ...raw,
     viewer: {
-      campaignRole: viewerCampaignRole,
-      isPlatformAdmin,
-      isOwner,
+      campaignRole: viewerCtx.isOwner ? 'owner' : viewerCtx.campaignRole,
+      isPlatformAdmin: viewerCtx.isPlatformAdmin,
+      isOwner: viewerCtx.isOwner,
     },
     members: {
       counts,
       items,
-      viewerCharacterIds: ctx.viewerCharacterIds,
+      viewerCharacterIds: viewerCtx.characterIds,
     },
   }
 

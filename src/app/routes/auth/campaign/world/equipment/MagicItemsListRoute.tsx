@@ -18,7 +18,7 @@ import { makeOwnedColumn, makeOwnedFilter } from '@/ui/components/AppDataGrid/he
 import { PageHeader } from '@/ui/elements';
 import { useBreadcrumbs } from '@/hooks';
 import { formatCp } from '@/shared/money';
-import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capabilities';
+import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 
 export default function MagicItemsListRoute() {
   const { campaign, campaignId } = useActiveCampaign();
@@ -27,7 +27,7 @@ export default function MagicItemsListRoute() {
   const basePath = `/campaigns/${campaignId}/world/equipment/magic-items`;
 
   const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageCampaignContent(ctx);
+  const canManage = canManageContent(ctx);
 
   const { magicItems: ownedIds } = useViewerEquipment();
   const hasViewer = ownedIds.size > 0;

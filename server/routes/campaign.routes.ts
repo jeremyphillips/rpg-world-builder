@@ -78,11 +78,11 @@ router.patch('/:id/notes/:noteId', requireCampaignRole('observer'), requireCampa
 router.delete('/:id/notes/:noteId', requireCampaignRole('observer'), requireCampaignOwner(), deleteNote)
 
 // Ruleset patches — owner can read/write
-router.get('/:id/ruleset-patch', requireCampaignRole('observer'), requireCampaignOwner(), getRulesetPatch)
+router.get('/:id/ruleset-patch', requireCampaignRole('observer'), getRulesetPatch)
 router.put('/:id/ruleset-patch', requireCampaignRole('observer'), requireCampaignOwner(), upsertRulesetPatch)
 
 // Content patches — owner can read/write
-router.get('/:id/content-patch', requireCampaignRole('observer'), requireCampaignOwner(), getContentPatch)
+router.get('/:id/content-patch', requireCampaignRole('observer'), getContentPatch)
 router.put('/:id/content-patch', requireCampaignRole('observer'), requireCampaignOwner(), upsertContentPatch)
 
 // Campaign races — any member can read, owner can manage

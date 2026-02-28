@@ -8,17 +8,7 @@
 import type { Request, Response } from 'express';
 import * as service from '../services/campaignEquipment.service';
 import type { EquipmentType } from '../services/campaignEquipment.service';
-import { getUserCharacterIds } from '../services/campaignMember.service';
-import { canViewContent, type ViewerContext } from '../../shared/domain/capabilities';
-
-function buildViewerContext(req: Request, characterIds: string[]): ViewerContext {
-  return {
-    campaignRole: req.campaignRole ?? null,
-    isOwner: req.isOwner ?? false,
-    isPlatformAdmin: req.userRole === 'admin' || req.userRole === 'superadmin',
-    characterIds,
-  };
-}
+import { canViewContent } from '../../shared/domain/capabilities';
 
 type HandlerConfig = {
   equipmentType: EquipmentType;
@@ -38,8 +28,7 @@ export function makeEquipmentHandlers(config: HandlerConfig) {
       const { id: campaignId } = req.params;
       const all = await service.listByCampaign(campaignId, equipmentType);
 
-      const userCharacterIds = await getUserCharacterIds(campaignId, req.userId!);
-      const ctx = buildViewerContext(req, userCharacterIds);
+      const ctx = req.viewerContext!;
       const filtered = all.filter(item => canViewContent(ctx, item.accessPolicy));
 
       res.json({ [responsePluralKey]: filtered });
@@ -54,9 +43,7 @@ export function makeEquipmentHandlers(config: HandlerConfig) {
         return;
       }
 
-      const userCharacterIds = await getUserCharacterIds(campaignId, req.userId!);
-      const ctx = buildViewerContext(req, userCharacterIds);
-      if (!canViewContent(ctx, item.accessPolicy)) {
+      if (!canViewContent(req.viewerContext!, item.accessPolicy)) {
         res.status(404).json({ error: `${responseKey} not found` });
         return;
       }

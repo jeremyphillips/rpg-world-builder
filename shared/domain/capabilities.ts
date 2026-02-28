@@ -93,14 +93,17 @@ export function canViewContent(
   return intersects(ctx.characterIds, allowed)
 }
 
-export function canManageCampaignContent(ctx: ViewerContext): boolean {
+export function canManageContent(ctx: ViewerContext): boolean {
   return ctx.isOwner || (ctx.campaignRole !== null && DM_LEVEL_ROLES.has(ctx.campaignRole));
 }
+
+/** @deprecated Use canManageContent instead. Will be removed in a future build. */
+export const canManageCampaignContent = canManageContent
 
 export function getCapabilities(ctx: ViewerContext) {
   return {
     canBypassVisibility: canBypassVisibility(ctx),
     canViewDmScoped: canViewDmScoped(ctx),
-    canManageContent: canManageCampaignContent(ctx),
+    canManageContent: canManageContent(ctx),
   };
 }

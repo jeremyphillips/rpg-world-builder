@@ -10,7 +10,7 @@ import { armorRepo } from '@/features/content/domain/repo';
 import type { Armor } from '@/features/content/domain/types';
 import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/hooks';
-import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capabilities';
+import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppBadge } from '@/ui/badges/AppBadge/AppBadge';
 import { KeyValueSection } from '@/ui/components/content';
 import { resolveImageUrl } from '@/utils/image';
@@ -22,7 +22,7 @@ export default function ArmorDetailRoute() {
   const breadcrumbs = useBreadcrumbs();
 
   const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageCampaignContent(ctx);
+  const canManage = canManageContent(ctx);
 
   const { entry: armor, loading, error, notFound } = useCampaignContentEntry<Armor>({
     campaignId: campaignId ?? undefined,

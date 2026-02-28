@@ -18,7 +18,7 @@ import { makeOwnedColumn, makeOwnedFilter } from '@/ui/components/AppDataGrid/he
 import { PageHeader } from '@/ui/elements';
 import { useBreadcrumbs } from '@/hooks';
 import { formatCp } from '@/shared/money';
-import { canManageCampaignContent, toViewerContext } from '@/shared/domain/capabilities';
+import { canManageContent, toViewerContext } from '@/shared/domain/capabilities';
 
 export default function GearListRoute() {
   const { campaign, campaignId } = useActiveCampaign();
@@ -27,7 +27,7 @@ export default function GearListRoute() {
   const basePath = `/campaigns/${campaignId}/world/equipment/gear`;
 
   const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageCampaignContent(ctx);
+  const canManage = canManageContent(ctx);
 
   const { gear: ownedIds } = useViewerEquipment();
   const hasViewer = ownedIds.size > 0;

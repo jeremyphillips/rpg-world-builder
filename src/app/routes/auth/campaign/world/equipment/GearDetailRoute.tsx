@@ -10,7 +10,7 @@ import { gearRepo } from '@/features/content/domain/repo';
 import type { Gear } from '@/features/content/domain/types';
 import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/hooks';
-import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capabilities';
+import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppBadge } from '@/ui/badges/AppBadge/AppBadge';
 import { KeyValueSection } from '@/ui/components/content';
 import { resolveImageUrl } from '@/utils/image';
@@ -22,7 +22,7 @@ export default function GearDetailRoute() {
   const breadcrumbs = useBreadcrumbs();
 
   const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageCampaignContent(ctx);
+  const canManage = canManageContent(ctx);
 
   const { entry: gear, loading, error, notFound } = useCampaignContentEntry<Gear>({
     campaignId: campaignId ?? undefined,

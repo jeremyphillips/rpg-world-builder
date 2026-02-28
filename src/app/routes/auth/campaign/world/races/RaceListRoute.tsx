@@ -6,7 +6,7 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentTypeListPage } from '@/features/content/components';
 import { useCampaignMembers } from '@/features/campaign/hooks/useCampaignMembers';
 import { raceRepo } from '@/features/content/domain/repo';
-import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capabilities';
+import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
 
 export default function RaceListRoute() {
@@ -15,7 +15,7 @@ export default function RaceListRoute() {
 
   const viewer = campaign?.viewer;
   const ctx = toViewerContext(viewer);
-  const canManage = canManageCampaignContent(ctx);
+  const canManage = canManageContent(ctx);
 
   const {
     items,

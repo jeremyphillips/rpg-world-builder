@@ -13,7 +13,7 @@ import { weaponRepo, armorRepo, gearRepo, magicItemRepo } from '@/features/conte
 import { DEFAULT_SYSTEM_ID } from '@/features/mechanics/domain/core/rules/campaignRulesetRepo';
 import { PageHeader } from '@/ui/elements';
 import { useBreadcrumbs } from '@/hooks';
-import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capabilities';
+import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 
 interface EquipmentCategoryCard {
   title: string;
@@ -62,7 +62,7 @@ export default function EquipmentHubRoute() {
   const basePath = `/campaigns/${campaignId}/world/equipment`;
 
   const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageCampaignContent(ctx);
+  const canManage = canManageContent(ctx);
   // const canEdit = canManage && race.source === 'campaign';
   // const canPatch = canManage && race.source === 'system';
 
