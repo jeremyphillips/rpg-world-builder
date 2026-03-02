@@ -1,3 +1,4 @@
+import type { RegisterOptions } from 'react-hook-form';
 import type { Condition } from './conditions';
 
 export type SelectOption = {
@@ -20,6 +21,8 @@ type BaseFieldConfig = {
   defaultFromOptions?: 'first';
   /** When set, field is shown only when condition evaluates to true */
   visibleWhen?: Condition;
+  /** RHF Controller rules (compiled from FieldSpec validation). */
+  rules?: RegisterOptions;
 }
 
 export type FormSection = {
@@ -29,11 +32,11 @@ export type FormSection = {
 
 export type FieldConfig =
   | BaseFieldConfig & {
-      type: 'text'
-      multiline?: boolean
-      rows?: number
-      placeholder?: string
-      inputType?: 'text' | 'email' | 'password' | 'number'
+      type: 'text';
+      multiline?: boolean;
+      rows?: number;
+      placeholder?: string;
+      inputType?: 'text' | 'email' | 'password' | 'number';
     }
   | BaseFieldConfig & {
       type: 'textarea'

@@ -26,6 +26,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
           disabled={field.disabled}
           placeholder={field.placeholder}
           type={field.inputType}
+          rules={field.rules}
         />
       )
 
@@ -39,6 +40,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
           placeholder={field.placeholder}
           multiline
           rows={field.rows}
+          rules={field.rules}
         />
       )
 

@@ -19,8 +19,8 @@ export type FieldSpecOption = { value: string; label: string };
 
 export type FieldSpec<
   FormValues extends Record<string, unknown>,
-  InputShape extends Record<string, unknown>,
-  ItemShape extends Record<string, unknown>,
+  InputShape extends Record<string, unknown> = Record<string, unknown>,
+  ItemShape extends Record<string, unknown> = Record<string, unknown>,
 > = {
   name: keyof FormValues & string;
   label: string;
@@ -47,4 +47,10 @@ export type FieldSpec<
   maxRows?: number;
   /** When set, field is shown only when condition evaluates to true. */
   visibleWhen?: Condition;
+  /** Numeric validation for kind: 'numberText'. */
+  validation?: {
+    min?: number;
+    max?: number;
+    integer?: boolean;
+  };
 };

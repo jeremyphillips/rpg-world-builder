@@ -1,16 +1,18 @@
-import { TextField } from '@mui/material'
-import { Controller, useFormContext } from 'react-hook-form'
+import { TextField } from '@mui/material';
+import { Controller, useFormContext } from 'react-hook-form';
+import type { RegisterOptions } from 'react-hook-form';
 
 type FormTextFieldProps = {
-  name: string
-  label: string
-  required?: boolean
-  multiline?: boolean
-  rows?: number
-  placeholder?: string
-  disabled?: boolean
-  type?: 'text' | 'email' | 'password' | 'number'
-}
+  name: string;
+  label: string;
+  required?: boolean;
+  multiline?: boolean;
+  rows?: number;
+  placeholder?: string;
+  disabled?: boolean;
+  type?: 'text' | 'email' | 'password' | 'number';
+  rules?: RegisterOptions;
+};
 
 export default function FormTextField({
   name,
@@ -20,16 +22,18 @@ export default function FormTextField({
   rows = 4,
   placeholder,
   disabled,
-  type = 'text'
+  type = 'text',
+  rules,
 }: FormTextFieldProps) {
-  const { control } = useFormContext()
+  const { control } = useFormContext();
 
   return (
     <Controller
       name={name}
       control={control}
       rules={{
-        required: required ? `${label} is required` : false
+        ...(rules ?? {}),
+        required: required ? `${label} is required` : false,
       }}
       render={({ field, fieldState }) => (
         <TextField
@@ -47,5 +51,5 @@ export default function FormTextField({
         />
       )}
     />
-  )
+  );
 }

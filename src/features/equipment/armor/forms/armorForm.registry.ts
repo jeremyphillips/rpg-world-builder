@@ -58,6 +58,7 @@ export const ARMOR_FORM_FIELDS = [
     defaultValue: '',
     required: true,
     visibleWhen: isArmor,
+    validation: { min: 10, max: 20, integer: true },
     parse: (v) => numOrUndefined(v),
     format: (v) => numToStr(v),
   },
