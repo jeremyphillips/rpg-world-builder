@@ -1,6 +1,6 @@
-import { TimelineCard } from '@/ui/cards'
-import type { CardBadgeItem } from '@/ui/cards'
-import { formatSessionDateTime } from '@/domain/session/dates'
+import { TimelineCard } from '@/ui/patterns'
+import { formatSessionDateTime } from '@/features/session'
+import type { CardBadgeProps } from '@/ui/primitives'
 
 interface SessionTimelineCardProps {
   sessionId: string
@@ -8,7 +8,7 @@ interface SessionTimelineCardProps {
   date: string
   description?: string
   avatar?: { src?: string; name?: string } | { src?: string; name?: string }[]
-  badges?: CardBadgeItem[]
+  badges?: CardBadgeProps[]
   link?: string
   isEditable?: boolean
   onEdit?: () => void

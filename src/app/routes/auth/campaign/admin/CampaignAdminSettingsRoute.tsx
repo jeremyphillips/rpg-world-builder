@@ -1,6 +1,5 @@
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
@@ -15,7 +14,8 @@ import {
   FormActions,
   type FieldConfig,
   type FormSection
-} from '@/ui/components/form'
+} from '@/ui/patterns'
+import { AppAlert } from '@/ui/primitives'
 
 const sections: FormSection[] = [
   { id: 'general', label: 'General' },
@@ -45,13 +45,6 @@ const buildFields = (edition?: string): FieldConfig[] => [
     label: 'Campaign Image',
     section: 'general'
   },
-  {
-    type: 'checkbox',
-    name: 'allowLegacyEditionNpcs',
-    label: 'Allow legacy edition NPCs?',
-    helperText: `Their stats will be converted to ${edition ?? 'the campaign edition'}.`,
-    section: 'advanced'
-  }
 ]
 
 export default function CampaignAdminSettingsRoute() {
@@ -74,7 +67,7 @@ export default function CampaignAdminSettingsRoute() {
   if (!data) {
     return (
       <Box>
-        <Alert severity="error">{fetchError ?? 'Campaign not found'}</Alert>
+        <AppAlert tone="danger">{fetchError ?? 'Campaign not found'}</AppAlert>
       </Box>
     )
   }
@@ -88,8 +81,8 @@ export default function CampaignAdminSettingsRoute() {
         Campaign Settings
       </Typography>
 
-      {success && <Alert severity="success" sx={{ mb: 2 }}>Settings saved.</Alert>}
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {success && <AppAlert tone="success" sx={{ mb: 2 }}>Settings saved.</AppAlert>}
+      {error && <AppAlert tone="danger" sx={{ mb: 2 }}>{error}</AppAlert>}
 
       <AppForm<CampaignSettings> defaultValues={data} onSubmit={update}>
         <TabbedFormLayout sections={sections} fields={fields} />

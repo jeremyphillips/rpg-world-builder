@@ -2,20 +2,19 @@
 //
 // Read-only summary of new class features gained at the pending level.
 // Also flags ASI levels (placeholder for future feat/ASI selection).
-
-import { useMemo } from 'react'
-import { getClassProgression } from '@/features/mechanics/domain/progression'
-import type { LevelUpState } from '../levelUp.types'
-import type { ClassFeature } from '@/data/classes/types'
-
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Stack from '@mui/material/Stack'
 import Chip from '@mui/material/Chip'
-import Alert from '@mui/material/Alert'
 import StarIcon from '@mui/icons-material/Star'
+
+import { useMemo } from 'react'
+import { getClassProgression } from '@/features/mechanics/domain/progression'
+import type { LevelUpState } from '../levelUp.types'
+import type { ClassFeature } from '@/shared/types'
+import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -69,7 +68,7 @@ export default function LevelUpFeaturesStep({ state }: LevelUpFeaturesStepProps)
 
       {/* ASI banner */}
       {isAsiLevel && (
-        <Alert severity="info" icon={<StarIcon />} sx={{ mb: 2 }}>
+        <AppAlert tone="info" icon={<StarIcon />} sx={{ mb: 2 }}>
           <Typography variant="subtitle2" fontWeight={600}>
             Ability Score Improvement
           </Typography>
@@ -81,7 +80,7 @@ export default function LevelUpFeaturesStep({ state }: LevelUpFeaturesStepProps)
             ASI/Feat selection will be available in a future update. For now,
             coordinate with your DM to update ability scores manually.
           </Typography>
-        </Alert>
+        </AppAlert>
       )}
 
       {/* Extra Attack */}

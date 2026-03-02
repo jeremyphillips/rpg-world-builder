@@ -4,8 +4,8 @@ import { ROUTES } from '@/app/routes'
 import { RegisterForm, useRegister } from '@/features/auth/register'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
+import { AppAlert } from '@/ui/primitives'
 
 export default function RegisterRoute() {
   const { user, loading } = useAuth()
@@ -38,12 +38,12 @@ export default function RegisterRoute() {
       </Typography>
 
       {inviteToken && (
-        <Alert severity="info" sx={{ mb: 2 }}>
+        <AppAlert tone="info" sx={{ mb: 2 }}>
           You've been invited to join a campaign! Create an account to get started.
-        </Alert>
+        </AppAlert>
       )}
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && <AppAlert tone="danger" sx={{ mb: 2 }}>{error}</AppAlert>}
 
       <RegisterForm inviteToken={inviteToken} onSubmit={register} />
     </Box>

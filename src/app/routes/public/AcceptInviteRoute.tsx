@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { useAcceptInvite } from '@/features/auth/invite'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import Alert from '@mui/material/Alert'
+import { AppAlert } from '@/ui/primitives'
 import CircularProgress from '@mui/material/CircularProgress'
 
 export default function AcceptInviteRoute() {
@@ -20,12 +20,12 @@ export default function AcceptInviteRoute() {
   if (resolution.type === 'error') {
     return (
       <Box sx={{ maxWidth: 520, mx: 'auto', mt: 6 }}>
-        <Alert severity="error">
+        <AppAlert tone="danger">
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             Invite Error
           </Typography>
           {resolution.message}
-        </Alert>
+        </AppAlert>
       </Box>
     )
   }

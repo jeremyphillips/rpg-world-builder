@@ -1,10 +1,7 @@
 import type { CharacterDoc } from '@/shared'
-import { StatCircle } from '@/ui/elements'
+import { StatCircle } from '@/ui/primitives'
 
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import Typography from '@mui/material/Typography'
-import Stack from '@mui/material/Stack'
+import { Card, CardContent, Typography, Stack } from '@mui/material'
 
 type AbilityScoresCardProps = {
   abilityScores: NonNullable<CharacterDoc['abilityScores']>

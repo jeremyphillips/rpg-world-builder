@@ -19,11 +19,10 @@ import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 import type { GridRenderCellParams } from '@mui/x-data-grid';
 
-import AppDataGrid, { type AppDataGridColumn } from '@/ui/components/AppDataGrid/AppDataGrid';
+import { AppDataGrid, type AppDataGridColumn } from '@/ui/patterns';
 import type { ContentSummary } from '@/features/content/domain/types';
 import { canBypassVisibility, canViewContent, type ViewerContext } from '@/shared/domain/capabilities';
-import { VisibilityChip } from '@/ui/components/fields';
-import { PageHeader } from '@/ui/elements';
+import { AppPageHeader,VisibilityBadge } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/hooks';
 
 export type ContentListItem = ContentSummary & {
@@ -85,6 +84,15 @@ const ContentTypeListPage = ({
 
   const columns: AppDataGridColumn<ContentListItem>[] = useMemo(() => {
     const cols: AppDataGridColumn<ContentListItem>[] = [
+      {
+        field: 'imageKey',
+        headerName: '',
+        width: 56,
+        imageColumn: true,
+        imageSize: 32,
+        imageShape: 'rounded',
+        imageAltField: 'name',
+      },
       { field: 'name', headerName: 'Name', flex: 1, linkColumn: true },
       {
         field: 'source',
@@ -109,7 +117,7 @@ const ContentTypeListPage = ({
         renderCell: (params: GridRenderCellParams) => {
           const policy = params.row.accessPolicy;
           if (!policy || policy.scope === 'public') return null;
-          return <VisibilityChip visibility={policy} />;
+          return <VisibilityBadge visibility={policy} />;
         },
       });
     }
@@ -152,7 +160,7 @@ const ContentTypeListPage = ({
 
   return (
     <Box>
-      <PageHeader
+      <AppPageHeader
         headline={typeLabelPlural}
         breadcrumbData={breadcrumbs}
       />

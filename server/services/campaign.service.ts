@@ -119,7 +119,6 @@ export async function createCampaign(
       edition: data.edition
     },
     configuration: {
-      allowLegacyEditionNpcs: false,
       rules: {}
     },
     membership: {
@@ -144,7 +143,6 @@ export async function updateCampaign(
     edition?: string
     description?: string
     imageKey?: string | null
-    allowLegacyEditionNpcs?: boolean
   }
 ) {
   const $set: Record<string, unknown> = { updatedAt: new Date() }
@@ -163,9 +161,6 @@ export async function updateCampaign(
   }
   if (data.imageKey !== undefined) {
     $set['identity.imageKey'] = data.imageKey
-  }
-  if (data.allowLegacyEditionNpcs !== undefined) {
-    $set['configuration.allowLegacyEditionNpcs'] = data.allowLegacyEditionNpcs
   }
 
   const campaign = await campaignsCollection().findOneAndUpdate(

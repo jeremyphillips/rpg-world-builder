@@ -31,12 +31,6 @@ export interface World {
   description?: string
 }
 
-export interface Visibility { 
-  scope: 'public' | 'dm' | 'restricted'; 
-  allowCharacterIds?: string[]; 
-  allowFactionIds?: string[]
-};
-
 export interface MapMarker {
   locationId: string
   x: number
@@ -69,43 +63,4 @@ export interface Setting {
   raceOverrides?: OverrideConfig
   classOverrides?: ClassOverrideConfig
   locations?: Location[]
-}
-
-export type {
-  Race,
-  RaceId,
-  RaceSummary,
-  RaceInput,
-} from '@/features/content/domain/types';
-
-export type SettingId = 
-  | 'alQadim'
-  | 'birthright'
-  | 'blackmoor'
-  | 'darkSun'
-  | 'dragonlance'
-  | 'forgottenRealms'
-  | 'greyhawk'
-  | 'lankhmar'
-  | 'mystara'
-  | 'planescape'
-  | 'ravenloft'
-  | 'spellJammer';
-
-export interface Setting {
-  id: string;
-  name: string;
-  worldIds?: string[]; // Unified property name
-  editions?: string[];
-  publicationYear?: string;
-  aliasNames?: string[];
-  classes?: Array<{ id: string; name: string }>;
-  races?: Array<{ id: string; name: string }>;
-  raceOverrides?: {
-    add?: string[];
-    remove?: string[];
-    only?: string[];
-  };
-  classOverrides?: ClassOverrideConfig
-  locations?: Location[]; // Assuming Location type is defined elsewhere
 }

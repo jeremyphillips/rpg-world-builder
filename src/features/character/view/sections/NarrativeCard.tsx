@@ -1,5 +1,5 @@
 import type { CharacterNarrative } from '@/features/character/hooks'
-import { EditableTextField } from '@/ui/fields'
+import { EditableTextField } from '@/ui/patterns'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'

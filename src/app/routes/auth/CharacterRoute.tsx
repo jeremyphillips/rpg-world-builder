@@ -1,19 +1,17 @@
 import { useParams, useLocation, Link } from 'react-router-dom'
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
+import MuiLink from '@mui/material/Link'
+
+import { Breadcrumbs } from '@/ui/patterns'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useBreadcrumbs } from '@/hooks'
 import { ROUTES } from '@/app/routes'
-
 import { useCharacter } from '@/features/character/hooks'
 import { useCharacterForm } from '@/features/character/hooks'
 import { useCharacterActions } from '@/features/character/hooks'
 import { CharacterView } from '@/features/character/view'
-
-import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
-import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
-import MuiLink from '@mui/material/Link'
-import Breadcrumbs from '@/ui/elements/Breadcrumbs/Breadcrumbs'
+import { AppAlert } from '@/ui/primitives';
 
 export default function CharacterRoute() {
   const { id } = useParams<{ id: string }>()
@@ -49,7 +47,7 @@ export default function CharacterRoute() {
   if (state.error && !state.character) {
     return (
       <Box sx={{ maxWidth: 520, mx: 'auto', mt: 4 }}>
-        <Alert severity="error">{state.error}</Alert>
+        <AppAlert tone="danger">{state.error}</AppAlert>
       </Box>
     )
   }
@@ -62,8 +60,8 @@ export default function CharacterRoute() {
       <Breadcrumbs items={breadcrumbs} />
       
       {welcomeState?.welcomeCampaign && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          <AlertTitle>Welcome to {welcomeState.welcomeCampaign}!</AlertTitle>
+        <AppAlert tone="success" sx={{ mb: 2 }}>
+          <>Welcome to {welcomeState.welcomeCampaign}!</>
           Your character activation is pending review from the DM.{' '}
           {welcomeState.campaignId && (
             <MuiLink
@@ -73,7 +71,7 @@ export default function CharacterRoute() {
               View campaign
             </MuiLink>
           )}
-        </Alert>
+        </AppAlert>
       )}
     <CharacterView
       character={state.character}

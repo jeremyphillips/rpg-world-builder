@@ -1,36 +1,27 @@
-/**
- * Resolve a campaign's ruleset and build a filtered CampaignCatalog.
- *
- * Safe to call with any campaign — falls back to the default ruleset
- * when rulesetId is missing or unrecognised.
- */
-import type { Campaign } from '@/shared/types/campaign.types'
-import type { Ruleset } from '@/data/ruleSets'
-import { ruleSetsById, defaultRuleset } from '@/data/ruleSets'
-import { systemCatalog, type CampaignCatalog } from './systemCatalog'
-import { buildCampaignCatalog } from './buildCampaignCatalog'
-
-// ---------------------------------------------------------------------------
-// Return type
-// ---------------------------------------------------------------------------
+import type { Campaign } from '@/shared/types/campaign.types';
+import type { Ruleset } from '@/shared/types';
+import { getSystemRuleset, systemCatalog, type CampaignCatalog } from './systemCatalog';
+import { buildCampaignCatalog } from './buildCampaignCatalog';
+import type { SystemRulesetId } from './ruleset.types';
+import type { RulesetLike } from './ruleset.types';
+import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 
 export type CampaignRulesContext = {
-  ruleset: Ruleset
-  catalog: CampaignCatalog
-}
+  ruleset: RulesetLike;
+  catalog: CampaignCatalog;
+};
 
-// ---------------------------------------------------------------------------
-// Resolver
-// ---------------------------------------------------------------------------
+export function resolveCampaignRulesContext({
+  ruleset,
+  fallbackSystemId = DEFAULT_SYSTEM_RULESET_ID,
+}: {
+  campaign?: Campaign | null;
+  ruleset?: Ruleset | null;
+  fallbackSystemId?: SystemRulesetId;
+}): CampaignRulesContext {
+  const resolvedRuleset: RulesetLike = ruleset ?? getSystemRuleset(fallbackSystemId);
 
-export function resolveCampaignRulesContext(
-  campaign: Campaign | null | undefined,
-): CampaignRulesContext {
-  const ruleset =
-    (campaign?.rulesetId ? ruleSetsById[campaign.rulesetId] : undefined)
-    ?? defaultRuleset
+  const catalog = buildCampaignCatalog(systemCatalog, {}, resolvedRuleset);
 
-  const catalog = buildCampaignCatalog(systemCatalog, {}, ruleset)
-
-  return { ruleset, catalog }
+  return { ruleset: resolvedRuleset, catalog };
 }

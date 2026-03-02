@@ -1,6 +1,1 @@
 export * from './equipment'
-export * from './armor'
-export * from './weapons'
-export * from './gear'
-export * from './magicItems'
-export * from './enchantments'

@@ -76,7 +76,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function AuthLayout() {
   const { user, loading, signOut } = useAuth()
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
-  const { campaignId:activeCampaignId, setActiveCampaign, clearActiveCampaign } = useActiveCampaign()
+  const { campaignId:activeCampaignId, campaign: activeCampaignData, setActiveCampaign, clearActiveCampaign } = useActiveCampaign()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -86,7 +86,7 @@ export default function AuthLayout() {
   const [worldExpanded, setWorldExpanded] = useState(false)
   const popoverOpen = Boolean(anchorEl)
 
-  const canAccessAdmin = user?.role === 'superadmin' || (activeCampaignId && user && String(campaigns.find((c) => c._id === activeCampaignId)?.membership?.ownerId) === user.id)
+  const canAccessAdmin = activeCampaignData?.viewer?.isOwner || activeCampaignData?.viewer?.isPlatformAdmin || false
 
   // AbortController prevents StrictMode from completing both duplicate fetches,
   // which would overwrite campaigns state with a second object reference and

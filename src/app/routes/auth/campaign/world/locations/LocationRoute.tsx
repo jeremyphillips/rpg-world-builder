@@ -1,20 +1,22 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
-// import { settings } from '@/data'
-import type { Visibility } from '@/data/types'
+
+import type { Visibility } from '@/shared/types'
 import type { Location } from '@/data/locations'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { ROUTES } from '@/app/routes'
 import { apiFetch } from '@/app/api'
-import { Hero, Breadcrumbs } from '@/ui/elements'
 import { useBreadcrumbs } from '@/hooks'
 import { useCampaignMembers } from '@/features/campaign/hooks/useCampaignMembers'
 import { useCampaigns } from '@/features/campaign/hooks/useCampaigns'
 import {
+  AppHero,
+  Breadcrumbs,
   EditableTextField,
   EditableSelect,
-  VisibilityField,
-} from '@/ui/components'
+  VisibilityField
+} from '@/ui/patterns'
+
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -189,7 +191,7 @@ export default function LocationRoute() {
       <Breadcrumbs items={breadcrumbs} />
 
       {/* Hero — location image (leave as-is for now, inline editing refactored later) */}
-      <Hero
+      <AppHero
         headline={location.name}
         subheadline={location.type.charAt(0).toUpperCase() + location.type.slice(1)}
         image={location.imageUrl}

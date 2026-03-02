@@ -189,7 +189,8 @@ export function createInitialBuilderState(
     wealth: {
       gp: 0,
       sp: 0,
-      cp: 0
+      cp: 0,
+      baseBudget: null,
     },
     lockedFields,
   }

@@ -1,42 +1,27 @@
-// import type { ArmorItem } from '../equipment/armor.types';
+import type { ArmorFields } from "@/features/content/domain";
 
-export interface ArmorItem {
-  id: string
-  name: string
-  material: string
-  category: string
-  cost: string
-  baseAC: number
-  stealthDisadvantage: boolean
-  properties: string[]
-  weight: string
-  minStrength?: number
-  acBonus?: number
-}
-
-export const armor: readonly ArmorItem[] = [
+/** @deprecated to be migrated to system catalog */
+export const armor: readonly ArmorFields[] = [
   // LIGHT ARMOR
   {
     id: 'leather',
     name: 'Leather',
     material: 'organic',
     category: 'light',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     baseAC: 11,
-    stealthDisadvantage: false,
-    properties: ['dexterity-modifier-full'],
-    weight: '10 lb.',
+    dex: { mode: 'full' },
+    weight: { value: 10, unit: 'lb' },
   },
   {
     id: 'studded-leather',
     name: 'Studded Leather',
     material: 'metal',
     category: 'light',
-    cost: '45 gp',
+    cost: { coin: 'gp', value: 45 },
     baseAC: 12,
-    stealthDisadvantage: false,
-    properties: ['dexterity-modifier-full'],
-    weight: '13 lb.',
+    dex: { mode: 'full' },
+    weight: { value: 13, unit: 'lb' },
   },
 
   // MEDIUM ARMOR
@@ -45,55 +30,55 @@ export const armor: readonly ArmorItem[] = [
     name: 'Hide',
     material: 'organic',
     category: 'medium',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
     baseAC: 12,
     stealthDisadvantage: false,
-    properties: ['dexterity-modifier-max-2'],
-    weight: '12 lb.',
+    dex: { mode: 'capped', maxBonus: 2 },
+    weight: { value: 12, unit: 'lb' },
   },
   {
     id: 'chain-shirt',
     name: 'Chain Shirt',
     material: 'metal',
     category: 'medium',
-    cost: '50 gp',
+    cost: { coin: 'gp', value: 50 },
     baseAC: 13,
     stealthDisadvantage: false,
-    properties: ['dexterity-modifier-max-2'],
-    weight: '20 lb.',
+    dex: { mode: 'capped', maxBonus: 2 },
+    weight: { value: 20, unit: 'lb' },
   },
   {
     id: 'scale-mail',
     name: 'Scale Mail',
     material: 'metal',
     category: 'medium',
-    cost: '50 gp',
+    cost: { coin: 'gp', value: 50 },
     baseAC: 14,
     stealthDisadvantage: true,
-    properties: ['dexterity-modifier-max-2'],
-    weight: '45 lb.',
+    dex: { mode: 'capped', maxBonus: 2 },
+    weight: { value: 45, unit: 'lb' },
   },
   {
     id: 'breastplate',
     name: 'Breastplate',
     material: 'metal',
     category: 'medium',
-    cost: '400 gp',
+    cost: { coin: 'gp', value: 400 },
     baseAC: 14,
     stealthDisadvantage: false,
-    properties: ['dexterity-modifier-max-2'],
-    weight: '20 lb.',
+    dex: { mode: 'capped', maxBonus: 2 },
+    weight: { value: 20, unit: 'lb' },
   },
   {
     id: 'half-plate',
     name: 'Half Plate',
     material: 'metal',
     category: 'medium',
-    cost: '750 gp',
+    cost: { coin: 'gp', value: 750 },
     baseAC: 15,
     stealthDisadvantage: true,
-    properties: ['dexterity-modifier-max-2'],
-    weight: '40 lb.',
+    dex: { mode: 'capped', maxBonus: 2 },
+    weight: { value: 40, unit: 'lb' },
   },
 
   // HEAVY ARMOR
@@ -102,47 +87,47 @@ export const armor: readonly ArmorItem[] = [
     name: 'Ring Mail',
     material: 'metal',
     category: 'heavy',
-    cost: '30 gp',
+    cost: { coin: 'gp', value: 30 },
     baseAC: 14,
     stealthDisadvantage: true,
-    properties: ['dexterity-modifier-none'],
-    weight: '40 lb.',
+    dex: { mode: 'none' },
+    weight: { value: 40, unit: 'lb' },
   },
   {
     id: 'chain-mail',
     name: 'Chain Mail',
     material: 'metal',
     category: 'heavy',
-    cost: '75 gp',
+    cost: { coin: 'gp', value: 75 },
     baseAC: 16,
     stealthDisadvantage: true,
     minStrength: 13,
-    properties: ['dexterity-modifier-none'],
-    weight: '55 lb.',
+    dex: { mode: 'none' },
+    weight: { value: 55, unit: 'lb' },
   },
   {
     id: 'splint',
     name: 'Splint',
     material: 'metal',
     category: 'heavy',
-    cost: '200 gp',
+    cost: { coin: 'gp', value: 200 },
     baseAC: 17,
     stealthDisadvantage: true,
     minStrength: 15,
-    properties: ['dexterity-modifier-none'],
-    weight: '60 lb.',
+    dex: { mode: 'none' },
+    weight: { value: 60, unit: 'lb' },
   },
   {
     id: 'plate',
     name: 'Plate',
     material: 'metal',
     category: 'heavy',
-    cost: '1500 gp',
+    cost: { coin: 'gp', value: 1500 },
     baseAC: 18,
     stealthDisadvantage: true,
     minStrength: 15,
-    properties: ['dexterity-modifier-none'],
-    weight: '65 lb.',
+    dex: { mode: 'none' },
+    weight: { value: 65, unit: 'lb' },
   },
 
   // SHIELDS
@@ -151,17 +136,21 @@ export const armor: readonly ArmorItem[] = [
     name: 'Shield (Wood)',
     material: 'organic',
     category: 'shields',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
+    stealthDisadvantage: false,
+    dex: { mode: 'none' },
     acBonus: 2,
-    weight: '6 lb.',
+    weight: { value: 6, unit: 'lb' },
   },
   {
     id: 'shield-steel',
     name: 'Shield (Steel)',
     material: 'metal',
     category: 'shields',
-    cost: '10 gp',
+    cost: { coin: 'gp', value: 10 },
+    stealthDisadvantage: false,
+    dex: { mode: 'none' },
     acBonus: 2,
-    weight: '6 lb.',
+    weight: { value: 6, unit: 'lb' },
   },
 ];

@@ -1,16 +1,16 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
+
 import { useParams } from 'react-router-dom'
 import { ROUTES } from '@/app/routes'
 import { apiFetch } from '@/app/api'
-import { InviteConfirmationBox } from '@/ui/components'
+import { InviteConfirmationBox } from '@/features/campaign/invite'
 import { getCharacterOptionLabel } from '@/features/character/helpers'
 import { CampaignHorizontalCard } from '@/features/campaign/components'
 import { useAvailableCharacters } from '@/features/character/hooks'
-import type { FieldConfig } from '@/ui/components/form/form.types'
-
-import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
-import Alert from '@mui/material/Alert'
+import type { FieldConfig } from '@/ui/patterns'
+import { AppAlert } from '@/ui/primitives';
 
 interface InviteData {
   _id: string
@@ -101,7 +101,7 @@ export default function InviteRoute() {
   if (error || !invite) {
     return (
       <Box sx={{ maxWidth: 520, mx: 'auto', mt: 6 }}>
-        <Alert severity="error">{error ?? 'Invite not found'}</Alert>
+        <AppAlert tone="danger">{error ?? 'Invite not found'}</AppAlert>
       </Box>
     )
   }

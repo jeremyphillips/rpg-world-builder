@@ -1,6 +1,6 @@
 import type { CharacterDoc } from '@/shared'
 import { getNameById } from '@/utils'
-import { equipment as equipmentData } from '@/data/equipment/equipment'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -17,6 +17,11 @@ type EquipmentCardProps = {
 }
 
 export default function EquipmentCard({ equipment, onEdit }: EquipmentCardProps) {
+  const { catalog } = useCampaignRules()
+  const weaponsCatalog = Object.values(catalog.weaponsById)
+  const armorCatalog = Object.values(catalog.armorById)
+  const gearCatalog = Object.values(catalog.gearById)
+
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
       <CardContent>
@@ -41,7 +46,7 @@ export default function EquipmentCard({ equipment, onEdit }: EquipmentCardProps)
           {(equipment?.weapons ?? []).length > 0 ? (
             <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
               {(equipment?.weapons ?? []).map((w, i) => (
-                <Chip key={i} label={getNameById(equipmentData.weapons as unknown as { id: string; name: string }[], w)} size="small" variant="outlined" />
+                <Chip key={i} label={getNameById(weaponsCatalog, w)} size="small" variant="outlined" />
               ))}
             </Stack>
           ) : (
@@ -55,7 +60,7 @@ export default function EquipmentCard({ equipment, onEdit }: EquipmentCardProps)
           {(equipment?.armor ?? []).length > 0 ? (
             <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
               {(equipment?.armor ?? []).map((a, i) => (
-                <Chip key={i} label={getNameById(equipmentData.armor as unknown as { id: string; name: string }[], a)} size="small" variant="outlined" />
+                <Chip key={i} label={getNameById(armorCatalog, a)} size="small" variant="outlined" />
               ))}
             </Stack>
           ) : (
@@ -69,7 +74,7 @@ export default function EquipmentCard({ equipment, onEdit }: EquipmentCardProps)
           {(equipment?.gear ?? []).length > 0 ? (
             <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
               {(equipment?.gear ?? []).map((g, i) => (
-                <Chip key={i} label={getNameById(equipmentData.gear as unknown as { id: string; name: string }[], g)} size="small" variant="outlined" />
+                <Chip key={i} label={getNameById(gearCatalog, g)} size="small" variant="outlined" />
               ))}
             </Stack>
           ) : (
@@ -79,7 +84,7 @@ export default function EquipmentCard({ equipment, onEdit }: EquipmentCardProps)
 
         {(equipment?.weight ?? 0) > 0 && (
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
-            Total weight: {equipment?.weight ?? 0} lbs
+            Total weight: {equipment?.weight ?? 0} {equipment?.weight?.unit ?? 'lbs'}
           </Typography>
         )}
       </CardContent>

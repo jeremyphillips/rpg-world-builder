@@ -1,1 +1,0 @@
-export { default as StatShield } from './StatShield/StatShield'

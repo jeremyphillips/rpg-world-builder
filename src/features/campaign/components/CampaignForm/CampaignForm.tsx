@@ -5,7 +5,7 @@ import {
   DynamicFormRenderer,
   FormActions,
   type FieldConfig,
-} from '@/ui/components/form'
+} from '@/ui/patterns'
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 

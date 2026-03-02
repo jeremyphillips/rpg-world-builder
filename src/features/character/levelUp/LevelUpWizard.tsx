@@ -5,9 +5,8 @@
 // independent of the character builder context.
 
 import { useState, useCallback, useMemo } from 'react'
-import { AppModal } from '@/ui/modals'
+import { AppModal } from '@/ui/patterns'
 import type { CharacterDoc } from '@/shared'
-import type { EditionId } from '@/data'
 import type { LevelUpState, LevelUpResult, LevelUpStepId } from './levelUp.types'
 import { useLevelUpSteps } from './useLevelUpSteps'
 import {
@@ -22,7 +21,7 @@ import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Stack from '@mui/material/Stack'
 import Chip from '@mui/material/Chip'
-import Alert from '@mui/material/Alert'
+import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -277,9 +276,9 @@ export default function LevelUpWizard({
       }
     >
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <AppAlert tone="danger" sx={{ mb: 2 }}>
           {error}
-        </Alert>
+        </AppAlert>
       )}
 
       {stepChips}

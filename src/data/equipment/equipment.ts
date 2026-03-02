@@ -1,13 +1,6 @@
-import { armor } from './armor'
-import { weapons } from './weapons'
-import { gear } from './gear'
-import { magicItems } from './magicItems'
-import { enhancementTemplates } from './enchantments'
-
+// import { enhancementTemplates } from './enchantments'
+import { enhancementTemplates } from './enchantments/enhancementTemplates';
+/** @deprecated to be migrated to system catalog */
 export const equipment = {
-  armor: armor,
-  weapons: weapons,
-  gear: gear,
-  magicItems: magicItems,
   enchantments: { enhancementTemplates },
 } as const

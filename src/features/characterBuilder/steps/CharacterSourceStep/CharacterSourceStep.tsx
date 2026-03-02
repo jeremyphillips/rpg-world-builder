@@ -1,5 +1,5 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context';
-import { ButtonGroup } from '@/ui/elements';
+import { ButtonGroup } from '@/ui/patterns';
 
 const SOURCE_OPTIONS = [
   { id: 'import_manual', label: 'Import existing character' },

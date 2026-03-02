@@ -1,5 +1,5 @@
-import { MediaTopCard } from '@/ui/cards'
-import type { CardBadgeItem } from '@/ui/cards'
+import { MediaTopCard } from '@/ui/patterns'
+import type { CardBadgeProps } from '@/ui/primitives'
 
 interface EquipmentMediaTopCardProps {
   equipmentId?: string
@@ -7,7 +7,7 @@ interface EquipmentMediaTopCardProps {
   subheadline?: string
   description?: string
   imageUrl?: string
-  badges?: CardBadgeItem[]
+  badges?: CardBadgeProps[]
   attribution?: string
   link?: string // e.g. /campaigns/:id/equipment/:equipmentId
   isEditable?: boolean

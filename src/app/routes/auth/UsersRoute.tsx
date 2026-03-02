@@ -1,17 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
-import { apiFetch, ApiError } from '@/app/api'
-import { FormModal } from '@/ui/modals'
-import { AppDataGrid } from '@/ui/components'
-import type { AppDataGridColumn } from '@/ui/components'
-import type { FilterOption } from '@/ui/components/FilterableCardGroup/FilterableCardGroup'
-import type { FieldConfig } from '@/ui/components/form'
-
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
-import Alert from '@mui/material/Alert'
-
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
+
+import { apiFetch, ApiError } from '@/app/api'
+import { FormModal } from '@/ui/patterns'
+import { AppDataGrid } from '@/ui/patterns'
+import type { AppDataGridColumn } from '@/ui/patterns'
+import type { FilterOption } from '@/ui/patterns'
+import type { FieldConfig } from '@/ui/patterns'
+import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -138,9 +137,9 @@ export default function UsersRoute() {
   return (
     <Box>
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <AppAlert tone="danger" sx={{ mb: 2 }}>
           {error}
-        </Alert>
+        </AppAlert>
       )}
 
       <AppDataGrid<UserRow>

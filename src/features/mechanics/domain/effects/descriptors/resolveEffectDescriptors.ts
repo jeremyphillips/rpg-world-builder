@@ -1,4 +1,4 @@
-import type { EffectDescriptor } from '@/data/equipment/magicItems.types'
+import type { EffectDescriptor } from '@/features/content/domain/types'
 import type { Effect, GrantEffect, ModifierEffect } from '../effects.types'
 import type { StatTarget } from '../../resolution/stat-resolver'
 import { resolveCustomDescriptor } from './custom-registry'

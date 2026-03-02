@@ -6,13 +6,8 @@ import { getSubclassNameById } from '@/features/character/domain/reference'
 import { getXpForLevel } from '@/features/mechanics/domain/progression'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { CampaignHorizontalCard }from '@/features/campaign/components'
-import {
-  ImageUploadField,
-  EditableTextField,
-  EditableNumberField,
-  EditableSelect
-} from '@/ui/fields'
-import type { Alignment } from '@/data/types'
+import { EditableTextField } from '@/ui/patterns'
+import { ImageUploadField } from '@/ui/patterns'
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -20,7 +15,6 @@ import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import IconButton from '@mui/material/IconButton'
-// import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
@@ -78,7 +72,6 @@ export default function IdentityBanner({
   name,
   totalLevel,
   alignmentOptions,
-  raceOptions,
   canEdit,
   canEditAll,
   isOwner,

@@ -1,4 +1,4 @@
-import type { CampaignTagsConfig } from './ruleSets'
+import type { CampaignTagsConfig } from '@/shared/types'
 
 export const CAMPAIGN_TAG_OPTIONS: CampaignTagsConfig = [
   {

@@ -1,11 +1,4 @@
 import { Link } from 'react-router-dom'
-import type { CharacterClassInfo } from '@/shared'
-import { classes as classesData } from '@/data/classes'
-import { resolveImageUrl } from '@/utils/image'
-import { Breadcrumbs } from '@/ui/elements'
-import { useBreadcrumbs } from '@/hooks'
-import { useCharacters } from '@/features/character/hooks'
-
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
@@ -16,10 +9,17 @@ import Avatar from '@mui/material/Avatar'
 import Stack from '@mui/material/Stack'
 import CircularProgress from '@mui/material/CircularProgress'
 import Alert from '@mui/material/Alert'
-
 import EditIcon from '@mui/icons-material/Edit'
 import PersonIcon from '@mui/icons-material/Person'
+
+import type { CharacterClassInfo } from '@/shared'
+import { classes as classesData } from '@/data/classes'
+import { resolveImageUrl } from '@/utils/image'
+import { Breadcrumbs } from '@/ui/patterns'
+import { useBreadcrumbs } from '@/hooks'
+import { useCharacters } from '@/features/character/hooks'
 import { CharacterBuilderLauncher } from '@/features/characterBuilder/components'
+import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -78,11 +78,11 @@ export default function CharactersRoute() {
       </Stack>
 
       {characters.length === 0 ? (
-        <Alert severity="info">
+        <AppAlert tone="info">
           <h2>You have no player characters.</h2>
           <p>Create your first one!</p>
           <CharacterBuilderLauncher />
-        </Alert>
+        </AppAlert>
       ) : (
         <Stack spacing={1.5}>
           {characters.map((c) => {

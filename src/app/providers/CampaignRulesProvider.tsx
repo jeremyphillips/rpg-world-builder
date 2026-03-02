@@ -21,7 +21,8 @@ import { systemCatalog, type CampaignCatalog } from '@/features/mechanics/domain
 import { buildCampaignCatalog } from '@/features/mechanics/domain/core/rules/buildCampaignCatalog';
 import { listCampaignRaces } from '@/features/content/domain/campaignRaceRepo';
 import type { Race } from '@/features/content/domain/types';
-import type { Ruleset } from '@/data/ruleSets/ruleSets.types';
+import type { Ruleset } from '@/shared/types';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -47,17 +48,12 @@ const CampaignRulesCtx = createContext<CampaignRulesContext | undefined>(undefin
 export const CampaignRulesProvider = ({ children }: { children: ReactNode }) => {
   const { campaign, campaignId } = useActiveCampaign();
 
-  const staticCtx = useMemo(
-    () => resolveCampaignRulesContext(campaign),
-    [campaign],
-  );
-
-  const [liveRuleset, setLiveRuleset] = useState<Ruleset | null>(null);
+  const [dbRuleset, setDbRuleset] = useState<Ruleset | null>(null);
   const [campaignContent, setCampaignContent] = useState<Partial<CampaignCatalog>>({});
 
   useEffect(() => {
     if (!campaignId) {
-      setLiveRuleset(null);
+      setDbRuleset(null);
       setCampaignContent({});
       return;
     }
@@ -65,26 +61,35 @@ export const CampaignRulesProvider = ({ children }: { children: ReactNode }) => 
     let cancelled = false;
 
     Promise.all([
-      getResolvedCampaignRuleset(campaignId),
+      getResolvedCampaignRuleset(campaignId).catch(() => null),
       listCampaignRaces(campaignId).catch(() => [] as Race[]),
-    ]).then(([resolved, races]) => {
-      if (cancelled) return;
-      if (resolved) setLiveRuleset(resolved);
-      setCampaignContent(buildCampaignContent(races));
-    }).catch(() => {});
+    ])
+      .then(([resolvedRuleset, races]) => {
+        if (cancelled) return;
+        setDbRuleset(resolvedRuleset);
+        setCampaignContent(buildCampaignContent(races));
+      })
+      .catch(() => {
+        // swallow (or set an error state if you want)
+      });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [campaignId]);
 
   const value = useMemo<CampaignRulesContext>(() => {
-    if (liveRuleset) {
-      return {
-        ruleset: liveRuleset,
-        catalog: buildCampaignCatalog(systemCatalog, campaignContent, liveRuleset),
-      };
-    }
-    return staticCtx;
-  }, [liveRuleset, campaignContent, staticCtx]);
+    const { ruleset } = resolveCampaignRulesContext({
+      campaign,
+      ruleset: dbRuleset,
+      fallbackSystemId: DEFAULT_SYSTEM_RULESET_ID,
+    });
+
+    return {
+      ruleset,
+      catalog: buildCampaignCatalog(systemCatalog, campaignContent, ruleset),
+    };
+  }, [campaign, dbRuleset, campaignContent]);
 
   return (
     <CampaignRulesCtx.Provider value={value}>
@@ -95,8 +100,6 @@ export const CampaignRulesProvider = ({ children }: { children: ReactNode }) => 
 
 export const useCampaignRules = (): CampaignRulesContext => {
   const ctx = useContext(CampaignRulesCtx);
-  if (!ctx) {
-    throw new Error('useCampaignRules must be used within CampaignRulesProvider');
-  }
+  if (!ctx) throw new Error('useCampaignRules must be used within CampaignRulesProvider');
   return ctx;
 };

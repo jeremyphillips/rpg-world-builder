@@ -1,8 +1,9 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
-import { equipment } from '@/data/equipment/equipment'
-import type { ArmorItem } from '@/data/equipment/armor'
-import type { WeaponItem } from '@/data/equipment/weapons'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import type { Armor } from '@/features/content/domain/types'
+import type { Weapon } from '@/features/content/domain/types'
 import { resolveLoadout } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
+import { formatMoney } from '@/shared/money'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -22,10 +23,10 @@ function getOwnedItemsByIds<T extends { id: string }>(
 }
 
 function partitionArmor(
-  items: ArmorItem[],
-): { armorItems: ArmorItem[]; shieldItems: ArmorItem[] } {
-  const armorItems: ArmorItem[] = []
-  const shieldItems: ArmorItem[] = []
+  items: Armor[],
+): { armorItems: Armor[]; shieldItems: Armor[] } {
+  const armorItems: Armor[] = []
+  const shieldItems: Armor[] = []
 
   for (const item of items) {
     if (item.category === 'shields') {
@@ -38,13 +39,13 @@ function partitionArmor(
   return { armorItems, shieldItems }
 }
 
-function armorToOption(item: ArmorItem): SelectOption {
-  const costSuffix = item.cost ? ` (${item.cost})` : ''
+function armorToOption(item: Armor): SelectOption {
+  const costSuffix = item.cost ? ` (${formatMoney(item.cost)})` : ''
   return { value: item.id, label: `${item.name}${costSuffix}` }
 }
 
-function weaponToOption(item: WeaponItem): SelectOption {
-  const costSuffix = item.cost ? ` (${item.cost})` : ''
+function weaponToOption(item: Weapon): SelectOption {
+  const costSuffix = item.cost ? ` (${formatMoney(item.cost)})` : ''
   return { value: item.id, label: `${item.name}${costSuffix}` }
 }
 
@@ -85,6 +86,7 @@ const LoadoutSelect = ({
 
 const LoadoutStep = () => {
   const { state, updateLoadout } = useCharacterBuilder()
+  const { catalog } = useCampaignRules()
 
   const {
     step,
@@ -93,8 +95,10 @@ const LoadoutStep = () => {
 
   const loadout = resolveLoadout(state.combat)
 
-  const ownedWeapons = getOwnedItemsByIds(equipment.weapons, selectedEquipment?.weapons ?? [])
-  const ownedArmor = getOwnedItemsByIds(equipment.armor, selectedEquipment?.armor ?? [])
+  const weaponsCatalog = Object.values(catalog.weaponsById)
+  const armorCatalog = Object.values(catalog.armorById)
+  const ownedWeapons = getOwnedItemsByIds(weaponsCatalog, selectedEquipment?.weapons ?? [])
+  const ownedArmor = getOwnedItemsByIds(armorCatalog, selectedEquipment?.armor ?? [])
   const { armorItems, shieldItems } = partitionArmor(ownedArmor)
 
   const weaponOpts = ownedWeapons.map(w => weaponToOption(w))

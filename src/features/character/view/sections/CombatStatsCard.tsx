@@ -24,7 +24,7 @@ import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
 import Tooltip from '@mui/material/Tooltip'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import { StatShield } from '@/ui/stats'
+import { StatShield } from '@/ui/primitives'
 import Divider from '@mui/material/Divider'
 import type { BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
 

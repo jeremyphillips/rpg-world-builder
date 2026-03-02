@@ -5,7 +5,7 @@
 
 import { useMemo, useCallback } from 'react'
 import { getClassDefinitions } from '@/features/character/domain/reference'
-import { ButtonGroup } from '@/ui/elements'
+import { ButtonGroup } from '@/ui/patterns'
 import type { LevelUpState } from '../levelUp.types'
 
 import Box from '@mui/material/Box'

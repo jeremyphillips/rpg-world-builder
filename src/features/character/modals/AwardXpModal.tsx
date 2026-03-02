@@ -3,10 +3,10 @@ import { useState, useCallback } from 'react'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
-import Alert from '@mui/material/Alert'
+import { AppAlert } from '@/ui/primitives'
 import CircularProgress from '@mui/material/CircularProgress'
 
-import { AppModal } from '@/ui/modals'
+import { AppModal } from '@/ui/patterns'
 import { getLevelForXp, getXpForLevel } from '@/features/mechanics/domain/progression'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 
@@ -135,7 +135,7 @@ export default function AwardXpModal({
           </>
         }
       >
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && <AppAlert tone="danger" sx={{ mb: 2 }}>{error}</AppAlert>}
 
         <TextField
           label="XP to award"
@@ -153,11 +153,11 @@ export default function AwardXpModal({
         />
 
         {isMultiLevelJump && (
-          <Alert severity="warning" sx={{ mt: 2 }}>
+          <AppAlert tone="warning" sx={{ mt: 2 }}>
             This will advance <strong>{characterName}</strong> by{' '}
             <strong>{levelsGained} levels</strong> (level {currentLevel} &rarr;{' '}
             {calculatedLevel}). Double-check the amount is correct.
-          </Alert>
+          </AppAlert>
         )}
       </AppModal>
     )
@@ -187,9 +187,9 @@ export default function AwardXpModal({
           </>
         }
       >
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && <AppAlert tone="danger" sx={{ mb: 2 }}>{error}</AppAlert>}
 
-        <Alert severity={isMultiLevelJump ? 'warning' : 'info'} sx={{ mb: 2 }}>
+        <AppAlert tone={isMultiLevelJump ? 'warning' : 'info'} sx={{ mb: 2 }}>
           Awarding <strong>{parsedAmount.toLocaleString()} XP</strong> will advance{' '}
           <strong>{characterName}</strong> from level{' '}
           <strong>{currentLevel}</strong> to level{' '}
@@ -198,7 +198,7 @@ export default function AwardXpModal({
             <> — that's <strong>{levelsGained} levels</strong> at once</>
           )}
           .
-        </Alert>
+        </AppAlert>
 
         <Typography variant="body2" color="text.secondary">
           The character's level will not change immediately. {characterName}'s
@@ -224,11 +224,11 @@ export default function AwardXpModal({
         </Button>
       }
     >
-      <Alert severity="success">
+      <AppAlert tone="success">
         <strong>{characterName}</strong> has been awarded{' '}
         <strong>{parsedAmount.toLocaleString()} XP</strong>. Level advancement
         to <strong>{calculatedLevel}</strong> is pending.
-      </Alert>
+      </AppAlert>
     </AppModal>
   )
 }

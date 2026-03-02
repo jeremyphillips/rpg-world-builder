@@ -8,25 +8,22 @@
  * Toggle the flag to switch. Default: false (in-memory).
  */
 import { apiFetch, ApiError } from '@/app/api';
-import type { CampaignRulesetPatch } from './ruleset.types';
-import type { Ruleset } from '@/data/ruleSets/ruleSets.types';
+import type { CampaignRulesetPatch, SystemRulesetId } from './ruleset.types';
+import type { Ruleset } from '@/shared/types';
 import { getSystemRuleset } from './systemCatalog';
 import { normalizeCampaignRulesetPatch } from './normalizeCampaignRulesetPatch';
 import { validateCampaignRulesetPatch } from './validateCampaignRulesetPatch';
 import { resolveCampaignRuleset } from './resolveCampaignRuleset';
 import type { ValidationResult } from './validateCampaignRulesetPatch';
+import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
+import { assertSystemRulesetId } from '@/features/mechanics/domain/core/rules';
 
 // ---------------------------------------------------------------------------
 // Feature flag
 // ---------------------------------------------------------------------------
-
+/** @deprecated Use the API-backed implementation instead. */
 export const USE_DB_RULESET_PATCHES = true;
 
-// ---------------------------------------------------------------------------
-// Default system id
-// ---------------------------------------------------------------------------
-
-export const DEFAULT_SYSTEM_ID = '5e_v1';
 
 // ---------------------------------------------------------------------------
 // Draft factory
@@ -34,7 +31,7 @@ export const DEFAULT_SYSTEM_ID = '5e_v1';
 
 export function createDefaultCampaignRulesetPatch(
   campaignId: string,
-  systemId: string = DEFAULT_SYSTEM_ID,
+  systemId: SystemRulesetId = DEFAULT_SYSTEM_RULESET_ID,
 ): CampaignRulesetPatch {
   return {
     _id: `draft-${campaignId}`,
@@ -90,10 +87,15 @@ async function apiSave(patch: CampaignRulesetPatch): Promise<CampaignRulesetPatc
 export async function getCampaignRulesetPatch(
   campaignId: string,
 ): Promise<CampaignRulesetPatch | null> {
-  if (USE_DB_RULESET_PATCHES) {
-    return apiGet(campaignId);
-  }
-  return memoryStore.get(campaignId) ?? null;
+  const patch = USE_DB_RULESET_PATCHES
+    ? await apiGet(campaignId)
+    : (memoryStore.get(campaignId) ?? null);
+
+  if (!patch) return null;
+
+  assertSystemRulesetId(patch.systemId);
+
+  return patch;
 }
 
 export async function saveCampaignRulesetPatch(

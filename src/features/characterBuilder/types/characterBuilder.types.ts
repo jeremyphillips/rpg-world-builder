@@ -41,8 +41,6 @@ export type CharacterBuilderState = CharacterSheet & {
 
 /** Fields that can be pre-filled when launching the builder. */
 export type BuilderOverrides = {
-  edition?: import('@/data').EditionId
-  setting?: import('@/data').SettingId
   race?: string
   alignment?: string
 }
@@ -90,6 +88,7 @@ export type CharacterBuilderContextValue = {
     gp?: number | null
     sp?: number | null
     cp?: number | null
+    baseBudget?: import('@/shared/money/types').Money | null
   }) => void
 
   // proficiencies

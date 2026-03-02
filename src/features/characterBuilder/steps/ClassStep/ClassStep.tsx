@@ -8,7 +8,7 @@ import { getClassDefinitions } from '@/features/character/domain/reference'
 import { canAddClass } from '@/features/character/domain/validation'
 import { getClassProgression } from '@/features/mechanics/domain/progression'
 import type { ClassProgression } from '@/data/classes.types'
-import { ButtonGroup } from '@/ui/elements'
+import { ButtonGroup } from '@/ui/patterns'
 import { getSubclassNameById } from '@/features/character/domain/reference'
 
 import Box from '@mui/material/Box'

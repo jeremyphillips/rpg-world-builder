@@ -1,6 +1,7 @@
 import type { Effect } from '../effects.types'
 import type { Equipment, EquipmentLoadout, EquipmentItemInstance } from '@/shared/types/character.core'
-import { equipment } from '@/data/equipment/equipment'
+import { getSystemArmor } from '@/features/mechanics/domain/core/rules/systemCatalog.armor'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
 
 // ---------------------------------------------------------------------------
 // Resolved loadout (instance-aware)
@@ -102,8 +103,15 @@ export function resolveEquipmentLoadoutDetailed(
   }
 }
 
-function findCoreArmor(armorId: string) {
-  return equipment.armor.find((a) => a.id === armorId) ?? null
+function findCoreArmor(
+  armorId: string,
+  armorById?: Record<string, { id: string; category: string; baseAC?: number; acBonus?: number }>,
+) {
+  if (armorById) {
+    return armorById[armorId] ?? null
+  }
+  const systemArmor = getSystemArmor(DEFAULT_SYSTEM_RULESET_ID)
+  return systemArmor.find((a) => a.id === armorId) ?? null
 }
 
 function buildArmorFormulaEffect(
@@ -152,12 +160,13 @@ function buildArmorFormulaEffect(
  */
 export function getEquipmentEffects(
   equipment: Equipment | undefined,
+  armorById?: Record<string, { id: string; category: string; baseAC?: number; acBonus?: number }>,
 ): Effect[] {
   const ownedArmorIds = equipment?.armor ?? []
   const effects: Effect[] = []
 
   for (const id of ownedArmorIds) {
-    const item = findCoreArmor(id)
+    const item = findCoreArmor(id, armorById)
     if (!item) continue
 
     if (item.category === 'shields') {

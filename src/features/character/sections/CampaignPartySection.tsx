@@ -2,8 +2,8 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { resolveImageUrl } from '@/utils/image'
 import { CharacterMediaTopCard } from '@/features/character/cards'
 import Box from '@mui/material/Box'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
+import { AppAlert } from '@/ui/primitives'
 
 export interface CampaignPartySectionProps {
   status?: 'pending' | 'approved'
@@ -34,7 +34,7 @@ export default function CampaignPartySection({
             <CircularProgress />
           </Box>
         ) : approvedPartyCharacters.length === 0 ? (
-          <Alert severity="info">No {status} characters in this campaign.</Alert>
+          <AppAlert tone="info">No {status} characters in this campaign.</AppAlert>
         ) : (
           approvedPartyCharacters.map((char) => (
             <CharacterMediaTopCard

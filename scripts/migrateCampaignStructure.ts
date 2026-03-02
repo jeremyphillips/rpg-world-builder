@@ -39,7 +39,6 @@ async function migrate() {
             edition: doc.edition
           },
           configuration: {
-            allowLegacyEditionNpcs: (doc as any).allowLegacyEditionNpcs ?? false,
             rules: {}
           },
           membership: {

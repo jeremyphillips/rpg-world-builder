@@ -1,4 +1,3 @@
-import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 
@@ -6,8 +5,9 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentTypeListPage } from '@/features/content/components';
 import { useCampaignMembers } from '@/features/campaign/hooks/useCampaignMembers';
 import { raceRepo } from '@/features/content/domain/repo';
-import { toViewerContext, canManageCampaignContent } from '@/shared/domain/capabilities';
+import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
+import { AppAlert } from '@/ui/primitives';
 
 export default function RaceListRoute() {
   const { campaignId, campaign } = useActiveCampaign();
@@ -15,7 +15,7 @@ export default function RaceListRoute() {
 
   const viewer = campaign?.viewer;
   const ctx = toViewerContext(viewer);
-  const canManage = canManageCampaignContent(ctx);
+  const canManage = canManageContent(ctx);
 
   const {
     items,
@@ -44,7 +44,7 @@ export default function RaceListRoute() {
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return <AppAlert tone="danger">{error}</AppAlert>;
   }
 
   return (

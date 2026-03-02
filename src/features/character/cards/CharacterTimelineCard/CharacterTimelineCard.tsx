@@ -1,5 +1,5 @@
-import { TimelineCard } from '@/ui/cards'
-import type { CardBadgeItem } from '@/ui/cards'
+import { TimelineCard } from '@/ui/patterns'
+import type { CardBadgeProps } from '@/ui/primitives'
 
 interface CharacterTimelineCardProps {
   characterId: string
@@ -26,7 +26,7 @@ const CharacterTimelineCard = ({
   onEdit,
   actions,
 }: CharacterTimelineCardProps) => {
-  const badges: CardBadgeItem[] = status ? [{ type: 'status', value: status }] : []
+  const badges: CardBadgeProps[] = status ? [{ type: 'status', value: status }] : []
 
   return (
     <TimelineCard

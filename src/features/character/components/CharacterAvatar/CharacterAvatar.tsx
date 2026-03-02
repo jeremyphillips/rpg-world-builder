@@ -1,4 +1,4 @@
-import { AppAvatar } from '@/ui/avatar'
+import { AppAvatar } from '@/ui/primitives'
 
 interface CharacterAvatarProps {
   characterId?: string

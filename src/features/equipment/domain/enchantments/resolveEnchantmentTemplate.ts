@@ -1,4 +1,4 @@
-import type { EnchantmentTemplate } from '@/data/equipment/enchantments/enchantmentTemplates.types'
+import type { EnchantmentTemplate } from '@/features/content/domain/types'
 import { equipment } from '@/data/equipment/equipment'
 
 /**

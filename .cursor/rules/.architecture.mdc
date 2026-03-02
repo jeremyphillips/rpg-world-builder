@@ -1,216 +1,238 @@
+.
 ---
 alwaysApply: true
---- 
+---
 
 # Project Architecture & Code Organization Directives
 
-This project follows a **domain-first architecture**.
+This repo follows a **feature-first architecture** with a **shared UI system** and **shared domain modules** (pure functions/types) where appropriate.
 
-The goal is to clearly separate:
-- game rules & business logic
-- UI and feature orchestration
-- static rule data
-- infrastructure concerns
-
-Cursor should follow the rules below when generating or refactoring code.
+Cursor MUST follow the directives below when generating, refactoring, or moving code.
 
 ---
 
-## 1. Domain Layer (`src/domain`)
+## 0. Non-Negotiables (Quality Bar)
 
-### Purpose
-The `domain` layer contains **pure game rules and business logic**.
+Before considering work “done”, Cursor MUST ensure:
 
-Code in `src/domain`:
-- MUST be framework-agnostic
-- MUST NOT import from React, MUI, hooks, context, or UI components
-- SHOULD be reusable by frontend and backend
-- SHOULD be deterministic and side-effect free
+- ✅ TypeScript passes
+- ✅ Lint passes (if configured)
+- ✅ `yarn build` passes
 
-### What belongs here
-- XP rules
-- class requirements
-- level progression
-- equipment cost, weight, and transfer rules
-- visibility and permission rules (non-auth)
-- lookup helpers that are not UI-specific
+If a change introduces new exports or moves files, Cursor MUST also update any relevant `index.ts` barrel exports.
 
-### File conventions
-- One file per rule concept
-- Prefer simple, semantic names:
-  - `xp.ts`
-  - `classRequirements.ts`
-  - `levelProgression.ts`
-  - `transfer.ts`
-- Group by domain concept:
-  - `domain/character/*`
-  - `domain/equipment/*`
-  - `domain/lookups/*`
+---
 
-### Example
-```ts
-domain/character/xp.ts
-domain/equipment/transfer.ts
-```
+## 1. Primary Layers
 
-## 2. Data vs Domain
-### Static rule data
+### 1.1 Features (`src/features/*`)
+**Features own product behavior** (screens, orchestration, data-fetch, mutations, state, composition).
 
-Static, rule-defining constants may live in `domain/*/*.data.ts`.
-
-Examples:
-- XP tables
-- Level caps
-- Alignment enums
-
-### Large catalogs
-
-Large catalogs (classes, races, equipment lists) may remain in `src/data` for now.
-
-Cursor SHOULD NOT aggressively move large datasets unless explicitly instructed.
-
-## 3. Helpers vs Domain
-
-`src/helpers` is being phased out.
-
-When refactoring:
-- If a helper encodes a rule, move it to `src/domain`
-- If a helper is UI-specific or formatting-related, keep it outside `src/domain`
-
-Examples:
-```
-helpers/options/getXpByLevelAndEdition.ts → domain/character/xp.ts
-helpers/class/meetsClassRequirements.ts → domain/character/classRequirements.ts
-```
-
-## 4. Features Layer (`src/features`)
-### Purpose
-
-Features coordinate:
-- UI
-- state
-- domain logic
-- API calls
-
-Features MAY import from:
-- `src/domain`
-- `src/data`
-- shared UI components
+Features MAY:
+- Call API clients / hooks
+- Compose view components
+- Import shared UI from `src/ui`
+- Import shared pure utilities/types from `src/shared` (or equivalent)
+- Import legacy catalog data from `src/data` ONLY when needed
 
 Features MUST NOT:
-- reimplement domain rules
-- contain business logic that belongs in `src/domain`
+- Duplicate shared UI components if one already exists
+- Reimplement permission/auth gating ad hoc
+- Define large cross-feature design patterns inside a single feature (promote to `src/ui`)
 
-## 5. Shared Components
-### Atomic components
+---
 
-Reusable, UI-only components belong in:
-- `src/components`
+### 1.2 Shared UI System (`src/ui/*`)
+`src/ui` is the **single source of truth** for reusable UI building blocks.
 
-These:
-- MUST NOT contain business rules
-- MUST NOT import from `src/domain`
+Cursor MUST:
+- Prefer existing `src/ui` components over rolling new buttons/fields/cards/modals
+- Add to `src/ui` when a component is reusable across 2+ features
+- Keep UI components mostly “dumb”: presentation + small UI logic only
 
-## 6. Backend Alignment
+`src/ui` MUST NOT:
+- Contain business rules or feature-specific workflows
+- Fetch data
+- Encode permission decisions (UI can accept `canEdit` booleans / callbacks, but rules live elsewhere)
 
-Domain logic is expected to be portable to backend services.
+MUI mapping examples:
+- Alert -> ui/primitives/AppAlert
+- Chip -> ui/primitives/AppBadge -> ui/patterns/status/*
 
-Cursor should prefer:
+---
 
-pure functions
-- explicit inputs and outputs
-- no reliance on browser APIs
+### 1.3 Shared “Domain Modules” (Pure Logic + Types)
+This project no longer uses `src/domain`.
 
-## 7. Naming & Intent
+Pure, reusable logic SHOULD live in one of:
+- `src/shared/**` (recommended)
+- `src/lib/**` (if that’s your existing convention)
+- `src/features/<feature>/domain/**` (if the logic is feature-scoped but still pure)
 
-Prioritize intent-based naming over technical naming.
+Rules for “domain modules”:
+- MUST be framework-agnostic (no React, no hooks)
+- MUST be deterministic and side-effect free
+- MUST accept explicit inputs and return explicit outputs
+- SHOULD be unit-testable without mocking browser APIs
 
-Good:
-- xp.ts
-- transfer.ts
-- classRequirements.ts
+Examples:
+- stat resolution, game math, visibility/capability helpers
+- content patch builders / normalizers
+- data shaping that is not UI-specific
+
+---
+
+## 2. Auth & Permission Practices (Mandatory)
+
+### 2.1 Edit gating is required
+Any UI that allows changes (edit buttons, inline editable fields, admin menus, destructive actions) MUST be gated.
+
+Gating applies to:
+- Edit buttons
+- “Add” / “Remove” / “Delete” actions
+- Inline editable fields
+- Form routes/pages intended only for privileged users
+- Mutation triggers inside menus or kebabs
+
+### 2.2 Single-source permission checks
+Cursor MUST NOT invent one-off permission logic in components.
+
+Instead:
+- Use existing capability helpers (e.g. `canEditX(viewer, resource)`), or
+- Add a pure helper in `src/shared/auth/**` or `src/shared/capabilities/**`
+
+UI should consume booleans like:
+- `const canEdit = canEditCharacter(ctx, character);`
+…and then pass `canEdit` down.
+
+### 2.3 Defense in depth
+Even when UI is gated, server/API enforcement is assumed.
+
+Client responsibilities:
+- Hide/disable edit UI for unauthorized users
+- Avoid firing mutations when unauthorized
+- Prefer showing a disabled state + tooltip or simply hiding, following existing patterns
+
+---
+
+## 3. Routes, Views, Hooks (Extraction Rules)
+
+### 3.1 Route components (`*Route.tsx`)
+Routes are orchestration only.
+
+Routes MAY:
+- Read params
+- Run auth hooks/guards
+- Compose feature hooks
+- Handle loading/error boundaries
+- Render a single feature view
+
+Routes MUST NOT:
+- Contain complex mutation logic
+- Contain long multi-section JSX
+- Contain business rules
+
+Extraction triggers (MUST extract):
+- Route > ~150 lines OR
+- > 1 data-fetching effect OR
+- > 3 mutation handlers OR
+- > 3 major UI sections
+
+### 3.2 Feature Views (`src/features/<feature>/*View.tsx`)
+Feature views render the page layout.
+
+Views:
+- MAY import `src/ui` components
+- MUST be declarative
+- MUST NOT fetch data (receive props from hooks/routes)
+- MUST NOT contain business rules (compute booleans via shared helpers upstream)
+
+### 3.3 Feature hooks
+If orchestration becomes complex, create:
+- `use<Feature>()` for state/data/mutations
+- smaller hooks for sub-workflows
+
+---
+
+## 4. Content Model (Schema vs Content) + Patching
+
+This project uses two related concepts:
+
+### 4.1 Component Schema (definition)
+- Describes what a component *is* (fields, types, defaults, allowed children, etc.)
+- Treated as configuration and is relatively stable
+
+### 4.2 Component Content (instance)
+- A specific instance placed on a page/campaign/entity
+- Contains actual values for schema-defined fields
+- Often nested (parent → children)
+
+### 4.3 Patching strategy
+Edits SHOULD be performed via **patch objects** (partial updates), not full rewrites.
+
+Cursor MUST:
+- Prefer building minimal patches (only changed fields)
+- Preserve unknown fields (do not destructure and drop)
+- Avoid overwriting children arrays unless intentionally changing structure
+- Maintain stable identifiers for existing nodes (no “regen ids” during edits)
+
+If a helper exists for patch building/merging, Cursor MUST use it.
+If not, add a pure helper in `src/shared/content/**` (not inside UI components).
+
+---
+
+## 5. `src/data` is Legacy (Migration in progress)
+
+`src/data` is actively being migrated.
+
+Rules:
+- Cursor MUST NOT add new datasets or expand catalogs in `src/data` unless explicitly instructed
+- Cursor MAY reference `src/data` when needed for current behavior
+- When refactoring, prefer moving logic out of `src/data` into:
+  - `src/shared/**` for pure logic
+  - `src/features/**` for orchestration
+  - `src/ui/**` for reusable UI
+
+---
+
+## 6. Types: Extend, Don’t Redefine (Mandatory)
+
+Cursor MUST:
+- Import and extend existing types instead of re-declaring similar shapes
+- Prefer `type X = Existing & { ... }` or `interface X extends Existing { ... }`
+- Avoid duplicating unions/enums when they already exist
+
+Examples (preferred):
+- `type CharacterWithComputed = Character & { computed: ComputedStats }`
+- `interface EditWealthPayload extends Wealth { reason?: string }`
 
 Avoid:
-- utils.ts
-- helpers.ts
-- misc.ts
+- Recreating `Wealth`, `ViewerContext`, `CampaignRole`, etc. in new files
+- “Near-duplicate” local types that drift over time
+
+If a type is missing a field:
+- Extend it locally if it’s view-specific
+- Otherwise, update the source type definition in the canonical types file
+
+---
+
+## 7. Naming & File Hygiene
+
+Prefer intent-based names:
+- `capabilities.ts`, `patchBuilder.ts`, `normalizeContent.ts`
+
+Avoid:
+- `utils.ts`, `helpers.ts`, `misc.ts` (unless a folder convention already exists)
+
+One concept per file when possible.
+
+---
 
 ## 8. When Unsure
 
-If a file’s responsibility is ambiguous:
-- Default to not placing it in domain
-- Ask for clarification instead of guessing
+If responsibility is ambiguous:
+- Default to feature-local placement first
+- Promote to `src/ui` only if clearly reusable
+- Promote to `src/shared` only if clearly pure and cross-feature
 
-Do not invent new architectural layers without instruction.
-
-## 9. Route Responsibilities & Hook Extraction Rules
-Route Components (*Route.tsx)
-
-Route components are orchestration layers.
-
-They MAY:
-- Read route params
-- Call authentication hooks
-- Compose feature hooks
-
-Pass data into UI components
-
-They SHOULD NOT:
-- Contain large useEffect blocks with data-fetching logic
-- Contain complex mutation logic
-- Own large groups of related state fields
-- Contain business logic
-
-If a route exceeds ~150 lines OR contains:
-- More than 1 data-fetching useEffect
-- More than 5 pieces of related state
-- More than 3 async mutation handlers
-
-Cursor MUST extract logic into a feature hook.
-
-## 10. Presentation Layer & Route Size Limits
-Route Rendering Rules
-
-Route components (*Route.tsx) are orchestration layers.
-
-Routes MUST NOT contain large JSX blocks.
-
-If a route contains more than ~150 lines of JSX OR more than 3 major UI sections, Cursor MUST extract presentation into a feature-level view component.
-
-### Feature View Components
-Presentation for a feature MUST live in:
-`src/features/<feature-name>/`
-
-Example:
-`features/character/CharacterView.tsx`
-
-Feature view components:
-- MAY render complex JSX
-- MAY import shared UI components
-- MAY receive state + actions as props
-- MUST NOT perform data fetching
-- MUST NOT contain business logic
-- SHOULD be mostly declarative
-
-### Extraction Pattern
-When a route becomes large:
-1. Move all JSX into XxxView.tsx
-2. Pass required state and actions as props
-3. Keep the route focused on:
-  - Params
-  - Guards
-  - Hook composition
-  - Loading and error states
-
-After extraction, routes should typically be under 75–100 lines.
-
-### Component Granularity
-
-Large feature views SHOULD be broken into smaller components when:
-- A section exceeds ~150 lines
-- A section has independent logic
-- A section could be reused
-
-Do not create tiny components for trivial markup.
-
-Prioritize readability and cohesion.
+Do NOT invent new architectural layers without instruction.

@@ -1,5 +1,5 @@
-import { HorizontalCompactCard } from '@/ui/cards'
-import type { CardBadgeItem } from '@/ui/cards'
+import { HorizontalCompactCard } from '@/ui/patterns'
+import type { CardBadgeProps } from '@/ui/primitives'
 
 export interface LocationHorizontalCardProps {
   /** Link to the location detail route */
@@ -12,8 +12,6 @@ export interface LocationHorizontalCardProps {
   isCustom?: boolean
   /** Parent location name, if nested */
   parentName?: string
-  /** Color for the type badge */
-  typeColor?: 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info'
 }
 
 const LocationHorizontalCard = ({
@@ -23,10 +21,9 @@ const LocationHorizontalCard = ({
   description,
   imageUrl,
   isCustom,
-  parentName,
-  typeColor = 'primary',
+  parentName
 }: LocationHorizontalCardProps) => {
-  const badges: CardBadgeItem[] = [
+  const badges: CardBadgeProps[] = [
     { type: 'tag', value: type },
   ]
   if (isCustom) {

@@ -25,20 +25,17 @@ import {
 } from '@/features/mechanics/domain/progression'
 import {
   calculateEquipmentWeight,
-  calculateEquipmentCost,
+  calculateEquipmentCostCp,
   normalizeEquipmentInstances,
 } from '@/features/equipment/domain'
-import { equipment } from "@/data/equipment/equipment"
-// import type { EditionId, SettingId } from "@/data"
+import { moneyToCp, cpToDenoms } from '@/shared/money'
 import type { CharacterType } from "@/shared/types/character.core"
-const {
-  weapons: weaponsData,
-  armor: armorData,
-  gear: gearData
-} = equipment
 
 export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
-  const { ruleset } = useCampaignRules()
+  const { ruleset, catalog } = useCampaignRules()
+  const weaponsData = Object.values(catalog.weaponsById)
+  const armorData = Object.values(catalog.armorById)
+  const gearData = Object.values(catalog.gearById)
   const xpTable = ruleset.mechanics.progression.experience
 
   const [state, setState] = useState<CharacterBuilderState>(
@@ -163,10 +160,6 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
     character: import('@/shared').CharacterSheet & {
       _id?: string
       name?: string
-      /** @deprecated Legacy field — backfills classes[0].classId when missing. */
-      class?: string
-      /** @deprecated Legacy field — backfills totalLevel when missing. */
-      level?: number
     },
     stepId: import('../types').StepId,
   ) => {
@@ -213,7 +206,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
       equipment: normalizeEquipmentInstances(character.equipment ?? { armor: [], weapons: [], gear: [], weight: 0 }),
       proficiencies: character.proficiencies ?? { skills: [] },
       spells: character.spells ?? [],
-      wealth: character.wealth ?? { gp: 0, sp: 0, cp: 0 },
+      wealth: character.wealth ?? { gp: 0, sp: 0, cp: 0, baseBudget: null },
       editMode: { characterId: character._id ?? '', stepId, lockedSelections },
     })
   }
@@ -532,39 +525,43 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
     gp?: number | null
     sp?: number | null
     cp?: number | null
+    baseBudget?: import('@/shared/money/types').Money | null
   }) => {
-    setState(prev => ({
-      ...prev,
-      wealth: {
-        gp: wealth.gp ?? prev.wealth?.gp ?? null,
-        sp: wealth.sp ?? prev.wealth?.sp ?? null,
-        cp: wealth.cp ?? prev.wealth?.cp ?? null,
-        baseGp: wealth.gp ?? prev.wealth?.baseGp ?? null
+    setState(prev => {
+      const baseBudget = wealth.baseBudget ?? prev.wealth?.baseBudget ?? null
+      return {
+        ...prev,
+        wealth: {
+          gp: wealth.gp ?? prev.wealth?.gp ?? null,
+          sp: wealth.sp ?? prev.wealth?.sp ?? null,
+          cp: wealth.cp ?? prev.wealth?.cp ?? null,
+          baseBudget,
+        },
       }
-    }))
+    })
   }
 
-  const computeEquipmentTotals = (
-    weaponIds: string[],
-    armorIds: string[],
-    gearIds: string[],
-  ) => ({
-    weight: calculateEquipmentWeight(weaponIds, armorIds, gearIds, weaponsData, armorData, gearData),
-    equipmentCost: calculateEquipmentCost(weaponIds, armorIds, gearIds, weaponsData, armorData, gearData),
-  })
+  const computeEquipmentTotals = useCallback(
+    (weaponIds: string[], armorIds: string[], gearIds: string[]) => ({
+      weight: calculateEquipmentWeight(weaponIds, armorIds, gearIds, weaponsData, armorData, gearData),
+      equipmentCostCp: calculateEquipmentCostCp(weaponIds, armorIds, gearIds, weaponsData, armorData, gearData),
+    }),
+    [weaponsData, armorData, gearData],
+  )
 
   const updateWeapons = (weaponIds: string[]) => {
     setState(prev => {
       const armorIds = prev.equipment?.armor ?? []
       const gearIds = prev.equipment?.gear ?? []
-      const { weight, equipmentCost } = computeEquipmentTotals(weaponIds, armorIds, gearIds)
-      const baseGp = prev.wealth?.baseGp ?? 0
-      const remainingGp = Math.max(baseGp - equipmentCost, 0)
+      const { weight, equipmentCostCp } = computeEquipmentTotals(weaponIds, armorIds, gearIds)
+      const baseCp = moneyToCp(prev.wealth?.baseBudget ?? undefined)
+      const remainingCp = Math.max(baseCp - equipmentCostCp, 0)
+      const remaining = cpToDenoms(remainingCp)
 
       return {
         ...prev,
         equipment: normalizeEquipmentInstances({ ...prev.equipment, weapons: weaponIds, weight }),
-        wealth: { ...prev.wealth, gp: remainingGp }
+        wealth: { ...prev.wealth, gp: remaining.gp, sp: remaining.sp, cp: remaining.cp }
       }
     })
   }
@@ -573,14 +570,15 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
     setState(prev => {
       const weaponIds = prev.equipment?.weapons ?? []
       const gearIds = prev.equipment?.gear ?? []
-      const { weight, equipmentCost } = computeEquipmentTotals(weaponIds, armorIds, gearIds)
-      const baseGp = prev.wealth?.baseGp ?? 0
-      const remainingGp = Math.max(baseGp - equipmentCost, 0)
+      const { weight, equipmentCostCp } = computeEquipmentTotals(weaponIds, armorIds, gearIds)
+      const baseCp = moneyToCp(prev.wealth?.baseBudget ?? undefined)
+      const remainingCp = Math.max(baseCp - equipmentCostCp, 0)
+      const remaining = cpToDenoms(remainingCp)
 
       return {
         ...prev,
         equipment: normalizeEquipmentInstances({ ...prev.equipment, armor: armorIds, weight }),
-        wealth: { ...prev.wealth, gp: remainingGp }
+        wealth: { ...prev.wealth, gp: remaining.gp, sp: remaining.sp, cp: remaining.cp }
       }
     })
   }
@@ -589,14 +587,15 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
     setState(prev => {
       const weaponIds = prev.equipment?.weapons ?? []
       const armorIds = prev.equipment?.armor ?? []
-      const { weight, equipmentCost } = computeEquipmentTotals(weaponIds, armorIds, gearIds)
-      const baseGp = prev.wealth?.baseGp ?? 0
-      const remainingGp = Math.max(baseGp - equipmentCost, 0)
+      const { weight, equipmentCostCp } = computeEquipmentTotals(weaponIds, armorIds, gearIds)
+      const baseCp = moneyToCp(prev.wealth?.baseBudget ?? undefined)
+      const remainingCp = Math.max(baseCp - equipmentCostCp, 0)
+      const remaining = cpToDenoms(remainingCp)
 
       return {
         ...prev,
         equipment: { ...prev.equipment, gear: gearIds, weight },
-        wealth: { ...prev.wealth, gp: remainingGp }
+        wealth: { ...prev.wealth, gp: remaining.gp, sp: remaining.sp, cp: remaining.cp }
       }
     })
   }

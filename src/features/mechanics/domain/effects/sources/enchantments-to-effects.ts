@@ -5,7 +5,7 @@
  * is handled in one place (resolveEquipmentLoadoutDetailed).
  */
 import type { Effect } from '../effects.types'
-import type { EnchantableSlot } from '@/data/equipment/enchantments/enchantmentTemplates.types'
+import type { EnchantableSlot } from '@/features/content/domain/types'
 import { equipment } from '@/data/equipment/equipment'
 import { resolveEffectDescriptors } from '../descriptors/resolveEffectDescriptors'
 import type { ResolvedEquipmentLoadout, ResolvedSlot } from './equipment-to-effects'

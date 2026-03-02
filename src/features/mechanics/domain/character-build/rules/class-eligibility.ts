@@ -7,29 +7,9 @@
  */
 import { classes } from '@/data'
 import { getById } from '@/utils'
-import type { ClassRequirement } from '@/data/classes/types'
+import type { ClassRequirement } from '@/data'
 import type { AlignmentId } from '@/data'
 import type { BuildDraft } from '../types'
-import type { CharacterClass } from '@/data/classes/types'
-
-// ---------------------------------------------------------------------------
-// Edition fallback for class requirements
-// ---------------------------------------------------------------------------
-
-// const CLASS_EDITION_FALLBACK: Record<string, string> = {
-//   'becmi': 'b',
-//   'bx':    'b',
-// }
-
-// function findRequirement(
-//   requirements: ClassRequirement[],
-//   edition: string,
-// ): ClassRequirement | undefined {
-//   return (
-//     requirements.find(r => r.edition === edition)
-//     ?? requirements.find(r => r.edition === CLASS_EDITION_FALLBACK[edition])
-//   )
-// }
 
 // ---------------------------------------------------------------------------
 // Reason codes

@@ -1,6 +1,7 @@
 import type { AlignmentId } from '@/data'
-import type { AbilityScores, AbilityId } from '@/shared/types/character.core'
+import type { AbilityId } from '@/shared/types/character.core'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
+
 // ---------------------------------------------------------------------------
 // Shared primitives
 // ---------------------------------------------------------------------------

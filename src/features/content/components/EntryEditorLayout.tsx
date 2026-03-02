@@ -6,22 +6,15 @@
  */
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import Alert from '@mui/material/Alert';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
+import { Box, Button, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
 import MuiLink from '@mui/material/Link';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import type { Visibility } from '@/data/types';
-import { PageHeader } from '@/ui/elements';
+import type { Visibility } from '@/shared/types';
+import { AppAlert } from '@/ui/primitives';
+import { AppPageHeader, AppModal, ConfirmModal, VisibilityField } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/hooks';
-import { AppModal, ConfirmModal } from '@/ui/modals';
-import { VisibilityField } from '@/ui/components/fields';
+
 
 // ---------------------------------------------------------------------------
 // Delete validation types (generic across all content types)
@@ -62,9 +55,19 @@ interface EntryEditorLayoutProps {
   dirty: boolean;
   success: boolean;
   errors: ValidationError[];
-  onSave: () => void;
+  /**
+   * Legacy/non-form save handler invoked on click.
+   * Ignored when `formId` is provided.
+   */
+  onSave?: () => void;
   onBack?: () => void;
   children: React.ReactNode;
+  /**
+   * HTML form id used for RHF / AppForm submission.
+   * When provided the Save button renders as `type="submit" form={formId}`
+   * instead of using `onClick`. Preferred for new editor routes.
+   */
+  formId?: string;
 
   /** When true, renders a Delete button. Caller determines permission. */
   canDelete?: boolean;
@@ -107,6 +110,7 @@ export default function EntryEditorLayout({
   onSave,
   onBack,
   children,
+  formId,
   canDelete = false,
   onDelete,
   validateDelete,
@@ -172,7 +176,7 @@ export default function EntryEditorLayout({
 
   return (
     <Box>
-      <PageHeader
+      <AppPageHeader
         headline={isNew ? `New ${typeLabel}` : `Edit ${typeLabel}`}
         breadcrumbData={breadcrumbs}
         actions={[
@@ -183,13 +187,13 @@ export default function EntryEditorLayout({
       />
 
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <AppAlert tone="success" sx={{ mb: 2 }}>
           {typeLabel} saved successfully.
-        </Alert>
+        </AppAlert>
       )}
 
       {errors.length > 0 && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <AppAlert tone="danger" sx={{ mb: 2 }}>
           <Typography variant="subtitle2" sx={{ mb: 0.5 }}>Validation errors:</Typography>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             {errors.map((e, i) => (
@@ -198,13 +202,13 @@ export default function EntryEditorLayout({
               </li>
             ))}
           </ul>
-        </Alert>
+        </AppAlert>
       )}
 
       {deleteError && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setDeleteError(null)}>
+        <AppAlert tone="danger" sx={{ mb: 2 }} onClose={() => setDeleteError(null)}>
           {deleteError}
-        </Alert>
+        </AppAlert>
       )}
 
       {showPolicyField && policyValue && onPolicyChange && (
@@ -224,8 +228,10 @@ export default function EntryEditorLayout({
         <Stack direction="row" spacing={2}>
           <Button
             variant="contained"
-            onClick={onSave}
             disabled={busy || (!dirty && !isNew)}
+            {...(formId
+              ? { type: 'submit', form: formId }
+              : { onClick: onSave })}
           >
             {saving ? 'Saving…' : isNew ? `Create ${typeLabel}` : `Save ${typeLabel}`}
           </Button>

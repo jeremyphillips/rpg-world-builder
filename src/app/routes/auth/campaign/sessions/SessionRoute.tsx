@@ -9,8 +9,8 @@ import {
   EditableField,
   EditableTextField,
   EditableSelect,
-} from '@/ui/fields'
-import { Breadcrumbs } from '@/ui/elements'
+} from '@/ui/patterns'
+import { Breadcrumbs } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/hooks'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -18,8 +18,7 @@ import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CircularProgress from '@mui/material/CircularProgress'
-import Alert from '@mui/material/Alert'
-import { ConfirmModal } from '@/ui/modals'
+import { ConfirmModal } from '@/ui/patterns'
 import Stack from '@mui/material/Stack'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -29,6 +28,7 @@ import SaveIcon from '@mui/icons-material/Save'
 import EventAvailableIcon from '@mui/icons-material/EventAvailable'
 import EventBusyIcon from '@mui/icons-material/EventBusy'
 import DeleteIcon from '@mui/icons-material/Delete'
+import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -194,8 +194,8 @@ export default function SessionRoute() {
 
       {/* ── RSVP Alert ──────────────────────────────────────────────── */}
       {invite?.status === 'pending' && (
-        <Alert
-          severity="info"
+        <AppAlert 
+          tone="info"
           sx={{ mb: 3 }}
           action={
             <Stack direction="row" spacing={1}>
@@ -223,19 +223,19 @@ export default function SessionRoute() {
           }
         >
           You have been invited to this session on <strong>{dateLabel}</strong>. RSVP requested.
-        </Alert>
+        </AppAlert>
       )}
 
       {invite?.status === 'accepted' && (
-        <Alert severity="success" sx={{ mb: 3 }}>
+        <AppAlert tone="success" sx={{ mb: 3 }}>
           You accepted this session invitation.
-        </Alert>
+        </AppAlert>
       )}
 
       {invite?.status === 'declined' && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
+        <AppAlert tone="warning" sx={{ mb: 3 }}>
           You declined this session invitation.
-        </Alert>
+        </AppAlert>
       )}
 
       {/* ── Session details ─────────────────────────────────────────── */}

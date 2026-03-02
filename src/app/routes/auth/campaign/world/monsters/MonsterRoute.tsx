@@ -1,13 +1,13 @@
 import { useParams } from 'react-router-dom'
-import { Breadcrumbs } from '@/ui/elements'
+import { Breadcrumbs } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/hooks'
 import { monsters } from '@/data'
 import type { Monster } from '@/data'
 import MonsterView from '@/features/monster/MonsterView/MonsterView'
 
 import Box from '@mui/material/Box'
-import Alert from '@mui/material/Alert'
 import Typography from '@mui/material/Typography'
+import { AppAlert } from '@/ui/primitives'
 
 export default function MonsterRoute() {
   const { monsterId } = useParams<{ id: string; monsterId: string }>()
@@ -19,7 +19,7 @@ export default function MonsterRoute() {
   if (!monster) {
     return (
       <Box sx={{ py: 4 }}>
-        <Alert severity="error">Monster not found.</Alert>
+        <AppAlert tone="danger">Monster not found.</AppAlert>
       </Box>
     )
   }

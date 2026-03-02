@@ -1,4 +1,5 @@
-import { MediaTopCard, type CardBadgeItem } from '@/ui/cards'
+import { MediaTopCard } from '@/ui/patterns'
+import type { CardBadgeProps } from '@/ui/primitives'
 import type { CharacterClassInfo } from '@/shared/types'
 import Box from '@mui/material/Box'
 import PersonIcon from '@mui/icons-material/Person'
@@ -67,7 +68,7 @@ const NpcMediaTopCard = ({
 }: NpcMediaTopCardProps) => {
   const { campaignId: activeCampaignId } = useActiveCampaign()
   const { catalog } = useCampaignRules()
-  const badges: CardBadgeItem[] = status ? [{ type: 'status', value: status }] : []
+  const badges: CardBadgeProps[] = status ? [{ type: 'status', value: status }] : []
 
   const placeholder = (
     <Box

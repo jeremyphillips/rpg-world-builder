@@ -7,12 +7,12 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import Stack from '@mui/material/Stack'
 import Box from '@mui/material/Box'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
 
-import { AppModal } from '@/ui/modals'
-import { ConfirmModal } from '@/ui/modals'
+import { AppModal } from '@/ui/patterns'
+import { ConfirmModal } from '@/ui/patterns'
 import type { Wealth } from '@/shared/types/character.core'
+import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -192,7 +192,7 @@ export default function EditWealthModal({
           </>
         }
       >
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && <AppAlert tone="danger" sx={{ mb: 2 }}>{error}</AppAlert>}
 
         {/* Mode toggle */}
         <ToggleButtonGroup

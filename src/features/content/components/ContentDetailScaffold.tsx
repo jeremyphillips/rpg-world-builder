@@ -1,16 +1,15 @@
 import { Link } from 'react-router-dom';
-import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 
-import type { Visibility } from '@/data/types';
+import type { Visibility } from '@/shared/types';
 import type { ContentSource } from '@/features/content/domain/types';
-import type { BreadcrumbItem } from '@/ui/elements';
-import { PageHeader } from '@/ui/elements';
-import { VisibilityChip } from '@/ui/components/fields';
+import { AppPageHeader, VisibilityBadge } from '@/ui/patterns';
+import type { BreadcrumbItem } from '@/ui/patterns';
+import { AppAlert } from '@/ui/primitives';
 
 interface ContentDetailScaffoldProps {
   title: string;
@@ -38,7 +37,7 @@ const ContentDetailScaffold = ({
 
   return (
     <Box>
-      <PageHeader
+      <AppPageHeader
         headline={title}
         breadcrumbData={breadcrumbData}
         actions={[
@@ -54,16 +53,16 @@ const ContentDetailScaffold = ({
         ]}
       />
 
-      {source === 'system' && (
-        <Alert severity="info" sx={{ mb: 2 }}>
+      {/* {source === 'system' && (
+        <AppAlert tone="info" sx={{ mb: 2 }}>
           This is a system entry and is not editable.
         </Alert>
-      )}
+      )} */}
 
       {isRestricted && source === 'campaign' && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
+        <AppAlert tone="warning" sx={{ mb: 2 }}>
           This content has restricted visibility — not all campaign members can see it.
-        </Alert>
+        </AppAlert>
       )}
 
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
@@ -80,7 +79,7 @@ const ContentDetailScaffold = ({
             </Button>
           )}
           {accessPolicy && accessPolicy.scope !== 'public' && (
-            <VisibilityChip visibility={accessPolicy} />
+            <VisibilityBadge visibility={accessPolicy} />
           )}
         </Stack>
       </Stack>

@@ -1,31 +1,13 @@
 import { useEffect, useState } from 'react'
 import { apiFetch } from '@/app/api'
-
-export type CampaignSettings = {
-  name: string
-  description: string
-  imageKey?: string | null
-  allowLegacyEditionNpcs: boolean
-}
+import type { Campaign, CampaignIdentity } from '@/shared/types'
 
 type CampaignResponse = {
-  campaign: {
-    identity: {
-      name?: string
-      description?: string
-      setting?: string
-      edition?: string
-      imageUrl?: string
-    }
-    configuration: {
-      allowLegacyEditionNpcs?: boolean
-    }
-  }
+  campaign: Campaign
 }
 
 export function useCampaignSettings(campaignId: string | null) {
-  const [data, setData] = useState<CampaignSettings | null>(null)
-  const [edition, setEdition] = useState<string | undefined>()
+  const [data, setData] = useState<CampaignIdentity | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,14 +23,13 @@ export function useCampaignSettings(campaignId: string | null) {
         setData({
           name: identity.name ?? '',
           description: identity.description ?? '',
-          imageKey: identity.imageUrl ?? null,
-          allowLegacyEditionNpcs: configuration.allowLegacyEditionNpcs ?? false
+          imageKey: identity.imageKey ?? undefined,
+          imageUrl: identity.imageUrl ?? undefined,
         })
-        setEdition(identity.edition)
       })
       .catch(() => setError('Failed to load campaign settings'))
       .finally(() => setLoading(false))
   }, [campaignId])
 
-  return { data, edition, loading, error }
+  return { data, loading, error }
 }

@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getMagicItemBudget } from '@/features/equipment/domain/magic-items/magicItems'
-import { ButtonGroup } from '@/ui/elements'
-import { ConfirmModal } from '@/ui/modals'
+import { ButtonGroup } from '@/ui/patterns'
+import { ConfirmModal } from '@/ui/patterns'
 import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
@@ -11,9 +11,11 @@ import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import type { MagicItemSlot, MagicItem, MagicItemRarity } from '@/data/equipment/magicItems'
+import type { MagicItemSlot, MagicItem, MagicItemRarity } from '@/features/content/domain/types'
 import type { EquipmentItemInstance } from '@/shared/types/character.core'
 import type { EnchantableSlot } from '@/data/equipment/enchantments/enchantmentTemplates.types'
+import { moneyToCp, cpToDenoms, formatCp } from '@/shared/money'
+import type { Money } from '@/shared/money/types'
 
 // ---------------------------------------------------------------------------
 // Enhancement types & constants
@@ -80,26 +82,6 @@ const GROUP_OPTIONS: { id: ItemGroup; label: string }[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// Pure helpers
-// ---------------------------------------------------------------------------
-
-function parseGpCost(costStr: string | undefined): number {
-  if (!costStr || costStr === '—') return 0
-  const cleaned = costStr.replace(/,/g, '')
-  const parts = cleaned.split(' ')
-  const num = parseFloat(parts[0])
-  if (isNaN(num)) return 0
-  switch (parts[1]?.toLowerCase()) {
-    case 'sp':
-      return num / 10
-    case 'cp':
-      return num / 100
-    default:
-      return num
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -111,6 +93,7 @@ const MagicItemsStep = () => {
 
   const {
     state,
+    setWealth,
     updateMagicItems,
     updateWeaponInstance,
     updateArmorInstance,
@@ -154,16 +137,23 @@ const MagicItemsStep = () => {
     return `${name} (${short})`
   }
 
-  const getEnhancementCostGp = (templateId: string | undefined): number => {
+  const getEnhancementCostCp = (templateId: string | undefined): number => {
     if (!templateId) return 0
-    const t = catalog.enhancementTemplatesById[templateId]
-    if (!t) return 0
-    return parseGpCost(t.cost)
+    const tpl = catalog.enhancementTemplatesById[templateId]
+    if (!tpl) return 0
+    return moneyToCp(tpl.cost as Money)
   }
 
-  const sumEnhancementCost = (instances: EquipmentItemInstance[]): number =>
-    instances.reduce((sum, i) => sum + getEnhancementCostGp(i.enhancementTemplateId), 0)
+  const asFinite = (n: unknown): number => {
+    const x = typeof n === 'number' ? n : typeof n === 'string' ? Number(n) : NaN;
+    return Number.isFinite(x) ? x : 0;
+  };
 
+  const sumEnhancementCostCp = (instances: EquipmentItemInstance[]): number => {
+    return instances.reduce((sum: number, inst) => {
+      return sum + asFinite(getEnhancementCostCp(inst.enhancementTemplateId));
+    }, 0);
+  };
   // =========================================================================
   // Enhancement data
   // =========================================================================
@@ -188,24 +178,31 @@ const MagicItemsStep = () => {
   )
   const templateIds = availableTemplates.map(t => t.id)
 
-  // Budget
-  const baseGp = wealth?.baseGp ?? 0
+  // Budget (all arithmetic in CP)
+  const baseCp = moneyToCp(wealth?.baseBudget ?? undefined)
 
-  const mundaneCostGp = useMemo(() => {
+  const mundaneCostCp = useMemo(() => {
     const weapons = selectedEquipment?.weapons ?? []
     const armor = selectedEquipment?.armor ?? []
     const gear = selectedEquipment?.gear ?? []
 
-    const costOf = (item: any) => parseGpCost(item?.cost)
+    const costOf = (item: { cost?: Money } | undefined) => moneyToCp(item?.cost)
     const wCost = weapons.reduce((sum, id) => sum + costOf(catalog.weaponsById[id]), 0)
     const aCost = armor.reduce((sum, id) => sum + costOf(catalog.armorById[id]), 0)
     const gCost = gear.reduce((sum, id) => sum + costOf(catalog.gearById[id]), 0)
     return wCost + aCost + gCost
   }, [selectedEquipment?.weapons, selectedEquipment?.armor, selectedEquipment?.gear, catalog])
 
-  const totalEnhCost = sumEnhancementCost([...weaponInstances, ...allArmorInstances])
-  const remainingGp = baseGp - mundaneCostGp - totalEnhCost
-  const overBudget = remainingGp < 0
+  const totalEnhCostCp = sumEnhancementCostCp([...weaponInstances, ...allArmorInstances])
+  const remainingCp = baseCp - mundaneCostCp - totalEnhCostCp
+
+  const overBudget = remainingCp < 0
+
+  useEffect(() => {
+    const safeCp = Math.max(remainingCp, 0)
+    const denoms = cpToDenoms(safeCp)
+    setWealth({ gp: denoms.gp, sp: denoms.sp, cp: denoms.cp })
+  }, [remainingCp, setWealth])
 
   // Add-copy options
   const ownedWeaponBaseIds = [...new Set(selectedEquipment?.weapons ?? [])]
@@ -228,12 +225,12 @@ const MagicItemsStep = () => {
     currentTemplateId: string | undefined,
   ): Set<string> => {
     const disabled = new Set<string>()
-    const currentCost = getEnhancementCostGp(currentTemplateId)
-    const costWithoutThis = totalEnhCost - currentCost
+    const currentCost = getEnhancementCostCp(currentTemplateId)
+    const costWithoutThis = totalEnhCostCp - currentCost
     for (const tid of templateIds) {
       if (tid === currentTemplateId) continue
-      const optCost = getEnhancementCostGp(tid)
-      if (mundaneCostGp + costWithoutThis + optCost > baseGp) {
+      const optCost = getEnhancementCostCp(tid)
+      if (mundaneCostCp + costWithoutThis + optCost > baseCp) {
         disabled.add(tid)
       }
     }
@@ -289,7 +286,7 @@ const MagicItemsStep = () => {
 
   const magicItemOptions = visibleItems.map(item => {
     const rarityLabel = item.rarity ? ` [${item.rarity}]` : ''
-    const costLabel = item.cost && item.cost !== '—' ? ` (${item.cost})` : ''
+    const costLabel = item.cost ? ` (${item.cost.value} ${item.cost.coin})` : ''
     const isSelected = selectedMagicItems.includes(item.id)
 
     let disabled = false
@@ -372,14 +369,14 @@ const MagicItemsStep = () => {
           </Typography>
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Gold remaining: {remainingGp.toLocaleString()} gp
+            Budget remaining: {formatCp(remainingCp)}
             {' · '}
-            Enhancement total: {totalEnhCost.toLocaleString()} gp
+            Enhancement total: {formatCp(totalEnhCostCp)}
           </Typography>
 
           {overBudget && (
             <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-              Over budget by {Math.abs(remainingGp).toLocaleString()} gp
+              Over budget by {formatCp(Math.abs(remainingCp))}
             </Typography>
           )}
 
@@ -422,7 +419,7 @@ const MagicItemsStep = () => {
                     >
                       <MenuItem value="">No Enhancement</MenuItem>
                       {availableTemplates.map(t => {
-                        const costSuffix = t.cost ? ` (${t.cost})` : ''
+                        const costSuffix = t.cost ? ` (${t.cost.value} ${t.cost.coin})` : ''
                         return (
                           <MenuItem
                             key={t.id}

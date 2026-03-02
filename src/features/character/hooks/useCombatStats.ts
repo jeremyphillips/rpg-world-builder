@@ -97,7 +97,7 @@ export function useCombatStats(character: Character) {
   return useMemo(() => {
     const context = buildCharacterContext(character)
     const intrinsicEffects = collectIntrinsicEffects(character)
-    const candidateEffects = getEquipmentEffects(character.equipment)
+    const candidateEffects = getEquipmentEffects(character.equipment, catalog.armorById)
 
     const loadout = resolveLoadout(character.combat)
     const resolved = resolveEquipmentLoadoutDetailed(character.combat, character.equipment)
@@ -123,7 +123,7 @@ export function useCombatStats(character: Character) {
     const maxHp = resolveStat('hp_max', context, allEffects)
     const initiative = resolveStat('initiative', context, allEffects)
 
-    const loadoutOptions = getLoadoutPickerOptions(character, intrinsicEffects)
+    const loadoutOptions = getLoadoutPickerOptions(character, intrinsicEffects, catalog.armorById)
     const activeOption = loadoutOptions.find(
       (o) =>
         o.loadout.armorId === resolved.armor.baseId &&

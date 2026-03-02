@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom';
 
 import type { ContentSummary } from '@/features/content/domain/types';
 import type { ContentListItem, ContentViewerContext } from '@/features/content/components';
-import type { ContentPolicy, ContentRule, RulesetContent } from '@/data/ruleSets/ruleSets.types';
+import type { ContentPolicy, ContentRule, RulesetContent } from '@/shared/types';
 import type { CampaignRulesetPatch } from '@/features/mechanics/domain/core/rules/ruleset.types';
 import type { CampaignViewer } from '@/shared/types/campaign.types';
 import {
   getCampaignRulesetPatch,
   saveCampaignRulesetPatch,
   createDefaultCampaignRulesetPatch,
-  DEFAULT_SYSTEM_ID,
-} from '@/features/mechanics/domain/core/rules/campaignRulesetRepo';
+} from '@/features/mechanics/domain/core/rules';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import { buildItemsWithAllowed, toggleAllowedIds } from '@/features/content/domain/contentPolicy';
 import { toContentViewerContext } from '../domain/viewerContext';
 
@@ -21,7 +21,7 @@ export interface UseCampaignContentListControllerOptions {
   viewerCharacterIds: string[];
   canManage: boolean;
   listSummaries: (campaignId: string, systemId: string) => Promise<ContentSummary[]>;
-  contentKey: string;
+  contentKey: keyof RulesetContent;
   basePath: string;
 }
 
@@ -67,10 +67,8 @@ export function useCampaignContentListController(
     let cancelled = false;
     setLoading(true);
 
-    const summariesPromise = listSummaries(campaignId, DEFAULT_SYSTEM_ID);
-    const patchPromise = canManage
-      ? getCampaignRulesetPatch(campaignId)
-      : Promise.resolve(null);
+    const summariesPromise = listSummaries(campaignId, DEFAULT_SYSTEM_RULESET_ID);
+    const patchPromise = getCampaignRulesetPatch(campaignId)
 
     Promise.all([summariesPromise, patchPromise])
       .then(([loadedSummaries, loadedPatch]) => {

@@ -1,8 +1,4 @@
-/**
- * Shared types for the character-build engine module.
- */
-import type { EditionId } from '@/data/editions/edition.types'
-import type { SettingId } from '@/data/types'
+import type { Character } from '@/shared/types'
 
 /**
  * Minimal draft shape consumed by engine build functions.
@@ -11,9 +7,7 @@ import type { SettingId } from '@/data/types'
  * Kept deliberately loose (all optional) so callers can pass partial
  * state objects without casting.
  */
-export type BuildDraft = {
-  edition?: EditionId | string
-  setting?: SettingId | string
+export type BuildDraft = Pick<Character, 'race' | 'alignment'> & {
   race?: string
   alignment?: string
 }

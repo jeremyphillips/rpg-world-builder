@@ -3,7 +3,7 @@ import { CharacterBuilderLauncher } from '@/features/characterBuilder/components
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { NpcGallerySection } from '@/features/npc/sections' 
 
-import { Breadcrumbs } from '@/ui/elements'
+import { Breadcrumbs } from '@/ui/patterns'
 import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
 import Box from '@mui/material/Box'

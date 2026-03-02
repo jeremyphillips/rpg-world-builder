@@ -1,7 +1,6 @@
 import type { Character } from '@/shared/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { EquipmentLoadout } from '@/shared/types/character.core'
-import { equipment } from '@/data/equipment/equipment'
 import { resolveStatDetailed, type BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
 import { buildCharacterContext, withLoadout } from './buildCharacterContext'
 import {
@@ -21,10 +20,13 @@ type InventoryItem = {
   name: string
 }
 
-function getOwnedArmors(character: Character): InventoryItem[] {
+function getOwnedArmors(
+  character: Character,
+  armorById: Record<string, { id: string; name: string; category: string }>,
+): InventoryItem[] {
   const items: InventoryItem[] = []
   for (const id of character.equipment?.armor ?? []) {
-    const item = equipment.armor.find((a) => a.id === id)
+    const item = armorById[id]
     if (!item) continue
     if (item.category === 'shields') continue
     items.push({ id, name: item.name })
@@ -32,10 +34,13 @@ function getOwnedArmors(character: Character): InventoryItem[] {
   return items
 }
 
-function getOwnedShields(character: Character): InventoryItem[] {
+function getOwnedShields(
+  character: Character,
+  armorById: Record<string, { id: string; name: string; category: string }>,
+): InventoryItem[] {
   const items: InventoryItem[] = []
   for (const id of character.equipment?.armor ?? []) {
-    const item = equipment.armor.find((a) => a.id === id)
+    const item = armorById[id]
     if (!item) continue
     if (item.category !== 'shields') continue
     items.push({ id, name: item.name })
@@ -52,13 +57,14 @@ function getOwnedShields(character: Character): InventoryItem[] {
  */
 export function getLoadoutPickerOptions(
   character: Character,
-  intrinsicEffects: Effect[]
+  intrinsicEffects: Effect[],
+  armorById: Record<string, { id: string; name: string; category: string }>,
 ): LoadoutOption[] {
   const context = buildCharacterContext(character)
-  const candidateEffects = getEquipmentEffects(character.equipment)
+  const candidateEffects = getEquipmentEffects(character.equipment, armorById)
 
-  const armors = getOwnedArmors(character)
-  const shields = getOwnedShields(character)
+  const armors = getOwnedArmors(character, armorById)
+  const shields = getOwnedShields(character, armorById)
 
   const armorChoices: (InventoryItem | null)[] = [null, ...armors]
   const shieldChoices: (InventoryItem | null)[] = [null, ...shields]

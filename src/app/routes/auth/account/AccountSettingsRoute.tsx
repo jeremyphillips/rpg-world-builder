@@ -14,7 +14,8 @@ import {
   FormActions,
   type FieldConfig,
   type FormSection
-} from '@/ui/components/form'
+} from '@/ui/patterns'
+import { AppAlert } from '@/ui/primitives'
 
 const sections: FormSection[] = [
   { id: 'profile', label: 'Profile' },
@@ -134,7 +135,7 @@ export default function AccountSettingsRoute() {
   if (!data) {
     return (
       <Box>
-        <Alert severity="error">{fetchError ?? 'Unable to load account'}</Alert>
+        <AppAlert tone="danger">{fetchError ?? 'Unable to load account'}</AppAlert>
       </Box>
     )
   }
@@ -147,8 +148,8 @@ export default function AccountSettingsRoute() {
         Account Settings
       </Typography>
 
-      {success && <Alert severity="success" sx={{ mb: 2 }}>Settings saved.</Alert>}
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {success && <AppAlert tone="success" sx={{ mb: 2 }}>Settings saved.</AppAlert>}
+      {error && <AppAlert tone="danger" sx={{ mb: 2 }}>{error}</AppAlert>}
 
       <AppForm<AccountSettings> defaultValues={data} onSubmit={update}>
         <TabbedFormLayout sections={sections} fields={fields} />

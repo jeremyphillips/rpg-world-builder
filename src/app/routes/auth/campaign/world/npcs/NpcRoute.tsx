@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useAuth } from '@/app/providers/AuthProvider'
-import { Breadcrumbs } from '@/ui/elements'
+import { Breadcrumbs } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/hooks'
 import { CharacterView } from '@/features/character/view'
 import type { CharacterDoc } from '@/shared/types/character'

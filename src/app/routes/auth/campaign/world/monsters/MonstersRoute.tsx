@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import { Breadcrumbs } from '@/ui/elements'
+import { Breadcrumbs } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/hooks'
 import { monsters } from '@/data/monsters'
 import { MonsterMediaTopCard } from '@/features/monster/components'

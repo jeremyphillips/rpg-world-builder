@@ -11,7 +11,6 @@ const campaignSchema = new Schema(
     },
 
     configuration: {
-      allowLegacyEditionNpcs: { type: Boolean, default: false },
       rules: { type: Schema.Types.Mixed, default: {} }
     },
 

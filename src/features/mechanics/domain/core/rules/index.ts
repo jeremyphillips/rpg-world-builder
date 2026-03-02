@@ -20,9 +20,11 @@ export {
   saveCampaignRulesetPatch,
   getResolvedCampaignRuleset,
   seedMemoryStore,
-  USE_DB_RULESET_PATCHES,
-  DEFAULT_SYSTEM_ID,
+  USE_DB_RULESET_PATCHES, 
   createDefaultCampaignRulesetPatch,
 } from './campaignRulesetRepo';
+
 export * from './ruleConfig';
 export * from './ruleset.types';
+export { resolvePatchesToRulesets, type CampaignRulesetSource } from './campaignRulesetRegistry';
+export * from './systemIds';

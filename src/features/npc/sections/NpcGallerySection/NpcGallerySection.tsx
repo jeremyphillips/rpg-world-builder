@@ -2,12 +2,8 @@ import { resolveImageUrl } from '@/utils/image'
 import { useCharacters } from '@/features/character/hooks'
 import { NpcMediaTopCard } from '@/features/npc/cards'
 import Box from '@mui/material/Box'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
-
-// export interface CampaignPartySectionProps { 
-//   status?: 'pending' | 'approved'
-// }
+import { AppAlert } from '@/ui/primitives'
 
 export default function NpcGallerySection() {
   const {
@@ -30,7 +26,7 @@ export default function NpcGallerySection() {
             <CircularProgress />
           </Box>
         ) : npcs.length === 0 ? (
-          <Alert severity="info">No {status} characters in this campaign.</Alert>
+          <AppAlert tone="info">No NPCs in this campaign.</AppAlert>
         ) : (
           npcs.map((npc) => (
             <NpcMediaTopCard

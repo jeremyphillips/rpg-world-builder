@@ -1,5 +1,5 @@
-import HorizontalCompactCard from '@/ui/cards/HorizontalCompactCard'
-import type { CardBadgeItem } from '@/ui/cards/HorizontalCompactCard'
+import { HorizontalCompactCard } from '@/ui/patterns'
+import type { CardBadgeProps } from '@/ui/primitives'
 import type { SpellData } from '@/data/spells'
 
 // ---------------------------------------------------------------------------
@@ -36,7 +36,7 @@ const SpellHorizontalCard = ({
   disabled = false,
   onToggle,
 }: SpellHorizontalCardProps) => {
-  const badges: CardBadgeItem[] = [
+  const badges: CardBadgeProps[] = [
     { type: 'tag', value: levelLabel(spell.level) },
     { type: 'tag', value: schoolLabel(spell.school) },
   ]

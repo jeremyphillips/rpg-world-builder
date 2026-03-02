@@ -7,7 +7,7 @@ import { ROUTES } from '@/app/routes'
 import type { InviteCampaignState } from '@/features/auth/invite'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import Alert from '@mui/material/Alert'
+import { AppAlert } from '@/ui/primitives'
 
 export default function NewCharacterRoute() {
   const [searchParams] = useSearchParams()
@@ -82,15 +82,15 @@ export default function NewCharacterRoute() {
       </Typography>
 
       {locState.campaignName && (
-        <Alert severity="info" sx={{ mb: 3 }}>
+        <AppAlert tone="info" sx={{ mb: 3 }}>
           Create a character to join <strong>{locState.campaignName}</strong>&apos;s party.
-        </Alert>
+        </AppAlert>
       )}
 
       {saveError && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setSaveError(null)}>
+        <AppAlert tone="danger" sx={{ mb: 2 }} onClose={setSaveError(null)}>
           {saveError}
-        </Alert>
+        </AppAlert>
       )}
 
       <CharacterBuilderWizard

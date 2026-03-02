@@ -1,6 +1,7 @@
-import { equipment as equipment } from '@/data/equipment'
-import type { MagicItem, MagicItemRarity } from '@/data/equipment'
-import type { MagicItemBudget, MagicItemBudgetTier } from '@/data/ruleSets'
+import { getSystemMagicItems } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
+import type { MagicItemRarity } from '@/features/content/domain/types'
+import type { MagicItemBudget, MagicItemBudgetTier } from '@/shared/types/ruleset'
 
 // ─── Rarity ordering (weakest → strongest) ──────────────────────────────────
 const RARITY_ORDER: MagicItemRarity[] = [
@@ -27,7 +28,7 @@ export const getMagicItemBudget = (
   if (!budget?.tiers) return null
 
   const tier = budget.tiers.find(
-    t => level >= t.levelRange[0] && level <= t.levelRange[1],
+    (t: MagicItemBudgetTier) => level >= t.levelRange[0] && level <= t.levelRange[1],
   )
   if (!tier) return null
 
@@ -51,6 +52,8 @@ export const getMagicItemRaritiesForLevel = (
   return RARITY_ORDER.filter((_, i) => i <= maxIdx)
 }
 
+type MagicItemLike = { id: string; rarity?: MagicItemRarity; cost?: { coin: string; value: number } }
+
 /**
  * Return magic items available for a character at a given level,
  * filtered by the rarity ceiling from the budget.
@@ -58,10 +61,11 @@ export const getMagicItemRaritiesForLevel = (
 export const getAvailableMagicItems = (
   budget: MagicItemBudget | undefined,
   level: number,
-): MagicItem[] => {
+  magicItems: readonly MagicItemLike[] = getSystemMagicItems(DEFAULT_SYSTEM_RULESET_ID),
+): MagicItemLike[] => {
   const tier = getMagicItemBudget(budget, level)
 
-  return equipment.magicItems.filter((item: MagicItem) => {
+  return magicItems.filter((item) => {
     if (tier?.maxRarity && item.rarity) {
       if (rarityIndex(item.rarity) > rarityIndex(tier.maxRarity)) {
         return false
@@ -69,7 +73,7 @@ export const getAvailableMagicItems = (
     }
 
     if (tier?.maxItemValueGp != null && item.cost) {
-      const costGp = parseCostToGp(item.cost)
+      const costGp = costToGp(item.cost)
       if (costGp > tier.maxItemValueGp) return false
     }
 
@@ -79,9 +83,11 @@ export const getAvailableMagicItems = (
 
 // ─── Internal helpers ────────────────────────────────────────────────────────
 
-function parseCostToGp(cost: string): number {
-  if (!cost || cost === '—') return 0
-  const cleaned = cost.replace(/,/g, '').replace(/\s*gp$/i, '').trim()
-  const num = Number(cleaned)
-  return Number.isNaN(num) ? 0 : num
+function costToGp(cost: { coin: string; value: number }): number {
+  switch (cost.coin) {
+    case 'gp': return cost.value
+    case 'sp': return cost.value / 10
+    case 'cp': return cost.value / 100
+    default: return cost.value
+  }
 }

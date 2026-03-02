@@ -11,10 +11,7 @@ export type CampaignRole = 'dm' | 'pc' | 'co_dm' | 'observer'
  * 'observer' is a computed state (pending member), not stored.
  * 'co_dm' enables future co-DM support.
  */
-export type CampaignMemberStoredRole = 'dm' | 'co_dm' | 'pc'
-
-/** @deprecated Use CampaignMemberStoredRole instead. Kept for backward compat. */
-export type CampaignMemberRole = Exclude<CampaignRole, 'observer'>
+export type CampaignMemberStoredRole = Exclude<CampaignRole, 'observer'>
 
 export type CampaignCharacterStatus =
   | 'active'
@@ -26,12 +23,12 @@ export type CampaignIdentity = {
   setting?: string
   edition?: string
   description?: string
+  /** @deprecated Use imageKey instead. **/
   imageUrl?: string
+  imageKey?: string
 }
 
-export type CampaignConfiguration = {
-  allowLegacyEditionNpcs?: boolean
-}
+export type CampaignConfiguration = {}
 
 /** Fields common to both the full Campaign document and lightweight summaries. */
 export interface CampaignBase {
@@ -90,8 +87,6 @@ export interface Campaign extends CampaignBase {
   membership: {
     ownerId: string
   }
-  rulesetId?: string
-  rulesetVersion?: number
   configuration?: CampaignConfiguration
   /** Populated by GET /api/campaigns/:id with the requesting user's context. */
   viewer?: CampaignViewer

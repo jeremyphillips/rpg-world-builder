@@ -153,7 +153,7 @@ export const INVALIDATION_RULES: InvalidationRule[] = [
     },
     resolve: (state) => ({
       ...state,
-      wealth: { gp: 0, sp: 0, cp: 0, baseGp: 0 },
+      wealth: { gp: 0, sp: 0, cp: 0, baseBudget: null },
     }),
   },
 

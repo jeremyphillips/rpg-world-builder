@@ -1,8 +1,7 @@
-import Alert from '@mui/material/Alert'
-import AlertTitle from '@mui/material/AlertTitle'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
+import { AlertTitle, Box, Typography } from '@mui/material'
+
 import type { InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
+import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -27,7 +26,7 @@ const InvalidationNotice = ({ items, onDismiss }: InvalidationNoticeProps) => {
   if (items.length === 0) return null
 
   return (
-    <Alert severity="warning" onClose={onDismiss} sx={{ mb: 2 }}>
+    <AppAlert tone="warning" onClose={onDismiss} sx={{ mb: 2 }}>
       <AlertTitle>Selections updated</AlertTitle>
       The following were removed because they are no longer valid:
       <Box component="ul" sx={{ mt: 0.5, mb: 0, pl: 2 }}>
@@ -37,7 +36,7 @@ const InvalidationNotice = ({ items, onDismiss }: InvalidationNoticeProps) => {
           </li>
         ))}
       </Box>
-    </Alert>
+    </AppAlert>
   )
 }
 

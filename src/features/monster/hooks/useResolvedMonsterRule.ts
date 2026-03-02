@@ -20,7 +20,7 @@ export function useResolvedMonsterRule(monster: Monster) {
     return {
       resolved,
       hasNativeRule: !!resolved && !resolved.converted,
-      hasConvertedRule: !!resolved && resolved.converted && allowLegacyEditionNpcs
+      hasConvertedRule: !!resolved && resolved.converted
     };
   }, [monster, editionId]);
 }

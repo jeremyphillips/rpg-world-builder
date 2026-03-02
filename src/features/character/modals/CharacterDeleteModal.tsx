@@ -1,4 +1,4 @@
-import { ConfirmModal } from '@/ui/modals'
+import { ConfirmModal } from '@/ui/patterns'
 
 type CharacterDeleteModalProps = {
   open: boolean

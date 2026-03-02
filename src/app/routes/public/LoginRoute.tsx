@@ -7,12 +7,12 @@ import {
   DynamicFormRenderer,
   FormActions,
   type FieldConfig,
-} from '@/ui/components/form'
+} from '@/ui/patterns'
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import Alert from '@mui/material/Alert'
 import CircularProgress from '@mui/material/CircularProgress'
+import { AppAlert } from '@/ui/primitives'
 
 type LoginFormData = {
   email: string
@@ -75,7 +75,7 @@ export default function LoginRoute() {
         Sign In
       </Typography>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && <AppAlert tone="danger" sx={{ mb: 2 }}>{error}</AppAlert>}
 
       <AppForm<LoginFormData> defaultValues={defaultValues} onSubmit={handleSubmit}>
         <DynamicFormRenderer fields={fields} />

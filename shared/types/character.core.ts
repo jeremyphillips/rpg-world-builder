@@ -1,3 +1,5 @@
+import type { Money } from '../money/types'
+
 // shared/types/character.core.ts
 
 // 2e specific
@@ -27,7 +29,7 @@ export type Wealth = {
   gp?: number | null
   sp?: number | null
   cp?: number | null
-  baseGp?: number | null
+  baseBudget?: Money | null
 }
 
 export type EquipmentItemInstance = {
@@ -94,8 +96,6 @@ export type CharacterType = 'pc' | 'npc'
 export type Character = {
   name: string
   type: CharacterType
-  // edition: EditionId
-  // setting?: SettingId
 
   race?: string
   alignment?: string

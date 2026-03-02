@@ -1,3 +1,14 @@
+// ---------------------------------------------------------------------------
+// SYSTEM PATCHING
+// ---------------------------------------------------------------------------
+// Campaigns may store patches for system content entries.
+// Resolution order:
+// 1) Campaign-owned entry (full override)
+// 2) System entry + campaign patch (merged via applyContentPatch)
+// 3) Raw system entry
+//
+// UI for editing patches will be added in a follow-up.
+
 /**
  * Race repository — merges system races + campaign custom races.
  *
@@ -16,19 +27,27 @@ import {
   updateCampaignRace,
   deleteCampaignRace,
 } from '../campaignRaceRepo';
+import { getContentPatch } from '../contentPatchRepo';
+import { applyContentPatch } from '../patches/applyContentPatch';
+import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 function toSummary(race: Race): RaceSummary {
-  return {
+  const base = {
     id: race.id,
     name: race.name,
-    source: race.source,
+    description: race.description,
+    imageKey: race.imageKey,
     campaigns: race.campaigns,
     accessPolicy: race.accessPolicy,
+    patched: race.patched,
   };
+  return race.source === 'system'
+    ? { ...base, source: 'system' as const, systemId: race.systemId }
+    : { ...base, source: 'campaign' as const, campaignId: race.campaignId };
 }
 
 function matchesSearch(name: string, search: string): boolean {
@@ -43,17 +62,28 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
 
   async listSummaries(
     campaignId: string,
-    systemId: string,
+    systemId: SystemRulesetId,
     opts?: ListOptions,
   ): Promise<RaceSummary[]> {
-    const system = getSystemRaces(systemId);
-    const campaign = await listCampaignRaces(campaignId);
+    const [system, campaign, contentPatch] = await Promise.all([
+      Promise.resolve(getSystemRaces(systemId)),
+      listCampaignRaces(campaignId),
+      getContentPatch(campaignId),
+    ]);
 
+    const racePatches = contentPatch?.patches?.races ?? {};
     const campaignIds = new Set(campaign.map(r => r.id));
-    const merged: Race[] = [
-      ...system.filter(r => !campaignIds.has(r.id)),
-      ...campaign,
-    ];
+
+    const patchedSystem: Race[] = system
+      .filter(r => !campaignIds.has(r.id))
+      .map((r): Race => {
+        const patch = racePatches[r.id];
+        if (!patch) return r;
+        const merged = applyContentPatch<Race>(r, patch as Partial<Race>);
+        return { ...merged, patched: true };
+      });
+
+    const merged: Race[] = [...patchedSystem, ...campaign];
 
     let results = merged.map(toSummary);
 
@@ -66,18 +96,25 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
 
   async getEntry(
     campaignId: string,
-    systemId: string,
+    systemId: SystemRulesetId,
     id: string,
   ): Promise<Race | null> {
     const campaignRace = await getCampaignRace(campaignId, id);
     if (campaignRace) return campaignRace;
 
-    return getSystemRace(systemId, id) ?? null;
+    const systemRace = getSystemRace(systemId, id) ?? null;
+    if (!systemRace) return null;
+
+    const contentPatch = await getContentPatch(campaignId);
+    const racePatch = contentPatch?.patches?.races?.[id];
+    if (!racePatch) return systemRace;
+
+    const merged = applyContentPatch<Race>(systemRace, racePatch as Partial<Race>);
+    return { ...merged, patched: true };
   },
 
   async createEntry(
     campaignId: string,
-    _systemId: string,
     input: RaceInput,
   ): Promise<Race> {
     const result = await createCampaignRace(campaignId, input);
@@ -89,7 +126,6 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
 
   async updateEntry(
     campaignId: string,
-    _systemId: string,
     id: string,
     patch: RaceInput,
   ): Promise<Race> {
@@ -102,7 +138,6 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
 
   async deleteEntry(
     campaignId: string,
-    _systemId: string,
     id: string,
   ): Promise<boolean> {
     return deleteCampaignRace(campaignId, id);

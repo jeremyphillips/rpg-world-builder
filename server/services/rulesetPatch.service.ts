@@ -1,4 +1,5 @@
 import { CampaignRulesetPatch } from '../models/CampaignRulesetPatch.model';
+import { DEFAULT_SYSTEM_RULESET_ID, SYSTEM_RULESET_IDS } from '../../src/features/mechanics/domain/core/rules';
 
 // ---------------------------------------------------------------------------
 // Canonical ability IDs (shared with client via convention)
@@ -8,7 +9,7 @@ const VALID_ABILITY_IDS = new Set([
   'strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma',
 ]);
 
-const VALID_SYSTEM_IDS = new Set(['5e_v1']);
+const VALID_SYSTEM_IDS = new Set(SYSTEM_RULESET_IDS);
 
 // ---------------------------------------------------------------------------
 // Normalization (server-side, mirrors client normalizeCampaignRulesetPatch)
@@ -257,7 +258,7 @@ export async function upsertPatch(
   campaignId: string,
   body: Record<string, unknown>,
 ): Promise<{ patch: Record<string, unknown> } | { errors: ValidationError[] }> {
-  const systemId = body.systemId ?? '5e_v1';
+  const systemId = body.systemId ?? DEFAULT_SYSTEM_RULESET_ID;
   const toValidate = { ...body, systemId };
 
   const errors = validatePatchBody(toValidate as Record<string, unknown>);

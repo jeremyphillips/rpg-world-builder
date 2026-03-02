@@ -1,4 +1,4 @@
-import type { Visibility } from './types'
+import type { Visibility } from '@/shared/types'
 
 /**
  * LOCATION MODEL DESIGN

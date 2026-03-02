@@ -4,10 +4,10 @@ import type { PendingMembership } from '@/shared/types/campaign.types'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
-import Alert from '@mui/material/Alert'
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
+import { AppAlert } from '@/ui/primitives'
 
 type CharacterAlertsProps = {
   character: CharacterDoc
@@ -38,9 +38,9 @@ export default function CharacterAlerts({
     <>
       {/* Pending approval alerts */}
       {pendingMemberships.map((m) => (
-        <Alert
+        <AppAlert
           key={m.campaignMemberId}
-          severity="warning"
+          tone="warning"
           sx={{ mb: 2 }}
           action={
             <Stack direction="row" spacing={1}>
@@ -54,13 +54,13 @@ export default function CharacterAlerts({
           }
         >
           {character.name} is pending approval for {m.campaignName}.
-        </Alert>
+        </AppAlert>
       ))}
 
       {/* Level-up pending banner */}
       {character.levelUpPending && character.pendingLevel && (
-        <Alert
-          severity="info"
+        <AppAlert
+          tone="info"
           sx={{ mb: 2 }}
           action={
             isOwner ? (
@@ -98,7 +98,7 @@ export default function CharacterAlerts({
               )}
             </>
           )}
-        </Alert>
+        </AppAlert>
       )}
     </>
   )

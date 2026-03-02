@@ -79,7 +79,7 @@ export const classes: readonly CharacterClass[] = [
       extraAttackLevel: 5,
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
       features: [
-        { level: 1, name: 'Fighting Style' },
+        { id: 'fighting-style', level: 1, name: 'Fighting Style' },
         { id: 'second-wind', level: 1, name: 'Second Wind' },
         { id: 'action-surge', level: 2, name: 'Action Surge' },
         { id: 'martial-archetype', level: 3, name: 'Martial Archetype' },

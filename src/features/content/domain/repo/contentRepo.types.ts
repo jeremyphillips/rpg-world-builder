@@ -48,14 +48,12 @@ export interface CampaignContentRepo<
   /** Create a campaign-owned entry. */
   createEntry(
     campaignId: string,
-    systemId: string,
     input: TInput,
   ): Promise<TEntry>;
 
   /** Update a campaign-owned entry. Throws if the entry is system-owned. */
   updateEntry(
     campaignId: string,
-    systemId: string,
     id: string,
     patch: TInput,
   ): Promise<TEntry>;
@@ -63,7 +61,6 @@ export interface CampaignContentRepo<
   /** Delete a campaign-owned entry. Returns false if not found. */
   deleteEntry(
     campaignId: string,
-    systemId: string,
     id: string,
   ): Promise<boolean>;
 }

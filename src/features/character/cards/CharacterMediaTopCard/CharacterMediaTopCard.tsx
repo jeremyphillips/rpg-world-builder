@@ -1,5 +1,5 @@
-import { MediaTopCard } from '@/ui/cards'
-import type { CardBadgeItem } from '@/ui/cards'
+import { MediaTopCard } from '@/ui/patterns'
+import type { CardBadgeProps } from '@/ui/primitives'
 import Box from '@mui/material/Box'
 import PersonIcon from '@mui/icons-material/Person'
 
@@ -37,7 +37,7 @@ const CharacterMediaTopCard = ({
   const subheadline = [race, className, level != null ? `Level ${level}` : undefined]
     .filter(Boolean)
     .join(' · ')
-  const badges: CardBadgeItem[] = status ? [{ type: 'status', value: status }] : []
+  const badges: CardBadgeProps[] = status ? [{ type: 'status', value: status }] : []
 
   const placeholder = (
     <Box

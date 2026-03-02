@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -14,6 +13,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 
+import { JsonPreviewField } from '@/ui/patterns';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import {
   getCampaignRulesetPatch,
@@ -25,8 +25,9 @@ import { getSystemRuleset, systemCatalog } from '@/features/mechanics/domain/cor
 import { resolveCampaignRuleset } from '@/features/mechanics/domain/core/rules/resolveCampaignRuleset';
 import { normalizeCampaignRulesetPatch } from '@/features/mechanics/domain/core/rules/normalizeCampaignRulesetPatch';
 import type { CampaignRulesetPatch } from '@/features/mechanics/domain/core/rules/ruleset.types';
-import type { ContentPolicy, MulticlassingRuleSet } from '@/data/ruleSets/ruleSets.types';
+import type { ContentPolicy, MulticlassingRuleSet } from '@/shared/types';
 import type { ValidationError } from '@/features/mechanics/domain/core/rules/validateCampaignRulesetPatch';
+import { AppAlert } from '@/ui/primitives';
 
 // ---------------------------------------------------------------------------
 // Catalog data for content editing
@@ -221,9 +222,9 @@ function ContentRuleEditor({
       </Box>
 
       {policy === 'only' && selectedIds.length === 0 && (
-        <Alert severity="warning" sx={{ mt: 1 }}>
+        <AppAlert tone="warning" sx={{ mt: 1 }}>
           No items selected — nothing will be allowed.
-        </Alert>
+        </AppAlert>
       )}
     </Box>
   );
@@ -255,7 +256,6 @@ export default function CampaignRulesetEditorRoute() {
     xpMode: 'shared',
   });
   const [entryReqsJson, setEntryReqsJson] = useState('');
-  const [jsonError, setJsonError] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -305,23 +305,11 @@ export default function CampaignRulesetEditorRoute() {
     }
   }, [patch, fields, contentFields, entryReqsJson]);
 
-  // ---- JSON validation on change ----
-  const handleEntryReqsChange = useCallback((value: string) => {
-    setEntryReqsJson(value);
-    setSuccess(false);
-    setValidationErrors([]);
-
-    if (value.trim().length === 0) {
-      setJsonError(null);
-      return;
-    }
-    try {
-      JSON.parse(value);
-      setJsonError(null);
-    } catch (e) {
-      setJsonError((e as Error).message);
-    }
-  }, []);
+  const hasJsonError = useMemo(() => {
+    const trimmed = entryReqsJson.trim();
+    if (trimmed.length === 0) return false;
+    try { JSON.parse(trimmed); return false; } catch { return true; }
+  }, [entryReqsJson]);
 
   // ---- Content field change ----
   const updateContentField = useCallback(<K extends keyof ContentFields>(key: K, value: ContentFields[K]) => {
@@ -355,7 +343,7 @@ export default function CampaignRulesetEditorRoute() {
   // ---- Save ----
   const handleSave = useCallback(async () => {
     if (!patch) return;
-    if (jsonError) return;
+    if (hasJsonError) return;
 
     setSaving(true);
     setSuccess(false);
@@ -384,7 +372,7 @@ export default function CampaignRulesetEditorRoute() {
     } finally {
       setSaving(false);
     }
-  }, [patch, fields, contentFields, entryReqsJson, jsonError]);
+  }, [patch, fields, contentFields, entryReqsJson, hasJsonError]);
 
   // ---- Render ----
 
@@ -399,7 +387,7 @@ export default function CampaignRulesetEditorRoute() {
   if (loadError || !patch) {
     return (
       <Box>
-        <Alert severity="error">{loadError ?? 'Could not load campaign ruleset.'}</Alert>
+        <AppAlert tone="danger">{loadError ?? 'Could not load campaign ruleset.'}</AppAlert>
       </Box>
     );
   }
@@ -414,21 +402,21 @@ export default function CampaignRulesetEditorRoute() {
       </Typography>
 
       {isNew && (
-        <Alert severity="info" sx={{ mb: 2 }}>
+        <AppAlert tone="info" sx={{ mb: 2 }}>
           No ruleset patch exists yet for this campaign. Changes will be saved when you click Save.
-        </Alert>
+        </AppAlert>
       )}
 
       {!USE_DB_RULESET_PATCHES && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
+        <AppAlert tone="warning" sx={{ mb: 2 }}>
           In-memory mode — changes won't survive a full page reload.
-        </Alert>
+        </AppAlert>
       )}
 
-      {success && <Alert severity="success" sx={{ mb: 2 }}>Patch saved and validated.</Alert>}
+      {success && <AppAlert tone="success" sx={{ mb: 2 }}>Patch saved and validated.</AppAlert>}
 
       {validationErrors.length > 0 && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <AppAlert tone="danger" sx={{ mb: 2 }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>Validation errors:</Typography>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             {validationErrors.map((e, i) => (
@@ -438,7 +426,7 @@ export default function CampaignRulesetEditorRoute() {
               </li>
             ))}
           </ul>
-        </Alert>
+        </AppAlert>
       )}
 
       {/* ---- Content Restrictions ---- */}
@@ -524,32 +512,13 @@ export default function CampaignRulesetEditorRoute() {
 
             <Divider />
 
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Entry Requirements by Target Class (JSON)
-              </Typography>
-              <TextField
-                multiline
-                minRows={4}
-                maxRows={16}
-                fullWidth
-                size="small"
-                placeholder={ENTRY_REQ_EXAMPLE}
-                value={entryReqsJson}
-                onChange={e => handleEntryReqsChange(e.target.value)}
-                error={!!jsonError}
-                helperText={jsonError ?? 'OR-of-AND structure: { classId: { anyOf: [{ all: [{ ability, min }] }] } }'}
-                slotProps={{ input: { sx: { fontFamily: 'monospace', fontSize: 13 } } }}
-              />
-              <Button
-                size="small"
-                variant="text"
-                sx={{ mt: 0.5 }}
-                onClick={() => handleEntryReqsChange(ENTRY_REQ_EXAMPLE)}
-              >
-                Insert example
-              </Button>
-            </Box>
+            <JsonPreviewField
+              label="Entry Requirements by Target Class (JSON)"
+              value={entryReqsJson}
+              onChange={(next) => { setEntryReqsJson(next); setSuccess(false); setValidationErrors([]); }}
+              placeholder={ENTRY_REQ_EXAMPLE}
+              helperText="OR-of-AND structure: { classId: { anyOf: [{ all: [{ ability, min }] }] } }"
+            />
           </Stack>
         </CardContent>
       </Card>
@@ -558,7 +527,7 @@ export default function CampaignRulesetEditorRoute() {
       <Button
         variant="contained"
         onClick={handleSave}
-        disabled={saving || !!jsonError}
+        disabled={saving || hasJsonError}
         sx={{ mb: 4 }}
       >
         {saving ? 'Saving...' : 'Save Patch'}

@@ -1,24 +1,12 @@
 import type { Request, Response } from 'express';
 import * as campaignRaceService from '../services/campaignRace.service';
-import { getUserCharacterIds } from '../services/campaignMember.service';
-import { canViewContent, type ViewerContext } from '../../shared/domain/capabilities';
-
-function buildViewerContext(req: Request, characterIds: string[]): ViewerContext {
-  return {
-    campaignRole: req.campaignRole ?? null,
-    isOwner: req.isOwner ?? false,
-    isPlatformAdmin: req.userRole === 'admin' || req.userRole === 'superadmin',
-    characterIds,
-  };
-}
+import { canViewContent } from '../../shared/domain/capabilities';
 
 export async function listCampaignRaces(req: Request, res: Response) {
   const { id: campaignId } = req.params;
   const allRaces = await campaignRaceService.listByCampaign(campaignId);
 
-  const userCharacterIds = await getUserCharacterIds(campaignId, req.userId!);
-  const ctx = buildViewerContext(req, userCharacterIds);
-
+  const ctx = req.viewerContext!;
   const races = allRaces.filter((race) => canViewContent(ctx, race.accessPolicy));
 
   res.json({ races });
@@ -32,10 +20,7 @@ export async function getCampaignRace(req: Request, res: Response) {
     return;
   }
 
-  const userCharacterIds = await getUserCharacterIds(campaignId, req.userId!);
-  const ctx = buildViewerContext(req, userCharacterIds);
-
-  if (!canViewContent(ctx, race.accessPolicy)) {
+  if (!canViewContent(req.viewerContext!, race.accessPolicy)) {
     res.status(404).json({ error: 'Campaign race not found' });
     return;
   }

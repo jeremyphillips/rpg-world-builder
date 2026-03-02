@@ -1,5 +1,5 @@
-import { HorizontalCompactCard } from '@/ui/cards'
-import type { CardBadgeItem } from '@/ui/cards'
+import { HorizontalCompactCard } from '@/ui/patterns'
+import type { CardBadgeProps } from '@/ui/primitives'
 
 interface CharacterHorizontalCardProps {
   characterId: string
@@ -31,7 +31,7 @@ const CharacterHorizontalCard = ({
   const subheadline = [race, className, level != null ? `Level ${level}` : undefined]
     .filter(Boolean)
     .join(' · ')
-  const badges: CardBadgeItem[] = status ? [{ type: 'status', value: status }] : []
+  const badges: CardBadgeProps[] = status ? [{ type: 'status', value: status }] : []
 
   return (
     <HorizontalCompactCard

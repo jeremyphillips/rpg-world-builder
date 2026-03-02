@@ -4,19 +4,19 @@ import type { ChatMessage } from '../types'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { CharacterBuilderWizard } from '@/features/characterBuilder/components'
 import type { AbilityScoreMode } from '@/features/characterBuilder/components/CharacterBuilderWizard/CharacterBuilderWizard'
-import { AppModal, ConfirmModal } from '@/ui/modals'
+import { AppModal, ConfirmModal } from '@/ui/patterns'
 import { apiFetch } from '@/app/api'
 import { type CharacterClassInfo } from '@/shared'
 import { classes } from '@/data/classes'
 import { generateAbilityScores, prioritizeAbilityScores } from '@/features/mechanics/domain/generation/ability-scores'
 import { generateHitPoints } from '@/features/mechanics/domain/progression'
-import { LoadingOverlay } from '@/ui/elements'
+import { LoadingOverlay } from '@/ui/patterns'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import Alert from '@mui/material/Alert'
 import type { AbilityScoreMethod } from '@/data/types'
 import type { AbilityScores } from '@/shared/types/character.core'
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
+import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
 // ChatMessageItem
@@ -353,9 +353,9 @@ const ChatContainer = ({ isModalOpen, onCloseModal }: ChatContainerProps) => {
 
       {/* Errors */}
       {(error || genError) && (
-        <Alert severity="error" sx={{ my: 2 }}>
+        <AppAlert tone="danger" sx={{ my: 2 }}>
           {genError ?? error}
-        </Alert>
+        </AppAlert>
       )}
 
       {/* Message history */}

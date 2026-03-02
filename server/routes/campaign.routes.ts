@@ -27,12 +27,22 @@ import {
   upsertRulesetPatch,
 } from '../controllers/rulesetPatch.controller'
 import {
+  getContentPatch,
+  upsertContentPatch,
+} from '../controllers/contentPatch.controller'
+import {
   listCampaignRaces,
   getCampaignRace,
   createCampaignRace,
   updateCampaignRace,
   deleteCampaignRace,
 } from '../controllers/campaignRace.controller'
+import {
+  weaponHandlers,
+  armorHandlers,
+  gearHandlers,
+  magicItemHandlers,
+} from '../controllers/campaignEquipment.controller'
 
 const router = Router()
 
@@ -68,8 +78,12 @@ router.patch('/:id/notes/:noteId', requireCampaignRole('observer'), requireCampa
 router.delete('/:id/notes/:noteId', requireCampaignRole('observer'), requireCampaignOwner(), deleteNote)
 
 // Ruleset patches — owner can read/write
-router.get('/:id/ruleset-patch', requireCampaignRole('observer'), requireCampaignOwner(), getRulesetPatch)
+router.get('/:id/ruleset-patch', requireCampaignRole('observer'), getRulesetPatch)
 router.put('/:id/ruleset-patch', requireCampaignRole('observer'), requireCampaignOwner(), upsertRulesetPatch)
+
+// Content patches — owner can read/write
+router.get('/:id/content-patch', requireCampaignRole('observer'), getContentPatch)
+router.put('/:id/content-patch', requireCampaignRole('observer'), requireCampaignOwner(), upsertContentPatch)
 
 // Campaign races — any member can read, owner can manage
 router.get('/:id/races', requireCampaignRole('observer'), listCampaignRaces)
@@ -77,5 +91,30 @@ router.get('/:id/races/:raceId', requireCampaignRole('observer'), getCampaignRac
 router.post('/:id/races', requireCampaignRole('observer'), requireCampaignOwner(), createCampaignRace)
 router.patch('/:id/races/:raceId', requireCampaignRole('observer'), requireCampaignOwner(), updateCampaignRace)
 router.delete('/:id/races/:raceId', requireCampaignRole('observer'), requireCampaignOwner(), deleteCampaignRace)
+
+// Campaign equipment — any member can read, owner can manage
+router.get('/:id/equipment/weapons', requireCampaignRole('observer'), weaponHandlers.list)
+router.get('/:id/equipment/weapons/:weaponId', requireCampaignRole('observer'), weaponHandlers.get)
+router.post('/:id/equipment/weapons', requireCampaignRole('observer'), requireCampaignOwner(), weaponHandlers.create)
+router.patch('/:id/equipment/weapons/:weaponId', requireCampaignRole('observer'), requireCampaignOwner(), weaponHandlers.update)
+router.delete('/:id/equipment/weapons/:weaponId', requireCampaignRole('observer'), requireCampaignOwner(), weaponHandlers.remove)
+
+router.get('/:id/equipment/armor', requireCampaignRole('observer'), armorHandlers.list)
+router.get('/:id/equipment/armor/:armorId', requireCampaignRole('observer'), armorHandlers.get)
+router.post('/:id/equipment/armor', requireCampaignRole('observer'), requireCampaignOwner(), armorHandlers.create)
+router.patch('/:id/equipment/armor/:armorId', requireCampaignRole('observer'), requireCampaignOwner(), armorHandlers.update)
+router.delete('/:id/equipment/armor/:armorId', requireCampaignRole('observer'), requireCampaignOwner(), armorHandlers.remove)
+
+router.get('/:id/equipment/gear', requireCampaignRole('observer'), gearHandlers.list)
+router.get('/:id/equipment/gear/:gearId', requireCampaignRole('observer'), gearHandlers.get)
+router.post('/:id/equipment/gear', requireCampaignRole('observer'), requireCampaignOwner(), gearHandlers.create)
+router.patch('/:id/equipment/gear/:gearId', requireCampaignRole('observer'), requireCampaignOwner(), gearHandlers.update)
+router.delete('/:id/equipment/gear/:gearId', requireCampaignRole('observer'), requireCampaignOwner(), gearHandlers.remove)
+
+router.get('/:id/equipment/magic-items', requireCampaignRole('observer'), magicItemHandlers.list)
+router.get('/:id/equipment/magic-items/:magicItemId', requireCampaignRole('observer'), magicItemHandlers.get)
+router.post('/:id/equipment/magic-items', requireCampaignRole('observer'), requireCampaignOwner(), magicItemHandlers.create)
+router.patch('/:id/equipment/magic-items/:magicItemId', requireCampaignRole('observer'), requireCampaignOwner(), magicItemHandlers.update)
+router.delete('/:id/equipment/magic-items/:magicItemId', requireCampaignRole('observer'), requireCampaignOwner(), magicItemHandlers.remove)
 
 export default router

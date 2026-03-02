@@ -6,8 +6,8 @@
  */
 import type { Effect, ModifierEffect } from '../effects.types'
 import type { StatTarget } from '../../resolution/stat-resolver'
-import { magicItems, type MagicItem } from '@/data/equipment/magicItems'
-import { resolveEffectDescriptors } from '../descriptors/resolveEffectDescriptors'
+import { getSystemMagicItems } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
 
 // ---------------------------------------------------------------------------
 // Magic item loadout (minimal — no UI for equip/attune yet)
@@ -30,13 +30,13 @@ function bonusModifier(
   return { kind: 'modifier', target, mode: 'add', value: bonus, source }
 }
 
-function effectsForItem(item: MagicItem): Effect[] {
+function effectsForItem(item: { id: string; effects?: Array<{ kind: string; target?: string; value?: number }>; enhancementLevel?: number; slot: string }): Effect[] {
   const effects: Effect[] = []
   const source = `magic_item:${item.id}`
 
   if (item.effects) {
     for (const fx of item.effects) {
-      if (fx.kind === 'bonus') {
+      if (fx.kind === 'bonus' && fx.value != null) {
         effects.push(bonusModifier(fx.target as StatTarget, fx.value, source))
       }
     }
@@ -58,7 +58,8 @@ function effectsForItem(item: MagicItem): Effect[] {
   return effects
 }
 
-const magicItemsById = new Map(magicItems.map(m => [m.id, m]))
+const systemMagicItems = getSystemMagicItems(DEFAULT_SYSTEM_RULESET_ID)
+const magicItemsById = new Map(systemMagicItems.map(m => [m.id, m]))
 
 /**
  * Produce candidate effects for ALL owned magic items.

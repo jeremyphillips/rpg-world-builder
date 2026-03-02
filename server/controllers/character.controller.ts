@@ -5,8 +5,23 @@ import * as campaignMemberService from '../services/campaignMember.service'
 import { getCampaignById } from '../services/campaign.service'
 import * as notificationService from '../services/notification.service'
 import { env } from '../config/env'
+import { isPlatformAdmin as checkPlatformAdmin } from '../auth/platformAdmin'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
+
+function resolveCharacterAccess(args: {
+  character: any
+  userId: string
+  userRole?: string | null
+  isCampaignAdmin?: boolean
+}) {
+  const isOwner = (args.character.userId as mongoose.Types.ObjectId).equals(new mongoose.Types.ObjectId(args.userId))
+  const isPlatformAdmin = checkPlatformAdmin(args.userRole)
+  const canRead = isOwner || isPlatformAdmin
+  const canWrite = isOwner || isPlatformAdmin || Boolean(args.isCampaignAdmin)
+  const canDelete = isOwner || isPlatformAdmin
+  return { isOwner, isPlatformAdmin, canRead, canWrite, canDelete }
+}
 
 export async function getCharacters(req: Request, res: Response) {
   const type = req.query.type as string | undefined
@@ -32,21 +47,17 @@ export async function getCharacter(req: Request, res: Response) {
     return
   }
 
-  const isOwner = character.userId.equals(new mongoose.Types.ObjectId(req.userId!))
-  const isPlatformAdmin = req.userRole === 'admin' || req.userRole === 'superadmin'
+  const access = resolveCharacterAccess({ character, userId: req.userId!, userRole: req.userRole })
 
-  // Platform admins can view any character; otherwise must be owner or campaign admin
-  if (!isOwner && !isPlatformAdmin) {
+  if (!access.canRead) {
     res.status(403).json({ error: 'Forbidden' })
     return
   }
 
-  // Campaign-scoped admin: is this user the DM/admin of a campaign the character belongs to?
   const isCampaignAdmin = await characterService.isCampaignAdminForCharacter(req.params.id, req.userId!)
 
-  // Resolve character owner's display name (for non-owners viewing the page)
   let ownerName: string | undefined
-  if (!isOwner) {
+  if (!access.isOwner) {
     const ownerUser = await mongoose.connection
       .useDb(process.env.DB_NAME || 'dnd')
       .collection('users')
@@ -54,15 +65,11 @@ export async function getCharacter(req: Request, res: Response) {
     ownerName = ownerUser?.username ?? undefined
   }
 
-  // Also fetch campaigns this character's user belongs to
   const campaigns = await characterService.getCampaignsForCharacter(req.params.id)
-
-  // Pending memberships this user can approve/reject (when they are campaign admin)
   const pendingMemberships = await characterService.getPendingMembershipsForAdmin(req.params.id, req.userId!)
-
   const normalizedCharacter = await characterService.getCharacterByIdNormalized(req.params.id)
 
-  res.json({ character: normalizedCharacter, campaigns, isOwner, isAdmin: isCampaignAdmin, pendingMemberships, ownerName })
+  res.json({ character: normalizedCharacter, campaigns, isOwner: access.isOwner, isAdmin: isCampaignAdmin, pendingMemberships, ownerName })
 }
 
 export async function createCharacter(req: Request, res: Response) {
@@ -168,11 +175,10 @@ export async function updateCharacter(req: Request, res: Response) {
     return
   }
 
-  const isOwner = character.userId.equals(new mongoose.Types.ObjectId(req.userId!))
-  const isPlatformAdmin = req.userRole === 'admin' || req.userRole === 'superadmin'
   const isCampaignAdmin = await characterService.isCampaignAdminForCharacter(req.params.id, req.userId!)
+  const access = resolveCharacterAccess({ character, userId: req.userId!, userRole: req.userRole, isCampaignAdmin })
 
-  if (!isOwner && !isPlatformAdmin && !isCampaignAdmin) {
+  if (!access.canWrite) {
     res.status(403).json({ error: 'Forbidden' })
     return
   }
@@ -180,7 +186,7 @@ export async function updateCharacter(req: Request, res: Response) {
   // Campaign admins and platform admins can update all fields.
   // Character owners can only update name, imageKey, narrative, combat, and level-up completion fields.
   let updateData = req.body
-  if (!isCampaignAdmin && !isPlatformAdmin) {
+  if (!isCampaignAdmin && !access.isPlatformAdmin) {
     const { name, imageKey, narrative, combat, totalLevel, classes, hitPoints, spells, levelUpPending, pendingLevel, classDefinitionId } = req.body
     updateData = {} as any
     if (name !== undefined) updateData.name = name
@@ -237,11 +243,9 @@ export async function deleteCharacter(req: Request, res: Response) {
     return
   }
 
-  const isOwner = character.userId.equals(new mongoose.Types.ObjectId(req.userId!))
-  const isPlatformAdmin = req.userRole === 'admin' || req.userRole === 'superadmin'
+  const access = resolveCharacterAccess({ character, userId: req.userId!, userRole: req.userRole })
 
-  // Only the character owner or a platform admin can delete
-  if (!isOwner && !isPlatformAdmin) {
+  if (!access.canDelete) {
     res.status(403).json({ error: 'Forbidden' })
     return
   }

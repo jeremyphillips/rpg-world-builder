@@ -12,7 +12,7 @@ import type {
   ClassEntryRequirement,
   AbilityRequirementGroup,
   ClassId,
-} from '@/data/ruleSets/ruleSets.types';
+} from '@/shared/types';
 
 // ---------------------------------------------------------------------------
 // Generic helpers

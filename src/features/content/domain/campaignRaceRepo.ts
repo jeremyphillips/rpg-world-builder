@@ -5,7 +5,7 @@
  * they come from systemCatalog.races.ts.
  */
 import { apiFetch, ApiError } from '@/app/api';
-import type { Visibility } from '@/data/types';
+import type { Visibility } from '@/shared/types';
 import type { Race, RaceInput } from './types';
 import type { ContentSource } from './types';
 
