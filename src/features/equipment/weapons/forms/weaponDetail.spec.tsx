@@ -39,13 +39,14 @@ export const WEAPON_DETAIL_SPECS: DetailSpec<Weapon, WeaponDetailCtx>[] = [
     order: 50,
     render: (weapon) => weapon.damageType ?? '—',
   },
-  {
-    key: 'mastery',
-    label: 'Mastery',
-    order: 60,
-    render: (weapon) =>
-      (weapon as Weapon & { mastery?: string }).mastery ?? '—',
-  },
+  // TODO: decide whether to show mastery
+  // {
+  //   key: 'mastery',
+  //   label: 'Mastery',
+  //   order: 60,
+  //   render: (weapon) =>
+  //     (weapon as Weapon & { mastery?: string }).mastery ?? '—',
+  // },
   {
     key: 'properties',
     label: 'Properties',

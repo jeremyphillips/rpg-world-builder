@@ -2,10 +2,9 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FormProvider, useForm } from 'react-hook-form';
-import { DynamicFormRenderer } from '@/ui/patterns';
+import { ConditionalFormRenderer } from '@/ui/patterns';
 import type { Visibility } from '@/shared/types';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import { EntryEditorLayout } from '@/features/content/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { weaponRepo } from '@/features/content/domain/repo';
@@ -13,6 +12,7 @@ import type { WeaponInput } from '@/features/content/domain/types';
 import {
   type WeaponFormValues,
   getWeaponFieldConfigs,
+  WEAPON_FORM_DEFAULTS,
   toWeaponInput,
 } from '@/features/equipment/weapons/forms';
 
@@ -20,29 +20,13 @@ type ValidationError = { path: string; code: string; message: string };
 
 const FORM_ID = 'weapon-create-form';
 
-const DEFAULT_VALUES: WeaponFormValues = {
-  name: '',
-  description: '',
-  imageKey: '',
-  accessPolicy: DEFAULT_VISIBILITY_PUBLIC,
-  category: 'simple',
-  mode: 'melee',
-  damageDefault: '1d6',
-  damageVersatile: '',
-  damageType: 'slashing',
-  mastery: '',
-  rangeNormal: '',
-  rangeLong: '',
-  properties: [],
-};
-
 export default function WeaponCreateRoute() {
   const { campaignId } = useActiveCampaign();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
 
   const methods = useForm<WeaponFormValues>({
-    defaultValues: DEFAULT_VALUES,
+    defaultValues: WEAPON_FORM_DEFAULTS,
     mode: 'onBlur',
     reValidateMode: 'onChange',
   });
@@ -107,7 +91,7 @@ export default function WeaponCreateRoute() {
         policyCharacters={policyCharacters}
       >
         <form id={FORM_ID} onSubmit={methods.handleSubmit(handleSubmit)} noValidate>
-          <DynamicFormRenderer fields={fieldConfigs} />
+          <ConditionalFormRenderer fields={fieldConfigs} />
         </form>
       </EntryEditorLayout>
     </FormProvider>

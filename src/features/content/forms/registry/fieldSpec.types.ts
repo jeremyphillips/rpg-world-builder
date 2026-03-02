@@ -12,6 +12,7 @@ export type FieldSpecKind =
   | 'textarea'
   | 'select'
   | 'checkbox'
+  | 'checkboxGroup'
   | 'numberText'
   | 'imageUpload'
   | 'visibility'

@@ -109,6 +109,16 @@ export const buildFieldConfigs = <
       case 'checkbox':
         configs.push({ ...base, type: 'checkbox' });
         break;
+      case 'checkboxGroup':
+        configs.push({
+          ...base,
+          type: 'checkboxGroup',
+          options: spec.options
+            ? spec.options.map((o) => ({ value: o.value, label: o.label }))
+            : [],
+          row: true,
+        });
+        break;
       case 'numberText': {
         const rules = spec.validation
           ? compileNumberTextRules(spec.label, spec.required, spec.validation)
