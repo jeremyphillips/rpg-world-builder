@@ -32,6 +32,7 @@ export default function FormImageUploadField({
           label={label}
           disabled={disabled}
           maxHeight={maxHeight}
+          required={required}
         />
       )}
     />

@@ -35,6 +35,7 @@ export default function FormTextField({
         <TextField
           {...field}
           label={label}
+          required={required}
           fullWidth
           multiline={multiline}
           rows={multiline ? rows : undefined}

@@ -9,7 +9,7 @@ import LockIcon from '@mui/icons-material/Lock'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 
-import type { Visibility } from '@/data/types'
+import type { Visibility } from '@/shared/types'
 import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
@@ -44,6 +44,7 @@ interface VisibilityFieldProps {
   value: Visibility
   onChange: (visibility: Visibility) => void
   disabled?: boolean
+  required?: boolean
   characters?: { id: string; name: string }[]
 }
 
@@ -55,6 +56,7 @@ const VisibilityField = ({
   value,
   onChange,
   disabled = false,
+  required = false,
   characters = [],
 }: VisibilityFieldProps) => {
   const ids = allowIds(value)
@@ -70,7 +72,7 @@ const VisibilityField = ({
     return (
       <Box>
         <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-          Visibility
+          Visibility{required && ' *'}
         </Typography>
         <Stack direction="row" spacing={1} alignItems="center">
           {meta.icon}
@@ -114,7 +116,7 @@ const VisibilityField = ({
         variant="overline"
         sx={{ display: 'block', mb: 0.5, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'text.secondary' }}
       >
-        Visibility
+        Visibility{required && ' *'}
       </Typography>
 
       <RadioGroup

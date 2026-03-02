@@ -5,7 +5,15 @@
  * locations) shares these base shapes. Category-specific types extend them.
  */
 import type { Visibility } from '@/shared/types';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';  
+import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+
+/** Shared form values contract for all content types (name, description, imageKey, accessPolicy). */
+export type ContentFormValues = {
+  name: string;
+  description: string;
+  imageKey: string;
+  accessPolicy: Visibility;
+};
 
 export type ContentSource = 'system' | 'campaign';
 

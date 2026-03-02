@@ -14,6 +14,7 @@ type JsonPreviewFieldProps = {
   size?: 'small' | 'medium';
   showInsertExample?: boolean;
   insertExampleLabel?: string;
+  required?: boolean;
 };
 
 const JsonPreviewField = ({
@@ -27,6 +28,7 @@ const JsonPreviewField = ({
   size = 'small',
   showInsertExample,
   insertExampleLabel = 'Insert example',
+  required = false,
 }: JsonPreviewFieldProps) => {
   const [jsonError, setJsonError] = useState<string | null>(null);
 
@@ -50,6 +52,7 @@ const JsonPreviewField = ({
     <Box>
       <TextField
         label={label}
+        required={required}
         multiline
         minRows={minRows}
         maxRows={maxRows}

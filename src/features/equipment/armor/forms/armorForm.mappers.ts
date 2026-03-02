@@ -27,13 +27,7 @@ export const armorToFormValues = (armor: Armor): ArmorFormValues => ({
 
 /**
  * Converts form values to ArmorInput for create/update.
+ * Fully spec-driven — ARMOR_FORM_FIELDS parse rules are the source of truth.
  */
-export const toArmorInput = (values: ArmorFormValues): ArmorInput => {
-  const partial = toInput(values);
-  return {
-    name: values.name.trim(),
-    description: values.description.trim(),
-    imageKey: values.imageKey.trim() || null,
-    ...partial,
-  } as ArmorInput;
-};
+export const toArmorInput = (values: ArmorFormValues): ArmorInput =>
+  toInput(values) as ArmorInput;

@@ -125,7 +125,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
 
     case 'checkbox':
       return (
-        <FormControl disabled={field.disabled}>
+        <FormControl disabled={field.disabled} required={field.required}>
           <FormControlLabel
             control={
               <Checkbox
@@ -184,6 +184,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
           label={field.label}
           disabled={field.disabled}
           maxHeight={field.maxHeight}
+          required={field.required}
         />
       );
 
@@ -224,6 +225,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
           }
           onChange={(v) => driver.setValue(path, v)}
           disabled={field.disabled}
+          required={field.required}
           characters={field.characters}
         />
       );
@@ -300,6 +302,7 @@ function DriverJsonField({
         helperText={field.helperText}
         minRows={field.minRows ?? 4}
         maxRows={field.maxRows ?? 16}
+        required={field.required}
       />
     </Box>
   );

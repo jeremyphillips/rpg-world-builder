@@ -26,6 +26,8 @@ interface ImageUploadFieldProps {
   disabled?: boolean
   /** Max height for the image preview */
   maxHeight?: number
+  /** Show required indicator on label */
+  required?: boolean
 }
 
 /**
@@ -43,6 +45,7 @@ export default function ImageUploadField({
   label = 'Image',
   disabled = false,
   maxHeight = 280,
+  required = false,
 }: ImageUploadFieldProps) {
   const [dragActive, setDragActive] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -122,6 +125,7 @@ export default function ImageUploadField({
         {label && (
           <Typography variant="overline" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
             {label}
+            {required && ' *'}
           </Typography>
         )}
 
@@ -196,6 +200,7 @@ export default function ImageUploadField({
       {label && (
         <Typography variant="overline" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
           {label}
+          {required && ' *'}
         </Typography>
       )}
       {uploadError && (

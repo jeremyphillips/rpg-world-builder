@@ -1,14 +1,10 @@
 /**
  * Shared form types for Armor Create/Edit routes.
  */
-import type { Visibility } from '@/shared/types';
+import type { ContentFormValues } from '@/features/content/domain/types';
 import type { ArmorCategory, Material } from '@/features/content/domain/vocab';
 
-export type ArmorFormValues = {
-  name: string;
-  description: string;
-  imageKey: string;
-  accessPolicy: Visibility;
+export type ArmorFormValues = ContentFormValues & {
   category: ArmorCategory | '';
   material: Material | '';
   baseAC: string;
