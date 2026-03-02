@@ -6,20 +6,18 @@
 // ---------------------------------------------------------------------------
 
 import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
-import type { Armor, ArmorSummary, ArmorInput } from '../types/armor.types';
+import type { Armor, ArmorSummary, ArmorInput, ArmorFields } from '../types/armor.types';
 import { getSystemArmor, getSystemArmorEntry } from '@/features/mechanics/domain/core/rules/systemCatalog.armor';
 import { campaignArmorRepo, type CampaignEquipmentEntry } from '../campaignEquipmentRepo';
 import { getContentPatch } from '../contentPatchRepo';
 import { applyContentPatch } from '../patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
-import type { ContentSource } from '../types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 
 function toSummary(armor: Armor): ArmorSummary {
-  return {
+  const base = {
     id: armor.id,
     name: armor.name,
-    source: armor.source,
     imageKey: armor.imageKey,
     accessPolicy: armor.accessPolicy,
     patched: armor.patched,
@@ -29,27 +27,30 @@ function toSummary(armor: Armor): ArmorSummary {
     acBonus: armor.acBonus,
     stealthDisadvantage: armor.stealthDisadvantage ?? false,
   };
+  return armor.source === 'system'
+    ? { ...base, source: 'system' as const, systemId: armor.systemId }
+    : { ...base, source: 'campaign' as const, campaignId: armor.campaignId };
 }
 
 function campaignEntryToArmor(e: CampaignEquipmentEntry): Armor {
-  const d = e.data ?? {};
+  const d = (e.data ?? {}) as Partial<ArmorFields>;
   return {
     id: e.id,
     name: e.name,
     description: e.description,
     imageKey: e.imageKey,
-    source: 'campaign' as ContentSource,
+    source: 'campaign',
     campaignId: e.campaignId,
     accessPolicy: e.accessPolicy,
-    cost: (d.cost as Armor['cost']) ?? { coin: 'gp', value: 0 },
-    weight: d.weight as Armor['weight'],
-    category: (d.category as Armor['category']) ?? 'light',
-    material: (d.material as Armor['material']) ?? 'metal',
-    baseAC: d.baseAC as number | undefined,
-    dex: d.dex as Armor['dex'],
-    stealthDisadvantage: d.stealthDisadvantage as boolean | undefined,
-    minStrength: d.minStrength as number | undefined,
-    acBonus: d.acBonus as number | undefined,
+    cost: d.cost ?? { coin: 'gp', value: 0 },
+    weight: d.weight,
+    category: d.category ?? 'light',
+    material: d.material ?? 'metal',
+    baseAC: d.baseAC,
+    dex: d.dex,
+    stealthDisadvantage: d.stealthDisadvantage,
+    minStrength: d.minStrength,
+    acBonus: d.acBonus,
   };
 }
 

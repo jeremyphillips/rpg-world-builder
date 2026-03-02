@@ -15,23 +15,18 @@
  * Campaign weapons come from the DB via campaignEquipmentRepo.
  */
 import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
-import type { Weapon, WeaponSummary, WeaponInput } from '../types/weapon.types';
+import type { Weapon, WeaponSummary, WeaponInput, WeaponFields } from '../types/weapon.types';
 import { getSystemWeapons, getSystemWeapon } from '@/features/mechanics/domain/core/rules/systemCatalog.weapons';
 import { campaignWeaponRepo, type CampaignEquipmentEntry } from '../campaignEquipmentRepo';
 import { getContentPatch } from '../contentPatchRepo';
 import { applyContentPatch } from '../patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
-import type { ContentSource } from '../types';
+import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 
 function toSummary(weapon: Weapon): WeaponSummary {
-  return {
+  const base = {
     id: weapon.id,
     name: weapon.name,
-    source: weapon.source,
-    ...(weapon.source === 'system'
-      ? { systemId: weapon.systemId }
-      : { campaignId: weapon.campaignId }),
-      
     imageKey: weapon.imageKey,
     accessPolicy: weapon.accessPolicy,
     patched: weapon.patched,
@@ -41,27 +36,30 @@ function toSummary(weapon: Weapon): WeaponSummary {
     damageType: weapon.damageType ?? '',
     properties: weapon.properties ?? [],
   };
+  return weapon.source === 'system'
+    ? { ...base, source: 'system' as const, systemId: weapon.systemId }
+    : { ...base, source: 'campaign' as const, campaignId: weapon.campaignId };
 }
 
 function campaignEntryToWeapon(e: CampaignEquipmentEntry): Weapon {
-  const d = e.data ?? {};
+  const d = (e.data ?? {}) as Partial<WeaponFields>;
   return {
     id: e.id,
     name: e.name,
     description: e.description,
     imageKey: e.imageKey,
-    source: 'campaign' as ContentSource,
+    source: 'campaign',
     campaignId: e.campaignId,
     accessPolicy: e.accessPolicy,
-    cost: (d.cost as Weapon['cost']) ?? { coin: 'gp', value: 0 },
-    weight: d.weight as Weapon['weight'],
-    category: (d.category as Weapon['category']) ?? 'simple',
-    mode: (d.mode as Weapon['mode']) ?? 'melee',
-    range: d.range as Weapon['range'],
-    properties: (d.properties as Weapon['properties']) ?? [],
-    damage: (d.damage as Weapon['damage']) ?? { default: '—' },
-    damageType: (d.damageType as string) ?? '',
-    mastery: (d.mastery as string) ?? '',
+    cost: d.cost ?? { coin: 'gp', value: 0 },
+    weight: d.weight,
+    category: d.category ?? 'simple',
+    mode: d.mode ?? 'melee',
+    range: d.range,
+    properties: d.properties ?? [],
+    damage: d.damage ?? { default: '—' },
+    damageType: d.damageType ?? '',
+    mastery: d.mastery ?? '',
   };
 }
 
@@ -73,7 +71,7 @@ export const weaponRepo: CampaignContentRepo<Weapon, WeaponSummary, WeaponInput>
 
   async listSummaries(
     campaignId: string,
-    systemId: string,
+    systemId: SystemRulesetId,
     opts?: ListOptions,
   ): Promise<WeaponSummary[]> {
     const [system, campaign, contentPatch] = await Promise.all([

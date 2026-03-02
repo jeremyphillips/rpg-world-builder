@@ -6,20 +6,18 @@
 // ---------------------------------------------------------------------------
 
 import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
-import type { MagicItem, MagicItemSummary, MagicItemInput } from '../types/magicItem.types';
+import type { MagicItem, MagicItemSummary, MagicItemInput, MagicItemFields } from '../types/magicItem.types';
 import { getSystemMagicItems, getSystemMagicItem } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems';
 import { campaignMagicItemRepo, type CampaignEquipmentEntry } from '../campaignEquipmentRepo';
 import { getContentPatch } from '../contentPatchRepo';
 import { applyContentPatch } from '../patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
-import type { ContentSource } from '../types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 
 function toSummary(item: MagicItem): MagicItemSummary {
-  return {
+  const base = {
     id: item.id,
     name: item.name,
-    source: item.source,
     imageKey: item.imageKey,
     accessPolicy: item.accessPolicy,
     patched: item.patched,
@@ -28,26 +26,29 @@ function toSummary(item: MagicItem): MagicItemSummary {
     rarity: item.rarity,
     requiresAttunement: item.requiresAttunement ?? false,
   };
+  return item.source === 'system'
+    ? { ...base, source: 'system' as const, systemId: item.systemId }
+    : { ...base, source: 'campaign' as const, campaignId: item.campaignId };
 }
 
 function campaignEntryToMagicItem(e: CampaignEquipmentEntry): MagicItem {
-  const d = e.data ?? {};
+  const d = (e.data ?? {}) as Partial<MagicItemFields>;
   return {
     id: e.id,
     name: e.name,
     description: e.description,
     imageKey: e.imageKey,
-    source: 'campaign' as ContentSource,
+    source: 'campaign',
     campaignId: e.campaignId,
     accessPolicy: e.accessPolicy,
-    cost: d.cost as MagicItem['cost'],
-    weight: d.weight as MagicItem['weight'],
-    slot: (d.slot as MagicItem['slot']) ?? 'wondrous',
-    rarity: d.rarity as MagicItem['rarity'],
-    requiresAttunement: d.requiresAttunement as boolean | undefined,
-    bonus: d.bonus as number | undefined,
-    charges: d.charges as number | undefined,
-    effects: d.effects as MagicItem['effects'],
+    cost: d.cost,
+    weight: d.weight,
+    slot: d.slot ?? 'wondrous',
+    rarity: d.rarity,
+    requiresAttunement: d.requiresAttunement,
+    bonus: d.bonus,
+    charges: d.charges,
+    effects: d.effects,
   };
 }
 

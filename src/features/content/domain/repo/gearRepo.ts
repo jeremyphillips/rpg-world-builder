@@ -6,20 +6,17 @@
 // ---------------------------------------------------------------------------
 
 import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
-import type { Gear, GearSummary, GearInput } from '../types/gear.types';
+import type { Gear, GearSummary, GearInput, GearFields } from '../types/gear.types';
 import { getSystemGear, getSystemGearEntry } from '@/features/mechanics/domain/core/rules/systemCatalog.gear';
 import { campaignGearRepo, type CampaignEquipmentEntry } from '../campaignEquipmentRepo';
 import { getContentPatch } from '../contentPatchRepo';
 import { applyContentPatch } from '../patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
 import { weightToLb } from '@/features/equipment/domain/weight/weight';
-import type { ContentSource } from '../types';
-
 function toSummary(gear: Gear): GearSummary {
-  return {
+  const base = {
     id: gear.id,
     name: gear.name,
-    source: gear.source,
     imageKey: gear.imageKey,
     accessPolicy: gear.accessPolicy,
     patched: gear.patched,
@@ -27,26 +24,29 @@ function toSummary(gear: Gear): GearSummary {
     costCp: moneyToCp(gear.cost),
     weightLb: weightToLb(gear.weight),
   };
+  return gear.source === 'system'
+    ? { ...base, source: 'system' as const, systemId: gear.systemId }
+    : { ...base, source: 'campaign' as const, campaignId: gear.campaignId };
 }
 
 function campaignEntryToGear(e: CampaignEquipmentEntry): Gear {
-  const d = e.data ?? {};
+  const d = (e.data ?? {}) as Partial<GearFields>;
   return {
     id: e.id,
     name: e.name,
     description: e.description,
     imageKey: e.imageKey,
-    source: 'campaign' as ContentSource,
+    source: 'campaign',
     campaignId: e.campaignId,
     accessPolicy: e.accessPolicy,
-    cost: (d.cost as Gear['cost']) ?? { coin: 'gp', value: 0 },
-    weight: d.weight as Gear['weight'],
-    category: (d.category as Gear['category']) ?? 'adventuring-utility',
-    capacity: d.capacity as string | undefined,
-    range: d.range as string | undefined,
-    duration: d.duration as string | undefined,
-    charges: d.charges as number | undefined,
-    effect: d.effect as string | undefined,
+    cost: d.cost ?? { coin: 'gp', value: 0 },
+    weight: d.weight,
+    category: d.category ?? 'adventuring-utility',
+    capacity: d.capacity,
+    range: d.range,
+    duration: d.duration,
+    charges: d.charges,
+    effect: d.effect,
   };
 }
 

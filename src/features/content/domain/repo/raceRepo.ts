@@ -35,15 +35,18 @@ import { applyContentPatch } from '../patches/applyContentPatch';
 // ---------------------------------------------------------------------------
 
 function toSummary(race: Race): RaceSummary {
-  return {
+  const base = {
     id: race.id,
     name: race.name,
-    source: race.source,
+    description: race.description,
     imageKey: race.imageKey,
     campaigns: race.campaigns,
     accessPolicy: race.accessPolicy,
     patched: race.patched,
   };
+  return race.source === 'system'
+    ? { ...base, source: 'system' as const, systemId: race.systemId }
+    : { ...base, source: 'campaign' as const, campaignId: race.campaignId };
 }
 
 function matchesSearch(name: string, search: string): boolean {
