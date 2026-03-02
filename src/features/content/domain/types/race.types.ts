@@ -1,12 +1,13 @@
 /**
- * Canonical Race types.
+ * Canonical Race content types.
  *
- * Extends the generic ContentItem interfaces with race-specific fields.
- * These replace the legacy `Race` interface in `src/data/types.ts`.
+ * Follows the same pattern as Weapon / Armor / Gear:
+ * - RaceFields = domain-specific fields
+ * - Race = ContentItem & RaceFields
  */
+
 import type {
   ContentId,
-  ContentSource,
   ContentSummary,
   ContentItem,
   ContentInput,
@@ -14,28 +15,19 @@ import type {
 
 export type RaceId = ContentId;
 
-export interface RaceSummary extends ContentSummary {
+export interface RaceFields {
+  id: RaceId;
+  name: string;
+  description: string;
+  imageKey?: string | null;
   /** Setting restrictions (legacy, carried forward for compatibility) */
   campaigns?: string[];
 }
 
-export interface Race extends ContentItem {
-  campaigns?: string[];
-}
+export type Race = ContentItem & RaceFields;
 
-export interface RaceInput extends ContentInput {
-  campaigns?: string[];
-}
+export type RaceSummary = ContentSummary & RaceFields;
 
-/** Build a Race from the system catalog data (no DB fields). */
-export function toSystemRace(raw: {
-  id: string;
-  name: string;
-  description: string;
-  campaigns?: string[];
-}): Race {
-  return {
-    ...raw,
-    source: 'system' as ContentSource,
-  };
-}
+export type RaceInput = ContentInput & Partial<RaceFields>;
+
+
