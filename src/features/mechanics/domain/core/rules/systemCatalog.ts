@@ -58,18 +58,27 @@ export type CampaignCatalog = {
 
 const races = getSystemRaces(DEFAULT_SYSTEM_RULESET_ID);
 
+// Runtime validation: equipment.weapons must be defined for weaponsById
+if (!equipment.weapons || !Array.isArray(equipment.weapons)) {
+  console.error('[systemCatalog] equipment.weapons is invalid', {
+    weapons: equipment.weapons,
+    type: typeof equipment.weapons,
+    isArray: Array.isArray(equipment.weapons),
+  });
+}
+
 export const systemCatalog: CampaignCatalog = {
   classesById:              keyBy(classes),
   classIds:                 Object.keys(classes),
   racesById:                keyBy(races),
   raceIds:                  races.map(r => r.id),
-  // weaponsById:              keyBy(equipment.weapons),
-  // armorById:                keyBy(equipment.armor),
-  // gearById:                 keyBy(equipment.gear),
-  // magicItemsById:           keyBy(equipment.magicItems),
-  // enhancementTemplatesById: keyBy(equipment.enchantments.enhancementTemplates),
-  // spellsById:               keyBy(spells),
-  // monstersById:             keyBy(monsters),
+  weaponsById:              keyBy(equipment.weapons),
+  armorById:                keyBy(equipment.armor),
+  gearById:                 keyBy(equipment.gear),
+  magicItemsById:           keyBy(equipment.magicItems),
+  enhancementTemplatesById: keyBy(equipment.enchantments.enhancementTemplates),
+  spellsById:               keyBy(spells),
+  monstersById:             keyBy(monsters),
 }
 
 // ---------------------------------------------------------------------------

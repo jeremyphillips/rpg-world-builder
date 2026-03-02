@@ -4,7 +4,7 @@ export const CAMPAIGN_RULESET_PATCHES_FIXTURE: CampaignRulesetPatch[] = [
   {
     _id: 'testruleset01',
     campaignId: '698a7c82c35d1758cfa4f4c3',
-    systemId: '5e_v1',
+    systemId: 'SRD_CC_v5_2_1',
     meta: {
       name: 'Lankhmar 5e Ruleset',
       campaignTags: { selected: [], allowCustom: true, custom: [] },

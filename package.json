@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
     "dev:frontend": "vite",
-    "dev:backend": "nodemon --exec tsx server/index.ts",
+    "dev:backend": "nodemon --exec \"tsx --tsconfig tsconfig.server.json server/index.ts\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "tsx server/index.ts"
+    "start": "tsx --tsconfig tsconfig.server.json server/index.ts"
   },
   "dependencies": {
     "@auth/express": "^0.12.1",
