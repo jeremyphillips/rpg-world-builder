@@ -8,7 +8,7 @@ import {
   ARMOR_MATERIAL_OPTIONS,
 } from '@/features/content/domain/vocab';
 import { when } from '@/ui/patterns';
-import { numberRange, type FieldSpec } from '@/features/equipment/forms/registry';
+import { numberRange, type FieldSpec } from '@/features/content/forms/registry';
 import type { ArmorFormValues } from './armorForm.types';
 
 const isArmor = when.in('category', ['light', 'medium', 'heavy']);

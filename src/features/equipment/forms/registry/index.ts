@@ -1,20 +1,22 @@
+// TODO: Remove shim after updating any remaining imports to @/features/content/forms/registry.
 export type {
   FieldSpec,
   FieldSpecKind,
   FieldSpecOption,
   ValidationRule,
   ValidationSpec,
-} from './fieldSpec.types';
-export { numberRange } from '@/ui/patterns';
-export type { DetailSpec } from './detailSpec.types';
-export { buildFieldConfigs, type BuildFieldConfigsOptions } from './buildFieldConfigs';
+  DetailSpec,
+} from '@/features/content/forms/registry';
 export {
+  numberRange,
+  buildFieldConfigs,
   buildDetailItems,
-  type BuildDetailItemsOptions,
-} from './buildDetailItems';
-export { buildDetailItemsFromSpecs } from './buildDetailItemsFromSpecs';
-export {
+  buildDetailItemsFromSpecs,
   buildToInput,
   buildToFormValues,
   buildDefaultFormValues,
-} from './buildMappers';
+} from '@/features/content/forms/registry';
+export type {
+  BuildFieldConfigsOptions,
+  BuildDetailItemsOptions,
+} from '@/features/content/forms/registry';

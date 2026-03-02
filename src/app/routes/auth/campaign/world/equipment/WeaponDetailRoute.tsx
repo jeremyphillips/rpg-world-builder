@@ -13,7 +13,7 @@ import { toViewerContext, canManageContent } from '@/shared/domain/capabilities'
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/utils/image';
-import { buildDetailItemsFromSpecs } from '@/features/equipment/forms/registry';
+import { buildDetailItemsFromSpecs } from '@/features/content/forms/registry';
 import { WEAPON_DETAIL_SPECS } from '@/features/equipment/weapons/forms';
 
 export default function WeaponDetailRoute() {

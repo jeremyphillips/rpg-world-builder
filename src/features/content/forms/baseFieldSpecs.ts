@@ -4,7 +4,7 @@
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type { ContentFormValues, ContentInput } from '@/features/content/domain/types';
-import type { FieldSpec } from '@/features/equipment/forms/registry';
+import type { FieldSpec } from '@/features/content/forms/registry';
 
 const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);

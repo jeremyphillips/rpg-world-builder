@@ -9,7 +9,7 @@ import {
   buildToInput,
   buildToFormValues,
   buildDefaultFormValues,
-} from '@/features/equipment/forms/registry';
+} from '@/features/content/forms/registry';
 import { ARMOR_FORM_FIELDS } from './armorForm.registry';
 
 const toInput = buildToInput(ARMOR_FORM_FIELDS);
