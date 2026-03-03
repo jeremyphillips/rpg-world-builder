@@ -4,6 +4,7 @@ import type { Effect } from '../effects/effects.types'
 import { getAbilityModifier } from '../core/ability.utils'
 import { getProficiencyBonus } from '../core/progression/proficiency'
 import { resolveStatDetailed, type BreakdownToken } from './stat-resolver'
+import type { DamageType } from '@/features/content/domain/vocab/weapons.vocab'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -35,7 +36,7 @@ export type DamageResult = {
   dice: string
   modifier: number
   total: string
-  damageType: string
+  damageType: DamageType
   breakdown: BreakdownToken[]
 }
 
@@ -180,7 +181,7 @@ export function resolveWeaponDamage(
     dice,
     modifier: result.value,
     total: totalParts.join(' '),
-    damageType,
+    damageType: damageType as DamageType,
     breakdown,
   }
 }

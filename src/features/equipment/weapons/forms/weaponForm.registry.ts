@@ -84,14 +84,6 @@ export const WEAPON_FORM_FIELDS = [
     parse: (v: unknown) => (v ? String(v) : undefined),
     format: (v: unknown) => (v ?? '') as WeaponFormValues['damageType'],
   },
-  // TODO: decide whether to show mastery
-  // {
-  //   name: 'mastery',
-  //   label: 'Mastery',
-  //   kind: 'text' as const,
-  //   placeholder: 'e.g. slow, nick',
-  //   defaultValue: '' as WeaponFormValues['mastery'],
-  // },
   {
     name: 'rangeNormal',
     label: 'Range (normal, ft)',
@@ -112,6 +104,14 @@ export const WEAPON_FORM_FIELDS = [
     defaultValue: '' as WeaponFormValues['rangeLong'],
     visibleWhen: isRanged,
   },
+  // TODO: decide whether to show mastery
+  // {
+  //   name: 'mastery',
+  //   label: 'Mastery',
+  //   kind: 'text' as const,
+  //   placeholder: 'e.g. slow, nick',
+  //   defaultValue: '' as WeaponFormValues['mastery'],
+  // },
 ] as const satisfies readonly FieldSpec<
   WeaponFormValues,
   WeaponInput & Record<string, unknown>,
