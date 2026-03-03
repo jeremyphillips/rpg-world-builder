@@ -1,30 +1,23 @@
 // Campaign-owned equipment items are editable. System items are edited via patching.
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Controller, FormProvider, useForm } from 'react-hook-form';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-
+import { FormProvider, useForm } from 'react-hook-form';
+import { ConditionalFormRenderer } from '@/ui/patterns';
 import type { Visibility } from '@/shared/types';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import { EntryEditorLayout } from '@/features/content/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { gearRepo } from '@/features/content/domain/repo';
-import type { GearInput, GearFormValues } from '@/features/content/domain/types';
+import {
+  type GearFormValues,
+  getGearFieldConfigs,
+  GEAR_FORM_DEFAULTS,
+  toGearInput,
+} from '@/features/equipment/gear/forms';
 
 type ValidationError = { path: string; code: string; message: string };
 
 const FORM_ID = 'gear-create-form';
-
-const DEFAULT_VALUES: GearFormValues = {
-  name: '',
-  description: '',
-  imageKey: '',
-  accessPolicy: DEFAULT_VISIBILITY_PUBLIC,
-  category: 'adventuring-utility',
-  capacity: '',
-};
 
 export default function GearCreateRoute() {
   const { campaignId } = useActiveCampaign();
@@ -32,7 +25,7 @@ export default function GearCreateRoute() {
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
 
   const methods = useForm<GearFormValues>({
-    defaultValues: DEFAULT_VALUES,
+    defaultValues: GEAR_FORM_DEFAULTS,
     mode: 'onBlur',
     reValidateMode: 'onChange',
   });
@@ -42,36 +35,42 @@ export default function GearCreateRoute() {
   const [errors, setErrors] = useState<ValidationError[]>([]);
 
   const policyValue = watch('accessPolicy');
-  const handlePolicyChange = useCallback((next: Visibility) => {
-    setValue('accessPolicy', next, { shouldDirty: true });
-  }, [setValue]);
+  const handlePolicyChange = useCallback(
+    (next: Visibility) => {
+      setValue('accessPolicy', next, { shouldDirty: true });
+    },
+    [setValue]
+  );
 
-  const handleSubmit = useCallback(async (values: GearFormValues) => {
-    if (!campaignId) return;
-    setSaving(true);
-    setErrors([]);
+  const handleSubmit = useCallback(
+    async (values: GearFormValues) => {
+      if (!campaignId) return;
+      setSaving(true);
+      setErrors([]);
 
-    const input: GearInput = {
-      name: values.name.trim(),
-      description: values.description.trim(),
-      accessPolicy: values.accessPolicy,
-      category: values.category as GearInput['category'],
-      capacity: values.capacity.trim() || undefined,
-    };
+      const input = toGearInput(values);
 
-    try {
-      const created = await gearRepo.createEntry(campaignId, input);
-      navigate(`/campaigns/${campaignId}/world/equipment/gear/${created.id}`, { replace: true });
-    } catch (err) {
-      setErrors([{ path: '', code: 'SAVE_FAILED', message: (err as Error).message }]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, navigate]);
+      try {
+        const created = await gearRepo.createEntry(campaignId, input);
+        navigate(`/campaigns/${campaignId}/world/equipment/gear/${created.id}`, {
+          replace: true,
+        });
+      } catch (err) {
+        setErrors([
+          { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
+        ]);
+      } finally {
+        setSaving(false);
+      }
+    },
+    [campaignId, navigate]
+  );
 
   const handleBack = useCallback(() => {
     navigate(`/campaigns/${campaignId}/world/equipment/gear`);
   }, [navigate, campaignId]);
+
+  const fieldConfigs = getGearFieldConfigs({ policyCharacters });
 
   return (
     <FormProvider {...methods}>
@@ -90,23 +89,7 @@ export default function GearCreateRoute() {
         policyCharacters={policyCharacters}
       >
         <form id={FORM_ID} onSubmit={methods.handleSubmit(handleSubmit)} noValidate>
-          <Stack spacing={2.5}>
-            <Controller name="name" control={methods.control} render={({ field }) => (
-              <TextField {...field} label="Name" size="small" fullWidth required />
-            )} />
-            <Controller name="description" control={methods.control} render={({ field }) => (
-              <TextField {...field} label="Description" size="small" fullWidth multiline minRows={3} maxRows={8} />
-            )} />
-            <Controller name="imageKey" control={methods.control} render={({ field }) => (
-              <TextField {...field} label="Image Key" size="small" fullWidth helperText="/assets/... or CDN key" />
-            )} />
-            <Controller name="category" control={methods.control} render={({ field }) => (
-              <TextField {...field} label="Category" size="small" fullWidth />
-            )} />
-            <Controller name="capacity" control={methods.control} render={({ field }) => (
-              <TextField {...field} label="Capacity / Notes" size="small" fullWidth />
-            )} />
-          </Stack>
+          <ConditionalFormRenderer fields={fieldConfigs} />
         </form>
       </EntryEditorLayout>
     </FormProvider>

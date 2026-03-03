@@ -1,20 +1,10 @@
 import type { Money } from '@/shared/money/types';
 import type { Weight } from '@/shared/weight/types';
-import type { Visibility } from '@/shared/types';
 import type { ContentItem, ContentSummary, ContentInput } from './content.types';
 import type { EquipmentBase } from './equipment.types';
 import type { GearCategory, GearProperty } from '../vocab/gear.vocab';
 
 export type { GearCategory, GearProperty };
-
-export type GearFormValues = {
-  name: string;
-  description: string;
-  imageKey: string;
-  accessPolicy: Visibility;
-  category: GearCategory | '';
-  capacity: string;
-};
 
 export interface GearFields extends EquipmentBase {
   cost: Money;
