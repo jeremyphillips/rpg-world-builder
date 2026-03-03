@@ -35,7 +35,7 @@ export default function ArmorDetailRoute() {
   }
 
   if (error || notFound || !armor) {
-    return <Box sx={{ maxWidth: 520, mx: 'auto', mt: 6 }}><AppAlert tone="danger">{error ?? 'Armor not found.'}</AppAlert></Box>;
+    return <AppAlert tone="danger">{error ?? 'Armor not found.'}</AppAlert>;
   }
 
   const listPath = `/campaigns/${campaignId}/world/equipment/armor`;

@@ -13,7 +13,8 @@ import { toViewerContext, canManageContent } from '@/shared/domain/capabilities'
 import { AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/utils/image';
-import { formatMoney } from '@/shared/money';
+import { buildDetailItemsFromSpecs } from '@/features/content/forms/registry';
+import { GEAR_DETAIL_SPECS } from '@/features/equipment/gear/forms';
 import { AppAlert } from '@/ui/primitives';
 
 export default function GearDetailRoute() {
@@ -41,18 +42,7 @@ export default function GearDetailRoute() {
   const listPath = `/campaigns/${campaignId}/world/equipment/gear`;
   const editPath = `${listPath}/${gearId}/edit`;
 
-  const detailItems = [
-    { label: 'Category', value: gear.category },
-    { label: 'Cost', value: formatMoney(gear.cost) },
-    { label: 'Weight', value: gear.weight ? `${gear.weight.value} ${gear.weight.unit}` : '—' },
-    { label: 'Source', value: <AppBadge label={gear.source} tone={gear.source === 'system' ? 'info' : 'default'} /> },
-  ];
-
-  if (gear.capacity) detailItems.push({ label: 'Capacity', value: gear.capacity });
-  if (gear.range) detailItems.push({ label: 'Range', value: gear.range });
-  if (gear.duration) detailItems.push({ label: 'Duration', value: gear.duration });
-  if (gear.charges) detailItems.push({ label: 'Charges', value: String(gear.charges) });
-  if (gear.effect) detailItems.push({ label: 'Effect', value: gear.effect });
+  const items = buildDetailItemsFromSpecs(GEAR_DETAIL_SPECS, gear, {});
 
   return (
     <ContentDetailScaffold
@@ -84,7 +74,7 @@ export default function GearDetailRoute() {
 
       <KeyValueSection
         title="Gear Details"
-        items={detailItems}
+        items={items}
         columns={2}
         sx={{ mt: 2 }}
       />
