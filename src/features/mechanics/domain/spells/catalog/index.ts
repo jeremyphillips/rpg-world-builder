@@ -1,1 +1,0 @@
-export { spellCatalog } from './spellCatalog'

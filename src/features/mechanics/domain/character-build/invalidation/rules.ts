@@ -12,7 +12,8 @@ import type { CharacterBuilderState } from '@/features/characterBuilder/types'
 
 import { evaluateClassEligibility } from '../rules'
 import { classes as classCatalog } from '@/data'
-import { spells as spellCatalog } from '@/data'
+import { getSystemSpells } from '@/features/mechanics/domain/core/rules/systemCatalog.spells'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
 import { getById } from '@/utils'
 import { pruneSelectedSpells } from '../../spells/selection/prune-selected-spells'
 
@@ -20,7 +21,7 @@ import { pruneSelectedSpells } from '../../spells/selection/prune-selected-spell
 // Label helpers (engine-internal — only used to populate InvalidationItem.label)
 // ---------------------------------------------------------------------------
 
-const spellLabel = (id: string) => spellCatalog.find(s => s.id === id)?.name ?? id
+const spellLabel = (id: string) => getSystemSpells(DEFAULT_SYSTEM_RULESET_ID).find((s) => s.id === id)?.name ?? id
 const classLabel = (id: string) => getById(classCatalog, id)?.name ?? id
 
 // ---------------------------------------------------------------------------

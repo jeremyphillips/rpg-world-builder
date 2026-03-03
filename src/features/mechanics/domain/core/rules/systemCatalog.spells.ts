@@ -1,13 +1,25 @@
+/**
+ * System spell catalog — code-defined spell entries per system ruleset.
+ *
+ * These are the "factory defaults" for spells (SRD_CC_v5_2_1). Campaign-owned
+ * custom spells would be stored in the DB and merged at runtime.
+ */
 import type { Spell } from '@/features/content/domain/types/spell.types';
+import type { SystemRulesetId } from './ruleset.types';
+import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 
-export const spells: Spell[] = [
+// ---------------------------------------------------------------------------
+// 5e v1 system spells (SRD_CC_v5_2_1)
+// ---------------------------------------------------------------------------
+
+const SPELLS_RAW: readonly Spell[] = [
   {
     id: 'fireBolt',
     name: 'Fire Bolt',
     school: 'evocation',
     level: 0,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'eldritchBlast',
@@ -15,7 +27,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 0,
     classes: ['warlock'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'sacredFlame',
@@ -23,7 +35,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 0,
     classes: ['cleric'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'mageHand',
@@ -31,7 +43,7 @@ export const spells: Spell[] = [
     school: 'conjuration',
     level: 0,
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'prestidigitation',
@@ -39,7 +51,7 @@ export const spells: Spell[] = [
     school: 'transmutation',
     level: 0,
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'light',
@@ -47,7 +59,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 0,
     classes: ['bard', 'cleric', 'sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'magicMissile',
@@ -55,7 +67,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 1,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'shield',
@@ -63,7 +75,7 @@ export const spells: Spell[] = [
     school: 'abjuration',
     level: 1,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'cureWounds',
@@ -71,7 +83,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 1,
     classes: ['bard', 'cleric', 'druid', 'paladin', 'ranger'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'healingWord',
@@ -79,7 +91,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 1,
     classes: ['bard', 'cleric', 'druid'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'thunderwave',
@@ -87,7 +99,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 1,
     classes: ['bard', 'druid', 'sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'detectMagic',
@@ -97,7 +109,7 @@ export const spells: Spell[] = [
     classes: ['bard', 'cleric', 'druid', 'paladin', 'ranger', 'sorcerer', 'wizard'],
     ritual: true,
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'guidingBolt',
@@ -105,7 +117,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 1,
     classes: ['cleric'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'sleep',
@@ -113,7 +125,7 @@ export const spells: Spell[] = [
     school: 'enchantment',
     level: 1,
     classes: ['bard', 'sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'charmPerson',
@@ -121,7 +133,7 @@ export const spells: Spell[] = [
     school: 'enchantment',
     level: 1,
     classes: ['bard', 'druid', 'sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'protectionFromEvil',
@@ -130,7 +142,7 @@ export const spells: Spell[] = [
     level: 1,
     classes: ['cleric', 'paladin', 'warlock', 'wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'bless',
@@ -139,7 +151,7 @@ export const spells: Spell[] = [
     level: 1,
     classes: ['cleric', 'paladin'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'featherFall',
@@ -147,7 +159,7 @@ export const spells: Spell[] = [
     school: 'transmutation',
     level: 1,
     classes: ['bard', 'sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'identify',
@@ -156,7 +168,7 @@ export const spells: Spell[] = [
     level: 1,
     classes: ['bard', 'wizard'],
     ritual: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   // ═══════════════════════════════════════════════════════════════
   // 2nd Level
@@ -167,7 +179,7 @@ export const spells: Spell[] = [
     school: 'conjuration',
     level: 2,
     classes: ['sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'spiritualWeapon',
@@ -175,7 +187,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 2,
     classes: ['cleric'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'holdPerson',
@@ -184,7 +196,7 @@ export const spells: Spell[] = [
     level: 2,
     classes: ['bard', 'cleric', 'druid', 'sorcerer', 'warlock', 'wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'scorchingRay',
@@ -192,7 +204,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 2,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'web',
@@ -201,7 +213,7 @@ export const spells: Spell[] = [
     level: 2,
     classes: ['sorcerer', 'wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'invisibility',
@@ -210,7 +222,7 @@ export const spells: Spell[] = [
     level: 2,
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'silence',
@@ -220,7 +232,7 @@ export const spells: Spell[] = [
     classes: ['bard', 'cleric', 'ranger'],
     ritual: true,
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'lesserRestoration',
@@ -228,7 +240,7 @@ export const spells: Spell[] = [
     school: 'abjuration',
     level: 2,
     classes: ['bard', 'cleric', 'druid', 'paladin', 'ranger'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'fireball',
@@ -236,7 +248,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 3,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'counterspell',
@@ -244,7 +256,7 @@ export const spells: Spell[] = [
     school: 'abjuration',
     level: 3,
     classes: ['sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'spiritGuardians',
@@ -253,7 +265,7 @@ export const spells: Spell[] = [
     level: 3,
     classes: ['cleric'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'revivify',
@@ -261,7 +273,7 @@ export const spells: Spell[] = [
     school: 'necromancy',
     level: 3,
     classes: ['cleric', 'paladin'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'haste',
@@ -270,7 +282,7 @@ export const spells: Spell[] = [
     level: 3,
     classes: ['sorcerer', 'wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'lightningBolt',
@@ -278,7 +290,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 3,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'fly',
@@ -287,7 +299,7 @@ export const spells: Spell[] = [
     level: 3,
     classes: ['sorcerer', 'warlock', 'wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'dispelMagic',
@@ -295,7 +307,7 @@ export const spells: Spell[] = [
     school: 'abjuration',
     level: 3,
     classes: ['bard', 'cleric', 'druid', 'paladin', 'sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'removeCurse',
@@ -303,7 +315,7 @@ export const spells: Spell[] = [
     school: 'abjuration',
     level: 3,
     classes: ['cleric', 'paladin', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'slow',
@@ -312,9 +324,8 @@ export const spells: Spell[] = [
     level: 3,
     classes: ['sorcerer', 'wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
-
   // ═══════════════════════════════════════════════════════════════
   // 4th Level
   // ═══════════════════════════════════════════════════════════════
@@ -324,7 +335,7 @@ export const spells: Spell[] = [
     school: 'conjuration',
     level: 4,
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'banishment',
@@ -333,7 +344,7 @@ export const spells: Spell[] = [
     level: 4,
     classes: ['cleric', 'paladin', 'sorcerer', 'warlock', 'wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'polymorph',
@@ -342,7 +353,7 @@ export const spells: Spell[] = [
     level: 4,
     classes: ['bard', 'druid', 'sorcerer', 'wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'iceStorm',
@@ -350,7 +361,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 4,
     classes: ['druid', 'sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'wallOfForce',
@@ -359,7 +370,7 @@ export const spells: Spell[] = [
     level: 5,
     classes: ['wizard'],
     concentration: true,
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'greaterRestoration',
@@ -367,7 +378,7 @@ export const spells: Spell[] = [
     school: 'abjuration',
     level: 5,
     classes: ['bard', 'cleric', 'druid'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'raiseDead',
@@ -375,7 +386,7 @@ export const spells: Spell[] = [
     school: 'necromancy',
     level: 5,
     classes: ['bard', 'cleric', 'paladin'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'chainLightning',
@@ -383,7 +394,7 @@ export const spells: Spell[] = [
     school: 'evocation',
     level: 6,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'disintegrate',
@@ -391,7 +402,7 @@ export const spells: Spell[] = [
     school: 'transmutation',
     level: 6,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'teleport',
@@ -399,7 +410,7 @@ export const spells: Spell[] = [
     school: 'conjuration',
     level: 7,
     classes: ['bard', 'sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'resurrection',
@@ -407,7 +418,7 @@ export const spells: Spell[] = [
     school: 'necromancy',
     level: 7,
     classes: ['bard', 'cleric'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'powerWordStun',
@@ -415,7 +426,7 @@ export const spells: Spell[] = [
     school: 'enchantment',
     level: 8,
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'wish',
@@ -423,7 +434,7 @@ export const spells: Spell[] = [
     school: 'conjuration',
     level: 9,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
+    effects: [{ kind: 'note', text: '' }],
   },
   {
     id: 'powerWordKill',
@@ -431,6 +442,24 @@ export const spells: Spell[] = [
     school: 'enchantment',
     level: 9,
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }]
-  }
-] as const
+    effects: [{ kind: 'note', text: '' }],
+  },
+];
+
+const SYSTEM_SPELLS_SRD_CC_V5_2_1: readonly Spell[] = SPELLS_RAW;
+
+// ---------------------------------------------------------------------------
+// Registry
+// ---------------------------------------------------------------------------
+
+export const SYSTEM_SPELLS_BY_SYSTEM_ID: Record<SystemRulesetId, readonly Spell[]> = {
+  [DEFAULT_SYSTEM_RULESET_ID]: SYSTEM_SPELLS_SRD_CC_V5_2_1,
+};
+
+export function getSystemSpells(systemId: SystemRulesetId): readonly Spell[] {
+  return SYSTEM_SPELLS_BY_SYSTEM_ID[systemId] ?? [];
+}
+
+export function getSystemSpell(systemId: SystemRulesetId, id: string): Spell | undefined {
+  return getSystemSpells(systemId).find((s) => s.id === id);
+}

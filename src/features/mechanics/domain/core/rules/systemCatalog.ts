@@ -11,7 +11,7 @@ import { getSystemWeapons } from './systemCatalog.weapons'
 import { getSystemArmor } from './systemCatalog.armor'
 import { getSystemGear } from './systemCatalog.gear'
 import { getSystemMagicItems } from './systemCatalog.magicItems'
-import { spells } from '@/data/spells'
+import { getSystemSpells } from './systemCatalog.spells'
 import type { Spell } from '@/features/content/domain/types/spell.types'
 import { monsters } from '@/data/monsters'
 import { classes } from "@/data/classes"
@@ -77,7 +77,7 @@ export const systemCatalog: CampaignCatalog = {
   gearById:                 keyBy(gear),
   magicItemsById:           keyBy(magicItems),
   enhancementsById: keyBy(getSystemEnchantmentTemplates(DEFAULT_SYSTEM_RULESET_ID)),
-  spellsById:               keyBy(spells),
+  spellsById:               keyBy(getSystemSpells(DEFAULT_SYSTEM_RULESET_ID)),
   monstersById:             keyBy(monsters),
 }
 

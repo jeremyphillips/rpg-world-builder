@@ -1,6 +1,3 @@
-// Catalog
-export { spellCatalog } from './catalog'
-
 // Utils
 export { groupSpellsByLevel } from './utils/groupSpellsByLevel'
 
