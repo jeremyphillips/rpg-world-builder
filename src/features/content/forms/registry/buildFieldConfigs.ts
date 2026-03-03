@@ -84,6 +84,7 @@ export const buildFieldConfigs = <
       ...(spec.defaultValue !== undefined && { defaultValue: spec.defaultValue }),
       ...(spec.defaultFromOptions && { defaultFromOptions: spec.defaultFromOptions }),
       ...(spec.visibleWhen && { visibleWhen: spec.visibleWhen }),
+      ...(spec.path !== undefined && { path: spec.path }),
     };
 
     switch (spec.kind) {
@@ -108,6 +109,16 @@ export const buildFieldConfigs = <
         break;
       case 'checkbox':
         configs.push({ ...base, type: 'checkbox' });
+        break;
+      case 'checkboxGroup':
+        configs.push({
+          ...base,
+          type: 'checkboxGroup',
+          options: spec.options
+            ? spec.options.map((o) => ({ value: o.value, label: o.label }))
+            : [],
+          row: true,
+        });
         break;
       case 'numberText': {
         const rules = spec.validation

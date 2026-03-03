@@ -1,10 +1,10 @@
 /**
  * Weapon edit route.
  *
- * - source === 'system': JSON patch editor via contentPatchRepo
+ * - source === 'system': field-config patch form via contentPatchRepo
  * - source === 'campaign': real form editor with delete support
  */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FormProvider, useForm } from 'react-hook-form';
 import Box from '@mui/material/Box';
@@ -15,7 +15,6 @@ import Typography from '@mui/material/Typography';
 
 import type { Visibility } from '@/shared/types';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import { EntryEditorLayout } from '@/features/content/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { weaponRepo } from '@/features/content/domain/repo';
@@ -27,11 +26,13 @@ import {
   upsertEntryPatch,
   removeEntryPatch,
 } from '@/features/content/domain/contentPatchRepo';
-import { DynamicFormRenderer, JsonPreviewField } from '@/ui/patterns';
+import { createPatchDriver } from '@/features/content/editor/patchDriver';
+import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {
   type WeaponFormValues,
   getWeaponFieldConfigs,
+  WEAPON_FORM_DEFAULTS,
   weaponToFormValues,
   toWeaponInput,
 } from '@/features/equipment/weapons/forms';
@@ -39,22 +40,6 @@ import {
 type ValidationError = { path: string; code: string; message: string };
 
 const FORM_ID = 'weapon-edit-form';
-
-const EMPTY_FORM_VALUES: WeaponFormValues = {
-  name: '',
-  description: '',
-  imageKey: '',
-  accessPolicy: DEFAULT_VISIBILITY_PUBLIC,
-  category: 'simple',
-  mode: 'melee',
-  damageDefault: '',
-  damageVersatile: '',
-  damageType: '',
-  mastery: '',
-  rangeNormal: '',
-  rangeLong: '',
-  properties: [],
-};
 
 export default function WeaponEditRoute() {
   const { campaignId, campaign } = useActiveCampaign();
@@ -75,7 +60,7 @@ export default function WeaponEditRoute() {
     });
 
   const methods = useForm<WeaponFormValues>({
-    defaultValues: EMPTY_FORM_VALUES,
+    defaultValues: WEAPON_FORM_DEFAULTS,
     mode: 'onBlur',
     reValidateMode: 'onChange',
   });
@@ -84,9 +69,8 @@ export default function WeaponEditRoute() {
   const [success, setSuccess] = useState(false);
   const [errors, setErrors] = useState<ValidationError[]>([]);
 
-  const [patchText, setPatchText] = useState('');
-  const [initialPatchText, setInitialPatchText] = useState('');
-  const [patchSaveError, setPatchSaveError] = useState<string | null>(null);
+  const [initialPatch, setInitialPatch] = useState<Record<string, unknown>>({});
+  const [, setPatchDraft] = useState<Record<string, unknown>>({});
 
   const isSystem = weapon?.source === 'system';
   const isCampaign = weapon?.source === 'campaign';
@@ -102,12 +86,9 @@ export default function WeaponEditRoute() {
     getContentPatch(campaignId)
       .then((doc) => {
         if (cancelled) return;
-        const existing = getEntryPatch(doc, 'weapons', weaponId);
-        if (existing) {
-          const text = JSON.stringify(existing, null, 2);
-          setPatchText(text);
-          setInitialPatchText(text);
-        }
+        const existing = (getEntryPatch(doc, 'weapons', weaponId) ?? {}) as Record<string, unknown>;
+        setInitialPatch(existing);
+        setPatchDraft(existing);
       })
       .catch(() => {});
     return () => {
@@ -151,43 +132,59 @@ export default function WeaponEditRoute() {
     [campaignId, weaponId, reset]
   );
 
-  const patchDirty = patchText !== initialPatchText;
-  const tryParse = useCallback((t: string) => {
-    const s = t.trim();
-    if (!s) return { valid: true as const, value: {} };
-    try {
-      return { valid: true as const, value: JSON.parse(s) };
-    } catch {
-      return { valid: false as const, value: null };
-    }
-  }, []);
-  const parsed = tryParse(patchText);
+  const driver = useMemo(() => {
+    if (!weapon) return null;
+    return createPatchDriver({
+      base: weapon as unknown as Record<string, unknown>,
+      initialPatch,
+      onChange: (p) => {
+        setPatchDraft(p);
+        setSuccess(false);
+      },
+    });
+  }, [weapon, initialPatch]);
+
+  const validationApiRef = useRef<{ validateAll: () => boolean } | null>(null);
 
   const handlePatchSave = useCallback(async () => {
-    if (!campaignId || !weaponId || !parsed.valid) return;
+    if (!campaignId || !weaponId || !driver) return;
+    const ok = validationApiRef.current?.validateAll?.() ?? true;
+    if (!ok) {
+      setSuccess(false);
+      return;
+    }
     setSaving(true);
-    setPatchSaveError(null);
+    setSuccess(false);
+    setErrors([]);
+    const next = driver.getPatch();
     try {
-      await upsertEntryPatch(campaignId, 'weapons', weaponId, parsed.value);
-      setInitialPatchText(patchText);
+      await upsertEntryPatch(campaignId, 'weapons', weaponId, next);
+      setInitialPatch(next);
+      setPatchDraft(next);
       setSuccess(true);
     } catch (err) {
-      setPatchSaveError((err as Error).message);
+      setErrors([
+        { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
+      ]);
     } finally {
       setSaving(false);
     }
-  }, [campaignId, weaponId, parsed, patchText]);
+  }, [campaignId, weaponId, driver]);
 
   const handleRemovePatch = useCallback(async () => {
     if (!campaignId || !weaponId) return;
     setSaving(true);
+    setSuccess(false);
+    setErrors([]);
     try {
       await removeEntryPatch(campaignId, 'weapons', weaponId);
-      setPatchText('');
-      setInitialPatchText('');
+      setInitialPatch({});
+      setPatchDraft({});
       setSuccess(true);
     } catch (err) {
-      setPatchSaveError((err as Error).message);
+      setErrors([
+        { path: '', code: 'REMOVE_FAILED', message: (err as Error).message },
+      ]);
     } finally {
       setSaving(false);
     }
@@ -206,8 +203,6 @@ export default function WeaponEditRoute() {
     [navigate, campaignId]
   );
 
-  const fieldConfigs = getWeaponFieldConfigs({ policyCharacters });
-
   if (loading)
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -219,19 +214,17 @@ export default function WeaponEditRoute() {
       <AppAlert tone="danger">{error ?? 'Weapon not found.'}</AppAlert>
     );
 
-  if (isSystem) {
+  const fieldConfigs = getWeaponFieldConfigs({ policyCharacters });
+
+  if (isSystem && driver) {
     return (
       <EntryEditorLayout
         typeLabel="Weapon Patch"
         isNew={false}
         saving={saving}
-        dirty={patchDirty}
+        dirty={driver.isDirty()}
         success={success}
-        errors={
-          patchSaveError
-            ? [{ path: '', code: 'SAVE_FAILED', message: patchSaveError }]
-            : []
-        }
+        errors={errors}
         onSave={handlePatchSave}
         onBack={handleBack}
       >
@@ -242,23 +235,19 @@ export default function WeaponEditRoute() {
           {weapon.patched && (
             <AppBadge label="Patched" tone="warning" size="small" />
           )}
-          <Typography variant="body2" color="text.secondary">
-            Enter a JSON object to deep-merge into this system weapon for your
-            campaign.
-          </Typography>
-          <JsonPreviewField
-            label="Patch JSON"
-            value={patchText}
-            onChange={(v) => {
-              setPatchText(v);
-              setSuccess(false);
-              setPatchSaveError(null);
+          <ConditionalFormRenderer
+            fields={fieldConfigs}
+            driver={{
+              kind: 'patch',
+              getValue: driver.getValue,
+              setValue: driver.setValue,
+              unsetValue: driver.unsetValue,
             }}
-            placeholder={'{\n  "description": "Custom description...",\n  "damage": { "default": "2d6" }\n}'}
-            minRows={8}
-            maxRows={20}
+            onValidationApi={(api) => {
+              validationApiRef.current = api;
+            }}
           />
-          {initialPatchText && (
+          {Object.keys(initialPatch).length > 0 && (
             <Button
               variant="outlined"
               color="error"
@@ -299,7 +288,7 @@ export default function WeaponEditRoute() {
           onSubmit={methods.handleSubmit(handleCampaignSubmit)}
           noValidate
         >
-          <DynamicFormRenderer fields={fieldConfigs} />
+          <ConditionalFormRenderer fields={fieldConfigs} />
         </form>
       </EntryEditorLayout>
     </FormProvider>

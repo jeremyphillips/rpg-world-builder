@@ -23,6 +23,8 @@ type BaseFieldConfig = {
   defaultFromOptions?: 'first';
   /** When set, field is shown only when condition evaluates to true */
   visibleWhen?: Condition;
+  /** For patch driver: dot-path into domain object. When omitted, uses name. */
+  path?: string;
   /** RHF Controller rules (compiled from FieldSpec validation). */
   rules?: RegisterOptions;
 }

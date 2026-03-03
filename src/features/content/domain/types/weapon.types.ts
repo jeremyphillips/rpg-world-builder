@@ -25,7 +25,8 @@ export interface WeaponFields extends EquipmentBase {
   range?: { normal: number; long?: number; unit: 'ft' };
   properties: WeaponProperty[];
   damage: { default: string; versatile?: string };
-  damageType: string;
+  damageType: DamageType;
+  /** TODO: decide whether to show mastery */
   // mastery: string;
 }
 
@@ -37,7 +38,7 @@ export type WeaponSummary = ContentSummary & {
   category: WeaponCategory;
   costCp: number;
   damage: string;
-  damageType: string;
+  damageType: DamageType;
   properties: WeaponProperty[];
 };
 

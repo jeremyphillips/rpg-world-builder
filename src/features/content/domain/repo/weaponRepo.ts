@@ -59,7 +59,8 @@ function campaignEntryToWeapon(e: CampaignEquipmentEntry): Weapon {
     properties: d.properties ?? [],
     damage: d.damage ?? { default: '—' },
     damageType: d.damageType ?? '',
-    mastery: d.mastery ?? '',
+    // TODO: decide whether to show mastery
+    // mastery: d.mastery ?? '',
   };
 }
 
@@ -108,7 +109,7 @@ export const weaponRepo: CampaignContentRepo<Weapon, WeaponSummary, WeaponInput>
 
   async getEntry(
     campaignId: string,
-    systemId: string,
+    systemId: SystemRulesetId,
     id: string,
   ): Promise<Weapon | null> {
     const campaignEntry = await campaignWeaponRepo.get(campaignId, id);
@@ -127,7 +128,6 @@ export const weaponRepo: CampaignContentRepo<Weapon, WeaponSummary, WeaponInput>
 
   async createEntry(
     campaignId: string,
-    _systemId: string,
     input: WeaponInput,
   ): Promise<Weapon> {
     const { name, description, accessPolicy, ...rest } = input;
@@ -146,7 +146,6 @@ export const weaponRepo: CampaignContentRepo<Weapon, WeaponSummary, WeaponInput>
 
   async updateEntry(
     campaignId: string,
-    _systemId: string,
     id: string,
     input: WeaponInput,
   ): Promise<Weapon> {
@@ -166,7 +165,6 @@ export const weaponRepo: CampaignContentRepo<Weapon, WeaponSummary, WeaponInput>
 
   async deleteEntry(
     campaignId: string,
-    _systemId: string,
     id: string,
   ): Promise<boolean> {
     return campaignWeaponRepo.remove(campaignId, id);

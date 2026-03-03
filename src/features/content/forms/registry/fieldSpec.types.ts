@@ -12,6 +12,7 @@ export type FieldSpecKind =
   | 'textarea'
   | 'select'
   | 'checkbox'
+  | 'checkboxGroup'
   | 'numberText'
   | 'imageUpload'
   | 'visibility'
@@ -49,6 +50,8 @@ export type FieldSpec<
   maxRows?: number;
   /** When set, field is shown only when condition evaluates to true. */
   visibleWhen?: Condition;
+  /** For patch driver: dot-path into domain object (e.g. damage.default). When omitted, uses name. */
+  path?: string;
   /** Validation for kind: 'numberText' (and future field kinds). */
   validation?: ValidationSpec;
   /** UI-only description shown below the field (separate from helperText/validation). */

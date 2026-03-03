@@ -25,6 +25,7 @@ import {
   selectActiveMagicItemEffects,
 } from '@/features/mechanics/domain/effects/sources/magic-items-to-effects'
 import { getEnchantmentCandidateEffects } from '@/features/mechanics/domain/effects/sources/enchantments-to-effects'
+import type { DamageType } from '@/features/content/domain/vocab/weapons.vocab'
 
 // ---------------------------------------------------------------------------
 // Attack types
@@ -37,7 +38,7 @@ export interface AttackEntry {
   attackBonus: number
   attackBreakdown: BreakdownToken[]
   damage: string
-  damageType: string
+  damageType: DamageType
   damageBreakdown: BreakdownToken[]
 }
 
