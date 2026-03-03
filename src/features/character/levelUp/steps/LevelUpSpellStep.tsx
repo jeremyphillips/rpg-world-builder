@@ -7,7 +7,8 @@
 
 import { useMemo, useCallback } from 'react'
 import { getClassProgression } from '@/features/mechanics/domain/progression'
-import { getAvailableSpells, groupSpellsByLevel, getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/spells'
+import { groupSpellsByLevel, getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/spells'
+import { getAvailableSpellsByClass } from '@/features/mechanics/domain/spells/selection'
 import { SpellHorizontalCard } from '@/features/spell/cards'
 import type { LevelUpState } from '../levelUp.types'
 
@@ -73,7 +74,7 @@ export default function LevelUpSpellStep({
   )
 
   const availableByLevel = useMemo(() => {
-    const available = getAvailableSpells(primaryClassId)
+    const available = getAvailableSpellsByClass(primaryClassId)
     return groupSpellsByLevel(available)
   }, [primaryClassId])
 

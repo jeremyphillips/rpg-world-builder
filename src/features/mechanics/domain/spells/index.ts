@@ -1,5 +1,5 @@
 // Catalog
-export { getAvailableSpells, spellCatalog, type SpellWithEntry } from './catalog'
+export { spellCatalog } from './catalog'
 
 // Utils
 export { groupSpellsByLevel } from './utils/groupSpellsByLevel'

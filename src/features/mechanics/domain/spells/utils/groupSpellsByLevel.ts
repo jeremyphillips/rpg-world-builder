@@ -1,8 +1,8 @@
-import type { SpellWithEntry } from '../catalog/types'
+import type { Spell } from '@/features/content/domain/types/spell.types'
 
 /** Group spells by level, sorted ascending. */
-export function groupSpellsByLevel(spells: SpellWithEntry[]): Map<number, SpellWithEntry[]> {
-  const groups = new Map<number, SpellWithEntry[]>()
+export function groupSpellsByLevel(spells: Spell[]): Map<number, Spell[]> {
+  const groups = new Map<number, Spell[]>()
   for (const s of spells) {
     if (!groups.has(s.level)) groups.set(s.level, [])
     groups.get(s.level)!.push(s)

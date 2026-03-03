@@ -11,3 +11,5 @@ export {
   type SpellSelectionDraft,
   type ToggleResult,
 } from './spell-selection'
+
+export { getAvailableSpellsByClass } from './getAvailableSpellsByClass'
