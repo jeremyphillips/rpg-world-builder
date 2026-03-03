@@ -1,20 +1,13 @@
 import type { Spell } from '@/features/content/domain/types/spell.types';
 import type { DetailSpec } from '@/features/content/forms/registry';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab';
-
-const SPELL_CLASS_LABELS: Record<string, string> = {
-  bard: 'Bard',
-  cleric: 'Cleric',
-  druid: 'Druid',
-  paladin: 'Paladin',
-  ranger: 'Ranger',
-  sorcerer: 'Sorcerer',
-  warlock: 'Warlock',
-  wizard: 'Wizard',
-};
+import { classes } from '@/data/classes';
+import { getById } from '@/utils/getById';
 
 const schoolLabel = (value: string) =>
   MAGIC_SCHOOL_OPTIONS.find((o) => o.value === value)?.label ?? value;
+
+const classLabel = (id: string) => getById(classes, id)?.name ?? id;
 
 export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
   {
@@ -40,9 +33,7 @@ export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
     label: 'Classes',
     order: 40,
     render: (spell) =>
-      spell.classes
-        .map((c) => SPELL_CLASS_LABELS[c] ?? c)
-        .join(', ') || '—',
+      spell.classes.map((c) => classLabel(c)).join(', ') || '—',
   },
   {
     key: 'ritual',
