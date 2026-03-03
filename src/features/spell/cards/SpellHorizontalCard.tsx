@@ -1,6 +1,6 @@
 import { HorizontalCompactCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
-import type { Spell } from '@/features/content/domain/types/spell.types'
+import type { Spell } from '@/features/content/domain/types'
 
 // ---------------------------------------------------------------------------
 // Props

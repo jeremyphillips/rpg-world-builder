@@ -13,6 +13,5 @@ export interface Spell {
   classes: ClassId[]
   ritual?: boolean
   concentration?: boolean
-  source?: string
   effects?: SpellEffects
 }

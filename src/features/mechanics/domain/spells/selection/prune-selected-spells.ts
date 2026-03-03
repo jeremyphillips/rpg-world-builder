@@ -4,7 +4,7 @@
  * Uses catalog data directly (no edition lookup).
  */
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
-import type { Spell } from '@/features/content/domain/types/spell.types'
+import type { Spell } from '@/features/content/domain/types'
 import type { CharacterClass } from '@/data/classes.types'
 import { getClassSpellLimitsAtLevel } from '../progression'
 import { systemCatalog } from '../../core/rules/systemCatalog'

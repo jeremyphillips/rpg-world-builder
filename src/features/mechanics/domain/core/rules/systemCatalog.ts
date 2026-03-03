@@ -12,7 +12,7 @@ import { getSystemArmor } from './systemCatalog.armor'
 import { getSystemGear } from './systemCatalog.gear'
 import { getSystemMagicItems } from './systemCatalog.magicItems'
 import { getSystemSpells } from './systemCatalog.spells'
-import type { Spell } from '@/features/content/domain/types/spell.types'
+import type { Spell } from '@/features/content/domain/types'
 import { monsters } from '@/data/monsters'
 import { classes } from "@/data/classes"
 import type { CharacterClass } from '@/data/classes.types'
