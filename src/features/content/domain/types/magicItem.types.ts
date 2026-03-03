@@ -14,17 +14,6 @@ import type { MagicItemSlot, MagicItemRarity } from '../vocab/magicItems.vocab';
 
 export type { MagicItemSlot, MagicItemRarity };
 
-export type MagicItemFormValues = {
-  name: string;
-  description: string;
-  imageKey: string;
-  accessPolicy: Visibility;
-  slot: MagicItemSlot | '';
-  rarity: MagicItemRarity | '';
-  requiresAttunement: boolean;
-  effectsJson: string;
-};
-
 export type MagicItemEffect =
   | { kind: 'bonus'; target: string; value: number }
   | { kind: 'modifier'; target: string; mode: 'add' | 'mul' | 'set'; value: unknown }
