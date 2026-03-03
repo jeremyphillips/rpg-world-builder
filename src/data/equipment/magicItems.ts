@@ -44,7 +44,7 @@ export const magicItems: MagicItemFields[] = [
     rarity: 'common',
     description: 'Regain 2d4 + 2 hit points',
     effects: [
-      { kind: 'modifier', target: 'hp', mode: 'add', value: { dice: '2d4+2' } }
+      { kind: 'modifier', target: 'hit_points', mode: 'add', value: { dice: '2d4+2' } }
     ]
   },
   {

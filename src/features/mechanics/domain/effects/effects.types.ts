@@ -3,6 +3,7 @@ import type { Condition } from '../conditions/condition.types'
 import type { TriggerType } from '../triggers/trigger.types'
 import type { StatTarget } from '../resolution/stat-resolver'
 import type { FormulaEffect } from '../resolution/formula.engine'
+import type { DiceOrFlat } from '../dice/dice.types'
 
 export type { FormulaDefinition, FormulaEffect } from '../resolution/formula.engine'
 
@@ -15,11 +16,40 @@ export type ResourceCost = {
   amount: number
 }
 
+export type EffectMode = 'add' | 'set' | 'multiply'
+
+// Temporary escape hatch for custom effects
+export type CustomEffect = {
+  kind: 'custom'
+  id: string
+  params?: Record<string, unknown>
+}
+
+export type BonusEffect = {
+  kind: 'bonus'
+  target: StatTarget
+  value: number
+  source?: string
+  condition?: Condition
+  duration?: Duration
+}
+
+// TODO: clean up this type "works" for now.
+export type ModifierValue =
+  | number 
+  | { 
+    ability?: keyof AbilityScores 
+    perLevel?: number
+    dice?: DiceOrFlat
+    type?: 'cold' | 'fire' | 'poison' | 'necrotic' | 'radiant' | 'thunder' | 'lightning' | 'psychic' | 'force'
+  } 
+
+
 export type ModifierEffect = {
   kind: 'modifier'
   target: StatTarget
-  mode: 'add' | 'set' | 'multiply'
-  value: number | { ability: keyof AbilityScores } | { perLevel: number }
+  mode: EffectMode
+  value: ModifierValue
   source?: string
   condition?: Condition
   duration?: Duration
@@ -38,14 +68,13 @@ export type GrantEffect = {
   source?: string
 }
 
-
 export type ResourceEffect = {
   kind: 'resource'
   resource: {
     id: string
     max: number | ScalingRule
     recharge: 'short_rest' | 'long_rest' | 'none'
-    dice?: string
+    dice?: DiceOrFlat
   }
 }
 
@@ -63,10 +92,17 @@ export type AuraEffect = {
   effects: Effect[]
 }
 
+export type NoteEffect = {
+  kind: 'note'
+  text: string
+}
+
 export type Effect =
+  | BonusEffect
   | ModifierEffect
   | FormulaEffect
   | GrantEffect
   | ResourceEffect
   | TriggeredEffect
   | AuraEffect
+  | NoteEffect

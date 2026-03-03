@@ -8,8 +8,8 @@
  *
  * Both SpellStep and the invalidation pruner call into this module.
  */
-import type { Spell } from '@/data/spells'
-import type { CharacterClass } from '@/data/classes/types'
+import type { SpellData } from '@/features/content/domain/types/spell.types'
+import type { CharacterClass } from '@/data/classes.types'
 import { getClassSpellLimitsAtLevel, type CastingMode } from '../progression'
 
 // ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ export type SpellSelectionLimits = {
 }
 
 export type SpellSelectionModel = {
-  availableByLevel: Map<number, Spell[]>
+  availableByLevel: Map<number, SpellData[]>
   limits: SpellSelectionLimits
   selectedPerLevel: Map<number, number>
   totalSelectedLeveled: number
@@ -55,7 +55,7 @@ export type ToggleResult = {
 export function buildSpellSelectionModel(
   draft: SpellSelectionDraft,
   classesById: Record<string, CharacterClass>,
-  allSpells: Record<string, Spell>,
+  allSpells: Record<string, SpellData>,
 ): SpellSelectionModel {
   const { classes, spells: selectedSpells = [] } = draft
 
@@ -82,12 +82,12 @@ export function buildSpellSelectionModel(
   // Gather available spells: any spell whose `classes` array overlaps with
   // the character's selected class IDs
   const classIdSet = new Set(classIds)
-  const available: Spell[] = Object.values(allSpells).filter(spell =>
+  const available: SpellData[] = Object.values(allSpells).filter(spell =>
     spell.classes.some(c => classIdSet.has(c))
   )
 
   // Group by spell level
-  const availableByLevel = new Map<number, Spell[]>()
+  const availableByLevel = new Map<number, SpellData[]>()
   for (const spell of available) {
     if (!availableByLevel.has(spell.level)) availableByLevel.set(spell.level, [])
     availableByLevel.get(spell.level)!.push(spell)

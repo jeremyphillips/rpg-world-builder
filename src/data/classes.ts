@@ -299,7 +299,6 @@ export const classes: readonly CharacterClass[] = [
               action: 'action',
               duration: '1 minute',
               resource: 'channel_divinity',
-              // This allows your logic engine to find and apply the bonus
               effects: [{
                 target: 'attack_roll',
                 stat: 'charisma',

@@ -1,4 +1,5 @@
 import type { Money } from '../money/types'
+import type { ClassId } from './ruleset'
 
 // shared/types/character.core.ts
 
@@ -25,6 +26,19 @@ export type AbilityId =
 
 export type AbilityScores = Partial<Record<AbilityId, number | null>>
 
+
+// TODO: Map to AbilityId
+export type AbilityIdAbbreviation = readonly [
+  'str',
+  'dex',
+  'con',
+  'int',
+  'wis',
+  'cha',
+]
+
+export type AbilityIdAbbreviationMap = Record<AbilityIdAbbreviation[number], AbilityId>;
+
 export type Wealth = {
   gp?: number | null
   sp?: number | null
@@ -49,7 +63,7 @@ export type Equipment = {
 }
 
 export type CharacterClassInfo = {
-  classId?: string
+  classId?: ClassId
   classDefinitionId?: string
   level: number
 }

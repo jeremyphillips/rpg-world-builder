@@ -4,8 +4,8 @@
  * Uses catalog data directly (no edition lookup).
  */
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
-import type { SpellData } from '@/data/spells'
-import type { CharacterClass } from '@/data/classes/types'
+import type { SpellData } from '@/features/content/domain/types/spell.types'
+import type { CharacterClass } from '@/data/classes.types'
 import { getClassSpellLimitsAtLevel } from '../progression'
 import { systemCatalog } from '../../core/rules/systemCatalog'
 

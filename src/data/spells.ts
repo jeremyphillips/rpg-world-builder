@@ -1,13 +1,4 @@
-export interface SpellData {
-  id: string
-  name: string
-  school: string                          // 'evocation', 'abjuration', 'conjuration', etc.
-  level: number                           // 0 = cantrip (5e), 1-9 for leveled spells
-  classes: string[]                       // canonical class IDs: ['wizard', 'sorcerer']
-  ritual?: boolean                        // can be cast as a ritual
-  concentration?: boolean                 // requires concentration (5e)
-  source?: string
-}
+import type { SpellData } from '@/features/content/domain/types/spell.types';
 
 export const spells: SpellData[] = [
   {

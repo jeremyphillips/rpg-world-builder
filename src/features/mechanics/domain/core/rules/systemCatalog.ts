@@ -12,7 +12,7 @@ import { getSystemArmor } from './systemCatalog.armor'
 import { getSystemGear } from './systemCatalog.gear'
 import { getSystemMagicItems } from './systemCatalog.magicItems'
 import { spells } from '@/data/spells'
-import type { SpellData } from '@/data/spells'
+import type { SpellData } from '@/features/content/domain/types/spell.types'
 import { monsters } from '@/data/monsters'
 import { classes } from "@/data/classes"
 import type { CharacterClass } from '@/data/classes.types'
@@ -51,7 +51,7 @@ export type CampaignCatalog = {
   armorById:                Record<string, Armor>
   gearById:                 Record<string, Gear>
   magicItemsById:           Record<string, MagicItem>
-  enhancementsById: Record<string, EnchantmentTemplate>
+  enhancementsById:         Record<string, EnchantmentTemplate>
   spellsById:               Record<string, SpellData>
   monstersById:             Record<string, Monster>
 }

@@ -7,17 +7,14 @@
  */
 import type { Money } from '@/shared/money/types';
 import type { Weight } from '@/shared/weight/types';
-import type { Visibility } from '@/shared/types';
 import type { ContentItem, ContentSummary, ContentInput } from './content.types';
 import type { EquipmentBase } from './equipment.types';
 import type { MagicItemSlot, MagicItemRarity } from '../vocab/magicItems.vocab';
+import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
 
 export type { MagicItemSlot, MagicItemRarity };
 
-export type MagicItemEffect =
-  | { kind: 'bonus'; target: string; value: number }
-  | { kind: 'modifier'; target: string; mode: 'add' | 'mul' | 'set'; value: unknown }
-  | { kind: 'note'; text: string };
+export type MagicItemEffects = Effect[]; // later narrow
 
 /**
  * Fields-only shape (system + campaign share this).
@@ -40,7 +37,7 @@ export interface MagicItemFields extends EquipmentBase {
   bonus?: number;
   charges?: number;
 
-  effects?: MagicItemEffect[];
+  effects?: MagicItemEffects;
 }
 
 /** Canonical magic item content item */

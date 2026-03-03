@@ -207,13 +207,14 @@ export interface SpellProgression {
 
 export type AttackProgression = 'good' | 'average' | 'poor'
 export type SaveProgression = 'good' | 'poor'
+export type ClassFeatureEffects = Effect[];
 
 export interface ClassFeature {
   id: string
   level: number
   name: string
   description?: string
-  effects?: Effect[]
+  effects?: ClassFeatureEffects
 }
 
 export interface ClassProgression {
