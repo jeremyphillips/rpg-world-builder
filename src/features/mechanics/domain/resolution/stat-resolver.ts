@@ -6,22 +6,31 @@ import type { FormulaEffect, FormulaDefinition } from "./formula.engine"
 import { getBaseStat } from "../core/base-stat-resolver"
 import { getAbilityModifier } from "../core/ability.utils"
 import { getProficiencyBonus } from "../core/progression/proficiency"
-import type { AbilityId } from "@/shared/types/character.core"
+import type { AbilityId, AbilityIdAbbreviationMap } from "@/shared/types/character.core"
 
 // ---------------------------------------------------------------------------
 // Stat target
 // ---------------------------------------------------------------------------
 
+export type AbilityScoreTarget = `ability_score.${keyof AbilityIdAbbreviationMap}`;
+
 export type StatTarget =
   | AbilityId
+  | AbilityScoreTarget
   | 'armor_class'
   | 'attack_roll'
   | 'damage'
-  | 'hp_max'
   | 'speed'
   | 'initiative'
   | 'saving_throw'
   | 'spell_save_dc'
+  // TODO: figure out hit point targets
+  | 'hit_points'
+  | 'hit_points_temporary'
+  | 'hit_points_max'
+  | 'hit_points_temporary_max'
+  | 'spell_attack'
+  | 'resistance'
 
 // ---------------------------------------------------------------------------
 // Breakdown types
@@ -120,7 +129,7 @@ function buildBaseTokens(
       const dexMod = getAbilityModifier(context.self, 'dexterity')
       return [{ label: 'DEX', value: sign(dexMod), type: 'ability' }]
     }
-    case 'hp_max':
+    case 'hit_points_max':
       return [{ label: 'Base HP', value: String(getBaseStat(target, context)), type: 'formula' }]
     default:
       return [{ label: 'Base', value: String(getBaseStat(target, context)), type: 'formula' }]

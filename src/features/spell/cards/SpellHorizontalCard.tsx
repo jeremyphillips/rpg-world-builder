@@ -1,13 +1,13 @@
 import { HorizontalCompactCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
-import type { SpellData } from '@/data/spells'
+import type { Spell } from '@/features/content/domain/types/spell.types'
 
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
 
 export interface SpellHorizontalCardProps {
-  spell: SpellData
+  spell: Spell
   selected?: boolean
   disabled?: boolean
   onToggle?: () => void

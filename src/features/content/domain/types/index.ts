@@ -7,3 +7,4 @@ export * from './magicItem.types';
 export * from './race.types';
 export * from './content.types';
 export * from './enchantment.types';
+export * from './spell.types';

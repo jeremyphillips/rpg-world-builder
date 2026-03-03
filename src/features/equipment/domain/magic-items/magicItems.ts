@@ -4,6 +4,7 @@ import type { MagicItemRarity } from '@/features/content/domain/types'
 import type { MagicItemBudget, MagicItemBudgetTier } from '@/shared/types/ruleset'
 
 // ─── Rarity ordering (weakest → strongest) ──────────────────────────────────
+/** @deprecated retreive from MAGIC_ITEM_RARITY_OPTIONS */
 const RARITY_ORDER: MagicItemRarity[] = [
   'common',
   'uncommon',

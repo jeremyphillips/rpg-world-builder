@@ -4,7 +4,8 @@
 // full character builder, focused on incremental level advancement.
 
 import type { CharacterClassInfo } from '@/shared/types/character.core'
-import type { EditionId } from '@/data'
+import type { ClassId } from '@/shared/types/ruleset'
+import type { Spell } from '@/features/content/domain/types/spell.types'
 
 // ---------------------------------------------------------------------------
 // Wizard state
@@ -20,12 +21,11 @@ import type { EditionId } from '@/data'
 export interface LevelUpState {
   // ── Identity (read-only during wizard) ──────────────────────────────
   characterName: string
-  edition: EditionId
   currentLevel: number
   pendingLevel: number
   classes: CharacterClassInfo[]
   /** ID of the primary class gaining the level */
-  primaryClassId: string
+  primaryClassId: ClassId
   /** Current spell IDs on the character */
   currentSpells: string[]
 
@@ -72,7 +72,7 @@ export interface LevelUpResult {
   /** New HP total */
   hitPoints: { total: number; generationMethod: string }
   /** Complete spell list after additions/removals */
-  spells: string[]
+  spells: Spell[]
   /** Subclass ID (if newly chosen) */
   classDefinitionId?: string
 }

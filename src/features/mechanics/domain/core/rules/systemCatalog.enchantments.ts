@@ -25,7 +25,7 @@ export const SYSTEM_ENHANCEMENT_TEMPLATES: EnchantmentTemplate[] = [
     requiresAttunement: false,
     effectsBySlot: {
       weapon: [
-        { kind: 'bonus', target: 'attack', value: 1 },
+        { kind: 'bonus', target: 'attack_roll', value: 1 },
         { kind: 'bonus', target: 'damage', value: 1 },
       ],
       armor:  [{ kind: 'bonus', target: 'armor_class', value: 1 }],
@@ -44,7 +44,7 @@ export const SYSTEM_ENHANCEMENT_TEMPLATES: EnchantmentTemplate[] = [
     requiresAttunement: false,
     effectsBySlot: {
       weapon: [
-        { kind: 'bonus', target: 'attack', value: 2 },
+        { kind: 'bonus', target: 'attack_roll', value: 2 },
         { kind: 'bonus', target: 'damage', value: 2 },
       ],
       armor:  [{ kind: 'bonus', target: 'armor_class', value: 2 }],
@@ -63,7 +63,7 @@ export const SYSTEM_ENHANCEMENT_TEMPLATES: EnchantmentTemplate[] = [
     requiresAttunement: false,
     effectsBySlot: {
       weapon: [
-        { kind: 'bonus', target: 'attack', value: 3 },
+        { kind: 'bonus', target: 'attack_roll', value: 3 },
         { kind: 'bonus', target: 'damage', value: 3 },
       ],
       armor:  [{ kind: 'bonus', target: 'armor_class', value: 3 }],

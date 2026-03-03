@@ -1,5 +1,5 @@
 import type { AlignmentId } from '@/data'
-import type { AbilityId } from '@/shared/types/character.core'
+import type { AbilityId, AbilityIdAbbreviation } from '@/shared/types/character.core'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 
 // ---------------------------------------------------------------------------
@@ -85,7 +85,6 @@ export interface SubclassOption {
   id: string
   name: string
   source?: string
-  parentId?: string
   features?: SubclassFeatureData[]
 }
 
@@ -207,26 +206,27 @@ export interface SpellProgression {
 
 export type AttackProgression = 'good' | 'average' | 'poor'
 export type SaveProgression = 'good' | 'poor'
+export type ClassFeatureEffects = Effect[];
 
 export interface ClassFeature {
   id: string
   level: number
   name: string
   description?: string
-  effects?: Effect[]
+  effects?: ClassFeatureEffects
 }
 
 export interface ClassProgression {
   hitDie: number                              // d6=6, d8=8, d10=10, d12=12; 4e: 0 (use hpPerLevel)
   hpPerLevel?: number                         // 4e flat HP per level; other editions: derived from hitDie
   attackProgression: AttackProgression         // normalized: good/average/poor
-  primaryAbilities: string[]                   // e.g. ['str', 'con'] for Fighter
+  primaryAbilities: AbilityIdAbbreviation[]                   // e.g. ['str', 'con'] for Fighter
 
   // ── Cross-edition grouping ─────────────────────────────────────
-  classGroup?: string                          // 2e group: 'warrior' | 'priest' | 'wizard' | 'rogue'
+  // classGroup?: string                          // 2e group: 'warrior' | 'priest' | 'wizard' | 'rogue'
 
   // ── 5e-specific ──────────────────────────────────────────────
-  savingThrows?: string[]                     // e.g. ['str', 'con']
+  savingThrows?: AbilityIdAbbreviation[]      // e.g. ['str', 'con']
   features?: ClassFeature[]                   // class features by level
   asiLevels?: number[]                        // levels that grant ASI (e.g. [4, 6, 8, 12, 14, 16, 19])
   spellcasting?: string                       // 'full' | 'half' | 'third' | 'pact' | 'none'
@@ -273,9 +273,6 @@ export interface CharacterClass {
   id: string
   name: string
   description?: string
-  parentId?: string
-  rolesByEdition?: Record<string, string>
-  displayNameByEdition?: Partial<Record<string, string>>  // edition-specific display name (e.g. wizard -> "Mage" in 2e)
   definitions: ClassDefinition
   requirements: ClassRequirement
   proficiencies: {

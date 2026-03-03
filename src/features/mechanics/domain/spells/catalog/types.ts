@@ -1,3 +1,3 @@
-import type { SpellData } from '@/data/spells'
+import type { Spell } from '@/data/spells'
 
-export type SpellWithEntry = SpellData
+export type SpellWithEntry = Spell

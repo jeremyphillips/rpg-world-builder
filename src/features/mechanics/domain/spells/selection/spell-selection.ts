@@ -8,8 +8,8 @@
  *
  * Both SpellStep and the invalidation pruner call into this module.
  */
-import type { Spell } from '@/data/spells'
-import type { CharacterClass } from '@/data/classes/types'
+import type { Spell } from '@/features/content/domain/types/spell.types'
+import type { CharacterClass } from '@/data/classes.types'
 import { getClassSpellLimitsAtLevel, type CastingMode } from '../progression'
 
 // ---------------------------------------------------------------------------
