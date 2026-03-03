@@ -13,7 +13,8 @@ import { toViewerContext, canManageContent } from '@/shared/domain/capabilities'
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/utils/image';
-import { formatMoney } from '@/shared/money';
+import { buildDetailItemsFromSpecs } from '@/features/content/forms/registry';
+import { MAGIC_ITEM_DETAIL_SPECS } from '@/features/equipment/magicItems/forms';
 
 export default function MagicItemDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();
@@ -39,6 +40,8 @@ export default function MagicItemDetailRoute() {
 
   const listPath = `/campaigns/${campaignId}/world/equipment/magic-items`;
   const editPath = `${listPath}/${magicItemId}/edit`;
+
+  const items = buildDetailItemsFromSpecs(MAGIC_ITEM_DETAIL_SPECS, item, {});
 
   return (
     <ContentDetailScaffold
@@ -70,16 +73,7 @@ export default function MagicItemDetailRoute() {
 
       <KeyValueSection
         title="Magic Item Details"
-        items={[
-          { label: 'Slot', value: item.slot },
-          { label: 'Rarity', value: item.rarity ?? '—' },
-          { label: 'Cost', value: item.cost ? formatMoney(item.cost) : '—' },
-          { label: 'Requires Attunement', value: item.requiresAttunement ? 'Yes' : 'No' },
-          { label: 'Bonus', value: item.bonus != null ? `+${item.bonus}` : '—' },
-          { label: 'Charges', value: item.charges != null ? String(item.charges) : '—' },
-          { label: 'Weight', value: item.weight ? `${item.weight.value} ${item.weight.unit}` : '—' },
-          { label: 'Source', value: <AppBadge label={item.source} tone={item.source === 'system' ? 'info' : 'default'} /> },
-        ]}
+        items={items}
         columns={2}
         sx={{ mt: 2 }}
       />

@@ -5,3 +5,4 @@ export {
   type GetMagicItemFieldConfigsOptions,
 } from './magicItemForm.config';
 export { magicItemToFormValues, toMagicItemInput } from './magicItemForm.mappers';
+export { MAGIC_ITEM_DETAIL_SPECS, type MagicItemDetailCtx } from './magicItemDetail.spec';
