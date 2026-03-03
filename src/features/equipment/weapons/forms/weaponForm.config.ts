@@ -3,8 +3,8 @@
  * Registry-backed.
  */
 import type { FieldConfig } from '@/ui/patterns';
-import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { buildFieldConfigs } from '@/features/content/forms/registry';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { buildFieldConfigs, buildDefaultFormValues } from '@/features/content/forms/registry';
 import { WEAPON_FORM_FIELDS } from './weaponForm.registry';
 import type { WeaponFormValues } from './weaponForm.types';
 
@@ -21,9 +21,9 @@ export const getWeaponFieldConfigs = (
 
 /**
  * Default values for weapon forms (RHF defaultValues).
- * Derived from field configs with overrides for accessPolicy.
+ * Built from specs so all defaults (including damageDefaultCount, damageDefaultDie) populate.
  */
-export const WEAPON_FORM_DEFAULTS: WeaponFormValues = buildDefaultValues<WeaponFormValues>(
-  getWeaponFieldConfigs(),
-  { accessPolicy: DEFAULT_VISIBILITY_PUBLIC },
-);
+export const WEAPON_FORM_DEFAULTS: WeaponFormValues = {
+  ...buildDefaultFormValues(WEAPON_FORM_FIELDS),
+  accessPolicy: DEFAULT_VISIBILITY_PUBLIC,
+} as WeaponFormValues;

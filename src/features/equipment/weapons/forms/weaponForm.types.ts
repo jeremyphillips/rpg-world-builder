@@ -13,8 +13,10 @@ export type WeaponFormValues = ContentFormValues & {
   category: WeaponCategory | '';
   mode: WeaponMode | '';
   // converted from damage: { default, versatile }
-  damageDefault: string;
-  damageVersatile: string;
+  damageDefaultCount: number | string;
+  damageDefaultDie: string; // "4"|"6"|"8"|"10"|"12"|"20" for select
+  damageVersatileCount: number;
+  damageVersatileDie: string; // "4"|"6"|"8"|"10"|"12"|"20" for select
   damageType: DamageType;
   // converted from range: { normal, long }
   rangeNormal: string;

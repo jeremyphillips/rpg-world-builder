@@ -56,4 +56,14 @@ export type FieldSpec<
   validation?: ValidationSpec;
   /** UI-only description shown below the field (separate from helperText/validation). */
   fieldDescription?: React.ReactNode;
+  /** Optional grouping for row/column layout. Consecutive fields with same group.id render together. */
+  group?: {
+    id: string;
+    label?: string;
+    helperText?: string;
+    direction?: 'row' | 'column';
+    spacing?: number;
+  };
+  /** MUI Grid xs (1–12). When omitted in a group, uses equal auto-width. */
+  width?: number;
 };

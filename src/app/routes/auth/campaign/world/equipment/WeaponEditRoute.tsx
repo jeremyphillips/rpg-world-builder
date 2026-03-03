@@ -35,6 +35,8 @@ import {
   WEAPON_FORM_DEFAULTS,
   weaponToFormValues,
   toWeaponInput,
+  weaponDomainPatchToForm,
+  weaponPatchToDomain,
 } from '@/features/equipment/weapons/forms';
 
 type ValidationError = { path: string; code: string; message: string };
@@ -134,9 +136,14 @@ export default function WeaponEditRoute() {
 
   const driver = useMemo(() => {
     if (!weapon) return null;
+    const baseWithFormValues = {
+      ...weapon,
+      ...weaponToFormValues(weapon),
+    } as unknown as Record<string, unknown>;
+    const formStylePatch = weaponDomainPatchToForm(initialPatch);
     return createPatchDriver({
-      base: weapon as unknown as Record<string, unknown>,
-      initialPatch,
+      base: baseWithFormValues,
+      initialPatch: formStylePatch,
       onChange: (p) => {
         setPatchDraft(p);
         setSuccess(false);
@@ -157,8 +164,9 @@ export default function WeaponEditRoute() {
     setSuccess(false);
     setErrors([]);
     const next = driver.getPatch();
+    const domainPatch = weaponPatchToDomain(next);
     try {
-      await upsertEntryPatch(campaignId, 'weapons', weaponId, next);
+      await upsertEntryPatch(campaignId, 'weapons', weaponId, domainPatch);
       setInitialPatch(next);
       setPatchDraft(next);
       setSuccess(true);

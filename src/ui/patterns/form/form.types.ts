@@ -27,6 +27,16 @@ type BaseFieldConfig = {
   path?: string;
   /** RHF Controller rules (compiled from FieldSpec validation). */
   rules?: RegisterOptions;
+  /** Optional grouping for row/column layout. Consecutive fields with same group.id render together. */
+  group?: {
+    id: string;
+    label?: string;
+    helperText?: string;
+    direction?: 'row' | 'column';
+    spacing?: number;
+  };
+  /** MUI Grid xs (1–12). When omitted in a group, uses equal auto-width. */
+  width?: number;
 }
 
 export type FormSection = {

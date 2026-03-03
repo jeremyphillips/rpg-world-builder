@@ -4,5 +4,10 @@ export {
   WEAPON_FORM_DEFAULTS,
   type GetWeaponFieldConfigsOptions,
 } from './weaponForm.config';
-export { weaponToFormValues, toWeaponInput } from './weaponForm.mappers';
+export {
+  weaponToFormValues,
+  toWeaponInput,
+  weaponDomainPatchToForm,
+  weaponPatchToDomain,
+} from './weaponForm.mappers';
 export { WEAPON_DETAIL_SPECS, type WeaponDetailCtx } from './weaponDetail.spec';
