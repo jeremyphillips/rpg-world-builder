@@ -1,5 +1,5 @@
-import type { AbilityScores } from "@/shared/types/character.core";
 import type { DieFace } from "@/features/mechanics/domain/dice/dice.types";
+import type { AbilityScoreMapResolved } from "@/features/mechanics/domain/core/character/abilities.types";
 
 export interface EvaluationContext {
   self: CreatureSnapshot
@@ -19,7 +19,7 @@ export interface CreatureSnapshot {
 
   hitDie?: DieFace
 
-  abilities: Record<keyof AbilityScores, number>
+  abilities: AbilityScoreMapResolved
 
   conditions: string[] // prone, charmed, frightened, etc.
 

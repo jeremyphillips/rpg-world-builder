@@ -14,9 +14,11 @@ import { LoadingOverlay } from '@/ui/patterns'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import type { AbilityScoreMethod } from '@/features/mechanics/domain/core/rules/abilityScores.types'
-import type { AbilityScores } from '@/shared/types/character.core'
+import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
 import { AppAlert } from '@/ui/primitives'
+import { abilityIdToKey, type AbilityKey } from '@/features/mechanics/domain/core/character'
+import type { AbilityId } from '@/features/mechanics/domain/core/character/abilities.types'
 
 // ---------------------------------------------------------------------------
 // ChatMessageItem
@@ -83,10 +85,11 @@ function parseAiResponse(message: ChatMessage): Record<string, unknown> | null {
 
 const DEFAULT_ABILITY_SCORE_METHOD: AbilityScoreMethod = '4d6-drop-lowest'
 
-function getClassAbilityPriority(classId: string | undefined): (keyof AbilityScores)[] {
+function getClassAbilityPriority(classId: string | undefined): (keyof AbilityScoreMapResolved)[] {
   if (!classId) return []
   const cls = classes.find(c => c.id === classId)
-  return cls?.generation?.abilityPriority ?? []
+  const priority = cls?.generation?.abilityPriority ?? []
+  return priority.map(a => abilityIdToKey(a as AbilityId))
 }
 
 /**
@@ -98,7 +101,7 @@ function getClassAbilityPriority(classId: string | undefined): (keyof AbilitySco
 function resolveAbilityScores(
   mode: AbilityScoreMode,
   builderState: CharacterBuilderState,
-): AbilityScores | null {
+): AbilityScoreMapResolved | null {
   if (mode === 'ai') return null
 
   // TODO: implement custom score entry UI
@@ -152,7 +155,7 @@ function mergeCharacterData(
     },
 
     // Hit points generated from builder state
-    hitPoints: generateHitPoints(builderState.classes, undefined, builderState.hitPointMode),
+    hitPoints: generateHitPoints(builderState.classes, builderState.hitPointMode),
 
     // Ability scores: use generated scores when available, otherwise fall back to AI
     abilityScores: generatedScores ?? ai.stats ?? {},

@@ -8,7 +8,6 @@ export interface CharacterForLabel {
   totalLevel?: number
   class?: string
   classes?: { classId?: string; subclassId?: string; level: number }[]
-  edition?: string
 }
 
 /**

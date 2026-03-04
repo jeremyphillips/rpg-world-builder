@@ -1,19 +1,21 @@
-import type { AbilityScores } from '@/shared/types/character.core'
 import type { AbilityScoreMethod } from '@/features/mechanics/domain/core/rules/abilityScores.types'
 import { generateScoreArray, type Rng } from './methods'
 import { ABILITY_KEYS } from '@/features/mechanics/domain/core/character'
+import type { AbilityScoreMapResolved, AbilityKey } from '@/features/mechanics/domain/core/character/abilities.types'
 
 /**
  * Generate a complete AbilityScores object with scores assigned to abilities
  * in standard order (STR, DEX, CON, INT, WIS, CHA).
  */
-export function generateAbilityScores(method: AbilityScoreMethod, rng: Rng = Math.random): AbilityScores {
+export function generateAbilityScores(
+  method: AbilityScoreMethod, 
+  rng: Rng = Math.random
+): AbilityScoreMapResolved {
   const scores = generateScoreArray(method, rng)
-  const result: AbilityScores = {}
-  for (let i = 0; i < ABILITY_KEYS.length; i++) {
-    result[ABILITY_KEYS[i]] = scores[i]
-  }
-  return result
+
+  return Object.fromEntries(
+    ABILITY_KEYS.map((key, i) => [key, scores[i]])
+  ) as AbilityScoreMapResolved
 }
 
 /**
@@ -26,17 +28,16 @@ export function generateAbilityScores(method: AbilityScoreMethod, rng: Rng = Mat
  */
 export function prioritizeAbilityScores(
   method: AbilityScoreMethod,
-  priority: (keyof AbilityScores)[],
+  priority: (AbilityKey)[],
   rng: Rng = Math.random,
-): AbilityScores {
+): AbilityScoreMapResolved {
   const scores = generateScoreArray(method, rng).sort((a, b) => b - a)
-  const result: AbilityScores = {}
-
   const remaining = ABILITY_KEYS.filter(k => !priority.includes(k))
   const orderedKeys = [...priority, ...remaining]
-
-  for (let i = 0; i < orderedKeys.length; i++) {
-    result[orderedKeys[i]] = scores[i]
-  }
+  
+  const result = Object.fromEntries(
+    orderedKeys.map((key, i) => [key, scores[i]])
+  ) as AbilityScoreMapResolved
+  
   return result
 }

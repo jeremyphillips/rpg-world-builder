@@ -37,8 +37,6 @@ export async function getInvite(req: Request, res: Response) {
         campaign: campaign ? {
           _id: campaign._id,
           name: campaign.identity?.name,
-          setting: campaign.identity?.setting,
-          edition: campaign.identity?.edition,
           description: campaign.identity?.description,
         } : null,
         invitedByName: invitedBy?.username ?? 'Unknown',

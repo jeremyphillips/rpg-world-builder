@@ -2,25 +2,7 @@ import type { Money } from '../money/types'
 import type { ClassId } from './ruleset'
 import type { AlignmentId } from '@/features/content/domain/types'
 import type { RaceId } from '@/features/content/domain/types'
-import type { AbilityKey } from '@/features/mechanics/domain/core/character'
-
-// shared/types/character.core.ts
-
-// 2e specific
-// export type AbilityScores2e = AbilityScores & {
-//   strengthPercentile?: number
-// }
-
-// export type SavingThrows2e = {
-//   paralyzationPoisonDeath?: number
-//   rodStaffWand?: number
-//   petrificationPolymorph?: number
-//   breathWeapon?: number
-//   spell?: number
-// }
-
-
-export type AbilityScores = Partial<Record<AbilityKey, number | null>>
+import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character'
 
 
 export type Wealth = {
@@ -104,7 +86,7 @@ export type Character = {
   levelUpPending?: boolean
   pendingLevel?: number
 
-  abilityScores?: AbilityScores
+  abilityScores?: AbilityScoreMapResolved
   hitPoints?: HitPoints
   armorClass?: ArmorClass
   combat?: {
@@ -117,26 +99,6 @@ export type Character = {
   wealth?: Wealth
   narrative?: CharacterNarrative
 }
-
-// export type Rules2e = {
-//   stats?: AbilityScores2e
-//   thac0?: number
-//   savingThrows?: SavingThrows2e
-// }
-
-// export type Character5e = Character & {
-//   edition: '5e'
-// }
-
-// export type Character2e = Omit<Character,
-//   | 'stats'
-// > & {
-//   edition: '2e'
-//   stats?: AbilityScores2e
-//   savingThrows?: SavingThrows2e
-//   thac0?: number
-// }
-
 
 export type PlayerCharacter = Character & {
   type: 'pc'

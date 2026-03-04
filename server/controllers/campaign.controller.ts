@@ -71,25 +71,15 @@ export async function getCampaign(req: Request, res: Response) {
 }
 
 export async function createCampaign(req: Request, res: Response) {
-  const { name, setting, edition, description } = req.body
+  const { name, description } = req.body
 
   if (!name) {
     res.status(400).json({ error: 'Campaign name is required' })
     return
   }
 
-  if (!setting) {
-    res.status(400).json({ error: 'Setting is required' })
-    return
-  }
-
-  if (!edition) {
-    res.status(400).json({ error: 'Edition is required' })
-    return
-  }
-
   try {
-    const campaign = await campaignService.createCampaign(req.userId!, { name, setting, edition, description })
+    const campaign = await campaignService.createCampaign(req.userId!, { name, description })
     res.status(201).json({ campaign })
   } catch (err) {
     console.error('Failed to create campaign:', err)

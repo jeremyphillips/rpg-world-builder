@@ -4,16 +4,20 @@ import type {
   CharacterType, 
   CharacterProficiencies, 
   EquipmentLoadout, 
-  EquipmentItemInstance, 
-  AbilityScores 
+  EquipmentItemInstance,
 } from '@/shared/types/character.core'
 import type { HitPointMode } from '@/features/mechanics/domain/character/progression'
 import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
+import type { AbilityScoreValue, AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'
+import type { AbilityKey } from '@/features/mechanics/domain/core/character'
 
 export type AbilityScoreSource = 'import_manual' | 'generated_roll';
 export type AbilityScoresStatus = 'unset' | 'partial' | 'complete';
 
-export type StepId = 'character_source' | 'ability_scores' | 'class' | 'spells' | 'equipment' | 'loadout' | 'magicItems' | 'race' | 'level' | 'alignment' | 'proficiencies' | 'confirmation'
+export type StepId = 
+'character_source' | 'ability_scores' | 'class' | 'spells' | 
+'equipment' | 'loadout' | 'magicItems' | 'race' | 'level' | 
+'alignment' | 'proficiencies' | 'confirmation'
 
 export type BuilderFlowMode = 'full' | 'isolated';
 
@@ -32,7 +36,7 @@ export type CharacterBuilderState = CharacterSheet & {
     name: string
   }
   activeClassIndex: number | null
-  abilityScores: AbilityScores
+  abilityScores: AbilityScoreMapResolved
   abilityScoreSource?: AbilityScoreSource
   abilityScoresStatus?: AbilityScoresStatus
   flowMode: BuilderFlowMode
@@ -101,8 +105,8 @@ export type CharacterBuilderContextValue = {
 
   // ability scores
   rollAbilityScores: () => void
-  setAbilityScores: (patch: Partial<AbilityScores>) => void
-  setAbilityScore: (abilityId: string, value: number | null) => void
+  setAbilityScores: (patch: Partial<AbilityScoreMapResolved>) => void
+  setAbilityScore: (abilityKey: AbilityKey, value: AbilityScoreValue | null) => void
   setAbilityScoreSource: (source: AbilityScoreSource) => void
 
   // hit points

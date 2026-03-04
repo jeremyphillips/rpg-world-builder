@@ -15,7 +15,6 @@ export type CharacterBuilderWizardProps = {
   hitPointMode?: HitPointMode
   /**
    * How ability scores are generated:
-   * - 'default': use the edition's configured method + class ability priority
    * - 'ai': let the AI generate scores (current behavior)
    * - 'custom': user-defined (TODO)
    */

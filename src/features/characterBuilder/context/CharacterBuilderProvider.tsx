@@ -2,7 +2,7 @@ import { useMemo, useEffect, useCallback, useState, type PropsWithChildren } fro
 import CharacterBuilderContext from './CharacterBuilderContext'
 import type { CharacterBuilderState, StepId, AbilityScoreSource, AbilityScoresStatus } from '../types'
 import type { CharacterClassInfo } from '@/shared/types/character.core'
-import type { CharacterProficiencies, EquipmentItemInstance, AbilityScores } from '@/shared/types/character.core'
+import type { CharacterProficiencies, EquipmentItemInstance } from '@/shared/types/character.core'
 import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import {
@@ -28,7 +28,13 @@ import { moneyToCp, cpToDenoms } from '@/shared/money'
 import type { CharacterType } from "@/shared/types/character.core"
 import { resolveXpTable } from "@/features/mechanics/domain/core/rules/xp/resolveXpTable"
 import type { AlignmentId } from '@/features/content/domain/types'
-import { ABILITY_KEYS } from '@/features/mechanics/domain/core/character'
+import { 
+  ABILITY_KEYS, 
+  type AbilityScoreMapResolved, 
+  type AbilityScoreValue, 
+  type AbilityKey,
+  type AbilityScoreMap
+} from '@/features/mechanics/domain/core/character'
 
 export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
   const { ruleset, catalog } = useCampaignRules()
@@ -172,7 +178,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
 
     // Normalize: backfill classId from deprecated top-level `class` field
     const rawClasses = character.classes?.length ? character.classes : [{ level: character.totalLevel ?? 1 }]
-    const classes = rawClasses.map((cls, i) => ({ ...cls }))
+    const classes = rawClasses.map((cls, _i) => ({ ...cls }))
 
     // Lock existing skill selections so edit mode only allows adding new ones
     const lockedSelections: Record<string, string[]> = {}
@@ -181,15 +187,15 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
       lockedSelections['skills'] = [...existingSkills]
     }
 
-    const initialScores = Object.fromEntries(ABILITY_KEYS.map(key => [key, null])) as AbilityScores;
+    const initialScores = Object.fromEntries(ABILITY_KEYS.map(key => [key, null])) as AbilityScoreMap;
 
-    const loadedScores: AbilityScores = character.abilityScores
-      ? { ...ABILITY_KEYS.reduce((acc, key) => ({ ...acc, [key]: null }), {}), ...character.abilityScores }
-      : { ...initialScores };
+    const loadedScores = character.abilityScores
+      ? { ...ABILITY_KEYS.reduce((acc, key) => ({ ...acc, [key]: null }), {} as AbilityScoreMapResolved), ...character.abilityScores }
+      : { ...initialScores } as AbilityScoreMapResolved;
 
     setState({
       step,
-      type: mode,
+      type: mode, 
       name: character.name,
       hitPointMode: 'average',
       race: character.race,
@@ -466,21 +472,21 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
   // Ability scores
   // ---------------------------------------------------------------------------
 
-  const deriveAbilityScoresStatus = (scores: AbilityScores): AbilityScoresStatus => {
+  const deriveAbilityScoresStatus = (scores: AbilityScoreMap): AbilityScoresStatus => {
     const vals = Object.values(scores);
     if (vals.length === 0 || vals.every(v => v == null)) return 'unset';
     if (vals.every(v => v != null)) return 'complete';
     return 'partial';
   };
 
-  const setAbilityScores = (patch: Partial<AbilityScores>) =>
+  const setAbilityScores = (patch: Partial<AbilityScoreMapResolved>) =>
     updateState(s => {
       const merged = { ...s.abilityScores, ...patch };
       return { ...s, abilityScores: merged, abilityScoresStatus: deriveAbilityScoresStatus(merged) };
     });
 
-  const setAbilityScore = (abilityId: string, value: number | null) =>
-    setAbilityScores({ [abilityId]: value });
+  const setAbilityScore = (abilityKey: AbilityKey, value: AbilityScoreValue | null) =>
+    setAbilityScores({ [abilityKey]: value });
 
   const setAbilityScoreSource = (abilityScoreSource: AbilityScoreSource) =>
     updateState(s => ({ ...s, abilityScoreSource }));

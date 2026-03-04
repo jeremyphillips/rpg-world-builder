@@ -43,7 +43,6 @@ function getSpellName(id: string): string {
 export default function LevelUpConfirmStep({ state }: LevelUpConfirmStepProps) {
   const {
     characterName,
-    edition,
     currentLevel,
     pendingLevel,
     primaryClassId,
@@ -65,12 +64,12 @@ export default function LevelUpConfirmStep({ state }: LevelUpConfirmStepProps) {
   )
 
   const prog = useMemo(
-    () => getClassProgression(primaryClassId, edition),
-    [primaryClassId, edition],
+    () => getClassProgression(primaryClassId),
+    [primaryClassId],
   )
 
   const hitDieLabel = prog
-    ? prog.hitDie === 0 && prog.hpPerLevel
+    ? !prog.hitDie && prog.hpPerLevel
       ? `${prog.hpPerLevel} HP/level`
       : `d${prog.hitDie}`
     : '—'

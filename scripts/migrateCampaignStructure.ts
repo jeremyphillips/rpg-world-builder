@@ -16,7 +16,7 @@ dotenv.config()
 const MONGO_URI = process.env.MONGO_URI ?? 'mongodb://localhost:27017'
 const DB_NAME = process.env.DB_NAME ?? 'dnd'
 
-const OLD_FIELDS = ['name', 'description', 'setting', 'edition', 'party', 'adminId', 'members']
+const OLD_FIELDS = ['name', 'description', 'party', 'adminId', 'members']
 
 async function migrate() {
   await mongoose.connect(MONGO_URI)
@@ -35,8 +35,6 @@ async function migrate() {
           identity: {
             name: doc.name,
             description: doc.description ?? '',
-            setting: doc.setting,
-            edition: doc.edition
           },
           configuration: {
             rules: {}

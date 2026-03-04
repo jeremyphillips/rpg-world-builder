@@ -11,12 +11,10 @@ import Stack from '@mui/material/Stack'
 
 export interface CampaignFormData {
   name: string
-  edition: string
-  setting: string
 }
 
 // ---------------------------------------------------------------------------
-// Inner component — watches edition and renders dynamic fields
+// Inner component
 // ---------------------------------------------------------------------------
 
 function CampaignFields({ canEdit }: { canEdit: boolean }) {
@@ -50,8 +48,6 @@ export default function CampaignForm({
   onSubmit: (data: CampaignFormData) => Promise<void>
   onCancel: () => void
   submitLabel: string
-  /** @deprecated Handled automatically by FormActions via react-hook-form isSubmitting state */
-  submittingLabel?: string
   canEdit?: boolean
 }) {
   return (

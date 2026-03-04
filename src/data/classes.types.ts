@@ -1,14 +1,12 @@
 import type { DieFace } from '@/features/mechanics/domain/dice/dice.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { Material } from '@/features/content/domain/vocab'
-import type { AbilityId, AbilityKey } from '@/features/mechanics/domain/core/character'
+import type { AbilityId, AbilityKey, AbilityScoreValue } from '@/features/mechanics/domain/core/character'
 import type { AlignmentId } from '@/features/content/domain/types'
 
 // ---------------------------------------------------------------------------
 // Shared primitives  
 // ---------------------------------------------------------------------------
-
-export type LogicalOperator = 'and' | 'or'
 
 export interface Note {
   id: string
@@ -27,8 +25,8 @@ export interface EquipmentRequirement {
 }
 
 export type AbilityRequirement = {
-  ability: AbilityId;
-  min: number;
+  ability: AbilityKey;
+  min: AbilityScoreValue;
 };
 
 export type AbilityRequirementGroup = {
@@ -103,40 +101,16 @@ export interface ClassDefinition {
 export interface ProficiencyOption {
   id: string
   name: string
-  // 5e specific: classes can have 'category' or 'item' options
   type?: 'category' | 'item'
   cost?: number
   source?: string
-  checkModifier?: number // 2e
-  // 2e Thief skill
-  // pointPool?: {
-  //   initial: number
-  //   perLevel: number
-  // }
 }
-
-// export interface ClassProficiency {
-//   // edition: EditionId | string
-//   // taxonomy: string
-//   name?: string
-//   // choiceCount?: number
-//   slots?: number // TODO: fold into choiceCount — only used by paladin 2e NWP; semantically identical
-//   canSpecialize?: boolean
-//   fixed?: ProficiencyOption[]
-//   options?: ProficiencyOption[] | string
-//   // 2e Thief skill
-//   // pointPool?: {
-//   //   initial: number
-//   //   perLevel: number
-//   // }
-// }
 
 export interface ClassProficiencySkill {
   type: 'choice' | 'fixed'
   level: number
   choose: number
   from: string[]
-  // canSpecialize?: boolean
 }
 
 export interface ClassProficiencyWeapon {
@@ -195,10 +169,6 @@ export interface SpellProgression {
 
   /** 5e Warlock only: Mystic Arcanum spells (one known of each level, once per long rest) */
   mysticArcanum?: { spellLevel: number; grantedAtClassLevel: number }[]
-
-  // TODO: bonusSlots from high ability scores (3.5e, 2e, 1e) — handle as a shared utility
-  // TODO: 2e priest sphere access — filter on available spells rather than progression
-  // TODO: 3.5e domain spells — +1 slot per level for Cleric
 }
 
 // ---------------------------------------------------------------------------
@@ -226,51 +196,17 @@ export type SpellcastingAbility =
 
 export interface ClassProgression {
   hitDie: DieFace
-  hpPerLevel?: number                         // 4e flat HP per level; other editions: derived from hitDie
-  attackProgression: AttackProgression         // normalized: good/average/poor
-  primaryAbilities: AbilityId[]                   // e.g. ['str', 'con'] for Fighter
-
-  // ── Cross-edition grouping ─────────────────────────────────────
-  // classGroup?: string                          // 2e group: 'warrior' | 'priest' | 'wizard' | 'rogue'
+  hpPerLevel?: number // 4e flat HP per level; other editions: derived from hitDie
+  attackProgression: AttackProgression // normalized: good/average/poor
+  primaryAbilities: AbilityId[]
 
   // ── 5e-specific ──────────────────────────────────────────────
-  savingThrows?: AbilityId[]      // e.g. ['str', 'con']
-  features?: ClassFeature[]                   // class features by level
-  asiLevels?: number[]                        // levels that grant ASI (e.g. [4, 6, 8, 12, 14, 16, 19])
+  savingThrows?: AbilityId[]
+  features?: ClassFeature[]
+  asiLevels?: number[] // Ability Score Improvement levels
   spellcasting?: SpellcastingAbility
-  spellProgression?: SpellProgression         // actual spell slot table + known/prepared data
-  extraAttackLevel?: number                   // level that grants Extra Attack
-
-  // ── 4e-specific ──────────────────────────────────────────────
-  role?: string                               // Defender, Striker, Leader, Controller
-  powerSource?: string                        // Martial, Arcane, Divine, Primal, Psionic
-  healingSurges?: number                      // surges per day at 1st level
-  surgeValue?: string                         // e.g. '1/4 HP'
-  fortitudeBonus?: number                     // class bonus to Fortitude defense
-  reflexBonus?: number                        // class bonus to Reflex defense
-  willBonus?: number                          // class bonus to Will defense
-
-  // ── 3e/3.5e-specific ────────────────────────────────────────
-  babProgression?: number[]                   // BAB at each level (1-20)
-  fortSave?: SaveProgression
-  refSave?: SaveProgression
-  willSave?: SaveProgression
-  bonusFeats?: number[]                       // levels that grant bonus feats
-  skillPointsPerLevel?: number                // base skill points per level (before Int mod)
-
-  // ── 2e / 1e-specific ────────────────────────────────────────
-  thac0ByLevel?: number[]                     // THAC0 at each level
-  saves2e?: {
-    ppd: number[]                             // Paralysis/Poison/Death Magic
-    rsw: number[]                             // Rod/Staff/Wand
-    pp: number[]                              // Petrification/Polymorph
-    bw: number[]                              // Breath Weapon
-    sp: number[]                              // Spell
-  }
-  weaponSlotsInitial?: number                 // starting weapon proficiency slots
-  nwpSlotsInitial?: number                    // starting non-weapon proficiency slots
-  weaponSlotInterval?: number                 // levels between gaining new weapon slots
-  nwpSlotInterval?: number                    // levels between gaining new NWP slots
+  spellProgression?: SpellProgression // actual spell slot table + known/prepared data
+  extraAttackLevel?: number // level that grants Extra Attack
 }
 
 // ---------------------------------------------------------------------------

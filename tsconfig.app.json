@@ -49,6 +49,7 @@
       "@/features/session/*": ["features/session/*"],
       "@/features/spell/*": ["features/spell/*"],
       "@/features/user/*": ["features/user/*"],
+      "@/features/utils": ["features/utils/index.ts"],
       "@/ui/patterns": ["ui/patterns/index.ts"],
       "@/ui/primitives": ["ui/primitives/index.ts"],
       "@/ui/types": ["ui/types/index.ts"],
