@@ -1,7 +1,7 @@
 import { classes } from '@/data/classes'
 import type {
   ClassProgression,
-} from '@/data/classes.types'
+} from '@/features/classes/domain/types'
 import { getById } from '@/utils'
 
 

@@ -1,4 +1,4 @@
-import type { CharacterClass } from '@/data/classes.types'
+import type { CharacterClass } from '@/features/classes/domain/types'
 import type { AlignmentVocabItem } from '@/features/content/domain/types';
 
 export type AlignmentFormOption = {

@@ -1,7 +1,7 @@
 import type { Character } from '@/features/character/domain/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { classes } from '@/data/classes'
-import type { ClassDefinition } from '@/data/classes.types'
+import type { SubclassSelection } from '@/features/classes/domain/types'
 
 type FeatureRecord = Record<string, unknown>
 
@@ -90,7 +90,7 @@ type ClassOption =
       features?: FeatureRecord[]
     }
     
-function normalizeDefinitions(defs?: ClassDefinition) {
+function normalizeDefinitions(defs?: SubclassSelection) {
   if (!defs) return []
   return Array.isArray(defs) ? defs : [defs]
 }

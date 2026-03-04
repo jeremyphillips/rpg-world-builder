@@ -79,12 +79,12 @@ export type CharacterBuilderContextValue = {
   // classes / multiclassing
   addClass: () => void
   setClassId: (id: string) => void
-  setClassDefinitionId: (definitionId: string) => void
+  setSubclassSelectionId: (definitionId: string) => void
   setClassLevel: (classIndex: number, lvl: number) => void
   setActiveClassIndex: (index: number) => void
   updateClassLevel: (index: number, level: number) => void
   removeClass: (index: number) => void
-  updateClassDefinition: (index: number, subclassId?: string) => void
+  updateSubclassSelection: (index: number, subclassId?: string) => void
   updateSubclass: (index: number, subclassId?: string) => void
   allocateRemainingLevels: () => void
 

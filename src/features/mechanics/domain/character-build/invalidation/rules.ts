@@ -11,7 +11,7 @@ import type { InvalidationRule, InvalidationItem } from './types'
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
 
 import { evaluateClassEligibility } from '../rules'
-import { classes as classCatalog } from '@/data'
+import { classes as classCatalog } from '@/data/classes'
 import { getSystemSpells } from '@/features/mechanics/domain/core/rules/systemCatalog.spells'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
 import { getById } from '@/utils'

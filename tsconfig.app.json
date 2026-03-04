@@ -40,6 +40,7 @@
       "@/features/equipment/*": ["features/equipment/*"],
       "@/features/race/*": ["features/race/*"],
       "@/features/characterBuilder/context": ["features/characterBuilder/context/index.ts"],
+      "@/features/classes/*": ["features/classes/*"],
       "@/features/location/*": ["features/location/*"],
       "@/features/mechanics/*": ["features/mechanics/*"],
       "@/features/content/*": ["features/content/*"],

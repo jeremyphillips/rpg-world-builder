@@ -1,5 +1,5 @@
 import { systemCatalog } from '@/features/mechanics/domain/core/rules/systemCatalog'
-import type { ClassProficiencySkill, CharacterClass } from '@/data/classes.types'
+import type { ClassProficiencySkill, CharacterClass } from '@/features/classes/domain/types'
 import type { CharacterClassInfo, CharacterProficiencies } from '@/features/character/domain/types'
 
 export interface ProficiencySlotSummary {

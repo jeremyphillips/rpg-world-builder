@@ -6,7 +6,7 @@ import { evaluateClassEligibility, getClassRestrictionNotes } from '@/features/m
 import { getSubclassUnlockLevel } from '@/features/mechanics/domain/classes/progression'
 import { getAvailableSubclassesByLevel } from '@/features/mechanics/domain/classes/progression'
 import { canAddClass } from '@/features/character/domain/validation'
-import type { ClassProgression } from '@/data/classes.types'
+import type { ClassProgression } from '@/features/classes/domain/types'
 import { ButtonGroup } from '@/ui/patterns'
 import { getSubclassNameById } from '@/features/mechanics/domain/classes/progression'
 
@@ -61,7 +61,7 @@ const ClassStep = () => {
     addClass,
     updateClassLevel,
     removeClass,
-    updateClassDefinition,
+    updateSubclassSelection,
     allocateRemainingLevels,
     stepNotices,
     dismissNotice
@@ -365,7 +365,7 @@ const ClassStep = () => {
                           options={subclassOptions}
                           value={cls.subclassId}
                           onChange={id =>
-                            updateClassDefinition(index, id)
+                            updateSubclassSelection(index, id)
                           }
                           autoSelectSingle
                           size="sm"

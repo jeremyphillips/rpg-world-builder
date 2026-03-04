@@ -1,4 +1,4 @@
-import type { Monster } from '@/data'
+import type { Monster } from '@/data/monsters'
 import type { EditionRule } from '@/features/mechanics/domain/edition'
 import { convertEditionRule } from '@/features/mechanics/domain/adapters/monsters'
 

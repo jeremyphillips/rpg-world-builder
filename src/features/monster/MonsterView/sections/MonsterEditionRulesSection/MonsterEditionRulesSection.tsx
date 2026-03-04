@@ -1,6 +1,6 @@
 import { useMonsterEditionState } from '../../../hooks'
 import { EditionRuleDetail } from '../EditionRuleDetail/EditionRuleDetail'
-import { type Monster } from '@/data'
+import { type Monster } from '@/data/monsters'
 import { AppAlert } from '@/ui/primitives'
 
 export function MonsterEditionRulesSection({ monster }: { monster: Monster }) {

@@ -1,6 +1,6 @@
-import { type Monster } from '@/data'
+import { type Monster } from '@/data/monsters'
 import { StatRow } from '../../components'
-import { MONSTER_LABELS } from '@/data'
+import { MONSTER_LABELS } from '@/data/monsters'
 
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'

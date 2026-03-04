@@ -1,5 +1,5 @@
 import { getById } from '@/utils'
-import { classes } from '@/data'
+import { classes } from '@/data/classes'
 
 /** Resolve subclass display name by class id and definition id. */
 export function getSubclassNameById(classId?: string, subclassId?: string): string | null {

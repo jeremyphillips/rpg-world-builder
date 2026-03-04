@@ -1,11 +1,11 @@
-import { classes } from '@/data'
-import type { SubclassOption } from '@/data/classes.types'
+import { classes } from '@/data/classes'
+import type { Subclass } from '@/features/classes/domain/types'
 import { getById } from '@/utils'
 
 export const getAvailableSubclassesByLevel = (
   classId?: string,
   level: number = 1
-): SubclassOption[] => {
+): Subclass[] => {
   if (!classId) return []
 
   const cls = getById(classes, classId)

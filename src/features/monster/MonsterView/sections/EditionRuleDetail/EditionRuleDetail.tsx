@@ -1,4 +1,4 @@
-import { MONSTER_LABELS, type EditionRule } from '@/data'
+import { MONSTER_LABELS, type EditionRule } from '@/data/monsters'
 import { StatRow } from '../../components'
 import { formatHitDice } from '../../../utils'
 import { formatNumberAppearing, formatMovement, formatAttacks, formatMorale } from '../../../utils'

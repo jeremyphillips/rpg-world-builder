@@ -1,5 +1,5 @@
 import { getById } from '@/utils'
-import { classes } from '@/data'
+import { classes } from '@/data/classes'
 
 export const getSubclassUnlockLevel = (
   classId?: string

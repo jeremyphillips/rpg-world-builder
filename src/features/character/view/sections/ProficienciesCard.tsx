@@ -5,7 +5,7 @@ import {
   FIVE_E_INTELLIGENCE_SKILLS,
   FIVE_E_WISDOM_SKILLS,
   FIVE_E_CHARISMA_SKILLS
-} from '@/data'
+} from '@/data/proficiencies'
 
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'

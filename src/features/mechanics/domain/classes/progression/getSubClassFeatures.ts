@@ -1,6 +1,6 @@
 import { getById } from '@/utils'
-import { classes } from '@/data'
-import type { SubclassFeature } from '@/data/classes.types'
+import { classes } from '@/data/classes'
+import type { SubclassFeature } from '@/features/classes/domain/types'
 
 // ---------------------------------------------------------------------------
 // Subclass feature extraction (for UI display)

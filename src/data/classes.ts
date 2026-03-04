@@ -1,4 +1,4 @@
-import type { CharacterClass } from './classes.types'
+import type { CharacterClass } from '@/features/classes/domain/types/class.types'
 
 import {
   FIVE_E_WISDOM_SKILLS,
@@ -16,19 +16,19 @@ export const classes: readonly CharacterClass[] = [
     name: 'Fighter',
     description: 'A class of brave and skilled warriors.',
     definitions: {
+      id: 'fighter.martial_archetype',
       name: 'Martial Archetype',
       selectionLevel: 3,
       options: [
-        { id: 'arcane-archer', name: 'Arcane Archer', source: 'XGE' },
-        { id: 'banneret', name: 'Banneret (Purple Dragon Knight)', source: 'SCAG' },
         {
-          id: 'battle-master',
+          id: 'fighter.martial_archetype.battle_master',
           name: 'Battle Master',
           source: 'PHB',
           features: [
             {
-              id: 'battleMaster',
-              name: 'Battle Master',
+              name: 'Combat Superiority',
+              id: 'fighter.martial_archetype.battle_master.combat_superiority',
+              level: 3,
               features: [
                 {
                   kind: 'resource',
@@ -40,6 +40,7 @@ export const classes: readonly CharacterClass[] = [
                   }
                 },
                 {
+                  id: 'fighter.battle_master.on_weapon_hit',
                   kind: 'trigger',
                   trigger: 'on_weapon_hit',
                   cost: { resource: 'superiority_dice', amount: 1 },
@@ -61,19 +62,13 @@ export const classes: readonly CharacterClass[] = [
             }
           ]
         },
-        { id: 'cavalier', name: 'Cavalier', source: 'XGE' },
-        { id: 'champion', name: 'Champion', source: 'PHB' },
-        { id: 'echo-knight', name: 'Echo Knight', source: 'EGW' },
-        { id: 'eldritch-knight', name: 'Eldritch Knight', source: 'PHB' },
-        { id: 'psi-warrior', name: 'Psi Warrior', source: 'TCOE' },
-        { id: 'rune-knight', name: 'Rune Knight', source: 'TCOE' },
-        { id: 'samurai', name: 'Samurai', source: 'XGE' }
+        { id: 'fighter.battle_master.champion', name: 'Champion', source: 'PHB' },
+        { id: 'fighter.battle_master.eldritch_knight', name: 'Eldritch Knight', source: 'PHB' },
       ]
     },
     progression: {
       hitDie: 10,
       attackProgression: 'good',
-      primaryAbilities: ['str', 'con'],
       savingThrows: ['str', 'con'],
       spellcasting: 'none',
       extraAttackLevel: 5,
@@ -116,7 +111,7 @@ export const classes: readonly CharacterClass[] = [
       },
     },
     generation: {
-      abilityPriority: ['str', 'con']
+      primaryAbilities: ['str', 'con']
     },
     requirements: {
       allowedRaces: ['human'],
@@ -139,32 +134,25 @@ export const classes: readonly CharacterClass[] = [
     name: 'Cleric', 
     description: 'A class of holy and compassionate healers.',
     definitions: {
+      id: 'divine_domain',
       name: 'Divine Domain',
       selectionLevel: 1,
       options: [
-        { id: 'arcana', name: 'Arcana Domain', source: 'SCAG' },
-        { id: 'death', name: 'Death Domain', source: 'DMG' },
-        { id: 'forge', name: 'Forge Domain', source: 'XGE' },
-        { id: 'grave', name: 'Grave Domain', source: 'XGE' },
-        { id: 'knowledge', name: 'Knowledge Domain', source: 'PHB' },
-        { id: 'life', name: 'Life Domain', source: 'PHB' },
-        { id: 'light', name: 'Light Domain', source: 'PHB' },
-        { id: 'nature', name: 'Nature Domain', source: 'PHB' },
-        { id: 'order', name: 'Order Domain', source: 'TCOE' },
-        { id: 'peace', name: 'Peace Domain', source: 'TCOE' },
-        { id: 'tempest', name: 'Tempest Domain', source: 'PHB' },
-        { id: 'trickery', name: 'Trickery Domain', source: 'PHB' },
-        { id: 'twilight', name: 'Twilight Domain', source: 'TCOE' },
-        { id: 'war', name: 'War Domain', source: 'PHB' }
+        { id: 'cleric.divine_domain.knowledge', name: 'Knowledge Domain', source: 'PHB' },
+        { id: 'cleric.divine_domain.life', name: 'Life Domain', source: 'PHB' },
+        { id: 'cleric.divine_domain.light', name: 'Light Domain', source: 'PHB' },
+        { id: 'cleric.divine_domain.nature', name: 'Nature Domain', source: 'PHB' },
+        { id: 'cleric.divine_domain.tempest', name: 'Tempest Domain', source: 'PHB' },
+        { id: 'cleric.divine_domain.trickery', name: 'Trickery Domain', source: 'PHB' },
+        { id: 'cleric.divine_domain.war', name: 'War Domain', source: 'PHB' }
       ]
     },
     generation: {
-      abilityPriority: ['wis', 'con']
+      primaryAbilities: ['wis', 'con']
     },
     progression: {
       hitDie: 8,
       attackProgression: 'average',
-      primaryAbilities: ['wis', 'str'],
       savingThrows: ['wis', 'cha'],
       spellcasting: 'full',
       spellProgression: {
@@ -215,27 +203,21 @@ export const classes: readonly CharacterClass[] = [
     name: 'Rogue', 
     description: 'A class of cunning and stealthy thieves.',
     definitions: {
+      id: 'rogue_specialization',
       name: 'Rogue Specialization',
       selectionLevel: 3,
       options: [
-        { id: 'arcane-trickster', name: 'Arcane Trickster', source: 'PHB' },
-        { id: 'assassin', name: 'Assassin', source: 'PHB' },
-        { id: 'inquisitive', name: 'Inquisitive', source: 'XGE' },
-        { id: 'mastermind', name: 'Mastermind', source: 'XGE' },
-        { id: 'phantom', name: 'Phantom', source: 'TCOE' },
-        { id: 'scout', name: 'Scout', source: 'XGE' },
-        { id: 'soulknife', name: 'Soulknife', source: 'TCOE' },
-        { id: 'swashbuckler', name: 'Swashbuckler', source: 'XGE' },
-        { id: 'thief', name: 'Thief', source: 'PHB' }
+        { id: 'rogue.rogue_specialization.arcane_trickster', name: 'Arcane Trickster', source: 'PHB' },
+        { id: 'rogue.rogue_specialization.assassin', name: 'Assassin', source: 'PHB' },        { id: 'rogue.rogue_specialization.soulknife', name: 'Soulknife', source: 'TCOE' },
+        { id: 'rogue.rogue_specialization.thief', name: 'Thief', source: 'PHB' }
       ]
     },
     generation: {
-      abilityPriority: ['dex', 'int']
+      primaryAbilities: ['dex', 'int']
     },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      primaryAbilities: ['dex', 'int'],
       savingThrows: ['dex', 'int'],
       spellcasting: 'none',
       extraAttackLevel: 3,
@@ -281,18 +263,18 @@ export const classes: readonly CharacterClass[] = [
     name: 'Paladin', 
     description: 'A class of righteous and noble protectors.',
     definitions: {
+      id: 'paladin.subclass.sacred_oath',
       name: 'Sacred Oath',
       selectionLevel: 3,
       options: [
-        { id: 'ancients', name: 'Oath of the Ancients', source: 'PHB' },
-        { id: 'conquest', name: 'Oath of Conquest', source: 'XGE' },
-        { id: 'crown', name: 'Oath of the Crown', source: 'SCAG' },
+        { id: 'paladin.subclass.sacred_oath.ancients', name: 'Oath of the Ancients', source: 'PHB' },
         { 
-          id: 'devotion', 
+          id: 'paladin.subclass.sacred_oath.oath_of_devotion', 
           name: 'Oath of Devotion', 
           source: 'PHB',
           features: [
             {
+              id: 'paladin.subclass.sacred_oath.oath_of_devotion.sacred_weapon',
               name: 'Sacred Weapon',
               level: 3,
               type: 'active_buff',
@@ -306,6 +288,7 @@ export const classes: readonly CharacterClass[] = [
               }]
             },
             {
+              name: 'Turn the Unholy',
               kind: 'aura',
               level: 7,
               range: 10,
@@ -320,20 +303,15 @@ export const classes: readonly CharacterClass[] = [
             }
           ]
         },
-        { id: 'glory', name: 'Oath of Glory', source: 'TCOE' },
-        { id: 'redemption', name: 'Oath of Redemption', source: 'XGE' },
-        { id: 'vengeance', name: 'Oath of Vengeance', source: 'PHB' },
-        { id: 'watchers', name: 'Oath of the Watchers', source: 'TCOE' },
-        { id: 'oathbreaker', name: 'Oathbreaker', source: 'DMG' }
+        { id: 'paladin.subclass.sacred_oath.oath_of_vengeance', name: 'Oath of Vengeance', source: 'PHB' },
       ]
     },
     generation: {
-      abilityPriority: ['cha', 'con']
+      primaryAbilities: ['cha', 'con']
     },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      primaryAbilities: ['cha', 'con'],
       savingThrows: ['cha', 'con'],
       spellcasting: 'none',
       extraAttackLevel: 3,
@@ -374,26 +352,20 @@ export const classes: readonly CharacterClass[] = [
     name: 'Bard',
     description: 'A class of talented and charismatic storytellers.',
     definitions: {
+      id: 'bardic_college',
       name: 'Bardic College',
       selectionLevel: 3,
       options: [
-        { id: 'creation', name: 'College of Creation', source: 'TCOE' },
-        { id: 'eloquence', name: 'College of Eloquence', source: 'TCOE' },
-        { id: 'glamour', name: 'College of Glamour', source: 'XGE' },
-        { id: 'lore', name: 'College of Lore', source: 'PHB' },
-        { id: 'spirits', name: 'College of Spirits', source: 'VRGR' },
-        { id: 'swords', name: 'College of Swords', source: 'XGE' },
-        { id: 'valor', name: 'College of Valor', source: 'PHB' },
-        { id: 'whispers', name: 'College of Whispers', source: 'XGE' }
+        { id: 'bard.bardic_college.college_of_lore', name: 'College of Lore', source: 'PHB' },
+        { id: 'bard.bardic_college.college_of_valor', name: 'College of Valor', source: 'PHB' },
       ]
     },
     generation: {
-      abilityPriority: ['cha', 'dex']
+      primaryAbilities: ['cha', 'dex']
     },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      primaryAbilities: ['cha', 'dex'],
       savingThrows: ['cha', 'dex'],
       spellcasting: 'none',
       extraAttackLevel: 3,
@@ -435,26 +407,20 @@ export const classes: readonly CharacterClass[] = [
     name: 'Ranger',
     description: 'A class of skilled and knowledgeable trackers.',
     definitions: {
+      id: 'ranger_path',
       name: 'Ranger Path',
       selectionLevel: 3,
       options: [
-        { id: 'beast-master', name: 'Beast Master', source: 'PHB' },
-        { id: 'fey-wanderer', name: 'Fey Wanderer', source: 'TCOE' },
-        { id: 'gloom-stalker', name: 'Gloom Stalker', source: 'XGE' },
-        { id: 'horizon-walker', name: 'Horizon Walker', source: 'XGE' },
-        { id: 'hunter', name: 'Hunter', source: 'PHB' },
-        { id: 'monster-slayer', name: 'Monster Slayer', source: 'XGE' },
-        { id: 'swarmkeeper', name: 'Swarmkeeper', source: 'TCOE' },
-        { id: 'drake-warden', name: 'Drakewarden', source: 'FTD' }
+        { id: 'ranger.ranger_path.beast_master', name: 'Beast Master', source: 'PHB' },
+        { id: 'ranger.ranger_path.hunter', name: 'Hunter', source: 'PHB' },
       ]
     },
     generation: {
-      abilityPriority: ['str', 'dex']
+      primaryAbilities: ['str', 'dex']
     },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      primaryAbilities: ['str', 'dex'],
       savingThrows: ['str', 'dex'],
       spellcasting: 'none',
       extraAttackLevel: 3,
@@ -472,7 +438,7 @@ export const classes: readonly CharacterClass[] = [
           'investigation',
         ],
       },
-      weapons: {
+      weapons: {  
         type: 'fixed',
         level: 1,
         categories: ['simple', 'martial'],
@@ -493,27 +459,21 @@ export const classes: readonly CharacterClass[] = [
     name: 'Monk', 
     description: 'A class of disciplined and focused martial artists.',
     definitions: {
+      id: 'monastic_tradition',
       name: 'Monastic Tradition',
       selectionLevel: 3,
       options: [
-        { id: 'astral-self', name: 'Way of the Astral Self', source: 'TCOE' },
-        { id: 'drunken-master', name: 'Way of the Drunken Master', source: 'XGE' },
-        { id: 'four-elements', name: 'Way of the Four Elements', source: 'PHB' },
-        { id: 'kensei', name: 'Way of the Kensei', source: 'XGE' },
-        { id: 'long-death', name: 'Way of the Long Death', source: 'SCAG' },
-        { id: 'mercy', name: 'Way of Mercy', source: 'TCOE' },
-        { id: 'shadow', name: 'Way of Shadow', source: 'PHB' },
-        { id: 'open-hand', name: 'Way of the Open Hand', source: 'PHB' },
-        { id: 'sun-soul', name: 'Way of the Sun Soul', source: 'XGE' }
+        { id: 'monk.monastic_tradition.way_of_the_four_elements', name: 'Way of the Four Elements', source: 'PHB' },
+        { id: 'monk.monastic_tradition.way_of_shadow', name: 'Way of Shadow', source: 'PHB' },
+        { id: 'monk.monastic_tradition.way_of_the_open_hand', name: 'Way of the Open Hand', source: 'PHB' },
       ]
     },
     generation: {
-      abilityPriority: ['dex', 'con']
+      primaryAbilities: ['dex', 'con']
     },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      primaryAbilities: ['dex', 'con'],
       savingThrows: ['dex', 'con'],
       spellcasting: 'none',
       extraAttackLevel: 3,
@@ -552,25 +512,20 @@ export const classes: readonly CharacterClass[] = [
     name: 'Druid', 
     description: 'A class of nature-loving and wise protectors.',
     definitions: {
+      id: 'druid_circle',
       name: 'Druid Circle',
       selectionLevel: 2,
       options: [
-        { id: 'dreams', name: 'Circle of Dreams', source: 'XGE' },
-        { id: 'land', name: 'Circle of the Land', source: 'PHB' },
-        { id: 'moon', name: 'Circle of the Moon', source: 'PHB' },
-        { id: 'shepherd', name: 'Circle of the Shepherd', source: 'XGE' },
-        { id: 'spores', name: 'Circle of Spores', source: 'GGR' },
-        { id: 'stars', name: 'Circle of the Stars', source: 'TCOE' },
-        { id: 'wildfire', name: 'Circle of Wildfire', source: 'TCOE' }
+        { id: 'druid.druid_circle.circle_of_the_land', name: 'Circle of the Land', source: 'PHB' },
+        { id: 'druid.druid_circle.circle_of_the_moon', name: 'Circle of the Moon', source: 'PHB' },
       ]
     },
     generation: {
-      abilityPriority: ['wis', 'con']
+      primaryAbilities: ['wis', 'con']
     },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      primaryAbilities: ['wis', 'con'],
       savingThrows: ['wis', 'con'],
       spellcasting: 'none',
       extraAttackLevel: 3,
@@ -614,44 +569,21 @@ export const classes: readonly CharacterClass[] = [
     name: 'Warlock', 
     description: 'A class of powerful and mysterious spellcasters.',
     definitions: {
+      id: 'warlock_patron',
       name: 'Warlock Patron',
       selectionLevel: 1,
       options: [
-        { id: 'archfey', name: 'The Archfey', source: 'PHB' },
-        { id: 'celestial', name: 'The Celestial', source: 'XGE' },
-        { id: 'fathomless', name: 'The Fathomless', source: 'TCOE' },
-        { id: 'fiend', name: 'The Fiend', source: 'PHB' },
-        { id: 'genie', name: 'The Genie', source: 'TCOE' },
-        { id: 'great-old-one', name: 'The Great Old One', source: 'PHB' },
-        { 
-          id: 'hexblade',
-          name: 'The Hexblade', 
-          source: 'XGE',
-          features: [
-            {
-              name: 'Hex Warrior',
-              description: 'Hex Warrior: Grants proficiency with Medium Armor, Shields, and Martial Weapons.',
-              kind: 'grant',
-              grantType: 'proficiency',
-              level: 1,
-              value: [
-                { target: 'armor', categories: ['medium', 'shield'] },
-                { target: 'weapon', categories: ['martial'] },
-              ],
-            }
-          ]
-        },
-        { id: 'undead', name: 'The Undead', source: 'VRGR' },
-        { id: 'undying', name: 'The Undying', source: 'SCAG' }
+        { id: 'warlock.warlock_patron.archfey', name: 'The Archfey', source: 'PHB' },
+        { id: 'warlock.warlock_patron.fiend', name: 'The Fiend', source: 'PHB' },
+        { id: 'warlock.warlock_patron.great_old_one', name: 'The Great Old One', source: 'PHB' },
       ]
     },
     generation: {
-      abilityPriority: ['cha', 'con']
+      primaryAbilities: ['cha', 'con']
     },
     progression: {
       hitDie: 8,
       attackProgression: 'average',
-      primaryAbilities: ['cha', 'con'],
       savingThrows: ['wis', 'cha'],
       spellcasting: 'pact',
       spellProgression: {
@@ -711,17 +643,18 @@ export const classes: readonly CharacterClass[] = [
     name: 'Sorcerer',
     description: 'A class of powerful and mysterious spellcasters.',
     definitions: {
+      id: 'sorcerer_origin',
       name: 'Sorcerer Origin',
       selectionLevel: 1,
       options: [
-        { id: 'aberrant-mind', name: 'Aberrant Mind', source: 'TCOE' },
-        { id: 'clockwork-soul', name: 'Clockwork Soul', source: 'TCOE' },
         {
-          id: 'draconic-bloodline',
+          id: 'sorcerer.sorcerer_origin.draconic_bloodline',
           name: 'Draconic Bloodline',
           source: 'PHB',
           features: [
             {
+              name: 'Draconic Ancestry',
+              id: 'sorcerer.sorcerer_origin.draconic_bloodline.draconic_ancestry',
               kind: 'formula',
               target: 'armor_class',
               level: 1,
@@ -732,6 +665,8 @@ export const classes: readonly CharacterClass[] = [
               }
             },
             {
+              name: 'Draconic Resilience',
+              id: 'sorcerer.sorcerer_origin.draconic_bloodline.draconic_resilience',
               kind: 'modifier',
               level: 1,
               target: 'hit_points_max',
@@ -740,18 +675,15 @@ export const classes: readonly CharacterClass[] = [
             }
           ]
         },
-        { id: 'shadow-magic', name: 'Shadow Magic', source: 'XGE' },
-        { id: 'storm-sorcery', name: 'Storm Sorcery', source: 'SCAG' },
-        { id: 'wild-magic', name: 'Wild Magic', source: 'PHB' }
+        { id: 'sorcerer.sorcerer_origin.draconic_bloodline.wild_magic', name: 'Wild Magic', source: 'PHB' }
       ]
     },
     generation: {
-      abilityPriority: ['cha', 'con']
+      primaryAbilities: ['cha', 'con']
     },
     progression: {
       hitDie: 6,
       attackProgression: 'poor',
-      primaryAbilities: ['cha', 'con'],
       savingThrows: ['con', 'cha'],
       spellcasting: 'full',
       spellProgression: {
@@ -804,33 +736,27 @@ export const classes: readonly CharacterClass[] = [
     name: 'Barbarian',
     description: 'A class of powerful and mysterious spellcasters.',
     definitions: {
+      id: 'barbarian_path',
       name: 'Barbarian Path',
       selectionLevel: 3,
       options: [
-        { id: 'ancestral-guardian', name: 'Path of the Ancestral Guardian', source: 'XGE' },
-        { id: 'battlerager', name: 'Path of the Battlerager', source: 'SCAG' },
-        { id: 'beast', name: 'Path of the Beast', source: 'TCOE' },
-        { id: 'zealot', name: 'Path of the Zealot', source: 'XGE' },
-        { id: 'storm-herald', name: 'Path of the Storm Herald', source: 'XGE' },
-        { id: 'totem-warrior', name: 'Path of the Totem Warrior', source: 'PHB' },
-        { id: 'berserker', name: 'Path of the Berserker', source: 'PHB' },
-        { id: 'wild-magic', name: 'Path of Wild Magic', source: 'TCOE' }
+        { id: 'barbarian.barbarian_path.totem_warrior', name: 'Path of the Totem Warrior', source: 'PHB' },
+        { id: 'barbarian.barbarian_path.berserker', name: 'Path of the Berserker', source: 'PHB' },
       ]
     },
     generation: {
-      abilityPriority: ['strength', 'constitution']
+      primaryAbilities: ['str', 'con']
     },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      primaryAbilities: ['cha', 'con'],
-      savingThrows: ['cha', 'con'],
+      savingThrows: ['con', 'cha'],
       spellcasting: 'none',
       extraAttackLevel: 3,
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
       features: [
         {
-          id: 'unarmored-defense',
+          id: 'barbarian.feature.unarmored_defense',
           name: 'Unarmored Defense',
           level: 1,
           effects: [
@@ -841,7 +767,7 @@ export const classes: readonly CharacterClass[] = [
                 base: 10,
                 abilities: ['dexterity', 'constitution'],
               },
-              source: 'barbarian.unarmored_defense',
+              //source: 'barbarian.barbarian_path.totem_warrior.unarmored_defense',
               condition: {
                 kind: 'state',
                 target: 'self',
@@ -851,19 +777,18 @@ export const classes: readonly CharacterClass[] = [
             },
           ],
         },
-        { id: 'rage', level: 1, name: 'Rage' },
-        { id: 'unarmored-defense', level: 1, name: 'Unarmored Defense' },
-        { id: 'reckless-attack', level: 2, name: 'Reckless Attack' },
-        { id: 'danger-sense', level: 2, name: 'Danger Sense' },
-        { id: 'primal-path', level: 3, name: 'Primal Path' },
-        { id: 'extra-attack', level: 5, name: 'Extra Attack' },
-        { id: 'fast-movement', level: 5, name: 'Fast Movement' },
-        { id: 'feral-instinct', level: 7, name: 'Feral Instinct' },
-        { id: 'brutal-critical', level: 9, name: 'Brutal Critical' },
-        { id: 'relentless-rage', level: 11, name: 'Relentless Rage' },
-        { id: 'persistent-rage', level: 15, name: 'Persistent Rage' },
-        { id: 'indomitable-might', level: 18, name: 'Indomitable Might' },
-        { id: 'primal-champion', level: 20, name: 'Primal Champion' },
+        { id: 'barbarian.feature.rage', level: 1, name: 'Rage' },
+        { id: 'barbarian.feature.reckless_attack', level: 2, name: 'Reckless Attack' },
+        { id: 'barbarian.feature.danger_sense', level: 2, name: 'Danger Sense' },
+        { id: 'barbarian.feature.primal_path', level: 3, name: 'Primal Path' },
+        { id: 'barbarian.feature.extra_attack', level: 5, name: 'Extra Attack' },
+        { id: 'barbarian.feature.fast_movement', level: 5, name: 'Fast Movement' },
+        { id: 'barbarian.feature.feral_instinct', level: 7, name: 'Feral Instinct' },
+        { id: 'barbarian.feature.brutal_critical', level: 9, name: 'Brutal Critical' },
+        { id: 'barbarian.feature.relentless_rage', level: 11, name: 'Relentless Rage' },
+        { id: 'barbarian.feature.persistent_rage', level: 15, name: 'Persistent Rage' },
+        { id: 'barbarian.feature.indomitable_might', level: 18, name: 'Indomitable Might' },
+        { id: 'barbarian.feature.primal_champion', level: 20, name: 'Primal Champion' },
       ]
     },
     proficiencies: {
@@ -899,31 +824,26 @@ export const classes: readonly CharacterClass[] = [
     name: 'Wizard',
     description: 'A class of wise and powerful spellcasters.',
     definitions: {
+      id: 'wizard.subclass.arcane_tradition',
       name: 'Arcane Tradition',
       selectionLevel: 2,
       options: [
-        { id: 'abjuration', name: 'School of Abjuration', source: 'PHB' },
-        { id: 'bladesinging', name: 'Bladesinging', source: 'TCOE' },
-        { id: 'chronurgy', name: 'Chronurgy Magic', source: 'EGW' },
-        { id: 'conjuration', name: 'School of Conjuration', source: 'PHB' },
-        { id: 'divination', name: 'School of Divination', source: 'PHB' },
-        { id: 'enchantment', name: 'School of Enchantment', source: 'PHB' },
-        { id: 'evocation', name: 'School of Evocation', source: 'PHB' },
-        { id: 'graviturgy', name: 'Graviturgy Magic', source: 'EGW' },
-        { id: 'illusion', name: 'School of Illusion', source: 'PHB' },
-        { id: 'necromancy', name: 'School of Necromancy', source: 'PHB' },
-        { id: 'order-of-scribes', name: 'Order of Scribes', source: 'TCOE' },
-        { id: 'transmutation', name: 'School of Transmutation', source: 'PHB' },
-        { id: 'war-magic', name: 'War Magic', source: 'XGE' }
+        { id: 'wizard.subclass.arcane_tradition.school_of_abjuration', name: 'School of Abjuration', source: 'PHB' },
+        { id: 'wizard.subclass.arcane_tradition.school_of_conjuration', name: 'School of Conjuration', source: 'PHB' },
+        { id: 'wizard.subclass.arcane_tradition.school_of_divination', name: 'School of Divination', source: 'PHB' },
+        { id: 'wizard.subclass.arcane_tradition.school_of_enchantment', name: 'School of Enchantment', source: 'PHB' },
+        { id: 'wizard.subclass.arcane_tradition.school_of_evocation', name: 'School of Evocation', source: 'PHB' },
+        { id: 'wizard.subclass.arcane_tradition.school_of_illusion', name: 'School of Illusion', source: 'PHB' },
+        { id: 'wizard.subclass.arcane_tradition.school_of_necromancy', name: 'School of Necromancy', source: 'PHB' },
+        { id: 'wizard.subclass.arcane_tradition.school_of_transmutation', name: 'School of Transmutation', source: 'PHB' },
       ]
     },
     generation: {
-      abilityPriority: ['intelligence', 'constitution']
+      primaryAbilities: ['con', 'int']
     },
     progression: {
       hitDie: 6,
       attackProgression: 'poor',
-      primaryAbilities: ['int', 'con'],
       savingThrows: ['int', 'wis'],
       spellcasting: 'full',
       spellProgression: {
@@ -935,11 +855,11 @@ export const classes: readonly CharacterClass[] = [
       },
       asiLevels: [4, 8, 12, 16, 19],
       features: [
-        { id: 'spellcasting', level: 1, name: 'Spellcasting' },
-        { id: 'arcane-recovery', level: 1, name: 'Arcane Recovery' },
-        { id: 'arcane-tradition', level: 2, name: 'Arcane Tradition' },
-        { id: 'spell-mastery', level: 18, name: 'Spell Mastery' },
-        { id: 'signature-spells', level: 20, name: 'Signature Spells' },
+        { id: 'wizard.feature.spellcasting', level: 1, name: 'Spellcasting' },
+        { id: 'wizard.feature.arcane_recovery', level: 1, name: 'Arcane Recovery' },
+        { id: 'wizard.feature.arcane_tradition', level: 2, name: 'Arcane Tradition' },
+        { id: 'wizard.feature.spell_mastery', level: 18, name: 'Spell Mastery' },
+        { id: 'wizard.feature.signature_spells', level: 20, name: 'Signature Spells' },
       ],
     },
     proficiencies: {
@@ -971,7 +891,7 @@ export const classes: readonly CharacterClass[] = [
       multiclassing: {
         note: 'Requires 13 Intelligence',
         anyOf: [
-          { all: [{ ability: 'intelligence', min: 13 }] },
+          { all: [{ ability: 'int', min: 13 }] },
         ],
       }
     } 

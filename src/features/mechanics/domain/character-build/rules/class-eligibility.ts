@@ -5,10 +5,10 @@
  * returning structured reason codes instead of display strings.
  * UI maps codes to friendly copy.
  */
-import { classes } from '@/data'
+import { classes } from '@/data/classes'
 import { getById } from '@/utils'
-import type { ClassRequirement } from '@/data'
-import type { AlignmentId } from '@/data'
+import type { ClassRequirement } from '@/features/classes/domain/types'
+import type { AlignmentId } from '@/features/classes/domain/types'
 import type { BuildDraft } from '../types'
 
 // ---------------------------------------------------------------------------

@@ -259,7 +259,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
       return { ...s, classes, xp: xp ?? s.xp }
     })
 
-  const setClassDefinitionId = (subclassId: string) =>
+  const setSubclassSelectionId = (subclassId: string) =>
     updateActiveClass(cls => ({ ...cls, subclassId }))
 
   const setClassLevel = (index: number, level: number) =>
@@ -364,7 +364,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
   }
 
 
-  const updateClassDefinition = (index: number, subclassId?: string) =>
+  const updateSubclassSelection = (index: number, subclassId?: string) =>
     updateState(s => {
       const cls = s.classes[index]
       if (!cls) return s
@@ -799,14 +799,14 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
         setRace,
 
         setClassId,
-        setClassDefinitionId,
+        setSubclassSelectionId,
         setClassLevel,
         setActiveClassIndex,
         addClass,
         removeClass,
         updateClassLevel,
-        updateClassDefinition,
-        updateSubclass: updateClassDefinition,
+        updateSubclassSelection,
+        updateSubclass: updateSubclassSelection,
         allocateRemainingLevels,
 
         chooseImportCharacter,

@@ -1,5 +1,5 @@
 import type { MulticlassingRules } from '@/shared/types/ruleset';
-import type { AbilityRequirementGroup, RequirementExpr } from '@/data/classes.types';
+import type { AbilityRequirementGroup, RequirementExpr } from '@/features/classes/domain/types';
 import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types';
 import type { AbilityScoreValue } from '@/features/mechanics/domain/core/character/abilities.types';
 import { classes } from '@/data/classes';
