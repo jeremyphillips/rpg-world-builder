@@ -1,6 +1,6 @@
 import { systemCatalog } from '@/features/mechanics/domain/core/rules/systemCatalog'
 import type { ClassProficiencySkill, CharacterClass } from '@/data/classes.types'
-import type { CharacterClassInfo, CharacterProficiencies } from '@/shared/types/character.core'
+import type { CharacterClassInfo, CharacterProficiencies } from '@/features/character/domain/types'
 
 export interface ProficiencySlotSummary {
   /** Total slots granted across all class skill proficiency groups. */

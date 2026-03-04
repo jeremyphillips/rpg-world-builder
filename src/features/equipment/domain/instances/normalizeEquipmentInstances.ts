@@ -1,4 +1,4 @@
-import type { Equipment, EquipmentItemInstance } from '@/shared/types/character.core'
+import type { Equipment, EquipmentItemInstance } from '@/features/character/domain/types'
 
 let counter = 0
 function nextInstanceId(): string {

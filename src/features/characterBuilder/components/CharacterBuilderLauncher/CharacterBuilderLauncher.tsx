@@ -4,7 +4,7 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { ChatContainer } from '@/chat'
-import type { CharacterType } from '@/shared/types/character.core'
+import type { CharacterType } from '@/features/character/domain/types'
 
 type CharacterBuilderLauncherProps = {
   buttonLabel?: string

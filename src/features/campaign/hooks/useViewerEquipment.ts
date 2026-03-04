@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '@/app/api';
 import { useCampaignMembers } from './useCampaignMembers';
-import type { Equipment } from '@/shared/types/character.core';
+import type { Equipment } from '@/features/character/domain/types';
 
 type CharacterEquipmentResponse = {
   character: {

@@ -5,7 +5,7 @@ import type {
   CharacterProficiencies, 
   EquipmentLoadout, 
   EquipmentItemInstance,
-} from '@/shared/types/character.core'
+} from '@/features/character/domain/types'
 import type { HitPointMode } from '@/features/mechanics/domain/character/progression'
 import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
 import type { AbilityScoreValue, AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'

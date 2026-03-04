@@ -1,6 +1,6 @@
-import type { Character } from '@/shared/types'
+import type { Character } from '@/features/character/domain/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
-import type { EquipmentLoadout } from '@/shared/types/character.core'
+import type { EquipmentLoadout } from '@/features/character/domain/types'
 import { resolveStatDetailed, type BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
 import { buildCharacterContext, withLoadout } from './buildCharacterContext'
 import {

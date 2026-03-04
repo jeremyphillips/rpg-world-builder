@@ -63,8 +63,6 @@ export default function EquipmentHubRoute() {
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
-  // const canEdit = canManage && race.source === 'campaign';
-  // const canPatch = canManage && race.source === 'system';
 
   const [counts, setCounts] = useState<Record<string, number | null>>({
     weapons: null,

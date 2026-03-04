@@ -14,7 +14,7 @@ import {
 } from '../steps'
 import { type CharacterBuilderState, type StepId, type BuilderOverrides } from '../types'
 import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'
-import type { CharacterType } from '@/shared/types/character.core'
+import type { CharacterType } from '@/features/character/domain/types'
 import { classes } from '@/data/classes'
 import { getById } from '@/utils'
 import { ABILITY_KEYS, type AbilityScoreMap } from '@/features/mechanics/domain/core/character'

@@ -1,5 +1,5 @@
 import type { Character } from '@/shared/types'
-import type { EquipmentLoadout } from '@/shared/types/character.core'
+import type { EquipmentLoadout } from '@/features/character/domain/types'
 import type { EvaluationContext, CreatureSnapshot } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
 import { resolveLoadout, resolveWieldedWeaponIds } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'

@@ -11,7 +11,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 
 import { AppModal } from '@/ui/patterns'
 import { ConfirmModal } from '@/ui/patterns'
-import type { Wealth } from '@/shared/types/character.core'
+import type { Wealth } from '@/features/character/domain/types'
 import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------

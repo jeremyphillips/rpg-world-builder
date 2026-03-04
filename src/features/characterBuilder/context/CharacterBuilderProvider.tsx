@@ -1,8 +1,8 @@
 import { useMemo, useEffect, useCallback, useState, type PropsWithChildren } from "react"
 import CharacterBuilderContext from './CharacterBuilderContext'
 import type { CharacterBuilderState, StepId, AbilityScoreSource, AbilityScoresStatus } from '../types'
-import type { CharacterClassInfo } from '@/shared/types/character.core'
-import type { CharacterProficiencies, EquipmentItemInstance } from '@/shared/types/character.core'
+import type { CharacterClassInfo } from '@/features/character/domain/types'
+import type { CharacterProficiencies, EquipmentItemInstance } from '@/features/character/domain/types'
 import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import {
@@ -710,7 +710,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
     }))
   }
 
-  const updateLoadout = (patch: import('@/shared/types/character.core').EquipmentLoadout) => {
+  const updateLoadout = (patch: import('@/features/character/domain/types').EquipmentLoadout) => {
     setState(prev => ({
       ...prev,
       combat: {

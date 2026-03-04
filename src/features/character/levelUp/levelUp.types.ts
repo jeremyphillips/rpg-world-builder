@@ -3,7 +3,7 @@
 // Types for the level-up wizard — a lightweight flow separate from the
 // full character builder, focused on incremental level advancement.
 
-import type { CharacterClassInfo } from '@/shared/types/character.core'
+import type { CharacterClassInfo } from '@/features/character/domain/types'
 import type { ClassId } from '@/shared/types/ruleset'
 import type { Spell } from '@/features/content/domain/types'
 

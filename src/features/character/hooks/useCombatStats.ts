@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { Character } from '@/shared/types/character.core'
+import type { Character } from '@/features/character/domain/types'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { buildCharacterContext } from '../domain/engine/buildCharacterContext'
 import { collectIntrinsicEffects } from '../domain/engine/collectCharacterEffects'

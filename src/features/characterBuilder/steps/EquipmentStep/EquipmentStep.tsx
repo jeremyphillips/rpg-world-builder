@@ -13,7 +13,7 @@ import {
   deriveEquipmentProficiency,
   evaluateEquipmentEligibility,
 } from '@/features/mechanics/domain/proficiencies/proficiency-adapters'
-import type { Character } from '@/shared/types/character.core'
+import type { Character } from '@/features/character/domain/types'
 
 import { calculateWealth } from '@/features/mechanics/domain/character/generation'
 

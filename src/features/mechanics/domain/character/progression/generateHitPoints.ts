@@ -1,4 +1,4 @@
-import type { HitPoints } from '@/shared/types/character.core'
+import type { HitPoints } from '@/features/character/domain/types'
 import { getAverageHitPointsForLevel } from './getAverageHitPointsForLevel'
 import { getHitPointInfoByClassId } from '@/features/mechanics/domain/classes/progression'
 import { rollHitDie } from '@/features/mechanics/domain/dice'
