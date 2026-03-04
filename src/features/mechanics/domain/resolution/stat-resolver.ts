@@ -5,8 +5,8 @@ import { resolveFormulaValue } from "./formula.engine"
 import type { FormulaEffect, FormulaDefinition } from "./formula.engine"
 import { getBaseStat } from "../core/base-stat-resolver"
 import { getAbilityModifier } from "../core/ability.utils"
-import { getProficiencyBonus } from "../core/progression/proficiency"
-import type { AbilityId, AbilityIdAbbreviationMap } from "@/shared/types/character.core"
+import { getProficiencyAttackBonus } from "@/features/mechanics/domain/character/progression"
+import type { AbilityId, AbilityIdAbbreviationMap } from "@/data/character.types"
 
 // ---------------------------------------------------------------------------
 // Stat target
@@ -169,7 +169,7 @@ function buildFormulaTokens(
   }
 
   if (formula.proficiency) {
-    const prof = getProficiencyBonus(context.self.level)
+    const prof = getProficiencyAttackBonus(context.self.level)
     tokens.push({ label: 'Prof', value: sign(prof), type: 'proficiency' })
   }
 

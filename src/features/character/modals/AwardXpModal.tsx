@@ -7,7 +7,7 @@ import { AppAlert } from '@/ui/primitives'
 import CircularProgress from '@mui/material/CircularProgress'
 
 import { AppModal } from '@/ui/patterns'
-import { getLevelForXp, getXpForLevel } from '@/features/mechanics/domain/progression'
+import { getLevelForXp, getXpForLevel } from '@/features/mechanics/domain/core/progression/xp'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 
 // ---------------------------------------------------------------------------

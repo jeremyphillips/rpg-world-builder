@@ -4,7 +4,14 @@
 import type { Spell, SpellInput } from '@/features/content/domain/types/spell.types';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab';
 import { numberRange, type FieldSpec } from '@/features/content/forms/registry';
+import { getSpellcastingClasses } from '@/features/mechanics/domain/classes/queries';
+import { classes } from '@/data/classes';
 import type { SpellFormValues } from './spellForm.types';
+
+const SPELL_CLASS_OPTIONS = getSpellcastingClasses(classes).map((c) => ({
+  value: c.id,
+  label: c.name,
+}));
 
 const numOrUndefined = (v: unknown): number | undefined => {
   if (v === '' || v == null) return undefined;
@@ -35,18 +42,6 @@ const formatEffectsJson = (v: unknown): string => {
     return '[]';
   }
 };
-
-/** 5e spellcasting classes for spell form. */
-const SPELL_CLASS_OPTIONS = [
-  { value: 'bard', label: 'Bard' },
-  { value: 'cleric', label: 'Cleric' },
-  { value: 'druid', label: 'Druid' },
-  { value: 'paladin', label: 'Paladin' },
-  { value: 'ranger', label: 'Ranger' },
-  { value: 'sorcerer', label: 'Sorcerer' },
-  { value: 'warlock', label: 'Warlock' },
-  { value: 'wizard', label: 'Wizard' },
-] as const;
 
 export const SPELL_FORM_FIELDS = [
   {
@@ -85,7 +80,7 @@ export const SPELL_FORM_FIELDS = [
     name: 'classes',
     label: 'Classes',
     kind: 'checkboxGroup' as const,
-    options: SPELL_CLASS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+    options: SPELL_CLASS_OPTIONS,
     defaultValue: [] as SpellFormValues['classes'],
     parse: (v: unknown) => (Array.isArray(v) ? (v as SpellInput['classes']) : undefined),
     format: (v: unknown) => arrOrEmpty(v) as SpellFormValues['classes'],

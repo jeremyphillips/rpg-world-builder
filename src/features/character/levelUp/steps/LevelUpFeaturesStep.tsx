@@ -11,9 +11,9 @@ import Chip from '@mui/material/Chip'
 import StarIcon from '@mui/icons-material/Star'
 
 import { useMemo } from 'react'
-import { getClassProgression } from '@/features/mechanics/domain/progression'
+import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
 import type { LevelUpState } from '../levelUp.types'
-import type { ClassFeature } from '@/shared/types'
+import type { ClassFeature } from '@/data/classes.types'
 import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
@@ -29,15 +29,15 @@ interface LevelUpFeaturesStepProps {
 // ---------------------------------------------------------------------------
 
 export default function LevelUpFeaturesStep({ state }: LevelUpFeaturesStepProps) {
-  const { edition, primaryClassId, classes, pendingLevel, currentLevel } = state
+  const { primaryClassId, classes, pendingLevel, currentLevel } = state
 
   const primaryClass = classes.find(c => c.classId === primaryClassId)
   const oldClassLevel = primaryClass?.level ?? 1
   const newClassLevel = oldClassLevel + (pendingLevel - currentLevel)
 
   const prog = useMemo(
-    () => getClassProgression(primaryClassId, edition),
-    [primaryClassId, edition],
+    () => getClassProgression(primaryClassId),
+    [primaryClassId],
   )
 
   // Gather features gained between old level (exclusive) and new level (inclusive)

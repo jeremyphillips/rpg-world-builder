@@ -1,4 +1,3 @@
-// import type { StartingWealth } from '@/data/classes/types'
 import type { WealthTier } from '@/data/classes.types'
 
 /**

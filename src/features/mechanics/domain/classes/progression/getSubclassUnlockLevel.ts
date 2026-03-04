@@ -10,9 +10,6 @@ export const getSubclassUnlockLevel = (
   if (!cls) return null
 
   const definition = cls.definitions
-  // const definition = cls.definitions.find(
-  //   (d) => d.edition === edition && typeof d.selectionLevel === 'number'
-  // )
 
   return definition?.selectionLevel ?? null
 }

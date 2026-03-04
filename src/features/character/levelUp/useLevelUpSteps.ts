@@ -5,8 +5,11 @@
 
 import { useMemo } from 'react'
 import type { LevelUpStepConfig, LevelUpState } from './levelUp.types'
-import { getClassProgression, getSubclassUnlockLevel } from '@/features/mechanics/domain/progression'
-import { getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/spells'
+import { 
+  getClassSpellLimitsAtLevel, 
+  getClassProgression, 
+  getSubclassUnlockLevel 
+} from '@/features/mechanics/domain/classes/progression'
 
 /**
  * Returns the ordered list of level-up wizard steps required for this

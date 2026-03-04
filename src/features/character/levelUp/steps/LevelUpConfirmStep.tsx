@@ -4,7 +4,7 @@
 
 import { useMemo } from 'react'
 import { getSubclassNameById } from '@/features/character/domain/reference'
-import { getClassProgression } from '@/features/mechanics/domain/progression'
+import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
 import { getSystemSpells } from '@/features/mechanics/domain/core/rules/systemCatalog.spells'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
 import type { LevelUpState } from '../levelUp.types'

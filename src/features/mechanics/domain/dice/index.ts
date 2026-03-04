@@ -9,3 +9,5 @@ export {
   type ParsedXdY,
   type ParseXdYOptions,
 } from './dice.parse';
+
+export { rollHitDie } from './rollHitDie';

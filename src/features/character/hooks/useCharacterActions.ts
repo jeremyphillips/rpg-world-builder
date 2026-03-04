@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { CharacterDoc } from '@/shared'
 import type { LevelUpResult } from '@/features/character/levelUp'
-import { getXpForLevel } from '@/features/mechanics/domain/progression'
+import { getXpForLevel } from '@/features/mechanics/domain/core/progression/xp'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { apiFetch } from '@/app/api'
 import type { CampaignSummary, PendingMembership } from '@/shared/types/campaign.types'

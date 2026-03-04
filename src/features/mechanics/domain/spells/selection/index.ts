@@ -1,7 +1,5 @@
 export { pruneSelectedSpells, type SpellPruneResult } from './prune-selected-spells'
 
-export { type CastingMode } from '../progression'
-
 export {
   buildSpellSelectionModel,
   isSpellLevelFull,

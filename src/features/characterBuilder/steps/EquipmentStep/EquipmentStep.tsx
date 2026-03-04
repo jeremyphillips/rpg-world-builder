@@ -15,7 +15,7 @@ import {
 } from '@/features/mechanics/domain/proficiencies/proficiency-adapters'
 import type { Character } from '@/shared/types/character.core'
 
-import { calculateWealth } from '@/features/mechanics/domain/core/progression'
+import { calculateWealth } from '@/features/mechanics/domain/character/generation'
 
 const EquipmentStep = () => {
   const initializedRef = useRef(false)

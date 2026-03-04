@@ -3,8 +3,10 @@
 // Lets the character owner choose how to generate HP for the new level:
 // take the average or roll.
 
-import { useMemo, useCallback } from 'react'
-import { getHitPointInfo, getAverageHpForLevel, rollHitDie } from '@/features/mechanics/domain/progression'
+import { useCallback } from 'react'
+import { getHitPointInfoByClassId } from '@/features/mechanics/domain/classes/progression'
+import { getAverageHitPointsForLevel } from '@/features/mechanics/domain/character/progression/getAverageHitPointsForLevel'
+import { rollHitDie } from '@/features/mechanics/domain/dice'
 import type { LevelUpState } from '../levelUp.types'
 
 import Box from '@mui/material/Box'
@@ -32,17 +34,14 @@ export default function LevelUpHitPointsStep({
   state,
   onChange,
 }: LevelUpHitPointsStepProps) {
-  const { edition, primaryClassId, hpGained, hpMethod } = state
+  const { primaryClassId, hpGained, hpMethod } = state
 
-  const hpInfo = useMemo(
-    () => getHitPointInfo(primaryClassId, edition),
-    [primaryClassId, edition],
-  )
+  const hpInfo = getHitPointInfoByClassId(primaryClassId)
 
   const { hitDie, averageHp, isFlat, flatHp } = hpInfo
 
   const handleAverage = useCallback(() => {
-    onChange({ hpGained: getAverageHpForLevel(hpInfo), hpMethod: 'average' })
+    onChange({ hpGained: getAverageHitPointsForLevel(hpInfo), hpMethod: 'average' })
   }, [hpInfo, onChange])
 
   const handleRoll = useCallback(() => {

@@ -3,7 +3,7 @@ import type { EffectBase } from "../effects/effects.types"
 import type { AbilityScores } from "@/shared/types/character.core"
 import type { EvaluationContext } from "../conditions/evaluation-context.types"
 import { getAbilityModifier } from "../core"
-import { getProficiencyBonus } from "../core/progression"
+import { getProficiencyAttackBonus } from "@/features/mechanics/domain/character/progression"
 
 // Responsible for:
 //   - Evaluating formula definitions
@@ -59,7 +59,7 @@ export function resolveFormulaValue(
   }
 
   if (formula.proficiency) {
-    value += getProficiencyBonus(context.self.level)
+    value += getProficiencyAttackBonus(context.self.level)
   }
 
   if (formula.perLevel) {

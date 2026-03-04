@@ -2,7 +2,7 @@ import type { AbilityScores } from '@/shared/types/character.core'
 import type { EvaluationContext } from '../conditions/evaluation-context.types'
 import type { Effect } from '../effects/effects.types'
 import { getAbilityModifier } from '../core/ability.utils'
-import { getProficiencyBonus } from '../core/progression/proficiency'
+import { getProficiencyAttackBonus } from '@/features/mechanics/domain/character/progression'
 import { resolveStatDetailed, type BreakdownToken } from './stat-resolver'
 import type { DamageType } from '@/features/content/domain/vocab/weapons.vocab'
 
@@ -103,7 +103,7 @@ export function resolveWeaponAttackBonus(
   const _hand = options.hand ?? 'main'
   const abilityUsed = pickAttackAbility(context, weapon)
   const abilityMod = getAbilityModifier(context.self, abilityUsed)
-  const proficiencyBonus = getProficiencyBonus(context.self.level)
+  const proficiencyBonus = getProficiencyAttackBonus(context.self.level)
 
   const weaponFormula: Effect = {
     kind: 'formula',

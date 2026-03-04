@@ -19,10 +19,8 @@ import {
 import {
   generateAbilityScores,
 } from '@/features/mechanics/domain/generation/ability-scores'
-import { 
-  getSubclassUnlockLevel,
-  getXpForLevel,
-} from '@/features/mechanics/domain/progression'
+import { getXpForLevel } from '@/features/mechanics/domain/core/progression/xp'
+import { getSubclassUnlockLevel } from '@/features/mechanics/domain/classes/progression'
 import {
   calculateEquipmentWeight,
   calculateEquipmentCostCp,

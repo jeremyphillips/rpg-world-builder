@@ -8,6 +8,7 @@ import type {
 import type { WealthTier } from '@/data/classes.types';
 import type { MagicItemRarity } from '@/features/content/domain/types';
 import type { AbilityId } from '@/shared/types/character.core';
+import type { XpTable } from '@/features/mechanics/domain/core/progression/xp/xp.types';
 
 export type {
   ResolveMode,
@@ -101,7 +102,7 @@ export type StartingWealthRules = {
 export type LevelingRules = {
   levelCap: number;
   mode: 'xp' | 'milestone';
-  xpTable?: Array<{ level: number; xpRequired: number }>;
+  xpTable?: XpTable;
 };
 
 export type ProficiencyRules = {

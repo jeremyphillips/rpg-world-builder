@@ -1,4 +1,4 @@
-import type { LevelProgression } from '@/data/editions/edition.types'
+import type { XpTable } from '@/features/mechanics/domain/core/progression/xp/xp.types'
 
 /**
  * Determine the character level for a given XP total.
@@ -7,7 +7,7 @@ import type { LevelProgression } from '@/data/editions/edition.types'
  */
 export const getLevelForXp = (
   xp: number,
-  xpTable?: LevelProgression[],
+  xpTable?: XpTable,
 ): number => {
   if (!xpTable?.length) return 1
 
@@ -21,22 +21,4 @@ export const getLevelForXp = (
   }
 
   return 1
-}
-
-/**
- * Look up the XP required to reach a given level.
- */
-export const getXpForLevel = (
-  level: number,
-  xpTable?: LevelProgression[],
-): number => {
-  if (!xpTable?.length) return 0
-
-  const maxLevel = xpTable.length > 0
-    ? Math.max(...xpTable.map(e => e.level))
-    : 1
-
-  const target = Math.min(Math.max(1, level), maxLevel)
-  const entry = xpTable.find(e => e.level === target)
-  return entry?.xpRequired ?? 0
 }

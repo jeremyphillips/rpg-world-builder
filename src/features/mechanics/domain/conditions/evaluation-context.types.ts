@@ -1,4 +1,5 @@
 import type { AbilityScores } from "@/shared/types/character.core";
+import type { DieFace } from "@/features/mechanics/domain/dice/dice.types";
 
 export interface EvaluationContext {
   self: CreatureSnapshot
@@ -16,7 +17,7 @@ export interface CreatureSnapshot {
   hp: number
   hpMax: number
 
-  hitDie?: number
+  hitDie?: DieFace
 
   abilities: Record<keyof AbilityScores, number>
 

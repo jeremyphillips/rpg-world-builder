@@ -1,7 +1,7 @@
 import type { StatTarget } from '../resolution/stat-resolver'
 import type { EvaluationContext } from '../conditions/evaluation-context.types'
 import { getAbilityModifier } from './ability.utils'
-import { calculateBaseHitPoints } from './progression/hit-points'
+import { calculateBaseHitPoints } from '@/features/mechanics/domain/character/generation'
 
 /**
  * Compute the unmodified base value for a stat.

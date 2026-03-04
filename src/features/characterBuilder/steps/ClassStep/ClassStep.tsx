@@ -3,10 +3,9 @@ import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { evaluateClassEligibility, getClassRestrictionNotes } from '@/features/mechanics/domain/character-build/rules'
-import { getSubclassUnlockLevel } from '@/features/mechanics/domain/progression'
+import { getSubclassUnlockLevel } from '@/features/mechanics/domain/classes/progression'
 import { getClassDefinitions } from '@/features/character/domain/reference'
 import { canAddClass } from '@/features/character/domain/validation'
-import { getClassProgression } from '@/features/mechanics/domain/progression'
 import type { ClassProgression } from '@/data/classes.types'
 import { ButtonGroup } from '@/ui/patterns'
 import { getSubclassNameById } from '@/features/character/domain/reference'
@@ -33,7 +32,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 // ---------------------------------------------------------------------------
 
 function formatHitDie(prog: ClassProgression): string {
-  if (prog.hitDie === 0 && prog.hpPerLevel) return `${prog.hpPerLevel} HP/level`
+  if (!prog.hitDie && prog.hpPerLevel) return `${prog.hpPerLevel} HP/level`
   return `d${prog.hitDie}`
 }
 
@@ -50,7 +49,7 @@ function formatSpellcasting(prog: ClassProgression): string | null {
 
 function formatSavingThrows(prog: ClassProgression): string | null {
   if (!prog.savingThrows || prog.savingThrows.length === 0) return null
-  return prog.savingThrows.map((s) => s.toUpperCase()).join(', ')
+  return prog.savingThrows.join(', ')
 }
 
 const ClassStep = () => {

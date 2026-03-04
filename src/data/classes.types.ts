@@ -1,5 +1,6 @@
 import type { AlignmentId } from '@/data'
 import type { AbilityId, AbilityIdAbbreviation } from '@/shared/types/character.core'
+import type { DieFace } from '@/features/mechanics/domain/dice/dice.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 
 // ---------------------------------------------------------------------------
@@ -73,9 +74,9 @@ export interface StartingWealth {
 // Definitions (subclass / archetype / kit)
 // ---------------------------------------------------------------------------
 
-export type SubclassFeatureData = {
-  name?: string
-  level?: number
+export type SubclassFeature = {
+  name: string
+  level: number
   description?: string
   kind?: string
   [key: string]: unknown
@@ -85,7 +86,7 @@ export interface SubclassOption {
   id: string
   name: string
   source?: string
-  features?: SubclassFeatureData[]
+  features?: SubclassFeature[]
 }
 
 export interface ClassDefinition {
@@ -216,8 +217,15 @@ export interface ClassFeature {
   effects?: ClassFeatureEffects
 }
 
+export type SpellcastingAbility =
+  | 'full'
+  | 'half'
+  | 'third'
+  | 'pact'
+  | 'none';
+
 export interface ClassProgression {
-  hitDie: number                              // d6=6, d8=8, d10=10, d12=12; 4e: 0 (use hpPerLevel)
+  hitDie: DieFace
   hpPerLevel?: number                         // 4e flat HP per level; other editions: derived from hitDie
   attackProgression: AttackProgression         // normalized: good/average/poor
   primaryAbilities: AbilityIdAbbreviation[]                   // e.g. ['str', 'con'] for Fighter
@@ -229,7 +237,7 @@ export interface ClassProgression {
   savingThrows?: AbilityIdAbbreviation[]      // e.g. ['str', 'con']
   features?: ClassFeature[]                   // class features by level
   asiLevels?: number[]                        // levels that grant ASI (e.g. [4, 6, 8, 12, 14, 16, 19])
-  spellcasting?: string                       // 'full' | 'half' | 'third' | 'pact' | 'none'
+  spellcasting?: SpellcastingAbility
   spellProgression?: SpellProgression         // actual spell slot table + known/prepared data
   extraAttackLevel?: number                   // level that grants Extra Attack
 
@@ -280,8 +288,8 @@ export interface CharacterClass {
     weapons: ClassProficiencyWeapon
     armor: ClassProficiencyArmor
   }
-  progression?: ClassProgression,
-  generation?: {
+  progression: ClassProgression,
+  generation: {
     abilityPriority: AbilityId[]
   }
 }
