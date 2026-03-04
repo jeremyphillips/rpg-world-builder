@@ -137,11 +137,9 @@ export async function register(req: Request, res: Response) {
       const db = mongoose.default.connection.useDb(env.DB_NAME)
       const campaign = await db.collection('campaigns').findOne(
         { _id: tokenDoc.campaignId },
-        { projection: { 'identity.name': 1, 'identity.edition': 1, 'identity.setting': 1 } },
+        { projection: { 'identity.name': 1 } },
       )
       campaignName = (campaign?.identity?.name as string) ?? undefined
-      campaignEdition = (campaign?.identity?.edition as string) ?? undefined
-      campaignSetting = (campaign?.identity?.setting as string) ?? undefined
     }
 
     const authUser = await getUserById(user._id.toString())
@@ -150,8 +148,6 @@ export async function register(req: Request, res: Response) {
       user: authUser,
       campaignId,
       campaignName,
-      campaignEdition,
-      campaignSetting,
     })
   } catch (err: unknown) {
     if (err && typeof err === 'object' && 'code' in err && (err as { code: number }).code === 11000) {
@@ -200,14 +196,12 @@ export async function resolveInvite(req: Request, res: Response) {
     // Token is valid — gather campaign info
     const campaign = await db.collection('campaigns').findOne(
       { _id: rawDoc.campaignId },
-      { projection: { 'identity.name': 1, 'identity.edition': 1, 'identity.setting': 1 } },
+      { projection: { 'identity.name': 1 } },
     )
 
     const campaignInfo = {
       campaignId: rawDoc.campaignId.toString(),
       campaignName: (campaign?.identity?.name as string) ?? '',
-      campaignEdition: (campaign?.identity?.edition as string) ?? '',
-      campaignSetting: (campaign?.identity?.setting as string) ?? '',
     }
 
     // Check if an account with this email already exists
@@ -298,14 +292,12 @@ export async function acceptInvite(req: Request, res: Response) {
 
     const campaign = await db.collection('campaigns').findOne(
       { _id: tokenDoc.campaignId },
-      { projection: { 'identity.name': 1, 'identity.edition': 1, 'identity.setting': 1 } },
+      { projection: { 'identity.name': 1 } },
     )
 
     res.json({
       campaignId: tokenDoc.campaignId.toString(),
       campaignName: (campaign?.identity?.name as string) ?? '',
-      campaignEdition: (campaign?.identity?.edition as string) ?? '',
-      campaignSetting: (campaign?.identity?.setting as string) ?? '',
     })
   } catch (err) {
     console.error('Failed to accept invite:', err)

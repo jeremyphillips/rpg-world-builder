@@ -22,7 +22,7 @@ const sections: FormSection[] = [
   { id: 'advanced', label: 'Advanced' }
 ]
 
-const buildFields = (edition?: string): FieldConfig[] => [
+const buildFields = (): FieldConfig[] => [
   {
     type: 'text',
     name: 'name',
@@ -50,7 +50,7 @@ const buildFields = (edition?: string): FieldConfig[] => [
 export default function CampaignAdminSettingsRoute() {
   const { campaignId: activeCampaignId } = useActiveCampaign()
 
-  const { data, edition, loading, error: fetchError } =
+  const { data, loading, error: fetchError } =
     useCampaignSettings(activeCampaignId)
 
   const { update, success, error: submitError } =
@@ -72,7 +72,7 @@ export default function CampaignAdminSettingsRoute() {
     )
   }
 
-  const fields = buildFields(edition)
+  const fields = buildFields()
   const error = fetchError ?? submitError
 
   return (

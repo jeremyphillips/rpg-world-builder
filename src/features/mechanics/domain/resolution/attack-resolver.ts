@@ -1,10 +1,10 @@
-import type { AbilityScores } from '@/shared/types/character.core'
 import type { EvaluationContext } from '../conditions/evaluation-context.types'
 import type { Effect } from '../effects/effects.types'
 import { getAbilityModifier } from '../core/ability.utils'
 import { getProficiencyAttackBonus } from '@/features/mechanics/domain/character/progression'
 import { resolveStatDetailed, type BreakdownToken } from './stat-resolver'
 import type { DamageType } from '@/features/content/domain/vocab/weapons.vocab'
+import type { AbilityKey } from '@/features/mechanics/domain/core/character/abilities.types'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -26,7 +26,7 @@ export type WeaponAttackInput = {
 
 export type AttackBonusResult = {
   bonus: number
-  abilityUsed: keyof AbilityScores
+  abilityUsed: AbilityKey
   abilityMod: number
   proficiencyBonus: number
   breakdown: BreakdownToken[]
@@ -50,7 +50,7 @@ export type DamageResult = {
 function pickAttackAbility(
   context: EvaluationContext,
   weapon: WeaponAttackInput
-): keyof AbilityScores {
+): AbilityKey {
   const isFinesse = weapon.properties?.includes('finesse') ?? false
   const isRanged = weapon.type === 'ranged'
 
@@ -71,10 +71,8 @@ function pickAttackAbility(
  */
 function selectDamageDice(
   damage: WeaponAttackInput['damage'],
-  edition?: string
 ): string {
   if (!damage) return '—'
-  if (edition === '1e' || edition === '2e') return damage.sm ?? damage.default ?? '—'
   return damage.default ?? '—'
 }
 
@@ -161,7 +159,7 @@ export function resolveWeaponDamage(
 
   const result = resolveStatDetailed('damage', context, [damageFormula, ...effects])
 
-  const dice = selectDamageDice(weapon.damage, weapon.edition)
+  const dice = selectDamageDice(weapon.damage)
   const damageType = weapon.damageType ?? ''
 
   const totalParts = [dice]

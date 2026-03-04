@@ -12,11 +12,12 @@ import {
   RaceStep,
   SpellStep
 } from '../steps'
-import { type CharacterBuilderState, type StepId, type BuilderOverrides, type AbilityScores } from '../types'
+import { type CharacterBuilderState, type StepId, type BuilderOverrides } from '../types'
+import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'
 import type { CharacterType } from '@/shared/types/character.core'
 import { classes } from '@/data/classes'
 import { getById } from '@/utils'
-import { ABILITY_KEYS } from '@/features/mechanics/domain/core/character'
+import { ABILITY_KEYS, type AbilityScoreMap } from '@/features/mechanics/domain/core/character'
 
 // ---------------------------------------------------------------------------
 // Step config
@@ -148,7 +149,7 @@ export function createInitialBuilderState(
 
   const steps = getStepConfig(mode)
 
-  const initialScores = Object.fromEntries(ABILITY_KEYS.map(key => [key, null])) as AbilityScores;
+  const initialScores = Object.fromEntries(ABILITY_KEYS.map(key => [key, null])) as AbilityScoreMap;
 
   // Build a temporary state so shouldSkip can read lockedFields
   const tempState: CharacterBuilderState = {
@@ -160,7 +161,7 @@ export function createInitialBuilderState(
     race: overrides?.race ?? undefined,
     classes: [{ level: 1 }],
     activeClassIndex: 0,
-    abilityScores: { ...initialScores },
+    abilityScores: { ...initialScores } as AbilityScoreMapResolved,
     abilityScoreSource: undefined,
     abilityScoresStatus: 'unset',
     flowMode: 'full',

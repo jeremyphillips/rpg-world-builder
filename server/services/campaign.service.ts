@@ -106,7 +106,7 @@ export async function getCampaignById(id: string) {
 
 export async function createCampaign(
   ownerId: string,
-  data: { name: string; setting: string; edition: string; description?: string }
+  data: { name: string; description?: string }
 ) {
   const now = new Date()
   const ownerOid = new mongoose.Types.ObjectId(ownerId)
@@ -114,9 +114,7 @@ export async function createCampaign(
   const result = await campaignsCollection().insertOne({
     identity: {
       name: data.name,
-      description: data.description ?? '',
-      setting: data.setting,
-      edition: data.edition
+      description: data.description ?? ''
     },
     configuration: {
       rules: {}
@@ -139,8 +137,6 @@ export async function updateCampaign(
   id: string,
   data: {
     name?: string
-    setting?: string
-    edition?: string
     description?: string
     imageKey?: string | null
   }
@@ -153,12 +149,7 @@ export async function updateCampaign(
   if (data.description !== undefined) {
     $set['identity.description'] = data.description
   }
-  if (data.setting !== undefined) {
-    $set['identity.setting'] = data.setting
-  }
-  if (data.edition !== undefined) {
-    $set['identity.edition'] = data.edition
-  }
+
   if (data.imageKey !== undefined) {
     $set['identity.imageKey'] = data.imageKey
   }

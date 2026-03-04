@@ -5,8 +5,6 @@ const campaignSchema = new Schema(
     identity: {
       name: String,
       description: String,
-      setting: String,
-      edition: String,
       imageKey: String
     },
 

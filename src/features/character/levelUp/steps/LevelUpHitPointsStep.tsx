@@ -101,7 +101,7 @@ export default function LevelUpHitPointsStep({
           </CardContent>
         </Card>
 
-        {/* Roll option (only for editions with hit dice) */}
+        {/* Roll option */}
         {!isFlat && (
           <Card
             variant="outlined"

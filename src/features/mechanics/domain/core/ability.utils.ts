@@ -1,9 +1,8 @@
 import type { CreatureSnapshot } from '../conditions/evaluation-context.types'
-import type { AbilityScores } from '@/shared/types/character.core'
 import type { AbilityKey } from './character'
 
 export function getAbilityModifier(score: number): number
-export function getAbilityModifier(creature: CreatureSnapshot, ability: keyof AbilityScores): number
+export function getAbilityModifier(creature: CreatureSnapshot, ability: AbilityKey): number
 export function getAbilityModifier(
   scoreOrCreature: number | CreatureSnapshot,
   ability?: AbilityKey

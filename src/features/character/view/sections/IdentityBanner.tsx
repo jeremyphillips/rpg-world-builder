@@ -8,6 +8,7 @@ import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { CampaignHorizontalCard }from '@/features/campaign/components'
 import { EditableTextField } from '@/ui/patterns'
 import { ImageUploadField } from '@/ui/patterns'
+import { resolveXpTable } from '@/features/mechanics/domain/core/rules/xp/resolveXpTable'
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -79,7 +80,7 @@ export default function IdentityBanner({
   onEditAlignment,
 }: IdentityBannerProps) {
   const { ruleset, catalog } = useCampaignRules()
-  const xpTable = ruleset.mechanics?.progression?.xp?.tableId === 'standard'
+  const xpTable = resolveXpTable(ruleset.mechanics.progression.xp)
   const raceName = catalog.racesById[character.race ?? '']?.name ?? character.race ?? '—'
   
   const alignmentName = alignmentOptions.find(a => a.id === character.alignment)?.name ?? character.alignment ?? '—'
@@ -146,8 +147,6 @@ export default function IdentityBanner({
             {/* <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
               <Chip label={raceName} size="small" variant="outlined" />
               <Chip label={alignmentName} size="small" variant="outlined" />
-              <Chip label={editionName} size="small" variant="outlined" />
-              <Chip label={settingName} size="small" variant="outlined" />
             </Stack> */}
 
             <Divider sx={{ my: 1.5 }} />

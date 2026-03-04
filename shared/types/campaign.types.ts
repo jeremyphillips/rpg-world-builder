@@ -20,11 +20,7 @@ export type CampaignCharacterStatus =
 
 export type CampaignIdentity = {
   name: string
-  setting?: string
-  edition?: string
   description?: string
-  /** @deprecated Use imageKey instead. **/
-  imageUrl?: string
   imageKey?: string
 }
 
@@ -87,6 +83,7 @@ export interface Campaign extends CampaignBase {
   membership: {
     ownerId: string
   }
+  memberCount: number
   configuration?: CampaignConfiguration
   /** Populated by GET /api/campaigns/:id with the requesting user's context. */
   viewer?: CampaignViewer

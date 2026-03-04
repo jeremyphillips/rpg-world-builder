@@ -54,6 +54,7 @@ export default defineConfig({
       "@/features/notification": path.resolve(__dirname, "src/features/notification"),
       "@/features/session": path.resolve(__dirname, "src/features/session"),
       "@/features/user": path.resolve(__dirname, "src/features/user"),
+      "@/features/utils": path.resolve(__dirname, "src/features/utils"),
       "@/hooks": path.resolve(__dirname, "src/hooks"),
       "@/services": path.resolve(__dirname, "src/services"),
       "@/server/services": path.resolve(__dirname, "server/services"),

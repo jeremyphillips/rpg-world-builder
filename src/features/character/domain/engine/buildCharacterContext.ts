@@ -1,16 +1,18 @@
 import type { Character } from '@/shared/types'
-import type { AbilityScores, EquipmentLoadout } from '@/shared/types/character.core'
+import type { EquipmentLoadout } from '@/shared/types/character.core'
 import type { EvaluationContext, CreatureSnapshot } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
 import { resolveLoadout, resolveWieldedWeaponIds } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
 import { ABILITY_KEYS } from '@/features/mechanics/domain/core/character';
+import type { AbilityScoreMapResolved, AbilityScoreValue } from '@/features/mechanics/domain/core/character/abilities.types'
+import type { DieFace } from '@/features/mechanics/domain/dice/dice.types'
 
 /**
  * Flatten ability scores to a record of numbers.
  * Null/undefined become 10 (no modifier).
  */
-function flattenAbilities(scores?: AbilityScores | null): Record<keyof AbilityScores, number> {
-  const result = {} as Record<keyof AbilityScores, number>
+function flattenAbilities(scores?: AbilityScoreMapResolved | null): Record<keyof AbilityScoreMapResolved, AbilityScoreValue> {
+  const result = {} as Record<keyof AbilityScoreMapResolved, AbilityScoreValue>
   for (const key of ABILITY_KEYS) {
     const v = scores?.[key]
     result[key] = v != null && typeof v === 'number' ? v : 10
@@ -73,7 +75,7 @@ function computeFlags(_character: Character): Record<string, boolean> {
 /**
  * Derive hit die from the primary (first) class.
  */
-function deriveHitDie(character: Character): number {
+function deriveHitDie(character: Character): DieFace {
   const primaryClass = character.classes?.[0]
   if (!primaryClass?.classId) return 8
   const prog = getClassProgression(primaryClass.classId)

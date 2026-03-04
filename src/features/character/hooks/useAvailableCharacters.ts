@@ -4,12 +4,8 @@ import { apiFetch } from '@/app/api'
 export interface CharacterForOption {
   _id: string
   name: string
-  level?: number
   totalLevel?: number
-  class?: string
   classes?: { classId?: string; subclassId?: string; level: number }[]
-  edition?: string
-  setting?: string
 }
 
 export interface UseAvailableCharactersReturn {

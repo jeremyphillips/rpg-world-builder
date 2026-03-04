@@ -1,6 +1,7 @@
 import type { MulticlassingRules } from '@/shared/types/ruleset';
 import type { AbilityRequirementGroup, RequirementExpr } from '@/data/classes.types';
-import type { AbilityScores } from '@/shared/types/character.core';
+import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types';
+import type { AbilityScoreValue } from '@/features/mechanics/domain/core/character/abilities.types';
 import { classes } from '@/data/classes';
 import { resolveRule, type RuleResolveContext } from '@/features/mechanics/domain/core/rules';
 import { ABILITY_KEYS } from '@/features/mechanics/domain/core/character';
@@ -18,7 +19,7 @@ export interface CanMulticlassResult {
 // Completeness check
 // ---------------------------------------------------------------------------
 
-function areAbilityScoresComplete(scores: AbilityScores | undefined): boolean {
+function areAbilityScoresComplete(scores: AbilityScoreMapResolved | undefined): boolean {
   if (!scores) return false;
   return ABILITY_KEYS.every(k => {
     const v = scores[k];
@@ -34,14 +35,14 @@ type EffectiveRequirement = { anyOf: AbilityRequirementGroup[]; note?: string };
 
 function meetsRequirementGroup(
   group: AbilityRequirementGroup,
-  scores: AbilityScores,
+  scores: AbilityScoreMapResolved,
 ): boolean {
-  return group.all.every(req => ((scores[req.ability] as number) ?? 0) >= req.min);
+  return group.all.every(req => ((scores[req.ability] as AbilityScoreValue) ?? 0) >= req.min);
 }
 
 function meetsRequirement(
   req: EffectiveRequirement,
-  scores: AbilityScores,
+  scores: AbilityScoreMapResolved,
 ): boolean {
   if (req.anyOf.length === 0) return false;
   return req.anyOf.some(group => meetsRequirementGroup(group, scores));
@@ -88,7 +89,7 @@ export const canAddClass = (
   remainingLevels: number,
   characterLevel: number,
   targetClassId?: string,
-  abilityScores?: AbilityScores,
+  abilityScores?: AbilityScoreMapResolved,
 ): CanMulticlassResult => {
   const rules = resolveRule(multiclassingConfig, context);
 

@@ -4,6 +4,7 @@ import CampaignForm, { type CampaignFormData } from '@/features/campaign/compone
 import { CampaignHorizontalCard} from '@/features/campaign/components'
 import Box from '@mui/material/Box'
 import { useCampaigns } from '@/features/campaign/hooks'
+// import { toViewerContext } from '@/shared/domain/capabilities'
 
 export default function CampaignsRoute() {
   const { user } = useAuth()
@@ -12,12 +13,8 @@ export default function CampaignsRoute() {
     loading: loadingCampaigns, 
     createCampaign
   } = useCampaigns()
-
-  console.log('campaigns', campaigns);
-  
-  const [showCreateForm, setShowCreateForm] = useState(false)
-
   const canCreate = user?.role === 'admin' || user?.role === 'superadmin'
+  const [showCreateForm, setShowCreateForm] = useState(false)
 
   async function handleCreate(data: CampaignFormData) {
     await createCampaign(data)
@@ -41,11 +38,10 @@ export default function CampaignsRoute() {
         <>
           <h3>Create Campaign</h3>
           <CampaignForm
-            initial={{ name: '', edition: '', setting: '' }}
+            initial={{ name: '' }}
             onSubmit={handleCreate}
             onCancel={() => setShowCreateForm(false)}
-            submitLabel="Create"
-            submittingLabel="Creating…"
+            submitLabel="Create…"
           />
         </>
       )}
@@ -61,7 +57,7 @@ export default function CampaignsRoute() {
               name={c.identity.name ?? ''}
               description={c.identity.description}
               memberCount={c.memberCount}
-              imageUrl={c.identity?.imageUrl}
+              imageUrl={c.identity?.imageKey}
             />
           ))}
         </div>
