@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 
-import type { Visibility } from '@/shared/types';
+import type { Visibility } from '@/shared/types/visibility';
 import type { ContentSource } from '@/features/content/domain/types';
 import { AppPageHeader, VisibilityBadge } from '@/ui/patterns';
 import type { BreadcrumbItem } from '@/ui/patterns';

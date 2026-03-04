@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
-import type { Character, CharacterDoc } from '../../shared/types'
+import type { CharacterDoc } from '../../src/features/character/domain/types/characterDoc.types'; 
 import { getPublicUrl } from '../services/image.service'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)

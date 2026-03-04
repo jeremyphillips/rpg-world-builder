@@ -17,7 +17,7 @@ import type {
   MulticlassingRuleSet,
   ClassId,
   ClassEntryRequirement,
-} from '@/shared/types';
+} from '@/shared/types/ruleset';
 
 export function resolveCampaignRuleset(
   system: SystemRuleset,

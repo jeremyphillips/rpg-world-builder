@@ -7,7 +7,7 @@
  * systemCatalog modules.
  */
 import { apiFetch, ApiError } from '@/app/api';
-import type { Visibility } from '@/shared/types';
+import type { Visibility } from '@/shared/types/visibility';
 import type { ContentSource } from './types';
 
 // ---------------------------------------------------------------------------

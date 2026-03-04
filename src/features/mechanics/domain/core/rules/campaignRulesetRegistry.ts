@@ -1,4 +1,4 @@
-import type { Ruleset } from '@/shared/types';
+import type { Ruleset } from '@/shared/types/ruleset';
 import type { CampaignRulesetPatch } from './ruleset.types';
 import { getSystemRuleset } from './systemCatalog';
 import { resolveCampaignRuleset } from './resolveCampaignRuleset';

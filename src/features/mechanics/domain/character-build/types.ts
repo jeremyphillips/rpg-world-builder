@@ -1,4 +1,4 @@
-import type { Character } from '@/shared/types'
+import type { Character } from '@/features/character/domain/types'
 
 /**
  * Minimal draft shape consumed by engine build functions.

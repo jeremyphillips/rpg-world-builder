@@ -1,4 +1,3 @@
-export type { CharacterDoc } from './character'
 export type {
   CampaignMemberStatus, CampaignRole, ViewerCampaignRole, CampaignMemberRole, CampaignMemberStoredRole, CampaignCharacterStatus,
   CampaignIdentity, CampaignConfiguration, CampaignBase, CampaignViewer,

@@ -1,4 +1,4 @@
-import type { CharacterDoc } from '@/shared'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import {
   FIVE_E_STRENGTH_SKILLS,
   FIVE_E_DEXTERITY_SKILLS,

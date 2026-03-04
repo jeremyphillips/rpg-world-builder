@@ -1,5 +1,5 @@
 import type { Campaign } from '@/shared/types/campaign.types';
-import type { Ruleset } from '@/shared/types';
+import type { Ruleset } from '@/shared/types/ruleset';
 import { getSystemRuleset, systemCatalog, type CampaignCatalog } from './systemCatalog';
 import { buildCampaignCatalog } from './buildCampaignCatalog';
 import type { SystemRulesetId } from './ruleset.types';

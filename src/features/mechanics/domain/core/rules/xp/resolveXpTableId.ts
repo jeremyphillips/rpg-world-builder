@@ -1,4 +1,4 @@
-import type { ClassId } from '@/shared/types';
+import type { ClassId } from '@/shared/types/ruleset';
 import type { XpTableId } from '@/features/mechanics/domain/core/progression/xp';
 
 export function resolveXpTableId(

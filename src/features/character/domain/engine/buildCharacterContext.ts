@@ -1,4 +1,4 @@
-import type { Character } from '@/shared/types'
+import type { Character } from '@/features/character/domain/types'
 import type { EquipmentLoadout } from '@/features/character/domain/types'
 import type { EvaluationContext, CreatureSnapshot } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import { getClassProgression } from '@/features/mechanics/domain/classes/progression'

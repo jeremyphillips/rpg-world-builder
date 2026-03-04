@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { CharacterDoc } from '@/shared'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import type { CampaignSummary, PendingMembership } from '@/shared/types/campaign.types'
 import { apiFetch } from '@/app/api'
 

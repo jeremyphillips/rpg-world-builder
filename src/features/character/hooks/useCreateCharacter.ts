@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { CharacterDoc } from '@/shared'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import { apiFetch } from '@/app/api'
 
 export interface UseCreateCharacterReturn {

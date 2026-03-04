@@ -1,4 +1,4 @@
-import type { Ruleset, DeepPartial } from '@/shared/types'
+import type { Ruleset, DeepPartial } from '@/shared/types/ruleset'
 import { SYSTEM_RULESET_IDS } from './systemIds';
 
 export type SystemRulesetId = (typeof SYSTEM_RULESET_IDS)[number];

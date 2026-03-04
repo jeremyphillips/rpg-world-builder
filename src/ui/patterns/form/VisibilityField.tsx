@@ -9,7 +9,7 @@ import LockIcon from '@mui/icons-material/Lock'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 
-import type { Visibility } from '@/shared/types'
+import type { Visibility } from '@/shared/types/visibility'
 import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------

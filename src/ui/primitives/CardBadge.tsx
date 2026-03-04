@@ -1,6 +1,6 @@
 import { AppBadge } from '@/ui/primitives'
 import { StatusBadge } from '@/ui/patterns'
-import type { StatusType } from '@/shared/types'
+import type { StatusType } from '@/shared/types/status'
 
 export interface CardBadgeProps {
   type: 'status' | 'tag' | 'role'

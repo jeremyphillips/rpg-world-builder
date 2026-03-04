@@ -3,8 +3,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'
 import CancelIcon from '@mui/icons-material/Cancel'
 import { AppBadge } from '@/ui/primitives'
-import type { AppBadgeTone } from '@/ui/primitives'
-import type { StatusType } from '@/shared/types'
+import type { AppBadgeTone } from '@/ui/types'
+import type { StatusType } from '@/shared/types/status'
 
 export interface StatusBadgeProps {
   status: StatusType

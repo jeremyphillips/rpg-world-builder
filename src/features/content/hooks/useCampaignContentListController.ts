@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import type { ContentSummary } from '@/features/content/domain/types';
 import type { ContentListItem, ContentViewerContext } from '@/features/content/components';
-import type { ContentPolicy, ContentRule, RulesetContent } from '@/shared/types';
+import type { ContentPolicy, ContentRule, RulesetContent } from '@/shared/types/ruleset';
 import type { CampaignRulesetPatch } from '@/features/mechanics/domain/core/rules/ruleset.types';
 import type { CampaignViewer } from '@/shared/types/campaign.types';
 import {

@@ -1,4 +1,4 @@
-import type { Character } from '@/shared/types'
+import type { Character } from '@/features/character/domain/types'
 import type { StatTarget } from '@/features/mechanics/domain/resolution/stat-resolver'
 import { buildCharacterContext } from './buildCharacterContext'
 import { collectIntrinsicEffects } from './collectCharacterEffects'

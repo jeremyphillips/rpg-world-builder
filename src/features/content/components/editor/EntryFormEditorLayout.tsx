@@ -6,7 +6,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { DynamicFormRenderer, type FormDriver } from '@/ui/patterns';
 import type { FieldConfig } from '@/ui/patterns';
-import type { Visibility } from '@/shared/types';
+import type { Visibility } from '@/shared/types/visibility';
 import EntryEditorLayout from '../EntryEditorLayout';
 import { createPatchDriver } from '@/features/content/editor/patchDriver';
 

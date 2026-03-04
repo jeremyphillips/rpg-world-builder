@@ -1,4 +1,4 @@
-import type { ContentPolicy, ContentRule } from '@/shared/types'
+import type { ContentPolicy, ContentRule } from '@/shared/types/ruleset'
 import type { ContentSummary } from './types';
 
 export function getAllowedSet(rule: ContentRule | undefined, allIds: string[]): Set<string> {

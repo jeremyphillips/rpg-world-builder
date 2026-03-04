@@ -1,4 +1,4 @@
-import type { CharacterDoc } from '@/shared'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import type { LevelUpResult } from '@/features/character/levelUp'
 import { AwardXpModal } from '@/features/character/modals'
 import { LevelUpWizard } from '@/features/character/levelUp'

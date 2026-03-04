@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { CharacterDoc } from '@/shared'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import type { LevelUpResult } from '@/features/character/levelUp'
 import { getXpForLevel } from '@/features/mechanics/domain/core/progression/xp'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'

@@ -1,6 +1,6 @@
 import { apiFetch } from '@/app/api';
 import type { DeleteValidationResult, BlockingEntity } from '@/features/content/components';
-import type { CharacterDoc } from '@/shared/types';
+import type { CharacterDoc } from '@/features/character/domain/types';
 
 type CharacterWithRace = Pick<CharacterDoc, '_id' | 'name' | 'race'>
 

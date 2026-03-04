@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { CharacterDoc } from '@/shared'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { ROUTES } from '@/app/routes'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'

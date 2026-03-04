@@ -10,7 +10,7 @@
  */
 import type { CampaignCatalog } from './systemCatalog'
 import type { RulesetLike } from './ruleset.types'
-import type { ContentRule } from '@/shared/types'
+import type { ContentRule } from '@/shared/types/ruleset'
 
 // ---------------------------------------------------------------------------
 // Internal helpers

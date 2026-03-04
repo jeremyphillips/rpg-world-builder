@@ -1,4 +1,4 @@
-import type { CharacterDoc } from '@/shared'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import { getNameById } from '@/utils'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 

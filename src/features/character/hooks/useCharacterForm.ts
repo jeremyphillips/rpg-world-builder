@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import type { CharacterDoc, RaceId } from '@/shared'
+import type { RaceId } from '@/shared/types/ruleset'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import { getAlignmentOptionsForClass } from '@/features/mechanics/domain/character/selection'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { resolveAlignmentOptions } from '@/features/mechanics/domain/core/rules/alignment/resolveAlignmentOptions'

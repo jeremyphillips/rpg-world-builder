@@ -1,13 +1,12 @@
-import type { CharacterDoc } from '@/shared'
-import type { PendingMembership } from '@/shared/types/campaign.types'
-
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
-
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import { AppAlert } from '@/ui/primitives'
+
+import type { CharacterDoc } from '@/features/character/domain/types'
+import type { PendingMembership } from '@/shared/types/campaign.types'
 
 type CharacterAlertsProps = {
   character: CharacterDoc

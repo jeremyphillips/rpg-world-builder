@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiFetch } from '@/app/api'
-import type { Campaign, CampaignIdentity } from '@/shared/types'
+import type { Campaign, CampaignIdentity } from '@/shared/types/campaign.types'
 
 type CampaignResponse = {
   campaign: Campaign

@@ -3,7 +3,7 @@
  */
 import { apiFetch, ApiError } from '@/app/api';
 import type { CampaignRulesetPatch, SystemRulesetId } from './ruleset.types';
-import type { Ruleset } from '@/shared/types';
+import type { Ruleset } from '@/shared/types/ruleset';
 import { getSystemRuleset } from './systemCatalog';
 import { normalizeCampaignRulesetPatch } from './normalizeCampaignRulesetPatch';
 import { validateCampaignRulesetPatch } from './validateCampaignRulesetPatch';

@@ -1,4 +1,4 @@
-import type { Character } from '@/shared/types'
+import type { Character } from '@/features/character/domain/types'
 
 export type WeaponPickerOption = {
   weaponId: string

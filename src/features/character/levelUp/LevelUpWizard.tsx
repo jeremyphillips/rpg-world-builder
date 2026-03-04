@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { AppModal } from '@/ui/patterns'
-import type { CharacterDoc } from '@/shared'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import type { LevelUpState, LevelUpResult, LevelUpStepId } from './levelUp.types'
 import { useLevelUpSteps } from './useLevelUpSteps'
 import {

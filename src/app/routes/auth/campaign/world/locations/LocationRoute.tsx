@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 
-import type { Visibility } from '@/shared/types'
+import type { Visibility } from '@/shared/types/visibility'
 import type { Location } from '@/data/locations'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { ROUTES } from '@/app/routes'

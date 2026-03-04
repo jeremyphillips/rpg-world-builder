@@ -1,4 +1,4 @@
-import type { Character } from "./character.core"
+import type { Character } from "./character.types"
 
 /** API/document shape for a character (extends CharacterSheet with stored fields). */
 export type CharacterDoc = Character & {

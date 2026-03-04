@@ -10,7 +10,7 @@ import { Box, Button, List, ListItem, ListItemText, Stack, Typography } from '@m
 import MuiLink from '@mui/material/Link';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import type { Visibility } from '@/shared/types';
+import type { Visibility } from '@/shared/types/visibility';
 import { AppAlert } from '@/ui/primitives';
 import { AppPageHeader, AppModal, ConfirmModal, VisibilityField } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/hooks';

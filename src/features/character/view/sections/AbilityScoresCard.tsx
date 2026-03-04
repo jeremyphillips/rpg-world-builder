@@ -1,6 +1,6 @@
-import type { CharacterDoc } from '@/shared'
+import type { CharacterDoc } from '@/features/character/domain/types'
 import { StatCircle } from '@/ui/primitives'
-
+import { ABILITY_UI } from '@/features/mechanics/domain/core/character/abilities'
 import { Card, CardContent, Typography, Stack } from '@mui/material'
 
 type AbilityScoresCardProps = {
@@ -16,12 +16,9 @@ export default function AbilityScoresCard({ abilityScores }: AbilityScoresCardPr
           Ability Scores
         </Typography>
         <Stack spacing={1} alignItems="center">
-          <StatCircle label="Strength" value={abilityScores.strength} />
-          <StatCircle label="Dexterity" value={abilityScores.dexterity} />
-          <StatCircle label="Constitution" value={abilityScores.constitution} />
-          <StatCircle label="Intelligence" value={abilityScores.intelligence} />
-          <StatCircle label="Wisdom" value={abilityScores.wisdom} />
-          <StatCircle label="Charisma" value={abilityScores.charisma} />
+          {ABILITY_UI.map(({ key, label }) => (
+            <StatCircle key={key} label={label} value={abilityScores[key]} />
+          ))}
         </Stack>
       </CardContent>
     </Card>

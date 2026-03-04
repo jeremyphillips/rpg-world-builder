@@ -21,7 +21,7 @@ import { systemCatalog, type CampaignCatalog } from '@/features/mechanics/domain
 import { buildCampaignCatalog } from '@/features/mechanics/domain/core/rules/buildCampaignCatalog';
 import { listCampaignRaces } from '@/features/content/domain/campaignRaceRepo';
 import type { Race } from '@/features/content/domain/types';
-import type { Ruleset } from '@/shared/types';
+import type { Ruleset } from '@/shared/types/ruleset';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 
 // ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 import { MediaTopCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
-import type { CharacterClassInfo } from '@/shared/types'
+import type { CharacterClassInfo } from '@/features/character/domain/types'
 import Box from '@mui/material/Box'
 import PersonIcon from '@mui/icons-material/Person'
 import { ROUTES } from '@/app/routes'

@@ -3,7 +3,7 @@ import { useAuth } from '@/app/providers/AuthProvider'
 import { Breadcrumbs } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/hooks'
 import { CharacterView } from '@/features/character/view'
-import type { CharacterDoc } from '@/shared/types/character'
+import type { Character } from '@/features/character/domain/types'
 import { useCharacter, useCharacterActions, useCharacterForm } from '@/features/character/hooks'
 
 import CircularProgress from '@mui/material/CircularProgress'
@@ -12,8 +12,6 @@ import Box from '@mui/material/Box'
 
 export default function NpcRoute() {
   const { npcId } = useParams<{ npcId: string }>()
-  const { user } = useAuth()
-  const isPlatformAdmin = user?.role === 'admin' || user?.role === 'superadmin'
   
   const breadcrumbs = useBreadcrumbs()
 
@@ -44,8 +42,6 @@ export default function NpcRoute() {
     syncFromCharacter: form.syncFromCharacter,
   })
 
-  console.log('npcRoute npc', npc)
-
   if (loadingNpc) return <CircularProgress />
   if (!npc) return <Typography>NPC not found</Typography>
 
@@ -59,12 +55,11 @@ export default function NpcRoute() {
 
       <CharacterView
         name={npc.name ?? ''}
-        character={npc as CharacterDoc}
+        character={npc as Character}
         campaigns={campaigns} 
         pendingMemberships={[]}
         isOwner={isOwner}
         isAdmin={isAdmin}
-        isPlatformAdmin={isPlatformAdmin}
         ownerName={undefined}
         error={error}
         success={success}
