@@ -1,0 +1,34 @@
+/**
+ * Pure mappers for Skill Proficiency form values ↔ domain types.
+ * Registry-backed.
+ */
+import type { SkillProficiency, SkillProficiencyInput } from '@/features/content/domain/types'
+import type { SkillProficiencyFormValues } from './skillProficiencyForm.types'
+import {
+  buildToInput,
+  buildToFormValues,
+  buildDefaultFormValues,
+} from '@/features/content/forms/registry'
+import { SKILL_PROFICIENCY_FORM_FIELDS } from './skillProficiencyForm.registry'
+
+const toInput = buildToInput(SKILL_PROFICIENCY_FORM_FIELDS)
+const toFormValuesFromItem = buildToFormValues(SKILL_PROFICIENCY_FORM_FIELDS)
+const defaultFormValues = buildDefaultFormValues(SKILL_PROFICIENCY_FORM_FIELDS)
+
+/**
+ * Converts a SkillProficiency domain object to form values.
+ */
+export const skillProficiencyToFormValues = (
+  item: SkillProficiency
+): SkillProficiencyFormValues => ({
+  ...(defaultFormValues as SkillProficiencyFormValues),
+  ...toFormValuesFromItem(item),
+})
+
+/**
+ * Converts form values to SkillProficiencyInput for create/update.
+ * Spec-driven — SKILL_PROFICIENCY_FORM_FIELDS parse rules are the source of truth.
+ */
+export const toSkillProficiencyInput = (
+  values: SkillProficiencyFormValues
+): SkillProficiencyInput => toInput(values) as SkillProficiencyInput
