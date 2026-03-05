@@ -16,6 +16,7 @@ const VALID_CONTENT_TYPE_KEYS = new Set([
   'npcs',
   'locations',
   'classes',
+  'skillProficiencies',
 ]);
 
 export type ValidationError = {
