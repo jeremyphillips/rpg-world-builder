@@ -46,7 +46,7 @@ export default function RaceDetailRoute() {
   const editPath = `${listPath}/${raceId}/edit`;
 
   const items = buildDetailItemsFromSpecs(RACE_DETAIL_SPECS, race, {});
-
+console.log('race', race);
   return (
     <ContentDetailScaffold
       title={race.name}

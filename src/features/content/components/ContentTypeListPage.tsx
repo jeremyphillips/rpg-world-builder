@@ -1,186 +1,128 @@
 /**
  * Reusable scaffold for a content-type list page.
  *
- * Renders a filterable AppDataGrid of content items (system + campaign) with
- * source badges and optional management controls (allowed toggles, policy
- * filter, "Add Custom" button) gated behind the `canManage` prop.
- *
- * The API enforces accessPolicy on both list and read-by-id endpoints.
- * Client-side filtering here is a UX convenience (avoids flashing items
- * the server already filtered out in edge-case timing windows).
+ * Thin wrapper that renders AppPageHeader + AppDataGrid with consistent
+ * defaults. Columns and filters are passed as props; the caller composes
+ * them via buildCampaignContentColumns / buildCampaignContentFilters or
+ * custom definitions.
  */
-import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
-import type { GridRenderCellParams } from '@mui/x-data-grid';
 
-import { AppDataGrid, type AppDataGridColumn } from '@/ui/patterns';
-import type { ContentSummary } from '@/features/content/domain/types';
-import { canBypassVisibility, canViewContent, type ViewerContext } from '@/shared/domain/capabilities';
-import { AppPageHeader,VisibilityBadge } from '@/ui/patterns';
+import { AppDataGrid } from '@/ui/patterns';
+import type {
+  AppDataGridColumn,
+  AppDataGridFilter,
+} from '@/ui/patterns';
+import type { GridRowClassNameParams } from '@mui/x-data-grid';
+import { AppPageHeader } from '@/ui/patterns';
+import type { BreadcrumbItem } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/hooks';
+import { AppAlert } from '@/ui/primitives';
 
-export type ContentListItem = ContentSummary & {
-  allowed: boolean;
+export type ContentListItem = {
+  id: string;
+  name: string;
+  allowedInCampaign?: boolean;
+  /** Who can see this entry. Missing = public. Compatible with canViewContent. */
+  accessPolicy?: { scope: string; allowCharacterIds?: string[] };
 };
 
-type AllowedFilter = 'all' | 'allowed' | 'not_allowed';
+export type ContentViewerContext = import('@/shared/domain/capabilities').ViewerContext;
 
-export type ContentViewerContext = ViewerContext;
-
-interface ContentTypeListPageProps {
+export interface ContentTypeListPageProps<T> {
   typeLabel: string;
   typeLabelPlural: string;
-  items: ContentListItem[];
-  getDetailLink: (item: ContentListItem) => string;
-  onToggleAllowed?: (id: string, allowed: boolean) => void;
-  onAdd?: () => void;
-  /** When true, renders policy filter, allowed toggles, and "Add Custom" button. */
-  canManage?: boolean;
+  /** Defaults to typeLabelPlural */
+  headline?: string;
+  /** Defaults to useBreadcrumbs() when not provided */
+  breadcrumbData?: BreadcrumbItem[];
+  actions?: ReactNode[];
+  rows: T[];
+  columns: AppDataGridColumn<T>[];
+  filters?: AppDataGridFilter<T>[];
+  getRowId: (row: T) => string;
+  getDetailLink: (row: T) => string;
   loading?: boolean;
-  /** Viewer context used to filter items by accessPolicy for UX. */
-  viewerContext?: ContentViewerContext;
+  error?: string | null;
+  /** Rendered in toolbar slot (e.g. Add button). Combined with filters. */
+  toolbar?: ReactNode;
+  /** Shorthand: when provided with typeLabel, renders "Add Custom {typeLabel}" button */
+  onAdd?: () => void;
+  searchPlaceholder?: string;
+  searchColumns?: string[];
+  emptyMessage?: string;
+  density?: 'compact' | 'standard' | 'comfortable';
+  height?: number | string;
+  /** Optional row class name (e.g. for muted allowedInCampaign=false rows) */
+  getRowClassName?: (params: GridRowClassNameParams) => string;
 }
 
-const SOURCE_FILTER_OPTIONS = [
-  { label: 'All Sources', value: 'all' },
-  { label: 'System', value: 'system' },
-  { label: 'Campaign', value: 'campaign' },
-];
-
-const ContentTypeListPage = ({
+const ContentTypeListPage = <T,>({
   typeLabel,
   typeLabelPlural,
-  items,
+  headline,
+  breadcrumbData,
+  actions,
+  rows,
+  columns,
+  filters = [],
+  getRowId,
   getDetailLink,
-  onToggleAllowed,
+  loading = false,
+  error,
+  toolbar,
   onAdd,
-  canManage = false,
-  loading,
-  viewerContext,
-}: ContentTypeListPageProps) => {
-  const [allowedFilter, setAllowedFilter] = useState<AllowedFilter>('all');
-  const breadcrumbs = useBreadcrumbs();
+  searchPlaceholder,
+  searchColumns = ['name'],
+  emptyMessage,
+  density = 'compact',
+  height = 500,
+  getRowClassName,
+}: ContentTypeListPageProps<T>) => {
+  const defaultBreadcrumbs = useBreadcrumbs();
+  const resolvedBreadcrumbs = breadcrumbData ?? defaultBreadcrumbs;
 
-  const visibleItems = useMemo(() => {
-    if (!viewerContext) return items;
+  const resolvedHeadline = headline ?? typeLabelPlural;
+  const resolvedSearchPlaceholder = searchPlaceholder ?? `Search ${typeLabelPlural.toLowerCase()}…`;
+  const resolvedEmptyMessage = emptyMessage ?? `No ${typeLabelPlural.toLowerCase()} found.`;
 
-    return items.filter(item => canViewContent(viewerContext, item.accessPolicy));
-  }, [items, viewerContext]);
+  const toolbarNode =
+    toolbar ??
+    (onAdd ? (
+      <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={onAdd}>
+        Add Custom {typeLabel}
+      </Button>
+    ) : undefined);
 
-  const filteredByAllowed = useMemo(() => {
-    if (!canManage) return visibleItems;
-    if (allowedFilter === 'allowed') return visibleItems.filter(i => i.allowed);
-    if (allowedFilter === 'not_allowed') return visibleItems.filter(i => !i.allowed);
-    return visibleItems;
-  }, [visibleItems, allowedFilter, canManage]);
-
-  const showPolicyColumn = viewerContext ? canBypassVisibility(viewerContext) : false;
-
-  const columns: AppDataGridColumn<ContentListItem>[] = useMemo(() => {
-    const cols: AppDataGridColumn<ContentListItem>[] = [
-      {
-        field: 'imageKey',
-        headerName: '',
-        width: 56,
-        imageColumn: true,
-        imageSize: 32,
-        imageShape: 'rounded',
-        imageAltField: 'name',
-      },
-      { field: 'name', headerName: 'Name', flex: 1, linkColumn: true },
-      {
-        field: 'source',
-        headerName: 'Source',
-        width: 120,
-        renderCell: (params: GridRenderCellParams) => (
-          <Chip
-            label={params.value as string}
-            size="small"
-            variant="outlined"
-            color={params.value === 'campaign' ? 'primary' : 'default'}
-          />
-        ),
-      },
-    ];
-
-    if (showPolicyColumn) {
-      cols.push({
-        field: 'accessPolicy',
-        headerName: 'Visibility',
-        width: 130,
-        renderCell: (params: GridRenderCellParams) => {
-          const policy = params.row.accessPolicy;
-          if (!policy || policy.scope === 'public') return null;
-          return <VisibilityBadge visibility={policy} />;
-        },
-      });
-    }
-
-    if (canManage && onToggleAllowed) {
-      cols.push({
-        field: 'allowed',
-        headerName: 'Allowed',
-        width: 100,
-        switchColumn: true,
-        onSwitchChange: (row, checked) => onToggleAllowed(row.id, checked),
-      });
-    }
-
-    return cols;
-  }, [canManage, onToggleAllowed, showPolicyColumn]);
-
-  const toolbar = canManage ? (
-    <Stack direction="row" spacing={2} alignItems="center">
-      <TextField
-        select
-        size="small"
-        value={allowedFilter}
-        onChange={(e) => setAllowedFilter(e.target.value as AllowedFilter)}
-        label="Policy"
-        sx={{ minWidth: 160 }}
-      >
-        <MenuItem value="all">All</MenuItem>
-        <MenuItem value="allowed">Allowed</MenuItem>
-        <MenuItem value="not_allowed">Not Allowed</MenuItem>
-      </TextField>
-
-      {onAdd && (
-        <Button variant="contained" startIcon={<AddIcon />} onClick={onAdd}>
-          Add Custom {typeLabel}
-        </Button>
-      )}
-    </Stack>
-  ) : undefined;
+  if (error) {
+    return <AppAlert tone="danger">{error}</AppAlert>;
+  }
 
   return (
     <Box>
       <AppPageHeader
-        headline={typeLabelPlural}
-        breadcrumbData={breadcrumbs}
+        headline={resolvedHeadline}
+        breadcrumbData={resolvedBreadcrumbs}
+        actions={actions ?? []}
       />
-
       <AppDataGrid
-        rows={filteredByAllowed}
+        rows={rows}
         columns={columns}
-        getRowId={(row) => row.id}
+        getRowId={getRowId}
         getDetailLink={getDetailLink}
+        filters={filters}
         searchable
-        searchPlaceholder={`Search ${typeLabelPlural.toLowerCase()}…`}
-        searchColumns={['name']}
-        filterColumn="source"
-        filterOptions={SOURCE_FILTER_OPTIONS}
-        filterLabel="Source"
+        searchPlaceholder={resolvedSearchPlaceholder}
+        searchColumns={searchColumns}
         loading={loading}
-        emptyMessage={`No ${typeLabelPlural.toLowerCase()} found.`}
-        toolbar={toolbar}
-        density="compact"
-        height={500}
+        emptyMessage={resolvedEmptyMessage}
+        toolbar={toolbarNode}
+        density={density}
+        height={height}
+        getRowClassName={getRowClassName}
       />
     </Box>
   );

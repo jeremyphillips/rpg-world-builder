@@ -17,6 +17,12 @@ export type ContentType =
 
 export type ListOptions = {
   search?: string;
+  /** When provided, repos may use catalog for list building (e.g. races uses racesAllById, raceAllowedIds). */
+  catalog?: {
+    racesAllById?: Record<string, { id: string }>;
+    raceAllowedIds?: string[];
+    racesById?: Record<string, { id: string }>;
+  };
 };
 
 /**

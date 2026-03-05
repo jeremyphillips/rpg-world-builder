@@ -1,8 +1,14 @@
 import { useState, useMemo, useCallback, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { DataGrid, type GridColDef, type GridRenderCellParams } from '@mui/x-data-grid'
+import {
+  DataGrid,
+  type GridColDef,
+  type GridRenderCellParams,
+  type GridRowClassNameParams,
+} from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
+import GlobalStyles from '@mui/material/GlobalStyles'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
@@ -209,6 +215,8 @@ export interface AppDataGridProps<T> {
   toolbar?: ReactNode
   /** Height of the grid container (default 400) */
   height?: number | string
+  /** Optional function to add CSS class names to rows (e.g. for muted styling) */
+  getRowClassName?: (params: GridRowClassNameParams) => string
 }
 
 // ---------------------------------------------------------------------------
@@ -250,6 +258,7 @@ export default function AppDataGrid<T>({
   density = 'standard',
   toolbar,
   height = 400,
+  getRowClassName,
 }: AppDataGridProps<T>) {
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, unknown>>({})
@@ -532,11 +541,25 @@ export default function AppDataGrid<T>({
         </Stack>
       )}
 
+      <GlobalStyles
+        styles={{
+          '.AppDataGrid-row--disabled': {
+            opacity: '0.6 !important',
+          },
+        }}
+      />
       <Box sx={{ height, width: '100%' }}>
         <DataGrid
           rows={filteredRows}
           columns={muiColumns}
           getRowId={(row) => getRowId(row as T)}
+          getRowClassName={getRowClassName}
+          sx={{
+            '& .MuiDataGrid-cell': {
+              display: 'flex',
+              alignItems: 'center',
+            },
+          }}
           loading={loading}
           pageSizeOptions={pageSizeOptions}
           density={density}

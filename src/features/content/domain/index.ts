@@ -1,4 +1,5 @@
 export * from './types';
+export * from './sourceLabels';
 export * from './vocab';
 export {
   listCampaignRaces,

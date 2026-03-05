@@ -26,7 +26,10 @@ export interface RaceFields {
 
 export type Race = ContentItem & RaceFields;
 
-export type RaceSummary = ContentSummary & RaceFields;
+export type RaceSummary = ContentSummary & RaceFields & {
+  /** Whether this race is enabled for the campaign (from content rule). */
+  allowedInCampaign?: boolean;
+};
 
 export type RaceInput = ContentInput & Partial<RaceFields>;
 

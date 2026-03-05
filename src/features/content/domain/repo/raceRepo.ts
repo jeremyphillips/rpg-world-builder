@@ -35,7 +35,7 @@ import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 // Helpers
 // ---------------------------------------------------------------------------
 
-function toSummary(race: Race): RaceSummary {
+function toSummary(race: Race, allowedInCampaign: boolean): RaceSummary {
   const base = {
     id: race.id,
     name: race.name,
@@ -44,6 +44,7 @@ function toSummary(race: Race): RaceSummary {
     campaigns: race.campaigns,
     accessPolicy: race.accessPolicy,
     patched: race.patched,
+    allowedInCampaign,
   };
   return race.source === 'system'
     ? { ...base, source: 'system' as const, systemId: race.systemId }
@@ -65,6 +66,27 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
     systemId: SystemRulesetId,
     opts?: ListOptions,
   ): Promise<RaceSummary[]> {
+    const catalog = opts?.catalog;
+
+    if (catalog) {
+      const racesById = catalog.racesAllById ?? catalog.racesById;
+      const allowedSet = new Set(catalog.raceAllowedIds ?? []);
+
+      if (!racesById) {
+        return [];
+      }
+
+      const treatAllAsAllowed = catalog.raceAllowedIds === undefined;
+      const results: RaceSummary[] = Object.values(racesById).map((race) =>
+        toSummary(race as Race, treatAllAsAllowed || allowedSet.has(race.id)),
+      );
+
+      if (opts?.search) {
+        return results.filter((r) => matchesSearch(r.name, opts.search!)).sort((a, b) => a.name.localeCompare(b.name));
+      }
+      return results.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     const [system, campaign, contentPatch] = await Promise.all([
       Promise.resolve(getSystemRaces(systemId)),
       listCampaignRaces(campaignId),
@@ -72,10 +94,10 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
     ]);
 
     const racePatches = contentPatch?.patches?.races ?? {};
-    const campaignIds = new Set(campaign.map(r => r.id));
+    const campaignIds = new Set(campaign.map((r) => r.id));
 
     const patchedSystem: Race[] = system
-      .filter(r => !campaignIds.has(r.id))
+      .filter((r) => !campaignIds.has(r.id))
       .map((r): Race => {
         const patch = racePatches[r.id];
         if (!patch) return r;
@@ -85,10 +107,10 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
 
     const merged: Race[] = [...patchedSystem, ...campaign];
 
-    let results = merged.map(toSummary);
+    let results = merged.map((r) => toSummary(r, true));
 
     if (opts?.search) {
-      results = results.filter(r => matchesSearch(r.name, opts.search!));
+      results = results.filter((r) => matchesSearch(r.name, opts.search!));
     }
 
     return results.sort((a, b) => a.name.localeCompare(b.name));

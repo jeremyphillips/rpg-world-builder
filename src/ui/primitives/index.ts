@@ -11,3 +11,6 @@ export type { CardBadgeProps } from './CardBadge'
 
 export { default as AppAlert } from './AppAlert/AppAlert'
 export type { AppAlertProps, AppAlertTone } from './AppAlert/AppAlert'
+
+export { default as AppTooltip } from './AppTooltip'
+export type { AppTooltipProps } from './AppTooltip'

@@ -13,6 +13,7 @@ import {
 } from '@/features/mechanics/domain/core/rules';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import { buildItemsWithAllowed, toggleAllowedIds } from '@/features/content/domain/contentPolicy';
+import { canViewContent, type ViewerContext } from '@/shared/domain/capabilities';
 import { toContentViewerContext } from '../domain/viewerContext';
 
 export interface UseCampaignContentListControllerOptions {
@@ -37,6 +38,14 @@ export interface UseCampaignContentListControllerResult {
   onAdd: () => void;
 }
 
+/**
+ * Controller for campaign content list pages.
+ *
+ * TODO: Add unit test or in-file sanity checks:
+ * - Given canManage=false, items with allowedInCampaign=false are removed.
+ * - Given canManage=false, items with accessPolicy.scope='dm' are removed.
+ * - Given canManage=true, nothing is removed.
+ */
 export function useCampaignContentListController(
   options: UseCampaignContentListControllerOptions,
 ): UseCampaignContentListControllerResult {
@@ -91,10 +100,35 @@ export function useCampaignContentListController(
   const contentRule = patch?.content?.[contentKey as keyof RulesetContent] as ContentRule | undefined;
   const policy: ContentPolicy = contentRule?.policy ?? 'all_except';
 
-  const items: ContentListItem[] = useMemo(
-    () => buildItemsWithAllowed(summaries, contentRule),
-    [summaries, contentRule],
-  );
+  const items: ContentListItem[] = useMemo(() => {
+    // Prefer catalog's allowedInCampaign when contentRule is absent (patch not loaded or no content).
+    // Use buildItemsWithAllowed when we have contentRule (patch is source of truth for optimistic updates).
+    const withAllowed: ContentListItem[] =
+      contentRule != null
+        ? buildItemsWithAllowed(summaries, contentRule)
+        : summaries.map((s) => {
+            const item = s as ContentListItem;
+            const allowed =
+              item.allowedInCampaign ?? (item as { allowed?: boolean }).allowed ?? true;
+            return { ...item, allowedInCampaign: allowed };
+          });
+
+    if (canManage) return withAllowed;
+
+    // PC/non-manager: filter out disabled and non-visible content
+    const ctx: ViewerContext = viewerContext ?? {
+      campaignRole: null,
+      isOwner: false,
+      isPlatformAdmin: false,
+      characterIds: [],
+    };
+
+    return withAllowed.filter((item) => {
+      const allowed = item.allowedInCampaign !== false;
+      const visible = canViewContent(ctx, item.accessPolicy);
+      return allowed && visible;
+    });
+  }, [summaries, contentRule, canManage, viewerContext]);
 
   const savePolicy = useCallback(async (
     nextPolicy: ContentPolicy,

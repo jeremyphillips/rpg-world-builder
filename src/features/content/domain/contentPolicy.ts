@@ -13,12 +13,12 @@ export function getAllowedSet(rule: ContentRule | undefined, allIds: string[]): 
 export function buildItemsWithAllowed<T extends ContentSummary>(
   summaries: T[],
   rule: ContentRule | undefined,
-): (T & { allowed: boolean })[] {
+): (T & { allowedInCampaign: boolean })[] {
   const allIds = summaries.map(s => s.id);
-  const allowed = getAllowedSet(rule, allIds);
+  const allowedSet = getAllowedSet(rule, allIds);
   return summaries.map(s => ({
     ...s,
-    allowed: allowed.has(s.id),
+    allowedInCampaign: allowedSet.has(s.id),
   }));
 }
 

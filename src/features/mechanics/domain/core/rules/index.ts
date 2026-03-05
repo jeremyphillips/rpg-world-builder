@@ -1,4 +1,9 @@
-export { buildCampaignCatalog } from './buildCampaignCatalog';
+export {
+  buildCampaignCatalog,
+  CATALOG_CATEGORY_CONFIG,
+  type CatalogCategoryConfig,
+  type CampaignCatalogAdmin,
+} from './buildCampaignCatalog';
 export {
   systemCatalog,
   type CampaignCatalog,
