@@ -1,13 +1,13 @@
 import type { Spell } from '@/features/content/domain/types/spell.types';
 import type { DetailSpec } from '@/features/content/forms/registry';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab';
-import { classes } from '@/data/classes';
-import { getById } from '@/utils/getById';
+import { classIdToName } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 
 const schoolLabel = (value: string) =>
   MAGIC_SCHOOL_OPTIONS.find((o) => o.value === value)?.label ?? value;
 
-const classLabel = (id: string) => getById(classes, id)?.name ?? id;
+const classLabel = (id: string) => classIdToName(DEFAULT_SYSTEM_RULESET_ID, id);
 
 export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
   {

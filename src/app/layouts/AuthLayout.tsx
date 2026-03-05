@@ -306,6 +306,14 @@ export default function AuthLayout() {
                     <List component="div" disablePadding>
                     <ListItemButton
                         component={NavLink}
+                        to={ROUTES.WORLD_CLASSES.replace(':id', activeCampaignId)}
+                        selected={location.pathname.startsWith(`/campaigns/${activeCampaignId}/world/classes`)}
+                        sx={{ pl: 2 }}
+                      >
+                        <ListItemText primary="Classes" slotProps={{ primary: { fontSize: '0.8rem' } }} />
+                      </ListItemButton>
+                      <ListItemButton
+                        component={NavLink}
                         to={ROUTES.WORLD_RACES.replace(':id', activeCampaignId)}
                         selected={location.pathname === `/campaigns/${activeCampaignId}/world/races`}
                         sx={{ pl: 2 }}

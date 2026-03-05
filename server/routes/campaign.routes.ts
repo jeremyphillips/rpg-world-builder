@@ -38,6 +38,13 @@ import {
   deleteCampaignRace,
 } from '../controllers/campaignRace.controller'
 import {
+  listCampaignClasses,
+  getCampaignClass,
+  createCampaignClass,
+  updateCampaignClass,
+  deleteCampaignClass,
+} from '../controllers/campaignClass.controller'
+import {
   listCampaignSkillProficiencies,
   getCampaignSkillProficiency,
   createCampaignSkillProficiency,
@@ -98,6 +105,13 @@ router.put('/:id/ruleset-patch', requireCampaignRole('observer'), requireCampaig
 // Content patches — owner can read/write
 router.get('/:id/content-patch', requireCampaignRole('observer'), getContentPatch)
 router.put('/:id/content-patch', requireCampaignRole('observer'), requireCampaignOwner(), upsertContentPatch)
+
+// Campaign classes — any member can read, owner can manage
+router.get('/:id/classes', requireCampaignRole('observer'), listCampaignClasses)
+router.get('/:id/classes/:classId', requireCampaignRole('observer'), getCampaignClass)
+router.post('/:id/classes', requireCampaignRole('observer'), requireCampaignOwner(), createCampaignClass)
+router.patch('/:id/classes/:classId', requireCampaignRole('observer'), requireCampaignOwner(), updateCampaignClass)
+router.delete('/:id/classes/:classId', requireCampaignRole('observer'), requireCampaignOwner(), deleteCampaignClass)
 
 // Campaign races — any member can read, owner can manage
 router.get('/:id/races', requireCampaignRole('observer'), listCampaignRaces)

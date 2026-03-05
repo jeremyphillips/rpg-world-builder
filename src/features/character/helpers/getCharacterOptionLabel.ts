@@ -1,5 +1,5 @@
-import { classes } from '@/data/classes'
-import { getById } from '@/utils'
+import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import { getSubclassNameById } from '@/features/mechanics/domain/classes/progression'
 
 export interface CharacterForLabel {
@@ -32,7 +32,7 @@ export function getCharacterOptionLabel(c: CharacterForLabel): string {
 
 function getClassName(classId?: string, subclassId?: string): string {
   if (!classId) return 'Unknown'
-  const cls = getById(classes, classId)
+  const cls = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, classId)
   const baseName = cls?.name ?? classId
   if (subclassId) {
     const subName = getSubclassNameById(classId, subclassId)

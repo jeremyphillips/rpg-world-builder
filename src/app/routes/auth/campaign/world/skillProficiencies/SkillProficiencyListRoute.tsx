@@ -219,7 +219,6 @@ export default function SkillProficiencyListRoute() {
           canManage && (
             <Button
               variant="contained"
-              //size="small"
               startIcon={<AddIcon />}
               onClick={() => navigate(`${basePath}/new`)}
             >

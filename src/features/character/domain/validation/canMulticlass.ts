@@ -2,7 +2,8 @@ import type { MulticlassingRules } from '@/shared/types/ruleset';
 import type { AbilityRequirementGroup, RequirementExpr } from '@/features/classes/domain/types';
 import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types';
 import type { AbilityScoreValue } from '@/features/mechanics/domain/core/character/abilities.types';
-import { classes } from '@/data/classes';
+import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import { resolveRule, type RuleResolveContext } from '@/features/mechanics/domain/core/rules';
 import { ABILITY_KEYS } from '@/features/mechanics/domain/core/character';
 
@@ -111,7 +112,7 @@ export const canAddClass = (
   // Current-class exit requirements: in 5e you must meet your own class's
   // multiclassing prerequisites to leave it.
   if (context.classId && abilityScores) {
-    const currentClassData = classes.find(c => c.id === context.classId);
+    const currentClassData = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, context.classId);
     const classExitReq: RequirementExpr | undefined = currentClassData?.requirements?.multiclassing;
     const rulesetExitReq = rules.entryRequirementsByTargetClass?.[context.classId];
     const exitReq: EffectiveRequirement | undefined = rulesetExitReq ?? classExitReq;
@@ -122,7 +123,7 @@ export const canAddClass = (
   }
 
   if (targetClassId && abilityScores) {
-    const classData = classes.find(c => c.id === targetClassId);
+    const classData = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, targetClassId);
     const classReq: RequirementExpr | undefined = classData?.requirements?.multiclassing;
 
     const rulesetReq = rules.entryRequirementsByTargetClass?.[targetClassId];

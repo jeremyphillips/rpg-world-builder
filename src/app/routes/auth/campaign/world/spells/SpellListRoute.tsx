@@ -12,8 +12,7 @@ import { spellRepo } from '@/features/content/domain/repo';
 import type { SpellSummary } from '@/features/content/domain/repo';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
-import { classes } from '@/data/classes';
-import { getById } from '@/utils/getById';
+import { classIdToName } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
 import { AppDataGrid } from '@/ui/patterns';
 import type { AppDataGridColumn, AppDataGridFilter } from '@/ui/patterns';
 import { makeOwnedColumn, makeOwnedFilter } from '@/ui/patterns';
@@ -25,7 +24,7 @@ import { AppAlert, AppBadge } from '@/ui/primitives';
 const schoolLabel = (value: string) =>
   MAGIC_SCHOOL_OPTIONS.find((o) => o.value === value)?.label ?? value;
 
-const classLabel = (id: string) => getById(classes, id)?.name ?? id;
+const classLabel = (id: string) => classIdToName(DEFAULT_SYSTEM_RULESET_ID, id);
 
 export default function SpellListRoute() {
   const { campaign, campaignId } = useActiveCampaign();

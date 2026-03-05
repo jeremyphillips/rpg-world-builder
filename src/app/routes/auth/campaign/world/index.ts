@@ -1,4 +1,5 @@
 export { default as WorldLayout } from './WorldLayout'
+export { ClassListRoute, ClassDetailRoute, ClassCreateRoute, ClassEditRoute } from './classes'
 export { LocationsRoute, LocationRoute } from './locations'
 export { NpcsRoute, NpcRoute } from './npcs'
 export { MonstersRoute, MonsterRoute } from './monsters'

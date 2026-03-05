@@ -1,6 +1,7 @@
 import type { Character } from '@/features/character/domain/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
-import { classes } from '@/data/classes'
+import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import type { SubclassSelection } from '@/features/classes/domain/types'
 
 type FeatureRecord = Record<string, unknown>
@@ -53,7 +54,8 @@ function collectBaseProficiencyEffects(character: Character): Effect[] {
   const effects: Effect[] = []
 
   for (const cls of character.classes ?? []) {
-    const classDef = classes.find((c) => c.id === cls.classId)
+    if (!cls.classId) continue
+    const classDef = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, cls.classId)
     if (!classDef) continue
 
     const profs = classDef.proficiencies
@@ -127,7 +129,8 @@ export function collectClassEffects(
   const effects: Effect[] = []
 
   for (const cls of character.classes ?? []) {
-    const classDef = classes.find(c => c.id === cls.classId)
+    if (!cls.classId) continue
+    const classDef = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, cls.classId)
     if (!classDef) continue
 
     const clsLevel = (cls.level ?? character.totalLevel ?? 1) || 1

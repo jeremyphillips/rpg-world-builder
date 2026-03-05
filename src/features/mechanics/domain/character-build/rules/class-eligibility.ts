@@ -5,8 +5,8 @@
  * returning structured reason codes instead of display strings.
  * UI maps codes to friendly copy.
  */
-import { classes } from '@/data/classes'
-import { getById } from '@/utils'
+import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import type { ClassRequirement } from '@/features/classes/domain/types'
 import type { AlignmentId } from '@/features/content/domain/types'
 import type { BuildDraft } from '../types'
@@ -44,7 +44,7 @@ export function evaluateClassEligibility(
 
   const { race, alignment } = draft
 
-  const cls = getById(classes, classId)
+  const cls = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, classId)
   if (!cls || !cls.requirements) return { allowed: true, reasons: [] }
 
   const req = cls.requirements
@@ -84,7 +84,7 @@ export function getClassRequirement(
 ): ClassRequirement | undefined {
   if (!classId) return undefined
 
-  const cls = getById(classes, classId)
+  const cls = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, classId)
   if (!cls) return undefined
 
   return cls.requirements
@@ -106,7 +106,7 @@ export function getClassRestrictionNotes(
   const openToAll: string[] = []
 
   for (const classId of classIds) {
-    const cls = getById(classes, classId)
+    const cls = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, classId)
     if (!cls) continue
 
     const req = cls.requirements

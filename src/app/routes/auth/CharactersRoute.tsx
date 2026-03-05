@@ -11,8 +11,9 @@ import CircularProgress from '@mui/material/CircularProgress'
 import EditIcon from '@mui/icons-material/Edit'
 import PersonIcon from '@mui/icons-material/Person'
 
-import type { CharacterClassInfo } from '@/shared'
-import { classes as classesData } from '@/data/classes'
+import type { CharacterClassInfo } from '@/features/character/domain/types'
+import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import { resolveImageUrl } from '@/utils/image'
 import { Breadcrumbs } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/hooks'
@@ -29,13 +30,13 @@ function formatClassLine(
   isPrimary: boolean,
   isMulticlass: boolean,
 ): string {
-  const classData = classesData.find((c) => c.id === cls.classId)
-  const name = classData?.name ?? cls.classId ?? 'Unknown'
+  if (!cls.classId) return 'Unknown'
+  const classData = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, cls.classId)
+  const name = classData?.name ?? cls.classId
 
   let subclassName = ''
-  if (cls.subclassId && classData) {
-    const options = (classData as any).definitions?.options as { id: string; name?: string }[] | undefined
-    const sub = options?.find((d) => d.id === cls.subclassId)
+  if (cls.subclassId && classData?.definitions?.options) {
+    const sub = classData.definitions.options.find((d) => d.id === cls.subclassId)
     if (sub?.name) subclassName = sub.name
   }
 

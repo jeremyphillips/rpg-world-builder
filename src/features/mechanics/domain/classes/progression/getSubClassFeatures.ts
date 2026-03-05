@@ -1,5 +1,5 @@
-import { getById } from '@/utils'
-import { classes } from '@/data/classes'
+import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import type { SubclassFeature } from '@/features/classes/domain/types'
 
 // ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ export function getSubclassFeatures(
 ): SubclassFeature[] {
   if (!classId || !subclassId) return [];
 
-  const cls = getById(classes, classId);
+  const cls = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, classId);
   if (!cls) return [];
 
   const def = Array.isArray(cls.definitions) ? cls.definitions[0] : cls.definitions;
