@@ -11,6 +11,10 @@ export {
   getSystemRace,
   SYSTEM_RACES_BY_SYSTEM_ID,
 } from './systemCatalog.races';
+export {
+  getSystemSkillProficiencies,
+  getSystemSkillProficiency,
+} from './systemCatalog.skillProficiencies';
 export { resolveCampaignRulesContext, type CampaignRulesContext } from './resolveCampaignRulesContext';
 export { resolveCampaignRuleset } from './resolveCampaignRuleset';
 export { normalizeCampaignRulesetPatch } from './normalizeCampaignRulesetPatch';

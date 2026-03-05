@@ -128,6 +128,7 @@ export function buildCampaignCatalog(
     magicItemsById:           resolveContent('magicItems', system.magicItemsById,           campaign.magicItemsById,           c.equipment),
     enhancementsById:         resolveContent('enhancementTemplates', system.enhancementsById, campaign.enhancementsById, c.equipment),
     spellsById:               resolveContent('spells', system.spellsById,              campaign.spellsById,               c.spells),
+    skillProficienciesById:   system.skillProficienciesById,
     monstersById:             resolveContent('monsters', system.monstersById,             campaign.monstersById,             c.monsters),
   };
 }

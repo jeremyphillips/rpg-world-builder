@@ -2,13 +2,7 @@ import { useCharacterBuilder } from '../../context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import type { ClassProgression } from '@/features/classes/domain/types'
 import type { StepId } from '../../types'
-import {
-  FIVE_E_STRENGTH_SKILLS,
-  FIVE_E_DEXTERITY_SKILLS,
-  FIVE_E_INTELLIGENCE_SKILLS,
-  FIVE_E_WISDOM_SKILLS,
-  FIVE_E_CHARISMA_SKILLS
-} from '@/data/proficiencies'
+import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -22,22 +16,6 @@ import Stack from '@mui/material/Stack'
 import EditIcon from '@mui/icons-material/Edit'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { resolveAlignmentOptions } from '@/features/mechanics/domain/core/rules/alignment/resolveAlignmentOptions'
-
-// ---------------------------------------------------------------------------
-// Skill name lookup
-// ---------------------------------------------------------------------------
-
-const SKILL_NAME_MAP: Record<string, string> = Object.fromEntries(
-  [
-    FIVE_E_STRENGTH_SKILLS,
-    FIVE_E_DEXTERITY_SKILLS,
-    FIVE_E_INTELLIGENCE_SKILLS,
-    FIVE_E_WISDOM_SKILLS,
-    FIVE_E_CHARISMA_SKILLS
-  ].flatMap(group =>
-    Object.entries(group).map(([id, def]) => [id, def.name])
-  )
-)
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -145,7 +123,7 @@ const ConfirmationStep = () => {
 
   // Resolve skill IDs to display names
   const selectedSkillIds = state.proficiencies?.skills ?? []
-  const resolvedSkillNames = selectedSkillIds.map(id => SKILL_NAME_MAP[id] ?? id)
+  const resolvedSkillNames = selectedSkillIds.map(id => skillProficiencyIdToName(id))
   const totalProfs = selectedSkillIds.length
 
   // Resolve spell IDs to name + level from catalog

@@ -1,13 +1,5 @@
 import type { CharacterClass } from '@/features/classes/domain/types/class.types'
 
-import {
-  FIVE_E_WISDOM_SKILLS,
-  FIVE_E_STRENGTH_SKILLS,
-  FIVE_E_CHARISMA_SKILLS,
-  FIVE_E_DEXTERITY_SKILLS,
-  FIVE_E_INTELLIGENCE_SKILLS,
-} from './proficiencies'
-
 import { FULL_CASTER_SLOTS_5E, WARLOCK_PACT_SLOTS_5E } from './ruleSets/spellSlotTables'
 
 export const classes: readonly CharacterClass[] = [
@@ -89,15 +81,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 2,
         level: 1,
-        from: [
-          ...Object.keys(FIVE_E_STRENGTH_SKILLS),
-          'acrobatics', 
-          'history', 
-          'insight', 
-          'intimidation', 
-          'perception', 
-          'survival'
-        ]
       },
       weapons: {
         type: 'fixed',
@@ -177,10 +160,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 2,
         level: 1,
-        from: [
-          ...Object.keys(FIVE_E_WISDOM_SKILLS),
-          'history', 'insight', 'medicine', 'religion'
-        ]
       },
       weapons: {
         type: 'fixed',
@@ -228,17 +207,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 4,
         level: 1,
-        from: [
-          ...Object.keys(FIVE_E_DEXTERITY_SKILLS),
-          'athletics',
-          'deception',
-          'insight',
-          'intimidation',
-          'investigation',
-          'perception',
-          'performance',
-          'persuasion',
-        ]
       },
       weapons: {
         type: 'fixed',
@@ -320,14 +288,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 2,
         level: 1,
-        from: [
-          'athletics',
-          'insight',
-          'intimidation',
-          'medicine',
-          'persuasion',
-          'religion'
-        ]
       },
       weapons: {
         type: 'fixed',
@@ -374,13 +334,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 3,
         level: 1,
-        from: [
-          ...Object.keys(FIVE_E_CHARISMA_SKILLS),
-          ...Object.keys(FIVE_E_DEXTERITY_SKILLS),
-          ...Object.keys(FIVE_E_INTELLIGENCE_SKILLS),
-          ...Object.keys(FIVE_E_WISDOM_SKILLS),
-          ...Object.keys(FIVE_E_STRENGTH_SKILLS),
-        ],
       },
       weapons: {
         type: 'fixed',
@@ -429,12 +382,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 3,
         level: 1,
-        from: [
-          'animal-handling',
-          'athletics',
-          'insight',
-          'investigation',
-        ],
       },
       weapons: {  
         type: 'fixed',
@@ -482,12 +429,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 2,
         level: 1,
-        from: [
-          'acrobatics',
-          'athletics',
-          'history',
-          'insight',
-        ],
       },
       weapons: {
         type: 'fixed',
@@ -534,16 +475,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 2,
         level: 1,
-        from: [
-          'arcana',
-          'animal-handling',
-          'insight',
-          'medicine',
-          'nature',
-          'perception',
-          'religion',
-          'survival',
-        ],
       },
       weapons: {
         type: 'fixed',
@@ -612,13 +543,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 2,
         level: 1,
-        from: [
-          'arcana',
-          'insight',
-          'medicine',
-          'religion',
-          'survival',
-        ],
       },
       weapons: {
         type: 'fixed',
@@ -705,13 +629,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 2,
         level: 1,
-        from: [
-          'arcana',
-          'insight',
-          'medicine',
-          'religion',
-          'survival',
-        ],
       },
       weapons: {
         type: 'fixed',
@@ -794,12 +711,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 2,
         level: 1,
-        from: [
-          'animal-handling',
-          'athletics',
-          'insight',
-          'intimidation',
-        ],
       },
       weapons: {
         type: 'fixed',
@@ -865,12 +776,6 @@ export const classes: readonly CharacterClass[] = [
         type: 'choice',
         choose: 2,
         level: 1,
-        from: [
-          'arcana',
-          'history',
-          'insight',
-          'investigation',
-        ],
       },
       weapons: {
         type: 'fixed',

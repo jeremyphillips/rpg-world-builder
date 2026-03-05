@@ -1,6 +1,8 @@
-import type { SkillProficiency } from '@/features/content/domain/types'
-
-export const SKILL_PROFICIENCIES: readonly SkillProficiency[] = [
+/**
+ * Raw skill proficiency data — no type imports to allow derivation of SkillProficiencyId
+ * without circular dependencies.
+ */
+export const SKILL_PROFICIENCIES_RAW = [
   {
     id: 'athletics',
     name: 'Athletics',
@@ -254,30 +256,3 @@ export const SKILL_PROFICIENCIES: readonly SkillProficiency[] = [
     description: 'Influencing others with tact, social graces, or good nature.',
   },
 ] as const
-
-// ---------------------------------------------------------------------------
-// Legacy exports — derived from PROFICIENCIES, keyed by id for compatibility
-// ---------------------------------------------------------------------------
-
-const byAbility = (ability: SkillProficiency['ability']) =>
-  SKILL_PROFICIENCIES.filter((p) => p.ability === ability)
-
-export const FIVE_E_STRENGTH_SKILLS = Object.fromEntries(
-  byAbility('str').map((p) => [p.id, { name: p.name, ability: p.ability, description: p.description }])
-)
-
-export const FIVE_E_DEXTERITY_SKILLS = Object.fromEntries(
-  byAbility('dex').map((p) => [p.id, { name: p.name, ability: p.ability, description: p.description }])
-)
-
-export const FIVE_E_INTELLIGENCE_SKILLS = Object.fromEntries(
-  byAbility('int').map((p) => [p.id, { name: p.name, ability: p.ability, description: p.description }])
-)
-
-export const FIVE_E_WISDOM_SKILLS = Object.fromEntries(
-  byAbility('wis').map((p) => [p.id, { name: p.name, ability: p.ability, description: p.description }])
-)
-
-export const FIVE_E_CHARISMA_SKILLS = Object.fromEntries(
-  byAbility('cha').map((p) => [p.id, { name: p.name, ability: p.ability, description: p.description }])
-)

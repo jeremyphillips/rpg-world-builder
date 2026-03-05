@@ -12,7 +12,8 @@ import { getSystemArmor } from './systemCatalog.armor'
 import { getSystemGear } from './systemCatalog.gear'
 import { getSystemMagicItems } from './systemCatalog.magicItems'
 import { getSystemSpells } from './systemCatalog.spells'
-import type { Spell } from '@/features/content/domain/types'
+import { getSystemSkillProficiencies } from './systemCatalog.skillProficiencies'
+import type { Spell, SkillProficiency } from '@/features/content/domain/types'
 import { monsters } from '@/data/monsters'
 import { classes } from "@/data/classes"
 import type { CharacterClass } from '@/features/classes/domain/types'
@@ -45,13 +46,14 @@ export type CampaignCatalog = {
   classesById:              Record<string, CharacterClass>
   classIds:                 readonly string[]
   racesById:                Record<string, Race>
-  raceIds:                  readonly string[]
+  raceIds:                  readonly Race['id'][]
   weaponsById:              Record<string, Weapon>
   armorById:                Record<string, Armor>
   gearById:                 Record<string, Gear>
   magicItemsById:           Record<string, MagicItem>
   enhancementsById:         Record<string, EnchantmentTemplate>
   spellsById:               Record<string, Spell>
+  skillProficienciesById:   Record<string, SkillProficiency>
   monstersById:             Record<string, Monster>
 }
 
@@ -77,6 +79,7 @@ export const systemCatalog: CampaignCatalog = {
   magicItemsById:   keyBy(magicItems),
   enhancementsById: keyBy(getSystemEnchantmentTemplates(DEFAULT_SYSTEM_RULESET_ID)),
   spellsById:       keyBy(getSystemSpells(DEFAULT_SYSTEM_RULESET_ID)),
+  skillProficienciesById: keyBy(getSystemSkillProficiencies(DEFAULT_SYSTEM_RULESET_ID)),
   monstersById:     keyBy(monsters),
 }
 

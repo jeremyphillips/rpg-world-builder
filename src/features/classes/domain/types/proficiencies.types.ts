@@ -8,7 +8,8 @@ export interface ClassProficiencySkillSelection {
   type: 'choice' | 'fixed'
   level: number
   choose: number
-  from: string[]
+  /** Omitted when options are derived from suggestedClasses in system catalog */
+  from?: string[]
 }
 
 export interface ClassProficiencyWeapon {

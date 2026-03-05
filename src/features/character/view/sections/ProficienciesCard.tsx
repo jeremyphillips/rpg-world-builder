@@ -1,11 +1,5 @@
 import type { CharacterDoc } from '@/features/character/domain/types'
-import {
-  FIVE_E_STRENGTH_SKILLS,
-  FIVE_E_DEXTERITY_SKILLS,
-  FIVE_E_INTELLIGENCE_SKILLS,
-  FIVE_E_WISDOM_SKILLS,
-  FIVE_E_CHARISMA_SKILLS
-} from '@/data/proficiencies'
+import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
 
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -16,19 +10,6 @@ import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import Tooltip from '@mui/material/Tooltip'
 import EditIcon from '@mui/icons-material/Edit'
-
-// Consolidated skill name lookup across all supported systems
-const SKILL_NAME_MAP: Record<string, string> = Object.fromEntries(
-  [
-    FIVE_E_STRENGTH_SKILLS,
-    FIVE_E_DEXTERITY_SKILLS,
-    FIVE_E_INTELLIGENCE_SKILLS,
-    FIVE_E_WISDOM_SKILLS,
-    FIVE_E_CHARISMA_SKILLS
-  ].flatMap(group =>
-    Object.entries(group).map(([id, def]) => [id, def.name])
-  )
-)
 
 type ProficienciesCardProps = {
   proficiencies: CharacterDoc['proficiencies']
@@ -66,7 +47,7 @@ export default function ProficienciesCard({ proficiencies, wealth, onEdit, editD
         {skillIds.length > 0 ? (
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
             {skillIds.map((id) => (
-              <Chip key={id} label={SKILL_NAME_MAP[id] ?? id} size="small" variant="outlined" />
+              <Chip key={id} label={skillProficiencyIdToName(id)} size="small" variant="outlined" />
             ))}
           </Stack>
         ) : (

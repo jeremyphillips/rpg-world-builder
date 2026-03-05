@@ -1,13 +1,8 @@
 import { useMemo, useCallback } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import {
-  FIVE_E_STRENGTH_SKILLS,
-  FIVE_E_DEXTERITY_SKILLS,
-  FIVE_E_INTELLIGENCE_SKILLS,
-  FIVE_E_WISDOM_SKILLS,
-  FIVE_E_CHARISMA_SKILLS
-} from '@/data/proficiencies'
+import { getSuggestedSkillProficienciesByClass } from '@/features/classes/domain/getSuggestedSkillProficienciesByClass'
+import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -16,26 +11,6 @@ import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import LockIcon from '@mui/icons-material/Lock'
-
-// ---------------------------------------------------------------------------
-// Skill name lookup — merged from all reference tables
-// ---------------------------------------------------------------------------
-
-const SKILL_NAME_MAP: Record<string, string> = Object.fromEntries(
-  [
-    FIVE_E_STRENGTH_SKILLS,
-    FIVE_E_DEXTERITY_SKILLS,
-    FIVE_E_INTELLIGENCE_SKILLS,
-    FIVE_E_WISDOM_SKILLS,
-    FIVE_E_CHARISMA_SKILLS
-  ].flatMap(group =>
-    Object.entries(group).map(([id, def]) => [id, def.name])
-  )
-)
-
-function getSkillName(skillId: string): string {
-  return SKILL_NAME_MAP[skillId] ?? skillId
-}
 
 // ---------------------------------------------------------------------------
 // Types
@@ -67,6 +42,7 @@ const ProficiencyStep = () => {
 
   const skillGroups: SkillGroup[] = useMemo(() => {
     const result: SkillGroup[] = []
+    const allSkills = Object.values(catalog.skillProficienciesById)
     for (const cls of selectedClasses) {
       if (!cls.classId) continue
       const classDef = catalog.classesById[cls.classId]
@@ -78,16 +54,17 @@ const ProficiencyStep = () => {
       const count = skills.choose ?? 0
       if (count === 0) continue
 
+      const options = skills.from ?? getSuggestedSkillProficienciesByClass(allSkills, cls.classId).map((s) => s.id)
       result.push({
         classId: cls.classId,
         className: classDef.name,
-        options: skills.from ?? [],
+        options,
         choiceCount: count,
         key: `${cls.classId}::skills`,
       })
     }
     return result
-  }, [selectedClasses, catalog.classesById])
+  }, [selectedClasses, catalog.classesById, catalog.skillProficienciesById])
 
   const totalSlots = useMemo(
     () => skillGroups.reduce((sum, g) => sum + g.choiceCount, 0),
@@ -102,7 +79,7 @@ const ProficiencyStep = () => {
 
       let next: string[]
       if (isSelected) {
-        next = selectedSkills.filter(id => id !== skillId)
+        next = selectedSkills.filter((id: string) => id !== skillId)
       } else {
         if (selectedSkills.length >= totalSlots) return
         next = [...selectedSkills, skillId]
@@ -158,7 +135,7 @@ const ProficiencyStep = () => {
                     return (
                       <Chip
                         key={skillId}
-                        label={getSkillName(skillId)}
+                        label={skillProficiencyIdToName(skillId)}
                         icon={isLocked ? <LockIcon sx={{ fontSize: 14 }} /> : undefined}
                         color={isChosen ? 'primary' : 'default'}
                         variant={isChosen ? 'filled' : 'outlined'}
