@@ -1,9 +1,20 @@
-import type { CharacterClass } from '@/features/classes/domain/types/class.types'
+/**
+ * System class catalog — code-defined class entries per system ruleset.
+ *
+ * These are the "factory defaults" for classes (SRD_CC_v5_2_1).
+ * Campaign-owned custom classes would be stored in the DB and merged at runtime.
+ */
+import type { CharacterClass } from '@/features/classes/domain/types';
+import type { SystemRulesetId } from './ruleset.types';
+import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
+import { FULL_CASTER_SLOTS_5E, WARLOCK_PACT_SLOTS_5E } from '@/data/ruleSets/spellSlotTables';
 
-import { FULL_CASTER_SLOTS_5E, WARLOCK_PACT_SLOTS_5E } from './ruleSets/spellSlotTables'
+// ---------------------------------------------------------------------------
+// 5e v1 system classes (SRD_CC_v5_2_1)
+// ---------------------------------------------------------------------------
 
-export const classes: readonly CharacterClass[] = [
-  { 
+const CLASSES_RAW: readonly CharacterClass[] = [
+  {
     id: 'fighter',
     name: 'Fighter',
     description: 'A class of brave and skilled warriors.',
@@ -28,8 +39,8 @@ export const classes: readonly CharacterClass[] = [
                     id: 'superiority_dice',
                     max: 4,
                     dice: 'd8',
-                    recharge: 'short_rest'
-                  }
+                    recharge: 'short_rest',
+                  },
                 },
                 {
                   id: 'fighter.battle_master.on_weapon_hit',
@@ -41,22 +52,22 @@ export const classes: readonly CharacterClass[] = [
                       kind: 'modifier',
                       target: 'damage',
                       mode: 'add',
-                      value: { dice: 'superiority_dice' }
+                      value: { dice: 'superiority_dice' },
                     },
                     {
                       kind: 'save',
                       ability: 'strength',
-                      onFail: { applyCondition: 'prone' }
-                    }
-                  ]
-                }  
-              ]
-            }
-          ]
+                      onFail: { applyCondition: 'prone' },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
         { id: 'fighter.battle_master.champion', name: 'Champion', source: 'PHB' },
         { id: 'fighter.battle_master.eldritch_knight', name: 'Eldritch Knight', source: 'PHB' },
-      ]
+      ],
     },
     progression: {
       hitDie: 10,
@@ -77,44 +88,26 @@ export const classes: readonly CharacterClass[] = [
       ],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 2,
-        level: 1,
-      },
-      weapons: {
-        type: 'fixed',
-        level: 1,
-        categories: [ 'simple', 'martial' ],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: [ 'allArmor', 'shields' ],
-      },
+      skills: { type: 'choice', choose: 2, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple', 'martial'] },
+      armor: { type: 'fixed', level: 1, categories: ['allArmor', 'shields'] },
     },
-    generation: {
-      primaryAbilities: ['str', 'con']
-    },
+    generation: { primaryAbilities: ['str', 'con'] },
     requirements: {
       allowedRaces: ['human'],
       allowedAlignments: 'any',
       multiclassing: {
         note: 'Requires Strength or Dexterity of 13+',
         anyOf: [
-          {
-            all: [{ ability: 'str', min: 13 }],
-          },
-          {
-            all: [{ ability: 'dex', min: 13 }],
-          },
+          { all: [{ ability: 'str', min: 13 }] },
+          { all: [{ ability: 'dex', min: 13 }] },
         ],
       },
-    } 
+    },
   },
-  { 
-    id: 'cleric', 
-    name: 'Cleric', 
+  {
+    id: 'cleric',
+    name: 'Cleric',
     description: 'A class of holy and compassionate healers.',
     definitions: {
       id: 'divine_domain',
@@ -127,12 +120,10 @@ export const classes: readonly CharacterClass[] = [
         { id: 'cleric.divine_domain.nature', name: 'Nature Domain', source: 'PHB' },
         { id: 'cleric.divine_domain.tempest', name: 'Tempest Domain', source: 'PHB' },
         { id: 'cleric.divine_domain.trickery', name: 'Trickery Domain', source: 'PHB' },
-        { id: 'cleric.divine_domain.war', name: 'War Domain', source: 'PHB' }
-      ]
+        { id: 'cleric.divine_domain.war', name: 'War Domain', source: 'PHB' },
+      ],
     },
-    generation: {
-      primaryAbilities: ['wis', 'con']
-    },
+    generation: { primaryAbilities: ['wis', 'con'] },
     progression: {
       hitDie: 8,
       attackProgression: 'average',
@@ -156,30 +147,15 @@ export const classes: readonly CharacterClass[] = [
       ],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 2,
-        level: 1,
-      },
-      weapons: {
-        type: 'fixed',
-        level: 1,
-        categories: ['simple'],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: [ 'light', 'medium', 'shields' ],
-      },
+      skills: { type: 'choice', choose: 2, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple'] },
+      armor: { type: 'fixed', level: 1, categories: ['light', 'medium', 'shields'] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    } 
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
-  { 
-    id: 'rogue', 
-    name: 'Rogue', 
+  {
+    id: 'rogue',
+    name: 'Rogue',
     description: 'A class of cunning and stealthy thieves.',
     definitions: {
       id: 'rogue_specialization',
@@ -187,13 +163,12 @@ export const classes: readonly CharacterClass[] = [
       selectionLevel: 3,
       options: [
         { id: 'rogue.rogue_specialization.arcane_trickster', name: 'Arcane Trickster', source: 'PHB' },
-        { id: 'rogue.rogue_specialization.assassin', name: 'Assassin', source: 'PHB' },        { id: 'rogue.rogue_specialization.soulknife', name: 'Soulknife', source: 'TCOE' },
-        { id: 'rogue.rogue_specialization.thief', name: 'Thief', source: 'PHB' }
-      ]
+        { id: 'rogue.rogue_specialization.assassin', name: 'Assassin', source: 'PHB' },
+        { id: 'rogue.rogue_specialization.soulknife', name: 'Soulknife', source: 'TCOE' },
+        { id: 'rogue.rogue_specialization.thief', name: 'Thief', source: 'PHB' },
+      ],
     },
-    generation: {
-      primaryAbilities: ['dex', 'int']
-    },
+    generation: { primaryAbilities: ['dex', 'int'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
@@ -203,30 +178,15 @@ export const classes: readonly CharacterClass[] = [
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 4,
-        level: 1,
-      },
-      weapons: {
-        type: 'fixed',
-        level: 1,
-        categories: ['simple'],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: ['light'],
-      },
+      skills: { type: 'choice', choose: 4, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple'] },
+      armor: { type: 'fixed', level: 1, categories: ['light'] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    } 
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
   {
-    id: 'paladin', 
-    name: 'Paladin', 
+    id: 'paladin',
+    name: 'Paladin',
     description: 'A class of righteous and noble protectors.',
     definitions: {
       id: 'paladin.subclass.sacred_oath',
@@ -234,9 +194,9 @@ export const classes: readonly CharacterClass[] = [
       selectionLevel: 3,
       options: [
         { id: 'paladin.subclass.sacred_oath.ancients', name: 'Oath of the Ancients', source: 'PHB' },
-        { 
-          id: 'paladin.subclass.sacred_oath.oath_of_devotion', 
-          name: 'Oath of Devotion', 
+        {
+          id: 'paladin.subclass.sacred_oath.oath_of_devotion',
+          name: 'Oath of Devotion',
           source: 'PHB',
           features: [
             {
@@ -247,11 +207,7 @@ export const classes: readonly CharacterClass[] = [
               action: 'action',
               duration: '1 minute',
               resource: 'channel_divinity',
-              effects: [{
-                target: 'attack_roll',
-                stat: 'charisma',
-                type: 'additive'
-              }]
+              effects: [{ target: 'attack_roll', stat: 'charisma', type: 'additive' }],
             },
             {
               name: 'Turn the Unholy',
@@ -259,22 +215,14 @@ export const classes: readonly CharacterClass[] = [
               level: 7,
               range: 10,
               affects: 'allies',
-              effects: [
-                {
-                  kind: 'grant',
-                  grantType: 'condition_immunity',
-                  value: 'charmed'
-                }
-              ]
-            }
-          ]
+              effects: [{ kind: 'grant', grantType: 'condition_immunity', value: 'charmed' }],
+            },
+          ],
         },
         { id: 'paladin.subclass.sacred_oath.oath_of_vengeance', name: 'Oath of Vengeance', source: 'PHB' },
-      ]
+      ],
     },
-    generation: {
-      primaryAbilities: ['cha', 'con']
-    },
+    generation: { primaryAbilities: ['cha', 'con'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
@@ -284,28 +232,13 @@ export const classes: readonly CharacterClass[] = [
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 2,
-        level: 1,
-      },
-      weapons: {
-        type: 'fixed',
-        level: 1,
-        categories: ['simple', 'martial'],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: ['allArmor', 'shields'],
-      },
+      skills: { type: 'choice', choose: 2, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple', 'martial'] },
+      armor: { type: 'fixed', level: 1, categories: ['allArmor', 'shields'] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    } 
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
-  { 
+  {
     id: 'bard',
     name: 'Bard',
     description: 'A class of talented and charismatic storytellers.',
@@ -316,11 +249,9 @@ export const classes: readonly CharacterClass[] = [
       options: [
         { id: 'bard.bardic_college.college_of_lore', name: 'College of Lore', source: 'PHB' },
         { id: 'bard.bardic_college.college_of_valor', name: 'College of Valor', source: 'PHB' },
-      ]
+      ],
     },
-    generation: {
-      primaryAbilities: ['cha', 'dex']
-    },
+    generation: { primaryAbilities: ['cha', 'dex'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
@@ -330,30 +261,13 @@ export const classes: readonly CharacterClass[] = [
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 3,
-        level: 1,
-      },
-      weapons: {
-        type: 'fixed',
-        level: 1,
-        categories: ['simple'],
-        items: [],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: ['light'],
-        items: [],
-      },
+      skills: { type: 'choice', choose: 3, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple'], items: [] },
+      armor: { type: 'fixed', level: 1, categories: ['light'], items: [] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    } 
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
-  { 
+  {
     id: 'ranger',
     name: 'Ranger',
     description: 'A class of skilled and knowledgeable trackers.',
@@ -364,11 +278,9 @@ export const classes: readonly CharacterClass[] = [
       options: [
         { id: 'ranger.ranger_path.beast_master', name: 'Beast Master', source: 'PHB' },
         { id: 'ranger.ranger_path.hunter', name: 'Hunter', source: 'PHB' },
-      ]
+      ],
     },
-    generation: {
-      primaryAbilities: ['str', 'dex']
-    },
+    generation: { primaryAbilities: ['str', 'dex'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
@@ -378,30 +290,15 @@ export const classes: readonly CharacterClass[] = [
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 3,
-        level: 1,
-      },
-      weapons: {  
-        type: 'fixed',
-        level: 1,
-        categories: ['simple', 'martial'],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: ['allArmor', 'shields'],
-      },
+      skills: { type: 'choice', choose: 3, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple', 'martial'] },
+      armor: { type: 'fixed', level: 1, categories: ['allArmor', 'shields'] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    } 
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
-  { 
-    id: 'monk', 
-    name: 'Monk', 
+  {
+    id: 'monk',
+    name: 'Monk',
     description: 'A class of disciplined and focused martial artists.',
     definitions: {
       id: 'monastic_tradition',
@@ -411,11 +308,9 @@ export const classes: readonly CharacterClass[] = [
         { id: 'monk.monastic_tradition.way_of_the_four_elements', name: 'Way of the Four Elements', source: 'PHB' },
         { id: 'monk.monastic_tradition.way_of_shadow', name: 'Way of Shadow', source: 'PHB' },
         { id: 'monk.monastic_tradition.way_of_the_open_hand', name: 'Way of the Open Hand', source: 'PHB' },
-      ]
+      ],
     },
-    generation: {
-      primaryAbilities: ['dex', 'con']
-    },
+    generation: { primaryAbilities: ['dex', 'con'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
@@ -425,30 +320,15 @@ export const classes: readonly CharacterClass[] = [
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 2,
-        level: 1,
-      },
-      weapons: {
-        type: 'fixed',
-        level: 1,
-        categories: ['simple'],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: ['none'],
-      },
+      skills: { type: 'choice', choose: 2, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple'] },
+      armor: { type: 'fixed', level: 1, categories: ['none'] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    } 
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
-  { 
-    id: 'druid', 
-    name: 'Druid', 
+  {
+    id: 'druid',
+    name: 'Druid',
     description: 'A class of nature-loving and wise protectors.',
     definitions: {
       id: 'druid_circle',
@@ -457,11 +337,9 @@ export const classes: readonly CharacterClass[] = [
       options: [
         { id: 'druid.druid_circle.circle_of_the_land', name: 'Circle of the Land', source: 'PHB' },
         { id: 'druid.druid_circle.circle_of_the_moon', name: 'Circle of the Moon', source: 'PHB' },
-      ]
+      ],
     },
-    generation: {
-      primaryAbilities: ['wis', 'con']
-    },
+    generation: { primaryAbilities: ['wis', 'con'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
@@ -471,31 +349,15 @@ export const classes: readonly CharacterClass[] = [
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 2,
-        level: 1,
-      },
-      weapons: {
-        type: 'fixed',
-        level: 1,
-        categories: ['simple', 'martial'],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: ['light', 'medium', 'shields'],
-        // disallowedMaterials: ['metal']
-      },
+      skills: { type: 'choice', choose: 2, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple', 'martial'] },
+      armor: { type: 'fixed', level: 1, categories: ['light', 'medium', 'shields'] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    } 
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
-  { 
-    id: 'warlock', 
-    name: 'Warlock', 
+  {
+    id: 'warlock',
+    name: 'Warlock',
     description: 'A class of powerful and mysterious spellcasters.',
     definitions: {
       id: 'warlock_patron',
@@ -505,11 +367,9 @@ export const classes: readonly CharacterClass[] = [
         { id: 'warlock.warlock_patron.archfey', name: 'The Archfey', source: 'PHB' },
         { id: 'warlock.warlock_patron.fiend', name: 'The Fiend', source: 'PHB' },
         { id: 'warlock.warlock_patron.great_old_one', name: 'The Great Old One', source: 'PHB' },
-      ]
+      ],
     },
-    generation: {
-      primaryAbilities: ['cha', 'con']
-    },
+    generation: { primaryAbilities: ['cha', 'con'] },
     progression: {
       hitDie: 8,
       attackProgression: 'average',
@@ -518,9 +378,9 @@ export const classes: readonly CharacterClass[] = [
       spellProgression: {
         type: 'known',
         cantripsKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-        spellsKnown:   [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
+        spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
         spellSlots: WARLOCK_PACT_SLOTS_5E,
-        maxSpellLevel: 5,  // Pact slots cap at 5th; Mystic Arcanum covers 6th-9th
+        maxSpellLevel: 5,
         mysticArcanum: [
           { spellLevel: 6, grantedAtClassLevel: 11 },
           { spellLevel: 7, grantedAtClassLevel: 13 },
@@ -536,29 +396,14 @@ export const classes: readonly CharacterClass[] = [
         { id: 'pact-boon', level: 3, name: 'Pact Boon' },
         { id: 'mystic-arcanum', level: 11, name: 'Mystic Arcanum' },
         { id: 'eldritch-master', level: 20, name: 'Eldritch Master' },
-      ],  
+      ],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 2,
-        level: 1,
-      },
-      weapons: {
-        type: 'fixed',
-        level: 1,
-        categories: ['simple'],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: ['light']
-      },
+      skills: { type: 'choice', choose: 2, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple'] },
+      armor: { type: 'fixed', level: 1, categories: ['light'] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    } 
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
   {
     id: 'sorcerer',
@@ -581,10 +426,7 @@ export const classes: readonly CharacterClass[] = [
               target: 'armor_class',
               level: 1,
               condition: { type: 'unarmored' },
-              formula: {
-                base: 13,
-                ability: 'dexterity'
-              }
+              formula: { base: 13, ability: 'dexterity' },
             },
             {
               name: 'Draconic Resilience',
@@ -593,16 +435,14 @@ export const classes: readonly CharacterClass[] = [
               level: 1,
               target: 'hit_points_max',
               mode: 'add',
-              value: { perLevel: 1 }
-            }
-          ]
+              value: { perLevel: 1 },
+            },
+          ],
         },
-        { id: 'sorcerer.sorcerer_origin.draconic_bloodline.wild_magic', name: 'Wild Magic', source: 'PHB' }
-      ]
+        { id: 'sorcerer.sorcerer_origin.draconic_bloodline.wild_magic', name: 'Wild Magic', source: 'PHB' },
+      ],
     },
-    generation: {
-      primaryAbilities: ['cha', 'con']
-    },
+    generation: { primaryAbilities: ['cha', 'con'] },
     progression: {
       hitDie: 6,
       attackProgression: 'poor',
@@ -611,7 +451,7 @@ export const classes: readonly CharacterClass[] = [
       spellProgression: {
         type: 'known',
         cantripsKnown: [4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-        spellsKnown:   [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
+        spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
         spellSlots: FULL_CASTER_SLOTS_5E,
         maxSpellLevel: 9,
       },
@@ -625,26 +465,15 @@ export const classes: readonly CharacterClass[] = [
       ],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 2,
-        level: 1,
-      },
+      skills: { type: 'choice', choose: 2, level: 1 },
       weapons: {
         type: 'fixed',
         level: 1,
-        items: ['dagger', 'dart', 'sling', 'quarterstaff', 'light-crossbow']
+        items: ['dagger', 'dart', 'sling', 'quarterstaff', 'light-crossbow'],
       },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: [],
-      },
+      armor: { type: 'fixed', level: 1, categories: [] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    } 
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
   {
     id: 'barbarian',
@@ -657,11 +486,9 @@ export const classes: readonly CharacterClass[] = [
       options: [
         { id: 'barbarian.barbarian_path.totem_warrior', name: 'Path of the Totem Warrior', source: 'PHB' },
         { id: 'barbarian.barbarian_path.berserker', name: 'Path of the Berserker', source: 'PHB' },
-      ]
+      ],
     },
-    generation: {
-      primaryAbilities: ['str', 'con']
-    },
+    generation: { primaryAbilities: ['str', 'con'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
@@ -678,17 +505,13 @@ export const classes: readonly CharacterClass[] = [
             {
               kind: 'formula',
               target: 'armor_class',
-              formula: {
-                base: 10,
-                abilities: ['dexterity', 'constitution'],
-              },
-              //source: 'barbarian.barbarian_path.totem_warrior.unarmored_defense',
+              formula: { base: 10, abilities: ['dexterity', 'constitution'] },
               condition: {
                 kind: 'state',
                 target: 'self',
                 property: 'equipment.armorEquipped',
                 equals: null,
-              }
+              },
             },
           ],
         },
@@ -704,29 +527,14 @@ export const classes: readonly CharacterClass[] = [
         { id: 'barbarian.feature.persistent_rage', level: 15, name: 'Persistent Rage' },
         { id: 'barbarian.feature.indomitable_might', level: 18, name: 'Indomitable Might' },
         { id: 'barbarian.feature.primal_champion', level: 20, name: 'Primal Champion' },
-      ]
+      ],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 2,
-        level: 1,
-      },
-      weapons: {
-        type: 'fixed',
-        level: 1,
-        categories: ['simple', 'martial'],
-      },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: ['light', 'medium', 'shields'],
-      },
+      skills: { type: 'choice', choose: 2, level: 1 },
+      weapons: { type: 'fixed', level: 1, categories: ['simple', 'martial'] },
+      armor: { type: 'fixed', level: 1, categories: ['light', 'medium', 'shields'] },
     },
-    requirements: {
-      allowedRaces: 'all',
-      allowedAlignments: 'any',
-    }
+    requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },
   {
     id: 'wizard',
@@ -745,11 +553,9 @@ export const classes: readonly CharacterClass[] = [
         { id: 'wizard.subclass.arcane_tradition.school_of_illusion', name: 'School of Illusion', source: 'PHB' },
         { id: 'wizard.subclass.arcane_tradition.school_of_necromancy', name: 'School of Necromancy', source: 'PHB' },
         { id: 'wizard.subclass.arcane_tradition.school_of_transmutation', name: 'School of Transmutation', source: 'PHB' },
-      ]
+      ],
     },
-    generation: {
-      primaryAbilities: ['con', 'int']
-    },
+    generation: { primaryAbilities: ['con', 'int'] },
     progression: {
       hitDie: 6,
       attackProgression: 'poor',
@@ -772,31 +578,41 @@ export const classes: readonly CharacterClass[] = [
       ],
     },
     proficiencies: {
-      skills: {
-        type: 'choice',
-        choose: 2,
-        level: 1,
-      },
+      skills: { type: 'choice', choose: 2, level: 1 },
       weapons: {
         type: 'fixed',
         level: 1,
         items: ['dagger', 'dart', 'sling', 'quarterstaff', 'light-crossbow'],
       },
-      armor: {
-        type: 'fixed',
-        level: 1,
-        categories: [],
-      },
+      armor: { type: 'fixed', level: 1, categories: [] },
     },
     requirements: {
       allowedRaces: 'all',
       allowedAlignments: 'any',
       multiclassing: {
         note: 'Requires 13 Intelligence',
-        anyOf: [
-          { all: [{ ability: 'int', min: 13 }] },
-        ],
-      }
-    } 
-  }
-] satisfies CharacterClass[]
+        anyOf: [{ all: [{ ability: 'int', min: 13 }] }],
+      },
+    },
+  },
+];
+
+// ---------------------------------------------------------------------------
+// Registry
+// ---------------------------------------------------------------------------
+
+export const SYSTEM_CLASSES_BY_SYSTEM_ID: Record<SystemRulesetId, readonly CharacterClass[]> = {
+  [DEFAULT_SYSTEM_RULESET_ID]: CLASSES_RAW,
+};
+
+export function getSystemClasses(systemId: SystemRulesetId): readonly CharacterClass[] {
+  return SYSTEM_CLASSES_BY_SYSTEM_ID[systemId] ?? [];
+}
+
+export function getSystemClass(systemId: SystemRulesetId, classId: string): CharacterClass | undefined {
+  return getSystemClasses(systemId).find((c) => c.id === classId);
+}
+
+/** Resolve class id to display name. Mirrors abilityIdToName pattern. */
+export const classIdToName = (systemId: SystemRulesetId, id: string): string =>
+  getSystemClass(systemId, id)?.name ?? id;

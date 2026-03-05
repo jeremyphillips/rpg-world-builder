@@ -15,8 +15,8 @@ import {
 import { type CharacterBuilderState, type StepId, type BuilderOverrides } from '../types'
 import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'
 import type { CharacterType } from '@/features/character/domain/types'
-import { classes } from '@/data/classes'
-import { getById } from '@/utils'
+import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import { ABILITY_KEYS, type AbilityScoreMap } from '@/features/mechanics/domain/core/character'
 
 // ---------------------------------------------------------------------------
@@ -36,7 +36,7 @@ export interface StepConfig {
 function isSpellcaster(state: CharacterBuilderState): boolean {
   return state.classes.some(cls => {
     if (!cls.classId) return false
-    const classDef = getById(classes, cls.classId)
+    const classDef = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, cls.classId)
     return classDef?.progression?.spellProgression != null
   })
 }

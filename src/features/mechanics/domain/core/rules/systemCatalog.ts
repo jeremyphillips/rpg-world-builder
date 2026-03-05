@@ -13,9 +13,9 @@ import { getSystemGear } from './systemCatalog.gear'
 import { getSystemMagicItems } from './systemCatalog.magicItems'
 import { getSystemSpells } from './systemCatalog.spells'
 import { getSystemSkillProficiencies } from './systemCatalog.skillProficiencies'
+import { getSystemClasses } from './systemCatalog.classes'
 import type { Spell, SkillProficiency } from '@/features/content/domain/types'
 import { monsters } from '@/data/monsters'
-import { classes } from "@/data/classes"
 import type { CharacterClass } from '@/features/classes/domain/types'
 import type { WealthTier } from '@/features/classes/domain/types'
 import type { Armor, Gear, MagicItem, Race, Weapon } from '@/features/content/domain/types'
@@ -68,9 +68,11 @@ const armor = getSystemArmor(DEFAULT_SYSTEM_RULESET_ID);
 const gear = getSystemGear(DEFAULT_SYSTEM_RULESET_ID);
 const magicItems = getSystemMagicItems(DEFAULT_SYSTEM_RULESET_ID);
 
+const classes = getSystemClasses(DEFAULT_SYSTEM_RULESET_ID);
+
 export const systemCatalog: CampaignCatalog = {
   classesById:      keyBy(classes),
-  classIds:         Object.keys(classes),
+  classIds:         classes.map((c) => c.id),
   racesById:        keyBy(races),
   raceIds:          races.map(r => r.id),
   weaponsById:      keyBy(weapons),

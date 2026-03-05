@@ -1,10 +1,8 @@
-import { classes } from '@/data/classes'
+import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import type {
   ClassProgression,
 } from '@/features/classes/domain/types'
-import { getById } from '@/utils'
-
-
 
 // ---------------------------------------------------------------------------
 // Lookup helpers
@@ -15,7 +13,7 @@ export function getClassProgression(
   classId?: string
 ): ClassProgression | undefined {
   if (!classId) return undefined
-  const cls = getById(classes, classId)
+  const cls = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, classId)
   if (!cls?.progression) return undefined
   return cls.progression
 }
@@ -25,6 +23,6 @@ export function getClassProgressionsByClass(
   classId?: string
 ): ClassProgression[] {
   if (!classId) return []
-  const cls = getById(classes, classId)
+  const cls = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, classId)
   return cls?.progression ?? []
 }

@@ -6,10 +6,11 @@ import { getBaseContentFieldSpecs } from '@/features/content/forms/baseFieldSpec
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab';
 import { numberRange, type FieldSpec } from '@/features/content/forms/registry';
 import { getSpellcastingClasses } from '@/features/mechanics/domain/classes/queries';
-import { classes } from '@/data/classes';
+import { getSystemClasses } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import type { SpellFormValues } from './spellForm.types';
 
-const SPELL_CLASS_OPTIONS = getSpellcastingClasses(classes).map((c) => ({
+const SPELL_CLASS_OPTIONS = getSpellcastingClasses([...getSystemClasses(DEFAULT_SYSTEM_RULESET_ID)]).map((c) => ({
   value: c.id,
   label: c.name,
 }));

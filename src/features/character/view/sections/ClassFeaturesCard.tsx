@@ -1,6 +1,6 @@
 import type { CharacterDoc, CharacterClassInfo } from '@/features/character/domain/types'
-import { classes as classesData } from '@/data/classes'
-import { getById } from '@/utils'
+import { classIdToName } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import { getClassProgression, getSubclassFeatures } from '@/features/mechanics/domain/classes/progression'
 
 import Box from '@mui/material/Box'
@@ -12,8 +12,7 @@ import Tooltip from '@mui/material/Tooltip'
 
 function getClassName(classId?: string): string {
   if (!classId) return 'Unknown'
-  const c = getById(classesData, classId)
-  return c?.name ?? classId
+  return classIdToName(DEFAULT_SYSTEM_RULESET_ID, classId)
 }
 
 type ClassFeaturesCardProps = {
