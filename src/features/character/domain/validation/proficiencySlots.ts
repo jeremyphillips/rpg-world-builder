@@ -1,5 +1,5 @@
 import { systemCatalog } from '@/features/mechanics/domain/core/rules/systemCatalog'
-import type { ClassProficiencySkill, CharacterClass } from '@/features/classes/domain/types'
+import type { ClassProficiencySkillSelection, CharacterClass } from '@/features/classes/domain/types'
 import type { CharacterClassInfo, CharacterProficiencies } from '@/features/character/domain/types'
 
 export interface ProficiencySlotSummary {
@@ -18,7 +18,7 @@ export interface ProficiencySlotSummary {
 function getClassSkillChoices(
   classId: string | undefined,
   classesById: Record<string, CharacterClass>,
-): ClassProficiencySkill[] {
+): ClassProficiencySkillSelection[] {
   if (!classId) return []
   const cls = classesById[classId]
   if (!cls?.proficiencies?.skills) return []
@@ -33,7 +33,7 @@ function getClassSkillChoices(
 export function getAllSkillChoices(
   characterClasses: CharacterClassInfo[],
   classesById: Record<string, CharacterClass> = systemCatalog.classesById,
-): ClassProficiencySkill[] {
+): ClassProficiencySkillSelection[] {
   return characterClasses.flatMap(c => getClassSkillChoices(c.classId, classesById))
 }
 

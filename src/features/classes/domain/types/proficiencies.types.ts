@@ -4,7 +4,7 @@ import type { Material } from '@/features/content/domain/vocab'
 // Proficiencies
 // ---------------------------------------------------------------------------
 
-export interface ClassProficiencySkill {
+export interface ClassProficiencySkillSelection {
   type: 'choice' | 'fixed'
   level: number
   choose: number
@@ -27,7 +27,7 @@ export interface ClassProficiencyArmor {
 }
 
 export interface ClassProficiencies {
-  skills: ClassProficiencySkill
+  skills: ClassProficiencySkillSelection
   weapons: ClassProficiencyWeapon
   armor: ClassProficiencyArmor
 }

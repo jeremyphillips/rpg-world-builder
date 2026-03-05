@@ -1,2 +1,5 @@
 export * from './class.types'
 export * from './subclass.types'
+export * from './proficiencies.types'
+export * from './progression.types'
+export * from './requirements.types'

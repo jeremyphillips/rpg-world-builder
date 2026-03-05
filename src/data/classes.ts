@@ -229,7 +229,7 @@ export const classes: readonly CharacterClass[] = [
         choose: 4,
         level: 1,
         from: [
-          'acrobatics',
+          ...Object.keys(FIVE_E_DEXTERITY_SKILLS),
           'athletics',
           'deception',
           'insight',
@@ -238,8 +238,6 @@ export const classes: readonly CharacterClass[] = [
           'perception',
           'performance',
           'persuasion',
-          'sleightOfHand',
-          'stealth'
         ]
       },
       weapons: {
@@ -432,7 +430,7 @@ export const classes: readonly CharacterClass[] = [
         choose: 3,
         level: 1,
         from: [
-          'animalHandling',
+          'animal-handling',
           'athletics',
           'insight',
           'investigation',
@@ -538,7 +536,7 @@ export const classes: readonly CharacterClass[] = [
         level: 1,
         from: [
           'arcana',
-          'animalHandling',
+          'animal-handling',
           'insight',
           'medicine',
           'nature',
@@ -797,7 +795,7 @@ export const classes: readonly CharacterClass[] = [
         choose: 2,
         level: 1,
         from: [
-          'animalHandling',
+          'animal-handling',
           'athletics',
           'insight',
           'intimidation',

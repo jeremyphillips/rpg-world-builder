@@ -8,7 +8,7 @@
 import { classes } from '@/data/classes'
 import { getById } from '@/utils'
 import type { ClassRequirement } from '@/features/classes/domain/types'
-import type { AlignmentId } from '@/features/classes/domain/types'
+import type { AlignmentId } from '@/features/content/domain/types'
 import type { BuildDraft } from '../types'
 
 // ---------------------------------------------------------------------------

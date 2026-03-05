@@ -88,7 +88,7 @@ const DEFAULT_ABILITY_SCORE_METHOD: AbilityScoreMethod = '4d6-drop-lowest'
 function getClassAbilityPriority(classId: string | undefined): (keyof AbilityScoreMapResolved)[] {
   if (!classId) return []
   const cls = classes.find(c => c.id === classId)
-  const priority = cls?.generation?.abilityPriority ?? []
+  const priority = cls?.generation?.primaryAbilities ?? []
   return priority.map(a => abilityIdToKey(a as AbilityId))
 }
 
