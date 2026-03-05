@@ -3,7 +3,8 @@
  * JSON fields (examples, tags, suggestedClasses) use placeholders that FormJsonField
  * renders as "Insert example" in JsonPreviewField.
  */
-import type { SkillProficiency, SkillProficiencyInput } from '@/features/content/domain/types'
+import type { SkillProficiency } from '@/features/content/domain/types'
+import type { SkillProficiencyInput } from './skillProficiencyForm.types'
 import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities'
 import { type FieldSpec } from '@/features/content/forms/registry'
 import type { SkillProficiencyFormValues } from './skillProficiencyForm.types'

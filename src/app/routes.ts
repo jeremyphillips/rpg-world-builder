@@ -32,6 +32,8 @@ export const ROUTES = {
   WORLD_NPC: '/campaigns/:id/world/npcs/:npcId',
   WORLD_MONSTERS: '/campaigns/:id/world/monsters',
   WORLD_MONSTER: '/campaigns/:id/world/monsters/:monsterId',
+  WORLD_SKILL_PROFICIENCIES: '/campaigns/:id/world/skill-proficiencies',
+  WORLD_SKILL_PROFICIENCY: '/campaigns/:id/world/skill-proficiencies/:skillProficiencyId',
   WORLD_EQUIPMENT: '/campaigns/:id/world/equipment',
   WORLD_EQUIPMENT_DETAILS: '/campaigns/:id/world/equipment/:equipmentId',
   WORLD_WEAPONS: '/campaigns/:id/world/equipment/weapons',

@@ -49,6 +49,7 @@
       "@/features/notification/*": ["features/notification/*"],
       "@/features/session/*": ["features/session/*"],
       "@/features/spell/*": ["features/spell/*"],
+      "@/features/skillProficiency/*": ["features/skillProficiency/*"],
       "@/features/user/*": ["features/user/*"],
       "@/features/utils": ["features/utils/index.ts"],
       "@/ui/patterns": ["ui/patterns/index.ts"],

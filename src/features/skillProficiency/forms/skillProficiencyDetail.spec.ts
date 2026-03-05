@@ -12,33 +12,27 @@ export const SKILL_PROFICIENCY_DETAIL_SPECS: DetailSpec<
   SkillProficiencyDetailCtx
 >[] = [
   {
-    key: 'id',
-    label: 'ID',
-    order: 0,
-    render: (item) => item.id,
-  },
-  {
     key: 'name',
     label: 'Name',
-    order: 10,
+    order: 0,
     render: (item) => item.name,
   },
   {
     key: 'ability',
     label: 'Ability',
-    order: 20,
+    order: 10,
     render: (item) => abilityIdToName(item.ability),
   },
   {
     key: 'description',
     label: 'Description',
-    order: 30,
+    order: 20,
     render: (item) => item.description ?? '—',
   },
   {
     key: 'suggestedClasses',
     label: 'Suggested Classes',
-    order: 40,
+    order: 30,
     render: (item) =>
       Array.isArray(item.suggestedClasses) && item.suggestedClasses.length > 0
         ? item.suggestedClasses.join(', ')
@@ -47,7 +41,7 @@ export const SKILL_PROFICIENCY_DETAIL_SPECS: DetailSpec<
   {
     key: 'examples',
     label: 'Examples',
-    order: 50,
+    order: 40,
     render: (item) =>
       Array.isArray(item.examples) && item.examples.length > 0
         ? item.examples.join('; ')
@@ -56,7 +50,7 @@ export const SKILL_PROFICIENCY_DETAIL_SPECS: DetailSpec<
   {
     key: 'tags',
     label: 'Tags',
-    order: 60,
+    order: 50,
     render: (item) =>
       Array.isArray(item.tags) && item.tags.length > 0
         ? item.tags.join(', ')

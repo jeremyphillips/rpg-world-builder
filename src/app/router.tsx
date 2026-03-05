@@ -58,6 +58,8 @@ import {
   RaceDetailRoute,
   RaceCreateRoute,
   RaceEditRoute,
+  SkillProficiencyListRoute,
+  SkillProficiencyDetailRoute,
   AccountSettingsRoute,
   NewCharacterRoute,
 } from './routes/index'
@@ -119,6 +121,8 @@ export const router = createBrowserRouter([
                   { path: 'npcs/:npcId', element: <NpcRoute /> },
                   { path: 'monsters', element: <MonstersRoute /> },
                   { path: 'monsters/:monsterId', element: <MonsterRoute /> },
+                  { path: 'skill-proficiencies', element: <SkillProficiencyListRoute /> },
+                  { path: 'skill-proficiencies/:skillProficiencyId', element: <SkillProficiencyDetailRoute /> },
                   {
                     element: <ContentManageGuard />,
                     children: [

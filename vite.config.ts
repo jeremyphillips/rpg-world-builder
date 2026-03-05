@@ -47,6 +47,7 @@ export default defineConfig({
       "@/features/monster": path.resolve(__dirname, "src/features/monster"),
       "@/features/npc": path.resolve(__dirname, "src/features/npc"),
       "@/features/spell": path.resolve(__dirname, "src/features/spell"),
+      "@/features/skillProficiency": path.resolve(__dirname, "src/features/skillProficiency"),
       "@/features/equipment": path.resolve(__dirname, "src/features/equipment"),
       "@/features/race": path.resolve(__dirname, "src/features/race"),
       "@/features/location": path.resolve(__dirname, "src/features/location"),

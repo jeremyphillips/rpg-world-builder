@@ -2,7 +2,8 @@
  * Pure mappers for Skill Proficiency form values ↔ domain types.
  * Registry-backed.
  */
-import type { SkillProficiency, SkillProficiencyInput } from '@/features/content/domain/types'
+import type { SkillProficiency } from '@/features/content/domain/types'
+import type { SkillProficiencyInput } from './skillProficiencyForm.types'
 import type { SkillProficiencyFormValues } from './skillProficiencyForm.types'
 import {
   buildToInput,
@@ -22,7 +23,7 @@ export const skillProficiencyToFormValues = (
   item: SkillProficiency
 ): SkillProficiencyFormValues => ({
   ...(defaultFormValues as SkillProficiencyFormValues),
-  ...toFormValuesFromItem(item),
+  ...toFormValuesFromItem(item as SkillProficiency & Record<string, unknown>),
 })
 
 /**
