@@ -29,6 +29,7 @@ export interface BlockingEntity {
   to?: string;
 }
 
+/** @deprecated Use ChangeValidationResult from validateRaceChange. Kept for validateDelete compatibility. */
 export type DeleteValidationResult =
   | { allowed: true }
   | {
@@ -37,6 +38,9 @@ export type DeleteValidationResult =
       reason?: DeleteBlockReason;
       blockingEntities?: BlockingEntity[];
     };
+
+/** Result of validating a destructive change (delete or disable). */
+export type ChangeValidationResult = DeleteValidationResult;
 
 // ---------------------------------------------------------------------------
 // Props

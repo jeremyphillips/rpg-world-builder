@@ -1,8 +1,9 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -15,9 +16,11 @@ import {
 } from '@/features/content/components';
 import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
 import { raceRepo } from '@/features/content/domain/repo';
+import { validateRaceChange } from '@/features/content/domain/validateRaceChange';
 import type { RaceSummary } from '@/features/content/domain/types';
 import { useBreadcrumbs } from '@/hooks';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
+import { AppAlert } from '@/ui/primitives';
 
 export default function RaceListRoute() {
   const { campaign, campaignId } = useActiveCampaign();
@@ -45,22 +48,42 @@ export default function RaceListRoute() {
     basePath,
   });
 
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const handleToggleAllowed = useCallback(
+    async (id: string, allowed: boolean) => {
+      setValidationError(null);
+      if (allowed) {
+        controller.onToggleAllowed(id, true);
+        return;
+      }
+      if (!campaignId) return;
+      const result = await validateRaceChange({ campaignId, raceId: id, mode: 'disallow' });
+      if (!result.allowed) {
+        setValidationError(result.message ?? 'Cannot disable this race.');
+        return;
+      }
+      controller.onToggleAllowed(id, false);
+    },
+    [campaignId, controller.onToggleAllowed],
+  );
+
   const columns = useMemo(
     () =>
       buildCampaignContentColumns<RaceSummary>({
         canManage,
-        onToggleAllowedInCampaign: controller.onToggleAllowed,
+        onToggleAllowedInCampaign: handleToggleAllowed,
       }),
-    [canManage, controller.onToggleAllowed],
+    [canManage, handleToggleAllowed],
   );
 
   const filters = useMemo(
     () =>
       buildCampaignContentFilters<RaceSummary>({
         canManage,
-        onToggleAllowedInCampaign: controller.onToggleAllowed,
+        onToggleAllowedInCampaign: handleToggleAllowed,
       }),
-    [canManage, controller.onToggleAllowed],
+    [canManage, handleToggleAllowed],
   );
 
   if (controller.loading) {
@@ -72,7 +95,13 @@ export default function RaceListRoute() {
   }
 
   return (
-    <ContentTypeListPage<RaceSummary>
+    <Stack spacing={2}>
+      {validationError && (
+        <AppAlert tone="warning" onClose={() => setValidationError(null)}>
+          {validationError}
+        </AppAlert>
+      )}
+      <ContentTypeListPage<RaceSummary>
       typeLabel="Race"
       typeLabelPlural="Races"
       headline="Races"
@@ -112,5 +141,6 @@ export default function RaceListRoute() {
       density="compact"
       height={560}
     />
+    </Stack>
   );
 }

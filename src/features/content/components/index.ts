@@ -14,6 +14,7 @@ export {
 export {
   default as EntryEditorLayout,
   type DeleteValidationResult,
+  type ChangeValidationResult,
   type DeleteBlockReason,
   type BlockingEntity,
 } from './EntryEditorLayout';
