@@ -15,7 +15,11 @@ import Typography from '@mui/material/Typography';
 
 import type { Visibility } from '@/shared/types/visibility';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { EntryEditorLayout } from '@/features/content/components';
+import {
+  EntryEditorLayout,
+  type DeleteValidationResult,
+} from '@/features/content/components';
+import { validateClassChange } from '@/features/content/domain/validateClassChange';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { classRepo } from '@/features/content/domain/repo';
 import type { ClassContentItem, ClassInput } from '@/features/content/domain/repo';
@@ -202,6 +206,15 @@ export default function ClassEditRoute() {
     [navigate, campaignId]
   );
 
+  const handleValidateDelete = useCallback(async (): Promise<DeleteValidationResult> => {
+    if (!campaignId || !classId) return { allowed: true as const };
+    return validateClassChange({
+      campaignId,
+      classId,
+      mode: 'delete',
+    }) as Promise<DeleteValidationResult>;
+  }, [campaignId, classId]);
+
   if (loading)
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -276,7 +289,7 @@ export default function ClassEditRoute() {
         onBack={handleBack}
         canDelete={canDelete}
         onDelete={handleDelete}
-        validateDelete={async () => ({ allowed: true as const })}
+        validateDelete={handleValidateDelete}
         showPolicyField
         policyValue={policyValue}
         onPolicyChange={handlePolicyChange}
