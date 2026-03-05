@@ -86,6 +86,10 @@ export const BREADCRUMB_CONFIG: Record<string, BreadcrumbRouteConfig> = {
   '/campaigns/:id/world/races/new':                            { label: 'New Race' },
   '/campaigns/:id/world/races/:raceId':                        { label: 'Race' },
   '/campaigns/:id/world/races/:raceId/edit':                   { label: 'Edit' },
+  '/campaigns/:id/world/skill-proficiencies':                  { label: 'Skill Proficiencies' },
+  '/campaigns/:id/world/skill-proficiencies/new':              { label: 'New Skill Proficiency' },
+  '/campaigns/:id/world/skill-proficiencies/:skillProficiencyId': { label: 'Skill Proficiency' },
+  '/campaigns/:id/world/skill-proficiencies/:skillProficiencyId/edit': { label: 'Edit' },
 
   // Admin
   '/admin':                                        { label: 'Admin' },

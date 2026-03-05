@@ -345,6 +345,14 @@ export default function AuthLayout() {
                       >
                         <ListItemText primary="Monsters" slotProps={{ primary: { fontSize: '0.8rem' } }} />
                       </ListItemButton>
+                      <ListItemButton
+                        component={NavLink}
+                        to={ROUTES.WORLD_SKILL_PROFICIENCIES.replace(':id', activeCampaignId)}
+                        selected={location.pathname.startsWith(`/campaigns/${activeCampaignId}/world/skill-proficiencies`)}
+                        sx={{ pl: 2 }}
+                      >
+                        <ListItemText primary="Skill Proficiencies" slotProps={{ primary: { fontSize: '0.8rem' } }} />
+                      </ListItemButton>
                     </List>
                   </Collapse>
                 )}

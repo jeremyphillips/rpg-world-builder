@@ -58,6 +58,10 @@ import {
   RaceDetailRoute,
   RaceCreateRoute,
   RaceEditRoute,
+  SkillProficiencyListRoute,
+  SkillProficiencyDetailRoute,
+  SkillProficiencyCreateRoute,
+  SkillProficiencyEditRoute,
   AccountSettingsRoute,
   NewCharacterRoute,
 } from './routes/index'
@@ -119,6 +123,8 @@ export const router = createBrowserRouter([
                   { path: 'npcs/:npcId', element: <NpcRoute /> },
                   { path: 'monsters', element: <MonstersRoute /> },
                   { path: 'monsters/:monsterId', element: <MonsterRoute /> },
+                  { path: 'skill-proficiencies', element: <SkillProficiencyListRoute /> },
+                  { path: 'skill-proficiencies/:skillProficiencyId', element: <SkillProficiencyDetailRoute /> },
                   {
                     element: <ContentManageGuard />,
                     children: [
@@ -132,6 +138,8 @@ export const router = createBrowserRouter([
                       { path: 'equipment/magic-items/:magicItemId/edit', element: <MagicItemEditRoute /> },
                       { path: 'races/new', element: <RaceCreateRoute /> },
                       { path: 'races/:raceId/edit', element: <RaceEditRoute /> },
+                      { path: 'skill-proficiencies/new', element: <SkillProficiencyCreateRoute /> },
+                      { path: 'skill-proficiencies/:skillProficiencyId/edit', element: <SkillProficiencyEditRoute /> },
                     ],
                   },
                 ],

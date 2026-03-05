@@ -9,7 +9,8 @@ export type ContentTypeKey =
   | 'monsters'
   | 'npcs'
   | 'locations'
-  | 'classes';
+  | 'classes'
+  | 'skillProficiencies';
 
 export type ContentPatchMap = Partial<Record<ContentTypeKey, Record<string, unknown>>>;
 
