@@ -60,11 +60,11 @@ export function makeOwnedColumn<T extends OwnableRow>({
   return {
     field: 'owned',
     headerName: columnHeader,
-    width: 120,
+    width: 80,
     type: 'boolean',
     accessor: (row) => ownedIds.has(row.id),
-    renderCell: (_row, value) => {
-      const owned = Boolean(value);
+    renderCell: (params) => {
+      const owned = Boolean(params.value);
 
       if (!owned && hideWhenFalse) return null;
 

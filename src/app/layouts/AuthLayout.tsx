@@ -463,36 +463,7 @@ export default function AuthLayout() {
         </Box>
       </Drawer>
 
-      {/* Top header bar */}
-      <AppBar
-        position="fixed"
-        elevation={0}
-        sx={{
-          height: HEADER_HEIGHT,
-          bgcolor: 'var(--mui-palette-background-paper)',
-          borderBottom: '1px solid var(--mui-palette-divider)',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-        }}
-      >
-        <Toolbar
-          variant="dense"
-          sx={{
-            minHeight: HEADER_HEIGHT,
-            justifyContent: 'flex-end',
-            pr: 2,
-          }}
-        >
-          <IconButton
-            size="small"
-            onClick={(e) => setAnchorEl(e.currentTarget)}
-            sx={{ color: 'var(--mui-palette-text-primary)' }}
-          >
-            <Badge badgeContent={unreadCount} color="error" max={99}>
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+
 
       {/* Notification popover */}
       <Popover
@@ -590,16 +561,53 @@ export default function AuthLayout() {
 
       {/* Main content — offset by header height */}
       <Box
-        component="main"
         sx={{
-          flex: 1,
-          p: 4,
-          pt: 3, // `calc(${HEADER_HEIGHT}px + 32px)`,
-          overflow: 'auto',
-          bgcolor: 'var(--mui-palette-background-default)',
+          flex: 1
         }}
       >
-        <Outlet />
+        {/* Top header bar */}
+        <AppBar
+          position="relative"
+          elevation={0}
+          sx={{
+            height: HEADER_HEIGHT,
+            bgcolor: 'var(--mui-palette-background-paper)',
+            borderBottom: '1px solid var(--mui-palette-divider)',
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+          }}
+        >
+          <Toolbar
+            variant="dense"
+            sx={{
+              minHeight: HEADER_HEIGHT,
+              justifyContent: 'flex-end',
+              pr: 2,
+            }}
+          >
+            <IconButton
+              size="small"
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+              sx={{ color: 'var(--mui-palette-text-primary)' }}
+            >
+              <Badge badgeContent={unreadCount} color="error" max={99}>
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            p: 4,
+            pt: 3, // `calc(${HEADER_HEIGHT}px + 32px)`,
+            overflow: 'auto',
+            bgcolor: 'var(--mui-palette-background-default)',
+          }}
+        >
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   )

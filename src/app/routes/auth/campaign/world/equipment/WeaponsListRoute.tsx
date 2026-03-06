@@ -64,9 +64,9 @@ export default function WeaponsListRoute() {
     const base: AppDataGridColumn<WeaponSummary>[] = [
       { field: 'imageKey', headerName: '', width: 56, imageColumn: true, imageSize: 32, imageShape: 'rounded', imageAltField: 'name' },
       { field: 'name', headerName: 'Name', flex: 1, minWidth: 160, linkColumn: true },
-      { field: 'costCp', headerName: 'Cost', width: 110, type: 'number', valueFormatter: (v) => formatCp(v as number) },
+      { field: 'costCp', headerName: 'Cost', width: 80, type: 'number', valueFormatter: (v) => formatCp(v as number) },
       { field: 'category', headerName: 'Category', width: 110 },
-      { field: 'damage', headerName: 'Damage', width: 100 },
+      { field: 'damage', headerName: 'Damage', width: 80 },
       { field: 'damageType', headerName: 'Damage Type', width: 120 },
       { field: 'properties', headerName: 'Properties', width: 180, valueFormatter: (v) => (v as string[]).join(', ') },
     ];
