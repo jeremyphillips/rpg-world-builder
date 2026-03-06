@@ -36,7 +36,7 @@ import {
   ARMOR_FORM_DEFAULTS,
   armorToFormValues,
   toArmorInput,
-} from '@/features/equipment/armor/forms';
+} from '@/features/content/equipment/armor/domain';
 
 type ValidationError = { path: string; code: string; message: string };
 

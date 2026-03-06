@@ -14,7 +14,7 @@ import {
   getMagicItemFieldConfigs,
   MAGIC_ITEM_FORM_DEFAULTS,
   toMagicItemInput,
-} from '@/features/equipment/magicItems/forms';
+} from '@/features/content/equipment/magicItems/domain';
 
 type ValidationError = { path: string; code: string; message: string };
 

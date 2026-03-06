@@ -36,7 +36,7 @@ import {
   MAGIC_ITEM_FORM_DEFAULTS,
   magicItemToFormValues,
   toMagicItemInput,
-} from '@/features/equipment/magicItems/forms';
+} from '@/features/content/equipment/magicItems/domain';
 
 type ValidationError = { path: string; code: string; message: string };
 

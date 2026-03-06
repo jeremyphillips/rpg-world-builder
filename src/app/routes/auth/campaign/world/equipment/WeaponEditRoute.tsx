@@ -38,7 +38,7 @@ import {
   toWeaponInput,
   weaponDomainPatchToForm,
   weaponPatchToDomain,
-} from '@/features/equipment/weapons/forms';
+} from '@/features/content/equipment/weapons/domain';
 
 type ValidationError = { path: string; code: string; message: string };
 

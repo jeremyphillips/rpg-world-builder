@@ -14,7 +14,7 @@ import { AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/utils/image';
 import { buildDetailItemsFromSpecs } from '@/features/content/forms/registry';
-import { GEAR_DETAIL_SPECS } from '@/features/equipment/gear/forms';
+import { GEAR_DETAIL_SPECS } from '@/features/content/equipment/gear/domain';
 import { AppAlert } from '@/ui/primitives';
 
 export default function GearDetailRoute() {

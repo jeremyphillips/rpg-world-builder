@@ -14,7 +14,7 @@ import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/utils/image';
 import { buildDetailItemsFromSpecs } from '@/features/content/forms/registry';
-import { MAGIC_ITEM_DETAIL_SPECS } from '@/features/equipment/magicItems/forms';
+import { MAGIC_ITEM_DETAIL_SPECS } from '@/features/content/equipment/magicItems/domain';
 
 export default function MagicItemDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();

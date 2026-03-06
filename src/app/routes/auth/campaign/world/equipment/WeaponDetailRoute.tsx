@@ -14,7 +14,7 @@ import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/utils/image';
 import { buildDetailItemsFromSpecs } from '@/features/content/forms/registry';
-import { WEAPON_DETAIL_SPECS } from '@/features/equipment/weapons/forms';
+import { WEAPON_DETAIL_SPECS } from '@/features/content/equipment/weapons/domain';
 
 export default function WeaponDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();

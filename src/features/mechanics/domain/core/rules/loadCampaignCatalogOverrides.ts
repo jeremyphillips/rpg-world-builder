@@ -14,7 +14,7 @@ import {
   campaignGearRepo,
   campaignMagicItemRepo,
   type CampaignEquipmentEntry,
-} from '@/features/content/domain/repo/campaignEquipmentApi';
+} from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
 import { enchantmentRepo } from '@/features/content/domain/repo/enchantmentRepo';
 import type { EnchantmentTemplate } from '@/features/content/domain/types';
 

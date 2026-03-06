@@ -13,7 +13,7 @@ import {
   getGearFieldConfigs,
   GEAR_FORM_DEFAULTS,
   toGearInput,
-} from '@/features/equipment/gear/forms';
+} from '@/features/content/equipment/gear/domain';
 
 type ValidationError = { path: string; code: string; message: string };
 

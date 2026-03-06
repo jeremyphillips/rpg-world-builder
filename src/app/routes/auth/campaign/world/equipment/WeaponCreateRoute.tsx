@@ -14,7 +14,7 @@ import {
   getWeaponFieldConfigs,
   WEAPON_FORM_DEFAULTS,
   toWeaponInput,
-} from '@/features/equipment/weapons/forms';
+} from '@/features/content/equipment/weapons/domain';
 
 type ValidationError = { path: string; code: string; message: string };
 

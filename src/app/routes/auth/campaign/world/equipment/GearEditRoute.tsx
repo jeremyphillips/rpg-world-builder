@@ -36,7 +36,7 @@ import {
   GEAR_FORM_DEFAULTS,
   gearToFormValues,
   toGearInput,
-} from '@/features/equipment/gear/forms';
+} from '@/features/content/equipment/gear/domain';
 
 type ValidationError = { path: string; code: string; message: string };
 
