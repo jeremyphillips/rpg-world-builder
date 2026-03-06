@@ -2,8 +2,8 @@
  * Form types for Skill Proficiency Create/Edit.
  * References SkillProficiency — extends/omits for form shape.
  */
-import type { SkillProficiency, SkillProficiencyInput as DomainSkillProficiencyInput } from '@/features/content/domain/types'
-import type { AbilityId } from '@/features/mechanics/domain/core/character/abilities.types'
+import type { SkillProficiency, SkillProficiencyInput as DomainSkillProficiencyInput } from '@/features/content/domain/types';
+import type { AbilityId } from '@/features/mechanics/domain/core/character/abilities.types';
 
 /** Form values shape — string for json fields (examples, tags, suggestedClasses). */
 export type SkillProficiencyFormValues = Pick<SkillProficiency, 'name' | 'description'> & {

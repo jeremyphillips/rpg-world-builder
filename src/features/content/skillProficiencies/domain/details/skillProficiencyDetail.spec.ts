@@ -1,11 +1,11 @@
 /**
  * Skill Proficiency detail spec — lists all fields for detail view.
  */
-import type { SkillProficiency } from '@/features/content/domain/types'
-import type { DetailSpec } from '@/features/content/forms/registry'
-import { abilityIdToName } from '@/features/mechanics/domain/core/character/abilities.utils'
+import type { SkillProficiency } from '@/features/content/domain/types';
+import type { DetailSpec } from '@/features/content/forms/registry';
+import { abilityIdToName } from '@/features/mechanics/domain/core/character/abilities.utils';
 
-export type SkillProficiencyDetailCtx = Record<string, never>
+export type SkillProficiencyDetailCtx = Record<string, never>;
 
 export const SKILL_PROFICIENCY_DETAIL_SPECS: DetailSpec<
   SkillProficiency,
@@ -56,4 +56,4 @@ export const SKILL_PROFICIENCY_DETAIL_SPECS: DetailSpec<
         ? item.tags.join(', ')
         : '—',
   },
-]
+];

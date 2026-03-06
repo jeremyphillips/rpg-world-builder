@@ -12,7 +12,7 @@ import {
   getSkillProficiencyFieldConfigs,
   SKILL_PROFICIENCY_FORM_DEFAULTS,
   toSkillProficiencyInput,
-} from '@/features/skillProficiency/forms';
+} from '@/features/content/skillProficiencies/domain';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 
 type ValidationError = { path: string; code: string; message: string };

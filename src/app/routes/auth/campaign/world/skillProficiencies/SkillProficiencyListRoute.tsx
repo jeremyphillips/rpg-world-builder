@@ -8,7 +8,6 @@ import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import {
   ContentTypeListPage,
   buildCampaignContentColumns,
@@ -18,27 +17,19 @@ import {
 import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/hooks/useCampaignPartyCharacterNameMap';
 import { useViewerProficiencies } from '@/features/campaign/hooks';
-import { skillProficiencyRepo } from '@/features/content/domain/repo';
+import {
+  skillProficiencyRepo,
+  validateSkillProficiencyChange,
+  buildSkillProficiencyCustomColumns,
+  buildSkillProficiencyCustomFilters,
+  type SkillProficiencyListRow,
+} from '@/features/content/skillProficiencies/domain';
 import type { SkillProficiencySummary } from '@/features/content/domain/types';
-import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities';
-import type { AppDataGridColumn, AppDataGridFilter } from '@/ui/patterns';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/hooks';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { validateSkillProficiencyChange } from '@/features/content/domain/validation';
 import { AppAlert } from '@/ui/primitives';
-import { filterAllowedIds } from '@/features/content/domain/utils';
-
-const ABILITY_ID_TO_ABBREV = Object.fromEntries(
-  ABILITIES.map((a) => [a.id, a.id.toUpperCase()]),
-) as Record<string, string>;
-
-function abilityToAbbrev(abilityId: string | undefined): string {
-  if (!abilityId) return '—';
-  return ABILITY_ID_TO_ABBREV[abilityId] ?? '—';
-}
-
-type SkillProficiencyListRow = SkillProficiencySummary & { allowedInCampaign?: boolean };
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 
 export default function SkillProficiencyListRoute() {
   const { campaign, campaignId } = useActiveCampaign();
@@ -106,91 +97,14 @@ export default function SkillProficiencyListRoute() {
   const items = controller.items as SkillProficiencyListRow[];
   const hasCampaignSources = items.some((r) => (r as { source?: string }).source === 'campaign');
 
-  const abilityOptions = useMemo(() => {
-    const abilities = [...new Set(items.map((i) => i.ability).filter(Boolean))].sort();
-    return [
-      { label: 'All', value: '' },
-      ...abilities.map((a) => ({
-        label: ABILITY_ID_TO_ABBREV[a] ?? a,
-        value: a,
-      })),
-    ];
-  }, [items]);
-
-  const suggestedClassOptions = useMemo(() => {
-    const classIds = [...new Set(items.flatMap((i) => i.suggestedClasses ?? []))].sort();
-    const allowedClassIds = filterAllowedIds(classIds, catalog.classesById) ?? classIds;
-
-    return allowedClassIds.map((id) => ({
-      label: catalog.classesById[id]?.name ?? id,
-      value: id,
-    }));
-  }, [items, catalog.classesById]);
-
-  const tagOptions = useMemo(() => {
-    const tags = [...new Set(items.flatMap((i) => i.tags ?? []))].sort();
-    return tags.map((tag) => ({ label: tag, value: tag }));
-  }, [items]);
-
-  const customColumns: AppDataGridColumn<SkillProficiencyListRow>[] = useMemo(
-    () => [
-      {
-        field: 'ability',
-        headerName: 'Ability',
-        width: 100,
-        valueFormatter: (v) => abilityToAbbrev(v as string | undefined),
-      },
-      // {
-      //   field: 'tags',
-      //   headerName: 'Tags',
-      //   width: 180,
-      //   valueFormatter: (v) => {
-      //     const arr = (v as string[] | undefined) ?? [];
-      //     return arr.length > 0 ? arr.join(', ') : '—';
-      //   },
-      // },
-      {
-        field: 'suggestedClasses',
-        headerName: 'Suggested for Class',
-        flex: 1,
-        minWidth: 200,
-        valueFormatter: (v) => {
-          const arr = (v as string[] | undefined) ?? [];
-          const allowedIds = filterAllowedIds(arr, catalog.classesById ?? {});
-          if (!allowedIds?.length) return '—';
-          const byId = catalog.classesById ?? {};
-          return allowedIds.map((id) => byId[id]?.name ?? id).join(', ');
-        },
-      },
-    ],
-    [catalog],
+  const customColumns = useMemo(
+    () => buildSkillProficiencyCustomColumns(catalog.classesById),
+    [catalog.classesById],
   );
 
-  const customFilters: AppDataGridFilter<SkillProficiencyListRow>[] = useMemo(
-    () => [
-      {
-        id: 'ability',
-        label: 'Ability',
-        type: 'select' as const,
-        options: abilityOptions,
-        accessor: (r) => r.ability ?? '',
-      },
-      {
-        id: 'suggestedClasses',
-        label: 'Suggested for Class',
-        type: 'multiSelect' as const,
-        options: suggestedClassOptions,
-        accessor: (r) => r.suggestedClasses ?? [],
-      },
-      {
-        id: 'tags',
-        label: 'Tag',
-        type: 'multiSelect' as const,
-        options: tagOptions,
-        accessor: (r) => r.tags ?? [],
-      },
-    ],
-    [abilityOptions, suggestedClassOptions, tagOptions],
+  const customFilters = useMemo(
+    () => buildSkillProficiencyCustomFilters(items, catalog.classesById),
+    [items, catalog.classesById],
   );
 
   const columns = useMemo(

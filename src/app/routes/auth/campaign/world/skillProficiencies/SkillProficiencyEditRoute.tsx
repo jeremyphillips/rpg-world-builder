@@ -36,7 +36,7 @@ import {
   SKILL_PROFICIENCY_FORM_DEFAULTS,
   skillProficiencyToFormValues,
   toSkillProficiencyInput,
-} from '@/features/skillProficiency/forms';
+} from '@/features/content/skillProficiencies/domain';
 
 type ValidationError = { path: string; code: string; message: string };
 

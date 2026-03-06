@@ -22,6 +22,6 @@ export { validateRaceChange, type RaceValidationMode } from './validateRaceChang
 export {
   validateSkillProficiencyChange,
   type SkillProficiencyValidationMode,
-} from './validateSkillProficiencyChange';
+} from '@/features/content/skillProficiencies/domain/validation/validateSkillProficiencyChange';
 export { validateSpellChange, type SpellValidationMode } from '@/features/content/spells/domain/validation/validateSpellChange';
 export { validateWeaponChange, type WeaponValidationMode } from './validateWeaponChange';

@@ -7,19 +7,19 @@
  * 3) Raw system entry
  */
 import { apiFetch, ApiError } from '@/app/api';
-import type { ContentSource } from '../types';
-import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
+import type { ContentSource } from '@/features/content/domain/types';
+import type { CampaignContentRepo, ListOptions } from '@/features/content/domain/repo/contentRepo.types';
 import type {
   SkillProficiency,
   SkillProficiencySummary,
   SkillProficiencyInput,
-} from '../types/skillProficiency.types';
+} from '@/features/content/domain/types/skillProficiency.types';
 import {
   getSystemSkillProficiencies,
   getSystemSkillProficiency,
 } from '@/features/mechanics/domain/core/rules/systemCatalog.skillProficiencies';
-import { getContentPatch } from '../contentPatchRepo';
-import { applyContentPatch } from '../patches/applyContentPatch';
+import { getContentPatch } from '@/features/content/domain/contentPatchRepo';
+import { applyContentPatch } from '@/features/content/domain/patches/applyContentPatch';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 
 // ---------------------------------------------------------------------------
