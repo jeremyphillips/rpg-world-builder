@@ -17,20 +17,18 @@ import {
 } from '@/features/content/components';
 import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/hooks/useCampaignPartyCharacterNameMap';
-import { weaponRepo } from '@/features/content/domain/repo';
-import { validateWeaponChange } from '@/features/content/domain/validation';
-import type { WeaponSummary } from '@/features/content/domain/types';
+import {
+  weaponRepo,
+  validateWeaponChange,
+  buildWeaponCustomColumns,
+  buildWeaponCustomFilters,
+  type WeaponListRow,
+} from '@/features/content/equipment/weapons/domain';
 import type { ContentSummary } from '@/features/content/domain/types';
-import type { AppDataGridFilter } from '@/ui/patterns';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/hooks';
-import { formatCp } from '@/shared/money';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
-
-type WeaponListRow = WeaponSummary & { allowedInCampaign?: boolean };
-
-const EMPTY_PLACEHOLDER = '—';
 
 export default function WeaponsListRoute() {
   const { campaign, campaignId } = useActiveCampaign();
@@ -100,73 +98,11 @@ export default function WeaponsListRoute() {
     [campaignId, controller.onToggleAllowed],
   );
 
-  const categoryOptions = useMemo(() => {
-    const cats = [...new Set(items.map((i) => i.category))].sort();
-    return [{ label: 'All', value: '' }, ...cats.map((c) => ({ label: c, value: c }))];
-  }, [items]);
+  const customColumns = useMemo(() => buildWeaponCustomColumns(), []);
 
-  const propertyOptions = useMemo(() => {
-    const props = [...new Set(items.flatMap((i) => i.properties ?? []))].sort();
-    return props.map((p) => ({ label: p, value: p }));
-  }, [items]);
-
-  const customColumns = useMemo(
-    () => [
-      {
-        field: 'category',
-        headerName: 'Category',
-        width: 110,
-      },
-      {
-        field: 'damage',
-        headerName: 'Damage',
-        width: 80,
-        valueFormatter: (v: unknown) =>
-          v != null ? String(v) : EMPTY_PLACEHOLDER,
-      },
-      {
-        field: 'damageType',
-        headerName: 'Damage Type',
-        width: 120,
-        valueFormatter: (v: unknown) =>
-          v != null ? String(v) : EMPTY_PLACEHOLDER,
-      },
-      {
-        field: 'properties',
-        headerName: 'Properties',
-        width: 180,
-        valueFormatter: (v: unknown) =>
-          Array.isArray(v) ? (v as string[]).join(', ') : EMPTY_PLACEHOLDER,
-      },
-      {
-        field: 'costCp',
-        headerName: 'Cost',
-        width: 110,
-        type: 'number' as const,
-        valueFormatter: (v: unknown) => formatCp(v as number),
-      },
-    ],
-    [],
-  );
-
-  const customFilters: AppDataGridFilter<WeaponListRow>[] = useMemo(
-    () => [
-      {
-        id: 'category',
-        label: 'Category',
-        type: 'select' as const,
-        options: categoryOptions,
-        accessor: (r: WeaponListRow) => r.category,
-      },
-      {
-        id: 'property',
-        label: 'Property',
-        type: 'multiSelect' as const,
-        options: propertyOptions,
-        accessor: (r: WeaponListRow) => r.properties ?? [],
-      },
-    ],
-    [categoryOptions, propertyOptions],
+  const customFilters = useMemo(
+    () => buildWeaponCustomFilters(items),
+    [items],
   );
 
   const columns = useMemo(
