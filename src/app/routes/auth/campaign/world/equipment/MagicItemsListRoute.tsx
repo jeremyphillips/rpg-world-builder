@@ -13,24 +13,22 @@ import {
   ContentTypeListPage,
   buildCampaignContentColumns,
   buildCampaignContentFilters,
-  makeBooleanGlyphColumn,
   ValidationBlockedAlert,
 } from '@/features/content/components';
 import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/hooks/useCampaignPartyCharacterNameMap';
-import { magicItemRepo } from '@/features/content/domain/repo';
-import { validateMagicItemChange } from '@/features/content/domain/validation';
-import type { MagicItemSummary } from '@/features/content/domain/types';
+import {
+  magicItemRepo,
+  validateMagicItemChange,
+  buildMagicItemCustomColumns,
+  buildMagicItemCustomFilters,
+  type MagicItemListRow,
+} from '@/features/content/equipment/magicItems/domain';
 import type { ContentSummary } from '@/features/content/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/hooks';
-import { formatCp } from '@/shared/money';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
-
-type MagicItemListRow = MagicItemSummary & { allowedInCampaign?: boolean };
-
-const EMPTY_PLACEHOLDER = '—';
 
 export default function MagicItemsListRoute() {
   const { campaign, campaignId } = useActiveCampaign();
@@ -100,71 +98,11 @@ export default function MagicItemsListRoute() {
     [campaignId, controller.onToggleAllowed],
   );
 
-  const slotOptions = useMemo(() => {
-    const slots = [...new Set(items.map((i) => i.slot))].sort();
-    return [{ label: 'All', value: '' }, ...slots.map((s) => ({ label: s, value: s }))];
-  }, [items]);
-
-  const rarityOptions = useMemo(() => {
-    const rarities = [...new Set(items.map((i) => i.rarity).filter(Boolean) as string[])].sort();
-    return [{ label: 'All', value: '' }, ...rarities.map((r) => ({ label: r, value: r }))];
-  }, [items]);
-
-  const customColumns = useMemo(
-    () => [
-      {
-        field: 'slot',
-        headerName: 'Slot',
-        width: 110,
-      },
-      {
-        field: 'rarity',
-        headerName: 'Rarity',
-        width: 120,
-        valueFormatter: (v: unknown) =>
-          v != null ? String(v) : EMPTY_PLACEHOLDER,
-      },
-      makeBooleanGlyphColumn<MagicItemListRow>(
-        'requiresAttunement',
-        'Attunement',
-        (row) => Boolean(row.requiresAttunement),
-        { tone: 'default' },
-      ),
-      {
-        field: 'costCp',
-        headerName: 'Cost',
-        width: 110,
-        type: 'number' as const,
-        valueFormatter: (v: unknown) => formatCp(v as number),
-      },
-    ],
-    [],
-  );
+  const customColumns = useMemo(() => buildMagicItemCustomColumns(), []);
 
   const customFilters = useMemo(
-    () => [
-      {
-        id: 'slot',
-        label: 'Slot',
-        type: 'select' as const,
-        options: slotOptions,
-        accessor: (r: MagicItemListRow) => r.slot,
-      },
-      {
-        id: 'rarity',
-        label: 'Rarity',
-        type: 'select' as const,
-        options: rarityOptions,
-        accessor: (r: MagicItemListRow) => r.rarity ?? '',
-      },
-      {
-        id: 'attunement',
-        label: 'Attunement',
-        type: 'boolean' as const,
-        accessor: (r: MagicItemListRow) => r.requiresAttunement,
-      },
-    ],
-    [slotOptions, rarityOptions],
+    () => buildMagicItemCustomFilters(items),
+    [items],
   );
 
   const columns = useMemo(
