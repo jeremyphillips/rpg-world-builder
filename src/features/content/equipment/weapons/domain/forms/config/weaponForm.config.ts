@@ -4,7 +4,7 @@
  */
 import type { FieldConfig } from '@/ui/patterns';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { buildFieldConfigs, buildDefaultFormValues } from '@/features/content/forms/registry';
+import { buildFieldConfigs, buildDefaultFormValues } from '@/features/content/shared/forms/registry';
 import { WEAPON_FORM_FIELDS } from '../registry/weaponForm.registry';
 import type { WeaponFormValues } from '../types/weaponForm.types';
 

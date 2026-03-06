@@ -21,7 +21,7 @@
 import type { CampaignCatalog } from './systemCatalog'
 import type { RulesetLike } from './ruleset.types'
 import type { ContentRule, RulesetContent } from '@/shared/types/ruleset'
-import { getAllowedSet } from '@/features/content/domain/contentPolicy'
+import { getAllowedSet } from '@/features/content/shared/domain/contentPolicy'
 
 // ---------------------------------------------------------------------------
 // Catalog category config

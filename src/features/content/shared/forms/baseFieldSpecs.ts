@@ -3,8 +3,8 @@
  * Single source of truth — add/remove a base field once, apply everywhere.
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import type { ContentFormValues, ContentInput } from '@/features/content/domain/types';
-import type { FieldSpec } from '@/features/content/forms/registry';
+import type { ContentFormValues, ContentInput } from '@/features/content/shared/domain/types';
+import type { FieldSpec } from '@/features/content/shared/forms/registry';
 
 const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);

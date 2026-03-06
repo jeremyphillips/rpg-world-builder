@@ -1,5 +1,5 @@
 import type { AbilityId, AbilityScoreValue } from '@/features/mechanics/domain/core/character'
-import type { AlignmentId, RaceId } from '@/features/content/domain/types'
+import type { AlignmentId, RaceId } from '@/features/content/shared/domain/types'
 import type { StartingWealth } from './class.types'
 
 export interface Note {

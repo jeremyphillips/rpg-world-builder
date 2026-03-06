@@ -13,9 +13,9 @@ import {
   buildCampaignContentColumns,
   buildCampaignContentFilters,
   ValidationBlockedAlert,
-} from '@/features/content/components';
-import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
-import { useCampaignPartyCharacterNameMap } from '@/features/content/hooks/useCampaignPartyCharacterNameMap';
+} from '@/features/content/shared/components';
+import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
+import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import { useViewerProficiencies } from '@/features/campaign/hooks';
 import {
   skillProficiencyRepo,
@@ -24,7 +24,7 @@ import {
   buildSkillProficiencyCustomFilters,
   type SkillProficiencyListRow,
 } from '@/features/content/skillProficiencies/domain';
-import type { SkillProficiencySummary } from '@/features/content/domain/types';
+import type { SkillProficiencySummary } from '@/features/content/shared/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/hooks';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

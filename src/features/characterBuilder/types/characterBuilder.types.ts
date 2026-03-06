@@ -1,5 +1,5 @@
 import type { CharacterSheet, RaceId } from '@/shared'
-import type { AlignmentId } from '@/features/content/domain/types'
+import type { AlignmentId } from '@/features/content/shared/domain/types'
 import type {
   CharacterType, 
   CharacterProficiencies, 

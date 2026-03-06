@@ -4,8 +4,8 @@
  * These are the "factory defaults" for armor (SRD_CC_v5_2_1). Campaign-owned
  * custom armor is stored in the DB and merged at runtime by the armorRepo.
  */
-import type { Armor } from '@/features/content/domain/types';
-import type { ArmorFields } from '@/features/content/domain/types';
+import type { Armor } from '@/features/content/shared/domain/types';
+import type { ArmorFields } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from './ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 

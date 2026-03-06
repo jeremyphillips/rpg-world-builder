@@ -3,13 +3,13 @@
  * Registry-backed with required-field merging.
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import type { MagicItem, MagicItemInput } from '@/features/content/domain/types';
+import type { MagicItem, MagicItemInput } from '@/features/content/shared/domain/types';
 import type { MagicItemFormValues } from '../types/magicItemForm.types';
 import {
   buildToInput,
   buildToFormValues,
   buildDefaultFormValues,
-} from '@/features/content/forms/registry';
+} from '@/features/content/shared/forms/registry';
 import { MAGIC_ITEM_FORM_FIELDS } from '../registry/magicItemForm.registry';
 
 const toInput = buildToInput(MAGIC_ITEM_FORM_FIELDS);

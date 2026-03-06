@@ -1,6 +1,6 @@
 import type { AppDataGridFilter } from '@/ui/patterns';
 import type { GearListRow } from './gearList.types';
-import type { GearSummary } from '@/features/content/domain/types';
+import type { GearSummary } from '@/features/content/shared/domain/types';
 import { buildCategoryOptions } from './gearList.options';
 
 /**

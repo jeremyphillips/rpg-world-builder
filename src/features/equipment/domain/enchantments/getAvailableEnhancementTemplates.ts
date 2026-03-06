@@ -1,5 +1,5 @@
-import type { EnchantmentTemplate } from '@/features/content/domain/types'
-import { enchantmentRepo } from '@/features/content/domain/repo/enchantmentRepo'
+import type { EnchantmentTemplate } from '@/features/content/shared/domain/types'
+import { enchantmentRepo } from '@/features/content/shared/domain/repo/enchantmentRepo'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
 
 /**

@@ -14,7 +14,7 @@
 import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
-} from '@/features/content/domain/validation/validateCharacterReferenceChange';
+} from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
 
 export type ClassValidationMode = 'delete' | 'disallow';
 

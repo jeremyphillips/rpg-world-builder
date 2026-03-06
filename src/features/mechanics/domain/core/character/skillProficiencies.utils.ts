@@ -1,6 +1,6 @@
 import { getSystemSkillProficiencies } from '@/features/mechanics/domain/core/rules/systemCatalog.skillProficiencies'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
-import type { SkillProficiencyId } from '@/features/content/domain/types'
+import type { SkillProficiencyId } from '@/features/content/shared/domain/types'
 
 const skills = getSystemSkillProficiencies(DEFAULT_SYSTEM_RULESET_ID)
 const skillProficiencyById = Object.fromEntries(skills.map((s) => [s.id, s]))

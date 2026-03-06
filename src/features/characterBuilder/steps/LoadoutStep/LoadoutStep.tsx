@@ -1,7 +1,7 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import type { Armor } from '@/features/content/domain/types'
-import type { Weapon } from '@/features/content/domain/types'
+import type { Armor } from '@/features/content/shared/domain/types'
+import type { Weapon } from '@/features/content/shared/domain/types'
 import { resolveLoadout } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
 import { formatMoney } from '@/shared/money'
 

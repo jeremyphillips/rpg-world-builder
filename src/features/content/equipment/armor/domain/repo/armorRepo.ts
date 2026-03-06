@@ -5,12 +5,12 @@
 // 3) Raw system entry
 // ---------------------------------------------------------------------------
 
-import type { CampaignContentRepo, ListOptions } from '@/features/content/domain/repo/contentRepo.types';
-import type { Armor, ArmorSummary, ArmorInput, ArmorFields } from '@/features/content/domain/types/armor.types';
+import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
+import type { Armor, ArmorSummary, ArmorInput, ArmorFields } from '@/features/content/shared/domain/types/armor.types';
 import { getSystemArmor, getSystemArmorEntry } from '@/features/mechanics/domain/core/rules/systemCatalog.armor';
 import { campaignArmorRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
-import { getContentPatch } from '@/features/content/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/domain/patches/applyContentPatch';
+import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
+import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 

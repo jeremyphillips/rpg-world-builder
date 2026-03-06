@@ -1,5 +1,5 @@
-import type { Race } from '@/features/content/domain/types';
-import type { DetailSpec } from '@/features/content/forms/registry';
+import type { Race } from '@/features/content/shared/domain/types';
+import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { AppBadge } from '@/ui/primitives';
 import { VisibilityBadge } from '@/ui/patterns';
 

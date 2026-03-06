@@ -1,6 +1,6 @@
 import type { SpellSummary } from '../repo/spellRepo';
-import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab/magicSchools.vocab';
-import { filterAllowedIds } from '@/features/content/domain/utils';
+import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab/magicSchools.vocab';
+import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 
 export type FilterOption = { label: string; value: string };
 

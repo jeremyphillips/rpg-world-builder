@@ -4,8 +4,8 @@
  * These are the "factory defaults" for magic items (SRD_CC_v5_2_1). Campaign-owned
  * custom magic items are stored in the DB and merged at runtime by the magicItemRepo.
  */
-import type { MagicItem, MagicItemFields } from '@/features/content/domain/types';
-import type { ContentSource } from '@/features/content/domain/types';
+import type { MagicItem, MagicItemFields } from '@/features/content/shared/domain/types';
+import type { ContentSource } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from './ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 import type { ModifierValue } from '../../effects/effects.types';

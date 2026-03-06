@@ -1,7 +1,7 @@
 import { Stack, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import type { AppDataGridColumn, AppDataGridFilter } from '../AppDataGrid';
-import { makeBooleanGlyphColumn } from '@/features/content/components/contentListColumnHelpers';
+import { makeBooleanGlyphColumn } from '@/features/content/shared/components/contentListColumnHelpers';
 import { AppBadge } from '@/ui/primitives';
 
 

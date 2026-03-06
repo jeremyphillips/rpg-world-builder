@@ -4,10 +4,10 @@
  * renders as "Insert example" in JsonPreviewField.
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import type { SkillProficiency } from '@/features/content/domain/types';
+import type { SkillProficiency } from '@/features/content/shared/domain/types';
 import type { SkillProficiencyInput } from '../types/skillProficiencyForm.types';
 import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities';
-import { type FieldSpec } from '@/features/content/forms/registry';
+import { type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { SkillProficiencyFormValues } from '../types/skillProficiencyForm.types';
 
 const ABILITY_OPTIONS = ABILITIES.map((a) => ({ value: a.id, label: a.name }));

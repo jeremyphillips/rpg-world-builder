@@ -1,5 +1,5 @@
 import type { CharacterClass } from '@/features/classes/domain/types'
-import type { AlignmentVocabItem } from '@/features/content/domain/types';
+import type { AlignmentVocabItem } from '@/features/content/shared/domain/types';
 
 export type AlignmentFormOption = {
   id: string

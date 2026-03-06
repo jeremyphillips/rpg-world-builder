@@ -4,7 +4,7 @@
  * These are the "factory defaults" for races. Campaign-owned custom races
  * are stored in the DB and merged at runtime by buildCampaignCatalog.
  */
-import type { Race, RaceFields } from '@/features/content/domain/types';
+import type { Race, RaceFields } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from './ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 

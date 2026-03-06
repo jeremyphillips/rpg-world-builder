@@ -4,6 +4,16 @@ import type { BonusEffect, CustomEffect, GrantEffect, ModifierEffect } from '@/f
 
 export type EnchantableSlot = 'weapon' | 'armor' | 'shield'
 
+/**
+ * Data-layer effect descriptor (stored in enchantment templates, magic items).
+ * Resolved to Effect[] by resolveEffectDescriptors.
+ */
+export type EffectDescriptor =
+  | { kind: 'bonus'; target: string; value: number }
+  | { kind: 'stat_bonus'; stat: string; value: number }
+  | { kind: 'grant'; grantType: string; value: unknown }
+  | { kind: 'custom'; id: string; params?: Record<string, unknown> }
+
 export type EnchantmentEffect =
   | BonusEffect
   | ModifierEffect
@@ -17,5 +27,5 @@ export type EnchantmentTemplate = {
   rarity?: MagicItemRarity
   cost?: Money
   requiresAttunement?: boolean | string
-  effectsBySlot: Partial<Record<EnchantableSlot, EnchantmentEffect[]>>
+  effectsBySlot: Partial<Record<EnchantableSlot, EffectDescriptor[]>>
 }

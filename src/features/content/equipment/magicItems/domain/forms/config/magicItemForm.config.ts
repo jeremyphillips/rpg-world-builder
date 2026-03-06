@@ -4,7 +4,7 @@
  */
 import type { FieldConfig } from '@/ui/patterns';
 import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { buildFieldConfigs } from '@/features/content/forms/registry';
+import { buildFieldConfigs } from '@/features/content/shared/forms/registry';
 import { MAGIC_ITEM_FORM_FIELDS } from '../registry/magicItemForm.registry';
 import type { MagicItemFormValues } from '../types/magicItemForm.types';
 

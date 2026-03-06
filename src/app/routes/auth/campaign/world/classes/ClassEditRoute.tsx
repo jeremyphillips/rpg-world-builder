@@ -15,18 +15,18 @@ import Typography from '@mui/material/Typography';
 
 import type { Visibility } from '@/shared/types/visibility';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { EntryEditorLayout } from '@/features/content/components';
+import { EntryEditorLayout } from '@/features/content/shared/components';
 import { validateClassChange } from '@/features/content/classes/domain/validation/validateClassChange';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { classRepo, type ClassContentItem, type ClassInput } from '@/features/content/classes/domain';
-import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
+import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import {
   getContentPatch,
   getEntryPatch,
   upsertEntryPatch,
   removeEntryPatch,
-} from '@/features/content/domain/contentPatchRepo';
-import { createPatchDriver } from '@/features/content/editor/patchDriver';
+} from '@/features/content/shared/domain/contentPatchRepo';
+import { createPatchDriver } from '@/features/content/shared/editor/patchDriver';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {

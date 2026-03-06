@@ -44,7 +44,7 @@
       "@/features/location/*": ["features/location/*"],
       "@/features/mechanics/*": ["features/mechanics/*"],
       "@/features/content/*": ["features/content/*"],
-      "@/features/content/domain/types": ["features/content/domain/types/index.ts"],
+      "@/features/content/domain/types": ["features/content/shared/domain/types/index.ts"],
       "@/features/notification": ["features/notification/index.ts"],
       "@/features/notification/*": ["features/notification/*"],
       "@/features/session/*": ["features/session/*"],

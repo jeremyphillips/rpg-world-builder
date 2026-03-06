@@ -14,9 +14,9 @@ import {
   buildCampaignContentColumns,
   buildCampaignContentFilters,
   ValidationBlockedAlert,
-} from '@/features/content/components';
-import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
-import { useCampaignPartyCharacterNameMap } from '@/features/content/hooks/useCampaignPartyCharacterNameMap';
+} from '@/features/content/shared/components';
+import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
+import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import {
   raceRepo,
   validateRaceChange,

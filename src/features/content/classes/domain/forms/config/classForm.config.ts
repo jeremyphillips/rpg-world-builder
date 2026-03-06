@@ -4,7 +4,7 @@
  */
 import type { FieldConfig } from '@/ui/patterns';
 import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { buildFieldConfigs } from '@/features/content/forms/registry';
+import { buildFieldConfigs } from '@/features/content/shared/forms/registry';
 import { CLASS_FORM_FIELDS } from '../registry/classForm.registry';
 import type { ClassFormValues } from '../types/classForm.types';
 

@@ -1,10 +1,10 @@
 /**
  * Spell form field registry — single source of truth for config + mapping.
  */
-import type { Spell, SpellInput } from '@/features/content/domain/types/spell.types';
-import { getBaseContentFieldSpecs } from '@/features/content/forms/baseFieldSpecs';
-import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab';
-import { numberRange, type FieldSpec } from '@/features/content/forms/registry';
+import type { Spell, SpellInput } from '@/features/content/shared/domain/types/spell.types';
+import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
+import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
+import { numberRange, type FieldSpec } from '@/features/content/shared/forms/registry';
 import { getSpellcastingClasses } from '@/features/mechanics/domain/classes/queries';
 import { getSystemClasses } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';

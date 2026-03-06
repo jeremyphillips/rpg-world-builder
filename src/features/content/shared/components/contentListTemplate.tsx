@@ -20,7 +20,7 @@ import { canViewContent, type ViewerContext } from '@/shared/domain/capabilities
 import {
   SOURCE_FILTER_OPTIONS,
   getSourceColumnDisplay,
-} from '@/features/content/domain/sourceLabels';
+} from '@/features/content/shared/domain/sourceLabels';
 
 // ---------------------------------------------------------------------------
 // Visibility icon spec (for Name column)

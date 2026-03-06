@@ -15,9 +15,9 @@ import {
   buildCampaignContentColumns,
   buildCampaignContentFilters,
   ValidationBlockedAlert,
-} from '@/features/content/components';
-import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
-import { useCampaignPartyCharacterNameMap } from '@/features/content/hooks/useCampaignPartyCharacterNameMap';
+} from '@/features/content/shared/components';
+import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
+import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import {
   spellRepo,
   validateSpellChange,
@@ -25,7 +25,7 @@ import {
   buildSpellCustomFilters,
   type SpellListRow,
 } from '@/features/content/spells/domain';
-import type { ContentSummary } from '@/features/content/domain/types';
+import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/hooks';

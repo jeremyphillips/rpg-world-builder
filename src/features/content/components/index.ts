@@ -2,7 +2,7 @@ export {
   default as ContentTypeListPage,
   type ContentListItem,
   type ContentViewerContext,
-} from './ContentTypeListPage';
+} from '@/features/content/shared/components/ContentTypeListPage';
 export {
   buildCampaignContentColumns,
   buildCampaignContentFilters,
@@ -10,20 +10,20 @@ export {
   makePostColumns,
   makePostFilters,
   type CampaignContentListRow,
-} from './contentListTemplate';
+} from '@/features/content/shared/components/contentListTemplate';
 export {
   makeBooleanGlyphColumn,
   type BooleanGlyphTone,
-} from './contentListColumnHelpers';
+} from '@/features/content/shared/components/contentListColumnHelpers';
 export {
   default as EntryEditorLayout,
   type DeleteBlockReason,
   type BlockingEntity,
-} from './EntryEditorLayout';
-export { default as ValidationBlockedAlert } from './ValidationBlockedAlert';
-export { default as ContentDetailScaffold } from './ContentDetailScaffold';
+} from '@/features/content/shared/components/EntryEditorLayout';
+export { default as ValidationBlockedAlert } from '@/features/content/shared/components/ValidationBlockedAlert';
+export { default as ContentDetailScaffold } from '@/features/content/shared/components/ContentDetailScaffold';
 export {
   EntryFormEditorLayout,
   type EntryFormEditorLayoutProps,
   type ValidationError,
-} from './editor';
+} from '@/features/content/shared/components/editor';

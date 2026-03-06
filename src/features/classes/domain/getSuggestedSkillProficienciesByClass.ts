@@ -1,4 +1,4 @@
-import type { SkillProficiency } from '@/features/content/domain/types'
+import type { SkillProficiency } from '@/features/content/shared/domain/types'
 
 /**
  * Filters all skill proficiencies by suggestedClasses.

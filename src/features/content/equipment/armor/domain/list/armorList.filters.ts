@@ -1,6 +1,6 @@
 import type { AppDataGridFilter } from '@/ui/patterns';
 import type { ArmorListRow } from './armorList.types';
-import type { ArmorSummary } from '@/features/content/domain/types';
+import type { ArmorSummary } from '@/features/content/shared/domain/types';
 import { buildCategoryOptions } from './armorList.options';
 
 /**

@@ -35,8 +35,8 @@ import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
 import { AppAlert } from '@/ui/primitives'
-import type { AlignmentId } from '@/features/content/domain/types'
-import type { RaceId } from '@/features/content/domain/types'
+import type { AlignmentId } from '@/features/content/shared/domain/types'
+import type { RaceId } from '@/features/content/shared/domain/types'
 
 
 // ---------------------------------------------------------------------------

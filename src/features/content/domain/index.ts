@@ -1,6 +1,6 @@
-export * from './types';
-export * from './sourceLabels';
-export * from './vocab';
+export * from '@/features/content/shared/domain/types';
+export * from '@/features/content/shared/domain/sourceLabels';
+export * from '@/features/content/shared/domain/vocab';
 export {
   listCampaignRaces,
   getCampaignRace,

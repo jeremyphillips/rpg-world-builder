@@ -2,13 +2,13 @@
  * Pure mappers for Spell form values ↔ domain types.
  * Registry-backed with required-field merging.
  */
-import type { Spell, SpellInput } from '@/features/content/domain/types/spell.types';
+import type { Spell, SpellInput } from '@/features/content/shared/domain/types/spell.types';
 import type { SpellFormValues } from '../types/spellForm.types';
 import {
   buildToInput,
   buildToFormValues,
   buildDefaultFormValues,
-} from '@/features/content/forms/registry';
+} from '@/features/content/shared/forms/registry';
 import { SPELL_FORM_FIELDS } from '../registry/spellForm.registry';
 
 const toInput = buildToInput(SPELL_FORM_FIELDS);

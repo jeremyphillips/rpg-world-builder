@@ -15,9 +15,9 @@ import Typography from '@mui/material/Typography';
 
 import type { Visibility } from '@/shared/types/visibility';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { EntryEditorLayout } from '@/features/content/components';
+import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import type { Race, RaceInput } from '@/features/content/domain/types';
+import type { Race, RaceInput } from '@/features/content/shared/domain/types';
 import {
   raceRepo,
   validateRaceChange,
@@ -27,14 +27,14 @@ import {
   raceToFormValues,
   toRaceInput,
 } from '@/features/content/races/domain';
-import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
+import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import {
   getContentPatch,
   getEntryPatch,
   upsertEntryPatch,
   removeEntryPatch,
-} from '@/features/content/domain/contentPatchRepo';
-import { createPatchDriver } from '@/features/content/editor/patchDriver';
+} from '@/features/content/shared/domain/contentPatchRepo';
+import { createPatchDriver } from '@/features/content/shared/editor/patchDriver';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 

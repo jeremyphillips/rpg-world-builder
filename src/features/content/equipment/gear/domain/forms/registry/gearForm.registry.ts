@@ -1,10 +1,10 @@
 /**
  * Gear form field registry — single source of truth for config + mapping.
  */
-import type { Gear, GearInput } from '@/features/content/domain/types';
-import { getBaseContentFieldSpecs } from '@/features/content/forms/baseFieldSpecs';
-import { GEAR_CATEGORY_OPTIONS } from '@/features/content/domain/vocab';
-import { type FieldSpec } from '@/features/content/forms/registry';
+import type { Gear, GearInput } from '@/features/content/shared/domain/types';
+import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
+import { GEAR_CATEGORY_OPTIONS } from '@/features/content/shared/domain/vocab';
+import { type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { GearFormValues } from '../types/gearForm.types';
 
 const trimOrUndefined = (v: unknown): string | undefined => {

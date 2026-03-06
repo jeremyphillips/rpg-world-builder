@@ -10,8 +10,8 @@ export {
   type CharacterReferenceMode,
   type CharacterReferenceLike,
   type CharacterReferenceMatcher,
-} from './validateCharacterReferenceChange';
-export { buildBlockedMessage, type ValidationMode } from './validationMessage';
+} from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
+export { buildBlockedMessage, type ValidationMode } from '@/features/content/shared/domain/validation/validationMessage';
 export { validateArmorChange, type ArmorValidationMode } from '@/features/content/equipment/armor/domain';
 export { validateGearChange, type GearValidationMode } from '@/features/content/equipment/gear/domain';
 export {

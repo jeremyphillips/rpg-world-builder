@@ -6,7 +6,7 @@
  */
 import { apiFetch, ApiError } from '@/app/api';
 import type { Visibility } from '@/shared/types/visibility';
-import type { ContentSource } from '@/features/content/domain/types';
+import type { ContentSource } from '@/features/content/shared/domain/types';
 
 // ---------------------------------------------------------------------------
 // Shared types

@@ -1,8 +1,8 @@
 /**
  * Shared form types for Magic Item Create/Edit routes.
  */
-import type { ContentFormValues } from '@/features/content/domain/types';
-import type { MagicItemSlot, MagicItemRarity } from '@/features/content/domain/vocab';
+import type { ContentFormValues } from '@/features/content/shared/domain/types';
+import type { MagicItemSlot, MagicItemRarity } from '@/features/content/shared/domain/vocab';
 
 export type MagicItemFormValues = ContentFormValues & {
   slot: MagicItemSlot | '';

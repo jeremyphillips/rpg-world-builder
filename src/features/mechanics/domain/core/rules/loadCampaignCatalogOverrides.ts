@@ -5,7 +5,7 @@
  * system catalog in buildCampaignCatalog.
  */
 import type { CampaignCatalog } from './systemCatalog';
-import { listCampaignRaces } from '@/features/content/races/domain';
+import { listCampaignRaces } from '@/features/content/races/domain/repo/raceRepo';
 import { listCampaignClasses } from '@/features/content/classes/domain/repo/classRepo';
 import { listCampaignSpells } from '@/features/content/spells/domain/repo/spellRepo';
 import {
@@ -15,8 +15,8 @@ import {
   campaignMagicItemRepo,
   type CampaignEquipmentEntry,
 } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
-import { enchantmentRepo } from '@/features/content/domain/repo/enchantmentRepo';
-import type { EnchantmentTemplate } from '@/features/content/domain/types';
+import { enchantmentRepo } from '@/features/content/shared/domain/repo/enchantmentRepo';
+import type { EnchantmentTemplate } from '@/features/content/shared/domain/types';
 
 function keyById<T extends { id: string }>(items: readonly T[]): Record<string, T> {
   const map: Record<string, T> = {};

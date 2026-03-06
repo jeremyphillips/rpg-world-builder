@@ -4,7 +4,7 @@
  * These are the "factory defaults" for enhancement templates (SRD_CC_v5_2_1).
  * Campaign-owned custom enchantments would be merged at runtime by the catalog.
  */
-import type { EnchantmentTemplate } from '@/features/content/domain/types';
+import type { EnchantmentTemplate } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from './ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 

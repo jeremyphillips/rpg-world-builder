@@ -1,6 +1,6 @@
 import { CampaignSpell } from '../models/CampaignSpell.model';
 import type { AccessPolicy, AccessPolicyScope } from '../../shared/domain/accessPolicy';
-import { MAGIC_SCHOOL_OPTIONS } from '../../src/features/content/domain/vocab/magicSchools.vocab';
+import { MAGIC_SCHOOL_OPTIONS } from '../../src/features/content/shared/domain/vocab/magicSchools.vocab';
 
 const VALID_SCOPES: AccessPolicyScope[] = ['public', 'dm', 'restricted'];
 const VALID_SCHOOLS = MAGIC_SCHOOL_OPTIONS.map((o) => o.value);

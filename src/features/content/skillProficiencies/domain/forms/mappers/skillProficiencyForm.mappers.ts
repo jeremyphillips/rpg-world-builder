@@ -2,14 +2,14 @@
  * Pure mappers for Skill Proficiency form values ↔ domain types.
  * Registry-backed.
  */
-import type { SkillProficiency } from '@/features/content/domain/types';
+import type { SkillProficiency } from '@/features/content/shared/domain/types';
 import type { SkillProficiencyInput } from '../types/skillProficiencyForm.types';
 import type { SkillProficiencyFormValues } from '../types/skillProficiencyForm.types';
 import {
   buildToInput,
   buildToFormValues,
   buildDefaultFormValues,
-} from '@/features/content/forms/registry';
+} from '@/features/content/shared/forms/registry';
 import { SKILL_PROFICIENCY_FORM_FIELDS } from '../registry/skillProficiencyForm.registry';
 
 const toInput = buildToInput(SKILL_PROFICIENCY_FORM_FIELDS);

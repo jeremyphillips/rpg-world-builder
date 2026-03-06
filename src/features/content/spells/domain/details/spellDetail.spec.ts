@@ -1,6 +1,6 @@
-import type { Spell } from '@/features/content/domain/types/spell.types';
-import type { DetailSpec } from '@/features/content/forms/registry';
-import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab';
+import type { Spell } from '@/features/content/shared/domain/types/spell.types';
+import type { DetailSpec } from '@/features/content/shared/forms/registry';
+import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
 import { classIdToName } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 

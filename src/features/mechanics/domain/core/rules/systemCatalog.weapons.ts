@@ -4,7 +4,7 @@
  * These are the "factory defaults" for weapons (SRD_CC_v5_2_1). Campaign-owned
  * custom weapons are stored in the DB and merged at runtime by the weaponRepo.
  */
-import type { Weapon, WeaponFields } from '@/features/content/domain/types';
+import type { Weapon, WeaponFields } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from './ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 

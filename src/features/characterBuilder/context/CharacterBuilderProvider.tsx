@@ -27,7 +27,7 @@ import {
 import { moneyToCp, cpToDenoms } from '@/shared/money'
 import type { CharacterType } from "@/shared/types/character.core"
 import { resolveXpTable } from "@/features/mechanics/domain/core/rules/xp/resolveXpTable"
-import type { AlignmentId } from '@/features/content/domain/types'
+import type { AlignmentId } from '@/features/content/shared/domain/types'
 import { 
   ABILITY_KEYS, 
   type AbilityScoreMapResolved, 

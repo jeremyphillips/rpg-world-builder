@@ -1,6 +1,6 @@
 import type { AppDataGridColumn } from '@/ui/patterns';
 import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities';
-import { filterAllowedIds } from '@/features/content/domain/utils';
+import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 import type { SkillProficiencyListRow } from './skillProficiencyList.types';
 
 const ABILITY_ID_TO_ABBREV = Object.fromEntries(

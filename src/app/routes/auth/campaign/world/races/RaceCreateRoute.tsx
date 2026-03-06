@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FormProvider, useForm } from 'react-hook-form';
 import type { Visibility } from '@/shared/types/visibility';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { EntryEditorLayout } from '@/features/content/components';
+import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import {
   raceRepo,
@@ -13,7 +13,7 @@ import {
   RACE_FORM_DEFAULTS,
   toRaceInput,
 } from '@/features/content/races/domain';
-import type { RaceInput } from '@/features/content/domain/types';
+import type { RaceInput } from '@/features/content/shared/domain/types';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 
 type ValidationError = { path: string; code: string; message: string };

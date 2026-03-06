@@ -3,13 +3,13 @@
  * Registry-backed with required-field merging.
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import type { Gear, GearInput } from '@/features/content/domain/types';
+import type { Gear, GearInput } from '@/features/content/shared/domain/types';
 import type { GearFormValues } from '../types/gearForm.types';
 import {
   buildToInput,
   buildToFormValues,
   buildDefaultFormValues,
-} from '@/features/content/forms/registry';
+} from '@/features/content/shared/forms/registry';
 import { GEAR_FORM_FIELDS } from '../registry/gearForm.registry';
 
 const toInput = buildToInput(GEAR_FORM_FIELDS);

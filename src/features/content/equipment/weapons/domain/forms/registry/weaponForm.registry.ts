@@ -1,16 +1,16 @@
 /**
  * Weapon form field registry — single source of truth for config + mapping.
  */
-import type { Weapon, WeaponInput } from '@/features/content/domain/types';
-import { getBaseContentFieldSpecs } from '@/features/content/forms/baseFieldSpecs';
+import type { Weapon, WeaponInput } from '@/features/content/shared/domain/types';
+import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import { DIE_FACE_OPTIONS } from '@/features/mechanics/domain/dice';
 import {
   WEAPON_CATEGORY_OPTIONS,
   WEAPON_MODE_OPTIONS,
   WEAPON_PROPERTY_OPTIONS,
   WEAPON_DAMAGE_TYPE_OPTIONS,
-} from '@/features/content/domain/vocab';
-import type { FieldSpec } from '@/features/content/forms/registry';
+} from '@/features/content/shared/domain/vocab';
+import type { FieldSpec } from '@/features/content/shared/forms/registry';
 import type { WeaponFormValues } from '../types/weaponForm.types';
 import { when } from '@/ui/patterns';
 

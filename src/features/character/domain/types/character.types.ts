@@ -1,7 +1,7 @@
 import type { Money } from '@/shared/money/types'
 import type { ClassId } from '@/shared/types/ruleset'
-import type { AlignmentId } from '@/features/content/domain/types'
-import type { RaceId } from '@/features/content/domain/types'
+import type { AlignmentId } from '@/features/content/shared/domain/types'
+import type { RaceId } from '@/features/content/shared/domain/types'
 import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character'
 
 

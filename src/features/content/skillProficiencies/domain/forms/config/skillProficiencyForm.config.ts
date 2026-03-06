@@ -3,7 +3,7 @@
  * Registry-backed.
  */
 import type { FieldConfig } from '@/ui/patterns';
-import { buildFieldConfigs, buildDefaultFormValues } from '@/features/content/forms/registry';
+import { buildFieldConfigs, buildDefaultFormValues } from '@/features/content/shared/forms/registry';
 import { SKILL_PROFICIENCY_FORM_FIELDS } from '../registry/skillProficiencyForm.registry';
 import type { SkillProficiencyFormValues } from '../types/skillProficiencyForm.types';
 

@@ -1,7 +1,7 @@
 import type { AppDataGridColumn } from '@/ui/patterns';
-import { makeBooleanGlyphColumn } from '@/features/content/components';
-import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab/magicSchools.vocab';
-import { filterAllowedIds } from '@/features/content/domain/utils';
+import { makeBooleanGlyphColumn } from '@/features/content/shared/components';
+import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab/magicSchools.vocab';
+import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 import type { SpellListRow } from './spellList.types';
 
 const schoolLabel = (value: string) =>

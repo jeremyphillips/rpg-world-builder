@@ -5,7 +5,7 @@
 
 import type { CharacterClassInfo } from '@/features/character/domain/types'
 import type { ClassId } from '@/shared/types/ruleset'
-import type { Spell } from '@/features/content/domain/types'
+import type { Spell } from '@/features/content/shared/domain/types'
 
 // ---------------------------------------------------------------------------
 // Wizard state

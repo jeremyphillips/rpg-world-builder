@@ -8,7 +8,7 @@
 // - formatMoney / formatCp for UI display
 // ---------------------------------------------------------------------------
 
-import type { Armor, Weapon, Gear } from '@/features/content/domain/types'
+import type { Armor, Weapon, Gear } from '@/features/content/shared/domain/types'
 import type { Money } from '@/shared/money/types'
 import { moneyToCp, COIN_TO_CP } from '@/shared/money'
 

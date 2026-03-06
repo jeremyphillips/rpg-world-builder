@@ -25,7 +25,7 @@ import {
   selectActiveMagicItemEffects,
 } from '@/features/mechanics/domain/effects/sources/magic-items-to-effects'
 import { getEnchantmentCandidateEffects } from '@/features/mechanics/domain/effects/sources/enchantments-to-effects'
-import type { DamageType } from '@/features/content/domain/vocab/weapons.vocab'
+import type { DamageType } from '@/features/content/shared/domain/vocab/weapons.vocab'
 
 // ---------------------------------------------------------------------------
 // Attack types

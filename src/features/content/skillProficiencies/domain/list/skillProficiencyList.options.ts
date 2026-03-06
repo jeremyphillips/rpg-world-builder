@@ -1,6 +1,6 @@
-import type { SkillProficiencySummary } from '@/features/content/domain/types';
+import type { SkillProficiencySummary } from '@/features/content/shared/domain/types';
 import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities';
-import { filterAllowedIds } from '@/features/content/domain/utils';
+import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 
 export type FilterOption = { label: string; value: string };
 

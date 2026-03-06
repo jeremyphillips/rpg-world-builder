@@ -3,7 +3,7 @@ import type { Effect } from '../effects/effects.types'
 import { getAbilityModifier } from '../core/ability.utils'
 import { getProficiencyAttackBonus } from '@/features/mechanics/domain/character/progression'
 import { resolveStatDetailed, type BreakdownToken } from './stat-resolver'
-import type { DamageType } from '@/features/content/domain/vocab/weapons.vocab'
+import type { DamageType } from '@/features/content/shared/domain/vocab/weapons.vocab'
 import type { AbilityKey } from '@/features/mechanics/domain/core/character/abilities.types'
 
 // ---------------------------------------------------------------------------

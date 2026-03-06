@@ -9,7 +9,7 @@ import {
   buildToInput,
   buildToFormValues,
   buildDefaultFormValues,
-} from '@/features/content/forms/registry';
+} from '@/features/content/shared/forms/registry';
 import { CLASS_FORM_FIELDS } from '../registry/classForm.registry';
 
 const toInput = buildToInput(CLASS_FORM_FIELDS);

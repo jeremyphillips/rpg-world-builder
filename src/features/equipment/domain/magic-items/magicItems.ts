@@ -1,6 +1,6 @@
 import { getSystemMagicItems } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
-import type { MagicItemRarity } from '@/features/content/domain/types'
+import type { MagicItemRarity } from '@/features/content/shared/domain/types'
 import type { MagicItemBudget, MagicItemBudgetTier } from '@/shared/types/ruleset'
 
 // ─── Rarity ordering (weakest → strongest) ──────────────────────────────────

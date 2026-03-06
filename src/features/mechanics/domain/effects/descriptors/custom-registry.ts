@@ -1,4 +1,4 @@
-import type { EffectDescriptor } from '@/features/content/domain/types'
+import type { EffectDescriptor } from '@/features/content/shared/domain/types'
 import type { Effect } from '../effects.types'
 
 type CustomDescriptor = Extract<EffectDescriptor, { kind: 'custom' }>

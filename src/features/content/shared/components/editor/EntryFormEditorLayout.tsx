@@ -7,9 +7,9 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { DynamicFormRenderer, type FormDriver } from '@/ui/patterns';
 import type { FieldConfig } from '@/ui/patterns';
 import type { Visibility } from '@/shared/types/visibility';
-import type { ChangeValidationResult } from '@/features/content/domain/validation';
+import type { ChangeValidationResult } from '@/features/content/shared/domain/validation';
 import EntryEditorLayout from '../EntryEditorLayout';
-import { createPatchDriver } from '@/features/content/editor/patchDriver';
+import { createPatchDriver } from '@/features/content/shared/editor/patchDriver';
 
 export type ValidationError = {
   path: string;

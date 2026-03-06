@@ -4,10 +4,10 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import type { Visibility } from '@/shared/types/visibility';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { EntryEditorLayout } from '@/features/content/components';
+import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { spellRepo } from '@/features/content/domain/repo';
-import type { SpellInput } from '@/features/content/domain/types/spell.types';
+import type { SpellInput } from '@/features/content/shared/domain/types/spell.types';
 import {
   type SpellFormValues,
   getSpellFieldConfigs,

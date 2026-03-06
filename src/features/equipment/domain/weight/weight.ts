@@ -1,4 +1,4 @@
-import type { Armor, Gear, Weapon } from '@/features/content/domain/types'
+import type { Armor, Gear, Weapon } from '@/features/content/shared/domain/types'
 import type { WeightUnit, Weight } from '@/shared/weight/types'
 
 const WEIGHT_TO_LB: Record<WeightUnit, number> = {

@@ -11,7 +11,7 @@ import MuiLink from '@mui/material/Link';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import type { Visibility } from '@/shared/types/visibility';
-import type { ChangeValidationResult } from '@/features/content/domain/validation';
+import type { ChangeValidationResult } from '@/features/content/shared/domain/validation';
 import { AppAlert } from '@/ui/primitives';
 import { AppPageHeader, AppModal, ConfirmModal, VisibilityField } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/hooks';

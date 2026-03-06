@@ -1,4 +1,4 @@
-import { makeBooleanGlyphColumn } from '@/features/content/components';
+import { makeBooleanGlyphColumn } from '@/features/content/shared/components';
 import { formatCp } from '@/shared/money';
 import type { ArmorListRow } from './armorList.types';
 

@@ -7,8 +7,8 @@ import type {
   Weapon,
   WeaponInput,
   WeaponFields,
-} from '@/features/content/domain/types';
-import { buildDefaultFormValues } from '@/features/content/forms/registry';
+} from '@/features/content/shared/domain/types';
+import { buildDefaultFormValues } from '@/features/content/shared/forms/registry';
 import {
   buildXdY,
   parseXdY,

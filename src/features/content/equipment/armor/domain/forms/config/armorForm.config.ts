@@ -4,7 +4,7 @@
  */
 import type { FieldConfig } from '@/ui/patterns';
 import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { buildFieldConfigs } from '@/features/content/forms/registry';
+import { buildFieldConfigs } from '@/features/content/shared/forms/registry';
 import { ARMOR_FORM_FIELDS } from '../registry/armorForm.registry';
 import type { ArmorFormValues } from '../types/armorForm.types';
 

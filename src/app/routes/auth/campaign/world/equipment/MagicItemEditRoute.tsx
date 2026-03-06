@@ -15,19 +15,19 @@ import Typography from '@mui/material/Typography';
 
 import type { Visibility } from '@/shared/types/visibility';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { EntryEditorLayout } from '@/features/content/components';
+import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { magicItemRepo } from '@/features/content/domain/repo';
 import { validateMagicItemChange } from '@/features/content/domain/validation';
-import type { MagicItem, MagicItemInput } from '@/features/content/domain/types';
-import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
+import type { MagicItem, MagicItemInput } from '@/features/content/shared/domain/types';
+import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import {
   getContentPatch,
   getEntryPatch,
   upsertEntryPatch,
   removeEntryPatch,
-} from '@/features/content/domain/contentPatchRepo';
-import { createPatchDriver } from '@/features/content/editor/patchDriver';
+} from '@/features/content/shared/domain/contentPatchRepo';
+import { createPatchDriver } from '@/features/content/shared/editor/patchDriver';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {

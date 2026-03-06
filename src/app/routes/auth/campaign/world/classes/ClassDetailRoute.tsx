@@ -4,14 +4,14 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { ContentDetailScaffold } from '@/features/content/components';
+import { ContentDetailScaffold } from '@/features/content/shared/components';
 import { classRepo, type ClassContentItem } from '@/features/content/classes/domain';
-import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
+import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/hooks';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/forms/registry';
+import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
 import { CLASS_DETAIL_SPECS } from '@/features/content/classes/domain/forms';
 
 export default function ClassDetailRoute() {

@@ -4,16 +4,16 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { ContentDetailScaffold } from '@/features/content/components';
+import { ContentDetailScaffold } from '@/features/content/shared/components';
 import { magicItemRepo } from '@/features/content/domain/repo';
-import type { MagicItem } from '@/features/content/domain/types';
-import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
+import type { MagicItem } from '@/features/content/shared/domain/types';
+import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/hooks';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/utils/image';
-import { buildDetailItemsFromSpecs } from '@/features/content/forms/registry';
+import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
 import { MAGIC_ITEM_DETAIL_SPECS } from '@/features/content/equipment/magicItems/domain';
 
 export default function MagicItemDetailRoute() {

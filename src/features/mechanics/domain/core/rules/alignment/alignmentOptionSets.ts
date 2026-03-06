@@ -1,9 +1,9 @@
-import type { AlignmentId } from '@/features/content/domain/types';
+import type { AlignmentId } from '@/features/content/shared/domain/types';
 import {
   ALIGNMENT_LIST_NINE_POINT,
   ALIGNMENT_LIST_FIVE_POINT,
   ALIGNMENT_LIST_THREE_POINT,
-} from '@/features/content/domain/vocab/alignment.vocab';
+} from '@/features/content/shared/domain/vocab/alignment.vocab';
 
 export const ALIGNMENT_OPTION_SETS: Record<string, readonly AlignmentId[]> = {
   nine_point: ALIGNMENT_LIST_NINE_POINT.map(a => a.id),

@@ -5,7 +5,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import type { Visibility } from '@/shared/types/visibility';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { EntryEditorLayout } from '@/features/content/components';
+import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { gearRepo } from '@/features/content/domain/repo';
 import {

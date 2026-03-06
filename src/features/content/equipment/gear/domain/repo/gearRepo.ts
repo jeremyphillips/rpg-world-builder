@@ -5,13 +5,13 @@
 // 3) Raw system entry
 // ---------------------------------------------------------------------------
 
-import type { CampaignContentRepo, ListOptions } from '@/features/content/domain/repo/contentRepo.types';
-import type { Gear, GearSummary, GearInput, GearFields } from '@/features/content/domain/types/gear.types';
+import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
+import type { Gear, GearSummary, GearInput, GearFields } from '@/features/content/shared/domain/types/gear.types';
 import { getSystemGear, getSystemGearEntry } from '@/features/mechanics/domain/core/rules/systemCatalog.gear';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 import { campaignGearRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
-import { getContentPatch } from '@/features/content/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/domain/patches/applyContentPatch';
+import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
+import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
 import { weightToLb } from '@/features/equipment/domain/weight/weight';
 

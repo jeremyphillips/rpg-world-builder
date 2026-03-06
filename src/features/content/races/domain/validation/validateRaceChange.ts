@@ -13,11 +13,11 @@ import type { CharacterDoc } from '@/features/character/domain/types';
 import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
-} from '@/features/content/domain/validation/validateCharacterReferenceChange';
+} from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
 
 export type RaceValidationMode = 'delete' | 'disallow';
 
-export type { ChangeValidationResult } from '@/features/content/domain/validation/validateCharacterReferenceChange';
+export type { ChangeValidationResult } from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
 
 type CharacterWithRace = Pick<CharacterDoc, '_id' | 'name' | 'race'>;
 

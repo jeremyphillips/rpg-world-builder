@@ -14,9 +14,9 @@ import {
   buildCampaignContentColumns,
   buildCampaignContentFilters,
   ValidationBlockedAlert,
-} from '@/features/content/components';
-import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
-import { useCampaignPartyCharacterNameMap } from '@/features/content/hooks/useCampaignPartyCharacterNameMap';
+} from '@/features/content/shared/components';
+import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
+import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import {
   weaponRepo,
   validateWeaponChange,
@@ -24,7 +24,7 @@ import {
   buildWeaponCustomFilters,
   type WeaponListRow,
 } from '@/features/content/equipment/weapons/domain';
-import type { ContentSummary } from '@/features/content/domain/types';
+import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/hooks';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

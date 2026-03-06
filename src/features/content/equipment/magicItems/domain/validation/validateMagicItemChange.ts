@@ -12,7 +12,7 @@ import type { CharacterDoc } from '@/features/character/domain/types';
 import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
-} from '@/features/content/domain/validation/validateCharacterReferenceChange';
+} from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
 
 export type MagicItemValidationMode = 'delete' | 'disallow';
 

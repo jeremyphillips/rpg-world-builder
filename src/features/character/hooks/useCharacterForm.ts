@@ -4,7 +4,7 @@ import type { CharacterDoc } from '@/features/character/domain/types'
 import { getAlignmentOptionsForClass } from '@/features/mechanics/domain/character/selection'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { resolveAlignmentOptions } from '@/features/mechanics/domain/core/rules/alignment/resolveAlignmentOptions'
-import type { AlignmentId } from '@/features/content/domain/types'
+import type { AlignmentId } from '@/features/content/shared/domain/types'
 
 export interface CharacterNarrative {
   personalityTraits: string[]
