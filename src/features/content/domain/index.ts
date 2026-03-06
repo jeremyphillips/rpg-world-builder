@@ -7,7 +7,7 @@ export {
   createCampaignRace,
   updateCampaignRace,
   deleteCampaignRace,
-} from './campaignRaceRepo';
+} from './repo/raceRepo';
 export {
   type ContentType,
   type ListOptions,

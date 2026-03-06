@@ -17,7 +17,7 @@
 import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
 import type { Weapon, WeaponSummary, WeaponInput, WeaponFields } from '../types/weapon.types';
 import { getSystemWeapons, getSystemWeapon } from '@/features/mechanics/domain/core/rules/systemCatalog.weapons';
-import { campaignWeaponRepo, type CampaignEquipmentEntry } from '../campaignEquipmentRepo';
+import { campaignWeaponRepo, type CampaignEquipmentEntry } from './campaignEquipmentApi';
 import { getContentPatch } from '../contentPatchRepo';
 import { applyContentPatch } from '../patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
@@ -57,8 +57,8 @@ function campaignEntryToWeapon(e: CampaignEquipmentEntry): Weapon {
     mode: d.mode ?? 'melee',
     range: d.range,
     properties: d.properties ?? [],
-    damage: d.damage ?? { default: '—' },
-    damageType: d.damageType ?? '',
+    damage: (d.damage ?? { default: '—' }) as Weapon['damage'],
+    damageType: (d.damageType ?? '') as Weapon['damageType'],
     // TODO: decide whether to show mastery
     // mastery: d.mastery ?? '',
   };

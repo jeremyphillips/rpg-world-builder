@@ -13,23 +13,138 @@
  * Race repository — merges system races + campaign custom races.
  *
  * System races come from the code-defined catalog (systemCatalog.races.ts).
- * Campaign races come from the DB via campaignRaceRepo.ts.
+ * Campaign races come from the DB via API.
  *
  * All returned objects carry `source: 'system' | 'campaign'`.
  */
+import { apiFetch, ApiError } from '@/app/api';
+import type { Visibility } from '@/shared/types/visibility';
 import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
 import type { Race, RaceSummary, RaceInput } from '../types/race.types';
 import { getSystemRaces, getSystemRace } from '@/features/mechanics/domain/core/rules/systemCatalog.races';
-import {
-  listCampaignRaces,
-  getCampaignRace,
-  createCampaignRace,
-  updateCampaignRace,
-  deleteCampaignRace,
-} from '../campaignRaceRepo';
 import { getContentPatch } from '../contentPatchRepo';
 import { applyContentPatch } from '../patches/applyContentPatch';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+
+// ---------------------------------------------------------------------------
+// API response shapes
+// ---------------------------------------------------------------------------
+
+type CampaignRaceDto = {
+  _id: string;
+  campaignId: string;
+  raceId: string;
+  name: string;
+  description: string;
+  accessPolicy?: Visibility;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ValidationError = {
+  path: string;
+  code: string;
+  message: string;
+};
+
+// ---------------------------------------------------------------------------
+// DTO → domain
+// ---------------------------------------------------------------------------
+
+function toRace(dto: CampaignRaceDto): Race {
+  return {
+    id: dto.raceId,
+    name: dto.name,
+    description: dto.description,
+    source: 'campaign' as const,
+    campaignId: dto.campaignId,
+    accessPolicy: dto.accessPolicy,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Campaign CRUD helpers
+// ---------------------------------------------------------------------------
+
+/** Exported for loadCampaignCatalogOverrides and domain index. */
+export async function listCampaignRaces(campaignId: string): Promise<Race[]> {
+  const data = await apiFetch<{ races: CampaignRaceDto[] }>(
+    `/api/campaigns/${campaignId}/races`,
+  );
+  return data.races.map(toRace);
+}
+
+async function getCampaignRace(
+  campaignId: string,
+  raceId: string,
+): Promise<Race | null> {
+  try {
+    const data = await apiFetch<{ race: CampaignRaceDto }>(
+      `/api/campaigns/${campaignId}/races/${raceId}`,
+    );
+    return toRace(data.race);
+  } catch (err: unknown) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
+}
+
+async function createCampaignRace(
+  campaignId: string,
+  input: RaceInput,
+): Promise<{ race: Race } | { errors: ValidationError[] }> {
+  try {
+    const data = await apiFetch<{ race: CampaignRaceDto }>(
+      `/api/campaigns/${campaignId}/races`,
+      { method: 'POST', body: input },
+    );
+    return { race: toRace(data.race) };
+  } catch (err: unknown) {
+    if (err instanceof ApiError && err.status === 400 && err.payload) {
+      const payload = err.payload as { errors?: ValidationError[] };
+      if (payload.errors) return { errors: payload.errors };
+    }
+    throw err;
+  }
+}
+
+async function updateCampaignRace(
+  campaignId: string,
+  raceId: string,
+  input: RaceInput,
+): Promise<{ race: Race } | { errors: ValidationError[] }> {
+  try {
+    const data = await apiFetch<{ race: CampaignRaceDto }>(
+      `/api/campaigns/${campaignId}/races/${raceId}`,
+      { method: 'PATCH', body: input },
+    );
+    return { race: toRace(data.race) };
+  } catch (err: unknown) {
+    if (err instanceof ApiError && err.status === 400 && err.payload) {
+      const payload = err.payload as { errors?: ValidationError[] };
+      if (payload.errors) return { errors: payload.errors };
+    }
+    throw err;
+  }
+}
+
+async function deleteCampaignRace(
+  campaignId: string,
+  raceId: string,
+): Promise<boolean> {
+  try {
+    await apiFetch(`/api/campaigns/${campaignId}/races/${raceId}`, {
+      method: 'DELETE',
+    });
+    return true;
+  } catch (err: unknown) {
+    if (err instanceof ApiError && err.status === 404) return false;
+    throw err;
+  }
+}
+
+/** Exported for domain index. */
+export { getCampaignRace, createCampaignRace, updateCampaignRace, deleteCampaignRace };
 
 // ---------------------------------------------------------------------------
 // Helpers

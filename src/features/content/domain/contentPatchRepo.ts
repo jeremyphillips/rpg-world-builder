@@ -1,7 +1,7 @@
 /**
  * Client-side repository for campaign content patches.
  *
- * Mirrors the campaignRaceRepo pattern — thin wrapper around apiFetch
+ * Mirrors the race repo campaign CRUD pattern — thin wrapper around apiFetch
  * pointing at the /campaigns/:id/content-patch endpoints.
  *
  * TODO: Other content repos (equipment, spells, etc.) can reuse this

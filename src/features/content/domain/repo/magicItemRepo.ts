@@ -8,7 +8,7 @@
 import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
 import type { MagicItem, MagicItemSummary, MagicItemInput, MagicItemFields } from '../types/magicItem.types';
 import { getSystemMagicItems, getSystemMagicItem } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems';
-import { campaignMagicItemRepo, type CampaignEquipmentEntry } from '../campaignEquipmentRepo';
+import { campaignMagicItemRepo, type CampaignEquipmentEntry } from './campaignEquipmentApi';
 import { getContentPatch } from '../contentPatchRepo';
 import { applyContentPatch } from '../patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';

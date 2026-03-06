@@ -8,7 +8,7 @@
 import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
 import type { Armor, ArmorSummary, ArmorInput, ArmorFields } from '../types/armor.types';
 import { getSystemArmor, getSystemArmorEntry } from '@/features/mechanics/domain/core/rules/systemCatalog.armor';
-import { campaignArmorRepo, type CampaignEquipmentEntry } from '../campaignEquipmentRepo';
+import { campaignArmorRepo, type CampaignEquipmentEntry } from './campaignEquipmentApi';
 import { getContentPatch } from '../contentPatchRepo';
 import { applyContentPatch } from '../patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';

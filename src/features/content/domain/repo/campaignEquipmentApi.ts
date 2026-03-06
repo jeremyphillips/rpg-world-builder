@@ -1,20 +1,18 @@
 /**
- * Client-side repository for campaign-owned custom equipment.
+ * Shared campaign equipment API — factory for typed CRUD wrappers.
  *
- * Uses a factory pattern to generate typed CRUD wrappers for each
- * equipment type (weapons, armor, gear, magicItems). All calls go
- * through the API (DB-backed). System equipment comes from the
- * systemCatalog modules.
+ * Used by weaponRepo, armorRepo, gearRepo, magicItemRepo.
+ * All calls go through the API (DB-backed).
  */
 import { apiFetch, ApiError } from '@/app/api';
 import type { Visibility } from '@/shared/types/visibility';
-import type { ContentSource } from './types';
+import type { ContentSource } from '../types';
 
 // ---------------------------------------------------------------------------
 // Shared types
 // ---------------------------------------------------------------------------
 
-type CampaignEquipmentDto = {
+export type CampaignEquipmentDto = {
   _id: string;
   campaignId: string;
   equipmentType: string;
@@ -28,16 +26,6 @@ type CampaignEquipmentDto = {
   updatedAt: string;
 };
 
-type ValidationError = {
-  path: string;
-  code: string;
-  message: string;
-};
-
-// ---------------------------------------------------------------------------
-// Generic entry shape returned to callers
-// ---------------------------------------------------------------------------
-
 export type CampaignEquipmentEntry = {
   id: string;
   name: string;
@@ -49,9 +37,11 @@ export type CampaignEquipmentEntry = {
   data: Record<string, unknown>;
 };
 
-// ---------------------------------------------------------------------------
-// Factory
-// ---------------------------------------------------------------------------
+type ValidationError = {
+  path: string;
+  code: string;
+  message: string;
+};
 
 type EquipmentRepoConfig = {
   /** API path segment, e.g. 'weapons', 'armor', 'gear', 'magic-items' */
@@ -61,6 +51,10 @@ type EquipmentRepoConfig = {
   /** Response key for list, e.g. 'weapons', 'armors' */
   responsePluralKey: string;
 };
+
+// ---------------------------------------------------------------------------
+// DTO → domain
+// ---------------------------------------------------------------------------
 
 function toEntry(dto: CampaignEquipmentDto): CampaignEquipmentEntry {
   return {
@@ -74,6 +68,10 @@ function toEntry(dto: CampaignEquipmentDto): CampaignEquipmentEntry {
     data: dto.data ?? {},
   };
 }
+
+// ---------------------------------------------------------------------------
+// Factory
+// ---------------------------------------------------------------------------
 
 export function makeCampaignEquipmentRepo(config: EquipmentRepoConfig) {
   const { pathSegment, responseKey, responsePluralKey } = config;

@@ -8,7 +8,8 @@
 import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
 import type { Gear, GearSummary, GearInput, GearFields } from '../types/gear.types';
 import { getSystemGear, getSystemGearEntry } from '@/features/mechanics/domain/core/rules/systemCatalog.gear';
-import { campaignGearRepo, type CampaignEquipmentEntry } from '../campaignEquipmentRepo';
+import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+import { campaignGearRepo, type CampaignEquipmentEntry } from './campaignEquipmentApi';
 import { getContentPatch } from '../contentPatchRepo';
 import { applyContentPatch } from '../patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
@@ -58,7 +59,7 @@ export const gearRepo: CampaignContentRepo<Gear, GearSummary, GearInput> = {
 
   async listSummaries(
     campaignId: string,
-    systemId: string,
+    systemId: SystemRulesetId,
     opts?: ListOptions,
   ): Promise<GearSummary[]> {
     const [system, campaign, contentPatch] = await Promise.all([
@@ -95,7 +96,7 @@ export const gearRepo: CampaignContentRepo<Gear, GearSummary, GearInput> = {
 
   async getEntry(
     campaignId: string,
-    systemId: string,
+    systemId: SystemRulesetId,
     id: string,
   ): Promise<Gear | null> {
     const campaignEntry = await campaignGearRepo.get(campaignId, id);
@@ -114,7 +115,6 @@ export const gearRepo: CampaignContentRepo<Gear, GearSummary, GearInput> = {
 
   async createEntry(
     campaignId: string,
-    _systemId: string,
     input: GearInput,
   ): Promise<Gear> {
     const { name, description, accessPolicy, ...rest } = input;
@@ -133,7 +133,6 @@ export const gearRepo: CampaignContentRepo<Gear, GearSummary, GearInput> = {
 
   async updateEntry(
     campaignId: string,
-    _systemId: string,
     id: string,
     input: GearInput,
   ): Promise<Gear> {
@@ -153,7 +152,6 @@ export const gearRepo: CampaignContentRepo<Gear, GearSummary, GearInput> = {
 
   async deleteEntry(
     campaignId: string,
-    _systemId: string,
     id: string,
   ): Promise<boolean> {
     return campaignGearRepo.remove(campaignId, id);
