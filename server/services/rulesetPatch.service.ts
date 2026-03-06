@@ -134,7 +134,15 @@ function validateEntryRequirements(
 }
 
 const VALID_CONTENT_POLICIES = new Set(['all_except', 'only']);
-const VALID_CONTENT_CATEGORIES = new Set(['classes', 'races', 'equipment', 'spells', 'monsters', 'locations']);
+const VALID_CONTENT_CATEGORIES = new Set([
+  'classes',
+  'races',
+  'equipment',
+  'spells',
+  'monsters',
+  'locations',
+  'skillProficiencies',
+]);
 
 function validateContentRule(
   rule: unknown,

@@ -215,22 +215,24 @@ export function makePostColumns<T extends CampaignContentListRow>(params: {
     cols.push(makeOwnedColumn<T>({ ownedIds }));
   }
 
-  cols.push({
-    field: 'source',
-    headerName: 'Source',
-    width: 100,
-    renderCell: (params) => {
-      const { text, sx } = getSourceColumnDisplay(
-        (params.value as string) ?? (params.row as CampaignContentListRow).source,
-      );
-      if (!text) return '';
-      return (
-        <Typography component="span" variant="body2" sx={sx}>
-          {text}
-        </Typography>
-      );
-    },
-  });
+  if (canManage) {
+    cols.push({
+      field: 'source',
+      headerName: 'Source',
+      width: 100,
+      renderCell: (params) => {
+        const { text, sx } = getSourceColumnDisplay(
+          (params.value as string) ?? (params.row as CampaignContentListRow).source,
+        );
+        if (!text) return '';
+        return (
+          <Typography component="span" variant="body2" sx={sx}>
+            {text}
+          </Typography>
+        );
+      },
+    });
+  }
 
   if (canManage && onToggleAllowedInCampaign) {
     cols.push({

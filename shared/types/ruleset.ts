@@ -203,6 +203,7 @@ export type RulesetContent = {
   spells: ContentRule;
   monsters: ContentRule;
   locations: ContentRule;
+  skillProficiencies: ContentRule;
 };
 
 export type CampaignTagOption = {

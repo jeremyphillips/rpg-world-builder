@@ -128,6 +128,7 @@ const EquipmentStep = () => {
     proficiency: { categories: string[]; items: string[] },
   ) => {
     return items
+      .filter(item => item.cost && item.cost.value != null)
       .map(item => {
         const itemCp = getItemCostCp(item)
         const isSelected = selected.includes(item.id)
@@ -147,7 +148,7 @@ const EquipmentStep = () => {
 
         return {
           id: item.id,
-          label: item.cost ? `${item.name} (${costStr})` : item.name,
+          label: `${item.name} (${costStr})`,
           disabled,
           tooltip,
         }

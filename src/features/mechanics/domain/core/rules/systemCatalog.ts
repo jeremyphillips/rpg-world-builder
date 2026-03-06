@@ -115,6 +115,7 @@ const SYSTEM_RULESET_SRD_CC_V5_2_1: SystemRuleset = {
     spells:     { policy: 'all_except', ids: [] },
     monsters:   { policy: 'all_except', ids: [] },
     locations:  { policy: 'all_except', ids: [] },
+    skillProficiencies: { policy: 'all_except', ids: [] },
   },
   mechanics: {
     progression: {
