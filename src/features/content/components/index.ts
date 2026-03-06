@@ -11,7 +11,10 @@ export {
   makePostFilters,
   type CampaignContentListRow,
 } from './contentListTemplate';
-export { makeBooleanGlyphColumn } from './contentListColumnHelpers';
+export {
+  makeBooleanGlyphColumn,
+  type BooleanGlyphTone,
+} from './contentListColumnHelpers';
 export {
   default as EntryEditorLayout,
   type DeleteValidationResult,
