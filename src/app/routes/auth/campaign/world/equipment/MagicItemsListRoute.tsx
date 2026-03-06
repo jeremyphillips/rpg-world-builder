@@ -16,6 +16,10 @@ import {
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
+import {
+  useValidatedAllowedToggle,
+  type ValidationBlockedState,
+} from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import {
   magicItemRepo,
@@ -63,40 +67,24 @@ export default function MagicItemsListRoute() {
     canManage,
   );
 
-  const [validationBlocked, setValidationBlocked] = useState<
-    | { blockingEntities: { id: string; label: string; to?: string }[]; message?: string }
-    | null
-  >(null);
+  const [validationBlocked, setValidationBlocked] = useState<ValidationBlockedState | null>(null);
 
   const items = controller.items as MagicItemListRow[];
   const hasCampaignSources = items.some(
     (r) => (r as { source?: string }).source === 'campaign',
   );
 
-  const handleToggleAllowed = useCallback(
-    async (id: string, allowed: boolean) => {
-      setValidationBlocked(null);
-      if (allowed) {
-        controller.onToggleAllowed(id, true);
-        return;
-      }
-      if (!campaignId) return;
-      const result = await validateMagicItemChange({
-        campaignId,
+  const handleToggleAllowed = useValidatedAllowedToggle({
+    campaignId,
+    onToggleAllowed: controller.onToggleAllowed,
+    setValidationBlocked,
+    validateDisallow: (id) =>
+      validateMagicItemChange({
+        campaignId: campaignId!,
         magicItemId: id,
         mode: 'disallow',
-      });
-      if (!result.allowed) {
-        setValidationBlocked({
-          blockingEntities: result.blockingEntities ?? [],
-          message: result.message,
-        });
-        return;
-      }
-      controller.onToggleAllowed(id, false);
-    },
-    [campaignId, controller.onToggleAllowed],
-  );
+      }),
+  });
 
   const customColumns = useMemo(() => buildMagicItemCustomColumns(), []);
 

@@ -16,6 +16,10 @@ import {
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
+import {
+  useValidatedAllowedToggle,
+  type ValidationBlockedState,
+} from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import {
   raceRepo,
@@ -60,10 +64,7 @@ export default function RaceListRoute() {
     canManage,
   );
 
-  const [validationBlocked, setValidationBlocked] = useState<
-    | { blockingEntities: { id: string; label: string; to?: string }[]; message?: string }
-    | null
-  >(null);
+  const [validationBlocked, setValidationBlocked] = useState<ValidationBlockedState | null>(null);
 
   const items = controller.items as RaceListRow[];
   const hasCampaignSources = items.some((r) => (r as { source?: string }).source === 'campaign');
@@ -71,26 +72,17 @@ export default function RaceListRoute() {
   const customColumns = useMemo(() => buildRaceCustomColumns(), []);
   const customFilters = useMemo(() => buildRaceCustomFilters(), []);
 
-  const handleToggleAllowed = useCallback(
-    async (id: string, allowed: boolean) => {
-      setValidationBlocked(null);
-      if (allowed) {
-        controller.onToggleAllowed(id, true);
-        return;
-      }
-      if (!campaignId) return;
-      const result = await validateRaceChange({ campaignId, raceId: id, mode: 'disallow' });
-      if (!result.allowed) {
-        setValidationBlocked({
-          blockingEntities: result.blockingEntities ?? [],
-          message: result.message,
-        });
-        return;
-      }
-      controller.onToggleAllowed(id, false);
-    },
-    [campaignId, controller.onToggleAllowed],
-  );
+  const handleToggleAllowed = useValidatedAllowedToggle({
+    campaignId,
+    onToggleAllowed: controller.onToggleAllowed,
+    setValidationBlocked,
+    validateDisallow: (id) =>
+      validateRaceChange({
+        campaignId: campaignId!,
+        raceId: id,
+        mode: 'disallow',
+      }),
+  });
 
   const columns = useMemo(
     () =>

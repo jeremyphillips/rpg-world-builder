@@ -15,6 +15,10 @@ import {
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
+import {
+  useValidatedAllowedToggle,
+  type ValidationBlockedState,
+} from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import { useViewerProficiencies } from '@/features/campaign/hooks';
 import {
@@ -64,35 +68,19 @@ export default function SkillProficiencyListRoute() {
     canManage,
   );
 
-  const [validationBlocked, setValidationBlocked] = useState<
-    | { blockingEntities: { id: string; label: string; to?: string }[]; message?: string }
-    | null
-  >(null);
+  const [validationBlocked, setValidationBlocked] = useState<ValidationBlockedState | null>(null);
 
-  const handleToggleAllowed = useCallback(
-    async (id: string, allowed: boolean) => {
-      setValidationBlocked(null);
-      if (allowed) {
-        controller.onToggleAllowed(id, true);
-        return;
-      }
-      if (!campaignId) return;
-      const result = await validateSkillProficiencyChange({
-        campaignId,
+  const handleToggleAllowed = useValidatedAllowedToggle({
+    campaignId,
+    onToggleAllowed: controller.onToggleAllowed,
+    setValidationBlocked,
+    validateDisallow: (id) =>
+      validateSkillProficiencyChange({
+        campaignId: campaignId!,
         skillProficiencyId: id,
         mode: 'disallow',
-      });
-      if (!result.allowed) {
-        setValidationBlocked({
-          blockingEntities: result.blockingEntities ?? [],
-          message: result.message,
-        });
-        return;
-      }
-      controller.onToggleAllowed(id, false);
-    },
-    [campaignId, controller.onToggleAllowed],
-  );
+      }),
+  });
 
   const items = controller.items as SkillProficiencyListRow[];
   const hasCampaignSources = items.some((r) => (r as { source?: string }).source === 'campaign');

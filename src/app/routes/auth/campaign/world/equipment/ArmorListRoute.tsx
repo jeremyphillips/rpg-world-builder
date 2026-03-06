@@ -16,6 +16,10 @@ import {
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
+import {
+  useValidatedAllowedToggle,
+  type ValidationBlockedState,
+} from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import {
   armorRepo,
@@ -63,40 +67,24 @@ export default function ArmorListRoute() {
     canManage,
   );
 
-  const [validationBlocked, setValidationBlocked] = useState<
-    | { blockingEntities: { id: string; label: string; to?: string }[]; message?: string }
-    | null
-  >(null);
+  const [validationBlocked, setValidationBlocked] = useState<ValidationBlockedState | null>(null);
 
   const items = controller.items as ArmorListRow[];
   const hasCampaignSources = items.some(
     (r) => (r as { source?: string }).source === 'campaign',
   );
 
-  const handleToggleAllowed = useCallback(
-    async (id: string, allowed: boolean) => {
-      setValidationBlocked(null);
-      if (allowed) {
-        controller.onToggleAllowed(id, true);
-        return;
-      }
-      if (!campaignId) return;
-      const result = await validateArmorChange({
-        campaignId,
+  const handleToggleAllowed = useValidatedAllowedToggle({
+    campaignId,
+    onToggleAllowed: controller.onToggleAllowed,
+    setValidationBlocked,
+    validateDisallow: (id) =>
+      validateArmorChange({
+        campaignId: campaignId!,
         armorId: id,
         mode: 'disallow',
-      });
-      if (!result.allowed) {
-        setValidationBlocked({
-          blockingEntities: result.blockingEntities ?? [],
-          message: result.message,
-        });
-        return;
-      }
-      controller.onToggleAllowed(id, false);
-    },
-    [campaignId, controller.onToggleAllowed],
-  );
+      }),
+  });
 
   const customColumns = useMemo(() => buildArmorCustomColumns(), []);
 
