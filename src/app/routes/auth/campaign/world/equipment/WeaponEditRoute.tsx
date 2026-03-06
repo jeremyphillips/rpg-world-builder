@@ -22,12 +22,8 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { weaponRepo } from '@/features/content/domain/repo';
 import { validateWeaponChange } from '@/features/content/domain/validation';
-import type { Weapon, WeaponInput } from '@/features/content/shared/domain/types';
+import type { Weapon } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
-import {
-  upsertEntryPatch,
-  removeEntryPatch,
-} from '@/features/content/shared/domain/contentPatchRepo';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {
@@ -43,6 +39,9 @@ import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCa
 import { useSystemEntryPatchState } from '@/features/content/shared/hooks/useSystemEntryPatchState';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { usePatchDriverState } from '@/features/content/shared/hooks/usePatchDriverState';
+import { useCampaignEntrySubmit } from '@/features/content/shared/hooks/useCampaignEntrySubmit';
+import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
+import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
 
 const FORM_ID = 'weapon-edit-form';
 
@@ -111,77 +110,34 @@ export default function WeaponEditRoute() {
 
   const validationApiRef = useRef<{ validateAll: () => boolean } | null>(null);
 
-  const handleCampaignSubmit = useCallback(
-    async (values: WeaponFormValues) => {
-      if (!campaignId || !weaponId) return;
-      setSaving(true);
-      setSuccess(false);
-      setErrors([]);
-      const input: WeaponInput = toWeaponInput(values);
-      try {
-        const updated = await weaponRepo.updateEntry(campaignId, weaponId, input);
-        reset(weaponToFormValues(updated));
-        setSuccess(true);
-      } catch (err) {
-        setErrors([
-          { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-        ]);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [campaignId, weaponId, reset, setSaving, setSuccess, setErrors]
-  );
+  const handleCampaignSubmit = useCampaignEntrySubmit({
+    campaignId: campaignId ?? undefined,
+    entryId: weaponId,
+    updateEntry: weaponRepo.updateEntry,
+    reset,
+    toFormValues: weaponToFormValues,
+    toInput: toWeaponInput,
+    feedback: { setSaving, setSuccess, setErrors },
+  });
 
-  const handlePatchSave = useCallback(async () => {
-    if (!campaignId || !weaponId || !driver) return;
-    const ok = validationApiRef.current?.validateAll?.() ?? true;
-    if (!ok) {
-      setSuccess(false);
-      return;
-    }
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    const next = driver.getPatch();
-    try {
-      await upsertEntryPatch(campaignId, 'weapons', weaponId, next);
-      setInitialPatch(next);
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, weaponId, driver, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleRemovePatch = useCallback(async () => {
-    if (!campaignId || !weaponId) return;
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    try {
-      await removeEntryPatch(campaignId, 'weapons', weaponId);
-      setInitialPatch({});
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'REMOVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, weaponId, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleDelete = useCallback(async () => {
-    if (!campaignId || !weaponId) return;
-    await weaponRepo.deleteEntry(campaignId, weaponId);
-    navigate(`/campaigns/${campaignId}/world/equipment/weapons`, {
-      replace: true,
+  const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
+    useSystemPatchActions({
+      campaignId: campaignId ?? undefined,
+      entryId: weaponId,
+      collectionKey: 'weapons',
+      driver,
+      setInitialPatch,
+      validationApiRef,
+      feedback: { setSaving, setSuccess, setErrors },
     });
-  }, [campaignId, weaponId, navigate]);
+
+  const handleDelete = useEntryDeleteAction({
+    campaignId: campaignId ?? undefined,
+    entryId: weaponId,
+    deleteEntry: (cid, eid) => weaponRepo.deleteEntry(cid, eid).then(() => {}),
+    navigate,
+    backPath: `/campaigns/${campaignId}/world/equipment/weapons`,
+  });
 
   const handleValidateDelete = useCallback(async () => {
     if (!campaignId || !weaponId) return { allowed: true as const };

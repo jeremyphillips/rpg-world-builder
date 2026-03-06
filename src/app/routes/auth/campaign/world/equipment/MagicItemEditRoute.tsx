@@ -18,12 +18,8 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { magicItemRepo } from '@/features/content/domain/repo';
 import { validateMagicItemChange } from '@/features/content/domain/validation';
-import type { MagicItem, MagicItemInput } from '@/features/content/shared/domain/types';
+import type { MagicItem } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
-import {
-  upsertEntryPatch,
-  removeEntryPatch,
-} from '@/features/content/shared/domain/contentPatchRepo';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {
@@ -39,6 +35,9 @@ import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCa
 import { useSystemEntryPatchState } from '@/features/content/shared/hooks/useSystemEntryPatchState';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { usePatchDriverState } from '@/features/content/shared/hooks/usePatchDriverState';
+import { useCampaignEntrySubmit } from '@/features/content/shared/hooks/useCampaignEntrySubmit';
+import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
+import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
 
 const FORM_ID = 'magic-item-edit-form';
 
@@ -106,77 +105,34 @@ export default function MagicItemEditRoute() {
 
   const validationApiRef = useRef<{ validateAll: () => boolean } | null>(null);
 
-  const handleCampaignSubmit = useCallback(
-    async (values: MagicItemFormValues) => {
-      if (!campaignId || !magicItemId) return;
-      setSaving(true);
-      setSuccess(false);
-      setErrors([]);
-      const input: MagicItemInput = toMagicItemInput(values);
-      try {
-        const updated = await magicItemRepo.updateEntry(campaignId, magicItemId, input);
-        reset(magicItemToFormValues(updated));
-        setSuccess(true);
-      } catch (err) {
-        setErrors([
-          { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-        ]);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [campaignId, magicItemId, reset, setSaving, setSuccess, setErrors]
-  );
+  const handleCampaignSubmit = useCampaignEntrySubmit({
+    campaignId: campaignId ?? undefined,
+    entryId: magicItemId,
+    updateEntry: magicItemRepo.updateEntry,
+    reset,
+    toFormValues: magicItemToFormValues,
+    toInput: toMagicItemInput,
+    feedback: { setSaving, setSuccess, setErrors },
+  });
 
-  const handlePatchSave = useCallback(async () => {
-    if (!campaignId || !magicItemId || !driver) return;
-    const ok = validationApiRef.current?.validateAll?.() ?? true;
-    if (!ok) {
-      setSuccess(false);
-      return;
-    }
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    const next = driver.getPatch();
-    try {
-      await upsertEntryPatch(campaignId, 'magicItems', magicItemId, next);
-      setInitialPatch(next);
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, magicItemId, driver, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleRemovePatch = useCallback(async () => {
-    if (!campaignId || !magicItemId) return;
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    try {
-      await removeEntryPatch(campaignId, 'magicItems', magicItemId);
-      setInitialPatch({});
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'REMOVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, magicItemId, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleDelete = useCallback(async () => {
-    if (!campaignId || !magicItemId) return;
-    await magicItemRepo.deleteEntry(campaignId, magicItemId);
-    navigate(`/campaigns/${campaignId}/world/equipment/magic-items`, {
-      replace: true,
+  const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
+    useSystemPatchActions({
+      campaignId: campaignId ?? undefined,
+      entryId: magicItemId,
+      collectionKey: 'magicItems',
+      driver,
+      setInitialPatch,
+      validationApiRef,
+      feedback: { setSaving, setSuccess, setErrors },
     });
-  }, [campaignId, magicItemId, navigate]);
+
+  const handleDelete = useEntryDeleteAction({
+    campaignId: campaignId ?? undefined,
+    entryId: magicItemId,
+    deleteEntry: (cid, eid) => magicItemRepo.deleteEntry(cid, eid).then(() => {}),
+    navigate,
+    backPath: `/campaigns/${campaignId}/world/equipment/magic-items`,
+  });
 
   const handleValidateDelete = useCallback(async () => {
     if (!campaignId || !magicItemId) return { allowed: true as const };

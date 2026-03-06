@@ -18,12 +18,8 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { gearRepo } from '@/features/content/domain/repo';
 import { validateGearChange } from '@/features/content/domain/validation';
-import type { Gear, GearInput } from '@/features/content/shared/domain/types';
+import type { Gear } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
-import {
-  upsertEntryPatch,
-  removeEntryPatch,
-} from '@/features/content/shared/domain/contentPatchRepo';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {
@@ -39,6 +35,9 @@ import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCa
 import { useSystemEntryPatchState } from '@/features/content/shared/hooks/useSystemEntryPatchState';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { usePatchDriverState } from '@/features/content/shared/hooks/usePatchDriverState';
+import { useCampaignEntrySubmit } from '@/features/content/shared/hooks/useCampaignEntrySubmit';
+import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
+import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
 
 const FORM_ID = 'gear-edit-form';
 
@@ -106,77 +105,34 @@ export default function GearEditRoute() {
 
   const validationApiRef = useRef<{ validateAll: () => boolean } | null>(null);
 
-  const handleCampaignSubmit = useCallback(
-    async (values: GearFormValues) => {
-      if (!campaignId || !gearId) return;
-      setSaving(true);
-      setSuccess(false);
-      setErrors([]);
-      const input: GearInput = toGearInput(values);
-      try {
-        const updated = await gearRepo.updateEntry(campaignId, gearId, input);
-        reset(gearToFormValues(updated));
-        setSuccess(true);
-      } catch (err) {
-        setErrors([
-          { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-        ]);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [campaignId, gearId, reset, setSaving, setSuccess, setErrors]
-  );
+  const handleCampaignSubmit = useCampaignEntrySubmit({
+    campaignId: campaignId ?? undefined,
+    entryId: gearId,
+    updateEntry: gearRepo.updateEntry,
+    reset,
+    toFormValues: gearToFormValues,
+    toInput: toGearInput,
+    feedback: { setSaving, setSuccess, setErrors },
+  });
 
-  const handlePatchSave = useCallback(async () => {
-    if (!campaignId || !gearId || !driver) return;
-    const ok = validationApiRef.current?.validateAll?.() ?? true;
-    if (!ok) {
-      setSuccess(false);
-      return;
-    }
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    const next = driver.getPatch();
-    try {
-      await upsertEntryPatch(campaignId, 'gear', gearId, next);
-      setInitialPatch(next);
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, gearId, driver, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleRemovePatch = useCallback(async () => {
-    if (!campaignId || !gearId) return;
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    try {
-      await removeEntryPatch(campaignId, 'gear', gearId);
-      setInitialPatch({});
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'REMOVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, gearId, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleDelete = useCallback(async () => {
-    if (!campaignId || !gearId) return;
-    await gearRepo.deleteEntry(campaignId, gearId);
-    navigate(`/campaigns/${campaignId}/world/equipment/gear`, {
-      replace: true,
+  const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
+    useSystemPatchActions({
+      campaignId: campaignId ?? undefined,
+      entryId: gearId,
+      collectionKey: 'gear',
+      driver,
+      setInitialPatch,
+      validationApiRef,
+      feedback: { setSaving, setSuccess, setErrors },
     });
-  }, [campaignId, gearId, navigate]);
+
+  const handleDelete = useEntryDeleteAction({
+    campaignId: campaignId ?? undefined,
+    entryId: gearId,
+    deleteEntry: (cid, eid) => gearRepo.deleteEntry(cid, eid).then(() => {}),
+    navigate,
+    backPath: `/campaigns/${campaignId}/world/equipment/gear`,
+  });
 
   const handleValidateDelete = useCallback(async () => {
     if (!campaignId || !gearId) return { allowed: true as const };

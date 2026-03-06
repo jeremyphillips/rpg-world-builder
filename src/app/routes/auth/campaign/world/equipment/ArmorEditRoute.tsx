@@ -18,12 +18,8 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { armorRepo } from '@/features/content/domain/repo';
 import { validateArmorChange } from '@/features/content/domain/validation';
-import type { Armor, ArmorInput } from '@/features/content/shared/domain/types';
+import type { Armor } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
-import {
-  upsertEntryPatch,
-  removeEntryPatch,
-} from '@/features/content/shared/domain/contentPatchRepo';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {
@@ -39,6 +35,9 @@ import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCa
 import { useSystemEntryPatchState } from '@/features/content/shared/hooks/useSystemEntryPatchState';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { usePatchDriverState } from '@/features/content/shared/hooks/usePatchDriverState';
+import { useCampaignEntrySubmit } from '@/features/content/shared/hooks/useCampaignEntrySubmit';
+import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
+import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
 
 const FORM_ID = 'armor-edit-form';
 
@@ -106,77 +105,34 @@ export default function ArmorEditRoute() {
 
   const validationApiRef = useRef<{ validateAll: () => boolean } | null>(null);
 
-  const handleCampaignSubmit = useCallback(
-    async (values: ArmorFormValues) => {
-      if (!campaignId || !armorId) return;
-      setSaving(true);
-      setSuccess(false);
-      setErrors([]);
-      const input: ArmorInput = toArmorInput(values);
-      try {
-        const updated = await armorRepo.updateEntry(campaignId, armorId, input);
-        reset(armorToFormValues(updated));
-        setSuccess(true);
-      } catch (err) {
-        setErrors([
-          { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-        ]);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [campaignId, armorId, reset, setSaving, setSuccess, setErrors]
-  );
+  const handleCampaignSubmit = useCampaignEntrySubmit({
+    campaignId: campaignId ?? undefined,
+    entryId: armorId,
+    updateEntry: armorRepo.updateEntry,
+    reset,
+    toFormValues: armorToFormValues,
+    toInput: toArmorInput,
+    feedback: { setSaving, setSuccess, setErrors },
+  });
 
-  const handlePatchSave = useCallback(async () => {
-    if (!campaignId || !armorId || !driver) return;
-    const ok = validationApiRef.current?.validateAll?.() ?? true;
-    if (!ok) {
-      setSuccess(false);
-      return;
-    }
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    const next = driver.getPatch();
-    try {
-      await upsertEntryPatch(campaignId, 'armor', armorId, next);
-      setInitialPatch(next);
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, armorId, driver, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleRemovePatch = useCallback(async () => {
-    if (!campaignId || !armorId) return;
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    try {
-      await removeEntryPatch(campaignId, 'armor', armorId);
-      setInitialPatch({});
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'REMOVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, armorId, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleDelete = useCallback(async () => {
-    if (!campaignId || !armorId) return;
-    await armorRepo.deleteEntry(campaignId, armorId);
-    navigate(`/campaigns/${campaignId}/world/equipment/armor`, {
-      replace: true,
+  const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
+    useSystemPatchActions({
+      campaignId: campaignId ?? undefined,
+      entryId: armorId,
+      collectionKey: 'armor',
+      driver,
+      setInitialPatch,
+      validationApiRef,
+      feedback: { setSaving, setSuccess, setErrors },
     });
-  }, [campaignId, armorId, navigate]);
+
+  const handleDelete = useEntryDeleteAction({
+    campaignId: campaignId ?? undefined,
+    entryId: armorId,
+    deleteEntry: (cid, eid) => armorRepo.deleteEntry(cid, eid).then(() => {}),
+    navigate,
+    backPath: `/campaigns/${campaignId}/world/equipment/armor`,
+  });
 
   const handleValidateDelete = useCallback(async () => {
     if (!campaignId || !armorId) return { allowed: true as const };

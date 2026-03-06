@@ -17,12 +17,8 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { validateClassChange } from '@/features/content/classes/domain/validation/validateClassChange';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { classRepo, type ClassContentItem, type ClassInput } from '@/features/content/classes/domain';
+import { classRepo, type ClassContentItem } from '@/features/content/classes/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
-import {
-  upsertEntryPatch,
-  removeEntryPatch,
-} from '@/features/content/shared/domain/contentPatchRepo';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {
@@ -38,6 +34,9 @@ import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCa
 import { useSystemEntryPatchState } from '@/features/content/shared/hooks/useSystemEntryPatchState';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { usePatchDriverState } from '@/features/content/shared/hooks/usePatchDriverState';
+import { useCampaignEntrySubmit } from '@/features/content/shared/hooks/useCampaignEntrySubmit';
+import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
+import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
 
 const FORM_ID = 'class-edit-form';
 
@@ -105,77 +104,34 @@ export default function ClassEditRoute() {
 
   const validationApiRef = useRef<{ validateAll: () => boolean } | null>(null);
 
-  const handleCampaignSubmit = useCallback(
-    async (values: ClassFormValues) => {
-      if (!campaignId || !classId) return;
-      setSaving(true);
-      setSuccess(false);
-      setErrors([]);
-      const input: ClassInput = toClassInput(values);
-      try {
-        const updated = await classRepo.updateEntry(campaignId, classId, input);
-        reset(classToFormValues(updated));
-        setSuccess(true);
-      } catch (err) {
-        setErrors([
-          { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-        ]);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [campaignId, classId, reset, setSaving, setSuccess, setErrors]
-  );
+  const handleCampaignSubmit = useCampaignEntrySubmit({
+    campaignId: campaignId ?? undefined,
+    entryId: classId,
+    updateEntry: classRepo.updateEntry,
+    reset,
+    toFormValues: classToFormValues,
+    toInput: toClassInput,
+    feedback: { setSaving, setSuccess, setErrors },
+  });
 
-  const handlePatchSave = useCallback(async () => {
-    if (!campaignId || !classId || !driver) return;
-    const ok = validationApiRef.current?.validateAll?.() ?? true;
-    if (!ok) {
-      setSuccess(false);
-      return;
-    }
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    const next = driver.getPatch();
-    try {
-      await upsertEntryPatch(campaignId, 'classes', classId, next);
-      setInitialPatch(next);
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, classId, driver, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleRemovePatch = useCallback(async () => {
-    if (!campaignId || !classId) return;
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    try {
-      await removeEntryPatch(campaignId, 'classes', classId);
-      setInitialPatch({});
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'REMOVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, classId, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleDelete = useCallback(async () => {
-    if (!campaignId || !classId) return;
-    await classRepo.deleteEntry(campaignId, classId);
-    navigate(`/campaigns/${campaignId}/world/classes`, {
-      replace: true,
+  const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
+    useSystemPatchActions({
+      campaignId: campaignId ?? undefined,
+      entryId: classId,
+      collectionKey: 'classes',
+      driver,
+      setInitialPatch,
+      validationApiRef,
+      feedback: { setSaving, setSuccess, setErrors },
     });
-  }, [campaignId, classId, navigate]);
+
+  const handleDelete = useEntryDeleteAction({
+    campaignId: campaignId ?? undefined,
+    entryId: classId,
+    deleteEntry: (cid, eid) => classRepo.deleteEntry(cid, eid).then(() => {}),
+    navigate,
+    backPath: `/campaigns/${campaignId}/world/classes`,
+  });
 
   const handleBack = useCallback(
     () => navigate(`/campaigns/${campaignId}/world/classes`),

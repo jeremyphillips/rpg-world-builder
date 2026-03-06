@@ -18,12 +18,8 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { skillProficiencyRepo } from '@/features/content/domain/repo';
 import { validateSkillProficiencyChange } from '@/features/content/domain/validation';
-import type { SkillProficiency, SkillProficiencyInput } from '@/features/content/shared/domain/types';
+import type { SkillProficiency } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
-import {
-  upsertEntryPatch,
-  removeEntryPatch,
-} from '@/features/content/shared/domain/contentPatchRepo';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {
@@ -39,6 +35,9 @@ import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCa
 import { useSystemEntryPatchState } from '@/features/content/shared/hooks/useSystemEntryPatchState';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { usePatchDriverState } from '@/features/content/shared/hooks/usePatchDriverState';
+import { useCampaignEntrySubmit } from '@/features/content/shared/hooks/useCampaignEntrySubmit';
+import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
+import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
 
 const FORM_ID = 'skill-proficiency-edit-form';
 
@@ -119,98 +118,35 @@ export default function SkillProficiencyEditRoute() {
 
   const validationApiRef = useRef<{ validateAll: () => boolean } | null>(null);
 
-  const handleCampaignSubmit = useCallback(
-    async (values: SkillProficiencyFormValues) => {
-      if (!campaignId || !skillProficiencyId) return;
-      setSaving(true);
-      setSuccess(false);
-      setErrors([]);
-      const input: SkillProficiencyInput = toSkillProficiencyInput(values);
-      try {
-        const updated = await skillProficiencyRepo.updateEntry(
-          campaignId,
-          skillProficiencyId,
-          input,
-        );
-        reset(skillProficiencyToFormValues(updated));
-        setSuccess(true);
-      } catch (err) {
-        setErrors([
-          { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-        ]);
-      } finally {
-        setSaving(false);
-      }
-    },
-    [campaignId, skillProficiencyId, reset, setSaving, setSuccess, setErrors]
-  );
+  const handleCampaignSubmit = useCampaignEntrySubmit({
+    campaignId: campaignId ?? undefined,
+    entryId: skillProficiencyId,
+    updateEntry: skillProficiencyRepo.updateEntry,
+    reset,
+    toFormValues: skillProficiencyToFormValues,
+    toInput: toSkillProficiencyInput,
+    feedback: { setSaving, setSuccess, setErrors },
+  });
 
-  const handlePatchSave = useCallback(async () => {
-    if (!campaignId || !skillProficiencyId || !driver) return;
-    const ok = validationApiRef.current?.validateAll?.() ?? true;
-    if (!ok) {
-      setSuccess(false);
-      return;
-    }
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    const next = driver.getPatch();
-    try {
-      await upsertEntryPatch(
-        campaignId,
-        'skillProficiencies',
-        skillProficiencyId,
-        next,
-      );
-      setInitialPatch(next);
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'SAVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [
-    campaignId,
-    skillProficiencyId,
-    driver,
-    setSaving,
-    setSuccess,
-    setErrors,
-    setInitialPatch,
-  ]);
-
-  const handleRemovePatch = useCallback(async () => {
-    if (!campaignId || !skillProficiencyId) return;
-    setSaving(true);
-    setSuccess(false);
-    setErrors([]);
-    try {
-      await removeEntryPatch(
-        campaignId,
-        'skillProficiencies',
-        skillProficiencyId,
-      );
-      setInitialPatch({});
-      setSuccess(true);
-    } catch (err) {
-      setErrors([
-        { path: '', code: 'REMOVE_FAILED', message: (err as Error).message },
-      ]);
-    } finally {
-      setSaving(false);
-    }
-  }, [campaignId, skillProficiencyId, setSaving, setSuccess, setErrors, setInitialPatch]);
-
-  const handleDelete = useCallback(async () => {
-    if (!campaignId || !skillProficiencyId) return;
-    await skillProficiencyRepo.deleteEntry(campaignId, skillProficiencyId);
-    navigate(`/campaigns/${campaignId}/world/skill-proficiencies`, {
-      replace: true,
+  const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
+    useSystemPatchActions({
+      campaignId: campaignId ?? undefined,
+      entryId: skillProficiencyId,
+      collectionKey: 'skillProficiencies',
+      driver,
+      setInitialPatch,
+      validationApiRef,
+      feedback: { setSaving, setSuccess, setErrors },
     });
-  }, [campaignId, skillProficiencyId, navigate]);
+
+  const handleDelete = useEntryDeleteAction({
+    campaignId: campaignId ?? undefined,
+    entryId: skillProficiencyId,
+    deleteEntry: (cid, eid) =>
+      skillProficiencyRepo.deleteEntry(cid, eid).then(() => {}),
+    navigate,
+    backPath: `/campaigns/${campaignId}/world/skill-proficiencies`,
+  });
 
   const handleValidateDelete = useCallback(async () => {
     if (!campaignId || !skillProficiencyId) return { allowed: true as const };
