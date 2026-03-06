@@ -18,7 +18,7 @@ export {
   validateMagicItemChange,
   type MagicItemValidationMode,
 } from './validateMagicItemChange';
-export { validateRaceChange, type RaceValidationMode } from './validateRaceChange';
+export { validateRaceChange, type RaceValidationMode } from '@/features/content/races/domain';
 export {
   validateSkillProficiencyChange,
   type SkillProficiencyValidationMode,

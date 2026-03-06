@@ -9,8 +9,8 @@ import {
   buildToFormValues,
   buildDefaultFormValues,
 } from '@/features/content/forms/registry';
-import { RACE_FORM_FIELDS } from './raceForm.registry';
-import type { RaceFormValues } from './raceForm.types';
+import { RACE_FORM_FIELDS } from '../registry/raceForm.registry';
+import type { RaceFormValues } from '../types/raceForm.types';
 
 const toInput = buildToInput(RACE_FORM_FIELDS);
 const toFormValuesFromItem = buildToFormValues(RACE_FORM_FIELDS);

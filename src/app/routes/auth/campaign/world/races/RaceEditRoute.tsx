@@ -17,9 +17,16 @@ import type { Visibility } from '@/shared/types/visibility';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { raceRepo } from '@/features/content/domain/repo';
-import { validateRaceChange } from '@/features/content/domain/validation';
 import type { Race, RaceInput } from '@/features/content/domain/types';
+import {
+  raceRepo,
+  validateRaceChange,
+  type RaceFormValues,
+  getRaceFieldConfigs,
+  RACE_FORM_DEFAULTS,
+  raceToFormValues,
+  toRaceInput,
+} from '@/features/content/races/domain';
 import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
 import {
   getContentPatch,
@@ -30,13 +37,6 @@ import {
 import { createPatchDriver } from '@/features/content/editor/patchDriver';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
-import {
-  type RaceFormValues,
-  getRaceFieldConfigs,
-  RACE_FORM_DEFAULTS,
-  raceToFormValues,
-  toRaceInput,
-} from '@/features/race/forms';
 
 type ValidationError = { path: string; code: string; message: string };
 

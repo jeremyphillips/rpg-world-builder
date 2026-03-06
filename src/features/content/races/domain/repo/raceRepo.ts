@@ -19,11 +19,11 @@
  */
 import { apiFetch, ApiError } from '@/app/api';
 import type { Visibility } from '@/shared/types/visibility';
-import type { CampaignContentRepo, ListOptions } from './contentRepo.types';
-import type { Race, RaceSummary, RaceInput } from '../types/race.types';
+import type { CampaignContentRepo, ListOptions } from '@/features/content/domain/repo/contentRepo.types';
+import type { Race, RaceSummary, RaceInput } from '@/features/content/domain/types/race.types';
 import { getSystemRaces, getSystemRace } from '@/features/mechanics/domain/core/rules/systemCatalog.races';
-import { getContentPatch } from '../contentPatchRepo';
-import { applyContentPatch } from '../patches/applyContentPatch';
+import { getContentPatch } from '@/features/content/domain/contentPatchRepo';
+import { applyContentPatch } from '@/features/content/domain/patches/applyContentPatch';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 
 // ---------------------------------------------------------------------------

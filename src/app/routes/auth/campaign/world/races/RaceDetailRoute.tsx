@@ -5,7 +5,6 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/components';
-import { raceRepo } from '@/features/content/domain/repo';
 import type { Race } from '@/features/content/domain/types';
 import { useCampaignContentEntry } from '@/features/content/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/hooks';
@@ -14,7 +13,7 @@ import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/utils/image';
 import { buildDetailItemsFromSpecs } from '@/features/content/forms/registry';
-import { RACE_DETAIL_SPECS } from '@/features/race/forms';
+import { raceRepo, RACE_DETAIL_SPECS } from '@/features/content/races/domain';
 
 export default function RaceDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();

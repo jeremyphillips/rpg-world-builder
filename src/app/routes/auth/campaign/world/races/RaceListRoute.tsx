@@ -17,9 +17,13 @@ import {
 } from '@/features/content/components';
 import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/hooks/useCampaignPartyCharacterNameMap';
-import { raceRepo } from '@/features/content/domain/repo';
-import { validateRaceChange } from '@/features/content/domain/validation';
-import type { RaceSummary } from '@/features/content/domain/types';
+import {
+  raceRepo,
+  validateRaceChange,
+  buildRaceCustomColumns,
+  buildRaceCustomFilters,
+  type RaceListRow,
+} from '@/features/content/races/domain';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/hooks';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
@@ -61,8 +65,11 @@ export default function RaceListRoute() {
     | null
   >(null);
 
-  const items = controller.items as RaceSummary[];
+  const items = controller.items as RaceListRow[];
   const hasCampaignSources = items.some((r) => (r as { source?: string }).source === 'campaign');
+
+  const customColumns = useMemo(() => buildRaceCustomColumns(), []);
+  const customFilters = useMemo(() => buildRaceCustomFilters(), []);
 
   const handleToggleAllowed = useCallback(
     async (id: string, allowed: boolean) => {
@@ -87,23 +94,25 @@ export default function RaceListRoute() {
 
   const columns = useMemo(
     () =>
-      buildCampaignContentColumns<RaceSummary>({
+      buildCampaignContentColumns<RaceListRow>({
         canManage,
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
+        customColumns,
         hasCampaignSources,
       }),
-    [canManage, characterNameById, handleToggleAllowed, hasCampaignSources],
+    [canManage, characterNameById, handleToggleAllowed, customColumns, hasCampaignSources],
   );
 
   const filters = useMemo(
     () =>
-      buildCampaignContentFilters<RaceSummary>({
+      buildCampaignContentFilters<RaceListRow>({
         canManage,
         onToggleAllowedInCampaign: handleToggleAllowed,
+        customFilters,
         hasCampaignSources,
       }),
-    [canManage, handleToggleAllowed, hasCampaignSources],
+    [canManage, handleToggleAllowed, customFilters, hasCampaignSources],
   );
 
   if (controller.loading) {
@@ -133,7 +142,7 @@ export default function RaceListRoute() {
           </AppAlert>
         )
       )}
-      <ContentTypeListPage<RaceSummary>
+      <ContentTypeListPage<RaceListRow>
       typeLabel="Race"
       typeLabelPlural="Races"
       headline="Races"
@@ -149,7 +158,7 @@ export default function RaceListRoute() {
           World
         </Button>,
       ]}
-      rows={controller.items as RaceSummary[]}
+      rows={items}
       columns={columns}
       filters={filters}
       getRowId={(r) => r.id}
@@ -157,7 +166,7 @@ export default function RaceListRoute() {
       getRowClassName={
         canManage
           ? (params: GridRowClassNameParams) =>
-              (params.row as RaceSummary).allowedInCampaign === false
+              (params.row as RaceListRow).allowedInCampaign === false
                 ? 'AppDataGrid-row--disabled'
                 : ''
           : undefined

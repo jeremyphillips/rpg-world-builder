@@ -5,8 +5,8 @@
 import type { FieldConfig } from '@/ui/patterns';
 import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import { buildFieldConfigs } from '@/features/content/forms/registry';
-import { RACE_FORM_FIELDS } from './raceForm.registry';
-import type { RaceFormValues } from './raceForm.types';
+import { RACE_FORM_FIELDS } from '../registry/raceForm.registry';
+import type { RaceFormValues } from '../types/raceForm.types';
 
 export type GetRaceFieldConfigsOptions = {
   policyCharacters?: { id: string; name: string }[];

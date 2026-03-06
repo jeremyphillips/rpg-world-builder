@@ -6,14 +6,14 @@ import type { Visibility } from '@/shared/types/visibility';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { raceRepo } from '@/features/content/domain/repo';
-import type { RaceInput } from '@/features/content/domain/types';
 import {
+  raceRepo,
   type RaceFormValues,
   getRaceFieldConfigs,
   RACE_FORM_DEFAULTS,
   toRaceInput,
-} from '@/features/race/forms';
+} from '@/features/content/races/domain';
+import type { RaceInput } from '@/features/content/domain/types';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 
 type ValidationError = { path: string; code: string; message: string };

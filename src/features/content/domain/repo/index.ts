@@ -3,7 +3,7 @@ export type {
   ListOptions,
   CampaignContentRepo,
 } from './contentRepo.types';
-export { raceRepo } from './raceRepo';
+export { raceRepo } from '@/features/content/races/domain';
 export { weaponRepo } from './weaponRepo';
 export { armorRepo } from './armorRepo';
 export { gearRepo } from './gearRepo';

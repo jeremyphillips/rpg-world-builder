@@ -5,7 +5,7 @@
  * system catalog in buildCampaignCatalog.
  */
 import type { CampaignCatalog } from './systemCatalog';
-import { listCampaignRaces } from '@/features/content/domain/repo/raceRepo';
+import { listCampaignRaces } from '@/features/content/races/domain';
 import { listCampaignClasses } from '@/features/content/classes/domain/repo/classRepo';
 import { listCampaignSpells } from '@/features/content/spells/domain/repo/spellRepo';
 import {
