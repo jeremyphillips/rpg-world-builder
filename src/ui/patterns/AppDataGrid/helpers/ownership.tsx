@@ -1,6 +1,7 @@
 import { Stack, Typography } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import type { AppDataGridColumn, AppDataGridFilter } from '../AppDataGrid';
+import { makeBooleanGlyphColumn } from '@/features/content/components/contentListColumnHelpers';
 import { AppBadge } from '@/ui/primitives';
 
 
@@ -57,6 +58,20 @@ export function makeOwnedColumn<T extends OwnableRow>({
   mode = 'icon',
   hideWhenFalse = true,
 }: OwnedConfig): AppDataGridColumn<T> {
+  if (mode === 'icon' && hideWhenFalse) {
+    const base = makeBooleanGlyphColumn<T>(
+      'owned',
+      columnHeader,
+      (row) => ownedIds.has(row.id),
+      { tone: 'success' },
+    );
+    return {
+      ...base,
+      type: 'boolean',
+      valueFormatter: (value) => (Boolean(value) ? 'owned' : 'not owned'),
+    };
+  }
+
   return {
     field: 'owned',
     headerName: columnHeader,
@@ -72,19 +87,16 @@ export function makeOwnedColumn<T extends OwnableRow>({
         return owned ? <AppBadge label="Owned" tone="success" variant="outlined" /> : <AppBadge label="Not owned" tone="default" variant="outlined" />;
       }
 
-      // icon mode
+      // icon mode with hideWhenFalse=false
       return owned ? (
         <Stack direction="row" spacing={1} alignItems="center">
           <CheckCircleIcon fontSize="small" />
-          {!hideWhenFalse && (
-            <Typography variant="body2">Yes</Typography>
-          )}
+          <Typography variant="body2">Yes</Typography>
         </Stack>
       ) : (
-        !hideWhenFalse ? <Typography variant="body2" color="text.secondary">No</Typography> : null
+        <Typography variant="body2" color="text.secondary">No</Typography>
       );
     },
-    // Optional: makes it searchable if you include 'owned' in searchColumns
     valueFormatter: (value) => (Boolean(value) ? 'owned' : 'not owned'),
   };
 }
