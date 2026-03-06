@@ -52,6 +52,15 @@ export type FieldSpec<
   visibleWhen?: Condition;
   /** For patch driver: dot-path into domain object (e.g. damage.default). When omitted, uses name. */
   path?: string;
+  /**
+   * For patch driver: custom binding when UI field shape differs from domain path.
+   * Adapts flattened/custom UI fields (e.g. damageDefaultCount/die) to domain-shaped values (e.g. damage.default).
+   */
+  patchBinding?: {
+    domainPath: string;
+    parse: (domainValue: unknown) => unknown;
+    serialize: (uiValue: unknown, currentDomainValue: unknown) => unknown;
+  };
   /** Validation for kind: 'numberText' (and future field kinds). */
   validation?: ValidationSpec;
   /** UI-only description shown below the field (separate from helperText/validation). */

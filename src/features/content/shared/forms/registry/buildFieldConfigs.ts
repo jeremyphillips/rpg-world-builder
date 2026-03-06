@@ -85,6 +85,7 @@ export const buildFieldConfigs = <
       ...(spec.defaultFromOptions && { defaultFromOptions: spec.defaultFromOptions }),
       ...(spec.visibleWhen && { visibleWhen: spec.visibleWhen }),
       ...(spec.path !== undefined && { path: spec.path }),
+      ...(spec.patchBinding !== undefined && { patchBinding: spec.patchBinding }),
       ...(spec.group && { group: spec.group }),
       ...(spec.width !== undefined && { width: spec.width }),
     };

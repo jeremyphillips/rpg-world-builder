@@ -7,6 +7,4 @@ export {
 export {
   weaponToFormValues,
   toWeaponInput,
-  weaponDomainPatchToForm,
-  weaponPatchToDomain,
 } from './mappers/weaponForm.mappers';

@@ -25,6 +25,16 @@ type BaseFieldConfig = {
   visibleWhen?: Condition;
   /** For patch driver: dot-path into domain object. When omitted, uses name. */
   path?: string;
+  /**
+   * For patch driver: custom binding when UI field shape differs from domain path.
+   * Adapts flattened/custom UI fields to domain-shaped patch values.
+   * When present, used instead of direct path lookup.
+   */
+  patchBinding?: {
+    domainPath: string;
+    parse: (domainValue: unknown) => unknown;
+    serialize: (uiValue: unknown, currentDomainValue: unknown) => unknown;
+  };
   /** RHF Controller rules (compiled from FieldSpec validation). */
   rules?: RegisterOptions;
   /** Optional grouping for row/column layout. Consecutive fields with same group.id render together. */

@@ -11,6 +11,14 @@ function getFieldPath(field: FieldConfig): string {
   return 'path' in field && field.path ? field.path : field.name;
 }
 
+/** Resolve value for validation. For patchBinding, use domain path + parse. */
+function getFieldValueForValidation(field: FieldConfig, driver: PatchDriver): unknown {
+  if (field.patchBinding) {
+    return field.patchBinding.parse(driver.getValue(field.patchBinding.domainPath));
+  }
+  return driver.getValue(getFieldPath(field));
+}
+
 export type PatchValidationApi = {
   validateAll: () => boolean;
   getErrors: () => PatchFieldErrors;
@@ -60,21 +68,21 @@ export function PatchValidationProvider({
 
   const validateOne = useCallback(
     (field: FieldConfig, getValue: (path: string) => unknown): boolean => {
-      const path = getFieldPath(field);
-      const value = getValue(path);
+      const value = field.patchBinding
+        ? field.patchBinding.parse(driver.getValue(field.patchBinding.domainPath))
+        : getValue(getFieldPath(field));
       const err = validatePatchField({ field, value });
       setError(field.name, err);
       return !err;
     },
-    [setError],
+    [driver, setError],
   );
 
   const validateAll = useCallback((): boolean => {
     let valid = true;
     const next: PatchFieldErrors = {};
     for (const field of visibleFields) {
-      const path = getFieldPath(field);
-      const value = driver.getValue(path);
+      const value = getFieldValueForValidation(field, driver);
       const err = validatePatchField({ field, value });
       if (err) {
         next[field.name] = err;

@@ -1,9 +1,20 @@
 /**
  * Weapon form field registry — single source of truth for config + mapping.
+ *
+ * Patch bindings adapt flattened UI fields (damageDefaultCount/die, rangeNormal/Long)
+ * to domain-shaped patch paths (damage.default, damage.versatile, range.normal, range.long).
+ * Domain patch shape is canonical; bindings handle UI/domain adaptation.
  */
 import type { Weapon, WeaponInput } from '@/features/content/shared/domain/types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
-import { DIE_FACE_OPTIONS } from '@/features/mechanics/domain/dice';
+import {
+  DIE_FACE_OPTIONS,
+  parseXdY,
+  buildXdY,
+  toCount,
+  toCountOrZero,
+  toDieFace,
+} from '@/features/mechanics/domain/dice';
 import {
   WEAPON_CATEGORY_OPTIONS,
   WEAPON_MODE_OPTIONS,
@@ -67,6 +78,15 @@ export const WEAPON_FORM_FIELDS = [
     group: { id: 'damageDiceDefault', label: 'Damage (Default)' },
     width: 2,
     required: true,
+    patchBinding: {
+      domainPath: 'damage.default',
+      parse: (v) => String(parseXdY(v as string).count),
+      serialize: (uiVal, current) =>
+        buildXdY({
+          count: toCount(uiVal, 1),
+          die: toDieFace(parseXdY(current as string).die, 6),
+        }),
+    },
   },
   {
     name: 'damageDefaultDie',
@@ -77,6 +97,15 @@ export const WEAPON_FORM_FIELDS = [
     group: { id: 'damageDiceDefault', label: 'Damage (Default)' },
     width: 3,
     required: true,
+    patchBinding: {
+      domainPath: 'damage.default',
+      parse: (v) => String(parseXdY(v as string).die),
+      serialize: (uiVal, current) =>
+        buildXdY({
+          count: parseXdY(current as string).count,
+          die: toDieFace(uiVal, 6),
+        }),
+    },
   },
   {
     name: 'damageType',
@@ -99,6 +128,17 @@ export const WEAPON_FORM_FIELDS = [
     visibleWhen: isVersatile,
     group: { id: 'damageDiceVersatile', label: 'Damage (Versatile)', helperText: 'Optional. Only used for versatile weapons.' },
     width: 2,
+    patchBinding: {
+      domainPath: 'damage.versatile',
+      parse: (v) =>
+        String(parseXdY(v as string, { defaultCount: 0, defaultDie: 8 }).count),
+      serialize: (uiVal, current) => {
+        const vCount = toCountOrZero(uiVal, 0);
+        if (vCount === 0) return undefined;
+        const parsed = parseXdY(current as string, { defaultCount: 0, defaultDie: 8 });
+        return buildXdY({ count: vCount, die: parsed.die });
+      },
+    },
   },
   {
     name: 'damageVersatileDie',
@@ -109,6 +149,17 @@ export const WEAPON_FORM_FIELDS = [
     visibleWhen: isVersatile,
     group: { id: 'damageDiceVersatile', label: 'Damage (Versatile)' },
     width: 3,
+    patchBinding: {
+      domainPath: 'damage.versatile',
+      parse: (v) =>
+        String(parseXdY(v as string, { defaultCount: 0, defaultDie: 8 }).die),
+      serialize: (uiVal, current) => {
+        const parsed = parseXdY(current as string, { defaultCount: 0, defaultDie: 8 });
+        const vCount = toCountOrZero(parsed.count, 0);
+        if (vCount === 0) return undefined;
+        return buildXdY({ count: vCount, die: toDieFace(uiVal, 8) });
+      },
+    },
   },
   {
     name: 'rangeNormal',
@@ -120,6 +171,16 @@ export const WEAPON_FORM_FIELDS = [
     visibleWhen: isRanged,
     group: { id: 'range', label: 'Range (ft)', helperText: 'Only used for ranged weapons.' },
     width: 6,
+    patchBinding: {
+      domainPath: 'range.normal',
+      parse: (v) => (v != null ? String(v) : ''),
+      serialize: (s) => {
+        if (s == null || (typeof s === 'string' && s.trim() === ''))
+          return undefined;
+        const n = Number(s);
+        return !Number.isNaN(n) ? n : undefined;
+      },
+    },
   },
   {
     name: 'rangeLong',
@@ -131,6 +192,16 @@ export const WEAPON_FORM_FIELDS = [
     visibleWhen: isRanged,
     group: { id: 'range', label: 'Range (ft)', helperText: 'Only used for ranged weapons.'},
     width: 6,
+    patchBinding: {
+      domainPath: 'range.long',
+      parse: (v) => (v != null ? String(v) : ''),
+      serialize: (s) => {
+        if (s == null || (typeof s === 'string' && s.trim() === ''))
+          return undefined;
+        const n = Number(s);
+        return !Number.isNaN(n) ? n : undefined;
+      },
+    },
   },
 ] as const satisfies readonly FieldSpec<
   WeaponFormValues,

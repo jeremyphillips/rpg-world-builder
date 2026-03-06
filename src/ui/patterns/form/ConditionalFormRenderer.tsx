@@ -25,6 +25,12 @@ function getFieldPath(field: FieldConfig): string {
   return 'path' in field && field.path ? field.path : field.name;
 }
 
+/** Path to unset when field becomes hidden. For patchBinding, use domainPath. */
+function getFieldPathForUnset(field: FieldConfig): string {
+  if (field.patchBinding) return field.patchBinding.domainPath;
+  return getFieldPath(field);
+}
+
 type ConditionalFormRendererProps = {
   fields: FieldConfig[];
   spacing?: number;
@@ -63,7 +69,7 @@ function ConditionalFormRendererPatch({
       const isVisible = nowVisible.has(field.name);
 
       if (wasVisible && !isVisible && driver.unsetValue) {
-        driver.unsetValue(getFieldPath(field));
+        driver.unsetValue(getFieldPathForUnset(field));
       }
       prevVisibleRef.current[field.name] = isVisible;
     }

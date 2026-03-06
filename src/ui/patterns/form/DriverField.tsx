@@ -40,24 +40,68 @@ type DriverFieldProps = {
 const getPath = (field: FieldConfig): string =>
   'path' in field ? (field.path ?? field.name) : field.name;
 
+/** When patchBinding exists, use it for get/set; otherwise use direct path lookup. */
+function usePatchValue(
+  field: FieldConfig,
+  driver: PatchDriver
+): { value: unknown; onChange: (v: unknown) => void } {
+  const path = getPath(field);
+  const binding = field.patchBinding;
+
+  if (binding) {
+    const value = binding.parse(driver.getValue(binding.domainPath));
+    const onChange = (v: unknown) => {
+      const current = driver.getValue(binding.domainPath);
+      const next = binding.serialize(v, current);
+      if (next === undefined && driver.unsetValue) {
+        driver.unsetValue(binding.domainPath);
+      } else {
+        driver.setValue(binding.domainPath, next);
+      }
+    };
+    return { value, onChange };
+  }
+
+  const value = driver.getValue(path);
+  const onChange = (v: unknown) => {
+    if (v === undefined && driver.unsetValue) {
+      driver.unsetValue(path);
+    } else {
+      driver.setValue(path, v);
+    }
+  };
+  return { value, onChange };
+}
+
 export default function DriverField({ field, driver }: DriverFieldProps) {
   const path = getPath(field);
   const patchValidation = usePatchValidation();
   const errorMessage = patchValidation?.getError(field.name);
+  const { value: boundValue, onChange: boundOnChange } = usePatchValue(field, driver);
 
   const handleChange = useCallback(
     (value: unknown) => {
-      driver.setValue(path, value);
+      if (field.patchBinding) {
+        boundOnChange(value);
+      } else {
+        driver.setValue(path, value);
+      }
       patchValidation?.clearError(field.name);
     },
-    [driver, path, field.name, patchValidation],
+    [field.patchBinding, boundOnChange, driver, path, patchValidation],
+  );
+
+  const getValueForField = useCallback(
+    (p: string) => (field.patchBinding ? boundValue : driver.getValue(p)),
+    [field.patchBinding, boundValue, driver],
   );
 
   const handleBlur = useCallback(() => {
     if (!patchValidation) return;
-    patchValidation.validateOne(field, (p) => driver.getValue(p));
-  }, [patchValidation, field, driver]);
+    patchValidation.validateOne(field, (p) => getValueForField(p));
+  }, [patchValidation, field, getValueForField]);
 
+  const displayValue = field.patchBinding ? boundValue : driver.getValue(path);
   const helperText = errorMessage ?? field.helperText;
   const hasError = Boolean(errorMessage);
 
@@ -74,7 +118,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
           <TextField
           label={field.label}
           fullWidth
-          value={String(driver.getValue(path) ?? '')}
+          value={String(displayValue ?? '')}
           onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
           required={field.required}
@@ -98,7 +142,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
             fullWidth
             multiline
             rows={field.rows ?? 4}
-            value={String(driver.getValue(path) ?? '')}
+            value={String(displayValue ?? '')}
             onChange={(e) => handleChange(e.target.value)}
             onBlur={handleBlur}
             required={field.required}
@@ -118,7 +162,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
             <InputLabel>{field.label}</InputLabel>
             <Select
               label={field.label}
-              value={String(driver.getValue(path) ?? '')}
+              value={String(displayValue ?? '')}
               onChange={(e) => handleChange(e.target.value)}
               onBlur={handleBlur}
               displayEmpty
@@ -149,7 +193,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
             <FormLabel required={field.required}>{field.label}</FormLabel>
             <RadioGroup
               row={field.row}
-              value={String(driver.getValue(path) ?? '')}
+              value={String(displayValue ?? '')}
               onChange={(e) => handleChange(e.target.value)}
               onBlur={handleBlur}
             >
@@ -177,7 +221,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={Boolean(driver.getValue(path))}
+                  checked={Boolean(displayValue)}
                   onChange={(e) => handleChange(e.target.checked)}
                 />
               }
@@ -198,8 +242,8 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
             <FormLabel required={field.required}>{field.label}</FormLabel>
             <FormGroup row={field.row}>
               {(field.options ?? []).map((opt) => {
-                const selected: string[] = Array.isArray(driver.getValue(path))
-                  ? (driver.getValue(path) as string[])
+                const selected: string[] = Array.isArray(displayValue)
+                  ? (displayValue as string[])
                   : [];
                 const handleToggle = () => {
                   const next = selected.includes(opt.value)
@@ -233,7 +277,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
       return (
         <Box>
           <ImageUploadField
-            value={driver.getValue(path) as string | null | undefined}
+            value={displayValue as string | null | undefined}
             onChange={(v) => handleChange(v)}
             label={field.label}
             disabled={field.disabled}
@@ -253,7 +297,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
             type="datetime-local"
             value={
               (() => {
-                const v = driver.getValue(path);
+                const v = displayValue;
                 if (!v) return '';
                 const d = new Date(v as string);
                 return isNaN(d.getTime())
@@ -280,7 +324,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
         <Box>
           <VisibilityField
             value={
-              (driver.getValue(path) as { scope: string; allowCharacterIds?: string[] }) ?? {
+              (displayValue as { scope: string; allowCharacterIds?: string[] }) ?? {
                 scope: 'public',
                 allowCharacterIds: [],
               }
@@ -309,7 +353,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
       );
 
     case 'hidden': {
-      const value = driver.getValue(path);
+      const value = displayValue;
       if (value == null) return null;
       return (
         <input type="hidden" name={path} value={String(value)} />
