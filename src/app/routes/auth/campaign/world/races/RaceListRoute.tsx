@@ -57,6 +57,9 @@ export default function RaceListRoute() {
 
   const [validationError, setValidationError] = useState<string | null>(null);
 
+  const items = controller.items as RaceSummary[];
+  const hasCampaignSources = items.some((r) => (r as { source?: string }).source === 'campaign');
+
   const handleToggleAllowed = useCallback(
     async (id: string, allowed: boolean) => {
       setValidationError(null);
@@ -81,8 +84,9 @@ export default function RaceListRoute() {
         canManage,
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
+        hasCampaignSources,
       }),
-    [canManage, characterNameById, handleToggleAllowed],
+    [canManage, characterNameById, handleToggleAllowed, hasCampaignSources],
   );
 
   const filters = useMemo(
@@ -90,8 +94,9 @@ export default function RaceListRoute() {
       buildCampaignContentFilters<RaceSummary>({
         canManage,
         onToggleAllowedInCampaign: handleToggleAllowed,
+        hasCampaignSources,
       }),
-    [canManage, handleToggleAllowed],
+    [canManage, handleToggleAllowed, hasCampaignSources],
   );
 
   if (controller.loading) {

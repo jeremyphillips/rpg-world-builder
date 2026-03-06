@@ -97,6 +97,7 @@ export default function SkillProficiencyListRoute() {
   );
 
   const items = controller.items as SkillProficiencyListRow[];
+  const hasCampaignSources = items.some((r) => (r as { source?: string }).source === 'campaign');
 
   const abilityOptions = useMemo(() => {
     const abilities = [...new Set(items.map((i) => i.ability).filter(Boolean))].sort();
@@ -193,8 +194,9 @@ export default function SkillProficiencyListRoute() {
         onToggleAllowedInCampaign: handleToggleAllowed,
         customColumns,
         ownedIds,
+        hasCampaignSources,
       }),
-    [canManage, characterNameById, handleToggleAllowed, customColumns, ownedIds],
+    [canManage, characterNameById, handleToggleAllowed, customColumns, ownedIds, hasCampaignSources],
   );
 
   const filters = useMemo(
@@ -204,8 +206,9 @@ export default function SkillProficiencyListRoute() {
         onToggleAllowedInCampaign: handleToggleAllowed,
         customFilters,
         ownedIds,
+        hasCampaignSources,
       }),
-    [canManage, handleToggleAllowed, customFilters, ownedIds],
+    [canManage, handleToggleAllowed, customFilters, ownedIds, hasCampaignSources],
   );
 
   if (controller.loading) {

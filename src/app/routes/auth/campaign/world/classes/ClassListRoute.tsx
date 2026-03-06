@@ -84,6 +84,7 @@ export default function ClassListRoute() {
   );
 
   const items = controller.items as ClassSummary[];
+  const hasCampaignSources = items.some((r) => (r as { source?: string }).source === 'campaign');
 
   const hitDieOptions = useMemo(() => {
     const dice = [...new Set(items.map((i) => i.progression?.hitDie).filter(Boolean))].sort(
@@ -196,8 +197,9 @@ export default function ClassListRoute() {
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
         customColumns,
+        hasCampaignSources,
       }),
-    [canManage, characterNameById, handleToggleAllowed, customColumns],
+    [canManage, characterNameById, handleToggleAllowed, customColumns, hasCampaignSources],
   );
 
   const filters = useMemo(
@@ -206,8 +208,9 @@ export default function ClassListRoute() {
         canManage,
         onToggleAllowedInCampaign: handleToggleAllowed,
         customFilters,
+        hasCampaignSources,
       }),
-    [canManage, handleToggleAllowed, customFilters],
+    [canManage, handleToggleAllowed, customFilters, hasCampaignSources],
   );
 
   if (controller.loading) {

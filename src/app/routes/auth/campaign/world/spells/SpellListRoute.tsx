@@ -1,68 +1,104 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useCallback, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useViewerSpells } from '@/features/campaign/hooks';
+import {
+  ContentTypeListPage,
+  buildCampaignContentColumns,
+  buildCampaignContentFilters,
+  makeBooleanGlyphColumn,
+} from '@/features/content/components';
+import { useCampaignContentListController } from '@/features/content/hooks/useCampaignContentListController';
+import { useCampaignPartyCharacterNameMap } from '@/features/content/hooks/useCampaignPartyCharacterNameMap';
 import { spellRepo } from '@/features/content/domain/repo';
+import { validateSpellChange } from '@/features/content/domain/validateSpellChange';
+import type { ContentSummary } from '@/features/content/domain/types';
+import { filterAllowedIds } from '@/features/content/domain/utils';
+import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab/magicSchools.vocab';
+import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 import type { SpellSummary } from '@/features/content/domain/repo';
-import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/domain/vocab';
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
-import { classIdToName } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
-import { AppDataGrid } from '@/ui/patterns';
 import type { AppDataGridColumn, AppDataGridFilter } from '@/ui/patterns';
-import { makeOwnedColumn, makeOwnedFilter } from '@/ui/patterns';
-import { AppPageHeader } from '@/ui/patterns';
+import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/hooks';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 
 const schoolLabel = (value: string) =>
   MAGIC_SCHOOL_OPTIONS.find((o) => o.value === value)?.label ?? value;
 
-const classLabel = (id: string) => classIdToName(DEFAULT_SYSTEM_RULESET_ID, id);
+/** Spell list row includes allowedInCampaign from controller. */
+type SpellListRow = SpellSummary & { allowedInCampaign?: boolean };
+
+const EMPTY_PLACEHOLDER = '—';
 
 export default function SpellListRoute() {
   const { campaign, campaignId } = useActiveCampaign();
-  const navigate = useNavigate();
+  const { catalog } = useCampaignRules();
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/spells`;
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
+  const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
 
   const ownedIds = useViewerSpells();
   const hasViewer = ownedIds.size > 0;
 
-  const [items, setItems] = useState<SpellSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const listSummaries = useCallback(
+    (cid: string, sid: string) =>
+      spellRepo.listSummaries(cid, sid as SystemRulesetId) as Promise<ContentSummary[]>,
+    [],
+  );
 
-  useEffect(() => {
-    if (!campaignId) return;
-    let cancelled = false;
-    setLoading(true);
+  const controller = useCampaignContentListController({
+    campaignId,
+    viewer: campaign?.viewer,
+    viewerCharacterIds,
+    canManage,
+    listSummaries,
+    contentKey: 'spells',
+    basePath,
+  });
 
-    spellRepo
-      .listSummaries(campaignId, DEFAULT_SYSTEM_RULESET_ID)
-      .then((data) => {
-        if (!cancelled) setItems(data);
-      })
-      .catch((err) => {
-        if (!cancelled) setError((err as Error).message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+  const { characterNameById } = useCampaignPartyCharacterNameMap(
+    campaignId,
+    canManage,
+  );
+
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const handleToggleAllowed = useCallback(
+    async (id: string, allowed: boolean) => {
+      setValidationError(null);
+      if (allowed) {
+        controller.onToggleAllowed(id, true);
+        return;
+      }
+      if (!campaignId) return;
+      const result = await validateSpellChange({
+        campaignId,
+        spellId: id,
+        mode: 'disallow',
       });
+      if (!result.allowed) {
+        setValidationError(result.message ?? 'Cannot disable this spell.');
+        return;
+      }
+      controller.onToggleAllowed(id, false);
+    },
+    [campaignId, controller.onToggleAllowed],
+  );
 
-    return () => {
-      cancelled = true;
-    };
-  }, [campaignId]);
+  const items = controller.items as SpellListRow[];
+  const hasCampaignSources = items.some((r) => (r as { source?: string }).source === 'campaign');
 
   const schoolOptions = useMemo(() => {
     const schools = [...new Set(items.map((i) => i.school))].sort();
@@ -84,16 +120,17 @@ export default function SpellListRoute() {
   }, [items]);
 
   const classOptions = useMemo(() => {
-    const classIds = [...new Set(items.flatMap((i) => i.classes))].sort();
-    return classIds.map((id) => ({
-      label: classLabel(id),
+    const classIds = [...new Set(items.flatMap((i) => i.classes ?? []))].sort();
+    const classesById = catalog.classesById ?? {};
+    const allowedClassIds = filterAllowedIds(classIds, classesById) ?? classIds;
+    return allowedClassIds.map((id) => ({
+      label: classesById[id]?.name ?? id,
       value: id,
     }));
-  }, [items]);
+  }, [items, catalog.classesById]);
 
-  const columns: AppDataGridColumn<SpellSummary>[] = useMemo(() => {
-    const base: AppDataGridColumn<SpellSummary>[] = [
-      { field: 'name', headerName: 'Name', flex: 1, minWidth: 160, linkColumn: true },
+  const customColumns: AppDataGridColumn<SpellListRow>[] = useMemo(
+    () => [
       {
         field: 'school',
         headerName: 'School',
@@ -112,73 +149,84 @@ export default function SpellListRoute() {
         field: 'classes',
         headerName: 'Classes',
         flex: 1,
-        minWidth: 250,
-        renderCell: (params) => {
-          const arr = params.value as string[] | undefined;
-          if (!arr?.length) return '—';
-          return (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {arr.map((id) => (
-                <AppBadge
-                  key={id}
-                  label={classLabel(id)}
-                  tone="default"
-                  variant="outlined"
-                  size="small"
-                />
-              ))}
-            </Box>
-          );
+        minWidth: 180,
+        accessor: (row) => {
+          const classesById = catalog.classesById ?? {};
+          const allowed = filterAllowedIds(row.classes, classesById);
+          if (!allowed?.length) return EMPTY_PLACEHOLDER;
+          return allowed
+            .map((id) => classesById[id]?.name ?? id)
+            .join(', ');
         },
-        valueFormatter: (v) =>
-          Array.isArray(v) && v.length > 0 ? (v as string[]).map((c) => classLabel(c)).join(', ') : '—',
+        valueFormatter: (v) => (v != null && v !== '' ? String(v) : EMPTY_PLACEHOLDER),
       },
-      {
-        field: 'ritual',
-        headerName: 'Ritual',
-        width: 80,
-        valueFormatter: (v) => (v ? 'Yes' : 'No'),
-      },
-      {
-        field: 'concentration',
-        headerName: 'Concentration',
-        width: 110,
-        valueFormatter: (v) => (v ? 'Yes' : 'No'),
-      },
-    ];
-    if (hasViewer) base.push(makeOwnedColumn<SpellSummary>({ ownedIds }));
-    return base;
-  }, [ownedIds, hasViewer]);
+      makeBooleanGlyphColumn<SpellListRow>(
+        'ritual',
+        'Ritual',
+        (row) => Boolean(row.ritual),
+      ),
+      makeBooleanGlyphColumn<SpellListRow>(
+        'concentration',
+        'Concentration',
+        (row) => Boolean(row.concentration),
+      ),
+    ],
+    [catalog.classesById],
+  );
 
-  const filters: AppDataGridFilter<SpellSummary>[] = useMemo(() => {
-    const base: AppDataGridFilter<SpellSummary>[] = [
+  const customFilters: AppDataGridFilter<SpellListRow>[] = useMemo(
+    () => [
       {
         id: 'school',
         label: 'School',
         type: 'select' as const,
         options: schoolOptions,
-        accessor: (r: SpellSummary) => r.school,
+        accessor: (r) => r.school,
       },
       {
         id: 'level',
         label: 'Level',
         type: 'select' as const,
         options: levelOptions,
-        accessor: (r: SpellSummary) => String(r.level),
+        accessor: (r) => String(r.level),
       },
       {
         id: 'classes',
         label: 'Class',
         type: 'multiSelect' as const,
         options: classOptions,
-        accessor: (r: SpellSummary) => r.classes ?? [],
+        accessor: (r) => r.classes ?? [],
       },
-    ];
-    if (hasViewer) base.push(makeOwnedFilter<SpellSummary>({ ownedIds }));
-    return base;
-  }, [schoolOptions, levelOptions, classOptions, ownedIds, hasViewer]);
+    ],
+    [schoolOptions, levelOptions, classOptions],
+  );
 
-  if (loading) {
+  const columns = useMemo(
+    () =>
+      buildCampaignContentColumns<SpellListRow>({
+        canManage,
+        characterNameById: canManage ? characterNameById : undefined,
+        onToggleAllowedInCampaign: handleToggleAllowed,
+        ownedIds: hasViewer ? ownedIds : undefined,
+        customColumns,
+        hasCampaignSources,
+      }),
+    [canManage, characterNameById, handleToggleAllowed, hasViewer, ownedIds, customColumns, hasCampaignSources],
+  );
+
+  const filters = useMemo(
+    () =>
+      buildCampaignContentFilters<SpellListRow>({
+        canManage,
+        onToggleAllowedInCampaign: handleToggleAllowed,
+        ownedIds: hasViewer ? ownedIds : undefined,
+        customFilters,
+        hasCampaignSources,
+      }),
+    [canManage, handleToggleAllowed, hasViewer, ownedIds, customFilters, hasCampaignSources],
+  );
+
+  if (controller.loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress />
@@ -186,13 +234,16 @@ export default function SpellListRoute() {
     );
   }
 
-  if (error) {
-    return <AppAlert tone="danger">{error}</AppAlert>;
-  }
-
   return (
-    <Box>
-      <AppPageHeader
+    <Stack spacing={2}>
+      {validationError && (
+        <AppAlert tone="warning" onClose={() => setValidationError(null)}>
+          {validationError}
+        </AppAlert>
+      )}
+      <ContentTypeListPage<SpellListRow>
+        typeLabel="Spell"
+        typeLabelPlural="Spells"
         headline="Spells"
         breadcrumbData={breadcrumbs}
         actions={[
@@ -206,32 +257,38 @@ export default function SpellListRoute() {
             World
           </Button>,
         ]}
-      />
-      <AppDataGrid
         rows={items}
         columns={columns}
-        getRowId={(r) => r.id}
-        getDetailLink={(r) => `${basePath}/${r.id}`}
         filters={filters}
-        searchable
-        searchPlaceholder="Search spells…"
-        searchColumns={['name']}
-        emptyMessage="No spells found."
-        density="compact"
-        height={560}
+        getRowId={(r) => r.id}
+        getDetailLink={controller.getDetailLink}
+        getRowClassName={
+          canManage
+            ? (params: GridRowClassNameParams) =>
+                (params.row as SpellListRow).allowedInCampaign === false
+                  ? 'AppDataGrid-row--disabled'
+                  : ''
+            : undefined
+        }
+        loading={controller.loading}
+        error={controller.error}
         toolbar={
-          canManage && (
+          canManage ? (
             <Button
               variant="contained"
               size="small"
               startIcon={<AddIcon />}
-              onClick={() => navigate(`${basePath}/new`)}
+              onClick={controller.onAdd}
             >
               Add Spell
             </Button>
-          )
+          ) : undefined
         }
+        searchPlaceholder="Search spells…"
+        emptyMessage="No spells found."
+        density="compact"
+        height={560}
       />
-    </Box>
+    </Stack>
   );
 }

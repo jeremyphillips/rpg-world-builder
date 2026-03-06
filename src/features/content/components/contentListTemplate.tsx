@@ -201,12 +201,15 @@ export function makePostColumns<T extends CampaignContentListRow>(params: {
   onToggleAllowedInCampaign?: (id: string, checked: boolean) => void;
   /** Backend may return 'allowed'; use this to map. Default: 'allowedInCampaign' */
   allowedField?: keyof T;
+  /** When false, hide Source column (no campaign items). Default: true. */
+  hasCampaignSources?: boolean;
 }): AppDataGridColumn<T>[] {
   const {
     ownedIds,
     canManage = false,
     onToggleAllowedInCampaign,
     allowedField = 'allowedInCampaign' as keyof T,
+    hasCampaignSources = true,
   } = params;
 
   const cols: AppDataGridColumn<T>[] = [];
@@ -215,7 +218,7 @@ export function makePostColumns<T extends CampaignContentListRow>(params: {
     cols.push(makeOwnedColumn<T>({ ownedIds }));
   }
 
-  if (canManage) {
+  if (canManage && hasCampaignSources) {
     cols.push({
       field: 'source',
       headerName: 'Source',
@@ -255,6 +258,8 @@ export function buildCampaignContentColumns<T extends CampaignContentListRow>(pa
   characterNameById?: Record<string, string>;
   onToggleAllowedInCampaign?: (id: string, checked: boolean) => void;
   allowedField?: keyof T;
+  /** When false, hide Source column (no campaign items). Default: true. */
+  hasCampaignSources?: boolean;
 }): AppDataGridColumn<T>[] {
   const { customColumns = [] } = params;
   const pre = makePreColumns<T>({
@@ -276,6 +281,8 @@ export function makePostFilters<T extends CampaignContentListRow>(params: {
   onToggleAllowedInCampaign?: (id: string, checked: boolean) => void;
   /** Backend may return 'allowed'; use this to map. Default: 'allowedInCampaign' */
   allowedField?: keyof T;
+  /** When false, hide Source filter (no campaign items). Default: true. */
+  hasCampaignSources?: boolean;
   /**
    * When true and canManage is false, add "Private to me" boolean filter.
    * Requires viewerContext. Opt-in per route (e.g. NPC lists).
@@ -288,6 +295,7 @@ export function makePostFilters<T extends CampaignContentListRow>(params: {
     ownedIds,
     canManage = false,
     allowedField = 'allowedInCampaign' as keyof T,
+    hasCampaignSources = true,
     enablePrivateToMeFilter = false,
     viewerContext,
   } = params;
@@ -315,14 +323,16 @@ export function makePostFilters<T extends CampaignContentListRow>(params: {
   }
 
   if (canManage) {
-    filters.push({
-      id: 'source',
-      label: 'Source',
-      type: 'select',
-      options: [...SOURCE_FILTER_OPTIONS],
-      accessor: (row) => (row as CampaignContentListRow).source ?? 'system',
-      defaultValue: 'all',
-    });
+    if (hasCampaignSources) {
+      filters.push({
+        id: 'source',
+        label: 'Source',
+        type: 'select',
+        options: [...SOURCE_FILTER_OPTIONS],
+        accessor: (row) => (row as CampaignContentListRow).source ?? 'system',
+        defaultValue: 'all',
+      });
+    }
     filters.push({
       id: 'visibility',
       label: 'Visibility',
@@ -354,6 +364,8 @@ export function buildCampaignContentFilters<T extends CampaignContentListRow>(pa
   /** When provided with canManage, include allowedInCampaign column. Filter shows when canManage. */
   onToggleAllowedInCampaign?: (id: string, checked: boolean) => void;
   allowedField?: keyof T;
+  /** When false, hide Source column/filter (no campaign items). Default: true. */
+  hasCampaignSources?: boolean;
   /**
    * When true and canManage is false, add "Private to me" boolean filter.
    * Requires viewerContext. Opt-in per route (e.g. NPC lists).

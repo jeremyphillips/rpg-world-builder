@@ -11,6 +11,7 @@ export {
   makePostFilters,
   type CampaignContentListRow,
 } from './contentListTemplate';
+export { makeBooleanGlyphColumn } from './contentListColumnHelpers';
 export {
   default as EntryEditorLayout,
   type DeleteValidationResult,
