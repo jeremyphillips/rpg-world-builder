@@ -9,19 +9,23 @@ import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 export type CampaignRulesContext = {
   ruleset: RulesetLike;
   catalog: CampaignCatalogAdmin;
+  /** True when viewer can manage campaign content (DM/owner). Used to gate useCampaignCatalogAdmin. */
+  canManage: boolean;
 };
 
 export function resolveCampaignRulesContext({
   ruleset,
   fallbackSystemId = DEFAULT_SYSTEM_RULESET_ID,
+  canManage = false,
 }: {
   campaign?: Campaign | null;
   ruleset?: Ruleset | null;
   fallbackSystemId?: SystemRulesetId;
+  canManage?: boolean;
 }): CampaignRulesContext {
   const resolvedRuleset: RulesetLike = ruleset ?? getSystemRuleset(fallbackSystemId);
 
   const catalog = buildCampaignCatalog(systemCatalog, {}, resolvedRuleset);
 
-  return { ruleset: resolvedRuleset, catalog };
+  return { ruleset: resolvedRuleset, catalog, canManage };
 }

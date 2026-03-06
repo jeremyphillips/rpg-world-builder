@@ -17,27 +17,18 @@ import {
   type CampaignRulesContext,
 } from '@/features/mechanics/domain/core/rules/resolveCampaignRulesContext';
 import { getResolvedCampaignRuleset } from '@/features/mechanics/domain/core/rules/campaignRulesetRepo';
-import { systemCatalog, type CampaignCatalog } from '@/features/mechanics/domain/core/rules/systemCatalog';
-import { buildCampaignCatalog } from '@/features/mechanics/domain/core/rules/buildCampaignCatalog';
-import { listCampaignRaces } from '@/features/content/domain/campaignRaceRepo';
-import type { Race } from '@/features/content/domain/types';
+import {
+  systemCatalog,
+  type CampaignCatalog,
+} from '@/features/mechanics/domain/core/rules/systemCatalog';
+import {
+  buildCampaignCatalog,
+  type CampaignCatalogAdmin,
+} from '@/features/mechanics/domain/core/rules/buildCampaignCatalog';
+import { loadCampaignCatalogOverrides } from '@/features/mechanics/domain/core/rules/loadCampaignCatalogOverrides';
 import type { Ruleset } from '@/shared/types/ruleset';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function keyById<T extends { id: string }>(items: readonly T[]): Record<string, T> {
-  const map: Record<string, T> = {};
-  for (const item of items) map[item.id] = item;
-  return map;
-}
-
-function buildCampaignContent(races: Race[]): Partial<CampaignCatalog> {
-  if (races.length === 0) return {};
-  return { racesById: keyById(races) };
-}
+import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 
 // ---------------------------------------------------------------------------
 // Context
@@ -62,12 +53,12 @@ export const CampaignRulesProvider = ({ children }: { children: ReactNode }) => 
 
     Promise.all([
       getResolvedCampaignRuleset(campaignId).catch(() => null),
-      listCampaignRaces(campaignId).catch(() => [] as Race[]),
+      loadCampaignCatalogOverrides(campaignId).catch(() => ({} as Partial<CampaignCatalog>)),
     ])
-      .then(([resolvedRuleset, races]) => {
+      .then(([resolvedRuleset, overrides]) => {
         if (cancelled) return;
         setDbRuleset(resolvedRuleset);
-        setCampaignContent(buildCampaignContent(races));
+        setCampaignContent(overrides);
       })
       .catch(() => {
         // swallow (or set an error state if you want)
@@ -79,15 +70,20 @@ export const CampaignRulesProvider = ({ children }: { children: ReactNode }) => 
   }, [campaignId]);
 
   const value = useMemo<CampaignRulesContext>(() => {
+    const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
+    const ctx = toViewerContext(campaign?.viewer, viewerCharacterIds);
+    const canManage = canManageContent(ctx);
+
     const { ruleset } = resolveCampaignRulesContext({
-      campaign,
       ruleset: dbRuleset,
       fallbackSystemId: DEFAULT_SYSTEM_RULESET_ID,
+      canManage,
     });
 
     return {
       ruleset,
       catalog: buildCampaignCatalog(systemCatalog, campaignContent, ruleset),
+      canManage,
     };
   }, [campaign, dbRuleset, campaignContent]);
 
@@ -103,3 +99,47 @@ export const useCampaignRules = (): CampaignRulesContext => {
   if (!ctx) throw new Error('useCampaignRules must be used within CampaignRulesProvider');
   return ctx;
 };
+
+/** Safe catalog fields for PC-facing code. Excludes *AllById and *AllowedIds. */
+const SAFE_CATALOG_KEYS = [
+  'classesById',
+  'classIds',
+  'racesById',
+  'raceIds',
+  'weaponsById',
+  'armorById',
+  'gearById',
+  'magicItemsById',
+  'enhancementsById',
+  'spellsById',
+  'skillProficienciesById',
+  'monstersById',
+] as const;
+
+/**
+ * Returns only the filtered catalog view (no admin-only fields).
+ * Use for PC-facing code; prevents accidental access to *AllById or *AllowedIds.
+ */
+export function useCampaignCatalog(): CampaignCatalog {
+  const ctx = useContext(CampaignRulesCtx);
+  if (!ctx) throw new Error('useCampaignCatalog must be used within CampaignRulesProvider');
+
+  const safe = {} as CampaignCatalog;
+  for (const key of SAFE_CATALOG_KEYS) {
+    (safe as Record<string, unknown>)[key] = ctx.catalog[key];
+  }
+  return safe;
+}
+
+/**
+ * Returns the full admin catalog (*AllById, *AllowedIds).
+ * Throws if canManage is false.
+ */
+export function useCampaignCatalogAdmin(): CampaignCatalogAdmin {
+  const ctx = useContext(CampaignRulesCtx);
+  if (!ctx) throw new Error('useCampaignCatalogAdmin must be used within CampaignRulesProvider');
+  if (!ctx.canManage) {
+    throw new Error('useCampaignCatalogAdmin requires canManage (DM/owner). Use useCampaignCatalog for PC-facing code.');
+  }
+  return ctx.catalog;
+}

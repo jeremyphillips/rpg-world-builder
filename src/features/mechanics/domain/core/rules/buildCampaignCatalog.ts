@@ -199,6 +199,19 @@ export function buildCampaignCatalog(
     const { allByIdField, allowedIdsField } = getAdminFieldNames(config.byIdField)
     result[allByIdField] = allById
     result[allowedIdsField] = Array.from(allowedSet)
+
+    if (process.env.NODE_ENV === 'development') {
+      const allCount = Object.keys(allById).length
+      const byIdCount = Object.keys(allowedById).length
+      if (allCount < byIdCount) {
+        console.warn(
+          `[buildCampaignCatalog] ${config.key}: allById (${allCount}) < allowedById (${byIdCount})`,
+        )
+      }
+      if (result[allowedIdsField] == null) {
+        console.warn(`[buildCampaignCatalog] ${config.key}: missing allowedIds`)
+      }
+    }
   }
 
   return result as CampaignCatalogAdmin

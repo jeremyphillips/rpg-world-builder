@@ -31,6 +31,7 @@ export {
   seedMemoryStore,
   createDefaultCampaignRulesetPatch,
 } from './campaignRulesetRepo';
+export { loadCampaignCatalogOverrides } from './loadCampaignCatalogOverrides';
 
 export * from './ruleConfig';
 export * from './ruleset.types';

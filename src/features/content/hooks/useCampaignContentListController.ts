@@ -83,8 +83,10 @@ export function useCampaignContentListController(
       .then(([loadedSummaries, loadedPatch]) => {
         if (cancelled) return;
         setSummaries(loadedSummaries);
-        if (canManage) {
-          setPatch(loadedPatch ?? createDefaultCampaignRulesetPatch(campaignId));
+        if (loadedPatch) {
+          setPatch(loadedPatch);
+        } else if (canManage) {
+          setPatch(createDefaultCampaignRulesetPatch(campaignId));
         }
       })
       .catch(err => {
