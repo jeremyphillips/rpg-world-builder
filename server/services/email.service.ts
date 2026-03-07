@@ -1,4 +1,4 @@
-import { env } from '../config/env'
+import { env } from '../shared/config/env'
 import type { EmailProvider } from './email.providers/types'
 import { etherealProvider } from './email.providers/ethereal.provider'
 import { smtpProvider } from './email.providers/smtp.provider'

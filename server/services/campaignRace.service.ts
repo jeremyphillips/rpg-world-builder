@@ -1,4 +1,4 @@
-import { CampaignRace } from '../models/CampaignRace.model';
+import { CampaignRace } from '../shared/models/CampaignRace.model';
 import type { AccessPolicy, AccessPolicyScope } from '../../shared/domain/accessPolicy';
 
 const VALID_SCOPES: AccessPolicyScope[] = ['public', 'dm', 'restricted'];

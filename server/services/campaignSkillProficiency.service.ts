@@ -1,4 +1,4 @@
-import { CampaignSkillProficiency } from '../models/CampaignSkillProficiency.model';
+import { CampaignSkillProficiency } from '../shared/models/CampaignSkillProficiency.model';
 import type { AccessPolicy, AccessPolicyScope } from '../../shared/domain/accessPolicy';
 import { ABILITY_IDS } from '../../src/features/mechanics/domain/core/character/abilities';
 

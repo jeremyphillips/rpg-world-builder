@@ -1,4 +1,4 @@
-import { CampaignSpell } from '../models/CampaignSpell.model';
+import { CampaignSpell } from '../shared/models/CampaignSpell.model';
 import type { AccessPolicy, AccessPolicyScope } from '../../shared/domain/accessPolicy';
 import { MAGIC_SCHOOL_OPTIONS } from '../../src/features/content/shared/domain/vocab/magicSchools.vocab';
 

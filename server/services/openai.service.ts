@@ -1,4 +1,4 @@
-import { env } from '../config/env'
+import { env } from '../shared/config/env'
 
 export async function getChatCompletion(prompt: string): Promise<string> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {

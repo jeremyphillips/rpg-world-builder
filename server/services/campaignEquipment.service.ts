@@ -4,7 +4,7 @@
  * Handles CRUD for all 4 equipment types (weapon, armor, gear, magicItem)
  * using a single collection with an `equipmentType` discriminator.
  */
-import { CampaignEquipment } from '../models/CampaignEquipment.model';
+import { CampaignEquipment } from '../shared/models/CampaignEquipment.model';
 import type { AccessPolicy, AccessPolicyScope } from '../../shared/domain/accessPolicy';
 
 // ---------------------------------------------------------------------------

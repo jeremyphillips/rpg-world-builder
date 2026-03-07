@@ -1,4 +1,4 @@
-import { CampaignRulesetPatch } from '../models/CampaignRulesetPatch.model';
+import { CampaignRulesetPatch } from '../shared/models/CampaignRulesetPatch.model';
 import { DEFAULT_SYSTEM_RULESET_ID, SYSTEM_RULESET_IDS } from '../../src/features/mechanics/domain/core/rules';
 import { ABILITY_KEYS, type AbilityKey } from '../../src/features/mechanics/domain/core/character';
 

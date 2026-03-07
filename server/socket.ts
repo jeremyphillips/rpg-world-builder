@@ -1,6 +1,6 @@
 import { Server as HttpServer } from 'http'
 import { Server as SocketServer } from 'socket.io'
-import { verifyToken } from './utils/jwt'
+import { verifyToken } from './shared/utils/jwt'
 
 export let io: SocketServer
 

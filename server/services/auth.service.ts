@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt'
 import mongoose from 'mongoose'
-import { env } from '../config/env'
-import { badRequest } from '../errors/ApiError'
-import { signToken } from '../utils/jwt'
+import { env } from '../shared/config/env'
+import { badRequest } from '../shared/errors/ApiError'
+import { signToken } from '../shared/utils/jwt'
 import { getPublicUrl, normalizeImageKey } from './image.service'
 
 interface NotificationPreferences {

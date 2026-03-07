@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { requireAuth } from '../middleware/requireAuth'
-import { asyncHandler } from '../middleware/asyncHandler'
+import { requireAuth } from '../shared/middleware/requireAuth'
+import { asyncHandler } from '../shared/middleware/asyncHandler'
 import { getInvite, respondToInvite, getMyInvites } from '../controllers/invite.controller'
 
 const router = Router()

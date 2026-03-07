@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
 import { loginUser, getUserById, updateProfile } from '../services/auth.service'
-import { setTokenCookie, clearTokenCookie } from '../utils/cookies'
-import { signToken, verifyToken } from '../utils/jwt'
+import { setTokenCookie, clearTokenCookie } from '../shared/utils/cookies'
+import { signToken, verifyToken } from '../shared/utils/jwt'
 
 export async function login(req: Request, res: Response) {
   const { email, password } = req.body
@@ -127,7 +127,7 @@ export async function resolveInvite(req: Request, res: Response) {
   try {
     const inviteService = await import('../services/invite.service')
     const mongoose = await import('mongoose')
-    const { env } = await import('../config/env')
+    const { env } = await import('../shared/config/env')
     const db = mongoose.default.connection.useDb(env.DB_NAME)
 
     // Check if token was already consumed

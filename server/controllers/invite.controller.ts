@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import mongoose from 'mongoose'
-import { env } from '../config/env'
+import { env } from '../shared/config/env'
 import * as inviteService from '../services/invite.service'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import * as characterService from '../services/character.service'
-import { validateRequired } from '../validators/common'
+import { validateRequired } from '../shared/validators/common'
 
 export async function getCharacters(req: Request, res: Response) {
   const type = req.query.type as string | undefined

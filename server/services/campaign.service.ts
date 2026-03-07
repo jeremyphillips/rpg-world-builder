@@ -1,8 +1,8 @@
 import mongoose from 'mongoose'
-import { env } from '../config/env'
-import { toObjectId } from '../utils/db'
+import { env } from '../shared/config/env'
+import { toObjectId } from '../shared/utils/db'
 import type { CampaignMemberStoredRole } from '../../shared/types'
-import type { CampaignViewerContext } from '../auth/resolveCampaignViewerContext'
+import type { CampaignViewerContext } from '../shared/auth/resolveCampaignViewerContext'
 import {
   getViewerMembershipContext,
   hydrateMemberViews,

@@ -1,8 +1,8 @@
 import { Router } from 'express'
-import { requireAuth } from '../middleware/requireAuth'
-import { requireRole } from '../middleware/requireRole'
-import { requireCampaignRole, requireCampaignOwner } from '../middleware/requireCampaignRole'
-import { asyncHandler } from '../middleware/asyncHandler'
+import { requireAuth } from '../shared/middleware/requireAuth'
+import { requireRole } from '../shared/middleware/requireRole'
+import { requireCampaignRole, requireCampaignOwner } from '../shared/middleware/requireCampaignRole'
+import { asyncHandler } from '../shared/middleware/asyncHandler'
 import {
   getCampaigns,
   getCampaign,

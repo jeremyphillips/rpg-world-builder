@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { validateRequired } from '../validators/common'
+import { validateRequired } from '../shared/validators/common'
 import * as sessionService from '../services/session.service'
 import {
   toSessionSummary,

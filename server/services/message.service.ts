@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { env } from '../config/env'
+import { env } from '../shared/config/env'
 import * as conversationService from './conversation.service'
 import * as notificationService from './notification.service'
 import { emitNewMessage } from '../socket'

@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
 import { env } from '../config/env'
-import { getCampaignById } from '../services/campaign.service'
+import { getCampaignById } from '../../services/campaign.service'
 import { resolveCampaignViewerContext } from '../auth/resolveCampaignViewerContext'
 import type { CampaignRole } from '../../shared/types'
 

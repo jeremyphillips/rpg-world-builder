@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { env } from '../config/env'
+import { env } from '../shared/config/env'
 import * as notificationService from './notification.service'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)

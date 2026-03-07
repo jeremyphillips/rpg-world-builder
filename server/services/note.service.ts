@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { env } from '../config/env'
+import { env } from '../shared/config/env'
 
 const notesCollection = () => mongoose.connection.useDb(env.DB_NAME).collection('notes')
 

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { env } from '../config/env'
+import { env } from '../shared/config/env'
 import { canViewSession } from '../../shared/domain/capabilities'
 import type { ViewerContext } from '../../shared/domain/capabilities'
 import type { CampaignRole } from '../../shared/types'

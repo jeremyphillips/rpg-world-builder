@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt'
 import mongoose from 'mongoose'
-import { env } from '../config/env'
+import { env } from '../shared/config/env'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const usersCollection = () => db().collection('users')

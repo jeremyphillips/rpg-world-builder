@@ -1,6 +1,6 @@
 import http from 'http'
-import { env } from './config/env'
-import { connectDB } from './config/mongo'
+import { env } from './shared/config/env'
+import { connectDB } from './shared/config/mongo'
 import app from './app'
 import { initSocket } from './socket'
 

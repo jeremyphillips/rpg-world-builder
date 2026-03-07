@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { requireAuth } from '../middleware/requireAuth'
-import { requireRole } from '../middleware/requireRole'
+import { requireAuth } from '../shared/middleware/requireAuth'
+import { requireRole } from '../shared/middleware/requireRole'
 import {
   getSettingData,
   updateWorldMap,

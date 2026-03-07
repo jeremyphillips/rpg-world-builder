@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import type { CampaignMemberStoredRole } from '../../shared/types'
-import { validateRequired } from '../validators/common'
+import { validateRequired } from '../shared/validators/common'
 import * as campaignService from '../services/campaign.service'
 import {
   preCheckMember as preCheckMemberService,

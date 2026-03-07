@@ -3,10 +3,10 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { corsOptions } from './config/cors'
-import { requestLogger } from './middleware/requestLogger'
-import { errorHandler } from './middleware/errorHandler'
-import { registerRoutes } from './routes'
+import { corsOptions } from './shared/config/cors'
+import { requestLogger } from './shared/middleware/requestLogger'
+import { errorHandler } from './shared/middleware/errorHandler'
+import { registerAppRoutes } from './register-routes'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -34,7 +34,7 @@ app.use(requestLogger)
 app.use('/uploads', express.static(path.resolve(__dirname, '../assets/uploads')))
 
 // API routes
-registerRoutes(app)
+registerAppRoutes(app)
 
 // Error handling (must be last)
 app.use(errorHandler)
