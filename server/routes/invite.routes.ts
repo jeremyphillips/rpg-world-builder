@@ -7,8 +7,8 @@ const router = Router()
 
 router.use(requireAuth)
 
-router.get('/', getMyInvites)
+router.get('/', asyncHandler(getMyInvites))
 router.get('/:inviteId', asyncHandler(getInvite))
-router.post('/:inviteId/respond', respondToInvite)
+router.post('/:inviteId/respond', asyncHandler(respondToInvite))
 
 export default router

@@ -72,11 +72,11 @@ const router = Router()
 router.use(requireAuth)
 
 // Campaign list & create
-router.get('/', getCampaigns)
-router.post('/', requireRole('admin', 'superadmin'), createCampaign)
+router.get('/', asyncHandler(getCampaigns))
+router.post('/', requireRole('admin', 'superadmin'), asyncHandler(createCampaign))
 
 // Campaign detail — any member can view
-router.get('/:id', requireCampaignRole('observer'), getCampaign)
+router.get('/:id', requireCampaignRole('observer'), asyncHandler(getCampaign))
 
 // Campaign update/delete — owner only
 router.patch('/:id', requireCampaignRole('observer'), requireCampaignOwner(), updateCampaign)

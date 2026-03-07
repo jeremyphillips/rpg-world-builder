@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt'
 import mongoose from 'mongoose'
 import { env } from '../config/env'
+import { badRequest } from '../errors/ApiError'
 import { signToken } from '../utils/jwt'
 import { getPublicUrl, normalizeImageKey } from './image.service'
 
@@ -91,6 +92,109 @@ export async function getUserById(userId: string) {
       ...DEFAULT_NOTIFICATION_PREFS,
       ...(user.notificationPreferences as Partial<NotificationPreferences> | undefined),
     },
+  }
+}
+
+export interface RegisterWithInviteTokenResult {
+  user: NonNullable<Awaited<ReturnType<typeof getUserById>>>
+  campaignId?: string
+  campaignName?: string
+}
+
+/**
+ * Registers a new user, optionally with invite token.
+ * Validates token, creates user, updates profile, consumes token if valid.
+ * All DB access in this service.
+ */
+export async function registerWithInviteToken(body: {
+  username: string
+  password: string
+  firstName?: string
+  lastName?: string
+  inviteToken?: string
+}): Promise<RegisterWithInviteTokenResult> {
+  const { username, password, firstName, lastName, inviteToken } = body
+
+  let email: string | undefined
+  let tokenDoc: Awaited<
+    ReturnType<typeof import('./invite.service').validateInviteToken>
+  > = null
+
+  if (inviteToken) {
+    const { validateInviteToken } = await import('./invite.service')
+    tokenDoc = await validateInviteToken(inviteToken)
+    if (!tokenDoc) {
+      throw badRequest('Invalid or expired invite token')
+    }
+    email = tokenDoc.email
+  }
+
+  const { createUser } = await import('./user.service')
+  const user = await createUser({
+    username,
+    email: email ?? '',
+    password,
+    role: 'user',
+  })
+
+  if (!user) {
+    throw new Error('Failed to create user')
+  }
+
+  const userId = (user._id as mongoose.Types.ObjectId).toString()
+
+  if (firstName || lastName) {
+    await updateProfile(userId, { firstName, lastName })
+  }
+
+  let campaignId: string | undefined
+  let campaignName: string | undefined
+
+  if (tokenDoc && inviteToken) {
+    const { consumeInviteToken } = await import('./invite.service')
+    await consumeInviteToken(inviteToken, userId)
+    campaignId = (tokenDoc.campaignId as mongoose.Types.ObjectId).toString()
+
+    const { getCampaignById } = await import('./campaign.service')
+    const campaign = await getCampaignById(campaignId)
+    campaignName = campaign?.identity?.name
+  }
+
+  const authUser = await getUserById(userId)
+  if (!authUser) throw new Error('Failed to load created user')
+  return { user: authUser, campaignId, campaignName }
+}
+
+export interface AcceptInviteTokenResult {
+  campaignId: string
+  campaignName: string
+}
+
+/**
+ * Consumes an invite token for a logged-in user.
+ * Validates token, consumes it, returns campaign info.
+ */
+export async function acceptInviteToken(
+  token: string,
+  userId: string,
+): Promise<AcceptInviteTokenResult> {
+  const { validateInviteToken, consumeInviteToken } = await import(
+    './invite.service'
+  )
+  const tokenDoc = await validateInviteToken(token)
+  if (!tokenDoc) {
+    throw badRequest('Invalid or expired invite token')
+  }
+
+  await consumeInviteToken(token, userId)
+
+  const campaignId = (tokenDoc.campaignId as mongoose.Types.ObjectId).toString()
+  const { getCampaignById } = await import('./campaign.service')
+  const campaign = await getCampaignById(campaignId)
+
+  return {
+    campaignId,
+    campaignName: campaign?.identity?.name ?? '',
   }
 }
 

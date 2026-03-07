@@ -1,5 +1,14 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
+import { canViewSession } from '../../shared/domain/capabilities'
+import type { ViewerContext } from '../../shared/domain/capabilities'
+import type { CampaignRole } from '../../shared/types'
+import {
+  getUserMembershipsMap,
+  getUserCharacterIds,
+} from './campaignMember.service'
+import { getCampaignById, getOwnedCampaignIds } from './campaign.service'
+import { toSessionSummary } from '../../src/features/session/read-model'
 import * as notificationService from './notification.service'
 import * as sessionInviteService from './sessionInvite.service'
 
@@ -65,6 +74,96 @@ export async function getSessionById(id: string) {
   return sessionsCollection().findOne({
     _id: new mongoose.Types.ObjectId(id),
   })
+}
+
+const isPlatformAdmin = (role: string) => role === 'admin' || role === 'superadmin'
+
+/**
+ * Fetches sessions for user with visibility filtering applied.
+ * Platform admins see all sessions; others see only sessions they can view per canViewSession.
+ */
+export async function getSessionsForUserWithVisibility(
+  userId: string,
+  userRole: string,
+): Promise<ReturnType<typeof toSessionSummary>[]> {
+  const sessions = await getSessionsForUser(userId, userRole)
+
+  if (isPlatformAdmin(userRole)) {
+    return sessions.map((s) => toSessionSummary(s as unknown as Parameters<typeof toSessionSummary>[0]))
+  }
+
+  const campaignIds = [
+    ...new Set(
+      sessions
+        .map((s) => (s.campaignId as mongoose.Types.ObjectId)?.toString())
+        .filter((id): id is string => !!id),
+    ),
+  ]
+
+  const [membershipsMap, ownedIds] = await Promise.all([
+    getUserMembershipsMap(userId, campaignIds),
+    getOwnedCampaignIds(userId, campaignIds),
+  ])
+
+  const filtered = sessions.filter((s) => {
+    const cid = (s.campaignId as mongoose.Types.ObjectId)?.toString()
+    if (!cid) return false
+    const membership = membershipsMap.get(cid)
+    const ctx: ViewerContext = {
+      campaignRole: (membership?.campaignRole as CampaignRole) ?? null,
+      isOwner: ownedIds.has(cid),
+      isPlatformAdmin: false,
+      characterIds: membership?.characterIds ?? [],
+    }
+    return canViewSession(
+      ctx,
+      s.visibility as SessionDoc['visibility'],
+    )
+  })
+
+  return filtered.map((s) =>
+    toSessionSummary(s as unknown as Parameters<typeof toSessionSummary>[0]),
+  )
+}
+
+/**
+ * Fetches a single session by ID with access check.
+ * Returns null if not found or if user lacks visibility.
+ */
+export async function getSessionByIdWithAccess(
+  id: string,
+  userId: string,
+  userRole: string,
+): Promise<ReturnType<typeof toSessionSummary> | null> {
+  const doc = await getSessionById(id)
+  if (!doc) return null
+
+  if (isPlatformAdmin(userRole)) {
+    return toSessionSummary(doc as unknown as Parameters<typeof toSessionSummary>[0])
+  }
+
+  const cid = (doc.campaignId as mongoose.Types.ObjectId)?.toString()
+  if (!cid) return null
+
+  const campaign = await getCampaignById(cid)
+  const ownerStr = campaign?.membership?.ownerId?.toString()
+  const isOwner = ownerStr === userId
+  const charIds = await getUserCharacterIds(cid, userId)
+  const members = await getUserMembershipsMap(userId, [cid])
+  const membership = members.get(cid)
+
+  const ctx: ViewerContext = {
+    campaignRole: (membership?.campaignRole as CampaignRole) ?? null,
+    isOwner,
+    isPlatformAdmin: false,
+    characterIds: charIds,
+  }
+
+  if (!canViewSession(ctx, doc.visibility as SessionDoc['visibility'])) {
+    return null
+  }
+
+  return toSessionSummary(doc as unknown as Parameters<typeof toSessionSummary>[0])
 }
 
 // ---------------------------------------------------------------------------

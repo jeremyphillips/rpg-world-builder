@@ -27,13 +27,13 @@ export async function getCampaign(req: Request, res: Response) {
 }
 
 export async function createCampaign(req: Request, res: Response) {
-  const { name, description } = req.body
-
-  if (!name) {
-    res.status(400).json({ error: 'Campaign name is required' })
+  const nameCheck = validateRequired(req.body.name, 'Campaign name')
+  if (!nameCheck.valid) {
+    res.status(400).json({ error: nameCheck.message })
     return
   }
 
+  const { name, description } = req.body
   try {
     const campaign = await campaignService.createCampaign(req.userId!, { name, description })
     res.status(201).json({ campaign })
