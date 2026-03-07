@@ -4,10 +4,10 @@
  */
 
 // ---------------------------------------------------------------------------
-// Card DTO (GET /characters/me)
+// Class summary (shared by card, detail, roster)
 // ---------------------------------------------------------------------------
 
-export type CharacterCardClassSummary = {
+export type CharacterClassSummary = {
   classId: string
   className: string
   subclassId?: string | null
@@ -15,13 +15,28 @@ export type CharacterCardClassSummary = {
   level: number
 }
 
+/** Stored character class entry shape. Supports subclassId (current) and classDefinitionId (legacy). */
+export type CharacterClassReadSource = {
+  classId?: string
+  subclassId?: string | null
+  classDefinitionId?: string | null
+  level: number
+}
+
+// ---------------------------------------------------------------------------
+// Card DTO (GET /characters/me)
+// ---------------------------------------------------------------------------
+
+/** @deprecated Use CharacterClassSummary */
+export type CharacterCardClassSummary = CharacterClassSummary
+
 export type CharacterCardSummary = {
   id: string
   name: string
   type?: string
   imageUrl: string | null
   race: { id: string; name: string } | null
-  classes: CharacterCardClassSummary[]
+  classes: CharacterClassSummary[]
   campaign: { id: string; name: string } | null
 }
 
@@ -40,13 +55,8 @@ export type CharacterRosterSummary = CharacterCardSummary & {
 // Detail DTO (GET /characters/:id)
 // ---------------------------------------------------------------------------
 
-export type CharacterDetailClassSummary = {
-  classId: string
-  className: string
-  subclassId?: string | null
-  subclassName?: string | null
-  level: number
-}
+/** @deprecated Use CharacterClassSummary */
+export type CharacterDetailClassSummary = CharacterClassSummary
 
 export type CharacterDetailDto = {
   id: string
@@ -58,7 +68,7 @@ export type CharacterDetailDto = {
 
   race: { id: string; name: string } | null
 
-  classes: CharacterDetailClassSummary[]
+  classes: CharacterClassSummary[]
 
   level: number
   totalLevel: number
@@ -131,7 +141,7 @@ export type CharacterDetailDto = {
 /** Minimal character shape needed to collect reference IDs for resolution. */
 export type CharacterReadSource = {
   race?: string
-  classes?: Array<{ classId?: string; subclassId?: string }>
+  classes?: CharacterClassReadSource[]
   proficiencies?: { skills?: string[] }
   equipment?: {
     armor?: string[]

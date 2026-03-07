@@ -5,6 +5,8 @@
 
 import type {
   CharacterCardSummary,
+  CharacterClassReadSource,
+  CharacterClassSummary,
   CharacterDetailDto,
   CharacterReadReferences,
 } from './character-read.types'
@@ -25,7 +27,7 @@ export type CharacterDocForCard = {
   type?: string
   imageKey?: string | null
   race?: string
-  classes: Array<{ classId?: string; subclassId?: string; level: number }>
+  classes: CharacterClassReadSource[]
 }
 
 /** Stored character shape used as mapper input (detail). */
@@ -36,7 +38,7 @@ export type CharacterDocForDetail = {
   imageKey?: string | null
   race?: string
   alignment?: string
-  classes: Array<{ classId?: string; subclassId?: string; level: number }>
+  classes: CharacterClassReadSource[]
   totalLevel?: number
   abilityScores?: Record<string, number>
   proficiencies?: { skills?: string[] }
@@ -65,6 +67,27 @@ export type CharacterDocForDetail = {
 
 type ResolveImageUrl = (key: string) => string | undefined
 
+/**
+ * Map one stored character class entry to a display-ready class summary.
+ * Resolves class/subclass names from references. Supports subclassId (current) and classDefinitionId (legacy).
+ */
+export function toCharacterClassSummary(
+  cls: CharacterClassReadSource,
+  refs: CharacterReadReferences,
+): CharacterClassSummary {
+  const classId = cls.classId ?? ''
+  const subclassId = (cls.classDefinitionId ?? cls.subclassId) ?? null
+  const classEntry = refs.classById.get(classId)
+  const subclassEntry = subclassId ? refs.subclassById.get(subclassId) : null
+  return {
+    classId,
+    className: classEntry?.name ?? classId,
+    subclassId: subclassId ?? undefined,
+    subclassName: subclassEntry?.name ?? undefined,
+    level: cls.level ?? 1,
+  }
+}
+
 /** Map character doc to card summary DTO. */
 export function toCharacterCardSummary(
   char: CharacterDocForCard,
@@ -75,19 +98,7 @@ export function toCharacterCardSummary(
   const charId = char._id.toString()
   const raceId = char.race ?? ''
 
-  const classes = (char.classes ?? []).map((cls) => {
-    const classId = cls.classId ?? ''
-    const subclassId = cls.subclassId ?? null
-    const classEntry = refs.classById.get(classId)
-    const subclassEntry = subclassId ? refs.subclassById.get(subclassId) : null
-    return {
-      classId,
-      className: classEntry?.name ?? classId,
-      subclassId: subclassId ?? undefined,
-      subclassName: subclassEntry?.name ?? undefined,
-      level: cls.level ?? 1,
-    }
-  })
+  const classes = (char.classes ?? []).map((cls) => toCharacterClassSummary(cls, refs))
 
   const imageKey = char.imageKey ?? null
   return {
@@ -112,19 +123,7 @@ export function toCharacterDetailDto(
   const raceId = char.race ?? ''
   const raceEntry = raceId ? refs.raceById.get(raceId) : null
 
-  const classes = (char.classes ?? []).map((cls) => {
-    const classId = cls.classId ?? ''
-    const subclassId = cls.subclassId ?? null
-    const classEntry = refs.classById.get(classId)
-    const subclassEntry = subclassId ? refs.subclassById.get(subclassId) : null
-    return {
-      classId,
-      className: classEntry?.name ?? classId,
-      subclassId: subclassId ?? undefined,
-      subclassName: subclassEntry?.name ?? undefined,
-      level: cls.level ?? 1,
-    }
-  })
+  const classes = (char.classes ?? []).map((cls) => toCharacterClassSummary(cls, refs))
 
   const skillIds = char.proficiencies?.skills ?? []
   const proficiencies = skillIds.map((id) => {

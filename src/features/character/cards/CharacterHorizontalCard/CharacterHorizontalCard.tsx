@@ -1,20 +1,12 @@
 import { HorizontalCompactCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
-
-/** Card-ready class summary with resolved names (from GET /characters/me). */
-export type CharacterCardClassSummary = {
-  classId: string
-  className: string
-  subclassId?: string | null
-  subclassName?: string | null
-  level: number
-}
+import type { CharacterClassSummary } from '@/features/character/read-model'
 
 interface CharacterHorizontalCardProps {
   characterId: string
   name: string
   race?: { id: string; name: string } | null | undefined
-  classes?: CharacterCardClassSummary[]
+  classes?: CharacterClassSummary[]
   imageUrl?: string
   status?: 'pending' | 'approved'
   campaign?: { id: string; name: string }
