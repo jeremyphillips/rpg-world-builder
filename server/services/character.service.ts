@@ -344,15 +344,38 @@ export async function getMyCharactersWithCampaign(userId: string, type?: string)
 
 /**
  * Get user's characters that are not in any campaign (available for invite accept).
+ * Returns card-ready summaries with resolved race/class/subclass names.
+ * Uses batch queries to avoid N+1.
  */
-export async function getCharactersAvailableForCampaign(userId: string) {
+export async function getCharactersAvailableForCampaign(userId: string): Promise<CharacterCardSummary[]> {
   const characters = await getCharactersByUser(userId)
-  const campaignMemberService = await import('./campaignMember.service')
+  if (characters.length === 0) return []
 
-  const available: typeof characters = []
-  for (const c of characters) {
-    const inCampaign = await campaignMemberService.isCharacterInCampaign(c._id.toString())
-    if (!inCampaign) available.push(c)
-  }
-  return available
+  const characterIds = characters.map((c) => c._id as mongoose.Types.ObjectId)
+  const campaignMembersCol = db().collection('campaignMembers')
+  const memberships = (await campaignMembersCol
+    .find({
+      characterId: { $in: characterIds },
+      status: { $in: ['pending', 'approved'] },
+    })
+    .project({ characterId: 1 })
+    .toArray()) as unknown as { characterId: mongoose.Types.ObjectId }[]
+
+  const characterIdsInCampaign = new Set(memberships.map((m) => m.characterId.toString()))
+  const availableCharacters = characters.filter((c) => !characterIdsInCampaign.has((c._id as mongoose.Types.ObjectId).toString()))
+  if (availableCharacters.length === 0) return []
+
+  const refs = loadCharacterReadReferences()
+
+  return availableCharacters.map((char) => {
+    const doc: CharacterDocForCard = {
+      _id: char._id as { toString(): string },
+      name: char.name as string,
+      type: char.type as string | undefined,
+      imageKey: char.imageKey as string | null | undefined,
+      race: char.race as string | undefined,
+      classes: (char.classes as CharacterDocForCard['classes']) ?? [],
+    }
+    return toCharacterCardSummary(doc, null, refs, getPublicUrl)
+  })
 }

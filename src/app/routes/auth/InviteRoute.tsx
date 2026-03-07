@@ -55,7 +55,7 @@ export default function InviteRoute() {
 
   const characterOptions = useMemo(() => {
     return availableCharacters.map((c) => ({
-      value: c._id,
+      value: c.id,
       label: getCharacterOptionLabel(c),
     }))
   }, [availableCharacters])
