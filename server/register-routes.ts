@@ -1,10 +1,12 @@
 import type { Express } from 'express'
+import characterRoutes from './features/character/routes/character.routes'
 import { registerRoutes } from './routes'
 
 /**
  * Single entry point for route registration.
- * Imports from routes/ for now; will migrate to features/ in Phase C.
+ * Character feature migrated; others still from routes/.
  */
 export function registerAppRoutes(app: Express) {
+  app.use('/api/characters', characterRoutes)
   registerRoutes(app)
 }

@@ -1,13 +1,13 @@
 import mongoose from 'mongoose'
-import { env } from '../shared/config/env'
-import { getDb, toObjectId } from '../shared/utils/db'
-import { forbidden, notFound } from '../shared/errors/ApiError'
-import * as campaignMemberService from './campaignMember.service'
-import * as notificationService from './notification.service'
-import { getCampaignById } from './campaign.service'
-import { resolveCharacterAccess } from '../shared/auth/resolveCharacterAccess'
-import type { CharacterDoc } from '../../src/features/character/domain/types/characterDoc.types'
-import { getPublicUrl } from '../services/image.service'
+import { env } from '../../../shared/config/env'
+import { getDb, toObjectId } from '../../../shared/utils/db'
+import { forbidden, notFound } from '../../../shared/errors/ApiError'
+import * as campaignMemberService from '../../../services/campaignMember.service'
+import * as notificationService from '../../../services/notification.service'
+import { getCampaignById } from '../../../services/campaign.service'
+import { resolveCharacterAccess } from '../../../shared/auth/resolveCharacterAccess'
+import type { CharacterDoc } from '../../../../src/features/character/domain/types/characterDoc.types'
+import { getPublicUrl } from '../../../services/image.service'
 import {
   type CharacterCardSummary,
   type CharacterDetailDto,
@@ -16,7 +16,7 @@ import {
   toCharacterDetailDto,
   type CharacterDocForCard,
   type CharacterDocForDetail,
-} from '../../src/features/character/read-model'
+} from '../../../../src/features/character/read-model'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const charactersCollection = () => db().collection('characters')
@@ -611,7 +611,7 @@ export type {
   CharacterCardSummary,
   CharacterCardClassSummary,
   CharacterDetailDto,
-} from '../../src/features/character/read-model'
+} from '../../../../src/features/character/read-model'
 
 /**
  * Get user's characters with their current campaign (if any).
