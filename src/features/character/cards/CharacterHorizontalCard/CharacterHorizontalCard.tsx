@@ -1,14 +1,16 @@
 import { HorizontalCompactCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
+import type { CharacterClassInfo } from '../../domain/types'
+import type { RaceId } from '@/features/content/shared/domain/types'
 
 interface CharacterHorizontalCardProps {
   characterId: string
   name: string
-  race?: string
-  class: string
-  level?: number
+  race?: RaceId
+  classes?: CharacterClassInfo[]
   imageUrl?: string
   status?: 'pending' | 'approved'
+  campaign?: { id: string; name: string }
   link?: string
   isEditable?: boolean
   onEdit?: () => void
@@ -19,19 +21,36 @@ const CharacterHorizontalCard = ({
   characterId,
   name,
   race,
-  class: className,
-  level,
+  classes,
   imageUrl,
+  campaign,
   status,
   link,
   isEditable,
   onEdit,
   actions,
 }: CharacterHorizontalCardProps) => {
-  const subheadline = [race, className, level != null ? `Level ${level}` : undefined]
+
+  const classLine =
+    Array.isArray(classes) && classes.length > 0
+      ? classes
+          .filter((c) => c && c.classId) // ensure class and classId are present
+          .map((c) => {
+            const className = c.classId ?? '';
+            const levelStr = c.level ? `Level ${c.level}` : '';
+            return levelStr ? `${className}, ${levelStr}` : className;
+          })
+          .join(' / ')
+      : undefined;
+
+  const subheadline = [race, classLine]
     .filter(Boolean)
     .join(' · ')
-  const badges: CardBadgeProps[] = status ? [{ type: 'status', value: status }] : []
+
+  const badges: CardBadgeProps[] = [
+    ...(status ? [{ type: 'status', value: status }] : []),
+    ...(campaign ? [{ type: 'tag', value: `Campaign: ${campaign.name}` }] : []),
+  ] as CardBadgeProps[]
 
   return (
     <HorizontalCompactCard

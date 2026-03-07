@@ -29,6 +29,17 @@ export async function getCharacters(req: Request, res: Response) {
   res.json({ characters })
 }
 
+export async function getMyCharacters(req: Request, res: Response) {
+  try {
+    const type = req.query.type as string | undefined
+    const characters = await characterService.getMyCharactersWithCampaign(req.userId!, type)
+    res.json({ characters })
+  } catch (err) {
+    console.error('Failed to get my characters:', err)
+    res.status(500).json({ error: 'Failed to load characters' })
+  }
+}
+
 export async function getCharactersAvailableForCampaign(req: Request, res: Response) {
   try {
     const characters = await characterService.getCharactersAvailableForCampaign(req.userId!)

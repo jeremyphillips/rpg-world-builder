@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -8,44 +9,31 @@ import CardActions from '@mui/material/CardActions'
 import Avatar from '@mui/material/Avatar'
 import Stack from '@mui/material/Stack'
 import CircularProgress from '@mui/material/CircularProgress'
-import EditIcon from '@mui/icons-material/Edit'
 import PersonIcon from '@mui/icons-material/Person'
 
-import type { CharacterClassInfo } from '@/features/character/domain/types'
-import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
+/** Card summary from GET /api/characters/me */
+type CharacterCardSummary = {
+  id: string
+  name: string
+  type?: string
+  imageKey?: string | null
+  imageUrl?: string | null
+  race?: string | null
+  classes?: CharacterClassInfo[]
+  campaign: { id: string; name: string } | null
+  createdAt?: string | null
+}
 import { resolveImageUrl } from '@/utils/image'
 import { AppPageHeader } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/hooks'
-import { useCharacters } from '@/features/character/hooks'
+import { apiFetch } from '@/app/api'
 import { CharacterBuilderLauncher } from '@/features/characterBuilder/components'
 import { AppAlert } from '@/ui/primitives'
-
+import type { CharacterClassInfo } from '@/features/character/domain/types'
+import { CharacterHorizontalCard } from '@/features/character/cards'
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function formatClassLine(
-  cls: CharacterClassInfo,
-  isPrimary: boolean,
-  isMulticlass: boolean,
-): string {
-  if (!cls.classId) return 'Unknown'
-  const classData = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, cls.classId)
-  const name = classData?.name ?? cls.classId
-
-  let subclassName = ''
-  if (cls.subclassId && classData?.definitions?.options) {
-    const sub = classData.definitions.options.find((d) => d.id === cls.subclassId)
-    if (sub?.name) subclassName = sub.name
-  }
-
-  let line = name
-  if (subclassName) line += `, ${subclassName}`
-  line += ` Level ${cls.level}`
-  if (isPrimary && isMulticlass) line += ' (primary)'
-  return line
-}
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
@@ -57,9 +45,17 @@ function formatDate(iso: string): string {
 // ---------------------------------------------------------------------------
 
 export default function CharactersRoute() {
-  const { characters, loading } = useCharacters()
+  const [characters, setCharacters] = useState<CharacterCardSummary[]>([])
+  const [loading, setLoading] = useState(true)
   const breadcrumbs = useBreadcrumbs()
   const userHasCharacters = characters.length > 0
+
+  useEffect(() => {
+    apiFetch<{ characters: CharacterCardSummary[] }>('/api/characters/me?type=pc')
+      .then((data) => setCharacters(data.characters ?? []))
+      .catch(() => setCharacters([]))
+      .finally(() => setLoading(false))
+  }, [])
 
   if (loading) {
     return (
@@ -87,82 +83,22 @@ export default function CharactersRoute() {
         </AppAlert>
       ) : (
         <Stack spacing={1.5}>
-          {characters.map((c) => {
-            const filledClasses = (c.classes ?? []).filter((cls) => cls.classId)
-            const isMulticlass = filledClasses.length > 1
-            const hasClasses = filledClasses.length > 0
-            const avatarUrl = resolveImageUrl(c.imageKey)
+          {characters.map((character) => {
+            const avatarUrl = character.imageUrl ?? resolveImageUrl(character.imageKey)
+            const classLine = character.classes && character.classes.length > 0
+              ? `${character.classes[0].classId}, Level ${character.classes[0].level}`
+              : null
 
             return (
-              <Card key={c._id} variant="outlined">
-                <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
-                  <Stack direction="row" spacing={2} alignItems="flex-start">
-                    {/* Avatar / thumbnail */}
-                    <Avatar
-                      src={avatarUrl}
-                      sx={{
-                        width: 64,
-                        height: 64,
-                        bgcolor: 'var(--mui-palette-primary-main)',
-                        fontSize: '1.5rem',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {avatarUrl ? null : <PersonIcon fontSize="large" />}
-                    </Avatar>
-
-                    {/* Info */}
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      {/* Name */}
-                      <Typography variant="h6" fontWeight={700} noWrap>
-                        {c.name || 'Unnamed Character'}
-                      </Typography>
-
-                      {/* Classes */}
-                      {hasClasses ? (
-                        filledClasses.map((cls, i) => (
-                          <Typography key={i} variant="body2" color="text.secondary">
-                            {formatClassLine(cls, i === 0, isMulticlass)}
-                          </Typography>
-                        ))
-                      ) : (
-                        c.class && (
-                          <Typography variant="body2" color="text.secondary">
-                            {c.class} Level {c.level ?? c.totalLevel ?? 1}
-                          </Typography>
-                        )
-                      )}
-
-                      {/* Race */}
-                      {c.race && (
-                        <Typography variant="body2" color="text.secondary">
-                          {c.race}
-                        </Typography>
-                      )}
-
-                      {/* Date */}
-                      {c.createdAt && (
-                        <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: 'block' }}>
-                          Created: {formatDate(c.createdAt)}
-                        </Typography>
-                      )}
-                    </Box>
-
-                    {/* Edit button */}
-                    <CardActions sx={{ p: 0, flexShrink: 0 }}>
-                      <Button
-                        component={Link}
-                        to={`/characters/${c._id}`}
-                        size="small"
-                        variant="outlined"
-                        startIcon={<EditIcon />}
-                      >
-                        Edit
-                      </Button>
-                    </CardActions>
-                  </Stack>
-                </CardContent>
-              </Card>
+              <CharacterHorizontalCard 
+                imageUrl={avatarUrl}
+                key={character.id} 
+                characterId={character.id} 
+                name={character.name} 
+                race={character.race ?? undefined} 
+                classes={character.classes ?? [] as CharacterClassInfo[]}
+                campaign={character.campaign}
+              />
             )
           })}
         </Stack>

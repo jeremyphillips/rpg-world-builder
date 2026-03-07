@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import { env } from '../config/env'
 import type { CharacterDoc } from '../../src/features/character/domain/types/characterDoc.types'; 
 import { getPublicUrl } from '../services/image.service'
+import type { CharacterClassInfo } from '../../src/features/character/domain/types';
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const charactersCollection = () => db().collection('characters')
@@ -221,6 +222,100 @@ export async function isCampaignAdminForCharacter(
     })
 
   return match !== null
+}
+
+/** Card-ready character summary with campaign context. */
+export type CharacterCardSummary = {
+  id: string
+  name: string
+  type?: string
+  imageUrl?: string | null
+  race?: string | null
+  classes?: CharacterClassInfo[] | undefined
+  campaign: { id: string; name: string } | null
+  createdAt?: string | null
+}
+
+/** Map character doc to card summary DTO. */
+function toCharacterCardSummary(
+  char: Record<string, unknown>,
+  campaign: { id: string; name: string } | null,
+): CharacterCardSummary {
+  const charId = (char._id as mongoose.Types.ObjectId).toString()
+  const classes = (char.classes as { classId?: string; level: number }[]) ?? []
+  const primaryClass = classes[0]
+  const secondaryClass = classes?.length > 1 ? classes[1] : undefined
+  const primaryClassDetails = primaryClass ? {
+    classId: primaryClass.classId,
+    level: primaryClass.level,
+  } : undefined
+  const secondaryClassDetails = secondaryClass ? {
+    classId: secondaryClass.classId,
+    level: secondaryClass.level,
+  } : undefined
+  const imageKey = (char.imageKey as string | null) ?? null
+  return {
+    id: charId,
+    name: (char.name as string) ?? '',
+    type: char.type as string | undefined,
+    imageUrl: imageKey ? getPublicUrl(imageKey) : null,
+    race: (char.race as string) ?? null,
+    classes: [ primaryClassDetails, secondaryClassDetails ] as CharacterClassInfo[] | undefined,
+    campaign,
+    createdAt: (char.createdAt as Date)?.toISOString?.() ?? (char.createdAt as string) ?? null,
+  }
+}
+
+/**
+ * Get user's characters with their current campaign (if any).
+ * Returns card-ready summaries. Uses batch queries to avoid N+1.
+ */
+export async function getMyCharactersWithCampaign(userId: string, type?: string): Promise<CharacterCardSummary[]> {
+  const characters = await getCharactersByUser(userId, type)
+  const characterIds = characters.map((c) => c._id as mongoose.Types.ObjectId)
+
+  if (characterIds.length === 0) return []
+
+  const campaignMembersCol = db().collection('campaignMembers')
+  const memberships = (await campaignMembersCol
+    .find({
+      characterId: { $in: characterIds },
+      status: 'approved',
+    })
+    .toArray()) as unknown as { characterId: mongoose.Types.ObjectId; campaignId: mongoose.Types.ObjectId }[]
+
+  const campaignIds = [...new Set(memberships.map((m) => m.campaignId))]
+  const campaigns =
+    campaignIds.length > 0
+      ? await db()
+          .collection('campaigns')
+          .find({ _id: { $in: campaignIds } })
+          .project({ _id: 1, 'identity.name': 1 })
+          .toArray()
+      : []
+
+  const membershipByCharacterId = new Map<string, { campaignId: string }>()
+  for (const m of memberships) {
+    const cid = m.characterId.toString()
+    if (!membershipByCharacterId.has(cid)) {
+      membershipByCharacterId.set(cid, { campaignId: m.campaignId.toString() })
+    }
+  }
+
+  const campaignById = new Map<string, { id: string; name: string }>()
+  for (const c of campaigns as { _id: mongoose.Types.ObjectId; identity?: { name?: string } }[]) {
+    campaignById.set(c._id.toString(), {
+      id: c._id.toString(),
+      name: (c.identity?.name as string) ?? '',
+    })
+  }
+
+  return characters.map((char) => {
+    const charId = (char._id as mongoose.Types.ObjectId).toString()
+    const membership = membershipByCharacterId.get(charId)
+    const campaign = membership ? campaignById.get(membership.campaignId) ?? null : null
+    return toCharacterCardSummary(char, campaign)
+  })
 }
 
 /**
