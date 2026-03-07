@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
-import { spellRepo } from '@/features/content/domain/repo';
+import { spellRepo } from '@/features/content/spells/domain';
 import type { Spell } from '@/features/content/shared/domain/types/spell.types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -13,10 +13,10 @@ import { toViewerContext, canManageContent } from '@/shared/domain/capabilities'
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
-import { SPELL_DETAIL_SPECS } from '@/features/spell/forms';
+import { SPELL_DETAIL_SPECS } from '@/features/content/spells/domain';
 
 export default function SpellDetailRoute() {
-  const { campaign, campaignId } = useActiveCampaign();
+  const { campaignId, campaign } = useActiveCampaign();
   const { spellId } = useParams<{ spellId: string }>();
   const breadcrumbs = useBreadcrumbs();
 

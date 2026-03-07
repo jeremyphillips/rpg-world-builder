@@ -1,5 +1,5 @@
 /**
- * Spell edit route.
+ * Skill proficiency edit route.
  *
  * - source === 'system': field-config patch form via contentPatchRepo
  * - source === 'campaign': real form editor with delete support
@@ -16,19 +16,19 @@ import Typography from '@mui/material/Typography';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { spellRepo } from '@/features/content/domain/repo';
-import { validateSpellChange } from '@/features/content/domain/validation';
-import type { Spell } from '@/features/content/shared/domain/types/spell.types';
+import {
+  skillProficiencyRepo,
+  validateSkillProficiencyChange,
+  type SkillProficiencyFormValues,
+  getSkillProficiencyFieldConfigs,
+  SKILL_PROFICIENCY_FORM_DEFAULTS,
+  skillProficiencyToFormValues,
+  toSkillProficiencyInput,
+} from '@/features/content/skillProficiencies/domain';
+import type { SkillProficiency } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
-import {
-  type SpellFormValues,
-  getSpellFieldConfigs,
-  SPELL_FORM_DEFAULTS,
-  spellToFormValues,
-  toSpellInput,
-} from '@/features/spell/forms';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
 import { useResetEditFeedbackOnChange } from '@/features/content/shared/hooks/useResetEditFeedbackOnChange';
 import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCampaignEntryFormReset';
@@ -39,27 +39,30 @@ import { useCampaignEntrySubmit } from '@/features/content/shared/hooks/useCampa
 import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
 import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
 
-const FORM_ID = 'spell-edit-form';
+const FORM_ID = 'skill-proficiency-edit-form';
 
-export default function SpellEditRoute() {
+export default function SkillProficiencyEditRoute() {
   const { campaignId, campaign } = useActiveCampaign();
-  const { spellId } = useParams<{ spellId: string }>();
+  const { skillProficiencyId } = useParams<{ skillProficiencyId: string }>();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
 
   const viewer = campaign?.viewer;
   const canDelete = Boolean(
-    spellId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner),
+    skillProficiencyId &&
+      campaignId &&
+      (viewer?.isPlatformAdmin || viewer?.isOwner),
   );
 
-  const { entry: spell, loading, error, notFound } = useCampaignContentEntry<Spell>({
-    campaignId: campaignId ?? undefined,
-    entryId: spellId,
-    fetchEntry: spellRepo.getEntry,
-  });
+  const { entry: skillProficiency, loading, error, notFound } =
+    useCampaignContentEntry<SkillProficiency>({
+      campaignId: campaignId ?? undefined,
+      entryId: skillProficiencyId,
+      fetchEntry: skillProficiencyRepo.getEntry,
+    });
 
-  const methods = useForm<SpellFormValues>({
-    defaultValues: SPELL_FORM_DEFAULTS,
+  const methods = useForm<SkillProficiencyFormValues>({
+    defaultValues: SKILL_PROFICIENCY_FORM_DEFAULTS,
     mode: 'onBlur',
     reValidateMode: 'onChange',
   });
@@ -75,8 +78,8 @@ export default function SpellEditRoute() {
     clearFeedback,
   } = useEditRouteFeedbackState();
 
-  const isSystem = spell?.source === 'system';
-  const isCampaign = spell?.source === 'campaign';
+  const isSystem = skillProficiency?.source === 'system';
+  const isCampaign = skillProficiency?.source === 'campaign';
 
   const {
     initialPatch,
@@ -85,19 +88,29 @@ export default function SpellEditRoute() {
     onPatchChange,
   } = useSystemEntryPatchState(
     campaignId ?? undefined,
-    spellId,
-    spell,
+    skillProficiencyId,
+    skillProficiency,
     !!isSystem,
-    'spells'
+    'skillProficiencies'
   );
 
-  useCampaignEntryFormReset(spell, isCampaign ?? false, reset, spellToFormValues);
+  useCampaignEntryFormReset(
+    skillProficiency,
+    isCampaign ?? false,
+    reset,
+    skillProficiencyToFormValues
+  );
   useResetEditFeedbackOnChange(watch, clearFeedback);
 
-  const { policyValue, handlePolicyChange } = useAccessPolicyField<SpellFormValues>(watch, setValue);
+  const { policyValue, handlePolicyChange } = useAccessPolicyField<SkillProficiencyFormValues>(
+    watch,
+    setValue
+  );
 
   const driver = usePatchDriverState(
-    spell ? (spell as unknown as Record<string, unknown>) : null,
+    skillProficiency
+      ? (skillProficiency as unknown as Record<string, unknown>)
+      : null,
     initialPatch,
     onPatchChange,
     clearFeedback
@@ -107,19 +120,19 @@ export default function SpellEditRoute() {
 
   const handleCampaignSubmit = useCampaignEntrySubmit({
     campaignId: campaignId ?? undefined,
-    entryId: spellId,
-    updateEntry: spellRepo.updateEntry,
+    entryId: skillProficiencyId,
+    updateEntry: skillProficiencyRepo.updateEntry,
     reset,
-    toFormValues: spellToFormValues,
-    toInput: toSpellInput,
+    toFormValues: skillProficiencyToFormValues,
+    toInput: toSkillProficiencyInput,
     feedback: { setSaving, setSuccess, setErrors },
   });
 
   const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
     useSystemPatchActions({
       campaignId: campaignId ?? undefined,
-      entryId: spellId,
-      collectionKey: 'spells',
+      entryId: skillProficiencyId,
+      collectionKey: 'skillProficiencies',
       driver,
       setInitialPatch,
       validationApiRef,
@@ -128,19 +141,24 @@ export default function SpellEditRoute() {
 
   const handleDelete = useEntryDeleteAction({
     campaignId: campaignId ?? undefined,
-    entryId: spellId,
-    deleteEntry: (cid, eid) => spellRepo.deleteEntry(cid, eid).then(() => {}),
+    entryId: skillProficiencyId,
+    deleteEntry: (cid, eid) =>
+      skillProficiencyRepo.deleteEntry(cid, eid).then(() => {}),
     navigate,
-    backPath: `/campaigns/${campaignId}/world/spells`,
+    backPath: `/campaigns/${campaignId}/world/skill-proficiencies`,
   });
 
   const handleValidateDelete = useCallback(async () => {
-    if (!campaignId || !spellId) return { allowed: true as const };
-    return validateSpellChange({ campaignId, spellId, mode: 'delete' });
-  }, [campaignId, spellId]);
+    if (!campaignId || !skillProficiencyId) return { allowed: true as const };
+    return validateSkillProficiencyChange({
+      campaignId,
+      skillProficiencyId,
+      mode: 'delete',
+    });
+  }, [campaignId, skillProficiencyId]);
 
   const handleBack = useCallback(
-    () => navigate(`/campaigns/${campaignId}/world/spells`),
+    () => navigate(`/campaigns/${campaignId}/world/skill-proficiencies`),
     [navigate, campaignId],
   );
 
@@ -150,17 +168,19 @@ export default function SpellEditRoute() {
         <CircularProgress />
       </Box>
     );
-  if (error || notFound || !spell)
+  if (error || notFound || !skillProficiency)
     return (
-      <AppAlert tone="danger">{error ?? 'Spell not found.'}</AppAlert>
+      <AppAlert tone="danger">
+        {error ?? 'Skill proficiency not found.'}
+      </AppAlert>
     );
 
-  const fieldConfigs = getSpellFieldConfigs({ policyCharacters });
+  const fieldConfigs = getSkillProficiencyFieldConfigs({ policyCharacters });
 
   if (isSystem && driver) {
     return (
       <EntryEditorLayout
-        typeLabel="Spell Patch"
+        typeLabel="Skill Proficiency Patch"
         isNew={false}
         saving={saving}
         dirty={driver.isDirty()}
@@ -171,9 +191,9 @@ export default function SpellEditRoute() {
       >
         <Stack spacing={2}>
           <Typography variant="subtitle1" fontWeight={600}>
-            Patching: {spell.name}
+            Patching: {skillProficiency.name}
           </Typography>
-          {spell.patched && (
+          {skillProficiency.patched && (
             <AppBadge label="Patched" tone="warning" size="small" />
           )}
           <ConditionalFormRenderer
@@ -208,7 +228,7 @@ export default function SpellEditRoute() {
   return (
     <FormProvider {...methods}>
       <EntryEditorLayout
-        typeLabel="Spell"
+        typeLabel="Skill Proficiency"
         isNew={false}
         saving={saving}
         dirty={isDirty}

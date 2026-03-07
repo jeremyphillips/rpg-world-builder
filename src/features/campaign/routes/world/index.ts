@@ -1,8 +1,4 @@
 export { default as WorldLayout } from './WorldLayout'
-export { ClassListRoute, ClassDetailRoute, ClassCreateRoute, ClassEditRoute } from './classes'
 export { LocationsRoute, LocationRoute } from './locations'
 export { NpcsRoute, NpcRoute } from './npcs'
 export { MonstersRoute, MonsterRoute } from './monsters'
-export { SpellListRoute, SpellDetailRoute, SpellCreateRoute, SpellEditRoute } from './spells'
-export { SkillProficiencyListRoute, SkillProficiencyDetailRoute, SkillProficiencyCreateRoute, SkillProficiencyEditRoute } from './skillProficiencies'
-export { RaceListRoute, RaceDetailRoute, RaceCreateRoute, RaceEditRoute } from './races'

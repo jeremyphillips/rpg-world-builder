@@ -8,13 +8,13 @@ import { useCampaignMembers } from '@/features/campaign/hooks';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { useCreateEntrySubmit } from '@/features/content/shared/hooks/useCreateEntrySubmit';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
-import { spellRepo } from '@/features/content/domain/repo';
 import {
+  spellRepo,
   type SpellFormValues,
   getSpellFieldConfigs,
   SPELL_FORM_DEFAULTS,
   toSpellInput,
-} from '@/features/spell/forms';
+} from '@/features/content/spells/domain';
 
 const FORM_ID = 'spell-create-form';
 

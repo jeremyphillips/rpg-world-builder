@@ -3,7 +3,31 @@ export { default as DashboardRoute } from './DashboardRoute'
 export { default as CampaignRoute } from './CampaignRoute'
 export { default as PartyRoute } from './PartyRoute'
 export { default as RulesRoute } from './RulesRoute'
-export { WorldLayout, ClassListRoute, ClassDetailRoute, ClassCreateRoute, ClassEditRoute, LocationsRoute, LocationRoute, NpcsRoute, NpcRoute, MonstersRoute, MonsterRoute, SpellListRoute, SpellDetailRoute, SpellCreateRoute, SpellEditRoute, SkillProficiencyListRoute, SkillProficiencyDetailRoute, SkillProficiencyCreateRoute, SkillProficiencyEditRoute, RaceListRoute, RaceDetailRoute, RaceCreateRoute, RaceEditRoute } from './world'
+export { WorldLayout, LocationsRoute, LocationRoute, NpcsRoute, NpcRoute, MonstersRoute, MonsterRoute } from './world'
+export {
+  ClassListRoute,
+  ClassDetailRoute,
+  ClassCreateRoute,
+  ClassEditRoute,
+} from '@/features/content/classes/routes'
+export {
+  RaceListRoute,
+  RaceDetailRoute,
+  RaceCreateRoute,
+  RaceEditRoute,
+} from '@/features/content/races/routes'
+export {
+  SpellListRoute,
+  SpellDetailRoute,
+  SpellCreateRoute,
+  SpellEditRoute,
+} from '@/features/content/spells/routes'
+export {
+  SkillProficiencyListRoute,
+  SkillProficiencyDetailRoute,
+  SkillProficiencyCreateRoute,
+  SkillProficiencyEditRoute,
+} from '@/features/content/skillProficiencies/routes'
 export {
   EquipmentHubRoute,
   WeaponsListRoute,
@@ -22,7 +46,7 @@ export {
   ArmorCreateRoute,
   GearCreateRoute,
   MagicItemCreateRoute,
-} from './world/equipment'
+} from '@/features/content/equipment/routes'
 export { SessionsRoute, SessionRoute } from './sessions'
 export { MessagingRoute } from './messaging'
 export { AdminGuard, CampaignAdminRoute, CampaignAdminSettingsRoute, CampaignAdminInvitesRoute, CampaignRulesetEditorRoute } from './admin'

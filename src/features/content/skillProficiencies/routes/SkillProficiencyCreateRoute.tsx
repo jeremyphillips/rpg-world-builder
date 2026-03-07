@@ -7,8 +7,8 @@ import { useCampaignMembers } from '@/features/campaign/hooks';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { useCreateEntrySubmit } from '@/features/content/shared/hooks/useCreateEntrySubmit';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
-import { skillProficiencyRepo } from '@/features/content/domain/repo';
 import {
+  skillProficiencyRepo,
   type SkillProficiencyFormValues,
   getSkillProficiencyFieldConfigs,
   SKILL_PROFICIENCY_FORM_DEFAULTS,

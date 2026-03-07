@@ -5,28 +5,30 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
-import type { Race } from '@/features/content/shared/domain/types';
+import {
+  skillProficiencyRepo,
+  SKILL_PROFICIENCY_DETAIL_SPECS,
+} from '@/features/content/skillProficiencies/domain';
+import type { SkillProficiency } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { resolveImageUrl } from '@/shared/lib/media';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
-import { raceRepo, RACE_DETAIL_SPECS } from '@/features/content/races/domain';
 
-export default function RaceDetailRoute() {
+export default function SkillProficiencyDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();
-  const { raceId } = useParams<{ raceId: string }>();
+  const { skillProficiencyId } = useParams<{ skillProficiencyId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
 
-  const { entry: race, loading, error, notFound } = useCampaignContentEntry<Race>({
+  const { entry: skillProficiency, loading, error, notFound } = useCampaignContentEntry<SkillProficiency>({
     campaignId: campaignId ?? undefined,
-    entryId: raceId,
-    fetchEntry: raceRepo.getEntry,
+    entryId: skillProficiencyId,
+    fetchEntry: skillProficiencyRepo.getEntry,
   });
 
   if (loading) {
@@ -37,45 +39,39 @@ export default function RaceDetailRoute() {
     );
   }
 
-  if (error || notFound || !race) {
-    return <AppAlert tone="danger">{error ?? 'Race not found.'}</AppAlert>;
+  if (error || notFound || !skillProficiency) {
+    return <AppAlert tone="danger">{error ?? 'Skill proficiency not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/races`;
-  const editPath = `${listPath}/${raceId}/edit`;
+  const listPath = `/campaigns/${campaignId}/world/skill-proficiencies`;
+  const editPath = `${listPath}/${skillProficiencyId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(RACE_DETAIL_SPECS, race, {});
-console.log('race', race);
+  const items = buildDetailItemsFromSpecs(SKILL_PROFICIENCY_DETAIL_SPECS, skillProficiency, {});
+
   return (
     <ContentDetailScaffold
-      title={race.name}
+      title={skillProficiency.name}
       breadcrumbData={breadcrumbs}
       listPath={listPath}
       editPath={editPath}
       canEdit={canManage}
-      source={race.source}
-      accessPolicy={race.accessPolicy}
+      source={skillProficiency.source}
+      accessPolicy={skillProficiency.accessPolicy}
     >
-      {race.patched && (
+      {skillProficiency.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
         </Box>
       )}
 
-      {race.imageKey && (
-        <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(race.imageKey)} alt={race.name} style={{ maxHeight: 200 }} />
-        </Box>
-      )}
-
-      {race.description && (
+      {skillProficiency.description && (
         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {race.description}
+          {skillProficiency.description}
         </Typography>
       )}
 
       <KeyValueSection
-        title="Race Details"
+        title="Skill Details"
         items={items}
         columns={2}
         sx={{ mt: 2 }}
