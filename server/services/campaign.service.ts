@@ -306,7 +306,14 @@ export async function getPartyCharacters(
     name: (campaign.identity?.name as string) ?? '',
   }
 
-  const refs = loadCharacterReadReferences()
+  const characterSources = characters.map((c) => ({
+    race: c.race as string | undefined,
+    classes: (c.classes as CharacterDocForCard['classes']) ?? [],
+  }))
+  const refs = await loadCharacterReadReferences({
+    characters: characterSources,
+    include: {},
+  })
 
   return characters.map((c): CharacterRosterSummary => {
     const charId = (c._id as mongoose.Types.ObjectId).toString()

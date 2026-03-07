@@ -128,10 +128,35 @@ export type CharacterDetailDto = {
 // Reference types (for mappers)
 // ---------------------------------------------------------------------------
 
+/** Minimal character shape needed to collect reference IDs for resolution. */
+export type CharacterReadSource = {
+  race?: string
+  classes?: Array<{ classId?: string; subclassId?: string }>
+  proficiencies?: { skills?: string[] }
+  equipment?: {
+    armor?: string[]
+    weapons?: string[]
+    gear?: string[]
+  }
+}
+
+export type IdNameSummary = {
+  id: string
+  name: string
+}
+
 export type CharacterReadReferences = {
-  raceById: Map<string, { id: string; name: string }>
-  classById: Map<string, { id: string; name: string }>
-  subclassById: Map<string, { id: string; name: string }>
-  proficiencyById: Map<string, { id: string; name: string }>
-  itemById: Map<string, { id: string; name: string }>
+  raceById: Map<string, IdNameSummary>
+  classById: Map<string, IdNameSummary>
+  subclassById: Map<string, IdNameSummary>
+  proficiencyById: Map<string, IdNameSummary>
+  itemById: Map<string, IdNameSummary>
+}
+
+export type LoadCharacterReadReferencesArgs = {
+  characters: CharacterReadSource[]
+  include?: {
+    proficiencies?: boolean
+    items?: boolean
+  }
 }

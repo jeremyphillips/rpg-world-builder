@@ -60,7 +60,6 @@ export async function getCharacterDetail(characterId: string): Promise<Character
     name: (c.identity?.name as string) ?? '',
   }))
 
-  const refs = loadCharacterReadReferences()
   const doc: CharacterDocForDetail = {
     _id: character._id as { toString(): string },
     name: character.name as string,
@@ -84,6 +83,10 @@ export async function getCharacterDetail(characterId: string): Promise<Character
     xp: character.xp as number | undefined,
   }
 
+  const refs = await loadCharacterReadReferences({
+    characters: [doc],
+    include: { proficiencies: true, items: true },
+  })
   return toCharacterDetailDto(doc, campaignsSimple, refs, getPublicUrl)
 }
 
@@ -324,7 +327,14 @@ export async function getMyCharactersWithCampaign(userId: string, type?: string)
     })
   }
 
-  const refs = loadCharacterReadReferences()
+  const characterSources = characters.map((char) => ({
+    race: char.race as string | undefined,
+    classes: (char.classes as CharacterDocForCard['classes']) ?? [],
+  }))
+  const refs = await loadCharacterReadReferences({
+    characters: characterSources,
+    include: {},
+  })
 
   return characters.map((char) => {
     const charId = (char._id as mongoose.Types.ObjectId).toString()
@@ -365,7 +375,14 @@ export async function getCharactersAvailableForCampaign(userId: string): Promise
   const availableCharacters = characters.filter((c) => !characterIdsInCampaign.has((c._id as mongoose.Types.ObjectId).toString()))
   if (availableCharacters.length === 0) return []
 
-  const refs = loadCharacterReadReferences()
+  const characterSources = availableCharacters.map((char) => ({
+    race: char.race as string | undefined,
+    classes: (char.classes as CharacterDocForCard['classes']) ?? [],
+  }))
+  const refs = await loadCharacterReadReferences({
+    characters: characterSources,
+    include: {},
+  })
 
   return availableCharacters.map((char) => {
     const doc: CharacterDocForCard = {
