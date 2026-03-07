@@ -1,16 +1,22 @@
 import type { Request, Response } from 'express'
+import { validateRequired } from '../../../shared/validators/common'
 import { loginUser, getUserById, updateProfile } from '../services/auth.service'
 import { setTokenCookie, clearTokenCookie } from '../../../shared/utils/cookies'
 import { signToken, verifyToken } from '../../../shared/utils/jwt'
 
 export async function login(req: Request, res: Response) {
-  const { email, password } = req.body
-
-  if (!email || !password) {
-    res.status(400).json({ error: 'Email and password are required' })
+  const emailCheck = validateRequired(req.body.email, 'email')
+  if (!emailCheck.valid) {
+    res.status(400).json({ error: emailCheck.message })
+    return
+  }
+  const passwordCheck = validateRequired(req.body.password, 'password')
+  if (!passwordCheck.valid) {
+    res.status(400).json({ error: passwordCheck.message })
     return
   }
 
+  const { email, password } = req.body
   const result = await loginUser(email, password)
 
   if (!result) {
@@ -61,16 +67,11 @@ export async function updateMe(req: Request, res: Response) {
     bio, website, email, notificationPreferences,
   } = req.body
 
-  try {
-    const user = await updateProfile(req.userId, {
-      firstName, lastName, username, avatarKey,
-      bio, website, email, notificationPreferences,
-    })
-    res.json({ user })
-  } catch (err) {
-    console.error('Failed to update profile:', err)
-    res.status(500).json({ error: 'Failed to update profile' })
-  }
+  const user = await updateProfile(req.userId, {
+    firstName, lastName, username, avatarKey,
+    bio, website, email, notificationPreferences,
+  })
+  res.json({ user })
 }
 
 export async function register(req: Request, res: Response) {
@@ -124,93 +125,88 @@ export async function resolveInvite(req: Request, res: Response) {
     return
   }
 
-  try {
-    const mongoose = await import('mongoose')
-    const { env } = await import('../../../shared/config/env')
-    const db = mongoose.default.connection.useDb(env.DB_NAME)
+  const mongoose = await import('mongoose')
+  const { env } = await import('../../../shared/config/env')
+  const db = mongoose.default.connection.useDb(env.DB_NAME)
 
-    // Check if token was already consumed
-    const rawDoc = await db.collection('inviteTokens').findOne({ token: inviteToken })
-    if (!rawDoc) {
-      res.json({ status: 'invalid' })
-      return
-    }
-    if (rawDoc.usedAt) {
-      res.json({ status: 'used' })
-      return
-    }
-    if (new Date() > (rawDoc.expiresAt as Date)) {
-      res.json({ status: 'expired' })
-      return
-    }
+  // Check if token was already consumed
+  const rawDoc = await db.collection('inviteTokens').findOne({ token: inviteToken })
+  if (!rawDoc) {
+    res.json({ status: 'invalid' })
+    return
+  }
+  if (rawDoc.usedAt) {
+    res.json({ status: 'used' })
+    return
+  }
+  if (new Date() > (rawDoc.expiresAt as Date)) {
+    res.json({ status: 'expired' })
+    return
+  }
 
-    // Token is valid — gather campaign info
-    const campaign = await db.collection('campaigns').findOne(
-      { _id: rawDoc.campaignId },
-      { projection: { 'identity.name': 1 } },
-    )
+  // Token is valid — gather campaign info
+  const campaign = await db.collection('campaigns').findOne(
+    { _id: rawDoc.campaignId },
+    { projection: { 'identity.name': 1 } },
+  )
 
-    const campaignInfo = {
-      campaignId: rawDoc.campaignId.toString(),
-      campaignName: (campaign?.identity?.name as string) ?? '',
-    }
+  const campaignInfo = {
+    campaignId: rawDoc.campaignId.toString(),
+    campaignName: (campaign?.identity?.name as string) ?? '',
+  }
 
-    // Check if an account with this email already exists
-    const existingUser = await db.collection('users').findOne(
-      { email: rawDoc.email },
-      { projection: { _id: 1 } },
-    )
+  // Check if an account with this email already exists
+  const existingUser = await db.collection('users').findOne(
+    { email: rawDoc.email },
+    { projection: { _id: 1 } },
+  )
 
-    // Is the caller logged in?
-    let loggedInUserId: string | null = null
-    const cookieToken = req.cookies?.token
-    if (cookieToken) {
-      try {
-        const payload = verifyToken(cookieToken)
-        loggedInUserId = payload.userId
-      } catch { /* expired/invalid session — treat as unauthenticated */ }
-    }
+  // Is the caller logged in?
+  let loggedInUserId: string | null = null
+  const cookieToken = req.cookies?.token
+  if (cookieToken) {
+    try {
+      const payload = verifyToken(cookieToken)
+      loggedInUserId = payload.userId
+    } catch { /* expired/invalid session — treat as unauthenticated */ }
+  }
 
-    // Not logged in
-    if (!loggedInUserId) {
-      res.json({
-        status: 'valid',
-        userExists: !!existingUser,
-        loggedIn: false,
-        email: rawDoc.email,
-        ...campaignInfo,
-      })
-      return
-    }
-
-    // Logged in — check campaign membership and character
-    const member = await db.collection('campaignMembers').findOne({
-      campaignId: rawDoc.campaignId,
-      userId: new mongoose.default.Types.ObjectId(loggedInUserId),
-    })
-
-    let hasCharacter = false
-    if (member?.characterId) {
-      const character = await db.collection('characters').findOne(
-        { _id: member.characterId, deletedAt: { $exists: false } },
-        { projection: { _id: 1 } },
-      )
-      hasCharacter = !!character
-    }
-
+  // Not logged in
+  if (!loggedInUserId) {
     res.json({
       status: 'valid',
-      userExists: true,
-      loggedIn: true,
+      userExists: !!existingUser,
+      loggedIn: false,
       email: rawDoc.email,
-      isMember: !!member,
-      hasCharacter,
       ...campaignInfo,
     })
-  } catch (err) {
-    console.error('Failed to resolve invite:', err)
-    res.status(500).json({ error: 'Failed to resolve invite' })
+    return
   }
+
+  // Logged in — check campaign membership and character
+  const member = await db.collection('campaignMembers').findOne({
+    campaignId: rawDoc.campaignId,
+    userId: new mongoose.default.Types.ObjectId(loggedInUserId),
+  })
+
+  let hasCharacter = false
+  if (member?.characterId) {
+    const character = await db.collection('characters').findOne(
+      { _id: member.characterId, deletedAt: { $exists: false } },
+      { projection: { _id: 1 } },
+    )
+    hasCharacter = !!character
+  }
+
+  res.json({
+    status: 'valid',
+    userExists: true,
+    loggedIn: true,
+    email: rawDoc.email,
+    isMember: !!member,
+    hasCharacter,
+    ...campaignInfo,
+  })
 }
 
 /**

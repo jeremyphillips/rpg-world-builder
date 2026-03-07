@@ -6,12 +6,12 @@ import { login, logout, register, resolveInvite, acceptInvite, getMe, updateMe, 
 const router = Router()
 
 router.post('/register', asyncHandler(register))
-router.post('/login', login)
+router.post('/login', asyncHandler(login))
 router.post('/logout', logout)
-router.post('/resolve-invite', resolveInvite)
+router.post('/resolve-invite', asyncHandler(resolveInvite))
 router.post('/accept-invite', requireAuth, asyncHandler(acceptInvite))
-router.get('/me', getMe)
-router.patch('/me', requireAuth, updateMe)
-router.get('/socket-token', requireAuth, getSocketToken)
+router.get('/me', asyncHandler(getMe))
+router.patch('/me', requireAuth, asyncHandler(updateMe))
+router.get('/socket-token', requireAuth, asyncHandler(getSocketToken))
 
 export default router

@@ -79,19 +79,19 @@ router.post('/', requireRole('admin', 'superadmin'), asyncHandler(createCampaign
 router.get('/:id', requireCampaignRole('observer'), asyncHandler(getCampaign))
 
 // Campaign update/delete — owner only
-router.patch('/:id', requireCampaignRole('observer'), requireCampaignOwner(), updateCampaign)
-router.delete('/:id', requireCampaignRole('observer'), requireCampaignOwner(), deleteCampaign)
+router.patch('/:id', requireCampaignRole('observer'), requireCampaignOwner(), asyncHandler(updateCampaign))
+router.delete('/:id', requireCampaignRole('observer'), requireCampaignOwner(), asyncHandler(deleteCampaign))
 
 // Party characters — any member can view
-router.get('/:id/party', requireCampaignRole('observer'), getPartyCharacters)
+router.get('/:id/party', requireCampaignRole('observer'), asyncHandler(getPartyCharacters))
 
 // Members — dm can view, owner can manage
-router.get('/:id/members', requireCampaignRole('dm'), getMembers)
-router.get('/:id/members-for-messaging', requireCampaignRole('observer'), getMembersForMessaging)
+router.get('/:id/members', requireCampaignRole('dm'), asyncHandler(getMembers))
+router.get('/:id/members-for-messaging', requireCampaignRole('observer'), asyncHandler(getMembersForMessaging))
 router.post('/:id/members/pre-check', requireCampaignRole('observer'), requireCampaignOwner(), asyncHandler(preCheckMember))
 router.post('/:id/members', requireCampaignRole('observer'), requireCampaignOwner(), asyncHandler(addMember))
-router.patch('/:id/members/:userId', requireCampaignRole('observer'), requireCampaignOwner(), updateMember)
-router.delete('/:id/members/:userId', requireCampaignRole('observer'), requireCampaignOwner(), removeMember)
+router.patch('/:id/members/:userId', requireCampaignRole('observer'), requireCampaignOwner(), asyncHandler(updateMember))
+router.delete('/:id/members/:userId', requireCampaignRole('observer'), requireCampaignOwner(), asyncHandler(removeMember))
 
 // Notes — any member can read, owner can write
 router.get('/:id/notes', requireCampaignRole('observer'), getNotes)
