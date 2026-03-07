@@ -1,14 +1,10 @@
 import type { Request, Response } from 'express'
-import mongoose from 'mongoose'
 import type { CampaignMemberStoredRole } from '../../shared/types'
 import { validateRequired } from '../validators/common'
 import * as campaignService from '../services/campaign.service'
 import {
-  getViewerMembershipContext,
-  hydrateMemberViews,
   preCheckMember as preCheckMemberService,
   addMemberOrInvite as addMemberOrInviteService,
-  type CampaignMemberDoc,
 } from '../services/campaignMember.service'
 
 // ---------------------------------------------------------------------------
@@ -21,55 +17,12 @@ export async function getCampaigns(req: Request, res: Response) {
 }
 
 export async function getCampaign(req: Request, res: Response) {
-  const raw = req.campaign!
-  const viewerCtx = req.viewerContext!
-
-  const memberCtx = await getViewerMembershipContext(req.params.id, req.userId!)
-
-  // ------------------------------------------------------------------
-  // Status counts (always computed from all members, regardless of
-  // the viewer's privilege level — counts are non-sensitive metadata).
-  // ------------------------------------------------------------------
-  const counts = { pending: 0, approved: 0, declined: 0, total: memberCtx.allMembers.length }
-  for (const m of memberCtx.allMembers) {
-    const s = m.status as string
-    if (s === 'pending') counts.pending++
-    else if (s === 'approved') counts.approved++
-    else if (s === 'declined') counts.declined++
-  }
-
-  // ------------------------------------------------------------------
-  // Visibility-filtered member list
-  // ------------------------------------------------------------------
-  const canSeeAll = viewerCtx.isOwner || viewerCtx.isPlatformAdmin
-  const uid = new mongoose.Types.ObjectId(req.userId!)
-
-  const visibleMembers: CampaignMemberDoc[] = canSeeAll
-    ? memberCtx.allMembers
-    : memberCtx.allMembers.filter((m) => {
-        const status = m.status as string
-        if (status === 'approved') return true
-        if (status === 'pending' && (m.userId as mongoose.Types.ObjectId).equals(uid))
-          return true
-        return false
-      })
-
-  const items = await hydrateMemberViews(visibleMembers)
-
-  const campaign = {
-    ...raw,
-    viewer: {
-      campaignRole: viewerCtx.isOwner ? 'owner' : viewerCtx.campaignRole,
-      isPlatformAdmin: viewerCtx.isPlatformAdmin,
-      isOwner: viewerCtx.isOwner,
-    },
-    members: {
-      counts,
-      items,
-      viewerCharacterIds: viewerCtx.characterIds,
-    },
-  }
-
+  const { campaign } = await campaignService.getCampaignWithMembers(
+    req.params.id,
+    req.userId!,
+    req.campaign!,
+    req.viewerContext!,
+  )
   res.json({ campaign })
 }
 

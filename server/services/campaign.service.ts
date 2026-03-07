@@ -1,6 +1,13 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
+import { toObjectId } from '../utils/db'
 import type { CampaignMemberStoredRole } from '../../shared/types'
+import type { CampaignViewerContext } from '../auth/resolveCampaignViewerContext'
+import {
+  getViewerMembershipContext,
+  hydrateMemberViews,
+  type CampaignMemberDoc,
+} from './campaignMember.service'
 import { getPublicUrl } from '../services/image.service'
 import {
   type CharacterRosterSummary,
@@ -108,6 +115,73 @@ export async function getCampaignById(id: string) {
   })
 
   return normalizeCampaign(campaign, memberCount)
+}
+
+export type GetCampaignWithMembersResult = {
+  campaign: Awaited<ReturnType<typeof getCampaignById>> & {
+    viewer: {
+      campaignRole: string | null
+      isPlatformAdmin: boolean
+      isOwner: boolean
+    }
+    members: {
+      counts: { pending: number; approved: number; declined: number; total: number }
+      items: Awaited<ReturnType<typeof hydrateMemberViews>>
+      viewerCharacterIds: string[]
+    }
+  }
+}
+
+/**
+ * Build campaign response with visibility-filtered members and hydrated views.
+ * Used by GET /campaigns/:id.
+ */
+export async function getCampaignWithMembers(
+  campaignId: string,
+  userId: string,
+  campaign: Awaited<ReturnType<typeof getCampaignById>>,
+  viewerContext: CampaignViewerContext,
+): Promise<GetCampaignWithMembersResult> {
+  const memberCtx = await getViewerMembershipContext(campaignId, userId)
+
+  const counts = { pending: 0, approved: 0, declined: 0, total: memberCtx.allMembers.length }
+  for (const m of memberCtx.allMembers) {
+    const s = m.status as string
+    if (s === 'pending') counts.pending++
+    else if (s === 'approved') counts.approved++
+    else if (s === 'declined') counts.declined++
+  }
+
+  const canSeeAll = viewerContext.isOwner || viewerContext.isPlatformAdmin
+  const uid = toObjectId(userId)
+
+  const visibleMembers: CampaignMemberDoc[] = canSeeAll
+    ? (memberCtx.allMembers as CampaignMemberDoc[])
+    : (memberCtx.allMembers as CampaignMemberDoc[]).filter((m) => {
+        const status = m.status as string
+        if (status === 'approved') return true
+        if (status === 'pending' && (m.userId as mongoose.Types.ObjectId).equals(uid))
+          return true
+        return false
+      })
+
+  const items = await hydrateMemberViews(visibleMembers)
+
+  return {
+    campaign: {
+      ...campaign,
+      viewer: {
+        campaignRole: viewerContext.isOwner ? 'owner' : viewerContext.campaignRole,
+        isPlatformAdmin: viewerContext.isPlatformAdmin,
+        isOwner: viewerContext.isOwner,
+      },
+      members: {
+        counts,
+        items,
+        viewerCharacterIds: viewerContext.characterIds,
+      },
+    } as GetCampaignWithMembersResult['campaign'],
+  }
 }
 
 export async function createCampaign(
