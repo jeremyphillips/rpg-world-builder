@@ -1,5 +1,8 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
+import { getDb } from '../utils/db'
+import { forbidden, notFound } from '../errors/ApiError'
+import { resolveCharacterAccess } from '../auth/resolveCharacterAccess'
 import type { CharacterDoc } from '../../src/features/character/domain/types/characterDoc.types'
 import { getPublicUrl } from '../services/image.service'
 import {
@@ -88,6 +91,66 @@ export async function getCharacterDetail(characterId: string): Promise<Character
     include: { proficiencies: true, items: true },
   })
   return toCharacterDetailDto(doc, campaignsSimple, refs, getPublicUrl)
+}
+
+export type GetCharacterWithContextResult = {
+  character: CharacterDetailDto
+  campaigns: Awaited<ReturnType<typeof getCampaignsForCharacter>>
+  isOwner: boolean
+  isAdmin: boolean
+  pendingMemberships: Awaited<ReturnType<typeof getPendingMembershipsForAdmin>>
+  ownerName?: string
+}
+
+/**
+ * Get character with full context for GET /characters/:id.
+ * Resolves access, fetches campaigns, pending memberships, and owner name.
+ * Throws ApiError on 404 or 403.
+ */
+export async function getCharacterWithContext(
+  characterId: string,
+  userId: string,
+  userRole?: string | null,
+): Promise<GetCharacterWithContextResult> {
+  const characterDoc = await getCharacterById(characterId)
+  if (!characterDoc) throw notFound('Character not found')
+
+  const access = resolveCharacterAccess({
+    character: characterDoc as { userId: mongoose.Types.ObjectId },
+    userId,
+    userRole,
+  })
+  if (!access.canRead) throw forbidden()
+
+  const isAdmin = await isCampaignAdminForCharacter(characterId, userId)
+
+  let ownerName: string | undefined
+  if (!access.isOwner) {
+    const ownerUser = await getDb()
+      .collection('users')
+      .findOne(
+        { _id: characterDoc.userId },
+        { projection: { username: 1 } },
+      )
+    ownerName = ownerUser?.username as string | undefined
+  }
+
+  const [campaigns, pendingMemberships, character] = await Promise.all([
+    getCampaignsForCharacter(characterId),
+    getPendingMembershipsForAdmin(characterId, userId),
+    getCharacterDetail(characterId),
+  ])
+
+  if (!character) throw notFound('Character not found')
+
+  return {
+    character,
+    campaigns,
+    isOwner: access.isOwner,
+    isAdmin,
+    pendingMemberships,
+    ownerName,
+  }
 }
 
 export async function createCharacter(userId: string, data: CharacterDoc) {

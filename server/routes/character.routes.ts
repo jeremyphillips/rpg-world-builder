@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { requireAuth } from '../middleware/requireAuth'
+import { asyncHandler } from '../middleware/asyncHandler'
 import {
   getCharacters,
   getMyCharacters,
@@ -15,11 +16,11 @@ const router = Router()
 router.use(requireAuth)
 
 router.get('/', getCharacters)
-router.get('/me', getMyCharacters)
-router.get('/available-for-campaign', getCharactersAvailableForCampaign)
+router.get('/me', asyncHandler(getMyCharacters))
+router.get('/available-for-campaign', asyncHandler(getCharactersAvailableForCampaign))
 router.post('/', createCharacter)
 
-router.get('/:id', getCharacter)
+router.get('/:id', asyncHandler(getCharacter))
 router.patch('/:id', updateCharacter)
 router.delete('/:id', deleteCharacter)
 

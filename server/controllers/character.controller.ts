@@ -1,27 +1,14 @@
 import type { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import * as characterService from '../services/character.service'
+import { validateRequired } from '../validators/common'
+import { resolveCharacterAccess } from '../auth/resolveCharacterAccess'
 import * as campaignMemberService from '../services/campaignMember.service'
 import { getCampaignById } from '../services/campaign.service'
 import * as notificationService from '../services/notification.service'
 import { env } from '../config/env'
-import { isPlatformAdmin as checkPlatformAdmin } from '../auth/platformAdmin'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
-
-function resolveCharacterAccess(args: {
-  character: any
-  userId: string
-  userRole?: string | null
-  isCampaignAdmin?: boolean
-}) {
-  const isOwner = (args.character.userId as mongoose.Types.ObjectId).equals(new mongoose.Types.ObjectId(args.userId))
-  const isPlatformAdmin = checkPlatformAdmin(args.userRole)
-  const canRead = isOwner || isPlatformAdmin
-  const canWrite = isOwner || isPlatformAdmin || Boolean(args.isCampaignAdmin)
-  const canDelete = isOwner || isPlatformAdmin
-  return { isOwner, isPlatformAdmin, canRead, canWrite, canDelete }
-}
 
 export async function getCharacters(req: Request, res: Response) {
   const type = req.query.type as string | undefined
@@ -30,69 +17,31 @@ export async function getCharacters(req: Request, res: Response) {
 }
 
 export async function getMyCharacters(req: Request, res: Response) {
-  try {
-    const type = req.query.type as string | undefined
-    const characters = await characterService.getMyCharactersWithCampaign(req.userId!, type)
-    res.json({ characters })
-  } catch (err) {
-    console.error('Failed to get my characters:', err)
-    res.status(500).json({ error: 'Failed to load characters' })
-  }
+  const type = req.query.type as string | undefined
+  const characters = await characterService.getMyCharactersWithCampaign(req.userId!, type)
+  res.json({ characters })
 }
 
 export async function getCharactersAvailableForCampaign(req: Request, res: Response) {
-  try {
-    const characters = await characterService.getCharactersAvailableForCampaign(req.userId!)
-    res.json({ characters })
-  } catch (err) {
-    console.error('Failed to get available characters:', err)
-    res.status(500).json({ error: 'Failed to load characters' })
-  }
+  const characters = await characterService.getCharactersAvailableForCampaign(req.userId!)
+  res.json({ characters })
 }
 
 export async function getCharacter(req: Request, res: Response) {
-  const characterDoc = await characterService.getCharacterById(req.params.id)
-
-  if (!characterDoc) {
-    res.status(404).json({ error: 'Character not found' })
-    return
-  }
-
-  const access = resolveCharacterAccess({ character: characterDoc, userId: req.userId!, userRole: req.userRole })
-
-  if (!access.canRead) {
-    res.status(403).json({ error: 'Forbidden' })
-    return
-  }
-
-  const isCampaignAdmin = await characterService.isCampaignAdminForCharacter(req.params.id, req.userId!)
-
-  let ownerName: string | undefined
-  if (!access.isOwner) {
-    const ownerUser = await mongoose.connection
-      .useDb(process.env.DB_NAME || 'dnd')
-      .collection('users')
-      .findOne({ _id: characterDoc.userId }, { projection: { username: 1 } })
-    ownerName = ownerUser?.username ?? undefined
-  }
-
-  const campaigns = await characterService.getCampaignsForCharacter(req.params.id)
-  const pendingMemberships = await characterService.getPendingMembershipsForAdmin(req.params.id, req.userId!)
-  const character = await characterService.getCharacterDetail(req.params.id)
-
-  if (!character) {
-    res.status(404).json({ error: 'Character not found' })
-    return
-  }
-
-  res.json({ character, campaigns, isOwner: access.isOwner, isAdmin: isCampaignAdmin, pendingMemberships, ownerName })
+  const result = await characterService.getCharacterWithContext(
+    req.params.id,
+    req.userId!,
+    req.userRole,
+  )
+  res.json(result)
 }
 
 export async function createCharacter(req: Request, res: Response) {
   const { name, campaignId } = req.body
 
-  if (!name) {
-    res.status(400).json({ error: 'Character name is required' })
+  const nameCheck = validateRequired(name, 'Character name')
+  if (!nameCheck.valid) {
+    res.status(400).json({ error: nameCheck.message })
     return
   }
 
@@ -192,7 +141,12 @@ export async function updateCharacter(req: Request, res: Response) {
   }
 
   const isCampaignAdmin = await characterService.isCampaignAdminForCharacter(req.params.id, req.userId!)
-  const access = resolveCharacterAccess({ character, userId: req.userId!, userRole: req.userRole, isCampaignAdmin })
+  const access = resolveCharacterAccess({
+    character: character as { userId: mongoose.Types.ObjectId },
+    userId: req.userId!,
+    userRole: req.userRole,
+    isCampaignAdmin,
+  })
 
   if (!access.canWrite) {
     res.status(403).json({ error: 'Forbidden' })
@@ -259,7 +213,11 @@ export async function deleteCharacter(req: Request, res: Response) {
     return
   }
 
-  const access = resolveCharacterAccess({ character, userId: req.userId!, userRole: req.userRole })
+  const access = resolveCharacterAccess({
+    character: character as { userId: mongoose.Types.ObjectId },
+    userId: req.userId!,
+    userRole: req.userRole,
+  })
 
   if (!access.canDelete) {
     res.status(403).json({ error: 'Forbidden' })
