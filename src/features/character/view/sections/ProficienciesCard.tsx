@@ -1,6 +1,3 @@
-import type { CharacterDoc } from '@/features/character/domain/types'
-import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
-
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -11,16 +8,20 @@ import Divider from '@mui/material/Divider'
 import Tooltip from '@mui/material/Tooltip'
 import EditIcon from '@mui/icons-material/Edit'
 
+type ProficiencyItem = { id: string; name: string }
 type ProficienciesCardProps = {
-  proficiencies: CharacterDoc['proficiencies']
-  wealth: CharacterDoc['wealth']
+  proficiencies: { skills?: string[] } | ProficiencyItem[]
+  wealth: { gp?: number; sp?: number; cp?: number; baseBudget?: unknown }
   onEdit?: () => void
   editDisabled?: boolean
   onEditWealth?: () => void
 }
 
 export default function ProficienciesCard({ proficiencies, wealth, onEdit, editDisabled, onEditWealth }: ProficienciesCardProps) {
-  const skillIds = proficiencies?.skills ?? []
+  const isResolved = Array.isArray(proficiencies)
+  const items = isResolved
+    ? (proficiencies as ProficiencyItem[])
+    : ((proficiencies as { skills?: string[] })?.skills ?? []).map((id) => ({ id, name: id }))
 
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
@@ -44,10 +45,10 @@ export default function ProficienciesCard({ proficiencies, wealth, onEdit, editD
             </Tooltip>
           )}
         </Stack>
-        {skillIds.length > 0 ? (
+        {items.length > 0 ? (
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
-            {skillIds.map((id) => (
-              <Chip key={id} label={skillProficiencyIdToName(id)} size="small" variant="outlined" />
+            {items.map((item) => (
+              <Chip key={item.id} label={item.name} size="small" variant="outlined" />
             ))}
           </Stack>
         ) : (

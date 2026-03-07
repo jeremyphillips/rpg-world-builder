@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import type { CharacterDoc } from '@/features/character/domain/types'
+import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { CampaignSummary, PendingMembership } from '@/shared/types/campaign.types'
 import { apiFetch } from '@/app/api'
 
 interface CharacterResponse {
-  character: CharacterDoc
+  character: CharacterDetailDto
   campaigns: CampaignSummary[]
   isOwner: boolean
   isAdmin: boolean
@@ -13,7 +13,7 @@ interface CharacterResponse {
 }
 
 export interface UseCharacterReturn {
-  character: CharacterDoc | null
+  character: CharacterDetailDto | null
   campaigns: CampaignSummary[]
   isOwner: boolean
   isAdmin: boolean
@@ -22,7 +22,7 @@ export interface UseCharacterReturn {
   loading: boolean
   error: string | null
   success: string | null
-  setCharacter: React.Dispatch<React.SetStateAction<CharacterDoc | null>>
+  setCharacter: React.Dispatch<React.SetStateAction<CharacterDetailDto | null>>
   setCampaigns: React.Dispatch<React.SetStateAction<CampaignSummary[]>>
   setPendingMemberships: React.Dispatch<React.SetStateAction<PendingMembership[]>>
   setError: React.Dispatch<React.SetStateAction<string | null>>
@@ -30,7 +30,7 @@ export interface UseCharacterReturn {
 }
 
 export function useCharacter(id: string | undefined): UseCharacterReturn {
-  const [character, setCharacter] = useState<CharacterDoc | null>(null)
+  const [character, setCharacter] = useState<CharacterDetailDto | null>(null)
   const [campaigns, setCampaigns] = useState<CampaignSummary[]>([])
   const [isOwner, setIsOwner] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)

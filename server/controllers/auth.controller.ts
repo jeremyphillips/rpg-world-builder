@@ -82,80 +82,32 @@ export async function register(req: Request, res: Response) {
   }
 
   try {
-    // If an invite token is provided, validate it and derive the email
-    let email: string | undefined
-    let tokenDoc: Awaited<ReturnType<typeof import('../services/invite.service').validateInviteToken>> = null
-
-    if (inviteToken) {
-      const inviteService = await import('../services/invite.service')
-      tokenDoc = await inviteService.validateInviteToken(inviteToken)
-      if (!tokenDoc) {
-        res.status(400).json({ error: 'Invalid or expired invite token' })
-        return
-      }
-      email = tokenDoc.email
-    }
-
-    // Create the user
-    const userService = await import('../services/user.service')
-    const user = await userService.createUser({
+    const { registerWithInviteToken } = await import('../services/auth.service')
+    const result = await registerWithInviteToken({
       username,
-      email: email ?? '',
       password,
-      role: 'user',
+      firstName,
+      lastName,
+      inviteToken,
     })
 
-    if (!user) {
-      res.status(500).json({ error: 'Failed to create user' })
-      return
-    }
-
-    // Update profile with first/last name
-    if (firstName || lastName) {
-      await updateProfile(user._id.toString(), { firstName, lastName })
-    }
-
-    // Auto-login
-    const token = signToken({ userId: user._id.toString(), role: 'user' })
+    const token = signToken({
+      userId: result.user.id,
+      role: result.user.role,
+    })
     setTokenCookie(res, token)
 
-    // If invite token was valid, consume it and add user to campaign
-    let campaignId: string | undefined
-    let campaignName: string | undefined
-    let campaignEdition: string | undefined
-    let campaignSetting: string | undefined
-
-    if (tokenDoc && inviteToken) {
-      const inviteService = await import('../services/invite.service')
-      await inviteService.consumeInviteToken(inviteToken, user._id.toString())
-
-      campaignId = tokenDoc.campaignId.toString()
-
-      // Look up campaign name for the client redirect
-      const mongoose = await import('mongoose')
-      const { env } = await import('../config/env')
-      const db = mongoose.default.connection.useDb(env.DB_NAME)
-      const campaign = await db.collection('campaigns').findOne(
-        { _id: tokenDoc.campaignId },
-        { projection: { 'identity.name': 1 } },
-      )
-      campaignName = (campaign?.identity?.name as string) ?? undefined
-    }
-
-    const authUser = await getUserById(user._id.toString())
-
     res.status(201).json({
-      user: authUser,
-      campaignId,
-      campaignName,
+      user: result.user,
+      campaignId: result.campaignId,
+      campaignName: result.campaignName,
     })
   } catch (err: unknown) {
     if (err && typeof err === 'object' && 'code' in err && (err as { code: number }).code === 11000) {
       res.status(409).json({ error: 'A user with that email or username already exists' })
       return
     }
-    console.error('Failed to register:', err)
-    res.status(500).json({ error: 'Failed to create account' })
+    throw err
   }
 }
 
@@ -274,35 +226,9 @@ export async function acceptInvite(req: Request, res: Response) {
     return
   }
 
-  try {
-    const inviteService = await import('../services/invite.service')
-    const tokenDoc = await inviteService.validateInviteToken(inviteToken)
-
-    if (!tokenDoc) {
-      res.status(400).json({ error: 'Invalid or expired invite token' })
-      return
-    }
-
-    // Consume token
-    await inviteService.consumeInviteToken(inviteToken, req.userId)
-
-    const mongoose = await import('mongoose')
-    const { env } = await import('../config/env')
-    const db = mongoose.default.connection.useDb(env.DB_NAME)
-
-    const campaign = await db.collection('campaigns').findOne(
-      { _id: tokenDoc.campaignId },
-      { projection: { 'identity.name': 1 } },
-    )
-
-    res.json({
-      campaignId: tokenDoc.campaignId.toString(),
-      campaignName: (campaign?.identity?.name as string) ?? '',
-    })
-  } catch (err) {
-    console.error('Failed to accept invite:', err)
-    res.status(500).json({ error: 'Failed to accept invite' })
-  }
+  const { acceptInviteToken } = await import('../services/auth.service')
+  const result = await acceptInviteToken(inviteToken, req.userId)
+  res.json(result)
 }
 
 /** Returns the token for Socket.io auth. Client must call with credentials. */

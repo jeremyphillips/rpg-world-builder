@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { CharacterDoc, CharacterClassInfo } from '@/shared'
+import type { CharacterDetailDto } from '@/features/character/read-model'
+import { toCharacterForEngine } from '@/features/character/read-model'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
 import type { ClassProgression } from '@/features/classes/domain/types'
@@ -61,8 +62,8 @@ function formatAttackProg(prog: ClassProgression): string {
 // ---------------------------------------------------------------------------
 
 type CombatStatsCardProps = {
-  character: CharacterDoc
-  filledClasses: CharacterClassInfo[]
+  character: CharacterDetailDto
+  filledClasses: CharacterDetailDto['classes']
   isMulticlass: boolean
   canEditAll: boolean
   race: string
@@ -80,10 +81,11 @@ export default function CombatStatsCard({
   canEdit = false,
   onSave,
 }: CombatStatsCardProps) {
+  const characterForEngine = toCharacterForEngine(character)
   const {
     calculatedArmorClass, loadoutOptions, activeOption, activeLoadout,
     attacks, maxHp, initiative, weaponOptions, wieldedWeaponIds,
-  } = useCombatStats(character)
+  } = useCombatStats(characterForEngine)
   const { catalog } = useCampaignRules()
   const [configOpen, setConfigOpen] = useState(false)
   const [weaponPickerOpen, setWeaponPickerOpen] = useState(false)

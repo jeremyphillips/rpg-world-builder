@@ -1,7 +1,22 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
-import type { CharacterDoc } from '../../src/features/character/domain/types/characterDoc.types'; 
+import { getDb, toObjectId } from '../utils/db'
+import { forbidden, notFound } from '../errors/ApiError'
+import * as campaignMemberService from './campaignMember.service'
+import * as notificationService from './notification.service'
+import { getCampaignById } from './campaign.service'
+import { resolveCharacterAccess } from '../auth/resolveCharacterAccess'
+import type { CharacterDoc } from '../../src/features/character/domain/types/characterDoc.types'
 import { getPublicUrl } from '../services/image.service'
+import {
+  type CharacterCardSummary,
+  type CharacterDetailDto,
+  loadCharacterReadReferences,
+  toCharacterCardSummary,
+  toCharacterDetailDto,
+  type CharacterDocForCard,
+  type CharacterDocForDetail,
+} from '../../src/features/character/read-model'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const charactersCollection = () => db().collection('characters')
@@ -37,6 +52,110 @@ export function getCharacterByIdNormalized(id: string) {
   return getCharacterById(id).then(normalizeCharacter)
 }
 
+/**
+ * Get character as CharacterDetailDto with resolved race/class/subclass/proficiency/equipment names.
+ * Used by GET /characters/:id.
+ */
+export async function getCharacterDetail(characterId: string): Promise<CharacterDetailDto | null> {
+  const character = await getCharacterById(characterId)
+  if (!character) return null
+
+  const campaigns = await getCampaignsForCharacter(characterId)
+  const campaignsSimple = campaigns.map((c) => ({
+    id: (c._id as mongoose.Types.ObjectId).toString(),
+    name: (c.identity?.name as string) ?? '',
+  }))
+
+  const doc: CharacterDocForDetail = {
+    _id: character._id as { toString(): string },
+    name: character.name as string,
+    type: character.type as string | undefined,
+    imageKey: character.imageKey as string | null | undefined,
+    race: character.race as string | undefined,
+    alignment: character.alignment as string | undefined,
+    classes: (character.classes as CharacterDocForDetail['classes']) ?? [],
+    totalLevel: character.totalLevel as number | undefined,
+    abilityScores: character.abilityScores as Record<string, number> | undefined,
+    proficiencies: character.proficiencies as { skills?: string[] } | undefined,
+    equipment: character.equipment as CharacterDocForDetail['equipment'] | undefined,
+    wealth: character.wealth as CharacterDocForDetail['wealth'] | undefined,
+    hitPoints: character.hitPoints as CharacterDocForDetail['hitPoints'] | undefined,
+    armorClass: character.armorClass as CharacterDocForDetail['armorClass'] | undefined,
+    combat: character.combat as CharacterDocForDetail['combat'] | undefined,
+    spells: character.spells as string[] | undefined,
+    narrative: character.narrative as CharacterDocForDetail['narrative'] | undefined,
+    levelUpPending: character.levelUpPending as boolean | undefined,
+    pendingLevel: character.pendingLevel as number | undefined,
+    xp: character.xp as number | undefined,
+  }
+
+  const refs = await loadCharacterReadReferences({
+    characters: [doc],
+    include: { proficiencies: true, items: true },
+  })
+  return toCharacterDetailDto(doc, campaignsSimple, refs, getPublicUrl)
+}
+
+export type GetCharacterWithContextResult = {
+  character: CharacterDetailDto
+  campaigns: Awaited<ReturnType<typeof getCampaignsForCharacter>>
+  isOwner: boolean
+  isAdmin: boolean
+  pendingMemberships: Awaited<ReturnType<typeof getPendingMembershipsForAdmin>>
+  ownerName?: string
+}
+
+/**
+ * Get character with full context for GET /characters/:id.
+ * Resolves access, fetches campaigns, pending memberships, and owner name.
+ * Throws ApiError on 404 or 403.
+ */
+export async function getCharacterWithContext(
+  characterId: string,
+  userId: string,
+  userRole?: string | null,
+): Promise<GetCharacterWithContextResult> {
+  const characterDoc = await getCharacterById(characterId)
+  if (!characterDoc) throw notFound('Character not found')
+
+  const access = resolveCharacterAccess({
+    character: characterDoc as { userId: mongoose.Types.ObjectId },
+    userId,
+    userRole,
+  })
+  if (!access.canRead) throw forbidden()
+
+  const isAdmin = await isCampaignAdminForCharacter(characterId, userId)
+
+  let ownerName: string | undefined
+  if (!access.isOwner) {
+    const ownerUser = await getDb()
+      .collection('users')
+      .findOne(
+        { _id: characterDoc.userId },
+        { projection: { username: 1 } },
+      )
+    ownerName = ownerUser?.username as string | undefined
+  }
+
+  const [campaigns, pendingMemberships, character] = await Promise.all([
+    getCampaignsForCharacter(characterId),
+    getPendingMembershipsForAdmin(characterId, userId),
+    getCharacterDetail(characterId),
+  ])
+
+  if (!character) throw notFound('Character not found')
+
+  return {
+    character,
+    campaigns,
+    isOwner: access.isOwner,
+    isAdmin,
+    pendingMemberships,
+    ownerName,
+  }
+}
+
 export async function createCharacter(userId: string, data: CharacterDoc) {
   const now = new Date()
   const result = await charactersCollection().insertOne({
@@ -66,6 +185,186 @@ export async function createCharacter(userId: string, data: CharacterDoc) {
   return normalizeCharacter(created)
 }
 
+/**
+ * Create character and optionally link to campaign (when campaignId in data).
+ * Handles campaign member find/update/create and pending-character notifications.
+ */
+export async function createCharacterWithCampaignLink(
+  userId: string,
+  data: CharacterDoc & { campaignId?: string },
+) {
+  const character = await createCharacter(userId, data)
+  const campaignId = data.campaignId
+  if (!campaignId || !character?._id) return character
+
+  const characterId = character._id.toString()
+  const db = getDb()
+  const campaignMembersCol = db.collection('campaignMembers')
+
+  const existing = await campaignMembersCol.findOne({
+    campaignId: toObjectId(campaignId),
+    userId: toObjectId(userId),
+  })
+
+  if (existing) {
+    await campaignMembersCol.updateOne(
+      { _id: existing._id },
+      { $set: { characterId: toObjectId(characterId) } },
+    )
+  } else {
+    await campaignMemberService.createCampaignMember({
+      campaignId,
+      characterId,
+      userId,
+      role: 'pc',
+      status: 'pending',
+    })
+  }
+
+  const [campaign, user] = await Promise.all([
+    db.collection('campaigns').findOne(
+      { _id: toObjectId(campaignId) },
+      { projection: { identity: 1, membership: 1 } },
+    ),
+    db.collection('users').findOne(
+      { _id: toObjectId(userId) },
+      { projection: { username: 1 } },
+    ),
+  ])
+
+  if (campaign && user) {
+    const ownerId = campaign.membership?.ownerId ?? campaign.membership?.adminId
+    const campaignName = (campaign.identity?.name as string) ?? ''
+    const characterName = (data.name as string) ?? ''
+
+    if (ownerId) {
+      await notificationService.createNotification({
+        userId: ownerId,
+        type: 'character_pending_approval',
+        requiresAction: true,
+        context: {
+          campaignId: toObjectId(campaignId),
+          characterId: toObjectId(characterId),
+        },
+        payload: {
+          characterName,
+          userName: (user.username as string) ?? 'Unknown',
+          campaignName,
+        },
+      })
+    }
+
+    await notificationService.createNotification({
+      userId: toObjectId(userId),
+      type: 'character_pending_approval',
+      requiresAction: false,
+      context: {
+        campaignId: toObjectId(campaignId),
+        characterId: toObjectId(characterId),
+      },
+      payload: {
+        characterName,
+        campaignName,
+      },
+    })
+  }
+
+  return character
+}
+
+export type UpdateCharacterBody = Partial<{
+  name: string
+  imageKey: string | null
+  narrative: Record<string, unknown>
+  combat: Record<string, unknown>
+  totalLevel: number
+  classes: unknown[]
+  hitPoints: Record<string, unknown>
+  spells: string[]
+  levelUpPending: boolean
+  pendingLevel: number
+  subclassId: string
+}>
+
+/**
+ * Update character with access policy and level-up cancel notification.
+ * Non-admins are restricted to name, imageKey, narrative, combat, and level-up fields.
+ * Throws ApiError on 404 or 403.
+ */
+export async function updateCharacterWithPolicy(
+  characterId: string,
+  userId: string,
+  userRole: string | null | undefined,
+  body: UpdateCharacterBody,
+) {
+  const character = await getCharacterById(characterId)
+  if (!character) throw notFound('Character not found')
+
+  const isCampaignAdmin = await isCampaignAdminForCharacter(characterId, userId)
+  const access = resolveCharacterAccess({
+    character: character as { userId: mongoose.Types.ObjectId },
+    userId,
+    userRole,
+    isCampaignAdmin,
+  })
+  if (!access.canWrite) throw forbidden()
+
+  let updateData: UpdateCharacterBody = body
+  if (!isCampaignAdmin && !access.isPlatformAdmin) {
+    const {
+      name,
+      imageKey,
+      narrative,
+      combat,
+      totalLevel,
+      classes,
+      hitPoints,
+      spells,
+      levelUpPending,
+      pendingLevel,
+      subclassId,
+    } = body
+    updateData = {}
+    if (name !== undefined) updateData.name = name
+    if (imageKey !== undefined) updateData.imageKey = imageKey
+    if (narrative !== undefined) updateData.narrative = narrative
+    if (combat !== undefined) updateData.combat = combat
+    if ((character as { levelUpPending?: boolean }).levelUpPending) {
+      if (totalLevel !== undefined) updateData.totalLevel = totalLevel
+      if (classes !== undefined) updateData.classes = classes
+      if (hitPoints !== undefined) updateData.hitPoints = hitPoints
+      if (spells !== undefined) updateData.spells = spells
+      if (levelUpPending !== undefined) updateData.levelUpPending = levelUpPending
+      if (pendingLevel !== undefined) updateData.pendingLevel = pendingLevel
+      if (subclassId !== undefined) updateData.subclassId = subclassId
+    }
+  }
+
+  const updated = await updateCharacter(characterId, updateData)
+
+  const wasPending = (character as { levelUpPending?: boolean }).levelUpPending === true
+  const isNowCleared = updateData.levelUpPending === false
+  const levelNotBumped =
+    updateData.totalLevel === undefined ||
+    updateData.totalLevel === (character as { totalLevel?: number }).totalLevel
+  if (wasPending && isNowCleared && levelNotBumped) {
+    await notificationService.createNotification({
+      userId: character.userId as mongoose.Types.ObjectId,
+      type: 'levelUp.cancelled',
+      requiresAction: false,
+      context: {
+        characterId: character._id as mongoose.Types.ObjectId,
+      },
+      payload: {
+        characterName: character.name,
+        pendingLevel: (character as { pendingLevel?: number }).pendingLevel,
+      },
+    })
+  }
+
+  return updated
+}
+
 export async function updateCharacter(id: string, data: Partial<CharacterData>) {
   // Strip out undefined values so we don't overwrite with undefined
   const cleaned = Object.fromEntries(
@@ -89,6 +388,90 @@ export async function softDeleteCharacter(id: string) {
     { $set: { deletedAt: new Date() } },
     { returnDocument: 'after' },
   )
+}
+
+/**
+ * Delete character with membership handling and notifications.
+ * Hard delete if no campaign memberships; soft delete and notify party if in campaigns.
+ * Throws ApiError on 404 or 403.
+ */
+export async function deleteCharacterWithMemberships(
+  characterId: string,
+  userId: string,
+  userRole: string | null | undefined,
+): Promise<{ message: string }> {
+  const character = await getCharacterById(characterId)
+  if (!character) throw notFound('Character not found')
+
+  const access = resolveCharacterAccess({
+    character: character as { userId: mongoose.Types.ObjectId },
+    userId,
+    userRole,
+  })
+  if (!access.canDelete) throw forbidden()
+
+  const characterName = (character.name as string) ?? 'Unknown'
+  const campaignMembersCol = db().collection('campaignMembers')
+
+  const memberships = (await campaignMembersCol
+    .find({
+      characterId: toObjectId(characterId),
+      status: 'approved',
+    })
+    .toArray()) as {
+    _id: mongoose.Types.ObjectId
+    campaignId: mongoose.Types.ObjectId
+    characterStatus?: string
+  }[]
+
+  if (memberships.length === 0) {
+    await deleteCharacter(characterId)
+    return { message: 'Character deleted' }
+  }
+
+  await softDeleteCharacter(characterId)
+
+  for (const membership of memberships) {
+    const charStatus = membership.characterStatus ?? 'active'
+    if (charStatus === 'active') {
+      await campaignMemberService.updateCharacterStatus(
+        membership._id.toString(),
+        'inactive',
+      )
+
+      const campaign = await getCampaignById(membership.campaignId.toString())
+      if (!campaign) continue
+
+      const allMembers = await campaignMemberService.getCampaignMembersByCampaign(
+        membership.campaignId.toString(),
+      )
+      const partyUserIds = (allMembers as { userId: mongoose.Types.ObjectId; status: string }[])
+        .filter(
+          (mbr) =>
+            mbr.status === 'approved' &&
+            !mbr.userId.equals(toObjectId(userId)),
+        )
+        .map((mbr) => mbr.userId)
+
+      for (const memberUserId of partyUserIds) {
+        await notificationService.createNotification({
+          userId: memberUserId,
+          type: 'character.left',
+          requiresAction: false,
+          context: {
+            characterId: toObjectId(characterId),
+            campaignId: membership.campaignId,
+          },
+          payload: {
+            characterName,
+            campaignName: campaign.identity?.name ?? '',
+          },
+        })
+      }
+    }
+  }
+
+  return { message: 'Character deleted' }
 }
 
 /**
@@ -223,17 +606,123 @@ export async function isCampaignAdminForCharacter(
   return match !== null
 }
 
+// Re-export read-model types for consumers
+export type {
+  CharacterCardSummary,
+  CharacterCardClassSummary,
+  CharacterDetailDto,
+} from '../../src/features/character/read-model'
+
+/**
+ * Get user's characters with their current campaign (if any).
+ * Returns card-ready summaries. Uses batch queries to avoid N+1.
+ */
+export async function getMyCharactersWithCampaign(userId: string, type?: string): Promise<CharacterCardSummary[]> {
+  const characters = await getCharactersByUser(userId, type)
+  const characterIds = characters.map((c) => c._id as mongoose.Types.ObjectId)
+
+  if (characterIds.length === 0) return []
+
+  const campaignMembersCol = db().collection('campaignMembers')
+  const memberships = (await campaignMembersCol
+    .find({
+      characterId: { $in: characterIds },
+      status: 'approved',
+    })
+    .toArray()) as unknown as { characterId: mongoose.Types.ObjectId; campaignId: mongoose.Types.ObjectId }[]
+
+  const campaignIds = [...new Set(memberships.map((m) => m.campaignId))]
+  const campaigns =
+    campaignIds.length > 0
+      ? await db()
+          .collection('campaigns')
+          .find({ _id: { $in: campaignIds } })
+          .project({ _id: 1, 'identity.name': 1 })
+          .toArray()
+      : []
+
+  const membershipByCharacterId = new Map<string, { campaignId: string }>()
+  for (const m of memberships) {
+    const cid = m.characterId.toString()
+    if (!membershipByCharacterId.has(cid)) {
+      membershipByCharacterId.set(cid, { campaignId: m.campaignId.toString() })
+    }
+  }
+
+  const campaignById = new Map<string, { id: string; name: string }>()
+  for (const c of campaigns as { _id: mongoose.Types.ObjectId; identity?: { name?: string } }[]) {
+    campaignById.set(c._id.toString(), {
+      id: c._id.toString(),
+      name: (c.identity?.name as string) ?? '',
+    })
+  }
+
+  const characterSources = characters.map((char) => ({
+    race: char.race as string | undefined,
+    classes: (char.classes as CharacterDocForCard['classes']) ?? [],
+  }))
+  const refs = await loadCharacterReadReferences({
+    characters: characterSources,
+    include: {},
+  })
+
+  return characters.map((char) => {
+    const charId = (char._id as mongoose.Types.ObjectId).toString()
+    const membership = membershipByCharacterId.get(charId)
+    const campaign = membership ? campaignById.get(membership.campaignId) ?? null : null
+    const doc: CharacterDocForCard = {
+      _id: char._id as { toString(): string },
+      name: char.name as string,
+      type: char.type as string | undefined,
+      imageKey: char.imageKey as string | null | undefined,
+      race: char.race as string | undefined,
+      classes: (char.classes as CharacterDocForCard['classes']) ?? [],
+    }
+    return toCharacterCardSummary(doc, campaign, refs, getPublicUrl)
+  })
+}
+
 /**
  * Get user's characters that are not in any campaign (available for invite accept).
+ * Returns card-ready summaries with resolved race/class/subclass names.
+ * Uses batch queries to avoid N+1.
  */
-export async function getCharactersAvailableForCampaign(userId: string) {
+export async function getCharactersAvailableForCampaign(userId: string): Promise<CharacterCardSummary[]> {
   const characters = await getCharactersByUser(userId)
-  const campaignMemberService = await import('./campaignMember.service')
+  if (characters.length === 0) return []
 
-  const available: typeof characters = []
-  for (const c of characters) {
-    const inCampaign = await campaignMemberService.isCharacterInCampaign(c._id.toString())
-    if (!inCampaign) available.push(c)
-  }
-  return available
+  const characterIds = characters.map((c) => c._id as mongoose.Types.ObjectId)
+  const campaignMembersCol = db().collection('campaignMembers')
+  const memberships = (await campaignMembersCol
+    .find({
+      characterId: { $in: characterIds },
+      status: { $in: ['pending', 'approved'] },
+    })
+    .project({ characterId: 1 })
+    .toArray()) as unknown as { characterId: mongoose.Types.ObjectId }[]
+
+  const characterIdsInCampaign = new Set(memberships.map((m) => m.characterId.toString()))
+  const availableCharacters = characters.filter((c) => !characterIdsInCampaign.has((c._id as mongoose.Types.ObjectId).toString()))
+  if (availableCharacters.length === 0) return []
+
+  const characterSources = availableCharacters.map((char) => ({
+    race: char.race as string | undefined,
+    classes: (char.classes as CharacterDocForCard['classes']) ?? [],
+  }))
+  const refs = await loadCharacterReadReferences({
+    characters: characterSources,
+    include: {},
+  })
+
+  return availableCharacters.map((char) => {
+    const doc: CharacterDocForCard = {
+      _id: char._id as { toString(): string },
+      name: char.name as string,
+      type: char.type as string | undefined,
+      imageKey: char.imageKey as string | null | undefined,
+      race: char.race as string | undefined,
+      classes: (char.classes as CharacterDocForCard['classes']) ?? [],
+    }
+    return toCharacterCardSummary(doc, null, refs, getPublicUrl)
+  })
 }

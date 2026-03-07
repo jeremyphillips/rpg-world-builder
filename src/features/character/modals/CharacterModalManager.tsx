@@ -1,4 +1,4 @@
-import type { CharacterDoc } from '@/features/character/domain/types'
+import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { LevelUpResult } from '@/features/character/levelUp'
 import { AwardXpModal } from '@/features/character/modals'
 import { LevelUpWizard } from '@/features/character/levelUp'
@@ -8,7 +8,7 @@ import CharacterStatusChangeModal from './CharacterStatusChangeModal'
 import EditWealthModal from './EditWealthModal'
 
 type CharacterModalManagerProps = {
-  character: CharacterDoc
+  character: CharacterDetailDto
   currentLevel: number
   maxLevel: number
   activeCampaignCount: number

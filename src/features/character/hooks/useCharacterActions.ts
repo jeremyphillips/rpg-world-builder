@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import type { CharacterDoc } from '@/features/character/domain/types'
+import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { LevelUpResult } from '@/features/character/levelUp'
 import { getXpForLevel } from '@/features/mechanics/domain/core/progression/xp'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
@@ -8,13 +8,13 @@ import type { CampaignSummary, PendingMembership } from '@/shared/types/campaign
 import { resolveXpTable } from '@/features/mechanics/domain/core/rules/xp/resolveXpTable'
 
 export interface CharacterActionDeps {
-  character: CharacterDoc | null
-  setCharacter: React.Dispatch<React.SetStateAction<CharacterDoc | null>>
+  character: CharacterDetailDto | null
+  setCharacter: React.Dispatch<React.SetStateAction<CharacterDetailDto | null>>
   setCampaigns: React.Dispatch<React.SetStateAction<CampaignSummary[]>>
   setPendingMemberships: React.Dispatch<React.SetStateAction<PendingMembership[]>>
   setError: React.Dispatch<React.SetStateAction<string | null>>
   setSuccess: React.Dispatch<React.SetStateAction<string | null>>
-  syncFromCharacter: (c: CharacterDoc) => void
+  syncFromCharacter: (c: CharacterDetailDto) => void
 }
 
 export interface UseCharacterActionsReturn {
@@ -56,10 +56,11 @@ export function useCharacterActions(
     setError(null)
     setSuccess(null)
     try {
-      const data = await apiFetch<{ character: CharacterDoc }>(`/api/characters/${id}`, {
+      await apiFetch(`/api/characters/${id}`, {
         method: 'PATCH',
         body: partial,
       })
+      const data = await apiFetch<{ character: CharacterDetailDto }>(`/api/characters/${id}`)
       setCharacter(data.character)
       syncFromCharacter(data.character)
       notify('Saved')
@@ -97,6 +98,13 @@ export function useCharacterActions(
     }
   }, [setPendingMemberships, setError, setSuccess])
 
+  const refetchCharacter = useCallback(async () => {
+    if (!id) return
+    const data = await apiFetch<{ character: CharacterDetailDto }>(`/api/characters/${id}`)
+    setCharacter(data.character)
+    syncFromCharacter(data.character)
+  }, [id, setCharacter, syncFromCharacter])
+
   const handleAwardXp = useCallback(async (params: {
     newXp: number
     triggersLevelUp: boolean
@@ -108,20 +116,16 @@ export function useCharacterActions(
       body.levelUpPending = true
       body.pendingLevel = params.pendingLevel
     }
-    const data = await apiFetch<{ character: CharacterDoc }>(`/api/characters/${id}`, {
-      method: 'PATCH',
-      body,
-    })
-    setCharacter(data.character)
-    syncFromCharacter(data.character)
-  }, [id, setCharacter, syncFromCharacter])
+    await apiFetch(`/api/characters/${id}`, { method: 'PATCH', body })
+    await refetchCharacter()
+  }, [id, refetchCharacter])
 
   const handleCancelLevelUp = useCallback(async (
     currentLevel: number,
   ) => {
     if (!id || !character) return
     const revertedXp = getXpForLevel(currentLevel, xpTable)
-    const data = await apiFetch<{ character: CharacterDoc }>(`/api/characters/${id}`, {
+    await apiFetch(`/api/characters/${id}`, {
       method: 'PATCH',
       body: {
         xp: revertedXp,
@@ -129,10 +133,9 @@ export function useCharacterActions(
         pendingLevel: null,
       },
     })
-    setCharacter(data.character)
-    syncFromCharacter(data.character)
+    await refetchCharacter()
     notify('Level-up cancelled. XP has been reverted.')
-  }, [id, character, xpTable, setCharacter, syncFromCharacter, setSuccess])
+  }, [id, character, xpTable, refetchCharacter, setSuccess])
 
   const handleLevelUpComplete = useCallback(async (result: LevelUpResult) => {
     if (!id) return
@@ -147,14 +150,10 @@ export function useCharacterActions(
     if (result.subclassId) {
       body.subclassId = result.subclassId
     }
-    const data = await apiFetch<{ character: CharacterDoc }>(`/api/characters/${id}`, {
-      method: 'PATCH',
-      body,
-    })
-    setCharacter(data.character)
-    syncFromCharacter(data.character)
+    await apiFetch(`/api/characters/${id}`, { method: 'PATCH', body })
+    await refetchCharacter()
     notify(`${character?.name ?? 'Character'} has been advanced to level ${result.totalLevel}!`)
-  }, [id, character?.name, setCharacter, syncFromCharacter, setSuccess])
+  }, [id, character?.name, refetchCharacter, setSuccess])
 
   const handleCharacterStatusChange = useCallback(async (statusAction: {
     campaignMemberId: string

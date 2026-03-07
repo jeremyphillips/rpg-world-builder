@@ -1,7 +1,7 @@
 export { useCampaignSettings, type CampaignSettings } from './useCampaignSettings'
 export { useUpdateCampaignSettings } from './useUpdateCampaignSettings'
 export { useCampaigns } from './useCampaigns'
-export { useCampaignParty } from './useCampaignParty'
+export { useCampaignParty, type PartyMember } from './useCampaignParty'
 export { useCampaignMembers } from './useCampaignMembers'
 export { useViewerEquipment } from './useViewerEquipment'
 export type { ViewerEquipmentSets } from './useViewerEquipment'

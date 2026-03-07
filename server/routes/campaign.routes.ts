@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { requireAuth } from '../middleware/requireAuth'
 import { requireRole } from '../middleware/requireRole'
 import { requireCampaignRole, requireCampaignOwner } from '../middleware/requireCampaignRole'
+import { asyncHandler } from '../middleware/asyncHandler'
 import {
   getCampaigns,
   getCampaign,
@@ -71,11 +72,11 @@ const router = Router()
 router.use(requireAuth)
 
 // Campaign list & create
-router.get('/', getCampaigns)
-router.post('/', requireRole('admin', 'superadmin'), createCampaign)
+router.get('/', asyncHandler(getCampaigns))
+router.post('/', requireRole('admin', 'superadmin'), asyncHandler(createCampaign))
 
 // Campaign detail — any member can view
-router.get('/:id', requireCampaignRole('observer'), getCampaign)
+router.get('/:id', requireCampaignRole('observer'), asyncHandler(getCampaign))
 
 // Campaign update/delete — owner only
 router.patch('/:id', requireCampaignRole('observer'), requireCampaignOwner(), updateCampaign)
@@ -87,8 +88,8 @@ router.get('/:id/party', requireCampaignRole('observer'), getPartyCharacters)
 // Members — dm can view, owner can manage
 router.get('/:id/members', requireCampaignRole('dm'), getMembers)
 router.get('/:id/members-for-messaging', requireCampaignRole('observer'), getMembersForMessaging)
-router.post('/:id/members/pre-check', requireCampaignRole('observer'), requireCampaignOwner(), preCheckMember)
-router.post('/:id/members', requireCampaignRole('observer'), requireCampaignOwner(), addMember)
+router.post('/:id/members/pre-check', requireCampaignRole('observer'), requireCampaignOwner(), asyncHandler(preCheckMember))
+router.post('/:id/members', requireCampaignRole('observer'), requireCampaignOwner(), asyncHandler(addMember))
 router.patch('/:id/members/:userId', requireCampaignRole('observer'), requireCampaignOwner(), updateMember)
 router.delete('/:id/members/:userId', requireCampaignRole('observer'), requireCampaignOwner(), removeMember)
 

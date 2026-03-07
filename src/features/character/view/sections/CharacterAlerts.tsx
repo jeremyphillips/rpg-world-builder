@@ -5,11 +5,11 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import { AppAlert } from '@/ui/primitives'
 
-import type { CharacterDoc } from '@/features/character/domain/types'
+import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { PendingMembership } from '@/shared/types/campaign.types'
 
 type CharacterAlertsProps = {
-  character: CharacterDoc
+  character: CharacterDetailDto
   pendingMemberships: PendingMembership[]
   isOwner: boolean
   isAdmin: boolean

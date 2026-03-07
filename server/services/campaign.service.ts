@@ -1,7 +1,20 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
+import { toObjectId } from '../utils/db'
 import type { CampaignMemberStoredRole } from '../../shared/types'
+import type { CampaignViewerContext } from '../auth/resolveCampaignViewerContext'
+import {
+  getViewerMembershipContext,
+  hydrateMemberViews,
+  type CampaignMemberDoc,
+} from './campaignMember.service'
 import { getPublicUrl } from '../services/image.service'
+import {
+  type CharacterRosterSummary,
+  type CharacterDocForCard,
+  loadCharacterReadReferences,
+  toCharacterCardSummary,
+} from '../../src/features/character/read-model'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const campaignsCollection = () => db().collection('campaigns')
@@ -102,6 +115,73 @@ export async function getCampaignById(id: string) {
   })
 
   return normalizeCampaign(campaign, memberCount)
+}
+
+export type GetCampaignWithMembersResult = {
+  campaign: Awaited<ReturnType<typeof getCampaignById>> & {
+    viewer: {
+      campaignRole: string | null
+      isPlatformAdmin: boolean
+      isOwner: boolean
+    }
+    members: {
+      counts: { pending: number; approved: number; declined: number; total: number }
+      items: Awaited<ReturnType<typeof hydrateMemberViews>>
+      viewerCharacterIds: string[]
+    }
+  }
+}
+
+/**
+ * Build campaign response with visibility-filtered members and hydrated views.
+ * Used by GET /campaigns/:id.
+ */
+export async function getCampaignWithMembers(
+  campaignId: string,
+  userId: string,
+  campaign: Awaited<ReturnType<typeof getCampaignById>>,
+  viewerContext: CampaignViewerContext,
+): Promise<GetCampaignWithMembersResult> {
+  const memberCtx = await getViewerMembershipContext(campaignId, userId)
+
+  const counts = { pending: 0, approved: 0, declined: 0, total: memberCtx.allMembers.length }
+  for (const m of memberCtx.allMembers) {
+    const s = m.status as string
+    if (s === 'pending') counts.pending++
+    else if (s === 'approved') counts.approved++
+    else if (s === 'declined') counts.declined++
+  }
+
+  const canSeeAll = viewerContext.isOwner || viewerContext.isPlatformAdmin
+  const uid = toObjectId(userId)
+
+  const visibleMembers: CampaignMemberDoc[] = canSeeAll
+    ? (memberCtx.allMembers as CampaignMemberDoc[])
+    : (memberCtx.allMembers as CampaignMemberDoc[]).filter((m) => {
+        const status = m.status as string
+        if (status === 'approved') return true
+        if (status === 'pending' && (m.userId as mongoose.Types.ObjectId).equals(uid))
+          return true
+        return false
+      })
+
+  const items = await hydrateMemberViews(visibleMembers)
+
+  return {
+    campaign: {
+      ...campaign,
+      viewer: {
+        campaignRole: viewerContext.isOwner ? 'owner' : viewerContext.campaignRole,
+        isPlatformAdmin: viewerContext.isPlatformAdmin,
+        isOwner: viewerContext.isOwner,
+      },
+      members: {
+        counts,
+        items,
+        viewerCharacterIds: viewerContext.characterIds,
+      },
+    } as GetCampaignWithMembersResult['campaign'],
+  }
 }
 
 export async function createCampaign(
@@ -233,7 +313,14 @@ export async function getMembersForMessaging(campaignId: string) {
   }))
 }
 
-export async function getPartyCharacters(campaignId: string, status?: string) {
+/**
+ * Get party characters for a campaign as CharacterRosterSummary DTOs.
+ * Reuses character read-model for race/class/subclass resolution.
+ */
+export async function getPartyCharacters(
+  campaignId: string,
+  status?: string,
+): Promise<CharacterRosterSummary[]> {
   const usersCol = () => db().collection('users')
   const charsCol = () => db().collection('characters')
 
@@ -268,10 +355,12 @@ export async function getPartyCharacters(campaignId: string, status?: string) {
     .toArray()
 
   const memberByCharId = new Map(
-    memberDocs.map((m) => [m.characterId.toString(), m])
+    memberDocs.map((m) => [m.characterId.toString(), m]),
   )
 
-  const userIds = [...new Set(characters.map((c) => (c.userId as mongoose.Types.ObjectId).toString()))]
+  const userIds = [
+    ...new Set(characters.map((c) => (c.userId as mongoose.Types.ObjectId).toString())),
+  ]
   const users = await usersCol()
     .find(
       { _id: { $in: userIds.map((id) => new mongoose.Types.ObjectId(id)) } },
@@ -286,16 +375,43 @@ export async function getPartyCharacters(campaignId: string, status?: string) {
     ]),
   )
 
-  return characters.map((c) => {
-    const m = memberByCharId.get(c._id.toString())
-    const status = (m?.status ?? 'approved') as 'pending' | 'approved'
+  const campaignSummary = {
+    id: campaignId,
+    name: (campaign.identity?.name as string) ?? '',
+  }
+
+  const characterSources = characters.map((c) => ({
+    race: c.race as string | undefined,
+    classes: (c.classes as CharacterDocForCard['classes']) ?? [],
+  }))
+  const refs = await loadCharacterReadReferences({
+    characters: characterSources,
+    include: {},
+  })
+
+  return characters.map((c): CharacterRosterSummary => {
+    const charId = (c._id as mongoose.Types.ObjectId).toString()
+    const m = memberByCharId.get(charId)
+    const memberStatus = (m?.status ?? 'approved') as 'pending' | 'approved'
     const owner = userMap.get((c.userId as mongoose.Types.ObjectId).toString())
+
+    const doc: CharacterDocForCard = {
+      _id: c._id as { toString(): string },
+      name: c.name as string,
+      type: c.type as string | undefined,
+      imageKey: c.imageKey as string | null | undefined,
+      race: c.race as string | undefined,
+      classes: (c.classes as CharacterDocForCard['classes']) ?? [],
+    }
+
+    const card = toCharacterCardSummary(doc, campaignSummary, refs, getPublicUrl)
+
     return {
-      ...c,
+      ...card,
+      status: memberStatus,
       ownerName: owner?.username ?? 'Unknown',
-      ownerAvatarUrl: owner?.avatarUrl,
-      status,
-      campaignMemberId: m?._id?.toString(),
+      ownerAvatarUrl: owner?.avatarUrl ?? null,
+      campaignMemberId: m?._id?.toString() ?? null,
     }
   })
 }

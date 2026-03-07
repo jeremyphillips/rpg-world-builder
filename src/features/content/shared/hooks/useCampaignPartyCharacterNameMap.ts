@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@/app/api';
 
 type PartyCharacterRow = {
-  _id: string;
-  name?: string;
-};
+  id: string
+  name?: string
+}
 
 /**
  * Fetches approved party characters and returns a map of character ID → name.
@@ -43,7 +43,7 @@ export function useCampaignPartyCharacterNameMap(
         const rows = data.characters ?? [];
         const map: Record<string, string> = {};
         for (const c of rows) {
-          map[c._id] = c.name ?? 'Unnamed character';
+          map[c.id] = c.name ?? 'Unnamed character'
         }
         setCharacterNameById(map);
       })

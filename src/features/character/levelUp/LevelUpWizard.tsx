@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { AppModal } from '@/ui/patterns'
-import type { CharacterDoc } from '@/features/character/domain/types'
+import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { LevelUpState, LevelUpResult, LevelUpStepId } from './levelUp.types'
 import { useLevelUpSteps } from './useLevelUpSteps'
 import {
@@ -30,7 +30,7 @@ import { AppAlert } from '@/ui/primitives'
 export interface LevelUpWizardProps {
   open: boolean
   onClose: () => void
-  character: CharacterDoc
+  character: CharacterDetailDto
   /**
    * Called with the level-up result when the user confirms.
    * The parent is responsible for persisting the changes.
@@ -42,15 +42,15 @@ export interface LevelUpWizardProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function buildInitialState(character: CharacterDoc): LevelUpState {
+function buildInitialState(character: CharacterDetailDto): LevelUpState {
   const primaryClassId =
     character.classes?.find(c => c.classId)?.classId ?? ''
 
   return {
     characterName: character.name,
-    currentLevel: character.totalLevel ?? 1,
-    pendingLevel: character.pendingLevel ?? (character.totalLevel ?? 1) + 1,
-    classes: character.classes ?? [],
+    currentLevel: character.totalLevel ?? character.level ?? 1,
+    pendingLevel: character.pendingLevel ?? (character.totalLevel ?? character.level ?? 1) + 1,
+    classes: (character.classes ?? []).map((c) => ({ classId: c.classId, subclassId: c.subclassId, level: c.level })),
     primaryClassId,
     currentSpells: character.spells ?? [],
 

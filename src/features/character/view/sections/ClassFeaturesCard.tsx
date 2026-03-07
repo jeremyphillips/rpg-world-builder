@@ -1,6 +1,4 @@
-import type { CharacterDoc, CharacterClassInfo } from '@/features/character/domain/types'
-import { classIdToName } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
+import type { CharacterDetailDto } from '@/features/character/read-model'
 import { getClassProgression, getSubclassFeatures } from '@/features/mechanics/domain/classes/progression'
 
 import Box from '@mui/material/Box'
@@ -10,14 +8,9 @@ import Typography from '@mui/material/Typography'
 import Grid from '@mui/material/Grid'
 import Tooltip from '@mui/material/Tooltip'
 
-function getClassName(classId?: string): string {
-  if (!classId) return 'Unknown'
-  return classIdToName(DEFAULT_SYSTEM_RULESET_ID, classId)
-}
-
 type ClassFeaturesCardProps = {
-  character: CharacterDoc
-  filledClasses: CharacterClassInfo[]
+  character: CharacterDetailDto
+  filledClasses: CharacterDetailDto['classes']
   isMulticlass: boolean
 }
 
@@ -39,7 +32,7 @@ export default function ClassFeaturesCard({
         {filledClasses.map((cls, i) => {
           const prog = getClassProgression(cls.classId)
           if (!prog) return null
-          const clsLevel = cls.level ?? character.totalLevel ?? 1
+          const clsLevel = cls.level ?? character.totalLevel ?? character.level ?? 1
           const activeFeatures = (prog.features ?? []).filter(f => f.level <= clsLevel)
           const subFeatures = getSubclassFeatures(cls.classId, cls.subclassId, clsLevel)
 
@@ -49,7 +42,7 @@ export default function ClassFeaturesCard({
             <Box key={i} sx={{ mt: 1, mb: i < filledClasses.length - 1 ? 2 : 0 }}>
               {isMulticlass && (
                 <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
-                  {getClassName(cls.classId)} (Level {cls.level})
+                  {cls.className || cls.classId || 'Unknown'} (Level {cls.level})
                 </Typography>
               )}
               <Grid container spacing={2}>

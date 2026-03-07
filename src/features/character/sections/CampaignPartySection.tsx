@@ -1,16 +1,26 @@
 import { useCampaignParty } from '@/features/campaign/hooks'
-import { resolveImageUrl } from '@/utils/image'
 import { CharacterMediaTopCard } from '@/features/character/cards'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { AppAlert } from '@/ui/primitives'
+
+function formatClassDisplay(classes: { className: string; subclassName?: string | null }[]): string {
+  if (classes.length === 0) return '—'
+  return classes
+    .map((c) => (c.subclassName ? `${c.className} (${c.subclassName})` : c.className))
+    .join(', ')
+}
+
+function totalLevel(classes: { level: number }[]): number {
+  return classes.reduce((sum, c) => sum + c.level, 0)
+}
 
 export interface CampaignPartySectionProps {
   status?: 'pending' | 'approved'
 }
 
 export default function CampaignPartySection({
-  status = 'approved'
+  status = 'approved',
 }: CampaignPartySectionProps) {
   const {
     party: approvedPartyCharacters,
@@ -38,16 +48,16 @@ export default function CampaignPartySection({
         ) : (
           approvedPartyCharacters.map((char) => (
             <CharacterMediaTopCard
-              key={char._id}
-              characterId={char._id}
+              key={char.id}
+              characterId={char.id}
               name={char.name}
-              race={char.race}
-              class={char.class}
-              level={char.level}
-              imageUrl={resolveImageUrl(char.imageKey)}
+              race={char.race?.name ?? '—'}
+              class={formatClassDisplay(char.classes)}
+              level={totalLevel(char.classes)}
+              imageUrl={char.imageUrl ?? undefined}
               status={char.status}
-              attribution={{ name: char.ownerName, imageUrl: char.ownerAvatarUrl }}
-              link={`/characters/${char._id}`}
+              attribution={{ name: char.ownerName, imageUrl: char.ownerAvatarUrl ?? undefined }}
+              link={`/characters/${char.id}`}
             />
           ))
         )}

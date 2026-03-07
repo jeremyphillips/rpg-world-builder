@@ -1,8 +1,5 @@
-import type { CharacterDoc, CharacterClassInfo } from '@/features/character/domain/types'
+import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { CampaignSummary } from '@/shared/types/campaign.types'
-import { classIdToName } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
-import { getSubclassNameById } from '@/features/mechanics/domain/classes/progression'
 import { getXpForLevel } from '@/features/mechanics/domain/core/progression/xp'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { CampaignHorizontalCard }from '@/features/campaign/components'
@@ -22,21 +19,12 @@ import Grid from '@mui/material/Grid'
 import EditIcon from '@mui/icons-material/Edit'
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function getClassName(classId?: string): string {
-  if (!classId) return 'Unknown'
-  return classIdToName(DEFAULT_SYSTEM_RULESET_ID, classId)
-}
-
-// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 type IdentityBannerProps = {
-  character: CharacterDoc
-  filledClasses: CharacterClassInfo[]
+  character: CharacterDetailDto
+  filledClasses: CharacterDetailDto['classes']
   campaigns: CampaignSummary[]
   imageKey: string | null
   name: string
@@ -78,19 +66,18 @@ export default function IdentityBanner({
   onReactivate,
   onEditAlignment,
 }: IdentityBannerProps) {
-  const { ruleset, catalog } = useCampaignRules()
+  const { ruleset } = useCampaignRules()
   const xpTable = resolveXpTable(ruleset.mechanics.progression.xp)
-  const raceName = catalog.racesById[character.race ?? '']?.name ?? character.race ?? '—'
-  
-  const alignmentName = alignmentOptions.find(a => a.id === character.alignment)?.name ?? character.alignment ?? '—'
-
-  const currentLevel = character.totalLevel ?? 1
+  const raceName = character.race?.name ?? '—'
+  const alignmentName = alignmentOptions.find(a => a.id === character.alignment)?.label ?? character.alignment ?? '—'
+  const currentLevel = character.totalLevel ?? character.level ?? 1
   const maxLevel = xpTable?.length ? Math.max(...xpTable.map(e => e.level)) : 20
 
   const classSummary = filledClasses.length > 0
     ? filledClasses.map(cls => {
-        const sub = getSubclassNameById(cls.classId, cls.subclassId)
-        return `${getClassName(cls.classId)}${sub ? ` (${sub})` : ''} ${cls.level}`
+        const base = cls.className || cls.classId || 'Unknown'
+        const sub = cls.subclassName ? ` (${cls.subclassName})` : ''
+        return `${base}${sub} ${cls.level}`
       }).join(' / ')
     : '—'
 

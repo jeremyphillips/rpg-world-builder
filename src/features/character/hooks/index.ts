@@ -3,6 +3,6 @@ export { useCharacterForm, type CharacterNarrative, type UseCharacterFormReturn 
 export { useCharacterActions, type CharacterActionDeps, type UseCharacterActionsReturn } from './useCharacterActions'
 export { useCharacters, type UseCharactersReturn } from './useCharacters'
 export { useCreateCharacter, type UseCreateCharacterReturn } from './useCreateCharacter'
-export { useAvailableCharacters, type CharacterForOption, type UseAvailableCharactersReturn } from './useAvailableCharacters'
+export { useAvailableCharacters, type UseAvailableCharactersReturn } from './useAvailableCharacters'
 export { useCombatStats, type UseCombatStatsReturn } from './useCombatStats'
 

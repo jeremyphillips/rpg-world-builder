@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import mongoose from 'mongoose'
 import { env } from '../config/env'
+import { notFound, forbidden } from '../errors/ApiError'
 import * as notificationService from './notification.service'
 import type { CampaignMemberStatus, CampaignMemberStoredRole } from '../../shared/types'
 const db = () => mongoose.connection.useDb(env.DB_NAME)
@@ -31,6 +32,60 @@ export async function getInviteById(id: string) {
   return invitesCollection().findOne({
     _id: new mongoose.Types.ObjectId(id),
   })
+}
+
+export interface InviteEnrichedDto {
+  _id: mongoose.Types.ObjectId
+  campaignId: mongoose.Types.ObjectId
+  invitedUserId: mongoose.Types.ObjectId
+  invitedByUserId: mongoose.Types.ObjectId
+  role: CampaignMemberStoredRole
+  status: CampaignMemberStatus
+  createdAt: Date
+  respondedAt: Date | null
+  campaign: { _id: mongoose.Types.ObjectId; name?: string; description?: string } | null
+  invitedByName: string
+}
+
+/**
+ * Fetches invite with campaign and inviter details. Enforces userId check.
+ * Throws ApiError.notFound() if invite does not exist.
+ * Throws ApiError.forbidden() if the invite is not for the requesting user.
+ */
+export async function getInviteEnriched(
+  inviteId: string,
+  userId: string,
+): Promise<InviteEnrichedDto> {
+  const invite = await getInviteById(inviteId)
+  if (!invite) {
+    throw notFound('Invite not found')
+  }
+  if (invite.invitedUserId.toString() !== userId) {
+    throw forbidden('Forbidden')
+  }
+
+  const [campaign, invitedBy] = await Promise.all([
+    db().collection('campaigns').findOne(
+      { _id: invite.campaignId },
+      { projection: { identity: 1 } },
+    ),
+    db().collection('users').findOne(
+      { _id: invite.invitedByUserId },
+      { projection: { username: 1 } },
+    ),
+  ])
+
+  return {
+    ...invite,
+    campaign: campaign
+      ? {
+          _id: campaign._id,
+          name: (campaign.identity as { name?: string })?.name,
+          description: (campaign.identity as { description?: string })?.description,
+        }
+      : null,
+    invitedByName: (invitedBy?.username as string) ?? 'Unknown',
+  } as InviteEnrichedDto
 }
 
 export async function getInvitesForUser(userId: string) {

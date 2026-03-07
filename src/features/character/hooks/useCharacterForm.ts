@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { RaceId } from '@/shared/types/ruleset'
-import type { CharacterDoc } from '@/features/character/domain/types'
+import type { CharacterDetailDto } from '@/features/character/read-model'
 import { getAlignmentOptionsForClass } from '@/features/mechanics/domain/character/selection'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { resolveAlignmentOptions } from '@/features/mechanics/domain/core/rules/alignment/resolveAlignmentOptions'
@@ -31,10 +31,14 @@ export interface UseCharacterFormReturn {
   setXp: React.Dispatch<React.SetStateAction<number>>
   alignmentOptions: { id: AlignmentId; label: string }[]
   raceOptions: { id: string; label: string }[]
-  syncFromCharacter: (c: CharacterDoc) => void
+  syncFromCharacter: (c: CharacterDetailDto) => void
 }
 
-export function useCharacterForm(character: CharacterDoc | null): UseCharacterFormReturn {
+function getRaceId(c: CharacterDetailDto): string {
+  return (typeof c.race === 'object' && c.race ? c.race.id : null) ?? ''
+}
+
+export function useCharacterForm(character: CharacterDetailDto | null): UseCharacterFormReturn {
   const [name, setName] = useState('')
   const [imageKey, setImageKey] = useState<string | null>(null)
   const [narrative, setNarrative] = useState<CharacterNarrative>({
@@ -53,7 +57,7 @@ export function useCharacterForm(character: CharacterDoc | null): UseCharacterFo
   const { racesById } = catalog
   const { alignment: alignmentRules } = ruleset.mechanics.character
 
-  const syncFromCharacter = useCallback((c: CharacterDoc) => {
+  const syncFromCharacter = useCallback((c: CharacterDetailDto) => {
     setName(c.name ?? '')
     setImageKey(c.imageKey ?? null)
     setNarrative({
@@ -63,16 +67,16 @@ export function useCharacterForm(character: CharacterDoc | null): UseCharacterFo
       flaws: c.narrative?.flaws ?? '',
       backstory: c.narrative?.backstory ?? '',
     })
-    setRace(c.race ?? '')
+    setRace(getRaceId(c))
     setAlignment(c.alignment ?? '')
-    setTotalLevel(c.totalLevel ?? 1)
+    setTotalLevel(c.totalLevel ?? c.level ?? 1)
     setXp(c.xp ?? 0)
   }, [])
 
   // Sync form fields when character first loads
   useEffect(() => {
     if (character) syncFromCharacter(character)
-  }, [character?._id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [character?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const alignmentOptions = useMemo(() => {
     if (!character) return []

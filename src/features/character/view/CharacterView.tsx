@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { CharacterDoc } from '@/features/character/domain/types'
+import { type CharacterDetailDto, toCharacterForEngine } from '@/features/character/read-model'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { ROUTES } from '@/app/routes'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
@@ -44,7 +44,7 @@ import type { RaceId } from '@/features/content/shared/domain/types'
 // ---------------------------------------------------------------------------
 
 export type CharacterViewProps = {
-  character: CharacterDoc
+  character: CharacterDetailDto
   campaigns: CampaignSummary[]
   pendingMemberships: PendingMembership[]
   isOwner: boolean
@@ -127,12 +127,16 @@ export default function CharacterView({
   }
 
   const profSlots = useMemo(
-    () => getProficiencySlotSummary(character.classes, character.proficiencies, catalog.classesById),
+    () => getProficiencySlotSummary(
+      character.classes.map((c) => ({ classId: c.classId, subclassId: c.subclassId, level: c.level })),
+      { skills: character.proficiencies.map((p) => p.id) },
+      catalog.classesById,
+    ),
     [character.classes, character.proficiencies, catalog.classesById],
   )
 
   const openStepEditor = useCallback((stepId: StepId) => {
-    loadCharacterIntoBuilder(character, stepId)
+    loadCharacterIntoBuilder(toCharacterForEngine(character), stepId)
     setEditingStep(stepId)
   }, [character, loadCharacterIntoBuilder])
 
@@ -155,7 +159,7 @@ export default function CharacterView({
 
   const filledClasses = (character.classes ?? []).filter((c) => c.classId)
   const isMulticlass = filledClasses.length > 1
-  const currentLevel = character.totalLevel ?? 1
+  const currentLevel = character.totalLevel ?? character.level ?? 1
   const maxLevel = xpTable?.length ? Math.max(...xpTable.map(e => e.level)) : 20
 
   const hasStats = character.abilityScores && Object.values(character.abilityScores).some(v => v != null)
