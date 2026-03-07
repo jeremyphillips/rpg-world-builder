@@ -179,7 +179,7 @@ export async function createSession(
     notes?: string
     visibility?: { allCharacters: boolean; characterIds: string[] }
   },
-) {
+): Promise<ReturnType<typeof toSessionSummary> | null> {
   const now = new Date()
 
   const doc: SessionDoc = {
@@ -227,17 +227,22 @@ export async function createSession(
   }
 
   return session
+    ? toSessionSummary(session as unknown as Parameters<typeof toSessionSummary>[0])
+    : null
 }
 
 export async function updateSession(
   id: string,
   data: Partial<Pick<SessionDoc, 'title' | 'notes' | 'date' | 'status'>>,
-) {
-  return sessionsCollection().findOneAndUpdate(
+): Promise<ReturnType<typeof toSessionSummary> | null> {
+  const doc = await sessionsCollection().findOneAndUpdate(
     { _id: new mongoose.Types.ObjectId(id) },
     { $set: { ...data, updatedAt: new Date() } },
     { returnDocument: 'after' },
   )
+  return doc
+    ? toSessionSummary(doc as unknown as Parameters<typeof toSessionSummary>[0])
+    : null
 }
 
 export async function deleteSession(id: string, adminUserId: string) {

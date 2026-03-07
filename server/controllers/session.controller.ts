@@ -1,10 +1,6 @@
 import type { Request, Response } from 'express'
 import { validateRequired } from '../shared/validators/common'
 import * as sessionService from '../services/session.service'
-import {
-  toSessionSummary,
-  type SessionDocForSummary,
-} from '../../src/features/session/read-model'
 
 export async function getSessions(req: Request, res: Response) {
   const sessions = await sessionService.getSessionsForUserWithVisibility(
@@ -41,15 +37,13 @@ export async function createSession(req: Request, res: Response) {
 
   const { campaignId, date, title, notes, visibility } = req.body
   try {
-    const doc = await sessionService.createSession(req.userId!, {
+    const session = await sessionService.createSession(req.userId!, {
       campaignId,
       date,
       title,
       notes,
       visibility,
     })
-
-    const session = doc ? toSessionSummary(doc as unknown as SessionDocForSummary) : null
     res.status(201).json({ session })
   } catch (err) {
     console.error('Failed to create session:', err)
@@ -61,12 +55,17 @@ export async function updateSession(req: Request, res: Response) {
   const { title, notes, date, status } = req.body
 
   try {
-    const doc = await sessionService.updateSession(req.params.id, { title, notes, date, status })
-    if (!doc) {
+    const session = await sessionService.updateSession(req.params.id, {
+      title,
+      notes,
+      date,
+      status,
+    })
+    if (!session) {
       res.status(404).json({ error: 'Session not found' })
       return
     }
-    res.json({ session: toSessionSummary(doc as unknown as SessionDocForSummary) })
+    res.json({ session })
   } catch (err) {
     console.error('Failed to update session:', err)
     res.status(500).json({ error: 'Failed to update session' })
