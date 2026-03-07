@@ -1,6 +1,10 @@
 import mongoose from 'mongoose'
 import { env } from '../config/env'
+import { getDb, toObjectId } from '../utils/db'
+import { badRequest, forbidden, notFound } from '../errors/ApiError'
+import { getCampaignById } from './campaign.service'
 import { getPublicUrl } from './image.service'
+import * as notificationService from './notification.service'
 import type {
   CampaignMemberStatus,
   CampaignMemberStoredRole,
@@ -39,7 +43,8 @@ export async function getCampaignMembersByCampaign(campaignId: string) {
     .toArray()
 }
 
-export async function getCampaignMemberByCharacter(characterId: string) {
+/** Find single campaign member by character ID (e.g. for invite flow). */
+export async function getCampaignMemberByCharacterId(characterId: string) {
   return campaignMembersCollection().findOne({
     characterId: new mongoose.Types.ObjectId(characterId),
   })
@@ -266,6 +271,173 @@ export async function updateCharacterStatus(
     { $set: { characterStatus } },
     { returnDocument: 'after' },
   )
+}
+
+// ---------------------------------------------------------------------------
+// Orchestrated commands (with notifications)
+// ---------------------------------------------------------------------------
+
+const VALID_CHARACTER_STATUSES: CampaignCharacterStatus[] = ['active', 'inactive', 'deceased']
+
+/**
+ * Approve a pending campaign member and send notifications.
+ * Throws ApiError on 404, 400, or 403.
+ */
+export async function approveMemberWithNotifications(
+  memberId: string,
+  userId: string,
+) {
+  const member = await getCampaignMemberById(memberId)
+  if (!member) throw notFound('Campaign member not found')
+
+  const m = member as { status: string; campaignId: mongoose.Types.ObjectId }
+  if (m.status !== 'pending') throw badRequest('Campaign member is not pending approval')
+
+  const campaign = await getCampaignById(m.campaignId.toString())
+  if (!campaign) throw notFound('Campaign not found')
+
+  const ownerId = campaign.membership?.ownerId
+  if (!ownerId?.equals(toObjectId(userId))) {
+    throw forbidden('Only the campaign owner can approve characters')
+  }
+
+  const updated = await approveCampaignMember(memberId, userId)
+  if (!updated) throw badRequest('Failed to approve')
+
+  const u = updated as { userId: mongoose.Types.ObjectId; characterId: mongoose.Types.ObjectId }
+  const character = await getDb().collection('characters').findOne({ _id: u.characterId })
+  const characterName = character?.name as string | undefined
+  const campaignName = (campaign.identity?.name as string) ?? ''
+
+  await notificationService.createNotification({
+    userId: u.userId,
+    type: 'character_approved',
+    requiresAction: false,
+    context: { campaignId: m.campaignId, characterId: u.characterId },
+    payload: { characterName, campaignName },
+  })
+
+  const approvedMembers = await getCampaignMembersByCampaign(m.campaignId.toString())
+  const partyUserIds = (approvedMembers as { userId: mongoose.Types.ObjectId; status: string }[])
+    .filter((mbr) => mbr.status === 'approved' && !mbr.userId.equals(u.userId))
+    .map((mbr) => mbr.userId)
+
+  for (const memberUserId of partyUserIds) {
+    await notificationService.createNotification({
+      userId: memberUserId,
+      type: 'newPartyMember',
+      requiresAction: false,
+      context: { characterId: u.characterId, campaignId: m.campaignId },
+      payload: { characterName, campaignName },
+    })
+  }
+
+  return updated
+}
+
+/**
+ * Reject a pending campaign member and send notification.
+ * Throws ApiError on 404, 400, or 403.
+ */
+export async function rejectMemberWithNotifications(memberId: string, userId: string) {
+  const member = await getCampaignMemberById(memberId)
+  if (!member) throw notFound('Campaign member not found')
+
+  const m = member as { status: string; campaignId: mongoose.Types.ObjectId }
+  if (m.status !== 'pending') throw badRequest('Campaign member is not pending approval')
+
+  const campaign = await getCampaignById(m.campaignId.toString())
+  if (!campaign) throw notFound('Campaign not found')
+
+  const ownerId = campaign.membership?.ownerId
+  if (!ownerId?.equals(toObjectId(userId))) {
+    throw forbidden('Only the campaign owner can reject characters')
+  }
+
+  const updated = await rejectCampaignMember(memberId)
+  if (!updated) throw badRequest('Failed to reject')
+
+  const u = updated as { userId: mongoose.Types.ObjectId; characterId: mongoose.Types.ObjectId }
+  const character = await getDb().collection('characters').findOne({ _id: u.characterId })
+  const characterName = character?.name as string | undefined
+  const campaignName = (campaign.identity?.name as string) ?? ''
+
+  await notificationService.createNotification({
+    userId: u.userId,
+    type: 'character_rejected',
+    requiresAction: false,
+    context: { campaignId: m.campaignId, characterId: u.characterId },
+    payload: { characterName, campaignName },
+  })
+
+  return updated
+}
+
+/**
+ * Update character status with permission checks and party notifications.
+ * Throws ApiError on 404, 400, or 403.
+ */
+export async function updateCharacterStatusWithNotifications(
+  memberId: string,
+  userId: string,
+  characterStatus: string,
+) {
+  if (!VALID_CHARACTER_STATUSES.includes(characterStatus as CampaignCharacterStatus)) {
+    throw badRequest(
+      `Invalid characterStatus. Must be one of: ${VALID_CHARACTER_STATUSES.join(', ')}`,
+    )
+  }
+
+  const member = await getCampaignMemberById(memberId)
+  if (!member) throw notFound('Campaign member not found')
+
+  const m = member as {
+    campaignId: mongoose.Types.ObjectId
+    characterId: mongoose.Types.ObjectId
+    userId: mongoose.Types.ObjectId
+    status: string
+    characterStatus?: string
+  }
+
+  const campaign = await getCampaignById(m.campaignId.toString())
+  if (!campaign) throw notFound('Campaign not found')
+
+  const ownerId = campaign.membership?.ownerId
+  const isCampaignOwner = ownerId?.equals(toObjectId(userId)) ?? false
+  const isCharacterOwner = m.userId.equals(toObjectId(userId))
+
+  if (!isCampaignOwner && !isCharacterOwner) {
+    throw forbidden("You do not have permission to update this character's status")
+  }
+
+  if (isCharacterOwner && !isCampaignOwner && characterStatus !== 'inactive') {
+    throw forbidden('You can only set your character to inactive (leave campaign)')
+  }
+
+  const updated = await updateCharacterStatus(memberId, characterStatus as CampaignCharacterStatus)
+  if (!updated) throw badRequest('Failed to update character status')
+
+  const character = await getDb().collection('characters').findOne({ _id: m.characterId })
+  const characterName = (character?.name as string) ?? 'Unknown'
+  const campaignName = (campaign.identity?.name as string) ?? ''
+
+  const approvedMembers = await getCampaignMembersByCampaign(m.campaignId.toString())
+  const partyUserIds = (approvedMembers as { userId: mongoose.Types.ObjectId; status: string }[])
+    .filter((mbr) => mbr.status === 'approved' && !mbr.userId.equals(toObjectId(userId)))
+    .map((mbr) => mbr.userId)
+
+  const notificationType = characterStatus === 'deceased' ? 'character.deceased' : 'character.left'
+  for (const memberUserId of partyUserIds) {
+    await notificationService.createNotification({
+      userId: memberUserId,
+      type: notificationType,
+      requiresAction: false,
+      context: { characterId: m.characterId, campaignId: m.campaignId },
+      payload: { characterName, campaignName },
+    })
+  }
+
+  return updated
 }
 
 export async function deleteCampaignMember(campaignId: string, characterId: string) {
