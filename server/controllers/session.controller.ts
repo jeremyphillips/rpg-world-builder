@@ -28,17 +28,18 @@ export async function getSession(req: Request, res: Response) {
 }
 
 export async function createSession(req: Request, res: Response) {
+  const campaignIdCheck = validateRequired(req.body.campaignId, 'campaignId')
+  if (!campaignIdCheck.valid) {
+    res.status(400).json({ error: campaignIdCheck.message })
+    return
+  }
+  const dateCheck = validateRequired(req.body.date, 'date')
+  if (!dateCheck.valid) {
+    res.status(400).json({ error: dateCheck.message })
+    return
+  }
+
   const { campaignId, date, title, notes, visibility } = req.body
-
-  if (!campaignId) {
-    res.status(400).json({ error: 'campaignId is required' })
-    return
-  }
-  if (!date) {
-    res.status(400).json({ error: 'date is required' })
-    return
-  }
-
   try {
     const doc = await sessionService.createSession(req.userId!, {
       campaignId,
