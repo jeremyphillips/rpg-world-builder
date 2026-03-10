@@ -1,5 +1,5 @@
 import { useCampaignParty } from '@/features/campaign/hooks'
-import { CharacterMediaTopCard } from '@/features/character/cards'
+import { CharacterMediaTopCard } from '@/features/character/components'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { AppAlert } from '@/ui/primitives'

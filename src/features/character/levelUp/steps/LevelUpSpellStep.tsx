@@ -10,7 +10,7 @@ import { getClassProgression } from '@/features/mechanics/domain/classes/progres
 import { groupSpellsByLevel } from '@/features/mechanics/domain/spells'
 import { getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/classes/progression'
 import { getAvailableSpellsByClass } from '@/features/mechanics/domain/spells/selection'
-import { SpellHorizontalCard } from '@/features/spell/cards'
+import { SpellHorizontalCard } from '@/features/content/spells/components'
 import type { LevelUpState } from '../levelUp.types'
 
 import Box from '@mui/material/Box'

@@ -37,7 +37,6 @@ const NpcMediaTopCard = ({
   classes,
   race: raceId,
   name,
-  link,
   imageUrl,
   status,
 }: NpcMediaTopCardProps) => {

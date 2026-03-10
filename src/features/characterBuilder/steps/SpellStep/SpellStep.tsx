@@ -2,7 +2,7 @@ import { useMemo, useCallback } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import type { Spell } from '@/features/content/shared/domain/types'
-import { SpellHorizontalCard } from '@/features/spell/cards'
+import { SpellHorizontalCard } from '@/features/content/spells/components'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
 import {
   buildSpellSelectionModel,

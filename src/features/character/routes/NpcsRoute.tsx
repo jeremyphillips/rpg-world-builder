@@ -1,7 +1,7 @@
 import { useBreadcrumbs } from '@/app/navigation'
 import { CharacterBuilderLauncher } from '@/features/characterBuilder/components'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
-import { NpcGallerySection } from '@/features/npc/sections'
+import { NpcGallerySection } from '@/features/character/components'
 
 import { Breadcrumbs } from '@/ui/patterns'
 import Typography from '@mui/material/Typography'

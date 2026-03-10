@@ -24,7 +24,7 @@ import { useBreadcrumbs } from '@/app/navigation'
 import { apiFetch } from '@/app/api'
 import { CharacterBuilderLauncher } from '@/features/characterBuilder/components'
 import { AppAlert } from '@/ui/primitives'
-import { CharacterHorizontalCard } from '@/features/character/cards'
+import { CharacterHorizontalCard } from '@/features/character/components'
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------

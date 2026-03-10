@@ -1,5 +1,5 @@
 import { useAuth } from '@/app/providers/AuthProvider'
-import CampaignPartySection from '@/features/character/sections/CampaignPartySection'
+import { CampaignPartySection } from '@/features/character/components'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'

@@ -1,5 +1,5 @@
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { SpellHorizontalCard } from '@/features/spell/cards'
+import { SpellHorizontalCard } from '@/features/content/spells/components'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'

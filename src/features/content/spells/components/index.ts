@@ -1,0 +1,1 @@
+export { SpellHorizontalCard } from './cards'
