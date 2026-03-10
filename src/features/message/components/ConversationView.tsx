@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useMessaging } from '@/app/providers/MessagingProvider'
-import type { Message } from '@/features/messaging'
+import type { Message } from '@/features/message'
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'

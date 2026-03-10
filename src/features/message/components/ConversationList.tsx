@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useMessaging } from '@/app/providers/MessagingProvider'
 import { ROUTES } from '@/app/routes'
-import { getConversationDisplayName } from '@/features/messaging'
+import { getConversationDisplayName } from '@/features/message'
 
 import Box from '@mui/material/Box'
 import List from '@mui/material/List'

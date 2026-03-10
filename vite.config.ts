@@ -42,7 +42,7 @@ export default defineConfig({
       "@/features/character": path.resolve(__dirname, "src/features/character"),
       "@/features/levelUp": path.resolve(__dirname, "src/features/levelUp"),
       "@/features/campaign": path.resolve(__dirname, "src/features/campaign"),
-      "@/features/messaging": path.resolve(__dirname, "src/features/messaging"),
+      "@/features/message": path.resolve(__dirname, "src/features/message"),
       "@/features/npc": path.resolve(__dirname, "src/features/npc"),
       "@/features/skillProficiency": path.resolve(__dirname, "src/features/skillProficiency"),
       "@/features/mechanics": path.resolve(__dirname, "src/features/mechanics"),
