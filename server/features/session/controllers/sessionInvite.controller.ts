@@ -16,7 +16,7 @@ export async function getSessionInvites(req: Request, res: Response) {
     }))
     res.json({ invites: normalized })
   } catch (err) {
-    console.error('Failed to get session invites:', err)
+    console.error('Failed to load session invites:', err)
     res.status(500).json({ error: 'Failed to load session invites' })
   }
 }
@@ -41,7 +41,7 @@ export async function getMySessionInvite(req: Request, res: Response) {
       },
     })
   } catch (err) {
-    console.error('Failed to get session invite:', err)
+    console.error('Failed to load session invite:', err)
     res.status(500).json({ error: 'Failed to load session invite' })
   }
 }

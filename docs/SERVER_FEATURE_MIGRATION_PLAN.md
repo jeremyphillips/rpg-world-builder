@@ -202,10 +202,10 @@ When migrating, add these TODO comments at server→src import sites:
 
 | Feature | Controller | Routes | Services | Notes |
 |---------|------------|--------|----------|-------|
-| notification | ✓ | ✓ | notification.service | Migrate first |
-| user | ✓ | ✓ | user.service | Straightforward |
-| session | ✓ | ✓ | session.service | Includes sessionInvite |
-| sessionInvite | ✓ | ✓ | sessionInvite.service | Inside features/session |
-| message | ✓ | ✓ | message.service, conversation.service | Route restructure + client update |
-| chat | ✓ | ✓ | openai.service | Separate from message |
+| notification | ✓ | ✓ | notification.service | **DONE** |
+| user | ✓ | ✓ | user.service | **DONE** |
+| session | ✓ | ✓ | session.service | **DONE** – includes sessionInvite |
+| sessionInvite | ✓ | ✓ | sessionInvite.service | **DONE** – inside features/session |
+| message | ✓ | ✓ | message.service, conversation.service | **DONE** – route restructure + client update |
+| chat | ✓ | ✓ | openai.service | **DONE** |
 | invite | — | — | — | Migrate later |

@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { requireAuth } from '../shared/middleware/requireAuth'
-import { requireRole } from '../shared/middleware/requireRole'
-import { asyncHandler } from '../shared/middleware/asyncHandler'
+import { requireAuth } from '../../../shared/middleware/requireAuth'
+import { requireRole } from '../../../shared/middleware/requireRole'
+import { asyncHandler } from '../../../shared/middleware/asyncHandler'
 import {
   getSessions,
   getSession,

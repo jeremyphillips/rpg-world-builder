@@ -2,10 +2,11 @@ import type { Request, Response } from 'express'
 import mongoose from 'mongoose'
 import * as conversationService from '../services/conversation.service'
 import * as messageService from '../services/message.service'
-import * as campaignMemberService from '../services/campaignMember.service'
-import { getCampaignById } from '../services/campaign.service'
-import { env } from '../shared/config/env'
-import { canMessageUser, canMessageUsers } from '../../src/features/message'
+import * as campaignMemberService from '../../../services/campaignMember.service'
+import { getCampaignById } from '../../../services/campaign.service'
+import { env } from '../../../shared/config/env'
+// TODO: Extract canMessageUser, canMessageUsers into shared; remove server→src dependency
+import { canMessageUser, canMessageUsers } from '../../../../src/features/message'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 

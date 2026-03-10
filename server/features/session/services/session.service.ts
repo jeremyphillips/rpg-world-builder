@@ -1,15 +1,16 @@
 import mongoose from 'mongoose'
-import { env } from '../shared/config/env'
-import { canViewSession } from '../../shared/domain/capabilities'
-import type { ViewerContext } from '../../shared/domain/capabilities'
-import type { CampaignRole } from '../../shared/types'
+import { env } from '../../../shared/config/env'
+import { canViewSession } from '../../../../shared/domain/capabilities'
+import type { ViewerContext } from '../../../../shared/domain/capabilities'
+import type { CampaignRole } from '../../../shared/types'
 import {
   getUserMembershipsMap,
   getUserCharacterIds,
-} from './campaignMember.service'
-import { getCampaignById, getOwnedCampaignIds } from './campaign.service'
-import { toSessionSummary } from '../../src/features/session/read-model'
-import * as notificationService from '../features/notification/services/notification.service'
+} from '../../../services/campaignMember.service'
+import { getCampaignById, getOwnedCampaignIds } from '../../../services/campaign.service'
+// TODO: Extract toSessionSummary into shared; remove server→src dependency
+import { toSessionSummary } from '../../../../src/features/session/read-model'
+import * as notificationService from '../../notification/services/notification.service'
 import * as sessionInviteService from './sessionInvite.service'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)

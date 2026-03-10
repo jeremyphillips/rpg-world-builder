@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
-import { env } from '../shared/config/env'
-import * as notificationService from '../features/notification/services/notification.service'
+import { env } from '../../../shared/config/env'
+import * as notificationService from '../../notification/services/notification.service'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const sessionInvitesCollection = () => db().collection('sessionInvites')

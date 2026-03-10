@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { validateRequired } from '../shared/validators/common'
+import { validateRequired } from '../../../shared/validators/common'
 import * as sessionService from '../services/session.service'
 
 export async function getSessions(req: Request, res: Response) {
