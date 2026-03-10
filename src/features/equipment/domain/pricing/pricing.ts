@@ -12,7 +12,7 @@ import type { Armor, Weapon, Gear } from '@/features/content/shared/domain/types
 import type { Money } from '@/shared/money/types'
 import { moneyToCp, COIN_TO_CP } from '@/shared/money'
 
-export { moneyToCp, COIN_TO_CP }
+//export { moneyToCp, COIN_TO_CP }
 
 export const getItemCostCp = (item?: { cost?: Money }): number => {
   return moneyToCp(item?.cost)

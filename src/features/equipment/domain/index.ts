@@ -1,5 +1,5 @@
 export * from './pricing/pricing'
 export * from './weight/weight'
-export * from './magic-items/magicItems'
+export * from './magicItems/getMagicItemBudgetTier'
 export * from './enchantments'
 export * from './instances'

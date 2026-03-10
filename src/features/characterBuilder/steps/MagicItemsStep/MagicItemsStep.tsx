@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { getMagicItemBudget } from '@/features/equipment/domain/magic-items/magicItems'
+import { getMagicItemBudgetTier } from '@/features/equipment/domain/magicItems/getMagicItemBudgetTier'
 import { ButtonGroup } from '@/ui/patterns'
 import { ConfirmModal } from '@/ui/patterns'
 import FormControl from '@mui/material/FormControl'
@@ -16,6 +16,7 @@ import type { EquipmentItemInstance } from '@/features/character/domain/types'
 import type { EnchantableSlot } from '@/features/content/shared/domain/types'
 import { moneyToCp, cpToDenoms, formatCp } from '@/shared/money'
 import type { Money } from '@/shared/money/types'
+import { MAGIC_ITEM_RARITY_OPTIONS } from '@/features/content/shared/domain/vocab/magicItems.vocab'
 
 // ---------------------------------------------------------------------------
 // Enhancement types & constants
@@ -111,7 +112,7 @@ const MagicItemsStep = () => {
   } = state
 
   const magicItemBudget = ruleset.mechanics?.progression?.magicItemBudget
-  const budgetTier = getMagicItemBudget(magicItemBudget, totalLevel ?? 1)
+  const budgetTier = getMagicItemBudgetTier(magicItemBudget, totalLevel ?? 1)
 
   // =========================================================================
   // Catalog lookups
@@ -137,7 +138,7 @@ const MagicItemsStep = () => {
     return `${name} (${short})`
   }
 
-  const getEnhancementCostCp = (templateId: string | undefined): number => {
+  const getEnchantmentCostCp = (templateId: string | undefined): number => {
     if (!templateId) return 0
     const tpl = catalog.enhancementsById[templateId]
     if (!tpl) return 0
@@ -151,7 +152,7 @@ const MagicItemsStep = () => {
 
   const sumEnhancementCostCp = (instances: EquipmentItemInstance[]): number => {
     return instances.reduce((sum: number, inst) => {
-      return sum + asFinite(getEnhancementCostCp(inst.enhancementTemplateId));
+      return sum + asFinite(getEnchantmentCostCp(inst.enhancementTemplateId));
     }, 0);
   };
   // =========================================================================
@@ -160,8 +161,8 @@ const MagicItemsStep = () => {
 
   const weaponInstances = selectedEquipment?.weaponInstances ?? []
   const allArmorInstances = selectedEquipment?.armorInstances ?? []
-  const armorInstances = allArmorInstances.filter(i => !isShieldBaseId(i.baseId))
-  const shieldInstances = allArmorInstances.filter(i => isShieldBaseId(i.baseId))
+  const armorInstances = allArmorInstances.filter((i: EquipmentItemInstance) => !isShieldBaseId(i.baseId))
+  const shieldInstances = allArmorInstances.filter((i: EquipmentItemInstance) => isShieldBaseId(i.baseId))
 
   const instancesForGroup: Record<EnhancementGroup, EquipmentItemInstance[]> = {
     weapons: weaponInstances,
@@ -186,10 +187,10 @@ const MagicItemsStep = () => {
     const armor = selectedEquipment?.armor ?? []
     const gear = selectedEquipment?.gear ?? []
 
-    const costOf = (item: { cost?: Money } | undefined) => moneyToCp(item?.cost)
-    const wCost = weapons.reduce((sum, id) => sum + costOf(catalog.weaponsById[id]), 0)
-    const aCost = armor.reduce((sum, id) => sum + costOf(catalog.armorById[id]), 0)
-    const gCost = gear.reduce((sum, id) => sum + costOf(catalog.gearById[id]), 0)
+    const costOf = (item: { cost?: Money } | undefined): number => moneyToCp(item?.cost)
+    const wCost = weapons.reduce((sum: number, id: string) => sum + costOf(catalog.weaponsById[id]), 0)
+    const aCost = armor.reduce((sum: number, id: string) => sum + costOf(catalog.armorById[id]), 0)
+    const gCost = gear.reduce((sum: number, id: string) => sum + costOf(catalog.gearById[id]), 0)
     return wCost + aCost + gCost
   }, [selectedEquipment?.weapons, selectedEquipment?.armor, selectedEquipment?.gear, catalog])
 
@@ -225,11 +226,11 @@ const MagicItemsStep = () => {
     currentTemplateId: string | undefined,
   ): Set<string> => {
     const disabled = new Set<string>()
-    const currentCost = getEnhancementCostCp(currentTemplateId)
+    const currentCost = getEnchantmentCostCp(currentTemplateId)
     const costWithoutThis = totalEnhCostCp - currentCost
     for (const tid of templateIds) {
       if (tid === currentTemplateId) continue
-      const optCost = getEnhancementCostCp(tid)
+      const optCost = getEnchantmentCostCp(tid)
       if (mundaneCostCp + costWithoutThis + optCost > baseCp) {
         disabled.add(tid)
       }
@@ -241,17 +242,13 @@ const MagicItemsStep = () => {
   // Magic-items data — filtered by ruleset budget rarity ceiling
   // =========================================================================
 
-  const RARITY_ORDER: MagicItemRarity[] = [
-    'common', 'uncommon', 'rare', 'very-rare', 'legendary', 'artifact',
-  ]
-
   const allMagicItems = useMemo(() => {
     const items = Object.values(catalog.magicItemsById) as MagicItem[]
     if (!budgetTier?.maxRarity) return items
-    const maxIdx = RARITY_ORDER.indexOf(budgetTier.maxRarity)
+    const maxIdx = MAGIC_ITEM_RARITY_OPTIONS.findIndex(option => option.value === budgetTier.maxRarity)
     return items.filter(item => {
       if (!item.rarity) return true
-      return RARITY_ORDER.indexOf(item.rarity) <= maxIdx
+      return MAGIC_ITEM_RARITY_OPTIONS.findIndex(option => option.value === item.rarity) <= maxIdx
     })
   }, [catalog.magicItemsById, budgetTier])
 
