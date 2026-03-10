@@ -25,7 +25,7 @@ import {
   normalizeEquipmentInstances,
 } from '@/features/characterBuilder/domain/equipment'
 import { moneyToCp, cpToDenoms } from '@/shared/money'
-import type { CharacterType } from "@/shared/types/character.core"
+import type { CharacterType } from "@/features/character/domain/types"
 import { resolveXpTable } from "@/features/mechanics/domain/core/rules/xp/resolveXpTable"
 import type { AlignmentId } from '@/features/content/shared/domain/types'
 import { 
@@ -163,7 +163,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
   }
 
   const loadCharacterIntoBuilder = (
-    character: import('@/shared').CharacterSheet & {
+    character: import('@/features/character/domain/types').CharacterSheet & {
       _id?: string
       name?: string
     },
