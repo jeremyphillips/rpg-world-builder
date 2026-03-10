@@ -2,7 +2,7 @@
  * Placeholder for sending an invite email directly from the client.
  *
  * Currently, email invites for users without accounts are handled
- * server-side in `POST /api/campaigns/:id/members` via `email.service.ts`.
+ * server-side in `POST /api/campaigns/:id/members` via `features/email/services/email.service.ts`.
  *
  * This function exists for future use when direct client-to-email-service
  * integration is needed (e.g. Resend, SendGrid).

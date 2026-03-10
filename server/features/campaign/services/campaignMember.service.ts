@@ -3,7 +3,7 @@ import { env } from '../../../shared/config/env'
 import { getDb, toObjectId } from '../../../shared/utils/db'
 import { badRequest, forbidden, notFound } from '../../../shared/errors/ApiError'
 import { getCampaignById } from './campaign.service'
-import { getPublicUrl } from '../../../services/image.service'
+import { getPublicUrl } from '../../../shared/services/image.service'
 import * as notificationService from '../../notification/services/notification.service'
 import type {
   CampaignMemberStatus,
@@ -523,7 +523,7 @@ export async function addMemberOrInvite(
 
   if (!user) {
     const { createInviteToken } = await import('./invite.service')
-    const { sendCampaignInvite } = await import('../../../services/email.service')
+    const { sendCampaignInvite } = await import('../../email/services/email.service')
 
     const inviteToken = await createInviteToken({
       campaignId,

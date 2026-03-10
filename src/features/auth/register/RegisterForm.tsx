@@ -1,4 +1,4 @@
-import { AppForm, DynamicFormRenderer, type FieldConfig } from '@/ui/patterns'
+import { AppForm, DynamicFormRenderer, FormActions, type FieldConfig } from '@/ui/patterns'
 import type { RegisterFormData } from './register.types'
 
 interface RegisterFormProps {

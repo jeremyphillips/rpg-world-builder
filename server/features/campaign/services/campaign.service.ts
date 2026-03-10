@@ -10,7 +10,7 @@ import {
   hydrateMemberViews,
   type CampaignMemberDoc,
 } from './campaignMember.service'
-import { getPublicUrl } from '../../../services/image.service'
+import { getPublicUrl } from '../../../shared/services/image.service'
 import {
   type CharacterRosterSummary,
   type CharacterDocForCard,

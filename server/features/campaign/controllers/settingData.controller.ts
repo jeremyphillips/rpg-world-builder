@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import * as settingDataService from '../services/settingData.service'
-import { getPublicUrl } from '../../../services/image.service'
+import { getPublicUrl } from '../../../shared/services/image.service'
 
 function normalizeLocation(loc: Record<string, unknown> | null | undefined) {
   const { imageKey, ...rest } = loc ?? {}

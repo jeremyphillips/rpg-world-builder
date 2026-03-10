@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import * as imageService from '../../../services/image.service'
+import * as imageService from '../../../shared/services/image.service'
 
 export async function uploadImage(req: Request, res: Response) {
   try {

@@ -7,7 +7,7 @@ import * as notificationService from '../../notification/services/notification.s
 import { getCampaignById } from '../../campaign/services/campaign.service'
 import { resolveCharacterAccess } from '../../../shared/auth/resolveCharacterAccess'
 import type { CharacterDoc } from '../../../../src/features/character/domain/types/characterDoc.types'
-import { getPublicUrl } from '../../../services/image.service'
+import { getPublicUrl } from '../../../shared/services/image.service'
 import {
   type CharacterCardSummary,
   type CharacterDetailDto,

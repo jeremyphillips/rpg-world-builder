@@ -37,6 +37,7 @@ server/features/{feature}/
 5. **Chat** – independent
 6. **Campaign** (includes campaignMember, invite, note, contentPatch, rulesetPatch, settingData) – replace setting scope with campaign scope
 7. **Upload** – independent
+8. **Email** – infrastructure; used by campaign invite
 
 ---
 
@@ -204,9 +205,32 @@ server/features/campaign/
 **Move:**
 - `controllers/upload.controller.ts` → `features/upload/controllers/upload.controller.ts`
 - `routes/upload.routes.ts` → `features/upload/routes/upload.routes.ts`
-- `services/image.service.ts` → `features/upload/services/image.service.ts` (only if used exclusively by upload; otherwise keep in shared)
+- `services/image.service.ts` → `shared/services/image.service.ts` (used by upload, campaign, auth, character; keep in shared)
 
 **Route registration:** `/api/uploads` unchanged.
+
+---
+
+### 8. Email
+
+**Move:**
+- `services/email.service.ts` → `features/email/services/email.service.ts`
+- `services/email.providers/types.ts` → `features/email/services/providers/types.ts`
+- `services/email.providers/ethereal.provider.ts` → `features/email/services/providers/ethereal.provider.ts`
+- `services/email.providers/smtp.provider.ts` → `features/email/services/providers/smtp.provider.ts`
+
+**Structure under email:**
+```
+server/features/email/
+└── services/
+    ├── email.service.ts
+    └── providers/
+        ├── types.ts
+        ├── ethereal.provider.ts
+        └── smtp.provider.ts
+```
+
+**Consumer:** `campaignMember.service` (sendCampaignInvite). No routes; email is infrastructure used by campaign invite flow.
 
 ---
 
@@ -297,4 +321,5 @@ When migrating, add these TODO comments at server→src import sites:
 | contentPatch | ✓ | — | contentPatch.service | **DONE** – inside features/campaign (routes in campaign.routes) |
 | rulesetPatch | ✓ | — | rulesetPatch.service | **DONE** – inside features/campaign (routes in campaign.routes) |
 | settingData | ✓ | ✓ | settingData.service | **DONE** (Phase 2) – campaign-scoped under features/campaign |
-| upload | ✓ | ✓ | image.service | **DONE** (Phase 1) – standalone features/upload |
+| upload | ✓ | ✓ | — | **DONE** (Phase 1) – image.service in shared/services |
+| email | — | — | email.service, providers | **DONE** – infrastructure used by campaign invite |

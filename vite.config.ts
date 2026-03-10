@@ -53,7 +53,6 @@ export default defineConfig({
       "@/features/utils": path.resolve(__dirname, "src/features/utils"),
       "@/hooks": path.resolve(__dirname, "src/hooks"),
       "@/services": path.resolve(__dirname, "src/services"),
-      "@/server/services": path.resolve(__dirname, "server/services"),
       "@/shared/domain": path.resolve(__dirname, "shared/domain"),
       "@/shared/money": path.resolve(__dirname, "shared/money"),
       "@/shared/weight": path.resolve(__dirname, "shared/weight"),

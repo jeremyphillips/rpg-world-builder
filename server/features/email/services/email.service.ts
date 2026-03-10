@@ -1,7 +1,7 @@
-import { env } from '../shared/config/env'
-import type { EmailProvider } from './email.providers/types'
-import { etherealProvider } from './email.providers/ethereal.provider'
-import { smtpProvider } from './email.providers/smtp.provider'
+import { env } from '../../../shared/config/env'
+import type { EmailProvider } from './providers/types'
+import { etherealProvider } from './providers/ethereal.provider'
+import { smtpProvider } from './providers/smtp.provider'
 
 // ---------------------------------------------------------------------------
 // Provider selection — Ethereal for development, SMTP for production

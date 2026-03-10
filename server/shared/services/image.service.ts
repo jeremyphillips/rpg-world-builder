@@ -1,12 +1,12 @@
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
-import { env } from '../shared/config/env'
+import { env } from '../config/env'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const UPLOADS_DIR = path.resolve(__dirname, '../../assets/uploads')
+const UPLOADS_DIR = path.resolve(__dirname, '../../../assets/uploads')
 
 // Ensure upload directory exists
 if (!fs.existsSync(UPLOADS_DIR)) {

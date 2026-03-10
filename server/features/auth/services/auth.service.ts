@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 import { env } from '../../../shared/config/env'
 import { badRequest } from '../../../shared/errors/ApiError'
 import { signToken } from '../../../shared/utils/jwt'
-import { getPublicUrl, normalizeImageKey } from '../../../services/image.service'
+import { getPublicUrl, normalizeImageKey } from '../../../shared/services/image.service'
 
 interface NotificationPreferences {
   sessionScheduled: boolean

@@ -42,7 +42,7 @@ The Character domain has been refactored and represents the target pattern:
 
 - **Error handling:** Single `errorHandler` middleware; catches unhandled errors, returns 500
 - **Auth:** `requireAuth`, `requireRole`, `requireCampaignRole` middleware; `resolveCampaignViewerContext` for campaign-scoped identity
-- **Image URLs:** `getPublicUrl()` in `image.service.ts` – used by services and mappers
+- **Image URLs:** `getPublicUrl()` in `shared/services/image.service.ts` – used by services and mappers
 - **Capabilities:** `shared/domain/capabilities.ts` – `canViewContent`, `canViewSession`, etc. (pure functions)
 
 ---
