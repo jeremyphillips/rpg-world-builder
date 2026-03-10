@@ -9,13 +9,13 @@ import { useCampaignMembers } from '@/features/campaign/hooks';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { useCreateEntrySubmit } from '@/features/content/shared/hooks/useCreateEntrySubmit';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
-import { magicItemRepo } from '@/features/content/domain/repo';
+import { magicItemRepo } from '../domain/repo/magicItemRepo';
 import {
   type MagicItemFormValues,
   getMagicItemFieldConfigs,
   MAGIC_ITEM_FORM_DEFAULTS,
   toMagicItemInput,
-} from '../domain';
+} from '../domain/forms';
 
 const FORM_ID = 'magic-item-create-form';
 

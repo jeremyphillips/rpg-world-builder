@@ -9,7 +9,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { weaponRepo, armorRepo, gearRepo, magicItemRepo } from '@/features/content/domain/repo';
+import { weaponRepo } from '@/features/content/equipment/weapons/domain/repo/weaponRepo';
+import { armorRepo } from '@/features/content/equipment/armor/domain/repo/armorRepo';
+import { gearRepo } from '@/features/content/equipment/gear/domain/repo/gearRepo';
+import { magicItemRepo } from '@/features/content/equipment/magicItems/domain/repo/magicItemRepo';
 import { AppPageHeader } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

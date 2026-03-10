@@ -16,8 +16,8 @@ import Typography from '@mui/material/Typography';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { armorRepo } from '@/features/content/domain/repo';
-import { validateArmorChange } from '@/features/content/domain/validation';
+import { armorRepo } from '../domain/repo/armorRepo';
+import { validateArmorChange } from '../domain/validation/validateArmorChange';
 import type { Armor } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
@@ -28,7 +28,7 @@ import {
   ARMOR_FORM_DEFAULTS,
   armorToFormValues,
   toArmorInput,
-} from '../domain';
+} from '../domain/forms';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
 import { useResetEditFeedbackOnChange } from '@/features/content/shared/hooks/useResetEditFeedbackOnChange';
 import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCampaignEntryFormReset';

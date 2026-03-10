@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
-import { gearRepo } from '@/features/content/domain/repo';
+import { gearRepo } from '../domain/repo/gearRepo';
 import type { Gear } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -14,7 +14,7 @@ import { AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/shared/lib/media';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
-import { GEAR_DETAIL_SPECS } from '../domain';
+import { GEAR_DETAIL_SPECS } from '../domain/details/gearDetail.spec';
 import { AppAlert } from '@/ui/primitives';
 
 export default function GearDetailRoute() {

@@ -236,3 +236,84 @@ If responsibility is ambiguous:
 - Promote to `src/shared` only if clearly pure and cross-feature
 
 Do NOT invent new architectural layers without instruction.
+
+## 9. Barrel Export Strategy
+
+Barrels should expose only the immediate public surface of a module. They should improve import ergonomics without obscuring ownership or flattening nested structure.
+
+### Rules
+1. Only add barrels at real module boundaries.
+  - Good candidates:
+    - feature root public entrypoints
+    - subtype root public entrypoints
+    - meaningful submodules such as `forms/`
+  - Avoid barrels for purely organizational folders.
+
+2. Do not re-export nested children through parent barrels by default.
+  - Parent index.ts files should not recursively flatten a subtree.
+
+  - Avoid “export tunnels” where consumers import from a high-level barrel but the implementation lives several levels deeper.
+
+3. Never export more than one level down.
+  - A barrel may export its immediate child files.
+
+  - A barrel may re-export an immediate child module only when that child is itself the intended public boundary.
+
+  - Do not re-export grandchildren or deeper descendants.
+
+4. Prefer direct file imports for single-file folders.
+  - If a folder contains one file and is unlikely to grow, import the file directly instead of adding a barrel.
+
+5. Do not use parent barrels to hide ownership.
+  - Import paths should still make it reasonably clear which feature or subtype owns the code.
+
+  - If a parent-level barrel would make ownership ambiguous, import from the more specific module instead.  
+
+## Exception
+A top-level module barrel may re-export an immediate child module when:
+
+- the structure is already heavily nested, and
+
+- that child is the intended public surface for consumers.  
+
+Even in this case:
+- do not export more than one level down
+
+- do not flatten multiple nested layers
+
+Good:
+```
+// features/content/equipment/gear/domain/forms/index.ts
+export { GEAR_FORM_FIELDS } from './config/gearForm.config';
+export { mapGearToFormValues } from './mappers/gearForm.mappers';
+export { gearFormRegistry } from './registry/gearForm.registry';
+export type { GearFormValues } from './types/gearForm.types';
+```
+```
+// features/content/equipment/gear/domain/index.ts
+export * from './forms';
+```
+
+Acceptable exception:
+```
+// features/content/equipment/gear/index.ts
+export * from './domain';
+export * from './routes';
+``` 
+
+Avoid:
+```
+// Avoid exporting multiple levels deep from a parent barrel
+export { GEAR_FORM_FIELDS } from './domain/forms/config/gearForm.config';
+```
+
+```
+// Avoid recursive flattening through parent barrels
+export * from './domain';
+export * from './domain/forms';
+export * from './domain/forms/config';
+```
+
+### Goal
+A consumer should be able to infer module ownership from the import path.
+Barrels should define clear public boundaries, not erase structure.

@@ -20,8 +20,8 @@ import Typography from '@mui/material/Typography';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { weaponRepo } from '@/features/content/domain/repo';
-import { validateWeaponChange } from '@/features/content/domain/validation';
+import { weaponRepo } from '../domain/repo/weaponRepo';
+import { validateWeaponChange } from '../domain/validation/validateWeaponChange';
 import type { Weapon } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
@@ -32,7 +32,7 @@ import {
   WEAPON_FORM_DEFAULTS,
   weaponToFormValues,
   toWeaponInput,
-} from '../domain';
+} from '../domain/forms';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
 import { useResetEditFeedbackOnChange } from '@/features/content/shared/hooks/useResetEditFeedbackOnChange';
 import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCampaignEntryFormReset';

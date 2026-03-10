@@ -16,8 +16,8 @@ import Typography from '@mui/material/Typography';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { magicItemRepo } from '@/features/content/domain/repo';
-import { validateMagicItemChange } from '@/features/content/domain/validation';
+import { magicItemRepo } from '../domain/repo/magicItemRepo';
+import { validateMagicItemChange } from '../domain/validation/validateMagicItemChange';
 import type { MagicItem } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
@@ -28,7 +28,7 @@ import {
   MAGIC_ITEM_FORM_DEFAULTS,
   magicItemToFormValues,
   toMagicItemInput,
-} from '../domain';
+} from '../domain/forms';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
 import { useResetEditFeedbackOnChange } from '@/features/content/shared/hooks/useResetEditFeedbackOnChange';
 import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCampaignEntryFormReset';

@@ -21,13 +21,13 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
+import { magicItemRepo } from '../domain/repo/magicItemRepo';
+import { validateMagicItemChange } from '../domain/validation/validateMagicItemChange';
 import {
-  magicItemRepo,
-  validateMagicItemChange,
   buildMagicItemCustomColumns,
   buildMagicItemCustomFilters,
   type MagicItemListRow,
-} from '../domain';
+} from '../domain/list';
 import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';

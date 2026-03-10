@@ -9,13 +9,13 @@ import { useCampaignMembers } from '@/features/campaign/hooks';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { useCreateEntrySubmit } from '@/features/content/shared/hooks/useCreateEntrySubmit';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
-import { armorRepo } from '@/features/content/domain/repo';
+import { armorRepo } from '../domain/repo/armorRepo';
 import {
   type ArmorFormValues,
   getArmorFieldConfigs,
   ARMOR_FORM_DEFAULTS,
   toArmorInput,
-} from '../domain';
+} from '../domain/forms';
 
 const FORM_ID = 'armor-create-form';
 

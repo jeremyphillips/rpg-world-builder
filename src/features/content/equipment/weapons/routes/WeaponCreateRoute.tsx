@@ -9,13 +9,13 @@ import { useCampaignMembers } from '@/features/campaign/hooks';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { useCreateEntrySubmit } from '@/features/content/shared/hooks/useCreateEntrySubmit';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
-import { weaponRepo } from '@/features/content/domain/repo';
+import { weaponRepo } from '../domain/repo/weaponRepo';
 import {
   type WeaponFormValues,
   getWeaponFieldConfigs,
   WEAPON_FORM_DEFAULTS,
   toWeaponInput,
-} from '../domain';
+} from '../domain/forms';
 
 const FORM_ID = 'weapon-create-form';
 

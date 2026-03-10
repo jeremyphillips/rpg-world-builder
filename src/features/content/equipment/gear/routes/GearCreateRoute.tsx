@@ -9,13 +9,13 @@ import { useCampaignMembers } from '@/features/campaign/hooks';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { useCreateEntrySubmit } from '@/features/content/shared/hooks/useCreateEntrySubmit';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
-import { gearRepo } from '@/features/content/domain/repo';
+import { gearRepo } from '../domain/repo/gearRepo';
 import {
   type GearFormValues,
   getGearFieldConfigs,
   GEAR_FORM_DEFAULTS,
   toGearInput,
-} from '../domain';
+} from '../domain/forms';
 
 const FORM_ID = 'gear-create-form';
 

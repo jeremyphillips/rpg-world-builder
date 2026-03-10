@@ -21,13 +21,13 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
+import { gearRepo } from '../domain/repo/gearRepo';
+import { validateGearChange } from '../domain/validation/validateGearChange';
 import {
-  gearRepo,
-  validateGearChange,
   buildGearCustomColumns,
   buildGearCustomFilters,
   type GearListRow,
-} from '../domain';
+} from '../domain/list';
 import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';

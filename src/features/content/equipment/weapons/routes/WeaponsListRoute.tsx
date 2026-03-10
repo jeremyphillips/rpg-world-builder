@@ -21,13 +21,13 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
+import { weaponRepo } from '../domain/repo/weaponRepo';
+import { validateWeaponChange } from '../domain/validation/validateWeaponChange';
 import {
-  weaponRepo,
-  validateWeaponChange,
   buildWeaponCustomColumns,
   buildWeaponCustomFilters,
   type WeaponListRow,
-} from '../domain';
+} from '../domain/list';
 import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
