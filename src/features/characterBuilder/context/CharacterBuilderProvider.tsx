@@ -23,7 +23,7 @@ import {
   calculateEquipmentWeight,
   calculateEquipmentCostCp,
   normalizeEquipmentInstances,
-} from '@/features/equipment/domain'
+} from '@/features/characterBuilder/domain/equipment'
 import { moneyToCp, cpToDenoms } from '@/shared/money'
 import type { CharacterType } from "@/shared/types/character.core"
 import { resolveXpTable } from "@/features/mechanics/domain/core/rules/xp/resolveXpTable"

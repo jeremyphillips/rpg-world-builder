@@ -6,7 +6,7 @@ import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import {
   calculateEquipmentCostCp,
   getItemCostCp,
-} from '@/features/equipment/domain'
+} from '@/features/characterBuilder/domain/equipment'
 import { moneyToCp, formatCp } from '@/shared/money'
 import { collectIntrinsicEffects } from '@/features/character/domain/engine/collectCharacterEffects'
 import {

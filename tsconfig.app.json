@@ -37,7 +37,6 @@
       "@/features/campaign/*": ["features/campaign/*"],
       "@/features/monster/*": ["features/monster/*"],
       "@/features/npc/*": ["features/npc/*"],
-      "@/features/equipment/*": ["features/equipment/*"],
       "@/features/race/*": ["features/race/*"],
       "@/features/characterBuilder/context": ["features/characterBuilder/context/index.ts"],
       "@/features/classes/*": ["features/classes/*"],

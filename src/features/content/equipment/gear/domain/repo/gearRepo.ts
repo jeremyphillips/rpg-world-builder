@@ -13,7 +13,7 @@ import { campaignGearRepo, type CampaignEquipmentEntry } from '@/features/conten
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
-import { weightToLb } from '@/features/equipment/domain/weight/weight';
+import { weightToLb } from '@/shared/weight';
 
 function toSummary(gear: Gear): GearSummary {
   const base = {

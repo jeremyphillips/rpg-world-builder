@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { getMagicItemBudgetTier } from '@/features/equipment/domain/magicItems/getMagicItemBudgetTier'
+import { getMagicItemBudgetTier } from '@/features/characterBuilder/domain/equipment/magicItems'
 import { ButtonGroup } from '@/ui/patterns'
 import { ConfirmModal } from '@/ui/patterns'
 import FormControl from '@mui/material/FormControl'
