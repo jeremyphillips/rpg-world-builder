@@ -1,6 +1,6 @@
 import { useCharacterBuilder } from '../../context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import type { ClassProgression } from '@/features/classes/domain/types'
+import type { ClassProgression } from '@/features/content/classes/domain/types'
 import type { StepId } from '../../types'
 import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
 

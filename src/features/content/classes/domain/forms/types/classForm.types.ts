@@ -2,7 +2,7 @@
  * Form types for Class Create/Edit.
  * Extends CharacterClass shape — json fields use string for form representation.
  */
-import type { CharacterClass } from '@/features/classes/domain/types';
+import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { Visibility } from '@/shared/types/visibility';
 
 export type ClassFormValues = Pick<CharacterClass, 'name' | 'description'> & {

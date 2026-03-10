@@ -4,7 +4,7 @@
  * Pure domain function — no side effects, no data lookups.
  * Callers provide the ClassProgression; this function interprets it.
  */
-import type { ClassProgression } from '@/features/classes/domain/types'
+import type { ClassProgression } from '@/features/content/classes/domain/types'
 
 // ---------------------------------------------------------------------------
 // Casting mode

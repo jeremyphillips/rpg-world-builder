@@ -1,6 +1,6 @@
 import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
-import type { Subclass } from '@/features/classes/domain/types'
+import type { Subclass } from '@/features/content/classes/domain/types'
 
 export const getAvailableSubclassesByLevel = (
   classId?: string,

@@ -1,5 +1,328 @@
+.
 ---
 alwaysApply: true
 ---
 
-Reference `docs/architecture/architecture.md`
+# Project Architecture & Code Organization Directives
+
+This repo follows a **feature-first architecture** with a **shared UI system** and **shared domain modules** (pure functions/types) where appropriate.
+
+Cursor MUST follow the directives below when generating, refactoring, or moving code.
+
+---
+
+## 0. Non-Negotiables (Quality Bar)
+
+Before considering work “done”, Cursor MUST ensure:
+
+- ✅ TypeScript passes
+- ✅ Lint passes (if configured)
+- ✅ `yarn build` passes
+
+If a change introduces new exports or moves files, Cursor MUST also update any relevant `index.ts` barrel exports.
+
+---
+
+## 1. Primary Layers
+
+### 1.1 Features (`src/features/*`)
+**Features own product behavior** (screens, orchestration, data-fetch, mutations, state, composition).
+
+Features MAY:
+- Call API clients / hooks
+- Compose view components
+- Import shared UI from `src/ui`
+- Import shared pure utilities/types from `src/shared` (or equivalent)
+- Import legacy catalog data from `src/data` ONLY when needed
+
+Features MUST NOT:
+- Duplicate shared UI components if one already exists
+- Reimplement permission/auth gating ad hoc
+- Define large cross-feature design patterns inside a single feature (promote to `src/ui`)
+
+---
+
+### 1.2 Shared UI System (`src/ui/*`)
+`src/ui` is the **single source of truth** for reusable UI building blocks.
+
+Cursor MUST:
+- Prefer existing `src/ui` components over rolling new buttons/fields/cards/modals
+- Add to `src/ui` when a component is reusable across 2+ features
+- Keep UI components mostly “dumb”: presentation + small UI logic only
+
+`src/ui` MUST NOT:
+- Contain business rules or feature-specific workflows
+- Fetch data
+- Encode permission decisions (UI can accept `canEdit` booleans / callbacks, but rules live elsewhere)
+
+MUI mapping examples:
+- Alert -> ui/primitives/AppAlert
+- Chip -> ui/primitives/AppBadge -> ui/patterns/status/*
+
+---
+
+### 1.3 Shared “Domain Modules” (Pure Logic + Types)
+This project no longer uses `src/domain`.
+
+Pure, reusable logic SHOULD live in one of:
+- `src/shared/**` (recommended)
+- `src/features/<feature>/domain/**` (if the logic is feature-scoped but still pure)
+
+Rules for “domain modules”:
+- MUST be framework-agnostic (no React, no hooks)
+- MUST be deterministic and side-effect free
+- MUST accept explicit inputs and return explicit outputs
+- SHOULD be unit-testable without mocking browser APIs
+
+Examples:
+- stat resolution, game math, visibility/capability helpers
+- content patch builders / normalizers
+- data shaping that is not UI-specific
+
+---
+
+## 2. Auth & Permission Practices (Mandatory)
+
+### 2.1 Edit gating is required
+Any UI that allows changes (edit buttons, inline editable fields, admin menus, destructive actions) MUST be gated.
+
+Gating applies to:
+- Edit buttons
+- “Add” / “Remove” / “Delete” actions
+- Inline editable fields
+- Form routes/pages intended only for privileged users
+- Mutation triggers inside menus or kebabs
+
+### 2.2 Single-source permission checks
+Cursor MUST NOT invent one-off permission logic in components.
+
+Instead:
+- Use existing capability helpers (e.g. `canEditX(viewer, resource)`), or
+- Add a pure helper in `src/shared/auth/**` or `src/shared/capabilities/**`
+
+UI should consume booleans like:
+- `const canEdit = canEditCharacter(ctx, character);`
+…and then pass `canEdit` down.
+
+### 2.3 Defense in depth
+Even when UI is gated, server/API enforcement is assumed.
+
+Client responsibilities:
+- Hide/disable edit UI for unauthorized users
+- Avoid firing mutations when unauthorized
+- Prefer showing a disabled state + tooltip or simply hiding, following existing patterns
+
+---
+
+## 3. Routes, Views, Hooks (Extraction Rules)
+
+### 3.1 Route components (`*Route.tsx`)
+Routes are orchestration only.
+
+Routes MAY:
+- Read params
+- Run auth hooks/guards
+- Compose feature hooks
+- Handle loading/error boundaries
+- Render a single feature view
+
+Routes MUST NOT:
+- Contain complex mutation logic
+- Contain long multi-section JSX
+- Contain business rules
+
+Extraction triggers (MUST extract):
+- Route > ~150 lines OR
+- > 1 data-fetching effect OR
+- > 3 mutation handlers OR
+- > 3 major UI sections
+
+### 3.2 Feature Views (`src/features/<feature>/*View.tsx`)
+Feature views render the page layout.
+
+Views:
+- MAY import `src/ui` components
+- MUST be declarative
+- MUST NOT fetch data (receive props from hooks/routes)
+- MUST NOT contain business rules (compute booleans via shared helpers upstream)
+
+### 3.3 Feature hooks
+If orchestration becomes complex, create:
+- `use<Feature>()` for state/data/mutations
+- smaller hooks for sub-workflows
+
+---
+
+## 4. Content Model (Schema vs Content) + Patching
+
+This project uses two related concepts:
+
+### 4.1 Component Schema (definition)
+- Describes what a component *is* (fields, types, defaults, allowed children, etc.)
+- Treated as configuration and is relatively stable
+
+### 4.2 Component Content (instance)
+- A specific instance placed on a page/campaign/entity
+- Contains actual values for schema-defined fields
+- Often nested (parent → children)
+
+### 4.3 Patching strategy
+Edits SHOULD be performed via **patch objects** (partial updates), not full rewrites.
+
+Cursor MUST:
+- Prefer building minimal patches (only changed fields)
+- Preserve unknown fields (do not destructure and drop)
+- Avoid overwriting children arrays unless intentionally changing structure
+- Maintain stable identifiers for existing nodes (no “regen ids” during edits)
+
+If a helper exists for patch building/merging, Cursor MUST use it.
+If not, add a pure helper in `src/shared/content/**` (not inside UI components).
+
+---
+
+## 5. `src/data` is Legacy (Migration in progress)
+
+`src/data` is actively being migrated.
+
+Rules:
+- Cursor MUST NOT add new datasets or expand catalogs in `src/data` unless explicitly instructed
+- Cursor MAY reference `src/data` when needed for current behavior
+- When refactoring, prefer moving logic out of `src/data` into:
+  - `src/shared/**` for pure logic
+  - `src/features/**` for orchestration
+  - `src/ui/**` for reusable UI
+
+---
+
+## 6. Types: Extend, Don’t Redefine (Mandatory)
+
+Cursor MUST:
+- Import and extend existing types instead of re-declaring similar shapes
+- Prefer `type X = Existing & { ... }` or `interface X extends Existing { ... }`
+- Avoid duplicating unions/enums when they already exist
+
+Examples (preferred):
+- `type CharacterWithComputed = Character & { computed: ComputedStats }`
+- `interface EditWealthPayload extends Wealth { reason?: string }`
+
+Avoid:
+- Recreating `Wealth`, `ViewerContext`, `CampaignRole`, etc. in new files
+- “Near-duplicate” local types that drift over time
+
+If a type is missing a field:
+- Extend it locally if it’s view-specific
+- Otherwise, update the source type definition in the canonical types file
+
+---
+
+## 7. Naming & File Hygiene
+
+Prefer intent-based names:
+- `capabilities.ts`, `patchBuilder.ts`, `normalizeContent.ts`
+
+Avoid:
+- `utils.ts`, `helpers.ts`, `misc.ts` (unless a folder convention already exists)
+
+One concept per file when possible.
+
+---
+
+## 8. When Unsure
+
+If responsibility is ambiguous:
+- Default to feature-local placement first
+- Promote to `src/ui` only if clearly reusable
+- Promote to `src/shared` only if clearly pure and cross-feature
+
+Do NOT invent new architectural layers without instruction.
+
+## 9. Barrel Export Strategy
+
+Barrels should expose only the immediate public surface of a module. They should improve import ergonomics without obscuring ownership or flattening nested structure.
+
+### Rules
+1. Only add barrels at real module boundaries.
+  - Good candidates:
+    - feature root public entrypoints
+    - subtype root public entrypoints
+    - meaningful submodules such as `forms/`
+  - Avoid barrels for purely organizational folders.
+
+2. Do not re-export nested children through parent barrels by default.
+  - Parent index.ts files should not recursively flatten a subtree.
+
+  - Avoid “export tunnels” where consumers import from a high-level barrel but the implementation lives several levels deeper.
+
+3. Never export more than one level down.
+  - A barrel may export its immediate child files.
+
+  - A barrel may re-export an immediate child module only when that child is itself the intended public boundary.
+
+  - Do not re-export grandchildren or deeper descendants.
+
+4. Prefer direct file imports for single-file folders.
+  - If a folder contains one file and is unlikely to grow, import the file directly instead of adding a barrel.
+
+5. Do not use parent barrels to hide ownership.
+  - Import paths should still make it reasonably clear which feature or subtype owns the code.
+
+  - If a parent-level barrel would make ownership ambiguous, import from the more specific module instead.  
+
+## Exception
+A top-level module barrel may re-export an immediate child module when:
+
+- the structure is already heavily nested, and
+
+- that child is the intended public surface for consumers.  
+
+Even in this case:
+- do not export more than one level down
+
+- do not flatten multiple nested layers
+
+Good:
+```
+// features/content/equipment/gear/domain/forms/index.ts
+export { GEAR_FORM_FIELDS } from './config/gearForm.config';
+export { mapGearToFormValues } from './mappers/gearForm.mappers';
+export { gearFormRegistry } from './registry/gearForm.registry';
+export type { GearFormValues } from './types/gearForm.types';
+```
+```
+// features/content/equipment/gear/domain/index.ts
+export * from './forms';
+```
+
+Acceptable exception:
+```
+// features/content/equipment/gear/index.ts
+export * from './domain';
+export * from './routes';
+``` 
+
+Avoid:
+```
+// Avoid exporting multiple levels deep from a parent barrel
+export { GEAR_FORM_FIELDS } from './domain/forms/config/gearForm.config';
+```
+
+```
+// Avoid recursive flattening through parent barrels
+export * from './domain';
+export * from './domain/forms';
+export * from './domain/forms/config';
+```
+
+### Goal
+A consumer should be able to infer module ownership from the import path.
+Barrels should define clear public boundaries, not erase structure.
+
+
+## 10. Components 
+
+description: React component standards
+globs: src/ui/components/**/*.tsx, src/app/components/**/*.tsx
+---
+- Use ES6 `const` for defining all components.
+- Avoid using `function` keywords for React components.
+- Avoid defining helper functions within components.

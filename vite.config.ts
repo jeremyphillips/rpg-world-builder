@@ -42,7 +42,6 @@ export default defineConfig({
       "@/features/character": path.resolve(__dirname, "src/features/character"),
       "@/features/levelUp": path.resolve(__dirname, "src/features/levelUp"),
       "@/features/campaign": path.resolve(__dirname, "src/features/campaign"),
-      "@/features/classes": path.resolve(__dirname, "src/features/classes"),
       "@/features/messaging": path.resolve(__dirname, "src/features/messaging"),
       "@/features/monster": path.resolve(__dirname, "src/features/monster"),
       "@/features/npc": path.resolve(__dirname, "src/features/npc"),

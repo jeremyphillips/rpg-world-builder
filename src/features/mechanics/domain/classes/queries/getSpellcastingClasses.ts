@@ -1,4 +1,4 @@
-import type { CharacterClass } from '@/features/classes/domain/types'; 
+import type { CharacterClass } from '@/features/content/classes/domain/types'; 
 
 export function getSpellcastingClasses(classCatalog: CharacterClass[]): CharacterClass[] {
   return classCatalog.filter(

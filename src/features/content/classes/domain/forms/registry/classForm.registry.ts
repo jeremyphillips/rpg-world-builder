@@ -2,7 +2,7 @@
  * Class form field registry — single source of truth for config + mapping.
  * Non-standard object and array fields use kind: 'json' per content form pattern.
  */
-import type { CharacterClass } from '@/features/classes/domain/types';
+import type { CharacterClass } from '@/features/content/classes/domain/types';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import { type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { ClassFormValues, ClassInput } from '../types/classForm.types';

@@ -1,4 +1,4 @@
-import type { CharacterClass } from '@/features/classes/domain/types';
+import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { abilityIdToName } from '@/features/mechanics/domain/core/character/abilities.utils';
 import type { AbilityId } from '@/features/mechanics/domain/core/character/abilities.types';

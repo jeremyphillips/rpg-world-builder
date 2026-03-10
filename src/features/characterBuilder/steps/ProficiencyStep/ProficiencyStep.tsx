@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { getSuggestedSkillProficienciesByClass } from '@/features/classes/domain'
+import { getSuggestedSkillProficienciesByClass } from '@/features/characterBuilder/domain/classes'
 import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
 
 import Box from '@mui/material/Box'

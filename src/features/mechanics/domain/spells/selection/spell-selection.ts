@@ -9,7 +9,7 @@
  * Both SpellStep and the invalidation pruner call into this module.
  */
 import type { Spell } from '@/features/content/shared/domain/types'
-import type { CharacterClass } from '@/features/classes/domain/types'
+import type { CharacterClass } from '@/features/content/classes/domain/types'
 import { getClassSpellLimitsAtLevel, type CastingMode } from '@/features/mechanics/domain/classes/progression'
 
 // ---------------------------------------------------------------------------

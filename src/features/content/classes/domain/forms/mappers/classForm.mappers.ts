@@ -2,7 +2,7 @@
  * Pure mappers for Class form values ↔ domain types.
  * Registry-backed.
  */
-import type { CharacterClass } from '@/features/classes/domain/types';
+import type { CharacterClass } from '@/features/content/classes/domain/types';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type { ClassFormValues, ClassInput } from '../types/classForm.types';
 import {

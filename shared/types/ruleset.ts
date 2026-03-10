@@ -5,7 +5,7 @@ import type {
   ArrayMergeMode,
   MergePolicy,
 } from '@/features/mechanics/domain/core/rules/ruleConfig';
-import type { WealthTier } from '@/features/classes/domain/types';
+import type { WealthTier } from '@/features/content/classes/domain/types';
 import type { MagicItemRarity } from '@/features/content/shared/domain/types';
 import type { AbilityId } from '@/features/mechanics/domain/core/character';
 import type { XpTable } from '@/features/mechanics/domain/core/progression/xp/xp.types';

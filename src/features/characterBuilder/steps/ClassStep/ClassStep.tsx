@@ -6,7 +6,7 @@ import { evaluateClassEligibility, getClassRestrictionNotes } from '@/features/m
 import { getSubclassUnlockLevel } from '@/features/mechanics/domain/classes/progression'
 import { getAvailableSubclassesByLevel } from '@/features/mechanics/domain/classes/progression'
 import { canAddClass } from '@/features/character/domain/validation'
-import type { ClassProgression } from '@/features/classes/domain/types'
+import type { ClassProgression } from '@/features/content/classes/domain/types'
 import { ButtonGroup } from '@/ui/patterns'
 import { getSubclassNameById } from '@/features/mechanics/domain/classes/progression'
 

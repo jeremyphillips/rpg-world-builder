@@ -2,7 +2,7 @@ import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCat
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import type {
   ClassProgression,
-} from '@/features/classes/domain/types'
+} from '@/features/content/classes/domain/types'
 
 // ---------------------------------------------------------------------------
 // Lookup helpers

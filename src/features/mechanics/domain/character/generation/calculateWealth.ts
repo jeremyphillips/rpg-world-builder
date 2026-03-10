@@ -1,4 +1,4 @@
-import type { WealthTier } from '@/features/classes/domain/types'
+import type { WealthTier } from '@/features/content/classes/domain/types'
 
 /**
  * Unified wealth calculation for all editions.

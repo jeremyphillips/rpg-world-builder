@@ -2,7 +2,7 @@ import type { Character } from '@/features/character/domain/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
-import type { SubclassSelection } from '@/features/classes/domain/types'
+import type { SubclassSelection } from '@/features/content/classes/domain/types'
 
 type FeatureRecord = Record<string, unknown>
 

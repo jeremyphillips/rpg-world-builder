@@ -13,7 +13,7 @@ import StarIcon from '@mui/icons-material/Star'
 import { useMemo } from 'react'
 import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
 import type { LevelUpState } from '../levelUp.types'
-import type { ClassFeature } from '@/features/classes/domain/types'
+import type { ClassFeature } from '@/features/content/classes/domain/types'
 import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
