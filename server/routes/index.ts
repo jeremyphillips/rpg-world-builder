@@ -1,17 +1,16 @@
 import type { Express } from 'express'
 import { requireAuth } from '../shared/middleware/requireAuth'
 import { requireCampaignRole } from '../shared/middleware/requireCampaignRole'
-import chatRoutes from './chat.routes'
-import userRoutes from './user.routes'
-import campaignRoutes from './campaign.routes'
-import uploadRoutes from './upload.routes'
-import settingDataRoutes from './settingData.routes'
-import notificationRoutes from './notification.routes'
-import inviteRoutes from './invite.routes'
-import sessionRoutes from './session.routes'
-import sessionInviteRoutes from './sessionInvite.routes'
-import campaignMemberRoutes from './campaignMember.routes'
-import messageRoutes from './message.routes'
+import chatRoutes from '../features/chat/routes/chat.routes'
+import userRoutes from '../features/user/routes/user.routes'
+import campaignRoutes from '../features/campaign/routes/campaign.routes'
+import uploadRoutes from '../features/upload/routes/upload.routes'
+import notificationRoutes from '../features/notification/routes/notification.routes'
+import inviteRoutes from '../features/campaign/routes/invite.routes'
+import sessionRoutes from '../features/session/routes/session.routes'
+import sessionInviteRoutes from '../features/session/routes/sessionInvite.routes'
+import campaignMemberRoutes from '../features/campaign/routes/campaignMember.routes'
+import messageRoutes from '../features/message/routes/message.routes'
 import classesRoutes from '../features/content/classes/routes/classes.routes'
 import racesRoutes from '../features/content/races/routes/races.routes'
 import spellsRoutes from '../features/content/spells/routes/spells.routes'
@@ -30,7 +29,6 @@ export function registerRoutes(app: Express) {
   app.use('/api/campaigns/:id/equipment', ...campaignScopedContent, equipmentRoutes)
   app.use('/api/campaigns', campaignRoutes)
   app.use('/api/uploads', uploadRoutes)
-  app.use('/api/setting-data', settingDataRoutes)
   app.use('/api/notifications', notificationRoutes)
   app.use('/api/invites', inviteRoutes)
   app.use('/api/sessions', sessionRoutes)

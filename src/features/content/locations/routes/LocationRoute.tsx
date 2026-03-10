@@ -63,8 +63,8 @@ interface LocationOverride {
   visibility?: Visibility
 }
 
-async function apiUpdateLocation(settingId: string, locationId: string, updates: Record<string, unknown>) {
-  await apiFetch(`/api/setting-data/${settingId}/locations/${locationId}`, {
+async function apiUpdateLocation(campaignId: string, locationId: string, updates: Record<string, unknown>) {
+  await apiFetch(`/api/campaigns/${campaignId}/setting-data/locations/${locationId}`, {
     method: 'PATCH',
     body: updates,
   })
@@ -77,11 +77,16 @@ async function apiUpdateLocation(settingId: string, locationId: string, updates:
 const LocationRoute = () => {
   const { id: campaignId, locationId } = useParams<{ id: string; locationId: string }>()
   const { user } = useAuth()
-  const canEdit = user?.role === 'admin' || user?.role === 'superadmin'
   const { campaigns } = useCampaigns({ campaignId })
   const { approvedCharacters } = useCampaignMembers()
   const [locationOverride, setLocationOverride] = useState<Partial<Location> | null>(null)
   const breadcrumbs = useBreadcrumbs()
+
+  const campaign = campaigns?.find((c) => (c as { _id?: string })._id === campaignId) ?? null
+  const canEdit =
+    user?.role === 'admin' ||
+    user?.role === 'superadmin' ||
+    (campaign?.membership as { ownerId?: string } | undefined)?.ownerId === user?.id
 
   const allLocations = useMemo(
     () =>
@@ -95,21 +100,19 @@ const LocationRoute = () => {
     if (!found) return null
     return { ...found, ...locationOverride } as Location
   }, [locationId, locationOverride])
-  const campaign = campaigns?.[0] ?? null
-  const activeSetting = campaign?.identity?.setting ?? ''
 
   // ── Save field ───────────────────────────────────────────────────────
   const saveField = useCallback(
     async (field: string, value: unknown) => {
-      if (!location) return
+      if (!location || !campaignId) return
       const updates: Record<string, unknown> = {
         [field]: value,
         isCustom: !!(location as { isCustom?: boolean }).isCustom,
       }
-      await apiUpdateLocation(activeSetting, location.id, updates)
+      await apiUpdateLocation(campaignId, location.id, updates)
       setLocationOverride((prev) => ({ ...prev, [field]: value }))
     },
-    [location, activeSetting],
+    [location, campaignId],
   )
 
   // ── Derived ──────────────────────────────────────────────────────────

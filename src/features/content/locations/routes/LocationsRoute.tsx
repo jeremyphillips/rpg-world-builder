@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { locations as locationData } from '@/data/locations'
 import type { Location } from '@/data/locations'
 import { ROUTES } from '@/app/routes'
-import { Breadcrumbs } from '@/ui/patterns'
+import { AppPageHeader, Breadcrumbs } from '@/ui/patterns'
 import { FilterableCardGroup } from '@/ui/patterns'
 import type { FilterOption } from '@/ui/patterns'
 import { LocationHorizontalCard } from '@/features/content/locations/components'
@@ -48,8 +48,11 @@ const LocationsRoute = () => {
 
   return (
     <Box>
-      <Breadcrumbs items={breadcrumbs} />
-
+      <AppPageHeader
+        headline="Locations"
+        breadcrumbData={breadcrumbs}
+      />
+      
       <Divider sx={{ mb: 3 }} />
 
       <FilterableCardGroup<Location>

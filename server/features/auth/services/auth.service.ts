@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 import { env } from '../../../shared/config/env'
 import { badRequest } from '../../../shared/errors/ApiError'
 import { signToken } from '../../../shared/utils/jwt'
-import { getPublicUrl, normalizeImageKey } from '../../../services/image.service'
+import { getPublicUrl, normalizeImageKey } from '../../../shared/services/image.service'
 
 interface NotificationPreferences {
   sessionScheduled: boolean
@@ -117,11 +117,11 @@ export async function registerWithInviteToken(body: {
 
   let email: string | undefined
   let tokenDoc: Awaited<
-    ReturnType<typeof import('../../../services/invite.service').validateInviteToken>
+    ReturnType<typeof import('../../campaign/services/invite.service').validateInviteToken>
   > = null
 
   if (inviteToken) {
-    const { validateInviteToken } = await import('../../../services/invite.service')
+    const { validateInviteToken } = await import('../../campaign/services/invite.service')
     tokenDoc = await validateInviteToken(inviteToken)
     if (!tokenDoc) {
       throw badRequest('Invalid or expired invite token')
@@ -129,7 +129,7 @@ export async function registerWithInviteToken(body: {
     email = tokenDoc.email
   }
 
-  const { createUser } = await import('../../../services/user.service')
+  const { createUser } = await import('../../user/services/user.service')
   const user = await createUser({
     username,
     email: email ?? '',
@@ -151,11 +151,11 @@ export async function registerWithInviteToken(body: {
   let campaignName: string | undefined
 
   if (tokenDoc && inviteToken) {
-    const { consumeInviteToken } = await import('../../../services/invite.service')
+    const { consumeInviteToken } = await import('../../campaign/services/invite.service')
     await consumeInviteToken(inviteToken, userId)
     campaignId = (tokenDoc.campaignId as mongoose.Types.ObjectId).toString()
 
-    const { getCampaignById } = await import('../../../services/campaign.service')
+    const { getCampaignById } = await import('../../campaign/services/campaign.service')
     const campaign = await getCampaignById(campaignId)
     campaignName = campaign?.identity?.name
   }
@@ -179,7 +179,7 @@ export async function acceptInviteToken(
   userId: string,
 ): Promise<AcceptInviteTokenResult> {
   const { validateInviteToken, consumeInviteToken } = await import(
-    '../../../services/invite.service'
+    '../../campaign/services/invite.service'
   )
   const tokenDoc = await validateInviteToken(token)
   if (!tokenDoc) {
@@ -189,7 +189,7 @@ export async function acceptInviteToken(
   await consumeInviteToken(token, userId)
 
   const campaignId = (tokenDoc.campaignId as mongoose.Types.ObjectId).toString()
-  const { getCampaignById } = await import('../../../services/campaign.service')
+  const { getCampaignById } = await import('../../campaign/services/campaign.service')
   const campaign = await getCampaignById(campaignId)
 
   return {

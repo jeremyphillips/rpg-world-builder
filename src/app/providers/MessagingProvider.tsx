@@ -105,7 +105,7 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true)
     try {
       const data = await apiFetch<{ conversations: Conversation[] }>(
-        `/api/messages?campaignId=${encodeURIComponent(campaignId)}`
+        `/api/messages/conversations?campaignId=${encodeURIComponent(campaignId)}`
       )
       setConversations(data.conversations ?? [])
     } catch {
@@ -118,7 +118,7 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
   const getConversation = useCallback(async (conversationId: string): Promise<Conversation | null> => {
     try {
       const data = await apiFetch<{ conversation: Conversation }>(
-        `/api/messages/conversation/${encodeURIComponent(conversationId)}`
+        `/api/messages/conversations/${encodeURIComponent(conversationId)}`
       )
       const conv = data.conversation
       setConversations((prev) => {
@@ -147,7 +147,7 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
   const loadMessages = useCallback(async (conversationId: string) => {
     try {
       const data = await apiFetch<{ messages: Message[] }>(
-        `/api/messages/${conversationId}`
+        `/api/messages/conversations/${conversationId}/messages`
       )
       setMessages(data.messages ?? [])
     } catch {
@@ -157,10 +157,10 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
 
   const sendMessage = useCallback(async (conversationId: string, content: string) => {
     try {
-      const data = await apiFetch<{ message: Message }>(`/api/messages/${conversationId}`, {
-        method: 'POST',
-        body: { content },
-      })
+      const data = await apiFetch<{ message: Message }>(
+        `/api/messages/conversations/${conversationId}/messages`,
+        { method: 'POST', body: { content } }
+      )
       setMessages((prev) => {
         if (prev.some((m) => m._id === data.message._id)) return prev
         return [...prev, data.message]
@@ -175,7 +175,7 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
     targetUserId: string
   ): Promise<Conversation | null> => {
     try {
-      const data = await apiFetch<{ conversation: Conversation }>('/api/messages', {
+      const data = await apiFetch<{ conversation: Conversation }>('/api/messages/conversations', {
         method: 'POST',
         body: { campaignId, targetUserId },
       })
@@ -196,7 +196,7 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
     name?: string
   ): Promise<Conversation | null> => {
     try {
-      const data = await apiFetch<{ conversation: Conversation }>('/api/messages', {
+      const data = await apiFetch<{ conversation: Conversation }>('/api/messages/conversations', {
         method: 'POST',
         body: { campaignId, participantIds, name },
       })
