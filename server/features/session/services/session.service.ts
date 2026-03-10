@@ -6,8 +6,8 @@ import type { CampaignRole } from '../../../shared/types'
 import {
   getUserMembershipsMap,
   getUserCharacterIds,
-} from '../../../services/campaignMember.service'
-import { getCampaignById, getOwnedCampaignIds } from '../../../services/campaign.service'
+} from '../../campaign/services/campaignMember.service'
+import { getCampaignById, getOwnedCampaignIds } from '../../campaign/services/campaign.service'
 // TODO: Extract toSessionSummary into shared; remove server→src dependency
 import { toSessionSummary } from '../../../../src/features/session/read-model'
 import * as notificationService from '../../notification/services/notification.service'

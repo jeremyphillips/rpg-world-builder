@@ -1,4 +1,4 @@
-import { CampaignContentPatch } from '../shared/models/CampaignContentPatch.model';
+import { CampaignContentPatch } from '../../../shared/models/CampaignContentPatch.model';
 
 // ---------------------------------------------------------------------------
 // Types

@@ -1,16 +1,16 @@
 import mongoose from 'mongoose'
-import { env } from '../shared/config/env'
-import { getDb, toObjectId } from '../shared/utils/db'
-import { badRequest, forbidden, notFound } from '../shared/errors/ApiError'
+import { env } from '../../../shared/config/env'
+import { getDb, toObjectId } from '../../../shared/utils/db'
+import { badRequest, forbidden, notFound } from '../../../shared/errors/ApiError'
 import { getCampaignById } from './campaign.service'
-import { getPublicUrl } from './image.service'
-import * as notificationService from '../features/notification/services/notification.service'
+import { getPublicUrl } from '../../../services/image.service'
+import * as notificationService from '../../notification/services/notification.service'
 import type {
   CampaignMemberStatus,
   CampaignMemberStoredRole,
   CampaignCharacterStatus,
   CampaignMemberView,
-} from '../../shared/types'
+} from '../../../../shared/types'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const campaignMembersCollection = () => db().collection('campaignMembers')
@@ -515,7 +515,7 @@ export async function addMemberOrInvite(
   if (!campaign) throw notFound('Campaign not found')
 
   const campaignName = (campaign.identity?.name as string) ?? ''
-  const ownerId = campaign.membership?.ownerId ?? campaign.membership?.adminId
+  const ownerId = (campaign.membership as { ownerId?: mongoose.Types.ObjectId })?.ownerId
   const ownerUser = ownerId
     ? await db.collection('users').findOne({ _id: ownerId }, { projection: { username: 1 } })
     : null
@@ -523,7 +523,7 @@ export async function addMemberOrInvite(
 
   if (!user) {
     const { createInviteToken } = await import('./invite.service')
-    const { sendCampaignInvite } = await import('./email.service')
+    const { sendCampaignInvite } = await import('../../../services/email.service')
 
     const inviteToken = await createInviteToken({
       campaignId,

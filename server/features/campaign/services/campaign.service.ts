@@ -1,22 +1,22 @@
 import mongoose from 'mongoose'
-import { env } from '../shared/config/env'
-import { toObjectId } from '../shared/utils/db'
-import type { CampaignMemberStoredRole } from '../../shared/types'
-import type { CampaignViewerContext } from '../shared/auth/resolveCampaignViewerContext'
-import { resolveCampaignViewerContext } from '../shared/auth/resolveCampaignViewerContext'
-import { notFound, forbidden } from '../shared/errors/ApiError'
+import { env } from '../../../shared/config/env'
+import { toObjectId } from '../../../shared/utils/db'
+import type { CampaignMemberStoredRole } from '../../../../shared/types'
+import type { CampaignViewerContext } from '../../../shared/auth/resolveCampaignViewerContext'
+import { resolveCampaignViewerContext } from '../../../shared/auth/resolveCampaignViewerContext'
+import { notFound, forbidden } from '../../../shared/errors/ApiError'
 import {
   getViewerMembershipContext,
   hydrateMemberViews,
   type CampaignMemberDoc,
 } from './campaignMember.service'
-import { getPublicUrl } from '../services/image.service'
+import { getPublicUrl } from '../../../services/image.service'
 import {
   type CharacterRosterSummary,
   type CharacterDocForCard,
   loadCharacterReadReferences,
   toCharacterCardSummary,
-} from '../../src/features/character/read-model'
+} from '../../../../src/features/character/read-model'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const campaignsCollection = () => db().collection('campaigns')
@@ -59,7 +59,7 @@ export function normalizeCampaign(campaign: any, memberCount?: number) {
 // Campaign CRUD
 // ---------------------------------------------------------------------------
 
-export async function getCampaignsForUser(userId: string, role: string) {
+export async function getCampaignsForUser(userId: string, _userRole: string) {
   const oid = new mongoose.Types.ObjectId(userId)
 
   // Get campaign IDs from CampaignMembers where user is a member

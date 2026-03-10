@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express'
-import { validateRequired } from '../shared/validators/common'
+import { validateRequired } from '../../../shared/validators/common'
 import * as noteService from '../services/note.service'
 
 export async function getNotes(req: Request, res: Response) {

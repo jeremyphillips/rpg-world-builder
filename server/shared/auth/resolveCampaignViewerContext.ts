@@ -4,7 +4,7 @@
  */
 import mongoose from 'mongoose'
 import { env } from '../config/env'
-import { getCampaignById } from '../../services/campaign.service'
+import { getCampaignById } from '../../features/campaign/services/campaign.service'
 import { isPlatformAdmin as checkPlatformAdmin } from './platformAdmin'
 import type { CampaignRole, CampaignMemberStoredRole } from '../../shared/types'
 

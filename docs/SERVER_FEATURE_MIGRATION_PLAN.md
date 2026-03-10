@@ -7,9 +7,10 @@ Migrate server features from legacy layout (`controllers/`, `services/`, `routes
 **Decisions:**
 - Keep server→src imports for now; add TODO comments to extract into shared later
 - sessionInvite goes inside `features/session/` (not a separate feature)
-- Invite to be migrated later
+- Invite goes inside `features/campaign/` (campaign invites)
 - Message routes restructured for explicit paths (see Message section)
 - Prefer direct imports (no index barrel files)
+- Replace setting scope with campaign scope: settingData becomes campaign-scoped (settingId → campaignId)
 
 ---
 
@@ -34,6 +35,8 @@ server/features/{feature}/
 3. **Session** (includes sessionInvite) – depends on notification
 4. **Message** – depends on notification; includes conversation logic; route restructure
 5. **Chat** – independent
+6. **Campaign** (includes campaignMember, invite, note, contentPatch, rulesetPatch, settingData) – replace setting scope with campaign scope
+7. **Upload** – independent
 
 ---
 
@@ -146,6 +149,67 @@ server/features/session/
 
 ---
 
+### 6. Campaign (includes campaignMember, invite, note, contentPatch, rulesetPatch, settingData)
+
+**Move to `server/features/campaign/`:**
+- `controllers/campaign.controller.ts` → `features/campaign/controllers/campaign.controller.ts`
+- `controllers/campaignMember.controller.ts` → `features/campaign/controllers/campaignMember.controller.ts`
+- `controllers/invite.controller.ts` → `features/campaign/controllers/invite.controller.ts`
+- `controllers/note.controller.ts` → `features/campaign/controllers/note.controller.ts`
+- `controllers/contentPatch.controller.ts` → `features/campaign/controllers/contentPatch.controller.ts`
+- `controllers/rulesetPatch.controller.ts` → `features/campaign/controllers/rulesetPatch.controller.ts`
+- `services/campaign.service.ts`, `campaignMember.service.ts`, `invite.service.ts`, `note.service.ts`, `contentPatch.service.ts`, `rulesetPatch.service.ts` → `features/campaign/services/`
+- `routes/campaign.routes.ts`, `campaignMember.routes.ts`, `invite.routes.ts` → `features/campaign/routes/`
+
+**Replace setting scope with campaign scope (settingData):**
+- Delete standalone `settingData.controller.ts`, `settingData.service.ts`, `settingData.routes.ts`
+- Add campaign-scoped setting data: `features/campaign/controllers/settingData.controller.ts`, `services/settingData.service.ts`
+- Change `settingId` → `campaignId` in API and DB schema
+- Mount under campaign routes: `/api/campaigns/:id/` (e.g. `GET /:id/setting-data`, `PATCH /:id/setting-data/world-map`, `POST /:id/setting-data/locations`, etc.)
+- Replace `requireRole('admin', 'superadmin')` with `requireCampaignRole('observer')` / `requireCampaignOwner()` for campaign-scoped access
+- **Client update:** `src/features/content/locations/routes/LocationRoute.tsx` – use `campaignId` instead of `campaign.identity.setting`; call `/api/campaigns/:id/setting-data/...` instead of `/api/setting-data/:settingId/...`
+
+**Structure under campaign:**
+```
+server/features/campaign/
+├── controllers/
+│   ├── campaign.controller.ts
+│   ├── campaignMember.controller.ts
+│   ├── invite.controller.ts
+│   ├── note.controller.ts
+│   ├── contentPatch.controller.ts
+│   ├── rulesetPatch.controller.ts
+│   └── settingData.controller.ts
+├── routes/
+│   ├── campaign.routes.ts
+│   ├── campaignMember.routes.ts
+│   ├── invite.routes.ts
+│   └── (settingData routes nested in campaign.routes)
+└── services/
+    ├── campaign.service.ts
+    ├── campaignMember.service.ts
+    ├── invite.service.ts
+    ├── note.service.ts
+    ├── contentPatch.service.ts
+    ├── rulesetPatch.service.ts
+    └── settingData.service.ts
+```
+
+**Route registration:** Campaign routes remain at `/api/campaigns`, campaign-member at `/api/campaign-members`, invite at `/api/invites`. Setting-data routes move from `/api/setting-data/:settingId` to `/api/campaigns/:id/setting-data` (or nested under campaign router).
+
+---
+
+### 7. Upload
+
+**Move:**
+- `controllers/upload.controller.ts` → `features/upload/controllers/upload.controller.ts`
+- `routes/upload.routes.ts` → `features/upload/routes/upload.routes.ts`
+- `services/image.service.ts` → `features/upload/services/image.service.ts` (only if used exclusively by upload; otherwise keep in shared)
+
+**Route registration:** `/api/uploads` unchanged.
+
+---
+
 ## Register Routes Update
 
 After migration, `register-routes.ts` and `routes/index.ts`:
@@ -160,7 +224,11 @@ app.use('/api/sessions', sessionRoutes)
 app.use('/api/session-invites', sessionInviteRoutes)  // from features/session
 app.use('/api/messages', messageRoutes)
 app.use('/api/chat', chatRoutes)
-registerRoutes(app)  // campaigns, uploads, settingData, invite, campaignMember
+app.use('/api/campaigns', campaignRoutes)             // from features/campaign
+app.use('/api/campaign-members', campaignMemberRoutes)
+app.use('/api/invites', inviteRoutes)
+app.use('/api/uploads', uploadRoutes)
+// settingData: nested under /api/campaigns/:id/setting-data
 ```
 
 ---
@@ -198,6 +266,12 @@ When migrating, add these TODO comments at server→src import sites:
 
 ---
 
+## Phase 1 Complete (File Structure Migration)
+
+**Completed:** Campaign, campaignMember, invite, note, contentPatch, rulesetPatch moved to `server/features/campaign/`. Upload moved to `server/features/upload/`. All imports updated. Legacy files removed. settingData left as-is for Phase 2.
+
+---
+
 ## Summary Checklist
 
 | Feature | Controller | Routes | Services | Notes |
@@ -208,4 +282,11 @@ When migrating, add these TODO comments at server→src import sites:
 | sessionInvite | ✓ | ✓ | sessionInvite.service | **DONE** – inside features/session |
 | message | ✓ | ✓ | message.service, conversation.service | **DONE** – route restructure + client update |
 | chat | ✓ | ✓ | openai.service | **DONE** |
-| invite | — | — | — | Migrate later |
+| campaign | ✓ | ✓ | campaign.service | **DONE** (Phase 1) – includes campaignMember, invite, note, contentPatch, rulesetPatch |
+| campaignMember | ✓ | ✓ | campaignMember.service | **DONE** – inside features/campaign |
+| invite | ✓ | ✓ | invite.service | **DONE** – inside features/campaign |
+| note | ✓ | — | note.service | **DONE** – inside features/campaign (routes in campaign.routes) |
+| contentPatch | ✓ | — | contentPatch.service | **DONE** – inside features/campaign (routes in campaign.routes) |
+| rulesetPatch | ✓ | — | rulesetPatch.service | **DONE** – inside features/campaign (routes in campaign.routes) |
+| settingData | ✓ | ✓ | settingData.service | Pending (Phase 2) – **replace scope**: settingId → campaignId; nest under /api/campaigns/:id/ |
+| upload | ✓ | ✓ | image.service | **DONE** (Phase 1) – standalone features/upload |

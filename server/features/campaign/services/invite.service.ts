@@ -1,9 +1,9 @@
 import crypto from 'crypto'
 import mongoose from 'mongoose'
-import { env } from '../shared/config/env'
-import { notFound, forbidden } from '../shared/errors/ApiError'
-import * as notificationService from '../features/notification/services/notification.service'
-import type { CampaignMemberStatus, CampaignMemberStoredRole } from '../../shared/types'
+import { env } from '../../../shared/config/env'
+import { notFound, forbidden } from '../../../shared/errors/ApiError'
+import * as notificationService from '../../notification/services/notification.service'
+import type { CampaignMemberStatus, CampaignMemberStoredRole } from '../../../../shared/types'
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const invitesCollection = () => db().collection('campaignInvites')
 const inviteTokensCollection = () => db().collection('inviteTokens')
@@ -200,7 +200,9 @@ export async function respondToInvite(
     const campaign = await db().collection('campaigns').findOne({ _id: invite.campaignId })
     const character = await db().collection('characters').findOne({ _id: new mongoose.Types.ObjectId(characterId) })
     const invitedUser = await db().collection('users').findOne({ _id: invite.invitedUserId })
-    const campaignOwnerId = campaign?.membership?.ownerId ?? campaign?.membership?.adminId
+    const campaignOwnerId = campaign
+      ? ((campaign.membership as { ownerId?: mongoose.Types.ObjectId })?.ownerId ?? (campaign.membership as { adminId?: mongoose.Types.ObjectId })?.adminId)
+      : null
     if (campaignOwnerId && member && character && invitedUser) {
       await notificationService.createNotification({
         userId: campaignOwnerId,
