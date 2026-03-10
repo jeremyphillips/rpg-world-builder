@@ -5,8 +5,8 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
-import { weaponRepo } from '@/features/content/domain/repo';
-import type { Weapon } from '@/features/content/shared/domain/types';
+import { armorRepo } from '@/features/content/domain/repo';
+import type { Armor } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
@@ -14,66 +14,71 @@ import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/shared/lib/media';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
-import { WEAPON_DETAIL_SPECS } from '@/features/content/equipment/weapons/domain';
+import { ARMOR_DETAIL_SPECS } from '../domain';
 
-export default function WeaponDetailRoute() {
+export default function ArmorDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();
-  const { weaponId } = useParams<{ weaponId: string }>();
+  const { armorId } = useParams<{ armorId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
 
-  const { entry: weapon, loading, error, notFound } = useCampaignContentEntry<Weapon>({
+  const { entry: armor, loading, error, notFound } = useCampaignContentEntry<Armor>({
     campaignId: campaignId ?? undefined,
-    entryId: weaponId,
-    fetchEntry: weaponRepo.getEntry,
+    entryId: armorId,
+    fetchEntry: armorRepo.getEntry,
   });
 
   if (loading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>;
   }
 
-  if (error || notFound || !weapon) {
-    return <AppAlert tone="danger">{error ?? 'Weapon not found.'}</AppAlert>;
+  if (error || notFound || !armor) {
+    return <AppAlert tone="danger">{error ?? 'Armor not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/equipment/weapons`;
-  const editPath = `${listPath}/${weaponId}/edit`;
-  const canEdit = canManage && weapon.source === 'campaign';
+  const listPath = `/campaigns/${campaignId}/world/equipment/armor`;
+  const editPath = `${listPath}/${armorId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(WEAPON_DETAIL_SPECS, weapon, {});
+  const dexLabel = armor.dex
+    ? armor.dex.mode === 'full' ? 'Full' : armor.dex.mode === 'capped' ? `Capped (+${armor.dex.maxBonus})` : 'None'
+    : '—';
+
+  const items = buildDetailItemsFromSpecs(ARMOR_DETAIL_SPECS, armor, {
+    dexLabel,
+  });
 
   return (
     <ContentDetailScaffold
-      title={weapon.name}
+      title={armor.name}
       breadcrumbData={breadcrumbs}
       listPath={listPath}
       editPath={editPath}
-      canEdit={canEdit || (canManage && weapon.source === 'system')}
-      source={weapon.source}
-      accessPolicy={weapon.accessPolicy}
+      canEdit={canManage}
+      source={armor.source}
+      accessPolicy={armor.accessPolicy}
     >
-      {weapon.patched && (
+      {armor.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
         </Box>
       )}
 
-      {weapon.imageKey && (
+      {armor.imageKey && (
         <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(weapon.imageKey)} alt={weapon.name} style={{ maxHeight: 200 }} />
+          <img src={resolveImageUrl(armor.imageKey)} alt={armor.name} style={{ maxHeight: 200 }} />
         </Box>
       )}
 
-      {weapon.description && (
+      {armor.description && (
         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {weapon.description}
+          {armor.description}
         </Typography>
       )}
 
       <KeyValueSection
-        title="Weapon Details"
+        title="Armor Details"
         items={items}
         columns={2}
         sx={{ mt: 2 }}

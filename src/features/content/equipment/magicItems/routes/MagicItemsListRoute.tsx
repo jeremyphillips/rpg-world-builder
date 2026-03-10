@@ -22,33 +22,33 @@ import {
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import {
-  gearRepo,
-  validateGearChange,
-  buildGearCustomColumns,
-  buildGearCustomFilters,
-  type GearListRow,
-} from '@/features/content/equipment/gear/domain';
+  magicItemRepo,
+  validateMagicItemChange,
+  buildMagicItemCustomColumns,
+  buildMagicItemCustomFilters,
+  type MagicItemListRow,
+} from '../domain';
 import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
-export default function GearListRoute() {
+export default function MagicItemsListRoute() {
   const { campaign, campaignId } = useActiveCampaign();
   const breadcrumbs = useBreadcrumbs();
-  const basePath = `/campaigns/${campaignId}/world/equipment/gear`;
+  const basePath = `/campaigns/${campaignId}/world/equipment/magic-items`;
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
   const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
 
-  const { gear: ownedIds } = useViewerEquipment();
+  const { magicItems: ownedIds } = useViewerEquipment();
   const hasViewer = ownedIds.size > 0;
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
-      gearRepo.listSummaries(cid, sid) as Promise<ContentSummary[]>,
+      magicItemRepo.listSummaries(cid, sid) as Promise<ContentSummary[]>,
     [],
   );
 
@@ -69,7 +69,7 @@ export default function GearListRoute() {
 
   const [validationBlocked, setValidationBlocked] = useState<ValidationBlockedState | null>(null);
 
-  const items = controller.items as GearListRow[];
+  const items = controller.items as MagicItemListRow[];
   const hasCampaignSources = items.some(
     (r) => (r as { source?: string }).source === 'campaign',
   );
@@ -79,23 +79,23 @@ export default function GearListRoute() {
     onToggleAllowed: controller.onToggleAllowed,
     setValidationBlocked,
     validateDisallow: (id) =>
-      validateGearChange({
+      validateMagicItemChange({
         campaignId: campaignId!,
-        gearId: id,
+        magicItemId: id,
         mode: 'disallow',
       }),
   });
 
-  const customColumns = useMemo(() => buildGearCustomColumns(), []);
+  const customColumns = useMemo(() => buildMagicItemCustomColumns(), []);
 
   const customFilters = useMemo(
-    () => buildGearCustomFilters(items),
+    () => buildMagicItemCustomFilters(items),
     [items],
   );
 
   const columns = useMemo(
     () =>
-      buildCampaignContentColumns<GearListRow>({
+      buildCampaignContentColumns<MagicItemListRow>({
         canManage,
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
@@ -116,7 +116,7 @@ export default function GearListRoute() {
 
   const filters = useMemo(
     () =>
-      buildCampaignContentFilters<GearListRow>({
+      buildCampaignContentFilters<MagicItemListRow>({
         canManage,
         onToggleAllowedInCampaign: handleToggleAllowed,
         ownedIds: hasViewer ? ownedIds : undefined,
@@ -139,7 +139,7 @@ export default function GearListRoute() {
       {validationBlocked && (
         validationBlocked.blockingEntities.length > 0 ? (
           <ValidationBlockedAlert
-            contentType="gear"
+            contentType="magic item"
             mode="disallow"
             blockingEntities={validationBlocked.blockingEntities}
             onClose={() => setValidationBlocked(null)}
@@ -149,14 +149,14 @@ export default function GearListRoute() {
             tone="warning"
             onClose={() => setValidationBlocked(null)}
           >
-            {validationBlocked.message ?? 'Cannot disable this gear.'}
+            {validationBlocked.message ?? 'Cannot disable this magic item.'}
           </AppAlert>
         )
       )}
-      <ContentTypeListPage<GearListRow>
-        typeLabel="Gear"
-        typeLabelPlural="Gear"
-        headline="Gear"
+      <ContentTypeListPage<MagicItemListRow>
+        typeLabel="Magic Item"
+        typeLabelPlural="Magic Items"
+        headline="Magic Items"
         breadcrumbData={breadcrumbs}
         actions={[
           <Button
@@ -177,7 +177,7 @@ export default function GearListRoute() {
         getRowClassName={
           canManage
             ? (params: GridRowClassNameParams) =>
-                (params.row as GearListRow).allowedInCampaign === false
+                (params.row as MagicItemListRow).allowedInCampaign === false
                   ? 'AppDataGrid-row--disabled'
                   : ''
             : undefined
@@ -192,12 +192,12 @@ export default function GearListRoute() {
               startIcon={<AddIcon />}
               onClick={controller.onAdd}
             >
-              Add Gear
+              Add Magic Item
             </Button>
           ) : undefined
         }
-        searchPlaceholder="Search gear…"
-        emptyMessage="No gear found."
+        searchPlaceholder="Search magic items…"
+        emptyMessage="No magic items found."
         density="compact"
         height={560}
       />

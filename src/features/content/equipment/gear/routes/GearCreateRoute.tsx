@@ -15,7 +15,7 @@ import {
   getGearFieldConfigs,
   GEAR_FORM_DEFAULTS,
   toGearInput,
-} from '@/features/content/equipment/gear/domain';
+} from '../domain';
 
 const FORM_ID = 'gear-create-form';
 

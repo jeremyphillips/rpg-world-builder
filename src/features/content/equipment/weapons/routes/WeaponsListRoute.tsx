@@ -22,33 +22,33 @@ import {
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import {
-  armorRepo,
-  validateArmorChange,
-  buildArmorCustomColumns,
-  buildArmorCustomFilters,
-  type ArmorListRow,
-} from '@/features/content/equipment/armor/domain';
+  weaponRepo,
+  validateWeaponChange,
+  buildWeaponCustomColumns,
+  buildWeaponCustomFilters,
+  type WeaponListRow,
+} from '../domain';
 import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
-export default function ArmorListRoute() {
+export default function WeaponsListRoute() {
   const { campaign, campaignId } = useActiveCampaign();
   const breadcrumbs = useBreadcrumbs();
-  const basePath = `/campaigns/${campaignId}/world/equipment/armor`;
+  const basePath = `/campaigns/${campaignId}/world/equipment/weapons`;
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
   const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
 
-  const { armor: ownedIds } = useViewerEquipment();
+  const { weapons: ownedIds } = useViewerEquipment();
   const hasViewer = ownedIds.size > 0;
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
-      armorRepo.listSummaries(cid, sid) as Promise<ContentSummary[]>,
+      weaponRepo.listSummaries(cid, sid) as Promise<ContentSummary[]>,
     [],
   );
 
@@ -69,7 +69,7 @@ export default function ArmorListRoute() {
 
   const [validationBlocked, setValidationBlocked] = useState<ValidationBlockedState | null>(null);
 
-  const items = controller.items as ArmorListRow[];
+  const items = controller.items as WeaponListRow[];
   const hasCampaignSources = items.some(
     (r) => (r as { source?: string }).source === 'campaign',
   );
@@ -79,23 +79,23 @@ export default function ArmorListRoute() {
     onToggleAllowed: controller.onToggleAllowed,
     setValidationBlocked,
     validateDisallow: (id) =>
-      validateArmorChange({
+      validateWeaponChange({
         campaignId: campaignId!,
-        armorId: id,
+        weaponId: id,
         mode: 'disallow',
       }),
   });
 
-  const customColumns = useMemo(() => buildArmorCustomColumns(), []);
+  const customColumns = useMemo(() => buildWeaponCustomColumns(), []);
 
   const customFilters = useMemo(
-    () => buildArmorCustomFilters(items),
+    () => buildWeaponCustomFilters(items),
     [items],
   );
 
   const columns = useMemo(
     () =>
-      buildCampaignContentColumns<ArmorListRow>({
+      buildCampaignContentColumns<WeaponListRow>({
         canManage,
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
@@ -116,7 +116,7 @@ export default function ArmorListRoute() {
 
   const filters = useMemo(
     () =>
-      buildCampaignContentFilters<ArmorListRow>({
+      buildCampaignContentFilters<WeaponListRow>({
         canManage,
         onToggleAllowedInCampaign: handleToggleAllowed,
         ownedIds: hasViewer ? ownedIds : undefined,
@@ -139,7 +139,7 @@ export default function ArmorListRoute() {
       {validationBlocked && (
         validationBlocked.blockingEntities.length > 0 ? (
           <ValidationBlockedAlert
-            contentType="armor"
+            contentType="weapon"
             mode="disallow"
             blockingEntities={validationBlocked.blockingEntities}
             onClose={() => setValidationBlocked(null)}
@@ -149,14 +149,14 @@ export default function ArmorListRoute() {
             tone="warning"
             onClose={() => setValidationBlocked(null)}
           >
-            {validationBlocked.message ?? 'Cannot disable this armor.'}
+            {validationBlocked.message ?? 'Cannot disable this weapon.'}
           </AppAlert>
         )
       )}
-      <ContentTypeListPage<ArmorListRow>
-        typeLabel="Armor"
-        typeLabelPlural="Armor"
-        headline="Armor"
+      <ContentTypeListPage<WeaponListRow>
+        typeLabel="Weapon"
+        typeLabelPlural="Weapons"
+        headline="Weapons"
         breadcrumbData={breadcrumbs}
         actions={[
           <Button
@@ -177,7 +177,7 @@ export default function ArmorListRoute() {
         getRowClassName={
           canManage
             ? (params: GridRowClassNameParams) =>
-                (params.row as ArmorListRow).allowedInCampaign === false
+                (params.row as WeaponListRow).allowedInCampaign === false
                   ? 'AppDataGrid-row--disabled'
                   : ''
             : undefined
@@ -192,12 +192,12 @@ export default function ArmorListRoute() {
               startIcon={<AddIcon />}
               onClick={controller.onAdd}
             >
-              Add Armor
+              Add Weapon
             </Button>
           ) : undefined
         }
-        searchPlaceholder="Search armor…"
-        emptyMessage="No armor found."
+        searchPlaceholder="Search weapons…"
+        emptyMessage="No weapons found."
         density="compact"
         height={560}
       />

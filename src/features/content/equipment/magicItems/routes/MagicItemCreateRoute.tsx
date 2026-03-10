@@ -9,23 +9,23 @@ import { useCampaignMembers } from '@/features/campaign/hooks';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
 import { useCreateEntrySubmit } from '@/features/content/shared/hooks/useCreateEntrySubmit';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
-import { weaponRepo } from '@/features/content/domain/repo';
+import { magicItemRepo } from '@/features/content/domain/repo';
 import {
-  type WeaponFormValues,
-  getWeaponFieldConfigs,
-  WEAPON_FORM_DEFAULTS,
-  toWeaponInput,
-} from '@/features/content/equipment/weapons/domain';
+  type MagicItemFormValues,
+  getMagicItemFieldConfigs,
+  MAGIC_ITEM_FORM_DEFAULTS,
+  toMagicItemInput,
+} from '../domain';
 
-const FORM_ID = 'weapon-create-form';
+const FORM_ID = 'magic-item-create-form';
 
-export default function WeaponCreateRoute() {
+export default function MagicItemCreateRoute() {
   const { campaignId } = useActiveCampaign();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
 
-  const methods = useForm<WeaponFormValues>({
-    defaultValues: WEAPON_FORM_DEFAULTS,
+  const methods = useForm<MagicItemFormValues>({
+    defaultValues: MAGIC_ITEM_FORM_DEFAULTS,
     mode: 'onBlur',
     reValidateMode: 'onChange',
   });
@@ -35,33 +35,33 @@ export default function WeaponCreateRoute() {
   const [errors, setErrors] = useState<ValidationError[]>([]);
 
   const { policyValue, handlePolicyChange } =
-    useAccessPolicyField<WeaponFormValues>(watch, setValue);
+    useAccessPolicyField<MagicItemFormValues>(watch, setValue);
 
   const handleSubmit = useCreateEntrySubmit<
-    WeaponFormValues,
-    Parameters<typeof weaponRepo.createEntry>[1],
-    Awaited<ReturnType<typeof weaponRepo.createEntry>>
+    MagicItemFormValues,
+    Parameters<typeof magicItemRepo.createEntry>[1],
+    Awaited<ReturnType<typeof magicItemRepo.createEntry>>
   >({
     campaignId,
     navigate,
-    createEntry: weaponRepo.createEntry,
-    toInput: toWeaponInput,
+    createEntry: magicItemRepo.createEntry,
+    toInput: toMagicItemInput,
     getSuccessPath: (cid, created) =>
-      `/campaigns/${cid}/world/equipment/weapons/${created.id}`,
+      `/campaigns/${cid}/world/equipment/magic-items/${created.id}`,
     setSaving,
     setErrors,
   });
 
   const handleBack = useCallback(() => {
-    navigate(`/campaigns/${campaignId}/world/equipment/weapons`);
+    navigate(`/campaigns/${campaignId}/world/equipment/magic-items`);
   }, [navigate, campaignId]);
 
-  const fieldConfigs = getWeaponFieldConfigs({ policyCharacters });
+  const fieldConfigs = getMagicItemFieldConfigs({ policyCharacters });
 
   return (
     <FormProvider {...methods}>
       <EntryEditorLayout
-        typeLabel="Weapon"
+        typeLabel="Magic Item"
         isNew
         saving={saving}
         dirty={isDirty}

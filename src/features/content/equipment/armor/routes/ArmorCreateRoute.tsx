@@ -15,7 +15,7 @@ import {
   getArmorFieldConfigs,
   ARMOR_FORM_DEFAULTS,
   toArmorInput,
-} from '@/features/content/equipment/armor/domain';
+} from '../domain';
 
 const FORM_ID = 'armor-create-form';
 

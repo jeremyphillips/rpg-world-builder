@@ -28,7 +28,7 @@ import {
   GEAR_FORM_DEFAULTS,
   gearToFormValues,
   toGearInput,
-} from '@/features/content/equipment/gear/domain';
+} from '../domain';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
 import { useResetEditFeedbackOnChange } from '@/features/content/shared/hooks/useResetEditFeedbackOnChange';
 import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCampaignEntryFormReset';

@@ -5,75 +5,75 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
-import { gearRepo } from '@/features/content/domain/repo';
-import type { Gear } from '@/features/content/shared/domain/types';
+import { weaponRepo } from '@/features/content/domain/repo';
+import type { Weapon } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppBadge } from '@/ui/primitives';
+import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/shared/lib/media';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
-import { GEAR_DETAIL_SPECS } from '@/features/content/equipment/gear/domain';
-import { AppAlert } from '@/ui/primitives';
+import { WEAPON_DETAIL_SPECS } from '../domain';
 
-export default function GearDetailRoute() {
+export default function WeaponDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();
-  const { gearId } = useParams<{ gearId: string }>();
+  const { weaponId } = useParams<{ weaponId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
 
-  const { entry: gear, loading, error, notFound } = useCampaignContentEntry<Gear>({
+  const { entry: weapon, loading, error, notFound } = useCampaignContentEntry<Weapon>({
     campaignId: campaignId ?? undefined,
-    entryId: gearId,
-    fetchEntry: gearRepo.getEntry,
+    entryId: weaponId,
+    fetchEntry: weaponRepo.getEntry,
   });
 
   if (loading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>;
   }
 
-  if (error || notFound || !gear) {
-    return <AppAlert tone="danger">{error ?? 'Gear not found.'}</AppAlert>;
+  if (error || notFound || !weapon) {
+    return <AppAlert tone="danger">{error ?? 'Weapon not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/equipment/gear`;
-  const editPath = `${listPath}/${gearId}/edit`;
+  const listPath = `/campaigns/${campaignId}/world/equipment/weapons`;
+  const editPath = `${listPath}/${weaponId}/edit`;
+  const canEdit = canManage && weapon.source === 'campaign';
 
-  const items = buildDetailItemsFromSpecs(GEAR_DETAIL_SPECS, gear, {});
+  const items = buildDetailItemsFromSpecs(WEAPON_DETAIL_SPECS, weapon, {});
 
   return (
     <ContentDetailScaffold
-      title={gear.name}
+      title={weapon.name}
       breadcrumbData={breadcrumbs}
       listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
-      source={gear.source}
-      accessPolicy={gear.accessPolicy}
+      canEdit={canEdit || (canManage && weapon.source === 'system')}
+      source={weapon.source}
+      accessPolicy={weapon.accessPolicy}
     >
-      {gear.patched && (
+      {weapon.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
         </Box>
       )}
 
-      {gear.imageKey && (
+      {weapon.imageKey && (
         <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(gear.imageKey)} alt={gear.name} style={{ maxHeight: 200 }} />
+          <img src={resolveImageUrl(weapon.imageKey)} alt={weapon.name} style={{ maxHeight: 200 }} />
         </Box>
       )}
 
-      {gear.description && (
+      {weapon.description && (
         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {gear.description}
+          {weapon.description}
         </Typography>
       )}
 
       <KeyValueSection
-        title="Gear Details"
+        title="Weapon Details"
         items={items}
         columns={2}
         sx={{ mt: 2 }}

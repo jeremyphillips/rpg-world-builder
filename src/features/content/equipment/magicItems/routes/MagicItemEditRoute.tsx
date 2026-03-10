@@ -1,5 +1,5 @@
 /**
- * Armor edit route.
+ * Magic Item edit route.
  *
  * - source === 'system': field-config patch form via contentPatchRepo
  * - source === 'campaign': real form editor with delete support
@@ -16,19 +16,19 @@ import Typography from '@mui/material/Typography';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { armorRepo } from '@/features/content/domain/repo';
-import { validateArmorChange } from '@/features/content/domain/validation';
-import type { Armor } from '@/features/content/shared/domain/types';
+import { magicItemRepo } from '@/features/content/domain/repo';
+import { validateMagicItemChange } from '@/features/content/domain/validation';
+import type { MagicItem } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import {
-  type ArmorFormValues,
-  getArmorFieldConfigs,
-  ARMOR_FORM_DEFAULTS,
-  armorToFormValues,
-  toArmorInput,
-} from '@/features/content/equipment/armor/domain';
+  type MagicItemFormValues,
+  getMagicItemFieldConfigs,
+  MAGIC_ITEM_FORM_DEFAULTS,
+  magicItemToFormValues,
+  toMagicItemInput,
+} from '../domain';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
 import { useResetEditFeedbackOnChange } from '@/features/content/shared/hooks/useResetEditFeedbackOnChange';
 import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCampaignEntryFormReset';
@@ -39,27 +39,27 @@ import { useCampaignEntrySubmit } from '@/features/content/shared/hooks/useCampa
 import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
 import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
 
-const FORM_ID = 'armor-edit-form';
+const FORM_ID = 'magic-item-edit-form';
 
-export default function ArmorEditRoute() {
+export default function MagicItemEditRoute() {
   const { campaignId, campaign } = useActiveCampaign();
-  const { armorId } = useParams<{ armorId: string }>();
+  const { magicItemId } = useParams<{ magicItemId: string }>();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
 
   const viewer = campaign?.viewer;
   const canDelete = Boolean(
-    armorId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner)
+    magicItemId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner)
   );
 
-  const { entry: armor, loading, error, notFound } = useCampaignContentEntry<Armor>({
+  const { entry: item, loading, error, notFound } = useCampaignContentEntry<MagicItem>({
     campaignId: campaignId ?? undefined,
-    entryId: armorId,
-    fetchEntry: armorRepo.getEntry,
+    entryId: magicItemId,
+    fetchEntry: magicItemRepo.getEntry,
   });
 
-  const methods = useForm<ArmorFormValues>({
-    defaultValues: ARMOR_FORM_DEFAULTS,
+  const methods = useForm<MagicItemFormValues>({
+    defaultValues: MAGIC_ITEM_FORM_DEFAULTS,
     mode: 'onBlur',
     reValidateMode: 'onChange',
   });
@@ -75,8 +75,8 @@ export default function ArmorEditRoute() {
     clearFeedback,
   } = useEditRouteFeedbackState();
 
-  const isSystem = armor?.source === 'system';
-  const isCampaign = armor?.source === 'campaign';
+  const isSystem = item?.source === 'system';
+  const isCampaign = item?.source === 'campaign';
 
   const {
     initialPatch,
@@ -85,19 +85,19 @@ export default function ArmorEditRoute() {
     onPatchChange,
   } = useSystemEntryPatchState(
     campaignId ?? undefined,
-    armorId,
-    armor,
+    magicItemId,
+    item,
     !!isSystem,
-    'armor'
+    'magicItems'
   );
 
-  useCampaignEntryFormReset(armor, isCampaign ?? false, reset, armorToFormValues);
+  useCampaignEntryFormReset(item, isCampaign ?? false, reset, magicItemToFormValues);
   useResetEditFeedbackOnChange(watch, clearFeedback);
 
-  const { policyValue, handlePolicyChange } = useAccessPolicyField<ArmorFormValues>(watch, setValue);
+  const { policyValue, handlePolicyChange } = useAccessPolicyField<MagicItemFormValues>(watch, setValue);
 
   const driver = usePatchDriverState(
-    armor ? (armor as unknown as Record<string, unknown>) : null,
+    item ? (item as unknown as Record<string, unknown>) : null,
     initialPatch,
     onPatchChange,
     clearFeedback
@@ -107,19 +107,19 @@ export default function ArmorEditRoute() {
 
   const handleCampaignSubmit = useCampaignEntrySubmit({
     campaignId: campaignId ?? undefined,
-    entryId: armorId,
-    updateEntry: armorRepo.updateEntry,
+    entryId: magicItemId,
+    updateEntry: magicItemRepo.updateEntry,
     reset,
-    toFormValues: armorToFormValues,
-    toInput: toArmorInput,
+    toFormValues: magicItemToFormValues,
+    toInput: toMagicItemInput,
     feedback: { setSaving, setSuccess, setErrors },
   });
 
   const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
     useSystemPatchActions({
       campaignId: campaignId ?? undefined,
-      entryId: armorId,
-      collectionKey: 'armor',
+      entryId: magicItemId,
+      collectionKey: 'magicItems',
       driver,
       setInitialPatch,
       validationApiRef,
@@ -128,19 +128,19 @@ export default function ArmorEditRoute() {
 
   const handleDelete = useEntryDeleteAction({
     campaignId: campaignId ?? undefined,
-    entryId: armorId,
-    deleteEntry: (cid, eid) => armorRepo.deleteEntry(cid, eid).then(() => {}),
+    entryId: magicItemId,
+    deleteEntry: (cid, eid) => magicItemRepo.deleteEntry(cid, eid).then(() => {}),
     navigate,
-    backPath: `/campaigns/${campaignId}/world/equipment/armor`,
+    backPath: `/campaigns/${campaignId}/world/equipment/magic-items`,
   });
 
   const handleValidateDelete = useCallback(async () => {
-    if (!campaignId || !armorId) return { allowed: true as const };
-    return validateArmorChange({ campaignId, armorId, mode: 'delete' });
-  }, [campaignId, armorId]);
+    if (!campaignId || !magicItemId) return { allowed: true as const };
+    return validateMagicItemChange({ campaignId, magicItemId, mode: 'delete' });
+  }, [campaignId, magicItemId]);
 
   const handleBack = useCallback(
-    () => navigate(`/campaigns/${campaignId}/world/equipment/armor`),
+    () => navigate(`/campaigns/${campaignId}/world/equipment/magic-items`),
     [navigate, campaignId]
   );
 
@@ -150,17 +150,17 @@ export default function ArmorEditRoute() {
         <CircularProgress />
       </Box>
     );
-  if (error || notFound || !armor)
+  if (error || notFound || !item)
     return (
-      <AppAlert tone="danger">{error ?? 'Armor not found.'}</AppAlert>
+      <AppAlert tone="danger">{error ?? 'Magic item not found.'}</AppAlert>
     );
 
-  const fieldConfigs = getArmorFieldConfigs({ policyCharacters });
+  const fieldConfigs = getMagicItemFieldConfigs({ policyCharacters });
 
   if (isSystem && driver) {
     return (
       <EntryEditorLayout
-        typeLabel="Armor Patch"
+        typeLabel="Magic Item Patch"
         isNew={false}
         saving={saving}
         dirty={driver.isDirty()}
@@ -171,9 +171,9 @@ export default function ArmorEditRoute() {
       >
         <Stack spacing={2}>
           <Typography variant="subtitle1" fontWeight={600}>
-            Patching: {armor.name}
+            Patching: {item.name}
           </Typography>
-          {armor.patched && (
+          {item.patched && (
             <AppBadge label="Patched" tone="warning" size="small" />
           )}
           <ConditionalFormRenderer
@@ -208,7 +208,7 @@ export default function ArmorEditRoute() {
   return (
     <FormProvider {...methods}>
       <EntryEditorLayout
-        typeLabel="Armor"
+        typeLabel="Magic Item"
         isNew={false}
         saving={saving}
         dirty={isDirty}

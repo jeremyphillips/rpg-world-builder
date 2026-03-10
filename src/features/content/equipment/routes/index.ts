@@ -1,17 +1,26 @@
 export { default as EquipmentHubRoute } from './EquipmentHubRoute'
-export { default as WeaponsListRoute } from './WeaponsListRoute'
-export { default as ArmorListRoute } from './ArmorListRoute'
-export { default as GearListRoute } from './GearListRoute'
-export { default as MagicItemsListRoute } from './MagicItemsListRoute'
-export { default as WeaponDetailRoute } from './WeaponDetailRoute'
-export { default as ArmorDetailRoute } from './ArmorDetailRoute'
-export { default as GearDetailRoute } from './GearDetailRoute'
-export { default as MagicItemDetailRoute } from './MagicItemDetailRoute'
-export { default as WeaponEditRoute } from './WeaponEditRoute'
-export { default as ArmorEditRoute } from './ArmorEditRoute'
-export { default as GearEditRoute } from './GearEditRoute'
-export { default as MagicItemEditRoute } from './MagicItemEditRoute'
-export { default as WeaponCreateRoute } from './WeaponCreateRoute'
-export { default as ArmorCreateRoute } from './ArmorCreateRoute'
-export { default as GearCreateRoute } from './GearCreateRoute'
-export { default as MagicItemCreateRoute } from './MagicItemCreateRoute'
+
+export {
+  ArmorListRoute,
+  ArmorDetailRoute,
+  ArmorCreateRoute,
+  ArmorEditRoute,
+} from '../armor/routes'
+export {
+  WeaponsListRoute,
+  WeaponDetailRoute,
+  WeaponCreateRoute,
+  WeaponEditRoute,
+} from '../weapons/routes'
+export {
+  GearListRoute,
+  GearDetailRoute,
+  GearCreateRoute,
+  GearEditRoute,
+} from '../gear/routes'
+export {
+  MagicItemsListRoute,
+  MagicItemDetailRoute,
+  MagicItemCreateRoute,
+  MagicItemEditRoute,
+} from '../magicItems/routes'

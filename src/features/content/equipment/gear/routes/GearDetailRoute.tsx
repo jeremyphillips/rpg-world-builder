@@ -5,80 +5,75 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
-import { armorRepo } from '@/features/content/domain/repo';
-import type { Armor } from '@/features/content/shared/domain/types';
+import { gearRepo } from '@/features/content/domain/repo';
+import type { Gear } from '@/features/content/shared/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/shared/lib/media';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
-import { ARMOR_DETAIL_SPECS } from '@/features/content/equipment/armor/domain';
+import { GEAR_DETAIL_SPECS } from '../domain';
+import { AppAlert } from '@/ui/primitives';
 
-export default function ArmorDetailRoute() {
+export default function GearDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();
-  const { armorId } = useParams<{ armorId: string }>();
+  const { gearId } = useParams<{ gearId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
 
-  const { entry: armor, loading, error, notFound } = useCampaignContentEntry<Armor>({
+  const { entry: gear, loading, error, notFound } = useCampaignContentEntry<Gear>({
     campaignId: campaignId ?? undefined,
-    entryId: armorId,
-    fetchEntry: armorRepo.getEntry,
+    entryId: gearId,
+    fetchEntry: gearRepo.getEntry,
   });
 
   if (loading) {
     return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>;
   }
 
-  if (error || notFound || !armor) {
-    return <AppAlert tone="danger">{error ?? 'Armor not found.'}</AppAlert>;
+  if (error || notFound || !gear) {
+    return <AppAlert tone="danger">{error ?? 'Gear not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/equipment/armor`;
-  const editPath = `${listPath}/${armorId}/edit`;
+  const listPath = `/campaigns/${campaignId}/world/equipment/gear`;
+  const editPath = `${listPath}/${gearId}/edit`;
 
-  const dexLabel = armor.dex
-    ? armor.dex.mode === 'full' ? 'Full' : armor.dex.mode === 'capped' ? `Capped (+${armor.dex.maxBonus})` : 'None'
-    : '—';
-
-  const items = buildDetailItemsFromSpecs(ARMOR_DETAIL_SPECS, armor, {
-    dexLabel,
-  });
+  const items = buildDetailItemsFromSpecs(GEAR_DETAIL_SPECS, gear, {});
 
   return (
     <ContentDetailScaffold
-      title={armor.name}
+      title={gear.name}
       breadcrumbData={breadcrumbs}
       listPath={listPath}
       editPath={editPath}
       canEdit={canManage}
-      source={armor.source}
-      accessPolicy={armor.accessPolicy}
+      source={gear.source}
+      accessPolicy={gear.accessPolicy}
     >
-      {armor.patched && (
+      {gear.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
         </Box>
       )}
 
-      {armor.imageKey && (
+      {gear.imageKey && (
         <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(armor.imageKey)} alt={armor.name} style={{ maxHeight: 200 }} />
+          <img src={resolveImageUrl(gear.imageKey)} alt={gear.name} style={{ maxHeight: 200 }} />
         </Box>
       )}
 
-      {armor.description && (
+      {gear.description && (
         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {armor.description}
+          {gear.description}
         </Typography>
       )}
 
       <KeyValueSection
-        title="Armor Details"
+        title="Gear Details"
         items={items}
         columns={2}
         sx={{ mt: 2 }}

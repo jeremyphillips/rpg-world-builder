@@ -32,7 +32,7 @@ import {
   WEAPON_FORM_DEFAULTS,
   weaponToFormValues,
   toWeaponInput,
-} from '@/features/content/equipment/weapons/domain';
+} from '../domain';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
 import { useResetEditFeedbackOnChange } from '@/features/content/shared/hooks/useResetEditFeedbackOnChange';
 import { useCampaignEntryFormReset } from '@/features/content/shared/hooks/useCampaignEntryFormReset';
