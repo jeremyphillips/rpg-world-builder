@@ -1,4 +1,4 @@
-import type { Spell } from '@/features/content/shared/domain/types'
+import type { Spell } from '@/features/content/spells/domain/types'
 
 /** Group spells by level, sorted ascending. */
 export function groupSpellsByLevel(spells: Spell[]): Map<number, Spell[]> {

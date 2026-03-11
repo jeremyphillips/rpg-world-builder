@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
 import { weaponRepo } from '../domain/repo/weaponRepo';
-import type { Weapon } from '@/features/content/shared/domain/types';
+import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

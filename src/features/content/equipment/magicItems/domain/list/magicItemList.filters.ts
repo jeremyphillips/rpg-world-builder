@@ -1,6 +1,6 @@
 import type { AppDataGridFilter } from '@/ui/patterns';
 import type { MagicItemListRow } from './magicItemList.types';
-import type { MagicItemSummary } from '@/features/content/shared/domain/types';
+import type { MagicItemSummary } from '@/features/content/equipment/magicItems/domain/types';
 import { buildSlotOptions, buildRarityOptions } from './magicItemList.options';
 
 /**

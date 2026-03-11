@@ -11,12 +11,12 @@ import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import type { MagicItemSlot, MagicItem, MagicItemRarity } from '@/features/content/shared/domain/types'
+import type { MagicItemSlot, MagicItem } from '@/features/content/equipment/magicItems/domain/types'
 import type { EquipmentItemInstance } from '@/features/character/domain/types'
-import type { EnchantableSlot } from '@/features/content/shared/domain/types'
+import type { EnchantableSlot } from '@/features/content/enchantments/domain/types'
 import { moneyToCp, cpToDenoms, formatCp } from '@/shared/money'
 import type { Money } from '@/shared/money/types'
-import { MAGIC_ITEM_RARITY_OPTIONS } from '@/features/content/shared/domain/vocab'
+import { MAGIC_ITEM_RARITY_OPTIONS } from '@/features/content/equipment/magicItems/domain/vocab'
 
 // ---------------------------------------------------------------------------
 // Enhancement types & constants

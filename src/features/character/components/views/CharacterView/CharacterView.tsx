@@ -36,7 +36,7 @@ import Divider from '@mui/material/Divider'
 import Grid from '@mui/material/Grid'
 import { AppAlert } from '@/ui/primitives'
 import type { AlignmentId } from '@/features/content/shared/domain/types'
-import type { RaceId } from '@/features/content/shared/domain/types'
+import type { RaceId } from '@/features/content/races/domain/types'
 import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character'
 import { resolveXpTable } from '@/features/mechanics/domain/core/rules/xp/resolveXpTable'
 

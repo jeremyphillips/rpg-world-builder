@@ -18,7 +18,7 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { magicItemRepo } from '../domain/repo/magicItemRepo';
 import { validateMagicItemChange } from '../domain/validation/validateMagicItemChange';
-import type { MagicItem } from '@/features/content/shared/domain/types';
+import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';

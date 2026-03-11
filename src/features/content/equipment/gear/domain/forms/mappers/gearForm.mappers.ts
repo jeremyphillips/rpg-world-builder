@@ -3,7 +3,7 @@
  * Registry-backed with required-field merging.
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import type { Gear, GearInput } from '@/features/content/shared/domain/types';
+import type { Gear, GearInput } from '@/features/content/equipment/gear/domain/types';
 import type { GearFormValues } from '../types/gearForm.types';
 import {
   buildToInput,

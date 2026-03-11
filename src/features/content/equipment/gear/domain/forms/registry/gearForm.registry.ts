@@ -1,9 +1,9 @@
 /**
  * Gear form field registry — single source of truth for config + mapping.
  */
-import type { Gear, GearInput } from '@/features/content/shared/domain/types';
+import type { Gear, GearInput } from '@/features/content/equipment/gear/domain/types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
-import { GEAR_CATEGORY_OPTIONS } from '@/features/content/shared/domain/vocab';
+import { GEAR_CATEGORY_OPTIONS } from '@/features/content/equipment/gear/domain/vocab';
 import { type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { GearFormValues } from '../types/gearForm.types';
 

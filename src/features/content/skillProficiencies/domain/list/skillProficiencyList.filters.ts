@@ -1,6 +1,6 @@
 import type { AppDataGridFilter } from '@/ui/patterns';
 import type { SkillProficiencyListRow } from './skillProficiencyList.types';
-import type { SkillProficiencySummary } from '@/features/content/shared/domain/types';
+import type { SkillProficiencySummary } from '@/features/content/skillProficiencies/domain/types';
 import {
   buildAbilityOptions,
   buildSuggestedClassOptions,

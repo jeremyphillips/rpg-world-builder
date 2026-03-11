@@ -1,4 +1,6 @@
-import type { Armor, Gear, Weapon } from '@/features/content/shared/domain/types'
+import type { Armor } from '@/features/content/equipment/armor/domain/types'
+import type { Gear } from '@/features/content/equipment/gear/domain/types'
+import type { Weapon } from '@/features/content/equipment/weapons/domain/types'
 import type { Weight } from '@/shared/weight/types'
 import { weightToLb } from '@/shared/weight'
 

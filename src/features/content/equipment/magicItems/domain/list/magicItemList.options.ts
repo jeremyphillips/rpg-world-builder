@@ -1,4 +1,4 @@
-import type { MagicItemSummary } from '@/features/content/shared/domain/types';
+import type { MagicItemSummary } from '@/features/content/equipment/magicItems/domain/types';
 
 export type FilterOption = { label: string; value: string };
 

@@ -5,7 +5,7 @@
  * to domain-shaped patch paths (damage.default, damage.versatile, range.normal, range.long).
  * Domain patch shape is canonical; bindings handle UI/domain adaptation.
  */
-import type { Weapon, WeaponInput } from '@/features/content/shared/domain/types';
+import type { Weapon, WeaponInput } from '@/features/content/equipment/weapons/domain/types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import {
   DIE_FACE_OPTIONS,
@@ -20,7 +20,7 @@ import {
   WEAPON_MODE_OPTIONS,
   WEAPON_PROPERTY_OPTIONS,
   WEAPON_DAMAGE_TYPE_OPTIONS,
-} from '@/features/content/shared/domain/vocab';
+} from '@/features/content/equipment/weapons/domain/vocab';
 import type { FieldSpec } from '@/features/content/shared/forms/registry';
 import type { WeaponFormValues } from '../types/weaponForm.types';
 import { when } from '@/ui/patterns';

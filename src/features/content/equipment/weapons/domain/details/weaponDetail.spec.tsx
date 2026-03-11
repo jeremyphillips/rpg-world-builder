@@ -1,4 +1,4 @@
-import type { Weapon } from '@/features/content/shared/domain/types';
+import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
 import { AppBadge } from '@/ui/primitives';

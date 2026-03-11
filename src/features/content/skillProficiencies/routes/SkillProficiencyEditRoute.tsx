@@ -25,7 +25,7 @@ import {
   skillProficiencyToFormValues,
   toSkillProficiencyInput,
 } from '@/features/content/skillProficiencies/domain';
-import type { SkillProficiency } from '@/features/content/shared/domain/types';
+import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';

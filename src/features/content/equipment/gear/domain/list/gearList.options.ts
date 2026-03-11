@@ -1,4 +1,4 @@
-import type { GearSummary } from '@/features/content/shared/domain/types';
+import type { GearSummary } from '@/features/content/equipment/gear/domain/types';
 
 export type FilterOption = { label: string; value: string };
 

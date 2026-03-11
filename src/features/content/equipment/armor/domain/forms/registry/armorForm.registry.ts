@@ -1,12 +1,12 @@
 /**
  * Armor form field registry — single source of truth for config + mapping.
  */
-import type { Armor, ArmorInput } from '@/features/content/shared/domain/types';
+import type { Armor, ArmorInput } from '@/features/content/equipment/armor/domain/types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import {
   ARMOR_CATEGORY_OPTIONS,
   ARMOR_MATERIAL_OPTIONS,
-} from '@/features/content/shared/domain/vocab';
+} from '@/features/content/equipment/armor/domain/vocab';
 import { when } from '@/ui/patterns';
 import { numberRange, type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { ArmorFormValues } from '../types/armorForm.types';
