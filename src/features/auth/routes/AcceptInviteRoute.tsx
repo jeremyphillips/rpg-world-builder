@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom'
-import { useAcceptInvite } from '@/features/auth/invite'
+import { useAcceptInvite } from '@/features/campaign/invite'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { AppAlert } from '@/ui/primitives'
