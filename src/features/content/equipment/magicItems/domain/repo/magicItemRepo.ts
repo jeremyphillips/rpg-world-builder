@@ -6,7 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
-import type { MagicItem, MagicItemSummary, MagicItemInput, MagicItemFields } from '@/features/content/shared/domain/types/magicItem.types';
+import type { MagicItem, MagicItemSummary, MagicItemInput, MagicItemFields } from '@/features/content/equipment/magicItems/domain/types';
 import { getSystemMagicItems, getSystemMagicItem } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems';
 import { campaignMagicItemRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';

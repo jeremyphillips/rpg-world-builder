@@ -7,7 +7,7 @@ import type {
   Weapon,
   WeaponInput,
   WeaponFields,
-} from '@/features/content/shared/domain/types';
+} from '@/features/content/equipment/weapons/domain/types';
 import { buildDefaultFormValues } from '@/features/content/shared/forms/registry';
 import {
   buildXdY,

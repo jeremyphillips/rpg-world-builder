@@ -1,4 +1,4 @@
-import type { Spell } from '@/features/content/shared/domain/types/spell.types';
+import type { Spell } from '@/features/content/spells/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
 import { classIdToName } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';

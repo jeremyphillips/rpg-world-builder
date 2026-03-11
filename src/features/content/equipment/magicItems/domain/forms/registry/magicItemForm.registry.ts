@@ -1,12 +1,12 @@
 /**
  * Magic Item form field registry — single source of truth for config + mapping.
  */
-import type { MagicItem, MagicItemInput } from '@/features/content/shared/domain/types';
+import type { MagicItem, MagicItemInput } from '@/features/content/equipment/magicItems/domain/types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import {
   MAGIC_ITEM_SLOT_OPTIONS,
   MAGIC_ITEM_RARITY_OPTIONS,
-} from '@/features/content/shared/domain/vocab';
+} from '@/features/content/equipment/magicItems/domain/vocab';
 import { type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { MagicItemFormValues } from '../types/magicItemForm.types';
 

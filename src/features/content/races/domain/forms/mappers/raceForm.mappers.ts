@@ -3,7 +3,7 @@
  * Registry-backed with required-field merging.
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import type { Race, RaceInput } from '@/features/content/shared/domain/types';
+import type { Race, RaceInput } from '@/features/content/races/domain/types';
 import {
   buildToInput,
   buildToFormValues,

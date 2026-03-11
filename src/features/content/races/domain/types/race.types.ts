@@ -11,7 +11,7 @@ import type {
   ContentSummary,
   ContentItem,
   ContentInput,
-} from './content.types';
+} from '@/features/content/shared/domain/types/content.types';
 
 export type RaceId = ContentId;
 
@@ -32,5 +32,3 @@ export type RaceSummary = ContentSummary & RaceFields & {
 };
 
 export type RaceInput = ContentInput & Partial<RaceFields>;
-
-

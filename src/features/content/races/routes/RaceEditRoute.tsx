@@ -16,7 +16,7 @@ import Typography from '@mui/material/Typography';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import type { Race } from '@/features/content/shared/domain/types';
+import type { Race } from '@/features/content/races/domain/types';
 import {
   raceRepo,
   validateRaceChange,

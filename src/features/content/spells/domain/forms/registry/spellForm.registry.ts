@@ -1,7 +1,7 @@
 /**
  * Spell form field registry — single source of truth for config + mapping.
  */
-import type { Spell, SpellInput } from '@/features/content/shared/domain/types/spell.types';
+import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
 import { numberRange, type FieldSpec } from '@/features/content/shared/forms/registry';

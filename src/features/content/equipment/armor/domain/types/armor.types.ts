@@ -10,8 +10,8 @@ import type {
   ContentItem,
   ContentSummary,
   ContentInput,
-} from './content.types';
-import type { EquipmentBase } from './equipment.types';
+} from '@/features/content/shared/domain/types/content.types';
+import type { EquipmentBase } from '@/features/content/equipment/shared/domain/types/equipment.types';
 import type { Material, ArmorCategory, DexContributionMode } from '../vocab/armor.vocab';
 
 export type DexContribution =
@@ -43,4 +43,3 @@ export type ArmorSummary = ContentSummary & {
 export type ArmorInput = ContentInput & Partial<ArmorFields>;
 
 export type Armor = ContentItem & ArmorFields;
-

@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
 import { magicItemRepo } from '../domain/repo/magicItemRepo';
-import type { MagicItem } from '@/features/content/shared/domain/types';
+import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

@@ -13,7 +13,7 @@ import type {
   SkillProficiency,
   SkillProficiencySummary,
   SkillProficiencyInput,
-} from '@/features/content/shared/domain/types/skillProficiency.types';
+} from '@/features/content/skillProficiencies/domain/types';
 import {
   getSystemSkillProficiencies,
   getSystemSkillProficiency,

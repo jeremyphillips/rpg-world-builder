@@ -22,7 +22,7 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { weaponRepo } from '../domain/repo/weaponRepo';
 import { validateWeaponChange } from '../domain/validation/validateWeaponChange';
-import type { Weapon } from '@/features/content/shared/domain/types';
+import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';

@@ -2,7 +2,7 @@
  * Pure mappers for Skill Proficiency form values ↔ domain types.
  * Registry-backed.
  */
-import type { SkillProficiency } from '@/features/content/shared/domain/types';
+import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import type { SkillProficiencyInput } from '../types/skillProficiencyForm.types';
 import type { SkillProficiencyFormValues } from '../types/skillProficiencyForm.types';
 import {

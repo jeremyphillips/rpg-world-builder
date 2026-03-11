@@ -18,7 +18,7 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { armorRepo } from '../domain/repo/armorRepo';
 import { validateArmorChange } from '../domain/validation/validateArmorChange';
-import type { Armor } from '@/features/content/shared/domain/types';
+import type { Armor } from '@/features/content/equipment/armor/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';

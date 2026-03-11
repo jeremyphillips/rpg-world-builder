@@ -9,7 +9,7 @@ import {
   skillProficiencyRepo,
   SKILL_PROFICIENCY_DETAIL_SPECS,
 } from '@/features/content/skillProficiencies/domain';
-import type { SkillProficiency } from '@/features/content/shared/domain/types';
+import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

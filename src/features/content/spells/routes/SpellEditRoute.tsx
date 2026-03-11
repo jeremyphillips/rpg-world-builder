@@ -25,7 +25,7 @@ import {
   spellToFormValues,
   toSpellInput,
 } from '@/features/content/spells/domain';
-import type { Spell } from '@/features/content/shared/domain/types/spell.types';
+import type { Spell } from '@/features/content/spells/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';

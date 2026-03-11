@@ -1,6 +1,6 @@
 import type { AppDataGridFilter } from '@/ui/patterns';
 import type { WeaponListRow } from './weaponList.types';
-import type { WeaponSummary } from '@/features/content/shared/domain/types';
+import type { WeaponSummary } from '@/features/content/equipment/weapons/domain/types';
 import { buildCategoryOptions, buildPropertyOptions } from './weaponList.options';
 
 /**

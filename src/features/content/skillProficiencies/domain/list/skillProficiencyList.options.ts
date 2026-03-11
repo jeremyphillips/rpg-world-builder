@@ -1,4 +1,4 @@
-import type { SkillProficiencySummary } from '@/features/content/shared/domain/types';
+import type { SkillProficiencySummary } from '@/features/content/skillProficiencies/domain/types';
 import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities';
 import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 

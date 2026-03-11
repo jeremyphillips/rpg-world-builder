@@ -4,8 +4,8 @@
  * Extends the generic ContentItem interfaces with weapon-specific fields.
  * content-system metadata (source, accessPolicy, patched).
  */
-import type { EquipmentBase } from './equipment.types';
-import type { ContentItem, ContentSummary, ContentInput } from './content.types';
+import type { EquipmentBase } from '@/features/content/equipment/shared/domain/types/equipment.types';
+import type { ContentItem, ContentSummary, ContentInput } from '@/features/content/shared/domain/types/content.types';
 import type { Money } from '@/shared/money/types';
 import type {
   WeaponCategory,

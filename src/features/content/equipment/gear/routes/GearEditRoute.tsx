@@ -18,7 +18,7 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { gearRepo } from '../domain/repo/gearRepo';
 import { validateGearChange } from '../domain/validation/validateGearChange';
-import type { Gear } from '@/features/content/shared/domain/types';
+import type { Gear } from '@/features/content/equipment/gear/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';

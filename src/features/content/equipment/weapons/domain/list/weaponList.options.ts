@@ -1,4 +1,4 @@
-import type { WeaponSummary } from '@/features/content/shared/domain/types';
+import type { WeaponSummary } from '@/features/content/equipment/weapons/domain/types';
 
 export type FilterOption = { label: string; value: string };
 

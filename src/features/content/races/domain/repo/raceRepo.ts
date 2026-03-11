@@ -20,7 +20,7 @@
 import { apiFetch, ApiError } from '@/app/api';
 import type { Visibility } from '@/shared/types/visibility';
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
-import type { Race, RaceSummary, RaceInput } from '@/features/content/shared/domain/types/race.types';
+import type { Race, RaceSummary, RaceInput } from '@/features/content/races/domain/types';
 import { getSystemRaces, getSystemRace } from '@/features/mechanics/domain/core/rules/systemCatalog.races';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';

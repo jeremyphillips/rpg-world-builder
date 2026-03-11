@@ -6,7 +6,7 @@ import type {
   WeaponMode,
   WeaponProperty,
   DamageType,
-} from '@/features/content/shared/domain/vocab';
+} from '@/features/content/equipment/weapons/domain/vocab';
 import type { ContentFormValues } from '@/features/content/shared/domain/types';
 
 export type WeaponFormValues = ContentFormValues & {

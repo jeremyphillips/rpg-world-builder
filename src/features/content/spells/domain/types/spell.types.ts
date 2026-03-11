@@ -1,8 +1,8 @@
 import type { ClassId } from '@/shared/types/ruleset';
-import type { MagicSchool } from '../vocab';
+import type { MagicSchool } from '@/features/content/shared/domain/vocab';
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
 import type { Visibility } from '@/shared/types/visibility';
-import type { ContentSource } from './content.types';
+import type { ContentSource } from '@/features/content/shared/domain/types/content.types';
 
  // later: Extract<Effect, ...>[]
 export type SpellEffects = Effect[];

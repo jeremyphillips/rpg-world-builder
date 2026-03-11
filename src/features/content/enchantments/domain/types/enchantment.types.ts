@@ -1,5 +1,5 @@
-import type { MagicItemRarity } from './magicItem.types'
-import type { Money } from '@/shared/money/types' 
+import type { MagicItemRarity } from '@/features/content/equipment/magicItems/domain/types/magicItem.types'
+import type { Money } from '@/shared/money/types'
 import type { BonusEffect, CustomEffect, GrantEffect, ModifierEffect } from '@/features/mechanics/domain/effects/effects.types'
 
 export type EnchantableSlot = 'weapon' | 'armor' | 'shield'

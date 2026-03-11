@@ -3,4 +3,4 @@ export type {
   ListOptions,
   CampaignContentRepo,
 } from './contentRepo.types';
-export { enchantmentRepo } from './enchantmentRepo';
+export { enchantmentRepo } from '@/features/content/enchantments/domain/repo';

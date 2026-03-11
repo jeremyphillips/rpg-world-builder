@@ -1,4 +1,4 @@
-import type { MagicItem } from '@/features/content/shared/domain/types';
+import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
 import { AppBadge } from '@/ui/primitives';

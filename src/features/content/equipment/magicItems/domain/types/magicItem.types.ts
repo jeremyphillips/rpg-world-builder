@@ -7,8 +7,8 @@
  */
 import type { Money } from '@/shared/money/types';
 import type { Weight } from '@/shared/weight/types';
-import type { ContentItem, ContentSummary, ContentInput } from './content.types';
-import type { EquipmentBase } from './equipment.types';
+import type { ContentItem, ContentSummary, ContentInput } from '@/features/content/shared/domain/types/content.types';
+import type { EquipmentBase } from '@/features/content/equipment/shared/domain/types/equipment.types';
 import type { MagicItemSlot, MagicItemRarity } from '../vocab/magicItems.vocab';
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
 
@@ -26,7 +26,7 @@ export interface MagicItemFields extends EquipmentBase {
 
   slot: MagicItemSlot;
 
-  // “derived”/composition
+  // "derived"/composition
   baseItemId?: string;
 
   consumable?: boolean;

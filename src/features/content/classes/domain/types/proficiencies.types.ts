@@ -1,4 +1,4 @@
-import type { Material } from '@/features/content/shared/domain/vocab'
+import type { Material } from '@/features/content/equipment/armor/domain/vocab'
 
 
 // ---------------------------------------------------------------------------

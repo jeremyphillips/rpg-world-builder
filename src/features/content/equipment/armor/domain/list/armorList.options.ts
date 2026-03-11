@@ -1,4 +1,4 @@
-import type { ArmorSummary } from '@/features/content/shared/domain/types';
+import type { ArmorSummary } from '@/features/content/equipment/armor/domain/types';
 
 export type FilterOption = { label: string; value: string };
 

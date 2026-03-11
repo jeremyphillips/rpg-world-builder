@@ -7,7 +7,7 @@
  * 3) Raw system entry
  */
 import { apiFetch, ApiError } from '@/app/api';
-import type { Spell, SpellInput } from '@/features/content/shared/domain/types/spell.types';
+import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
 import type { ContentSource } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 import { getSystemSpells, getSystemSpell } from '@/features/mechanics/domain/core/rules/systemCatalog.spells';

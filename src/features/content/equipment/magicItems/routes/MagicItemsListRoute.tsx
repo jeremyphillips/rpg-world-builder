@@ -28,7 +28,7 @@ import {
   buildMagicItemCustomFilters,
   type MagicItemListRow,
 } from '../domain/list';
-import type { ContentSummary } from '@/features/content/shared/domain/types';
+import type { ContentSummary } from '@/features/content/shared/domain/types/content.types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

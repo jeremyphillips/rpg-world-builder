@@ -1,4 +1,4 @@
-import type { MagicItem } from '@/features/content/shared/domain/types'
+import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'

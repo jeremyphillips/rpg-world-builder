@@ -1,7 +1,7 @@
 /**
  * Skill Proficiency detail spec — lists all fields for detail view.
  */
-import type { SkillProficiency } from '@/features/content/shared/domain/types';
+import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { abilityIdToName } from '@/features/mechanics/domain/core/character/abilities.utils';
 
