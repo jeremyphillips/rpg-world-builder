@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import { Breadcrumbs } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/app/navigation'
 import { monsters } from '@/data/monsters'
-import type { Monster } from '@/data/monsters'
+import type { Monster } from '@/features/content/monsters/domain/types/monster.types'
 import { MonsterView } from '@/features/content/monsters/components'
 
 import Box from '@mui/material/Box'

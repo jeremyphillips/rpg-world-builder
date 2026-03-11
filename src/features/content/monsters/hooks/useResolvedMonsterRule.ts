@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useActiveCampaign } from "@/app/providers/ActiveCampaignProvider";
-import type { Monster } from "@/data";
+import type { Monster } from "@/features/content/monsters/domain/types/monster.types";
 import { resolveEditionRule } from '@/features/mechanics/domain/resolution';
 
 export function useResolvedMonsterRule(monster: Monster) {

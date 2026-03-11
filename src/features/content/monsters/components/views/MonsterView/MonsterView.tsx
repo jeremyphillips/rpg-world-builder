@@ -1,4 +1,4 @@
-import { type Monster } from '@/data/monsters'
+import type { Monster } from '@/features/content/monsters/domain/types/monster.types'
 // import { useResolvedMonsterRule } from '../hooks/useResolvedMonsterRule'
 import { MonsterHeader, MonsterEditionRulesSection } from './sections'
 

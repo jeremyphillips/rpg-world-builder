@@ -1,4 +1,4 @@
-import type { Monster } from './monsters.types'
+import type { Monster } from '@/features/content/monsters/domain/types/monster.types'
 import { monstersLankhmar } from "./monsters.lankhmar"
 
 export const MONSTER_LABELS = {

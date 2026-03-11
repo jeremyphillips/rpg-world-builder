@@ -1,4 +1,4 @@
-import { type Monster } from '@/data/monsters'
+import type { Monster } from '@/features/content/monsters/domain/types/monster.types'
 import { StatRow } from '../../components'
 import { MONSTER_LABELS } from '@/data/monsters'
 

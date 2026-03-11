@@ -1,6 +1,6 @@
 // Lankhmar (2e) specific monsters
 
-import type { Monster } from './monsters.types'
+import type { Monster } from '@/features/content/monsters/domain/types/monster.types'
 
 export const monstersLankhmar: readonly Monster[] = [
   {
