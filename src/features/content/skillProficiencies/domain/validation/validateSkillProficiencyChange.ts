@@ -9,7 +9,8 @@
  * Future extensions:
  * - NPC validation
  */
-import type { CharacterDoc } from '@/features/character/domain/types';
+import type { CharacterDoc } from '@/features/character/domain/types'
+import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
@@ -42,6 +43,6 @@ export async function validateSkillProficiencyChange(params: {
     includeNpcs,
     contentType: 'skill proficiency',
     matcher: (c) =>
-      c.proficiencies?.skills?.includes(skillProficiencyId) ?? false,
+      getSkillIds(c.proficiencies).includes(skillProficiencyId),
   });
 }

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { apiFetch } from '@/app/api'
 import { useCampaignMembers } from './useCampaignMembers'
 import type { CharacterProficiencies } from '@/features/character/domain/types'
+import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 
 type CharacterProficienciesResponse = {
   character: {
@@ -35,7 +36,7 @@ export function useViewerProficiencies(): {
     Promise.all(
       viewerCharacterIds.map((id) =>
         apiFetch<CharacterProficienciesResponse>(`/api/characters/${id}`)
-          .then((d) => d.character.proficiencies?.skills ?? [])
+          .then((d) => getSkillIds(d.character.proficiencies))
           .catch(() => [] as string[])
       )
     )

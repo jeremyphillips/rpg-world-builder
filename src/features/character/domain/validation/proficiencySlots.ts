@@ -1,6 +1,7 @@
 import { systemCatalog } from '@/features/mechanics/domain/core/rules/systemCatalog'
 import type { ClassProficiencySkillSelection, CharacterClass } from '@/features/content/classes/domain/types'
 import type { CharacterClassInfo, CharacterProficiencies } from '@/features/character/domain/types'
+import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 
 export interface ProficiencySlotSummary {
   /** Total slots granted across all class skill proficiency groups. */
@@ -47,7 +48,7 @@ export function getProficiencySlotSummary(
 ): ProficiencySlotSummary {
   const choices = getAllSkillChoices(characterClasses, classesById)
   const totalSlots = choices.reduce((sum, e) => sum + (e.choose ?? 0), 0)
-  const filled = proficiencies?.skills?.length ?? 0
+  const filled = getSkillIds(proficiencies).length
   const remaining = Math.max(0, totalSlots - filled)
 
   return {
