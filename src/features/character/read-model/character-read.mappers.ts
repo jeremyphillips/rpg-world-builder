@@ -44,7 +44,7 @@ export type CharacterDocForDetail = {
   classes: CharacterClassReadSource[]
   totalLevel?: number
   abilityScores?: Record<string, number>
-  proficiencies?: { skills?: string[] | Record<string, import('@/features/character/domain/types').SkillAdjustment> }
+  proficiencies?: { skills?: Record<string, import('@/features/character/domain/types').SkillAdjustment> }
   equipment?: {
     armor?: string[]
     weapons?: string[]

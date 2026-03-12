@@ -128,7 +128,11 @@ export default function CharacterView({
   const profSlots = useMemo(
     () => getProficiencySlotSummary(
       character.classes.map((c) => ({ classId: c.classId, subclassId: c.subclassId ?? undefined, level: c.level })),
-      { skills: character.proficiencies.map((p) => p.id) },
+      {
+        skills: Object.fromEntries(
+          character.proficiencies.map((p) => [p.id, { proficiencyLevel: 1 }]),
+        ),
+      },
       catalog.classesById,
     ),
     [character.classes, character.proficiencies, catalog.classesById],

@@ -261,9 +261,7 @@ export type MonsterTrait =
   | 'immune-to-poison'
   | 'immune-to-exhaustion'
 
-export type MonsterProficiencies = Omit<CharacterProficiencies, 'skills'> & {
-  /** Monsters may use legacy array format; characters use Record<string, SkillAdjustment>. */
-  skills?: string[] | CharacterProficiencies['skills']
+export type MonsterProficiencies = CharacterProficiencies & {
   // TODO: reference weapon IDs
   weapons?: string[]
   skillBonuses?: {

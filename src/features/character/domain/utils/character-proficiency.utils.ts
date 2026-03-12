@@ -1,14 +1,12 @@
 import type { CharacterProficiencies, SkillAdjustment } from '@/features/character/domain/types'
 
 /**
- * Extract skill IDs from proficiencies (record shape or legacy array).
+ * Extract skill IDs from proficiencies (record shape).
  * Returns empty array for undefined or empty skills.
  */
-export function getSkillIds(proficiencies: { skills?: string[] | Record<string, SkillAdjustment> } | undefined): string[] {
+export function getSkillIds(proficiencies: CharacterProficiencies | undefined): string[] {
   const skills = proficiencies?.skills
-  if (!skills) return []
-  if (Array.isArray(skills)) return skills
-  if (typeof skills !== 'object') return []
+  if (!skills || typeof skills !== 'object' || Array.isArray(skills)) return []
   return Object.keys(skills)
 }
 

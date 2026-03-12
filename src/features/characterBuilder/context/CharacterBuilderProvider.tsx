@@ -14,7 +14,7 @@ import {
   getStepConfig,
   createInitialBuilderState,
 } from '../constants'
-import { getSkillIds, toSkillProficienciesRecord } from '@/features/character/domain/utils/character-proficiency.utils'
+import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import {
   generateAbilityScores,
 } from '@/features/mechanics/domain/generation/ability-scores'
@@ -210,15 +210,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
       abilityScoresStatus: deriveAbilityScoresStatus(loadedScores),
       flowMode: 'isolated',
       equipment: normalizeEquipmentInstances(character.equipment ?? { armor: [], weapons: [], gear: [], weight: 0 }),
-      proficiencies: (() => {
-        const p = character.proficiencies
-        if (!p) return { skills: {} }
-        const raw = p.skills
-        const skills = Array.isArray(raw)
-          ? toSkillProficienciesRecord(raw)
-          : (raw ?? {})
-        return { ...p, skills }
-      })(),
+      proficiencies: character.proficiencies ?? { skills: {} },
       spells: character.spells ?? [],
       wealth: character.wealth ?? { gp: 0, sp: 0, cp: 0, baseBudget: null },
       editMode: { characterId: character._id ?? '', stepId, lockedSelections },

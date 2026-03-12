@@ -68,7 +68,7 @@ export const monsters: readonly Monster[] = [
         passivePerception: 9,
       },
       proficiencies: {
-        skills: ["stealth"],
+        skills: { stealth: { proficiencyLevel: 1 } },
         skillBonuses: {
           stealth: 2,
         },
@@ -227,7 +227,7 @@ export const monsters: readonly Monster[] = [
       },
       proficiencies: {
         weapons: ["greataxe", "javelin"],
-        skills: ["intimidation"],
+        skills: { intimidation: { proficiencyLevel: 1 } },
       },
       traits: ["aggressive"],
     },
@@ -395,7 +395,7 @@ export const monsters: readonly Monster[] = [
         }
       ],
       proficiencies: {
-        skills: ["stealth", "survival"],
+        skills: { stealth: { proficiencyLevel: 1 }, survival: { proficiencyLevel: 1 } },
         skillBonuses: {
           stealth: 2
         },
@@ -558,7 +558,7 @@ export const monsters: readonly Monster[] = [
         }
       ],
       proficiencies: {
-        skills: ["perception"],
+        skills: { perception: { proficiencyLevel: 1 } },
         skillBonuses: {
           perception: 2,
         },
@@ -709,7 +709,7 @@ export const monsters: readonly Monster[] = [
         passivePerception: 11,
       },
       proficiencies: {
-        skills: ["stealth"],
+        skills: { stealth: { proficiencyLevel: 1 } },
         skillBonuses: {
           stealth: 2,
         },

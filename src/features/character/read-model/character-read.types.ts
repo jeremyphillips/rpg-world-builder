@@ -144,7 +144,7 @@ export type CharacterDetailDto = {
 export type CharacterReadSource = {
   race?: string
   classes?: CharacterClassReadSource[]
-  proficiencies?: { skills?: string[] | Record<string, import('@/features/character/domain/types').SkillAdjustment> }
+  proficiencies?: { skills?: Record<string, import('@/features/character/domain/types').SkillAdjustment> }
   equipment?: {
     armor?: string[]
     weapons?: string[]

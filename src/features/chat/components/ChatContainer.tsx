@@ -256,7 +256,7 @@ const ChatContainer = ({ isModalOpen, onCloseModal }: ChatContainerProps) => {
         requirements: {
           minStats: { strength: 9 },
         },
-        proficiencies: { skills: [] },
+        proficiencies: { skills: {} },
         equipment: {
           weapons: s?.equipment?.weapons,
           armor: s?.equipment?.armor,

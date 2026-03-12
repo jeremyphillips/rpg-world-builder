@@ -11,7 +11,7 @@ import EditIcon from '@mui/icons-material/Edit'
 
 type ProficiencyItem = { id: string; name: string }
 type ProficienciesCardProps = {
-  proficiencies: { skills?: string[] | Record<string, import('@/features/character/domain/types').SkillAdjustment> } | ProficiencyItem[]
+  proficiencies: { skills?: Record<string, import('@/features/character/domain/types').SkillAdjustment> } | ProficiencyItem[]
   wealth: { gp?: number; sp?: number; cp?: number; baseBudget?: unknown }
   onEdit?: () => void
   editDisabled?: boolean
@@ -22,7 +22,7 @@ export default function ProficienciesCard({ proficiencies, wealth, onEdit, editD
   const isResolved = Array.isArray(proficiencies)
   const items = isResolved
     ? (proficiencies as ProficiencyItem[])
-    : getSkillIds(proficiencies as { skills?: string[] | Record<string, import('@/features/character/domain/types').SkillAdjustment> }).map((id) => ({ id, name: id }))
+    : getSkillIds(proficiencies as { skills?: Record<string, import('@/features/character/domain/types').SkillAdjustment> }).map((id) => ({ id, name: id }))
 
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
