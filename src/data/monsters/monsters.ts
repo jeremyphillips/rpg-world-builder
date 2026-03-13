@@ -55,7 +55,7 @@ export const monsters: readonly Monster[] = [
         count: 3,
         die: 6,
       },
-      armorClass: { kind: 'equipment' },
+      armorClass: { kind: 'equipment', armorRefs: ["leather", "shield-wood"] },
       movement: { ground: 30 },
       abilities: { str: 8, dex: 14, con: 10, int: 10, wis: 8, cha: 8 },
       actions: [
@@ -77,7 +77,10 @@ export const monsters: readonly Monster[] = [
       },
       proficiencies: {
         skills: { stealth: { proficiencyLevel: 2 } },
-        weapons: ["scimitar", "shortbow"],
+        weapons: {
+          scimitar: { proficiencyLevel: 1 },
+          shortbow: { proficiencyLevel: 1 },
+        },
       },
       proficiencyBonus: 2,
       equipment: {
@@ -85,7 +88,10 @@ export const monsters: readonly Monster[] = [
           scimitar: { weaponId: "scimitar" },
           shortbow: { weaponId: "shortbow" },
         },
-        armor: ["hide", "shield-wood"],
+        armor: {
+          leather: { armorId: "leather" },
+          'shield-wood': { armorId: "shield-wood" },
+        },
       },
     },
     lore: {
@@ -111,10 +117,7 @@ export const monsters: readonly Monster[] = [
         die: 8,
         modifier: +4,
       },
-      armorClass: {
-        kind: 'equipment',
-        override: 13,
-      },
+      armorClass: { kind: 'equipment', armorRefs: ["scraps"] },
       movement: { ground: 30 },
       actions: [
         { kind: 'weapon', weaponRef: "shortsword" },
@@ -125,13 +128,23 @@ export const monsters: readonly Monster[] = [
           shortsword: { weaponId: "shortsword" },
           shortbow: { weaponId: "shortbow" },
         },
-        armor: ["scraps"],
+        armor: {
+          scraps: { 
+            armorId: "chain-shirt",
+            acModifier: -2,
+            aliasName: "Armor Scraps",
+            notes: "Made from scrap metal and chain mail.",
+          },
+        },
       },
       proficiencies: {
-        weapons: ["shortsword", "shortbow"],
+        weapons: {
+          shortsword: { proficiencyLevel: 1 },
+          shortbow: { proficiencyLevel: 1 },
+        },
       },
       proficiencyBonus: 2,
-      abilities: { str: 10, dex: 14, con: 15, int: 6, wis: 8, cha: 5 },
+      abilities: { str: 10, dex: 16, con: 15, int: 6, wis: 8, cha: 5 },
       senses: {
         special: [{ type: "darkvision", range: 60 }],
         passivePerception: 9,
@@ -161,16 +174,14 @@ export const monsters: readonly Monster[] = [
         count: 6,
         die: 8,
       },
-      armorClass: {
-        kind: 'equipment'
-      },
+      armorClass: { kind: 'equipment', armorRefs: ["hide"] },
       movement: { ground: 30 },
       actions: [
         {
           kind: "natural",
           name: "Rend",
           attackType: "claw",
-          toHitBonus: 4,
+          attackBonus: 4,
           reach: 5,
           damage: "1d6",
           damageBonus: 2,
@@ -202,7 +213,9 @@ export const monsters: readonly Monster[] = [
         ],
       }],
       proficiencies: {
-        weapons: ["longbow"],
+        weapons: {
+          longbow: { proficiencyLevel: 1 },
+        },
       },
       proficiencyBonus: 2,
       equipment: {
@@ -210,13 +223,15 @@ export const monsters: readonly Monster[] = [
           'bone-bow': {
             weaponId: "longbow",
             aliasName: "Bone Bow",
-            toHitBonus: 3,
             damageOverride: "1d10",
-            damageBonus: 1,
+            // +3 attack bonus provided via proficiency and dex bonus
+            // +1 damage provided via dex bonus
             notes: "Uses a monster-specific bow profile.",
           },
         },
-        armor: ["hide"],
+        armor: {
+          hide: { armorId: "hide" },
+        },
       },
       senses: {
         special: [{ type: "darkvision", range: 60 }],
@@ -235,7 +250,7 @@ export const monsters: readonly Monster[] = [
     id: "orc",
     name: "Orc",
     type: "humanoid",
-    languages: [{ id: "common" }, { id: "orc" }],
+    languages: [{ id: "common" }, { id: "giant" }],
     sizeCategory: "medium",
     description: {
       short: "Brutish, aggressive humanoids that plague civilized lands.",
@@ -247,30 +262,32 @@ export const monsters: readonly Monster[] = [
         die: 8,
         modifier: +6,
       },
-      armorClass: { kind: 'equipment' },
+      armorClass: { kind: 'equipment', armorRefs: ["hide"] },
       movement: { ground: 30 },
       actions: [
         { kind: "weapon", weaponRef: "greataxe" },
         { kind: "weapon", weaponRef: "javelin" },
       ],
-      abilities: { str: 16, dex: 12, con: 16, int: 7, wis: 11, cha: 10 },
+      abilities: { str: 19, dex: 8, con: 16, int: 5, wis: 7, cha: 7 },
       senses: { 
         special: [{ type: "darkvision", range: 60 }],
-        passivePerception: 10,
+        passivePerception: 8,
       },
       equipment: {
         weapons: {
-          'greataxe': { weaponId: "greataxe", toHitBonus: 3 },
-          'javelin': { weaponId: "javelin", toHitBonus: 3 },
+          'greataxe': { weaponId: "greataxe", attackBonus: 3 },
+          'javelin': { weaponId: "javelin", attackBonus: 3 },
         },
-        armor: ["hide"],
+        armor: { hide: { armorId: "hide" } },
       },
       proficiencies: {
-        weapons: ["greataxe", "javelin"],
+        weapons: {
+          greataxe: { proficiencyLevel: 1 },
+          javelin: { proficiencyLevel: 1 },
+        },
         skills: { intimidation: { proficiencyLevel: 1 } },
       },
       proficiencyBonus: 2,
-      // traits: ["aggressive"],
     },
     lore: {
       alignment: "ce",
@@ -295,18 +312,30 @@ export const monsters: readonly Monster[] = [
         die: 6,
         modifier: -2
       },
-      armorClass: { kind: 'equipment' },
+      armorClass: { kind: 'natural', base: 12, dexApplies: true },
       movement: { ground: 30 },
       actions: [
-        { kind: 'weapon', weaponId: "dagger" },
-        { kind: 'weapon', weaponId: "sling" },
+        { kind: 'weapon', weaponRef: "dagger" },
+        { kind: 'weapon', weaponRef: "sling" },
       ],
       abilities: { str: 7, dex: 15, con: 9, int: 8, wis: 7, cha: 8 },
       senses: { 
         special: [{ type: "darkvision", range: 60 }],
         passivePerception: 8,
       },
+      proficiencies: {
+        weapons: {
+          dagger: { proficiencyLevel: 1 },
+          sling: { proficiencyLevel: 1 },
+        },
+      },
       proficiencyBonus: 2,
+      equipment: {
+        weapons: {
+          dagger: { weaponId: "dagger" },
+          sling: { weaponId: "sling" },
+        },
+      },
       traits: [
         {
           name: 'Pack Tactics',
@@ -368,7 +397,8 @@ export const monsters: readonly Monster[] = [
       },
       armorClass: {
         kind: 'natural',
-        base: 13,
+        base: 11,
+        dexApplies: true,
       },
       movement: { ground: 40 },
       actions: [
@@ -378,7 +408,7 @@ export const monsters: readonly Monster[] = [
           damage: '2d4',
           damageBonus: 2,
           damageType: "piercing",
-          toHitBonus: 4,
+          attackBonus: 4,
           reach: 5,
           onHitEffects: [
             {
@@ -432,11 +462,9 @@ export const monsters: readonly Monster[] = [
         die: 8,
         modifier: +9,
       },
-      armorClass: {
-        kind: 'equipment',
-      },
+      armorClass: { kind: 'natural' },
       movement: { ground: 20 },
-      actions: [{ kind: "natural", attackType: "slam", reach: 5, damage: "1d8", toHitBonus: 3, damageBonus: 1, damageType: "bludgeoning" }],
+      actions: [{ kind: "natural", attackType: "slam", reach: 5, damage: "1d8", attackBonus: 3, damageBonus: 1, damageType: "bludgeoning" }],
       traits: [
         {
           name: 'Undead Fortitude',
@@ -484,15 +512,13 @@ export const monsters: readonly Monster[] = [
         die: 8,
         modifier: +6,
       },
-      armorClass: {
-        kind: 'equipment'
-      },
+      armorClass: { kind: 'equipment', armorRefs: ["hide"] },
       movement: { ground: 30 },
       actions: [
         {
           kind: "special",
           name: "Grab",
-          toHitBonus: 4,
+          attackBonus: 4,
           reach: 10,
           damage: "2d6",
           damageBonus: 2,
@@ -520,20 +546,22 @@ export const monsters: readonly Monster[] = [
       }],
       proficiencies: {
         skills: { stealth: { proficiencyLevel: 2 }, survival: { proficiencyLevel: 1 } },
-        weapons: ["light-hammer"],
+        weapons: { 'light-hammer': { proficiencyLevel: 1 } },
       },
       proficiencyBonus: 2,
       equipment: {
         weapons: {
           'light-hammer': { 
             weaponId: "light-hammer",
-            toHitBonus: 4,
+            attackBonus: 4,
             damageOverride: "3d4",
             reach: 10,
             notes: "Has advantage if the target is grappled by the bugbear.",
           },
         },
-        armor: ["hide"],
+        armor: {
+          hide: { armorId: "hide" },
+        },
       },
       senses: {
         special: [{ type: "darkvision", range: 60 }],
@@ -564,7 +592,7 @@ export const monsters: readonly Monster[] = [
         die: 10,
         modifier: +24,
       },
-      armorClass: { kind: 'equipment' },
+      armorClass: { kind: 'equipment', armorRefs: ["hide"] },
       movement: { ground: 40 },
       actions: [
         { kind: "weapon", weaponRef: "greatclub" },
@@ -573,13 +601,18 @@ export const monsters: readonly Monster[] = [
       abilities: { str: 19, dex: 8, con: 16, int: 5, wis: 7, cha: 7 },
       equipment: {
         weapons: {
-          'greatclub': { weaponId: "greatclub", damageOverride: "2d8" },
-          'javelin': { weaponId: "javelin", damageOverride: "2d6" },
+          greatclub: { weaponId: "greatclub", damageOverride: "2d8" },
+          javelin: { weaponId: "javelin", damageOverride: "2d6" },
         },
-        armor: ["hide"],
+        armor: {
+          hide: { armorId: "hide" },
+        },
       },
       proficiencies: {
-        weapons: ["greatclub", "javelin"],
+        weapons: {
+          greatclub: { proficiencyLevel: 1 },
+          javelin: { proficiencyLevel: 1 },
+        },
       },
     },
     lore: {
@@ -607,8 +640,8 @@ export const monsters: readonly Monster[] = [
       },
       armorClass: {
         kind: 'natural',
-        base: 15,
-        dexApplies: false,
+        base: 14,
+        dexApplies: true,
       },
       movement: { ground: 30 },
       actions: [
@@ -624,7 +657,7 @@ export const monsters: readonly Monster[] = [
           kind: "natural",
           name: "Rend",
           attackType: "claw",
-          toHitBonus: 7,
+          attackBonus: 7,
           reach: 10,
           damage: "2d6",
           damageBonus: 4,
@@ -698,6 +731,10 @@ export const monsters: readonly Monster[] = [
             'The troll dies only if it starts its turn with 0 Hit Points and does not regenerate.',
         }
       ],
+      proficiencies: {
+        skills: { perception: { proficiencyLevel: 2 } },
+      },
+      proficiencyBonus: 3,
     },
     lore: {
       alignment: "ce",
@@ -741,7 +778,7 @@ export const monsters: readonly Monster[] = [
           kind: "natural",
           name: "Rend",
           attackType: "claw",
-          toHitBonus: 7,
+          attackBonus: 7,
           reach: 5,
           damage: "2d8",
           damageBonus: 5, // remove? accounted for in str bonus
@@ -781,14 +818,10 @@ export const monsters: readonly Monster[] = [
         die: 10,
         modifier: +30,
       },
-      armorClass: {
-        kind: 'natural',
-        base: 6,
-        dexApplies: false,
-      },
+      armorClass: { kind: 'natural' },
       movement: { ground: 15 },
       actions: [
-        { kind: 'natural', attackType: "pseudopod", damage: "3d6", damageBonus: 2, damageType: "acid", toHitBonus: 4, reach: 5 },
+        { kind: 'natural', attackType: "pseudopod", damage: "3d6", damageBonus: 2, damageType: "acid", attackBonus: 4, reach: 5 },
         {
           kind: 'special',
           name: 'Engulf',
@@ -947,8 +980,8 @@ export const monsters: readonly Monster[] = [
       },
       armorClass: {
         kind: 'natural',
-        base: 12,
-        dexApplies: false,
+        base: 11,
+        dexApplies: true,
       },
       movement: { ground: 20 },
       actions: [
@@ -956,7 +989,7 @@ export const monsters: readonly Monster[] = [
           kind: "natural",
           name: "Bite",
           attackType: "bite",
-          toHitBonus: 5,
+          attackBonus: 5,
           reach: 5,
           damage: "1d8",
           damageBonus: 3,
@@ -973,7 +1006,7 @@ export const monsters: readonly Monster[] = [
           kind: "natural",
           name: "Pseudopod",
           attackType: "pseudopod",
-          toHitBonus: 5,
+          attackBonus: 5,
           reach: 5,
           damage: "1d8",
           damageBonus: 3,
@@ -1063,7 +1096,7 @@ export const monsters: readonly Monster[] = [
       armorClass: {
         kind: 'natural',
         base: 18,
-        dexApplies: false,
+        dexApplies: true,
       },
       movement: { ground: 40, climb: 40, fly: 80 },
       actions: [
@@ -1082,7 +1115,7 @@ export const monsters: readonly Monster[] = [
           kind: "natural",
           name: "Rend",
           attackType: "claw",
-          toHitBonus: 10,
+          attackBonus: 10,
           reach: 10,
           damage: "2d6",
           damageBonus: 6, // remove? accounted for in str bonus

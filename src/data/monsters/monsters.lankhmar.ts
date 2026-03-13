@@ -6,7 +6,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Ghoul (Lankhmar)",
     type: "undead",
     sizeCategory: "medium",
-    languages: ["common", "ghoul"],
+    languages: [{ id: "common" }, { id: "ghoul" }],
     senses: { 
       special: [{ type: "darkvision", range: 60 }],
     },
@@ -49,7 +49,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Ghoul, Kleshite",
     type: "undead",
     sizeCategory: "medium",
-    languages: ["kleshite", "common"],
+    languages: [{ id: "kleshite" }, { id: "common" }],
     senses: { 
       special: [{ type: "darkvision", range: 60 }],
     },
@@ -67,7 +67,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 5,
       thac0: 17,
       movement: { ground: 12 },
-      attacks: [
+      actions: [
         { kind: 'natural', attackType: "claw", damage: "1d4" },
         { kind: 'natural', attackType: "claw", damage: "1d4" },
         { kind: 'natural', attackType: "bite", damage: "1d8" },
@@ -89,7 +89,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Devourer (Lankhmar)",
     type: "undead",
     sizeCategory: "large",
-    languages: ["common", "nehwon"],
+    languages: [{ id: "common" }, { id: "nehwon" }],
     senses: { 
       special: [{ type: "darkvision", range: 90 }],
     },
@@ -107,7 +107,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 0,
       thac0: 13,
       movement: { ground: 12 },
-      attacks: [{ kind: 'natural', attackType: "touch", dice: "1d8" }],
+      actions: [{ kind: 'natural', attackType: "touch", dice: "1d8" }],
       specialDefenses: ["Spell theft", "Soul imprisonment", "Immune to sleep, charm, hold"],
       morale: { category: "Fanatic", value: 17 },
     },
@@ -125,7 +125,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Cold Woman",
     type: "humanoid",
     sizeCategory: "medium",
-    languages: ["common", "cold-waste"],
+    languages: [{ id: "common" }, { id: "cold-waste" }],
     senses: { 
       special: [{ type: "darkvision", range: 60 }],
     },
@@ -143,7 +143,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 6,
       thac0: 17,
       movement: { ground: 12 },
-      attacks: [{ kind: 'natural', name: "ice-touch", dice: "2d8" }],
+      actions: [{ kind: 'natural', attackType: "ice-touch", damage: "2d8" }],
       specialDefenses: ["Immunity to cold", "Charm resistance"],
       morale: { category: "Steady", value: 12 },
     },
@@ -179,7 +179,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 4,
       thac0: 17,
       movement: { ground: 18 },
-      attacks: [{ kind: 'natural', attackType: "bite", damage: "2d8" }],
+      actions: [{ kind: 'natural', attackType: "bite", damage: "2d8" }],
       specialDefenses: ["Ethereal shift", "Silver or magic to hit"],
       morale: { category: "steady", value: 14 },
     },
@@ -213,7 +213,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 5,
       thac0: 15,
       movement: { ground: 15 },
-      attacks: [
+      actions: [
         { kind: 'natural', attackType: "claw", damage: "1d4" },
         { kind: 'natural', attackType: "claw", damage: "1d4" },
         { kind: 'natural', attackType: "bite", damage: "1d6" },
@@ -234,7 +234,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Cloaker, Sea",
     type: "aberration",
     sizeCategory: "large",
-    languages: ["common"],
+    languages: [{ id: "common" }],
     senses: { 
       special: [{ type: "darkvision", range: 60 }],
     },
@@ -275,7 +275,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Horag",
     type: "monstrosity",
     sizeCategory: "large",
-    languages: ["horag"],
+    languages: [{ id: "horag" }],
     senses: { 
       special: [{ type: "darkvision", range: 90 }],
     },
@@ -353,7 +353,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Invisible of Stardock",
     type: "aberration",
     sizeCategory: "medium",
-    languages: ["invisible"],
+    languages: [{ id: "invisible" }],
     senses: { 
       special: [{ type: "blindsight", range: 60 }],
     },
@@ -443,7 +443,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 4,
       thac0: 17,
       movement: { ground: 12 },
-      attacks: [{ kind: 'natural', attackType: "bite", damage: "1d4" }],
+      actions: [{ kind: 'natural', attackType: "bite", damage: "1d4" }],
       specialDefenses: ["Immune to sleep, charm, hold", "Level drain", "Web"],
       morale: { category: "Steady", value: 14 },
     },
@@ -479,7 +479,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 6,
       thac0: 17,
       movement: { ground: 6, swim: 12 },
-      attacks: [{ name: "Slam", dice: "1-8" }],
+      actions: [{ kind: 'natural', attackType: "slam", damage: "1d8" }],
       specialDefenses: ["Immune to sleep, charm, hold", "Does not drown"],
       morale: { category: "Special", value: 20 },
     },
@@ -515,7 +515,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 5,
       thac0: 17,
       movement: { ground: 6, fly: 18 },
-      attacks: [
+      actions: [
         { kind: 'natural', attackType: "claw", damage: "1d4" },
         { kind: 'natural', attackType: "claw", damage: "1d4" },
         { kind: 'natural', attackType: "beak", damage: "1d6" },
@@ -555,9 +555,9 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 5,
       thac0: 15,
       movement: { ground: 9 },
-      attacks: [{ kind: 'natural', attackType: "bite", damage: "2d8" }],
+      actions: [{ kind: 'natural', attackType: "bite", damage: "2d8" }],
       specialDefenses: ["Cold immunity", "Freezing breath"],
-      morale: { category: "Steady", value: 14 },
+      morale: { category: "steady", value: 14 },
     },
     lore: {
       alignment: "n",
@@ -588,8 +588,8 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 4,
       thac0: 5,
       movement: { ground: 12, swim: 18 },
-      attacks: [{ kind: 'natural', attackType: "bite", damage: "4d10" }],
-      morale: { category: "Steady", value: 12 },
+      actions: [{ kind: 'natural', attackType: "bite", damage: "4d10" }],
+      morale: { category: "steady", value: 12 },
     },
     lore: {
       alignment: "n",
@@ -620,7 +620,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: -3,
       thac0: 13,
       movement: { ground: 15 },
-      attacks: [
+      actions: [
         { kind: 'natural', attackType: "claw", damage: "1d10" },
         { kind: 'natural', attackType: "claw", damage: "1d10" },
       ],
@@ -675,7 +675,7 @@ export const monstersLankhmar: readonly Monster[] = [
     type: "humanoid",
     subtype: "gnome",
     sizeCategory: "small",
-    languages: ["ice-gnome"],
+    languages: [{ id: "ice-gnome" }],
     meta: {
       createdFrom: { preset: "2e", setting: "lankhmar" },
       source: { book: "Lankhmar: City of Adventure" },
@@ -690,7 +690,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 6,
       thac0: 19,
       movement: { ground: 6 },
-      attacks: [{ kind: 'weapon', weaponId: "" }],
+      actions: [{ kind: 'weapon', weaponRef: "" }],
       specialDefenses: ["+2 on saves vs. cold"],
       morale: { category: "Average", value: 9 },
     },
@@ -708,7 +708,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Ophidian",
     type: "monstrosity",
     sizeCategory: "medium",
-    languages: ["ophidian", "common"],
+    languages: [{ id: "ophidian" }, { id: "common" }],
     meta: {
       createdFrom: { preset: "2e", setting: "lankhmar" },
       source: { book: "Lankhmar: City of Adventure" },
@@ -723,9 +723,9 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 5,
       thac0: 17,
       movement: { ground: 9, swim: 18 },
-      attacks: [
+      actions: [
         { kind: 'natural', attackType: "bite", damage: "1d3" },
-        { kind: 'weapon', weaponId: "" },
+        { kind: 'weapon', weaponRef: "" },
       ],
       specialAttacks: ["Transforming bite (save vs. poison or become ophidian)"],
       specialDefenses: ["Camouflage (-2 opponent surprise)"],
@@ -761,7 +761,7 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: -1,
       thac0: 15,
       movement: { ground: 1, fly: 21 },
-      attacks: [{ kind: 'natural', attackType: "wing-buffet", damage: "1d10" }],
+      actions: [{ kind: 'natural', attackType: "wing", damage: "1d10" }],
       specialDefenses: ["invisibility"],
       morale: { category: "unsteady", value: 6 },
     },
@@ -780,7 +780,7 @@ export const monstersLankhmar: readonly Monster[] = [
     type: "humanoid",
     subtype: "aquatic",
     sizeCategory: "medium",
-    languages: ["simorgyan", "common"],
+    languages: [{ id: "simorgyan" }, { id: "common" }],
     meta: {
       createdFrom: { preset: "2e", setting: "lankhmar" },
       campaign: "Lankhmar",
@@ -796,13 +796,13 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: 5,
       thac0: 15,
       movement: { ground: 12, swim: 24 },
-      attacks: [
+      actions: [
         { kind: 'natural', attackType: "claw", damage: "1d4" },
         { kind: 'natural', attackType: "claw", damage: "1d4" },
         { kind: 'natural', attackType: "bite", damage: "1d10" },
       ],
       specialAttacks: ["Shapechange (human or shark)", "Command sea creatures"],
-      morale: { category: "Champion", value: 16 },
+      morale: { category: "champion", value: 16 },
     },
     lore: {
       alignment: "ne",
@@ -818,7 +818,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Thunder Child",
     type: "fey",
     sizeCategory: "small",
-    languages: ["thunder-child", "common"],
+    languages: [{ id: "thunder-child" }, { id: "common" }],
     senses: { special: [{ type: "infravision", range: 120 }] },
     meta: {
       createdFrom: { preset: "2e", setting: "lankhmar" },
@@ -837,7 +837,7 @@ export const monstersLankhmar: readonly Monster[] = [
       actions: [{ kind: 'natural', attackType: "bite", damage: "2d8" }],
       specialAttacks: ["Chain lightning", "Fear aura (Wisdom drain)", "Electrical bite (save or +10 damage)"],
       specialDefenses: ["+1 or better weapon to hit", "Immune to fear", "Gaseous form"],
-      morale: { category: "Average", value: 9 },
+      morale: { category: "average", value: 9 },
     },
     lore: {
       alignment: "ne",
@@ -869,9 +869,9 @@ export const monstersLankhmar: readonly Monster[] = [
       armorClass: -1,
       thac0: 7,
       movement: { swim: 21 },
-      attacks: [
-        { name: "Bite", dice: "2d4" },
-        { name: "Tail Swipe", dice: "1d6" },
+      actions: [
+        { kind: 'natural', attackType: "bite", damage: "2d4" },
+        { kind: 'natural', attackType: "tail", damage: "1d6" },
       ],
       specialAttacks: ["Electrical shock (30ft radius, stun 2d4 rounds, save vs. spell negates)"],
       morale: { category: "elite", value: 13 },
@@ -890,7 +890,7 @@ export const monstersLankhmar: readonly Monster[] = [
     name: "Wolvern",
     type: "beast",
     sizeCategory: "small",
-    languages: ["wolvern"],
+    languages: [{ id: "wolvern" }],
     meta: {
       createdFrom: { preset: "2e", setting: "lankhmar" },
       campaign: "Lankhmar",
@@ -907,12 +907,11 @@ export const monstersLankhmar: readonly Monster[] = [
       thac0: 13,
       movement: { ground: 14 },
       actions: [
-        { kind: 'weapon', weaponId: "claw", damage: "1d4" },
-        { kind: 'weapon', weaponId: "claw", damage: "1d4" },
-        { kind: 'weapon', weaponId: "bite", damage: "2d4" },
+        { kind: 'natural', attackType: "claw", damage: "1d4" },
+        { kind: 'natural', attackType: "bite", damage: "2d4" },
       ],
       specialDefenses: ["Telepathy (+2 attack, -2 to opponents; negated by telepathic foes)"],
-      morale: { category: "Steady", value: 12 },
+      morale: { category: "steady", value: 12 },
     },
     lore: {
       alignment: "n",

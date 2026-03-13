@@ -9,11 +9,16 @@ import type { AbilityScoreMapResolved } from "@/features/mechanics/domain/core/c
 import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
 import type { AlignmentId } from "@/features/content/shared/domain/types";
 import type { WeaponDamageType } from "@/features/content/equipment/weapons/domain/vocab";
-import type { CharacterProficiencies, Equipment, ProficiencyAdjustment } from "@/features/character/domain/types";
+import type { 
+  CharacterProficiencies, 
+  ProficiencySkillAdjustment,
+  ProficiencyWeaponAdjustment
+} from "@/features/character/domain/types";
 
 // TODO: create dynamic type
 export type MonsterId = ContentId;
 
+// Legacy edition, ignore for now
 export type IntelligenceCategory =
   | 'non' // 0-1 (no intelligence)
   | 'semi' // 2-4
@@ -87,17 +92,29 @@ export type MonsterWeaponAction = {
 
 export type MonsterEquippedWeapon = {
   weaponId: string;
-  aliasName?: string; // only used for display purposes
-  toHitBonus?: number;
-  damageOverride?: DiceOrFlat;
+  aliasName?: string;
+  // attackBonus & damageBonus:
+  // highly prefer to rely on stat modifiers instead
+  // Use only if math does not work out or ambiguous
+  attackBonus?: number;
   damageBonus?: number;
+  // use if referenced weaponId damage does not match expected damage
+  damageOverride?: DiceOrFlat;
+  // use if range differs from referenced weaponId
   reach?: number;
   notes?: string;
 };
 
+export type MonsterEquippedArmor = {
+  armorId: string;
+  aliasName?: string; // only used for display purposes
+  notes?: string;
+  acModifier?: number;
+};
+
 export type MonsterEquipment = {
   weapons?: Record<string, MonsterEquippedWeapon>;
-  armor?: string[]; // TODO: MonsterEquippedArmor[];
+  armor?: Record<string, MonsterEquippedArmor>;
 };
 
 export type DamageType = 
@@ -111,7 +128,7 @@ export type MonsterNaturalAttackAction = {
   name?: string;
   attackType: MonsterAttackType;
   damageBonus?: number;
-  toHitBonus?: number;
+  attackBonus?: number;
   damage: DiceOrFlat;
   damageType?: DamageType;
   reach?: number;
@@ -324,7 +341,7 @@ export type MonsterSpecialAction = {
   kind: 'special';
   name: string;
   description: string;
-  toHitBonus?: number;
+  attackBonus?: number;
   reach?: number;
   damage?: DiceOrFlat;
   damageBonus?: number;
@@ -442,29 +459,32 @@ export type MonsterChallengeRating =
 
 export type MonsterProficiencies = CharacterProficiencies & {
   // TODO: reference weapon IDs
-  weapons?: string[]
+  weapons?: Record<string, ProficiencyWeaponAdjustment>
+}
+
+// Armor class base should be calculated taking into account dex bonus
+// If monster has no armor and expected AC does not match,
+// Use 'natural' with base AC and dexApplies set to true
+export type MonsterArmorClassBase = {
+  dexApplies?: boolean; // highly prefer to set this true
+  maxDexBonus?: number | null;
+  notes?: string;
+  override?: number; // last resort
 }
 
 export type MonsterArmorClass =
   | {
       kind: 'equipment';
-      // TODO: reference actual armor IDs
-      // armorId?: string[];
-      override?: number;
-    }
+      armorRefs?: string[]; // TODO: reference actual armor IDs
+    } & MonsterArmorClassBase
   | {
       kind: 'natural';
-      base: number;
-      dexApplies?: boolean;
-      maxDexBonus?: number | null;
-      notes?: string;
-      override?: number;
-    }
+      base?: number;
+    } & MonsterArmorClassBase
   | {
       kind: 'fixed';
       value: number;
-      notes?: string;
-    };
+    } & Pick<MonsterArmorClassBase, 'notes'>
 
 export type ImmunityType =
   | 'fire'
@@ -509,7 +529,9 @@ export interface MonsterFields {
     armorClass: MonsterArmorClass,
     movement: MonsterMovement
     abilities?: AbilityScoreMapResolved
-    savingThrows?: Partial<Record<AbilityId, ProficiencyAdjustment>>;
+    // set only if ability mod and save values differ
+    // example: dex 10 / mod: +0, save: +4
+    savingThrows?: Partial<Record<AbilityId, ProficiencySkillAdjustment>>;
     traits?: MonsterTrait[]
     actions?: MonsterAction[]
     bonusActions?: MonsterAction[]
