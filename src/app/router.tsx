@@ -17,7 +17,6 @@ import {
   CharacterRoute,
   CampaignsRoute,
   CampaignRoute,
-  InviteRoute,
   RulesRoute,
   PartyRoute,
   SessionsRoute,
@@ -51,7 +50,6 @@ import {
   MagicItemCreateRoute,
   AdminGuard,
   ContentManageGuard,
-  CampaignAdminRoute,
   CampaignAdminInvitesRoute,
   CampaignAdminSettingsRoute,
   CampaignRulesetEditorRoute,
@@ -71,7 +69,6 @@ import {
   SkillProficiencyDetailRoute,
   SkillProficiencyCreateRoute,
   SkillProficiencyEditRoute,
-  AccountSettingsRoute,
   NewCharacterRoute,
 } from './routes/index'
 

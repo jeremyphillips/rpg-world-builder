@@ -20,16 +20,21 @@ function isValueMissing(field: FieldConfig, value: unknown): boolean {
 }
 
 function runValidate(
-  validate: (value: unknown) => true | string | Promise<true | string>,
+  validate: (...args: any[]) => unknown,
   value: unknown,
 ): string | undefined {
   const result = validate(value);
   if (result === true) return undefined;
-  return result;
+  if (result instanceof Promise) return undefined;
+  if (result === false) return 'Invalid value';
+  if (Array.isArray(result)) {
+    return result.map(String).join(', ') || 'Invalid value';
+  }
+  return typeof result === 'string' ? result : undefined;
 }
 
 function runValidateObject(
-  validateObj: Record<string, (value: unknown) => true | string | Promise<true | string>>,
+  validateObj: Record<string, (...args: any[]) => unknown>,
   value: unknown,
 ): string | undefined {
   for (const key of Object.keys(validateObj)) {
@@ -58,7 +63,7 @@ export function validatePatchField(params: {
   }
   if (typeof validate === 'object' && validate !== null) {
     return runValidateObject(
-      validate as Record<string, (v: unknown) => true | string | Promise<true | string>>,
+      validate as Record<string, (...args: any[]) => unknown>,
       value,
     );
   }

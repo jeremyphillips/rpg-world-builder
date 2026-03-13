@@ -8,7 +8,6 @@
  */
 import { apiFetch, ApiError } from '@/app/api';
 import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
-import type { ContentSource } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 import { getSystemSpells, getSystemSpell } from '@/features/mechanics/domain/core/rules/systemCatalog.spells';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
@@ -59,7 +58,7 @@ function toSpell(dto: CampaignSpellDto): Spell {
     ritual: dto.ritual,
     concentration: dto.concentration,
     effects: dto.effects as Spell['effects'],
-    source: 'campaign' as ContentSource,
+    source: 'campaign',
     campaignId: dto.campaignId,
     accessPolicy: dto.accessPolicy as Spell['accessPolicy'],
   };

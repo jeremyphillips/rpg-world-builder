@@ -1,8 +1,9 @@
 import { npcsLankhmar } from "./npcs.lankhmar"
 import { npcs5eBase } from "./npcs.npcs5eBase"
-import type { Character } from "@/shared/types"
 
-export const npcs: readonly Character[] = [
+type LegacyNpcCharacter = Record<string, unknown> & { id: string }
+
+export const npcs: readonly LegacyNpcCharacter[] = [
   ...npcsLankhmar,
   ...npcs5eBase
 ] as const

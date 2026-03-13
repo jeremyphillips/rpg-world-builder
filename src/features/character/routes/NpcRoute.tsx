@@ -2,7 +2,6 @@ import { useParams } from 'react-router-dom'
 import { Breadcrumbs } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/app/navigation'
 import { CharacterView } from '@/features/character/components/views'
-import type { Character } from '@/features/character/domain/types'
 import { useCharacter, useCharacterActions, useCharacterForm } from '@/features/character/hooks'
 
 import CircularProgress from '@mui/material/CircularProgress'
@@ -54,7 +53,7 @@ const NpcRoute = () => {
 
       <CharacterView
         name={npc.name ?? ''}
-        character={npc as Character}
+        character={npc}
         campaigns={campaigns}
         pendingMemberships={[]}
         isOwner={isOwner}
@@ -64,8 +63,8 @@ const NpcRoute = () => {
         success={success}
         setError={setError}
         narrative={{ backstory: '', personalityTraits: [], ideals: '', bonds: '', flaws: '' }}
-        race={npc.race ?? ''}
-        alignment={npc.alignment ?? ''}
+        race={(typeof npc.race === 'object' && npc.race ? npc.race.id : '') as never}
+        alignment={(npc.alignment ?? '') as never}
         totalLevel={npc.totalLevel ?? npc.level ?? 1}
         alignmentOptions={[]}
         raceOptions={form.raceOptions}

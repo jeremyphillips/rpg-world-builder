@@ -1,5 +1,5 @@
 import { TimelineCard } from '@/ui/patterns'
-import { formatSessionDateTime } from '@/features/session'
+import { formatSessionDateTime } from '@/features/session/dates'
 import type { CardBadgeProps } from '@/ui/primitives'
 
 interface SessionTimelineCardProps {

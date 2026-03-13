@@ -23,7 +23,7 @@ import { resolveAlignmentOptions } from '@/features/mechanics/domain/core/rules/
 // ---------------------------------------------------------------------------
 
 function formatHitDie(prog: ClassProgression): string {
-  if (prog.hitDie === 0 && prog.hpPerLevel) return `${prog.hpPerLevel} HP/lvl`
+  if (prog.hpPerLevel) return `${prog.hpPerLevel} HP/lvl`
   return `d${prog.hitDie}`
 }
 
@@ -89,7 +89,7 @@ const ConfirmationStep = () => {
   const { state, goToStep, setName } = useCharacterBuilder()
   const { catalog } = useCampaignRules()
 
-  const raceName = catalog.racesById[state.race]?.name ?? state.race ?? '—'
+  const raceName = (state.race ? catalog.racesById[state.race]?.name : undefined) ?? state.race ?? '—'
   
   const { ruleset } = useCampaignRules()
   const { alignment: alignmentRules } = ruleset.mechanics.character
@@ -223,9 +223,6 @@ const ConfirmationStep = () => {
                       {prog && (
                         <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }} flexWrap="wrap" useFlexGap>
                           <Chip label={formatHitDie(prog)} size="small" variant="outlined" />
-                          {prog.role && (
-                            <Chip label={prog.role} size="small" variant="outlined" />
-                          )}
                           {spellLabel && (
                             <Chip label={spellLabel} size="small" variant="outlined" />
                           )}

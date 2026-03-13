@@ -20,6 +20,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { FieldConfig } from './form.types';
+import type { Visibility } from '@/shared/types/visibility';
 import { usePatchValidation } from './validation/PatchValidationContext';
 import ImageUploadField from './ImageUploadField';
 import JsonPreviewField from './JsonPreviewField';
@@ -324,7 +325,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
         <Box>
           <VisibilityField
             value={
-              (displayValue as { scope: string; allowCharacterIds?: string[] }) ?? {
+              (displayValue as Visibility | undefined) ?? {
                 scope: 'public',
                 allowCharacterIds: [],
               }

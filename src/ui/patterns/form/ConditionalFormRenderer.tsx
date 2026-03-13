@@ -38,12 +38,14 @@ type ConditionalFormRendererProps = {
   onValidationApi?: (api: PatchValidationApi) => void;
 };
 
+type PatchFormDriver = Extract<FormDriver, { kind: 'patch' }>;
+
 function ConditionalFormRendererPatch({
   fields,
   spacing,
   driver,
   onValidationApi,
-}: ConditionalFormRendererProps & { driver: NonNullable<FormDriver> }) {
+}: ConditionalFormRendererProps & { driver: PatchFormDriver }) {
   const prevVisibleRef = useRef<Record<string, boolean>>({});
   const isInitialRenderRef = useRef(true);
 

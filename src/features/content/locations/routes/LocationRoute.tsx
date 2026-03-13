@@ -51,18 +51,6 @@ const TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'success' | 'warning
   other: 'info',
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-interface LocationOverride {
-  name?: string
-  type?: string
-  description?: string
-  imageUrl?: string | null
-  visibility?: Visibility
-}
-
 async function apiUpdateLocation(campaignId: string, locationId: string, updates: Record<string, unknown>) {
   await apiFetch(`/api/campaigns/${campaignId}/setting-data/locations/${locationId}`, {
     method: 'PATCH',
@@ -138,7 +126,7 @@ const LocationRoute = () => {
   }
 
   const locationType = getLegacyType(location)
-  const locationVisibility = location.visibility
+  const locationVisibility: Visibility = location.visibility ?? { scope: 'public' }
 
   return (
     <Box>

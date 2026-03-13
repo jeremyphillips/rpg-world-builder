@@ -1,5 +1,5 @@
 export type {
-  CampaignMemberStatus, CampaignRole, ViewerCampaignRole, CampaignMemberRole, CampaignMemberStoredRole, CampaignCharacterStatus,
+  CampaignMemberStatus, CampaignRole, ViewerCampaignRole, CampaignMemberStoredRole, CampaignCharacterStatus,
   CampaignIdentity, CampaignConfiguration, CampaignBase, CampaignViewer,
   CampaignMemberView, CampaignMembersPayload,
   Campaign, CampaignSummary, PendingMembership,

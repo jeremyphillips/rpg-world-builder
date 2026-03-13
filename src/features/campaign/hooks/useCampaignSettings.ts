@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { apiFetch } from '@/app/api'
 import type { Campaign, CampaignIdentity } from '@/shared/types/campaign.types'
 
+export type CampaignSettings = CampaignIdentity
+
 type CampaignResponse = {
   campaign: Campaign
 }
 
 export function useCampaignSettings(campaignId: string | null) {
-  const [data, setData] = useState<CampaignIdentity | null>(null)
+  const [data, setData] = useState<CampaignSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -19,7 +21,7 @@ export function useCampaignSettings(campaignId: string | null) {
 
     apiFetch<CampaignResponse>(`/api/campaigns/${campaignId}`)
       .then((res) => {
-        const { identity, configuration } = res.campaign
+        const { identity } = res.campaign
         setData({
           name: identity.name ?? '',
           description: identity.description ?? '',

@@ -1,6 +1,4 @@
-import type { Character } from "@/shared/types"
-
-export type NpcLankhmar = Character & { id: string }
+export type NpcLankhmar = Record<string, unknown> & { id: string }
 
 export const npcsLankhmar: readonly NpcLankhmar[] = [
   {

@@ -13,8 +13,6 @@ type CharacterSpellsResponse = {
   character: { spells?: string[] };
 };
 
-const EMPTY_SET: ReadonlySet<string> = new Set();
-
 export function useViewerSpells(): ReadonlySet<string> {
   const { viewerCharacterIds } = useCampaignMembers();
   const [spellIds, setSpellIds] = useState<string[]>([]);

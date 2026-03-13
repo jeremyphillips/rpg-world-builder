@@ -86,7 +86,6 @@ const AppModal = ({
   const fullScreen = mobileFullScreen && isMobile
 
   const [discardOpen, setDiscardOpen] = useState(false)
-  const [blockedReason, setBlockedReason] = useState<CloseReason>('closeButton')
 
   // -----------------------------------
   // Close handling
@@ -95,7 +94,6 @@ const AppModal = ({
   const attemptClose = useCallback(
     (reason: CloseReason) => {
       if (onBeforeClose && !onBeforeClose(reason)) {
-        setBlockedReason(reason)
         setDiscardOpen(true)
         return
       }
@@ -245,18 +243,11 @@ const AppModal = ({
 
         {/* ---- Body ---- */}
         <DialogContent
-          dividers={false}
+          dividers={dividers}
           sx={{
             opacity: loading ? 0.4 : 1,
             pointerEvents: loading ? 'none' : 'auto',
             transition: 'opacity 0.15s ease',
-            // TODO: decide if we want to use dividers
-            // ...(dividers && headerPosition === 'static' && hasHeaderContent && {
-            //   borderTop: '1px solid var(--mui-palette-divider)',
-            // }),
-            // ...(dividers && footerPosition === 'static' && hasFooter && {
-            //   borderBottom: '1px solid var(--mui-palette-divider)',
-            // }),
             ...(headerPosition === 'floating' && { pt: hasHeader ? 8 : undefined }),
             ...(footerPosition === 'floating' && { pb: hasFooter ? 10 : undefined }),
           }}

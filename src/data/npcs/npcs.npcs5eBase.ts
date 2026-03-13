@@ -1,6 +1,4 @@
-import type { Character } from "@/shared/types"
-
-export type Npcs5eBase = Character & { id: string }
+export type Npcs5eBase = Record<string, unknown> & { id: string }
 
 export const npcs5eBase: readonly Npcs5eBase[] = [
   /* ────────────────────────────── */

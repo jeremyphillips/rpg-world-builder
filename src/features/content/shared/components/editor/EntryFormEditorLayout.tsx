@@ -53,8 +53,6 @@ type PatchProps = BaseProps & {
 
 export type EntryFormEditorLayoutProps = CreateEditProps | PatchProps;
 
-const FORM_ID_PREFIX = 'entry-form-editor';
-
 export default function EntryFormEditorLayout(
   props: EntryFormEditorLayoutProps
 ) {
