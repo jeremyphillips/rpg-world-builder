@@ -1,45 +1,26 @@
-import type { Monster } from '@/features/content/monsters/domain/types/monster.types'
-import { monstersLankhmar } from "./monsters.lankhmar"
+/**
+ * System monster catalog — code-defined monster entries per system ruleset.
+ *
+ * These are the "factory defaults" for monsters. Campaign-owned custom monsters
+ * are stored in the DB and merged at runtime by buildCampaignCatalog.
+ */
+import type { Monster, MonsterFields } from '@/features/content/monsters/domain/types/monster.types';
+import type { SystemRulesetId } from './ruleset.types';
+import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 
-export const MONSTER_LABELS = {
-  // Top-level
-  type: 'Creature Type',
-  sizeCategory: 'Size',
-  languages: 'Languages',
-  vision: 'Vision',
-  description: 'Description',
+/** Build a Monster from the system catalog data (no DB fields). */
+function toSystemMonster(systemId: SystemRulesetId, raw: MonsterFields): Monster {
+  return {
+    ...raw,
+    source: 'system',
+    imageKey: null,
+    accessPolicy: undefined,
+    patched: false,
+    systemId,
+  };
+}
 
-  // Meta
-  campaign: 'Campaign',
-  source: 'Source',
-
-  // Mechanics
-  hitDice: 'Hit Dice',
-  armorClass: 'Armor Class',
-  movement: 'Movement',
-  // attacks: 'Attacks',
-  // attackBonus: 'Attack Bonus',
-  // specialAttacks: 'Special Attacks',
-  // specialDefenses: 'Special Defenses',
-  abilities: 'Ability Scores',
-  traits: 'Traits',
-  actions: 'Actions',
-  morale: 'Morale',
-  proficiencyBonus: 'Proficiency Bonus',
-
-  // Lore
-  alignment: 'Alignment',
-  xpValue: 'XP Value',
-  // frequency: 'Frequency',
-  // organization: 'Organization',
-  // treasureType: 'Treasure Type',
-  // intelligence: 'Intelligence',
-  challengeRating: 'Challenge Rating',
-  // environment: 'Environment',
-} as const
-
-export const monsters: readonly Monster[] = [
-  //...monstersLankhmar,
+const MONSTERS_RAW: readonly MonsterFields[] = [
   {
     id: "goblin-warrior",
     name: "Goblin Warrior",
@@ -129,7 +110,7 @@ export const monsters: readonly Monster[] = [
           shortbow: { weaponId: "shortbow" },
         },
         armor: {
-          scraps: { 
+          scraps: {
             armorId: "chain-shirt",
             acModifier: -2,
             aliasName: "Armor Scraps",
@@ -170,81 +151,32 @@ export const monsters: readonly Monster[] = [
       long: "Gnolls are tall, lanky humanoids with hyena-like heads. They are savage raiders who worship the demon lord Yeenoghu and leave destruction in their wake.",
     },
     mechanics: {
-      hitPoints: {
-        count: 6,
-        die: 8,
-      },
+      hitPoints: { count: 6, die: 8 },
       armorClass: { kind: 'equipment', armorRefs: ["hide"] },
       movement: { ground: 30 },
       actions: [
-        {
-          kind: "natural",
-          name: "Rend",
-          attackType: "claw",
-          attackBonus: 4,
-          reach: 5,
-          damage: "1d6",
-          damageBonus: 2,
-          damageType: "piercing"
-        },
-        { kind: "weapon", weaponRef: "bone-spear" }
+        { kind: "natural", name: "Rend", attackType: "claw", attackBonus: 4, reach: 5, damage: "1d6", damageBonus: 2, damageType: "piercing" },
+        { kind: "weapon", weaponRef: "bone-spear" },
       ],
       bonusActions: [{
         kind: "special",
         name: "Rampage",
-        description:
-          "Immediately after dealing damage to a creature that is already Bloodied, the gnoll moves up to half its Speed and makes one Rend attack.",
-        uses: {
-          count: 1,
-          period: "day",
-        },
-        trigger: {
-          when: "after-dealing-damage",
-          targetState: "bloodied",
-        },
-        movement: {
-          upToSpeedFraction: 0.5,
-        },
-        sequence: [
-          {
-            actionName: "Rend",
-            count: 1,
-          },
-        ],
+        description: "Immediately after dealing damage to a creature that is already Bloodied, the gnoll moves up to half its Speed and makes one Rend attack.",
+        uses: { count: 1, period: "day" },
+        trigger: { when: "after-dealing-damage", targetState: "bloodied" },
+        movement: { upToSpeedFraction: 0.5 },
+        sequence: [{ actionName: "Rend", count: 1 }],
       }],
-      proficiencies: {
-        weapons: {
-          longbow: { proficiencyLevel: 1 },
-        },
-      },
+      proficiencies: { weapons: { longbow: { proficiencyLevel: 1 } } },
       proficiencyBonus: 2,
       equipment: {
-        weapons: {
-          'bone-bow': {
-            weaponId: "longbow",
-            aliasName: "Bone Bow",
-            damageOverride: "1d10",
-            // +3 attack bonus provided via proficiency and dex bonus
-            // +1 damage provided via dex bonus
-            notes: "Uses a monster-specific bow profile.",
-          },
-        },
-        armor: {
-          hide: { armorId: "hide" },
-        },
+        weapons: { 'bone-bow': { weaponId: "longbow", aliasName: "Bone Bow", damageOverride: "1d10", notes: "Uses a monster-specific bow profile." } },
+        armor: { hide: { armorId: "hide" } },
       },
-      senses: {
-        special: [{ type: "darkvision", range: 60 }],
-        passivePerception: 10,
-      },
+      senses: { special: [{ type: "darkvision", range: 60 }], passivePerception: 10 },
       abilities: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 },
     },
-    lore: {
-      alignment: "ce",
-      challengeRating: 0.5,
-      xpValue: 100,
-      intelligence: "low",
-    },
+    lore: { alignment: "ce", challengeRating: 0.5, xpValue: 100, intelligence: "low" },
   },
   {
     id: "orc",
@@ -404,6 +336,7 @@ export const monsters: readonly Monster[] = [
       actions: [
         {
           kind: 'natural',
+          name: 'Bite',
           attackType: 'bite',
           damage: '2d4',
           damageBonus: 2,
@@ -465,7 +398,7 @@ export const monsters: readonly Monster[] = [
       },
       armorClass: { kind: 'natural' },
       movement: { ground: 20 },
-      actions: [{ kind: "natural", attackType: "slam", reach: 5, damage: "1d8", attackBonus: 3, damageBonus: 1, damageType: "bludgeoning" }],
+      actions: [{ kind: "natural", name: "Slam", attackType: "slam", reach: 5, damage: "1d8", attackBonus: 3, damageBonus: 1, damageType: "bludgeoning" }],
       traits: [
         {
           name: 'Undead Fortitude',
@@ -985,7 +918,7 @@ export const monsters: readonly Monster[] = [
       armorClass: { kind: 'natural' },
       movement: { ground: 15 },
       actions: [
-        { kind: 'natural', attackType: "pseudopod", damage: "3d6", damageBonus: 2, damageType: "acid", attackBonus: 4, reach: 5 },
+        { kind: 'natural', name: 'Pseudopod', attackType: "pseudopod", damage: "3d6", damageBonus: 2, damageType: "acid", attackBonus: 4, reach: 5 },
         {
           kind: 'special',
           name: 'Engulf',
@@ -1454,4 +1387,20 @@ export const monsters: readonly Monster[] = [
       xpValue: 3900,
     },
   },
-]
+];
+
+const SYSTEM_MONSTERS_SRD_CC_V5_2_1: readonly Monster[] = MONSTERS_RAW.map((m) =>
+  toSystemMonster(DEFAULT_SYSTEM_RULESET_ID, m),
+);
+
+export const SYSTEM_MONSTERS_BY_SYSTEM_ID: Record<SystemRulesetId, readonly Monster[]> = {
+  [DEFAULT_SYSTEM_RULESET_ID]: SYSTEM_MONSTERS_SRD_CC_V5_2_1,
+};
+
+export function getSystemMonsters(systemId: SystemRulesetId): readonly Monster[] {
+  return SYSTEM_MONSTERS_BY_SYSTEM_ID[systemId] ?? [];
+}
+
+export function getSystemMonster(systemId: SystemRulesetId, monsterId: string): Monster | undefined {
+  return getSystemMonsters(systemId).find((m) => m.id === monsterId);
+}

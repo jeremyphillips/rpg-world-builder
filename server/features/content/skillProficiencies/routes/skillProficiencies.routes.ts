@@ -9,7 +9,7 @@ import {
   deleteCampaignSkillProficiency,
 } from '../controllers/skillProficiencies.controller';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get('/', asyncHandler(listCampaignSkillProficiencies));
 router.get('/:skillProficiencyId', asyncHandler(getCampaignSkillProficiency));

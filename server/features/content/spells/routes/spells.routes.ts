@@ -9,7 +9,7 @@ import {
   deleteCampaignSpell,
 } from '../controllers/spells.controller';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get('/', asyncHandler(listCampaignSpells));
 router.get('/:spellId', asyncHandler(getCampaignSpell));

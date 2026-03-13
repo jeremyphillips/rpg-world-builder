@@ -1,12 +1,37 @@
 import type { Monster } from '@/features/content/monsters/domain/types/monster.types'
 import { StatRow } from '../../components'
-import { MONSTER_LABELS } from '@/data/monsters'
 
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
+
+export const MONSTER_LABELS = {
+  // Top-level
+  type: 'Creature Type',
+  sizeCategory: 'Size',
+  languages: 'Languages',
+  vision: 'Vision',
+  description: 'Description',
+
+  // Meta
+  campaign: 'Campaign',
+  source: 'Source',
+
+  // Mechanics
+  armorClass: 'Armor Class',
+  movement: 'Movement',
+  abilities: 'Ability Scores',
+  traits: 'Traits',
+  actions: 'Actions',
+  morale: 'Morale',
+  proficiencyBonus: 'Proficiency Bonus',
+  // Lore
+  alignment: 'Alignment',
+  xpValue: 'XP Value',
+  challengeRating: 'Challenge Rating',
+} as const
 
 const L = MONSTER_LABELS
 

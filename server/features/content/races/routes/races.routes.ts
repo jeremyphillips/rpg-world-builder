@@ -9,7 +9,7 @@ import {
   deleteCampaignRace,
 } from '../controllers/races.controller';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get('/', asyncHandler(listCampaignRaces));
 router.get('/:raceId', asyncHandler(getCampaignRace));

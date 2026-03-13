@@ -8,7 +8,7 @@ import {
   magicItemHandlers,
 } from '../controllers/equipment.controller';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get('/weapons', asyncHandler(weaponHandlers.list));
 router.get('/weapons/:weaponId', asyncHandler(weaponHandlers.get));

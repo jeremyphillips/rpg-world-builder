@@ -661,9 +661,7 @@ export interface MonsterFields {
   }
 }
 
-// TODO: uncomment after migration to content.
-// export type Monster = ContentItem & MonsterFields;
-export type Monster = MonsterFields;
+export type Monster = ContentItem & MonsterFields;
 
 export type MonsterSummary = ContentSummary & MonsterFields & {
   /** Whether this Monster is enabled for the campaign (from content rule). */

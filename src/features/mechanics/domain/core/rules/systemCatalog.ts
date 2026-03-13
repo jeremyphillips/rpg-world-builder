@@ -16,7 +16,7 @@ import { getSystemSkillProficiencies } from './systemCatalog.skillProficiencies'
 import { getSystemClasses } from './systemCatalog.classes'
 import type { Spell } from '@/features/content/spells/domain/types'
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types'
-import { monsters } from '@/data/monsters'
+import { getSystemMonsters } from './systemCatalog.monsters'
 import type { CharacterClass } from '@/features/content/classes/domain/types'
 import type { WealthTier } from '@/features/content/classes/domain/types'
 import type { Armor } from '@/features/content/equipment/armor/domain/types'
@@ -87,7 +87,7 @@ export const systemCatalog: CampaignCatalog = {
   enhancementsById: keyBy(getSystemEnchantmentTemplates(DEFAULT_SYSTEM_RULESET_ID)),
   spellsById:       keyBy(getSystemSpells(DEFAULT_SYSTEM_RULESET_ID)),
   skillProficienciesById: keyBy(getSystemSkillProficiencies(DEFAULT_SYSTEM_RULESET_ID)),
-  monstersById:     keyBy(monsters),
+  monstersById:     keyBy(getSystemMonsters(DEFAULT_SYSTEM_RULESET_ID)),
 }
 
 // ---------------------------------------------------------------------------

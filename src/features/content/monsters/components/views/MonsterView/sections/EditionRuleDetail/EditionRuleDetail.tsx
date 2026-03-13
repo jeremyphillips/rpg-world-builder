@@ -1,9 +1,11 @@
-import { MONSTER_LABELS, type EditionRule } from '@/data/monsters'
+import { MONSTER_LABELS } from '../MonsterHeader/MonsterHeader'
 import { StatRow } from '../../components'
 import { formatHitDice, formatNumberAppearing, formatMovement, formatAttacks, formatMorale } from '@/features/content/monsters/utils'
 
 import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
+
+type EditionRule = any
 
 interface EditionRuleDetailProps {
   editionRule: EditionRule

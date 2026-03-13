@@ -1,1 +1,1 @@
-export * from './monsters'
+export * from './monsters.lankhmar'
