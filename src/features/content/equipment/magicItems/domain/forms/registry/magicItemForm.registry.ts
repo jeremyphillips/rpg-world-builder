@@ -67,7 +67,7 @@ export const MAGIC_ITEM_FORM_FIELDS = [
     name: 'effects',
     label: 'Effects (JSON array)',
     kind: 'json',
-    placeholder: '[{ "kind": "bonus", "target": "attack", "value": 1 }]',
+    placeholder: '[{ "kind": "modifier", "target": "attack_roll", "mode": "add", "value": 1 }]',
     defaultValue: '[]',
     minRows: 3,
     maxRows: 8,

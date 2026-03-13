@@ -216,11 +216,11 @@ Some legacy shapes still exist in the codebase during migration.
 - Spells: partial
   Already store `Effect[]`, but authoring guidance still needs to converge on the canonical vocabulary.
 
-- Enchantments: not started
-  Still use `EffectDescriptor` plus descriptor resolution.
+- Enchantments: in progress
+  System enchantment templates now author canonical effects directly, but item-side cleanup and remaining compatibility assumptions are still in progress.
 
 - Magic items: partial
-  Some items already author `Effect[]`, but the catalog still includes compatibility shapes and pre-canonical patterns.
+  The system item catalog now authors canonical effects directly, but broader item action/resource modeling still needs follow-up work.
 
 ## Authoring Checklist
 

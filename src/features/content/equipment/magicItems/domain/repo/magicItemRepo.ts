@@ -46,7 +46,6 @@ function campaignEntryToMagicItem(e: CampaignEquipmentEntry): MagicItem {
     slot: d.slot ?? 'wondrous',
     rarity: d.rarity,
     requiresAttunement: d.requiresAttunement,
-    bonus: d.bonus,
     charges: d.charges,
     effects: d.effects,
   };

@@ -34,7 +34,6 @@ export interface MagicItemFields extends EquipmentBase {
   rarity?: MagicItemRarity;
   requiresAttunement?: boolean;
 
-  bonus?: number;
   charges?: number;
 
   effects?: MagicItemEffects;

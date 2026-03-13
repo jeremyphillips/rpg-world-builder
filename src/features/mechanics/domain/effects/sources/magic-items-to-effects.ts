@@ -4,8 +4,7 @@
  * Reads flat core magic-item data (no edition indirection).
  * Each effect carries `source: 'magic_item:<id>'`.
  */
-import type { Effect, ModifierEffect } from '../effects.types'
-import type { StatTarget } from '../../resolution/stat-resolver'
+import type { Effect } from '../effects.types'
 import { getSystemMagicItems } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
 import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types'
@@ -23,46 +22,14 @@ export type MagicItemLoadout = {
 // Candidate effects (all owned magic items)
 // ---------------------------------------------------------------------------
 
-function bonusModifier(
-  target: StatTarget,
-  bonus: number,
-  source: string,
-): ModifierEffect {
-  return { kind: 'modifier', target, mode: 'add', value: bonus, source }
-}
-
-function isNumericBonusEffect(
-  effect: Effect,
-): effect is Extract<Effect, { kind: 'bonus' }> {
-  return effect.kind === 'bonus' && typeof effect.value === 'number'
-}
-
 function effectsForItem(item: MagicItem): Effect[] {
-  const effects: Effect[] = []
   const source = `magic_item:${item.id}`
+  const effects = item.effects ?? []
 
-  if (item.effects) {
-    for (const fx of item.effects) {
-      if (isNumericBonusEffect(fx)) {
-        effects.push(bonusModifier(fx.target as StatTarget, fx.value, source))
-      }
-    }
-  }
-
-  if (effects.length === 0 && item.bonus && item.bonus > 0) {
-    switch (item.slot) {
-      case 'weapon':
-        effects.push(bonusModifier('attack_roll', item.bonus, source))
-        effects.push(bonusModifier('damage', item.bonus, source))
-        break
-      case 'armor':
-      case 'shield':
-        effects.push(bonusModifier('armor_class', item.bonus, source))
-        break
-    }
-  }
-
-  return effects
+  return effects.map((effect) => ({
+    ...effect,
+    source: effect.source ?? source,
+  }))
 }
 
 const systemMagicItems = getSystemMagicItems(DEFAULT_SYSTEM_RULESET_ID)
