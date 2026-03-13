@@ -4,7 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
-import type { Monster } from '@/features/content/monsters/domain/types/monster.types';
+import type { Monster } from '@/features/content/monsters/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

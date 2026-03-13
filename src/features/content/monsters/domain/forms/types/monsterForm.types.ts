@@ -2,7 +2,7 @@
  * Shared form types for Monster Create/Edit routes.
  */
 import type { ContentFormValues } from '@/features/content/shared/domain/types';
-import type { MonsterType, MonsterSizeCategory } from '@/features/content/monsters/domain/types/monster.types';
+import type { MonsterType, MonsterSizeCategory } from '@/features/content/monsters/domain/types';
 
 export type MonsterFormValues = ContentFormValues & {
   type: MonsterType | '';

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
-import type { Monster } from '@/features/content/monsters/domain/types/monster.types';
+import type { Monster } from '@/features/content/monsters/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { AppBadge } from '@/ui/primitives';
 import { VisibilityBadge } from '@/ui/patterns';

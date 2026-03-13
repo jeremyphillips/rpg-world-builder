@@ -4,28 +4,9 @@
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type { FieldSpec } from '@/features/content/shared/forms/registry';
-import type { Monster, MonsterInput, MonsterType } from '@/features/content/monsters/domain/types/monster.types';
+import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
 import type { MonsterFormValues } from '../types/monsterForm.types';
-import { MONSTER_SIZE_CATEGORIES } from '@/features/content/monsters/domain/list/monsterList.options';
-
-const MONSTER_TYPES: { value: MonsterType; label: string }[] = [
-  { value: 'aberration', label: 'Aberration' },
-  { value: 'animal', label: 'Animal' },
-  { value: 'beast', label: 'Beast' },
-  { value: 'celestial', label: 'Celestial' },
-  { value: 'construct', label: 'Construct' },
-  { value: 'dragon', label: 'Dragon' },
-  { value: 'elemental', label: 'Elemental' },
-  { value: 'fey', label: 'Fey' },
-  { value: 'fiend', label: 'Fiend' },
-  { value: 'giant', label: 'Giant' },
-  { value: 'humanoid', label: 'Humanoid' },
-  { value: 'monstrosity', label: 'Monstrosity' },
-  { value: 'ooze', label: 'Ooze' },
-  { value: 'plant', label: 'Plant' },
-  { value: 'undead', label: 'Undead' },
-  { value: 'vermin', label: 'Vermin' },
-];
+import { MONSTER_TYPE_OPTIONS, MONSTER_SIZE_CATEGORY_OPTIONS } from '@/features/content/monsters/domain/vocab/monster.vocab';
 
 const parseJson = (v: unknown): unknown => {
   if (v == null || v === '') return undefined;
@@ -82,7 +63,7 @@ export const MONSTER_FORM_FIELDS = [
     name: 'type' as const,
     label: 'Type',
     kind: 'select' as const,
-    options: MONSTER_TYPES,
+    options: MONSTER_TYPE_OPTIONS.map((o) => ({ value: o.id, label: o.name })),
     placeholder: 'Select type',
     defaultValue: '' as MonsterFormValues['type'],
     parse: (v: unknown) => (v ? (v as MonsterInput['type']) : undefined),
@@ -92,7 +73,7 @@ export const MONSTER_FORM_FIELDS = [
     name: 'sizeCategory' as const,
     label: 'Size Category',
     kind: 'select' as const,
-    options: MONSTER_SIZE_CATEGORIES,
+    options: MONSTER_SIZE_CATEGORY_OPTIONS.map((o) => ({ value: o.id, label: o.name })),
     placeholder: 'Select size',
     defaultValue: '' as MonsterFormValues['sizeCategory'],
     parse: (v: unknown) => (v ? (v as MonsterInput['sizeCategory']) : undefined),

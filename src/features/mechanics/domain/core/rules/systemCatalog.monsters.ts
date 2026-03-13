@@ -4,7 +4,7 @@
  * These are the "factory defaults" for monsters. Campaign-owned custom monsters
  * are stored in the DB and merged at runtime by buildCampaignCatalog.
  */
-import type { Monster, MonsterFields } from '@/features/content/monsters/domain/types/monster.types';
+import type { Monster, MonsterFields } from '@/features/content/monsters/domain/types';
 import type { SystemRulesetId } from './ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 

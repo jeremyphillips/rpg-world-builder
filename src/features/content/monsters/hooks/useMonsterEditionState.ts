@@ -1,4 +1,4 @@
-import type { Monster } from "@/features/content/monsters/domain/types/monster.types";
+import type { Monster } from "@/features/content/monsters/domain/types";
 import type { EditionRule } from "@/features/mechanics/domain/edition";
 import { useActiveCampaign } from "@/app/providers/ActiveCampaignProvider";
 import { resolveEditionRule } from '@/features/mechanics/domain/resolution/resolveEditionRule';

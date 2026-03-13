@@ -16,7 +16,7 @@ import Typography from '@mui/material/Typography';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import type { Monster } from '@/features/content/monsters/domain/types/monster.types';
+import type { Monster } from '@/features/content/monsters/domain/types';
 import {
   monsterRepo,
   validateMonsterChange,

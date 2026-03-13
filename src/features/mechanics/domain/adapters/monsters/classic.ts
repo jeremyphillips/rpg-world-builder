@@ -1,6 +1,6 @@
 import type { EditionRuleBecmi } from "../../edition/becmi/monster.types"
 import type { EditionRuleBx } from "../../edition/bx/monster.types"
-import type { Monster } from "@/features/content/monsters/domain/types/monster.types"
+import type { Monster } from "@/features/content/monsters/domain/types"
 import type { CoreMechanics } from "../../core/combat.types"
 
 // ---------------------------------------------------------------------------

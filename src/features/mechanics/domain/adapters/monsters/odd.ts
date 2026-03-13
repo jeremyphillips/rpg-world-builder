@@ -1,5 +1,5 @@
 import type { EditionRuleOdd } from "../../edition/odd/monster.types"
-import type { Monster } from "@/features/content/monsters/domain/types/monster.types"
+import type { Monster } from "@/features/content/monsters/domain/types"
 import type { CoreMechanics } from "../../core/combat.types"
 
 export function convertOddToCore(rule: EditionRuleOdd, _monster: Monster): CoreMechanics {

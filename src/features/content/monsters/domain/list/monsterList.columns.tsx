@@ -1,6 +1,6 @@
 import type { AppDataGridColumn } from '@/ui/patterns';
 import type { MonsterListRow } from './monsterList.types';
-import type { MonsterAction } from '@/features/content/monsters/domain/types/monster.types';
+import type { MonsterAction } from '@/features/content/monsters/domain/types';
 import { formatHitPointsWithAverage } from '@/features/content/monsters/utils/formatters';
 
 function getActionsDisplay(actions?: MonsterAction[]): string {
@@ -71,7 +71,9 @@ export function buildMonsterCustomColumns(): AppDataGridColumn<MonsterListRow>[]
       field: 'challengeRating',
       headerName: 'Challenge Rating',
       width: 100,
-      accessor: (row) => row.lore?.xpValue ?? '—',
+      accessor: (row) => row.lore?.challengeRating ? 
+        `${row.lore.challengeRating?.toString()}` : '—',
+        // (XP: ${row.lore.xpValue?.toLocaleString()})
     },
     {
       field: 'equipment',

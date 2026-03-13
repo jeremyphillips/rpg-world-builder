@@ -24,7 +24,7 @@ export function formatHitPointsWithAverage(m: {
   if (!m) return '—';
   const base = formatHitPoints(m);
   const avg = Math.floor(m.count * ((m.die + 1) / 2)) + (m.modifier ?? 0);
-  return `${base} (${avg})`;
+  return `${avg} (${base})`;
 }
 
 export function formatAttacks(attacks: EditionRule['mechanics']['attacks']): string {

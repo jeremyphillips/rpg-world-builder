@@ -2,7 +2,7 @@
  * Pure mappers for Monster form values ↔ domain types.
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types/monster.types';
+import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
 import {
   buildToInput,
   buildDefaultFormValues,

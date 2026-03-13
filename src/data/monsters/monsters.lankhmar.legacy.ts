@@ -1,7 +1,7 @@
 // @ts-nocheck — Legacy Lankhmar monsters, out of scope for system catalog migration
 // Lankhmar (2e) specific monsters
 
-import type { Monster } from '@/features/content/monsters/domain/types/monster.types'
+import type { Monster } from '@/features/content/monsters/domain/types'
 
 export const monstersLankhmar: readonly Monster[] = [
   {
