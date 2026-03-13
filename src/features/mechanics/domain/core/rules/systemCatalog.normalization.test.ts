@@ -3,7 +3,6 @@ import { getSystemClass } from './systemCatalog.classes'
 import { getSystemMonster } from './systemCatalog.monsters'
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds'
 import type { SubclassFeature } from '@/features/content/classes/domain/types'
-import type { MonsterActionRule, MonsterSpecialAction } from '@/features/content/monsters/domain/types'
 
 function getSubclassFeature(
   classId: string,
@@ -19,18 +18,6 @@ function hasNestedFeatures(
   feature: SubclassFeature | undefined,
 ): feature is SubclassFeature & { features: SubclassFeature[] } {
   return Array.isArray((feature as { features?: unknown } | undefined)?.features)
-}
-
-function isSpecialActionWithRules(
-  action: unknown,
-): action is MonsterSpecialAction & { rules: MonsterActionRule[] } {
-  return (
-    action != null &&
-    typeof action === 'object' &&
-    'kind' in action &&
-    action.kind === 'special' &&
-    Array.isArray((action as { rules?: unknown }).rules)
-  )
 }
 
 describe('system catalog normalization', () => {
@@ -115,15 +102,47 @@ describe('system catalog normalization', () => {
     const mummy = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'mummy')
     const glare = mummy?.mechanics.actions?.find(
       (action) => action.kind === 'special' && action.name === 'Dreadful Glare',
-    )
+    ) as
+      | { onFail?: unknown[]; effects?: unknown[]; onSuccess?: unknown[] }
+      | undefined
 
-    const durationRule = isSpecialActionWithRules(glare)
-      ? glare.rules.find((rule: MonsterActionRule) => rule.kind === 'duration')
-      : undefined
+    expect(glare?.onFail).toEqual([
+      {
+        kind: 'condition',
+        conditionId: 'frightened',
+        duration: {
+          kind: 'until_turn_boundary',
+          subject: 'source',
+          turn: 'next',
+          boundary: 'end',
+        },
+      },
+    ])
 
-    expect(durationRule).toMatchObject({
-      kind: 'duration',
-      trigger: 'failed_save',
+    expect(glare?.effects).toEqual([
+      {
+        kind: 'targeting',
+        target: 'one-creature',
+        targetType: 'creature',
+        rangeFeet: 60,
+        requiresSight: true,
+      },
+    ])
+
+    expect(glare?.onSuccess).toEqual([
+      {
+        kind: 'immunity',
+        scope: 'source-action',
+        duration: {
+          kind: 'fixed',
+          value: 24,
+          unit: 'hour',
+        },
+        notes: "Target is immune to this mummy's Dreadful Glare.",
+      },
+    ])
+
+    expect(glare?.onFail?.[0]).toMatchObject({
       duration: {
         kind: 'until_turn_boundary',
         subject: 'source',
@@ -175,5 +194,56 @@ describe('system catalog normalization', () => {
       turn: 'next',
       boundary: 'end',
     })
+  })
+
+  it('uses canonical effect kinds for monster trait meta rules', () => {
+    const hydra = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'hydra')
+    const holdBreath = hydra?.mechanics.traits?.find((trait) => trait.name === 'Hold Breath')
+    const multipleHeads = hydra?.mechanics.traits?.find((trait) => trait.name === 'Multiple Heads')
+    const reactiveHeads = hydra?.mechanics.traits?.find((trait) => trait.name === 'Reactive Heads')
+
+    expect(holdBreath?.effects).toEqual([
+      {
+        kind: 'hold_breath',
+        duration: {
+          kind: 'fixed',
+          value: 1,
+          unit: 'hour',
+        },
+      },
+    ])
+
+    expect(multipleHeads?.effects).toEqual([
+      {
+        kind: 'tracked_part',
+        part: 'head',
+        initialCount: 5,
+        loss: {
+          trigger: 'damage_taken_in_single_turn',
+          minDamage: 25,
+          count: 1,
+        },
+        deathWhenCountReaches: 0,
+        regrowth: {
+          trigger: 'turn_end',
+          requiresLivingPart: true,
+          countPerPartLostSinceLastTurn: 2,
+          suppressedByDamageTypes: ['fire'],
+          healHitPoints: 20,
+        },
+      },
+    ])
+
+    expect(reactiveHeads?.effects).toEqual([
+      {
+        kind: 'extra_reaction',
+        appliesTo: 'opportunity-attacks-only',
+        count: {
+          kind: 'per-part-beyond',
+          part: 'head',
+          baseline: 1,
+        },
+      },
+    ])
   })
 })

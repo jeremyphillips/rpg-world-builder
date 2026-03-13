@@ -78,7 +78,6 @@ export default function MagicItemsCard({
                     <Chip label={formatSlot(item.slot)} size="small" variant="outlined" />
                     {item.consumable && <Chip label="Consumable" size="small" color="warning" variant="outlined" />}
                     {attunement && <Chip label={attunement} size="small" color="info" variant="outlined" />}
-                    {item.bonus != null && <Chip label={`+${item.bonus}`} size="small" variant="outlined" />}
                   </Stack>
                   {(item.description || (item.effects?.length ?? 0) > 0) && (
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.25, display: 'block' }}>

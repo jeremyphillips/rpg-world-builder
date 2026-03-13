@@ -151,6 +151,69 @@ export type StateEffect = EffectBase<'state'> & {
   notes?: string;
 };
 
+export type TargetingEffect = EffectBase<'targeting'> & {
+  target: 'one-creature' | 'creatures-in-area' | 'creatures-entered-during-move';
+  targetType?: 'creature';
+  rangeFeet?: number;
+  requiresSight?: boolean;
+  area?: {
+    kind: 'cone' | 'sphere' | 'line' | 'square' | 'cylinder' | 'cube';
+    size: number;
+  };
+};
+
+export type IntervalEffect = EffectBase<'interval'> & {
+  stateId: string;
+  every: {
+    value: number;
+    unit: 'turn' | 'round' | 'minute' | 'hour' | 'day';
+  };
+  effects: Effect[];
+};
+
+export type ImmunityEffect = EffectBase<'immunity'> & {
+  scope: 'source-action';
+  duration: EffectDuration;
+  notes?: string;
+};
+
+export type DeathOutcomeEffect = EffectBase<'death_outcome'> & {
+  trigger: 'reduced-to-0-hit-points-by-this-action';
+  targetType?: 'creature';
+  outcome: 'turns-to-dust';
+};
+
+export type HoldBreathEffect = EffectBase<'hold_breath'> & {
+  duration: EffectDuration;
+};
+
+export type TrackedPartEffect = EffectBase<'tracked_part'> & {
+  part: 'head' | 'limb';
+  initialCount: number;
+  loss?: {
+    trigger: 'damage_taken_in_single_turn';
+    minDamage: number;
+    count: number;
+  };
+  deathWhenCountReaches?: number;
+  regrowth?: {
+    trigger: 'turn_end';
+    requiresLivingPart?: boolean;
+    countPerPartLostSinceLastTurn: number;
+    suppressedByDamageTypes?: string[];
+    healHitPoints?: number;
+  };
+};
+
+export type ExtraReactionEffect = EffectBase<'extra_reaction'> & {
+  appliesTo: 'opportunity-attacks-only';
+  count: {
+    kind: 'per-part-beyond';
+    part: 'head' | 'limb';
+    baseline: number;
+  };
+};
+
 export type MoveEffect = EffectBase<'move'> & {
   distance?: number;
   forced?: boolean;
@@ -210,6 +273,13 @@ export type Effect =
   | DamageEffect
   | RollModifierEffect
   | StateEffect
+  | TargetingEffect
+  | IntervalEffect
+  | ImmunityEffect
+  | DeathOutcomeEffect
+  | HoldBreathEffect
+  | TrackedPartEffect
+  | ExtraReactionEffect
   | MoveEffect
   | ActionEffect
   | FormEffect

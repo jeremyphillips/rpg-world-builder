@@ -482,13 +482,9 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
               damage: "3d6",
               damageType: "necrotic",
             },
-          ],
-          rules: [
             {
-              kind: "apply-state",
-              trigger: "hit",
-              state: "mummy-rot",
-              targetType: "creature",
+              kind: "state",
+              stateId: "mummy-rot",
               ongoingEffects: [
                 {
                   kind: "note",
@@ -502,8 +498,8 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
               ],
             },
             {
-              kind: "interval-effect",
-              state: "mummy-rot",
+              kind: "interval",
+              stateId: "mummy-rot",
               every: {
                 value: 24,
                 unit: "hour",
@@ -516,7 +512,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
               ],
             },
             {
-              kind: "death-outcome",
+              kind: "death_outcome",
               trigger: "reduced-to-0-hit-points-by-this-action",
               targetType: "creature",
               outcome: "turns-to-dust",
@@ -535,23 +531,6 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             {
               kind: "condition",
               conditionId: "frightened",
-            },
-          ],
-          rules: [
-            {
-              kind: "targeting",
-              target: "one-creature",
-              targetType: "creature",
-              rangeFeet: 60,
-              requiresSight: true,
-            },
-            {
-              kind: "duration",
-              trigger: "failed_save",
-              appliesTo: {
-                kind: "condition",
-                condition: "frightened",
-              },
               duration: {
                 kind: "until_turn_boundary",
                 subject: "source",
@@ -559,9 +538,10 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
                 boundary: "end",
               },
             },
+          ],
+          onSuccess: [
             {
-              kind: "immunity-on-success",
-              trigger: "successful_save",
+              kind: "immunity",
               scope: "source-action",
               duration: {
                 kind: "fixed",
@@ -569,6 +549,15 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
                 unit: "hour",
               },
               notes: "Target is immune to this mummy's Dreadful Glare.",
+            },
+          ],
+          effects: [
+            {
+              kind: "targeting",
+              target: "one-creature",
+              targetType: "creature",
+              rangeFeet: 60,
+              requiresSight: true,
             },
           ],
         },
@@ -1320,9 +1309,9 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         {
           name: "Hold Breath",
           description: "The hydra can hold its breath for 1 hour.",
-          rules: [
+          effects: [
             {
-              kind: "hold-breath",
+              kind: "hold_breath",
               duration: {
                 kind: "fixed",
                 value: 1,
@@ -1335,9 +1324,9 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           name: "Multiple Heads",
           description:
             "The hydra has five heads. Whenever the hydra takes 25 damage or more on a single turn, one of its heads dies. The hydra dies if all its heads are dead. At the end of each of its turns when it has at least one living head, the hydra grows two heads for each of its heads that died since its last turn, unless it has taken Fire damage since its last turn. The hydra regains 20 Hit Points when it grows new heads.",
-          rules: [
+          effects: [
             {
-              kind: "tracked-part",
+              kind: "tracked_part",
               part: "head",
               initialCount: 5,
               loss: {
@@ -1360,9 +1349,9 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           name: "Reactive Heads",
           description:
             "For each head the hydra has beyond one, it gets an extra Reaction that can be used only for Opportunity Attacks.",
-          rules: [
+          effects: [
             {
-              kind: "extra-reaction",
+              kind: "extra_reaction",
               appliesTo: "opportunity-attacks-only",
               count: {
                 kind: "per-part-beyond",

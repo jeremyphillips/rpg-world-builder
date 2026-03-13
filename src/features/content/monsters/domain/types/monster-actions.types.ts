@@ -3,7 +3,7 @@ import type { AbilityId } from "@/features/mechanics/domain/core/character/abili
 import type { MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
 import type { MonsterWeaponAction } from "./monster-equipment.types";
 import type { MonsterAttackType, AttackAbility, DamageType } from "./monster-combat.types";
-import type { MonsterOnHitEffect, MonsterEffect, MonsterActionRule, MonsterActionTrigger } from "./monster-effects.types";
+import type { MonsterOnHitEffect, MonsterEffect, MonsterActionTrigger } from "./monster-effects.types";
 import type { EffectUses, RechargeSpec } from "@/features/mechanics/domain/effects/timing.types";
 
 export type MonsterNaturalAttackAction = {
@@ -19,7 +19,6 @@ export type MonsterNaturalAttackAction = {
   attackAbilityOverride?: AttackAbility;
   damageAbilityOverride?: AttackAbility | null;
   onHitEffects?: MonsterOnHitEffect[];
-  rules?: MonsterActionRule[];
 };
 
 export type MonsterSpecialAction = {
@@ -55,7 +54,6 @@ export type MonsterSpecialAction = {
   onFail?: MonsterEffect[];
   onSuccess?: MonsterEffect[];
   effects?: MonsterEffect[];
-  rules?: MonsterActionRule[];
   sequence?: {
     actionName: string,
     count: number

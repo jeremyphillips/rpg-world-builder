@@ -1,13 +1,17 @@
 import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
 import type { MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
 import type { ConditionId, DamageType, TraitRollTarget } from "./monster-combat.types";
-import type { EffectDuration, EffectInterval } from "@/features/mechanics/domain/effects/timing.types";
 import type {
   ActionEffect,
   ConditionEffect,
   DamageEffect,
+  DeathOutcomeEffect,
+  ExtraReactionEffect,
   FormEffect,
   HitPointsEffect,
+  HoldBreathEffect,
+  ImmunityEffect,
+  IntervalEffect,
   MoveEffect,
   NoteEffect,
   RollModifierEffect,
@@ -15,6 +19,8 @@ import type {
   SaveEffect,
   SpawnEffect,
   StateEffect,
+  TrackedPartEffect,
+  TargetingEffect,
 } from "@/features/mechanics/domain/effects/effects.types";
 
 export type MonsterConditionEffect = Omit<ConditionEffect, 'conditionId' | 'targetSizeMax'> & {
@@ -44,12 +50,30 @@ export type MonsterActionEffect = ActionEffect;
 export type MonsterSpawnEffect = SpawnEffect;
 export type MonsterNoteEffect = NoteEffect;
 export type MonsterHitPointsEffect = HitPointsEffect;
+export type MonsterTargetingEffect = TargetingEffect;
+export type MonsterIntervalEffect = IntervalEffect;
+export type MonsterImmunityEffect = ImmunityEffect;
+export type MonsterDeathOutcomeEffect = DeathOutcomeEffect;
+export type MonsterHoldBreathEffect = HoldBreathEffect;
+export type MonsterTrackedPartEffect = Omit<TrackedPartEffect, 'regrowth'> & {
+  regrowth?: Omit<NonNullable<TrackedPartEffect['regrowth']>, 'suppressedByDamageTypes'> & {
+    suppressedByDamageTypes?: DamageType[];
+  };
+};
+export type MonsterExtraReactionEffect = ExtraReactionEffect;
 
 export type MonsterEffect =
   | MonsterConditionEffect
   | MonsterRollModifierEffect
   | MonsterDamageEffect
   | MonsterStateEffect
+  | MonsterTargetingEffect
+  | MonsterIntervalEffect
+  | MonsterImmunityEffect
+  | MonsterDeathOutcomeEffect
+  | MonsterHoldBreathEffect
+  | MonsterTrackedPartEffect
+  | MonsterExtraReactionEffect
   | MonsterMoveEffect
   | MonsterFormEffect
   | MonsterNoteEffect
@@ -66,64 +90,14 @@ export type MonsterAppliedEffect =
 
 export type MonsterOnHitEffect =
   | MonsterConditionEffect
+  | MonsterStateEffect
+  | MonsterIntervalEffect
+  | MonsterDeathOutcomeEffect
   | (Omit<SaveEffect, 'onFail' | 'onSuccess'> & {
       onFail: MonsterAppliedEffect[];
       onSuccess?: MonsterAppliedEffect[];
     })
   | MonsterDamageEffect;
-
-export type MonsterRuleDuration = EffectDuration;
-
-export type MonsterActionRule =
-  | {
-      kind: 'targeting';
-      target: 'one-creature';
-      targetType?: 'creature';
-      rangeFeet: number;
-      requiresSight?: boolean;
-    }
-  | {
-      kind: 'apply-state';
-      trigger: 'hit' | 'failed_save';
-      state: string;
-      targetType?: 'creature';
-      duration?: MonsterRuleDuration;
-      ongoingEffects?: MonsterEffect[];
-      notes?: string;
-    }
-  | {
-      kind: 'duration';
-      trigger: 'hit' | 'failed_save';
-      appliesTo:
-        | {
-            kind: 'condition';
-            condition: ConditionId;
-          }
-        | {
-            kind: 'state';
-            state: string;
-          };
-      duration: MonsterRuleDuration;
-    }
-  | {
-      kind: 'interval-effect';
-      state: string;
-      every: EffectInterval;
-      effects: MonsterEffect[];
-    }
-  | {
-      kind: 'immunity-on-success';
-      trigger: 'successful_save';
-      scope: 'source-action';
-      duration: MonsterRuleDuration;
-      notes?: string;
-    }
-  | {
-      kind: 'death-outcome';
-      trigger: 'reduced-to-0-hit-points-by-this-action';
-      targetType?: 'creature';
-      outcome: 'turns-to-dust';
-    };
 
 export type MonsterActionTrigger = {
   when: 'after_damage';

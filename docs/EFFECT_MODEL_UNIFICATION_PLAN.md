@@ -201,17 +201,16 @@ The following shapes are not part of the target authoring contract:
 Some legacy shapes still exist in the codebase during migration.
 
 - `bonus` still exists in runtime typing for compatibility, but new canonical authoring should prefer `modifier` with `mode: 'add'`.
-- monster-specific DSL files still exist until their content is migrated.
-- monster-only meta-rules such as `MonsterActionRule`, `MonsterTraitRule`, limb tracking, and special resource adjustments still exist until the remaining monster migration is complete.
-- enchantments and some item flows still rely on descriptor translation until those sources are converted.
+- monster-specific trait/meta wrappers still exist until the remaining monster migration is complete.
+- monster-only meta structures such as containment, visibility, action modifiers, checks, and special resource adjustments still exist until the remaining monster migration is complete.
 
 ## Migration Status
 
 - Classes: in progress
   Representative class features now use canonical `activation`, `save`, and `condition`.
 
-- Monsters: not started
-  Still use parallel monster-specific effect and rule DSLs.
+- Monsters: in progress
+  Monster effect payloads, action save outcomes, and former action/trait rule payloads now use the canonical effect vocabulary, but monster meta structures still remain for cases like containment, visibility, action modifiers, and checks.
 
 - Spells: partial
   Already store `Effect[]`, but authoring guidance still needs to converge on the canonical vocabulary.

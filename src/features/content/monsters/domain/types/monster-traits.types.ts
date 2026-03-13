@@ -46,39 +46,6 @@ type MonsterVisibilityRule = {
   };
 };
 
-export type MonsterTraitRule =
-  | {
-      kind: 'hold-breath';
-      duration: EffectDuration;
-    }
-  | {
-      kind: 'tracked-part';
-      part: 'head' | 'limb';
-      initialCount: number;
-      loss?: {
-        trigger: 'damage_taken_in_single_turn';
-        minDamage: number;
-        count: number;
-      };
-      deathWhenCountReaches?: number;
-      regrowth?: {
-        trigger: 'turn_end';
-        requiresLivingPart?: boolean;
-        countPerPartLostSinceLastTurn: number;
-        suppressedByDamageTypes?: DamageType[];
-        healHitPoints?: number;
-      };
-    }
-  | {
-      kind: 'extra-reaction';
-      appliesTo: 'opportunity-attacks-only';
-      count: {
-        kind: 'per-part-beyond';
-        part: 'head' | 'limb';
-        baseline: number;
-      };
-    };
-
 export type MonsterTraitRequirement =
   | { kind: 'self-state'; state: 'bloodied' }
   | { kind: 'damage-taken-this-turn'; damageType?: DamageType; min?: number }
@@ -117,7 +84,6 @@ export type MonsterTrait = {
   requirements?: MonsterTraitRequirement[];
   save?: MonsterTriggeredSave;
   effects?: MonsterEffect[];
-  rules?: MonsterTraitRule[];
   modifiesAction?: MonsterTraitActionModifier[];
   checks?: MonsterTraitCheckRule[];
   containment?: MonsterContainmentRule;
