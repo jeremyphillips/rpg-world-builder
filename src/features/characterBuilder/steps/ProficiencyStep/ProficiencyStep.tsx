@@ -1,9 +1,3 @@
-import { useMemo, useCallback } from 'react'
-import { useCharacterBuilder } from '@/features/characterBuilder/context'
-import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { getSuggestedSkillProficienciesByClass } from '@/features/characterBuilder/domain/classes'
-import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
-
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -11,6 +5,14 @@ import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import LockIcon from '@mui/icons-material/Lock'
+
+import { useMemo, useCallback } from 'react'
+import { useCharacterBuilder } from '@/features/characterBuilder/context'
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import { getSuggestedSkillProficienciesByClass } from '@/features/characterBuilder/domain/classes'
+import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
+import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
+import type { ProficiencyAdjustment } from '@/features/character/domain/types'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -33,7 +35,7 @@ const ProficiencyStep = () => {
   const { catalog } = useCampaignRules()
 
   const { classes: selectedClasses, proficiencies, editMode, step } = state
-  const selectedSkills = proficiencies?.skills ?? []
+  const selectedSkills = getSkillIds(proficiencies)
 
   const lockedSkillIds = useMemo(() => {
     const ids = editMode?.lockedSelections?.['skills']
@@ -77,12 +79,14 @@ const ProficiencyStep = () => {
       const isLocked = lockedSkillIds.has(skillId)
       if (isSelected && isLocked) return
 
-      let next: string[]
+      const currentSkills = proficiencies?.skills ?? {}
+      let next: Record<string, ProficiencyAdjustment>
       if (isSelected) {
-        next = selectedSkills.filter((id: string) => id !== skillId)
+        const { [skillId]: _, ...rest } = currentSkills
+        next = rest
       } else {
         if (selectedSkills.length >= totalSlots) return
-        next = [...selectedSkills, skillId]
+        next = { ...currentSkills, [skillId]: { proficiencyLevel: 1 } }
       }
       setProficiencies({ ...proficiencies, skills: next })
     },

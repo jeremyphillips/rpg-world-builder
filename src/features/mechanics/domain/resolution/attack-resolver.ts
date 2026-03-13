@@ -3,7 +3,7 @@ import type { Effect } from '../effects/effects.types'
 import { getAbilityModifier } from '../core/ability.utils'
 import { getProficiencyAttackBonus } from '@/features/mechanics/domain/character/progression'
 import { resolveStatDetailed, type BreakdownToken } from './stat-resolver'
-import type { DamageType } from '@/features/content/equipment/weapons/domain/vocab'
+import type { WeaponDamageType } from '@/features/content/equipment/weapons/domain/vocab'
 import type { AbilityKey } from '@/features/mechanics/domain/core/character/abilities.types'
 
 // ---------------------------------------------------------------------------
@@ -36,7 +36,7 @@ export type DamageResult = {
   dice: string
   modifier: number
   total: string
-  damageType: DamageType
+  damageType: WeaponDamageType
   breakdown: BreakdownToken[]
 }
 
@@ -179,7 +179,7 @@ export function resolveWeaponDamage(
     dice,
     modifier: result.value,
     total: totalParts.join(' '),
-    damageType: damageType as DamageType,
+    damageType: damageType as WeaponDamageType,
     breakdown,
   }
 }

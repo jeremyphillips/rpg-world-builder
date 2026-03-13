@@ -5,14 +5,14 @@ import type {
   WeaponCategory,
   WeaponMode,
   WeaponProperty,
-  DamageType,
+  WeaponDamageType,
 } from '@/features/content/equipment/weapons/domain/vocab';
 import type { ContentFormValues } from '@/features/content/shared/domain/types';
 
 export type WeaponFormValues = ContentFormValues & {
   category: WeaponCategory | '';
   mode: WeaponMode | '';
-  damageType: DamageType;
+  damageType: WeaponDamageType;
 
   // converted from damage: { default, versatile } — stored as strings (RHF-friendly)
   damageDefaultCount: string;

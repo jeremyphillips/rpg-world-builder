@@ -6,6 +6,7 @@
  */
 import type { CampaignCatalog } from './systemCatalog';
 import { listCampaignRaces } from '@/features/content/races/domain/repo/raceRepo';
+import { listCampaignMonsters } from '@/features/content/monsters/domain/repo/monsterRepo';
 import { listCampaignClasses } from '@/features/content/classes/domain/repo/classRepo';
 import { listCampaignSpells } from '@/features/content/spells/domain/repo/spellRepo';
 import {
@@ -70,6 +71,7 @@ export async function loadCampaignCatalogOverrides(
     magicItems,
     enhancements,
     spells,
+    monsters,
   ] = await Promise.all([
     listCampaignRaces(campaignId).catch(() => []),
     listCampaignClasses(campaignId).catch(() => []),
@@ -79,6 +81,7 @@ export async function loadCampaignCatalogOverrides(
     campaignMagicItemRepo.list(campaignId).catch(() => []),
     enchantmentRepo.listCampaign(campaignId).catch(() => []),
     listCampaignSpells(campaignId).catch(() => []),
+    listCampaignMonsters(campaignId).catch(() => []),
   ]);
 
   const result: Partial<CampaignCatalog> = {};
@@ -117,7 +120,9 @@ export async function loadCampaignCatalogOverrides(
   if (spells.length > 0) {
     result.spellsById = keyById(spells);
   }
-  // No campaign monsters support yet; omit monstersById
+  if (monsters.length > 0) {
+    result.monstersById = keyById(monsters) as CampaignCatalog['monstersById'];
+  }
 
   return result;
 }

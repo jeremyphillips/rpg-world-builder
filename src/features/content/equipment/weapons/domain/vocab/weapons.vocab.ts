@@ -33,4 +33,4 @@ export const WEAPON_DAMAGE_TYPE_OPTIONS = [
   { value: 'slashing', label: 'Slashing' },
 ] as const;
 
-export type DamageType = (typeof WEAPON_DAMAGE_TYPE_OPTIONS)[number]['value'];
+export type WeaponDamageType = (typeof WEAPON_DAMAGE_TYPE_OPTIONS)[number]['value'];

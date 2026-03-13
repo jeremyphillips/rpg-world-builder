@@ -4,6 +4,7 @@
  */
 
 import type { Money } from "@/shared/money/types"
+import type { ProficiencyAdjustment } from '@/features/character/domain/types'
 
 // ---------------------------------------------------------------------------
 // Class summary (shared by card, detail, roster)
@@ -29,9 +30,6 @@ export type CharacterClassReadSource = {
 // Card DTO (GET /characters/me)
 // ---------------------------------------------------------------------------
 
-/** @deprecated Use CharacterClassSummary */
-export type CharacterCardClassSummary = CharacterClassSummary
-
 export type CharacterCardSummary = {
   id: string
   name: string
@@ -56,9 +54,6 @@ export type CharacterRosterSummary = CharacterCardSummary & {
 // ---------------------------------------------------------------------------
 // Detail DTO (GET /characters/:id)
 // ---------------------------------------------------------------------------
-
-/** @deprecated Use CharacterClassSummary */
-export type CharacterDetailClassSummary = CharacterClassSummary
 
 export type CharacterDetailDto = {
   id: string
@@ -144,7 +139,7 @@ export type CharacterDetailDto = {
 export type CharacterReadSource = {
   race?: string
   classes?: CharacterClassReadSource[]
-  proficiencies?: { skills?: string[] }
+  proficiencies?: { skills?: Record<string, ProficiencyAdjustment> }
   equipment?: {
     armor?: string[]
     weapons?: string[]

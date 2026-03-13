@@ -13,6 +13,7 @@ import campaignMemberRoutes from '../features/campaign/routes/campaignMember.rou
 import messageRoutes from '../features/message/routes/message.routes'
 import classesRoutes from '../features/content/classes/routes/classes.routes'
 import racesRoutes from '../features/content/races/routes/races.routes'
+import monstersRoutes from '../features/content/monsters/routes/monsters.routes'
 import spellsRoutes from '../features/content/spells/routes/spells.routes'
 import skillProficienciesRoutes from '../features/content/skillProficiencies/routes/skillProficiencies.routes'
 import equipmentRoutes from '../features/content/equipment/routes/equipment.routes'
@@ -24,6 +25,7 @@ export function registerRoutes(app: Express) {
   app.use('/api/users', userRoutes)
   app.use('/api/campaigns/:id/classes', ...campaignScopedContent, classesRoutes)
   app.use('/api/campaigns/:id/races', ...campaignScopedContent, racesRoutes)
+  app.use('/api/campaigns/:id/monsters', ...campaignScopedContent, monstersRoutes)
   app.use('/api/campaigns/:id/spells', ...campaignScopedContent, spellsRoutes)
   app.use('/api/campaigns/:id/skill-proficiencies', ...campaignScopedContent, skillProficienciesRoutes)
   app.use('/api/campaigns/:id/equipment', ...campaignScopedContent, equipmentRoutes)

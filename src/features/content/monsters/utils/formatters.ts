@@ -1,5 +1,32 @@
 type EditionRule = any
 
+/** Hit Points: {count}d{die}{modifier} e.g. 3d6+4 */
+export function formatHitPoints(m: {
+  count: number;
+  die: number;
+  modifier?: number;
+}): string {
+  if (!m) return '—';
+  const { count, die, modifier } = m;
+  let s = `${count}d${die}`;
+  if (modifier != null && modifier !== 0) {
+    s += modifier > 0 ? `+${modifier}` : String(modifier);
+  }
+  return s;
+}
+
+/** Hit Points with average: {count}d{die}{modifier} ({average}) e.g. 2d6+4 (10) */
+export function formatHitPointsWithAverage(m: {
+  count: number;
+  die: number;
+  modifier?: number;
+}): string {
+  if (!m) return '—';
+  const base = formatHitPoints(m);
+  const avg = Math.floor(m.count * ((m.die + 1) / 2)) + (m.modifier ?? 0);
+  return `${avg} (${base})`;
+}
+
 export function formatAttacks(attacks: EditionRule['mechanics']['attacks']): string {
   if (!attacks?.length) return '—'
   return attacks.map((a) => `${a.name} (${a.dice})`).join(', ')
@@ -7,10 +34,11 @@ export function formatAttacks(attacks: EditionRule['mechanics']['attacks']): str
 
 export function formatMovement(m: EditionRule['mechanics']['movement']): string {
   const parts: string[] = []
-  if (m.ground) parts.push(`${m.ground} ft.`)
-  if (m.swim) parts.push(`Swim ${m.swim} ft.`)
-  if (m.fly) parts.push(`Fly ${m.fly} ft.`)
-  if (m.burrow) parts.push(`Burrow ${m.burrow} ft.`)
+  if (m?.ground) parts.push(`${m.ground} ft.`)
+  if (m?.climb) parts.push(`Climb ${m.climb} ft.`)
+  if (m?.swim) parts.push(`Swim ${m.swim} ft.`)
+  if (m?.fly) parts.push(`Fly ${m.fly} ft.`)
+  if (m?.burrow) parts.push(`Burrow ${m.burrow} ft.`)
   return parts.join(', ') || '—'
 }
 

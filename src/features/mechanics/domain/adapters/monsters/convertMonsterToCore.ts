@@ -1,4 +1,4 @@
-import type { Monster } from "@/data/monsters/monsters.types"
+import type { Monster } from "@/features/content/monsters/domain/types"
 import { convert2eToCore } from "./2e"
 import type { EditionRule } from "../../edition"
 import { convert1eToCore } from "./1e"

@@ -1,0 +1,92 @@
+import type { AppDataGridColumn } from '@/ui/patterns';
+import type { MonsterListRow } from './monsterList.types';
+import type { MonsterAction } from '@/features/content/monsters/domain/types';
+import { formatHitPointsWithAverage } from '@/features/content/monsters/utils/formatters';
+import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
+import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass';
+
+function getActionsDisplay(actions?: MonsterAction[]): string {
+  if (!actions?.length) return '—';
+  return actions
+    .map((a) => (a.kind === 'weapon' ? a.weaponRef : a.name ?? '—'))
+    .join(', ');
+}
+
+function getBonusActionsDisplay(bonusActions?: MonsterAction[]): string {
+  if (!bonusActions?.length) return '—';
+  return bonusActions
+    .map((b) => (b.kind === 'weapon' ? b.weaponRef : b.name ?? '—'))
+    .join(', ');
+}
+
+function getTraitsDisplay(traits?: { name: string }[]): string {
+  if (!traits?.length) return '—';
+  return traits.map((t) => t.name).join(', ');
+}
+
+function getEquipmentDisplay(row: MonsterListRow): string {
+  const eq = row.mechanics?.equipment;
+  if (!eq) return '—';
+  const weapons = Object.keys(eq.weapons ?? {});
+  const armor = Object.keys(eq.armor ?? {});
+  const keys = [...weapons, ...armor];
+  return keys.length > 0 ? keys.join(', ') : '—';
+}
+
+export function buildMonsterCustomColumns(
+  armorById: Record<string, CreatureArmorCatalogEntry>,
+): AppDataGridColumn<MonsterListRow>[] {
+  return [
+    {
+      field: 'hitPoints',
+      headerName: 'Hit Points',
+      width: 120,
+      accessor: (row) => {
+        const hp = row.mechanics?.hitPoints;
+        return hp ? formatHitPointsWithAverage(hp) : '—';
+      },
+    },
+    {
+      field: 'armorClass',
+      headerName: 'Armor Class',
+      width: 100,
+      accessor: (row) => String(calculateMonsterArmorClass(row, armorById).value),
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      flex: 1,
+      minWidth: 120,
+      accessor: (row) => getActionsDisplay(row.mechanics?.actions),
+    },
+    {
+      field: 'bonusActions',
+      headerName: 'Bonus Actions',
+      flex: 1,
+      minWidth: 120,
+      accessor: (row) => getBonusActionsDisplay(row.mechanics?.bonusActions),
+    },
+    {
+      field: 'traits',
+      headerName: 'Traits',
+      flex: 1,
+      minWidth: 120,
+      accessor: (row) => getTraitsDisplay(row.mechanics?.traits),
+    },
+    {
+      field: 'challengeRating',
+      headerName: 'Challenge Rating',
+      width: 100,
+      accessor: (row) => row.lore?.challengeRating ? 
+        `${row.lore.challengeRating?.toString()}` : '—',
+        // (XP: ${row.lore.xpValue?.toLocaleString()})
+    },
+    {
+      field: 'equipment',
+      headerName: 'Equipment',
+      flex: 1,
+      minWidth: 120,
+      accessor: getEquipmentDisplay,
+    },
+  ];
+}

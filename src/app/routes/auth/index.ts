@@ -17,7 +17,12 @@ export {
   ContentManageGuard,
 } from '@/features/campaign/routes'
 export { LocationsRoute, LocationRoute } from '@/features/content/locations/routes'
-export { MonstersRoute, MonsterRoute } from '@/features/content/monsters/routes'
+export {
+  MonsterListRoute,
+  MonsterDetailRoute,
+  MonsterEditRoute,
+  MonsterCreateRoute,
+} from '@/features/content/monsters/routes'
 export {
   ClassListRoute,
   ClassDetailRoute,

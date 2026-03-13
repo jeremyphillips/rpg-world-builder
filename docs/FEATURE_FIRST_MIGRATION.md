@@ -63,8 +63,8 @@
 | 2.9 | Update `equipment/gear/domain/*` – import from `../vocab/gear.vocab` |
 | 2.10 | Update `equipment/magicItems/domain/*` – import from `../vocab/magicItems.vocab` |
 | 2.11 | Update `content/domain/index.ts` – export from `equipment/domain/vocab` for single entry point |
-| 2.12 | Update `mechanics/domain/...` – import `DamageType` from `@/features/content/equipment/weapons/domain/vocab/weapons.vocab` |
-| 2.13 | Update `character/hooks/useCombatStats.ts` – import `DamageType` from weapons vocab |
+| 2.12 | Update `mechanics/domain/...` – import `WeaponDamageType` from `@/features/content/equipment/weapons/domain/vocab/weapons.vocab` |
+| 2.13 | Update `character/hooks/useCombatStats.ts` – import `WeaponDamageType` from weapons vocab |
 | 2.14 | Update `classes/domain/...` – import `Material` from `@/features/content/equipment/armor/domain/vocab/armor.vocab` |
 
 **Acceptance:** All imports resolve. App builds. Single vocab export works via `content/domain` or `content/equipment/domain/vocab`.

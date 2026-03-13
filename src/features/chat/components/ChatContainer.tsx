@@ -17,6 +17,7 @@ import Typography from '@mui/material/Typography'
 import type { AbilityScoreMethod } from '@/features/mechanics/domain/core/rules/abilityScores.types'
 import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
+import { getSkillIds, toSkillProficienciesRecord } from '@/features/character/domain/utils/character-proficiency.utils'
 import { AppAlert } from '@/ui/primitives'
 import { abilityIdToKey, type AbilityKey } from '@/features/mechanics/domain/core/character'
 import type { AbilityId } from '@/features/mechanics/domain/core/character/abilities.types'
@@ -130,10 +131,10 @@ function mergeCharacterData(
     ? (aiResult as any).character
     : aiResult) ?? {}
 
-  const builderSkills = builderState?.proficiencies?.skills ?? []
-  const proficiencies = builderSkills.length > 0
-    ? { skills: builderSkills }
-    : (ai.proficiencies ?? { skills: [] })
+  const builderSkillIds = getSkillIds(builderState?.proficiencies)
+  const proficiencies = builderSkillIds.length > 0
+    ? { skills: toSkillProficienciesRecord(builderSkillIds) }
+    : (ai.proficiencies ?? { skills: {} })
 
   const generatedScores = resolveAbilityScores(abilityScoreMode, builderState)
 
@@ -255,7 +256,7 @@ const ChatContainer = ({ isModalOpen, onCloseModal }: ChatContainerProps) => {
         requirements: {
           minStats: { strength: 9 },
         },
-        proficiencies: { skills: [] },
+        proficiencies: { skills: {} },
         equipment: {
           weapons: s?.equipment?.weapons,
           armor: s?.equipment?.armor,

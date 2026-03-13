@@ -1,5 +1,5 @@
 import type { EditionRule1e, EditionRuleHolmes } from "@/features/mechanics/domain/edition"
-import type { Monster } from "@/data/monsters/monsters.types"
+import type { Monster } from "@/features/content/monsters/domain/types"
 import type { CoreMechanics } from "@/features/mechanics/domain/core/combat.types"
 
 // ---------------------------------------------------------------------------

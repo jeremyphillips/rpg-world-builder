@@ -153,7 +153,7 @@ Add `index.ts` to each new `domain/vocab` directory:
 - `equipment/armor/domain/forms/registry/armorForm.registry.ts`
 - `classes/domain/types/proficiencies.types.ts` (Material)
 
-**Weapons vocab** (DamageType, WeaponCategory, etc.):
+**Weapons vocab** (WeaponDamageType, WeaponCategory, etc.):
 - `equipment/weapons/domain/types/weapon.types.ts` (local `../vocab`)
 - `equipment/weapons/domain/forms/*`
 - `character/hooks/useCombatStats.ts`

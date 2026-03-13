@@ -15,6 +15,7 @@ import {
 import { type CharacterBuilderState, type StepId, type BuilderOverrides } from '../types'
 import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'
 import type { CharacterType } from '@/features/character/domain/types'
+import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
 import { ABILITY_KEYS, type AbilityScoreMap } from '@/features/mechanics/domain/core/character'
@@ -125,7 +126,7 @@ export function getStepConfig(_mode: CharacterType): StepConfig[] {
       label: 'Proficiencies',
       component: ProficiencyStep,
       selector: (state: CharacterBuilderState) =>
-        (state.proficiencies?.skills?.length ?? 0) > 0
+        getSkillIds(state.proficiencies).length > 0
     },
     {
       id: 'confirmation',
@@ -172,7 +173,7 @@ export function createInitialBuilderState(
       weight: 0
     },
     alignment: overrides?.alignment ?? undefined,
-    proficiencies: { skills: [] },
+    proficiencies: { skills: {} },
     spells: [],
     totalLevel: 0,
     wealth: {

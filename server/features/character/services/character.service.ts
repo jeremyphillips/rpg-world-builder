@@ -609,7 +609,6 @@ export async function isCampaignAdminForCharacter(
 // Re-export read-model types for consumers
 export type {
   CharacterCardSummary,
-  CharacterCardClassSummary,
   CharacterDetailDto,
 } from '../../../../src/features/character/read-model'
 

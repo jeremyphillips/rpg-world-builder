@@ -14,6 +14,7 @@ import {
   getStepConfig,
   createInitialBuilderState,
 } from '../constants'
+import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import {
   generateAbilityScores,
 } from '@/features/mechanics/domain/generation/ability-scores'
@@ -182,7 +183,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
 
     // Lock existing skill selections so edit mode only allows adding new ones
     const lockedSelections: Record<string, string[]> = {}
-    const existingSkills = character.proficiencies?.skills ?? []
+    const existingSkills = getSkillIds(character.proficiencies)
     if (existingSkills.length > 0) {
       lockedSelections['skills'] = [...existingSkills]
     }
@@ -209,7 +210,7 @@ export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
       abilityScoresStatus: deriveAbilityScoresStatus(loadedScores),
       flowMode: 'isolated',
       equipment: normalizeEquipmentInstances(character.equipment ?? { armor: [], weapons: [], gear: [], weight: 0 }),
-      proficiencies: character.proficiencies ?? { skills: [] },
+      proficiencies: character.proficiencies ?? { skills: {} },
       spells: character.spells ?? [],
       wealth: character.wealth ?? { gp: 0, sp: 0, cp: 0, baseBudget: null },
       editMode: { characterId: character._id ?? '', stepId, lockedSelections },

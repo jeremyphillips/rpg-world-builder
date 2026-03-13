@@ -1,5 +1,6 @@
 import { useCharacterBuilder } from '../../context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import type { ClassProgression } from '@/features/content/classes/domain/types'
 import type { StepId } from '../../types'
 import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
@@ -122,7 +123,7 @@ const ConfirmationStep = () => {
     (state.equipment?.gear?.length ?? 0)
 
   // Resolve skill IDs to display names
-  const selectedSkillIds = state.proficiencies?.skills ?? []
+  const selectedSkillIds = getSkillIds(state.proficiencies)
   const resolvedSkillNames = selectedSkillIds.map(id => skillProficiencyIdToName(id))
   const totalProfs = selectedSkillIds.length
 

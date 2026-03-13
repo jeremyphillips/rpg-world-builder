@@ -9,7 +9,7 @@ import {
   deleteCampaignClass,
 } from '../controllers/classes.controller';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.get('/', asyncHandler(listCampaignClasses));
 router.get('/:classId', asyncHandler(getCampaignClass));

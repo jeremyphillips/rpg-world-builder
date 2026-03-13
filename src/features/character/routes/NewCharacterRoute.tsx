@@ -44,7 +44,7 @@ export default function NewCharacterRoute() {
         xp: builderState.xp ?? 0,
         equipment: builderState.equipment,
         wealth: builderState.wealth,
-        proficiencies: builderState.proficiencies ?? { skills: [] },
+        proficiencies: builderState.proficiencies ?? { skills: {} },
         spells: builderState.spells ?? [],
       }
 

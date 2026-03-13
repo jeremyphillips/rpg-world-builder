@@ -2,6 +2,11 @@ import type { Effect } from '../effects.types'
 import type { Equipment, EquipmentLoadout, EquipmentItemInstance } from '@/features/character/domain/types'
 import { getSystemArmor } from '@/features/mechanics/domain/core/rules/systemCatalog.armor'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
+import {
+  getCreatureArmorBonusValue,
+  getCreatureArmorFormulaDefinition,
+  type CreatureArmorCatalogEntry,
+} from '@/features/mechanics/domain/core/creatureArmorClass'
 
 // ---------------------------------------------------------------------------
 // Resolved loadout (instance-aware)
@@ -105,7 +110,7 @@ export function resolveEquipmentLoadoutDetailed(
 
 function findCoreArmor(
   armorId: string,
-  armorById?: Record<string, { id: string; category: string; baseAC?: number; acBonus?: number }>,
+  armorById?: Record<string, CreatureArmorCatalogEntry>,
 ) {
   if (armorById) {
     return armorById[armorId] ?? null
@@ -115,32 +120,13 @@ function findCoreArmor(
 }
 
 function buildArmorFormulaEffect(
-  baseAC: number,
-  category: string,
+  armor: CreatureArmorCatalogEntry,
   source: string
 ): Effect {
-  if (category === 'heavy') {
-    return {
-      kind: 'formula',
-      target: 'armor_class',
-      formula: { base: baseAC },
-      source,
-    } as Effect
-  }
-
-  if (category === 'medium') {
-    return {
-      kind: 'formula',
-      target: 'armor_class',
-      formula: { base: baseAC, ability: 'dexterity', maxAbilityContribution: 2 },
-      source,
-    } as Effect
-  }
-
   return {
     kind: 'formula',
     target: 'armor_class',
-    formula: { base: baseAC, ability: 'dexterity' },
+    formula: getCreatureArmorFormulaDefinition(armor),
     source,
   } as Effect
 }
@@ -160,7 +146,7 @@ function buildArmorFormulaEffect(
  */
 export function getEquipmentEffects(
   equipment: Equipment | undefined,
-  armorById?: Record<string, { id: string; category: string; baseAC?: number; acBonus?: number }>,
+  armorById?: Record<string, CreatureArmorCatalogEntry>,
 ): Effect[] {
   const ownedArmorIds = equipment?.armor ?? []
   const effects: Effect[] = []
@@ -170,7 +156,7 @@ export function getEquipmentEffects(
     if (!item) continue
 
     if (item.category === 'shields') {
-      const bonus = item.acBonus ?? 0
+      const bonus = getCreatureArmorBonusValue(item)
       if (bonus > 0) {
         effects.push({
           kind: 'modifier',
@@ -181,9 +167,7 @@ export function getEquipmentEffects(
         })
       }
     } else {
-      const baseAC = item.baseAC ?? 10
-      const category = item.category ?? 'light'
-      effects.push(buildArmorFormulaEffect(baseAC, category, `armor:${id}`))
+      effects.push(buildArmorFormulaEffect(item, `armor:${id}`))
     }
   }
 

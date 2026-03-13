@@ -11,6 +11,9 @@ export type { AppDataGridProps, AppDataGridColumn, AppDataGridFilter, FilterOpti
 export { default as KeyValueSection } from './content/KeyValueSection/KeyValueSection'
 export type { KeyValueSectionProps, KeyValueItem } from './content/KeyValueSection/KeyValueSection'
 
+export { default as StructuredValue } from './StructuredValue/StructuredValue'
+export type { StructuredValueProps } from './StructuredValue/StructuredValue'
+
 export { default as LoadingOverlay } from './LoadingOverlay/LoadingOverlay'
 export type { LoadingOverlayProps } from './LoadingOverlay/LoadingOverlay'
 
