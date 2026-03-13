@@ -45,7 +45,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
                 {
                   id: 'fighter.battle_master.on_weapon_hit',
                   kind: 'trigger',
-                  trigger: 'on_weapon_hit',
+                  trigger: 'weapon_hit',
                   cost: { resource: 'superiority_dice', amount: 1 },
                   effects: [
                     {
@@ -205,7 +205,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
               level: 3,
               type: 'active_buff',
               action: 'action',
-              duration: '1 minute',
+              duration: { kind: 'fixed', value: 1, unit: 'minute' },
               resource: 'channel_divinity',
               effects: [{ target: 'attack_roll', stat: 'charisma', type: 'additive' }],
             },
@@ -425,7 +425,12 @@ const CLASSES_RAW: readonly CharacterClass[] = [
               kind: 'formula',
               target: 'armor_class',
               level: 1,
-              condition: { type: 'unarmored' },
+              condition: {
+                kind: 'state',
+                target: 'self',
+                property: 'equipment.armorEquipped',
+                equals: null,
+              },
               formula: { base: 13, ability: 'dexterity' },
             },
             {

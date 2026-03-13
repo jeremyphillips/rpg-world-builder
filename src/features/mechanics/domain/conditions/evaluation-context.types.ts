@@ -1,5 +1,6 @@
 import type { DieFace } from "@/features/mechanics/domain/dice/dice.types";
 import type { AbilityScoreMapResolved } from "@/features/mechanics/domain/core/character/abilities.types";
+import type { TriggerType } from "../triggers/trigger.types";
 
 export interface EvaluationContext {
   self: CreatureSnapshot
@@ -44,13 +45,7 @@ export interface CreatureSnapshot {
 }
 
 export interface EventSnapshot {
-  type:
-    | 'attack'
-    | 'hit'
-    | 'damage_taken'
-    | 'turn_start'
-    | 'turn_end'
-    | 'spell_cast'
+  type: TriggerType
 
   attack?: {
     weaponCategory?: string

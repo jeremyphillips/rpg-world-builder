@@ -8,6 +8,7 @@ import type { Effect, ModifierEffect } from '../effects.types'
 import type { StatTarget } from '../../resolution/stat-resolver'
 import { getSystemMagicItems } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
+import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types'
 
 // ---------------------------------------------------------------------------
 // Magic item loadout (minimal — no UI for equip/attune yet)
@@ -30,27 +31,33 @@ function bonusModifier(
   return { kind: 'modifier', target, mode: 'add', value: bonus, source }
 }
 
-function effectsForItem(item: { id: string; effects?: Array<{ kind: string; target?: string; value?: number }>; enhancementLevel?: number; slot: string }): Effect[] {
+function isNumericBonusEffect(
+  effect: Effect,
+): effect is Extract<Effect, { kind: 'bonus' }> {
+  return effect.kind === 'bonus' && typeof effect.value === 'number'
+}
+
+function effectsForItem(item: MagicItem): Effect[] {
   const effects: Effect[] = []
   const source = `magic_item:${item.id}`
 
   if (item.effects) {
     for (const fx of item.effects) {
-      if (fx.kind === 'bonus' && fx.value != null) {
+      if (isNumericBonusEffect(fx)) {
         effects.push(bonusModifier(fx.target as StatTarget, fx.value, source))
       }
     }
   }
 
-  if (effects.length === 0 && item.enhancementLevel && item.enhancementLevel > 0) {
+  if (effects.length === 0 && item.bonus && item.bonus > 0) {
     switch (item.slot) {
       case 'weapon':
-        effects.push(bonusModifier('attack_roll', item.enhancementLevel, source))
-        effects.push(bonusModifier('damage', item.enhancementLevel, source))
+        effects.push(bonusModifier('attack_roll', item.bonus, source))
+        effects.push(bonusModifier('damage', item.bonus, source))
         break
       case 'armor':
       case 'shield':
-        effects.push(bonusModifier('armor_class', item.enhancementLevel, source))
+        effects.push(bonusModifier('armor_class', item.bonus, source))
         break
     }
   }

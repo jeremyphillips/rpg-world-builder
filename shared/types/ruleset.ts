@@ -7,7 +7,7 @@ import type {
 } from '@/features/mechanics/domain/core/rules/ruleConfig';
 import type { WealthTier } from '@/features/content/classes/domain/types';
 import type { MagicItemRarity } from '@/features/content/equipment/magicItems/domain/types';
-import type { AbilityId } from '@/features/mechanics/domain/core/character';
+import type { AbilityRef, AbilityId } from '@/features/mechanics/domain/core/character';
 import type { XpTable } from '@/features/mechanics/domain/core/progression/xp/xp.types';
 import type { Coin } from '../money';
 
@@ -36,7 +36,7 @@ export type ClassId = string;
 export type RaceId = string;
 
 export type AbilityRequirement = {
-  ability: AbilityId;
+  ability: AbilityRef;
   min: number;
 };
 

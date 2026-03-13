@@ -1,4 +1,4 @@
-import type { CoreMechanics } from "../core/core.types"
+import type { CoreMechanics } from "../core/combat.types"
 
 // ---------------------------------------------------------------------------
 // CR estimation from core stats (rough heuristic)

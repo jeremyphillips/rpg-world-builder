@@ -59,7 +59,7 @@ export function evaluateCondition(
     }
 
     case 'event':
-      return context.event?.type === condition.event.replace(/^on_/, '')
+      return context.event?.type === condition.event
 
     default:
       return false

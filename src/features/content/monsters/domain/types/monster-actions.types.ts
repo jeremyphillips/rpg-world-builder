@@ -4,6 +4,7 @@ import type { MonsterSizeCategory } from "@/features/content/monsters/domain/voc
 import type { MonsterWeaponAction } from "./monster-equipment.types";
 import type { MonsterAttackType, AttackAbility, DamageType } from "./monster-combat.types";
 import type { MonsterOnHitEffect, MonsterEffect, MonsterActionRule, MonsterActionTrigger } from "./monster-effects.types";
+import type { EffectUses, RechargeSpec } from "@/features/mechanics/domain/effects/timing.types";
 
 export type MonsterNaturalAttackAction = {
   kind: 'natural';
@@ -47,14 +48,8 @@ export type MonsterSpecialAction = {
     targetSizeMax?: MonsterSizeCategory;
     straightTowardVisibleEnemy?: boolean;
   };
-  recharge?: {
-    min: number;
-    max: number;
-  };
-  uses?: {
-    count: number;
-    period: 'day';
-  };
+  recharge?: RechargeSpec;
+  uses?: EffectUses;
   trigger?: MonsterActionTrigger;
   halfDamageOnSave?: boolean;
   onFail?: MonsterEffect[];

@@ -1,8 +1,9 @@
 import { ABILITIES } from './abilities';
 
 export type Ability = (typeof ABILITIES)[number];
-export type AbilityId = (typeof ABILITIES)[number]['id'];
 export type AbilityKey = (typeof ABILITIES)[number]['key'];
+export type AbilityId = (typeof ABILITIES)[number]['id'];
+export type AbilityRef = AbilityId | AbilityKey;
 export type AbilityName = (typeof ABILITIES)[number]['name'];
 
 export type AbilityScoreValue =
@@ -14,6 +15,6 @@ export type AbilityScoreValue =
 
   export type AbilityScores = Record<AbilityKey, AbilityScoreValue | null>
 
-  export type AbilityScoreMap = Record<AbilityKey, AbilityScoreValue | null> | Record<AbilityId, AbilityScoreValue | null>;
+  export type AbilityScoreMap = Partial<Record<AbilityKey | AbilityId, AbilityScoreValue | null>>;
 
-  export type AbilityScoreMapResolved = Record<AbilityKey, AbilityScoreValue>  | Record<AbilityId, AbilityScoreValue>;  
+  export type AbilityScoreMapResolved = Record<AbilityKey, AbilityScoreValue>;

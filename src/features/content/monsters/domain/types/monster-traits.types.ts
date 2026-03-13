@@ -1,11 +1,12 @@
 import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
 import type { MonsterEffect, MonsterTriggeredSave } from "./monster-effects.types";
 import type { ConditionId, DamageType } from "./monster-combat.types";
+import type { EffectDuration, EffectUses } from "@/features/mechanics/domain/effects/timing.types";
 
 export type MonsterTraitActionModifier = {
   actionName: string;
   trigger: {
-    kind: 'enters-space';
+    kind: 'enters_space';
   };
   saveModifier?: 'advantage' | 'disadvantage';
 };
@@ -48,23 +49,20 @@ type MonsterVisibilityRule = {
 export type MonsterTraitRule =
   | {
       kind: 'hold-breath';
-      duration: {
-        value: number;
-        unit: 'round' | 'minute' | 'hour' | 'day';
-      };
+      duration: EffectDuration;
     }
   | {
       kind: 'tracked-part';
       part: 'head' | 'limb';
       initialCount: number;
       loss?: {
-        trigger: 'damage-taken-in-single-turn';
+        trigger: 'damage_taken_in_single_turn';
         minDamage: number;
         count: number;
       };
       deathWhenCountReaches?: number;
       regrowth?: {
-        trigger: 'end-of-turn';
+        trigger: 'turn_end';
         requiresLivingPart?: boolean;
         countPerPartLostSinceLastTurn: number;
         suppressedByDamageTypes?: DamageType[];
@@ -87,26 +85,26 @@ export type MonsterTraitRequirement =
   | { kind: 'hit-points-equals'; value: number };
 
 export type MonsterTraitTrigger =
-  | { kind: 'start-of-turn' }
-  | { kind: 'end-of-turn' }
+  | { kind: 'turn_start' }
+  | { kind: 'turn_end' }
   | {
-      kind: 'ally-near-target';
+      kind: 'ally_near_target';
       withinFeet: number;
       allyConditionNot?: ConditionId;
     }
   | {
-      kind: 'in-environment';
+      kind: 'in_environment';
       environment: 'sunlight';
     }
   | {
-      kind: 'in-form';
+      kind: 'in_form';
       form: 'object' | 'true-form';
     }
   | {
-      kind: 'while-moving-grappled-creature';
+      kind: 'while_moving_grappled_creature';
     }
   | {
-      kind: 'reduced-to-0-hp';
+      kind: 'reduced_to_0_hp';
     }
   | {
       kind: 'contact';
@@ -124,13 +122,10 @@ export type MonsterTrait = {
   checks?: MonsterTraitCheckRule[];
   containment?: MonsterContainmentRule;
   visibility?: MonsterVisibilityRule;
-  uses?: {
-    count: number;
-    period: 'day';
-  }
+  uses?: EffectUses
   suppression?: {
     ifTookDamageTypes?: DamageType[];
-    duration: 'next-turn';
+    duration: EffectDuration;
   }
   notes?: string;
 };

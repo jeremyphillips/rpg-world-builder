@@ -96,9 +96,8 @@ export function resolveWeaponAttackBonus(
   context: EvaluationContext,
   weapon: WeaponAttackInput,
   effects: Effect[],
-  options: AttackOptions = {}
+  _options: AttackOptions = {}
 ): AttackBonusResult {
-  const _hand = options.hand ?? 'main'
   const abilityUsed = pickAttackAbility(context, weapon)
   const abilityMod = getAbilityModifier(context.self, abilityUsed)
   const proficiencyBonus = getProficiencyAttackBonus(context.self.level)

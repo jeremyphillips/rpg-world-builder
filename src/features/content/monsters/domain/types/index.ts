@@ -5,4 +5,3 @@ export * from './monster-senses.types';
 export * from './monster-effects.types';
 export * from './monster-actions.types';
 export * from './monster-traits.types';
-export * from './monster-legacy-edition.types';

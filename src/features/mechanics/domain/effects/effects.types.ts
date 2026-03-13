@@ -3,18 +3,10 @@ import type { TriggerType } from '../triggers/trigger.types';
 import type { StatTarget } from '../resolution/stat-resolver';
 import type { FormulaEffect } from '../resolution/formula.engine';
 import type { DiceOrFlat } from '../dice/dice.types';
-import type { AbilityId } from '../core/character';
+import type { AbilityKey } from '../core/character';
+import type { EffectDuration } from './timing.types';
 
 export type { FormulaDefinition, FormulaEffect } from '../resolution/formula.engine';
-
-export type Duration =
-  | '1 minute'
-  | '1 hour'
-  | '1 day'
-  | '1 week'
-  | '1 month'
-  | '1 year'
-  | 'instant';
 
 export type ScalingRule = {};
 
@@ -34,7 +26,7 @@ export type EffectMeta = {
   text?: string;
   source?: string;
   condition?: Condition;
-  duration?: Duration;
+  duration?: EffectDuration;
   priority?: number;
 };
 
@@ -54,8 +46,17 @@ export type BonusEffect = EffectBase<'bonus'> & {
 // TODO: split into variants.
 export type ModifierValue =
   | number
+  | 'cold'
+  | 'fire'
+  | 'poison'
+  | 'necrotic'
+  | 'radiant'
+  | 'thunder'
+  | 'lightning'
+  | 'psychic'
+  | 'force'
   | {
-      ability?: AbilityId;
+      ability?: AbilityKey;
       perLevel?: number;
       dice?: DiceOrFlat;
       type?:

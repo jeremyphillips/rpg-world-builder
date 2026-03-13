@@ -5,7 +5,6 @@
  * custom magic items are stored in the DB and merged at runtime by the magicItemRepo.
  */
 import type { MagicItem, MagicItemFields } from '@/features/content/equipment/magicItems/domain/types';
-import type { ContentSource } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from './ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
 import type { ModifierValue } from '../../effects/effects.types';
@@ -17,7 +16,7 @@ import type { ModifierValue } from '../../effects/effects.types';
 export function toSystemMagicItem(systemId: SystemRulesetId, raw: MagicItemFields): MagicItem {
   return {
     ...raw,
-    source: 'system' as ContentSource,
+    source: 'system',
     systemId,
     patched: false,
   };

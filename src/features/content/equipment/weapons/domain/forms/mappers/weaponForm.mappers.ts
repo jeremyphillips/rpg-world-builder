@@ -69,14 +69,14 @@ export const weaponToFormValues = (weapon: Weapon): WeaponFormValues => {
 export const toWeaponInput = (values: WeaponFormValues): WeaponInput => {
   const count = toCount(values.damageDefaultCount, 1);
   const die = toDieFace(values.damageDefaultDie, 6);
-  const damageDefault = buildXdY({ count, die });
+  const damageDefault = buildXdY({ count, die }) as WeaponFields['damage']['default'];
   const damage: WeaponFields['damage'] = {
     default: damageDefault,
   };
   const vCount = toCountOrZero(values.damageVersatileCount, 0);
   if (vCount > 0) {
     const vDie = toDieFace(values.damageVersatileDie, 6);
-    damage.versatile = buildXdY({ count: vCount, die: vDie });
+    damage.versatile = buildXdY({ count: vCount, die: vDie }) as NonNullable<WeaponFields['damage']['versatile']>;
   }
 
   let range: { normal: number; long?: number; unit: 'ft' } | undefined;

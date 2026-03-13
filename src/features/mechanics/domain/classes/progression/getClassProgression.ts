@@ -24,5 +24,5 @@ export function getClassProgressionsByClass(
 ): ClassProgression[] {
   if (!classId) return []
   const cls = getSystemClass(DEFAULT_SYSTEM_RULESET_ID, classId)
-  return cls?.progression ?? []
+  return cls?.progression ? [cls.progression] : []
 }

@@ -2,6 +2,7 @@ import type { DiceOrFlat } from "@/features/mechanics/domain/dice";
 import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
 import type { MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
 import type { ConditionId, DamageType, TraitRollTarget } from "./monster-combat.types";
+import type { EffectDuration, EffectInterval } from "@/features/mechanics/domain/effects/timing.types";
 
 export type MonsterConditionEffect = {
   kind: 'condition';
@@ -93,15 +94,7 @@ export type MonsterOnHitEffect =
     damageType?: DamageType;
   };
 
-export type MonsterRuleDuration =
-  | {
-      kind: 'fixed';
-      value: number;
-      unit: 'round' | 'minute' | 'hour' | 'day';
-    }
-  | {
-      kind: 'until-end-of-source-next-turn';
-    };
+export type MonsterRuleDuration = EffectDuration;
 
 export type MonsterActionRule =
   | {
@@ -113,7 +106,7 @@ export type MonsterActionRule =
     }
   | {
       kind: 'apply-state';
-      trigger: 'on-hit' | 'on-failed-save';
+      trigger: 'hit' | 'failed_save';
       state: string;
       targetType?: 'creature';
       duration?: MonsterRuleDuration;
@@ -122,7 +115,7 @@ export type MonsterActionRule =
     }
   | {
       kind: 'duration';
-      trigger: 'on-hit' | 'on-failed-save';
+      trigger: 'hit' | 'failed_save';
       appliesTo:
         | {
             kind: 'condition';
@@ -137,15 +130,12 @@ export type MonsterActionRule =
   | {
       kind: 'interval-effect';
       state: string;
-      every: {
-        value: number;
-        unit: 'hour' | 'day';
-      };
+      every: EffectInterval;
       effects: MonsterEffect[];
     }
   | {
       kind: 'immunity-on-success';
-      trigger: 'on-successful-save';
+      trigger: 'successful_save';
       scope: 'source-action';
       duration: MonsterRuleDuration;
       notes?: string;
@@ -158,7 +148,7 @@ export type MonsterActionRule =
     };
 
 export type MonsterActionTrigger = {
-  when: 'after-dealing-damage';
+  when: 'after_damage';
   targetState?: 'bloodied';
 };
 

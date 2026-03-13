@@ -163,7 +163,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         name: "Rampage",
         description: "Immediately after dealing damage to a creature that is already Bloodied, the gnoll moves up to half its Speed and makes one Rend attack.",
         uses: { count: 1, period: "day" },
-        trigger: { when: "after-dealing-damage", targetState: "bloodied" },
+        trigger: { when: "after_damage", targetState: "bloodied" },
         movement: { upToSpeedFraction: 0.5 },
         sequence: [{ actionName: "Rend", count: 1 }],
       }],
@@ -274,7 +274,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'The creature has Advantage on attack rolls against a creature if at least one of its allies is within 5 feet of the creature and the ally doesn’t have the Incapacitated condition.',
           trigger: {
-            kind: 'ally-near-target',
+            kind: 'ally_near_target',
             withinFeet: 5,
             allyConditionNot: 'incapacitated',
           },
@@ -291,7 +291,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'While in sunlight, the kobold has Disadvantage on ability checks and attack rolls.',
           trigger: {
-            kind: 'in-environment',
+            kind: 'in_environment',
             environment: 'sunlight',
           },
           effects: [
@@ -359,7 +359,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'The creature has Advantage on attack rolls against a creature if at least one of its allies is within 5 feet of the creature and the ally doesn’t have the Incapacitated condition.',
           trigger: {
-            kind: 'ally-near-target',
+            kind: 'ally_near_target',
             withinFeet: 5,
             allyConditionNot: 'incapacitated',
           },
@@ -405,7 +405,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'If damage reduces the zombie to 0 Hit Points, it makes a Constitution saving throw...',
           trigger: {
-            kind: 'reduced-to-0-hp',
+            kind: 'reduced_to_0_hp',
           },
           save: {
             ability: 'con',
@@ -486,7 +486,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           rules: [
             {
               kind: "apply-state",
-              trigger: "on-hit",
+              trigger: "hit",
               state: "mummy-rot",
               targetType: "creature",
               ongoingEffects: [
@@ -547,18 +547,21 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             },
             {
               kind: "duration",
-              trigger: "on-failed-save",
+              trigger: "failed_save",
               appliesTo: {
                 kind: "condition",
                 condition: "frightened",
               },
               duration: {
-                kind: "until-end-of-source-next-turn",
+                kind: "until_turn_boundary",
+                subject: "source",
+                turn: "next",
+                boundary: "end",
               },
             },
             {
               kind: "immunity-on-success",
-              trigger: "on-successful-save",
+              trigger: "successful_save",
               scope: "source-action",
               duration: {
                 kind: "fixed",
@@ -631,7 +634,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         description:
           'The bugbear needn’t spend extra movement to move a creature it is grappling.',
         trigger: {
-          kind: 'while-moving-grappled-creature',
+          kind: 'while_moving_grappled_creature',
         },
         effects: [
           {
@@ -785,7 +788,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             period: 'day',
           },
           trigger: {
-            kind: 'end-of-turn',
+            kind: 'turn_end',
           },
           requirements: [
             { kind: 'self-state', state: 'bloodied' },
@@ -815,14 +818,19 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'The troll regains 15 Hit Points at the start of each of its turns. Acid or Fire damage suppresses this trait on its next turn.',
           trigger: {
-            kind: 'start-of-turn',
+            kind: 'turn_start',
           },
           effects: [
             { kind: 'hit-points', mode: 'heal', value: 15 },
           ],
           suppression: {
             ifTookDamageTypes: ['acid', 'fire'],
-            duration: 'next-turn',
+            duration: {
+              kind: 'until_turn_boundary',
+              subject: 'self',
+              turn: 'next',
+              boundary: 'end',
+            },
           },
           notes:
             'The troll dies only if it starts its turn with 0 Hit Points and does not regenerate.',
@@ -998,7 +1006,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             {
               actionName: 'Engulf',
               trigger: {
-                kind: 'enters-space',
+                kind: 'enters_space',
               },
               saveModifier: 'disadvantage',
             },
@@ -1145,7 +1153,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         description:
           'The mimic adheres to anything that touches it while in object form.',
         trigger: [
-          { kind: 'in-form', form: 'object' },
+          { kind: 'in_form', form: 'object' },
           { kind: 'contact' },
         ],
         effects: [
@@ -1316,6 +1324,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             {
               kind: "hold-breath",
               duration: {
+                kind: "fixed",
                 value: 1,
                 unit: "hour",
               },
@@ -1332,13 +1341,13 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
               part: "head",
               initialCount: 5,
               loss: {
-                trigger: "damage-taken-in-single-turn",
+                trigger: "damage_taken_in_single_turn",
                 minDamage: 25,
                 count: 1,
               },
               deathWhenCountReaches: 0,
               regrowth: {
-                trigger: "end-of-turn",
+                trigger: "turn_end",
                 requiresLivingPart: true,
                 countPerPartLostSinceLastTurn: 2,
                 suppressedByDamageTypes: ["fire"],

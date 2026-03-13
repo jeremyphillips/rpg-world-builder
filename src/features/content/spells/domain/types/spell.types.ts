@@ -2,7 +2,7 @@ import type { ClassId } from '@/shared/types/ruleset';
 import type { MagicSchool } from '@/features/content/shared/domain/vocab';
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
 import type { Visibility } from '@/shared/types/visibility';
-import type { ContentSource } from '@/features/content/shared/domain/types/content.types';
+import type { ContentItem } from '@/features/content/shared/domain/types/content.types';
 
  // later: Extract<Effect, ...>[]
 export type SpellEffects = Effect[];
@@ -20,12 +20,7 @@ export interface SpellBase {
   imageKey?: string | null;
 }
 
-export interface Spell extends SpellBase {
-  source: ContentSource;
-  campaignId?: string;
-  accessPolicy?: Visibility;
-  patched?: boolean;
-}
+export type Spell = ContentItem & SpellBase;
 
 /** Shape for create/update (omits id). */
 export type SpellInput = Omit<SpellBase, 'id'> & {
