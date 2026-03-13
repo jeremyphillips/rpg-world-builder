@@ -439,6 +439,7 @@ export const monsters: readonly Monster[] = [
           ],
         }
       ],
+      proficiencyBonus: 2,
     },
     lore: {
       alignment: "n",
@@ -487,6 +488,7 @@ export const monsters: readonly Monster[] = [
         }
       ],
       abilities: { str: 13, dex: 6, con: 16, int: 3, wis: 6, cha: 5 },
+      proficiencyBonus: 2,
       immunities: ["poison", "exhaustion"],
     },
     lore: {
@@ -494,6 +496,97 @@ export const monsters: readonly Monster[] = [
       challengeRating: 0.25,
       xpValue: 50,
       intelligence: "non",
+    },
+  },
+  {
+    id: "mummy",
+    name: "Mummy",
+    type: "undead",
+    sizeCategory: "medium",
+    languages: [{ id: "common" }],
+    description: {
+      short: "Desiccated corpses animated by dark ritual, spreading a withering curse.",
+      long: "Mummies are undead created through dark funerary rites. Their touch carries a terrible curse that prevents healing and slowly drains the victim's life force. A dreadful glare can freeze even the bravest warrior in fear.",
+    },
+    mechanics: {
+      hitPoints: {
+        count: 9,
+        die: 8,
+        modifier: 18,
+      },
+      armorClass: {
+        kind: "natural",
+        base: 12,
+        dexApplies: true,
+      },
+      movement: { ground: 20 },
+      abilities: { str: 16, dex: 8, con: 15, int: 6, wis: 12, cha: 12 },
+      savingThrows: {
+        wis: { proficiencyLevel: 1 },
+      },
+      actions: [
+        {
+          kind: "special",
+          name: "Multiattack",
+          description: "The mummy makes two Rotting Fist attacks and uses Dreadful Glare.",
+          sequence: [
+            { actionName: "Rotting Fist", count: 2 },
+            { actionName: "Dreadful Glare", count: 1 },
+          ],
+        },
+        {
+          kind: "natural",
+          name: "Rotting Fist",
+          attackType: "slam",
+          attackBonus: 5,
+          reach: 5,
+          damage: "1d10",
+          damageBonus: 3,
+          damageType: "bludgeoning",
+          onHitEffects: [
+            {
+              kind: "damage",
+              damage: "3d6",
+              damageType: "necrotic",
+            },
+          ],
+          notes:
+            "If the target is a creature, it is cursed. While cursed, the target can't regain Hit Points, its Hit Point maximum doesn't return to normal when finishing a Long Rest, and its Hit Point maximum decreases by 10 (3d6) every 24 hours. A creature dies and turns to dust if reduced to 0 Hit Points by this attack.",
+        },
+        {
+          kind: "special",
+          name: "Dreadful Glare",
+          description:
+            "Wisdom Saving Throw: DC 11, one creature the mummy can see within 60 feet. Failure: The target has the Frightened condition until the end of the mummy's next turn. Success: The target is immune to this mummy's Dreadful Glare for 24 hours.",
+          save: { ability: "wis", dc: 11 },
+          onFail: [
+            {
+              kind: "condition",
+              condition: "frightened",
+            },
+          ],
+        },
+      ],
+      senses: {
+        special: [{ type: "darkvision", range: 60 }],
+        passivePerception: 11,
+      },
+      proficiencyBonus: 2,
+      immunities: [
+        "necrotic",
+        "poison",
+        "charmed",
+        "exhaustion",
+        "frightened",
+        "paralyzed",
+        "poisoned",
+      ],
+      vulnerabilities: ["fire"],
+    },
+    lore: {
+      alignment: "le",
+      challengeRating: 3,
+      xpValue: 700,
     },
   },
   {
@@ -614,6 +707,7 @@ export const monsters: readonly Monster[] = [
           javelin: { proficiencyLevel: 1 },
         },
       },
+      proficiencyBonus: 2,
     },
     lore: {
       alignment: "ce",
@@ -1168,5 +1262,86 @@ export const monsters: readonly Monster[] = [
       xpValue: 5900,
       intelligence: "average",
     },
-  }
+  },
+  {
+    id: "hydra",
+    name: "Hydra",
+    type: "monstrosity",
+    sizeCategory: "huge",
+    languages: [],
+    description: {
+      short: "A many-headed reptilian horror that regrows heads when severed.",
+      long: "Hydras are massive reptilian creatures with multiple heads. When a head is severed, the hydra can grow two more in its place—unless it has taken fire damage. It can hold its breath for an hour and gains extra reactions for opportunity attacks based on its number of heads.",
+    },
+    mechanics: {
+      hitPoints: {
+        count: 16,
+        die: 12,
+        modifier: 80,
+      },
+      armorClass: {
+        kind: "natural",
+        base: 14,
+        dexApplies: true,
+      },
+      movement: { ground: 40, swim: 40 },
+      abilities: { str: 20, dex: 12, con: 20, int: 2, wis: 10, cha: 7 },
+      actions: [
+        {
+          kind: "special",
+          name: "Multiattack",
+          description: "The hydra makes as many Bite attacks as it has heads.",
+          sequence: [{ actionName: "Bite", count: 5 }],
+          notes: "Number of attacks equals current number of heads.",
+        },
+        {
+          kind: "natural",
+          name: "Bite",
+          attackType: "bite",
+          attackBonus: 8,
+          reach: 10,
+          damage: "1d10",
+          damageBonus: 5,
+          damageType: "piercing",
+        },
+      ],
+      traits: [
+        {
+          name: "Hold Breath",
+          description: "The hydra can hold its breath for 1 hour.",
+        },
+        {
+          name: "Multiple Heads",
+          description:
+            "The hydra has five heads. Whenever the hydra takes 25 damage or more on a single turn, one of its heads dies. The hydra dies if all its heads are dead. At the end of each of its turns when it has at least one living head, the hydra grows two heads for each of its heads that died since its last turn, unless it has taken Fire damage since its last turn. The hydra regains 20 Hit Points when it grows new heads.",
+        },
+        {
+          name: "Reactive Heads",
+          description:
+            "For each head the hydra has beyond one, it gets an extra Reaction that can be used only for Opportunity Attacks.",
+        },
+      ],
+      senses: {
+        special: [{ type: "darkvision", range: 60 }],
+        passivePerception: 16,
+      },
+      proficiencies: {
+        skills: { perception: { proficiencyLevel: 2 } },
+      },
+      proficiencyBonus: 3,
+      immunities: [
+        "blinded",
+        "charmed",
+        "deafened",
+        "frightened",
+        "stunned",
+        "unconscious",
+      ],
+    },
+    lore: {
+      alignment: "unaligned",
+      challengeRating: 8,
+      xpValue: 3900,
+    },
+  },
 ]

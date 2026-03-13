@@ -121,7 +121,8 @@ export type DamageType =
   | WeaponDamageType
   | 'fire'
   | 'acid'
-  | 'radiant';
+  | 'radiant'
+  | 'necrotic';
 
 export type MonsterNaturalAttackAction = {
   kind: 'natural';
@@ -499,6 +500,8 @@ export type ImmunityType =
   | 'blinded'
   | 'deafened'
   | 'frightened'
+  | 'paralyzed'
+  | 'poisoned'
   | 'prone'
   | 'restrained'
   | 'stunned'
@@ -506,6 +509,7 @@ export type ImmunityType =
 
 export type VulnerabilityType =
   | 'bludgeoning'
+  | 'fire'
 
 export interface MonsterFields {
   id: string
@@ -525,7 +529,6 @@ export interface MonsterFields {
       die: DieFace;
       modifier?: number;
     }
-    hitDieSize: DieFace
     armorClass: MonsterArmorClass,
     movement: MonsterMovement
     abilities?: AbilityScoreMapResolved
@@ -536,6 +539,9 @@ export interface MonsterFields {
     actions?: MonsterAction[]
     bonusActions?: MonsterAction[]
     senses?: MonsterSenses
+    // Leverage proficencyLevel to arrive at expected skill modifier.
+    // example: Perception +5 can be achieved with proficiencyLevel: 2, wis + 1 mod & proficiencyBonus: 2 
+    // (proficiencyLevel * proficiencyBonus) + mod = expected skill modifier
     proficiencies?: MonsterProficiencies
     proficiencyBonus: number
     equipment?: MonsterEquipment
@@ -552,7 +558,9 @@ export interface MonsterFields {
   }
 }
 
-export type Monster = ContentItem & MonsterFields;
+// TODO: uncomment after migration to content.
+// export type Monster = ContentItem & MonsterFields;
+export type Monster = MonsterFields;
 
 export type MonsterSummary = ContentSummary & MonsterFields & {
   /** Whether this Monster is enabled for the campaign (from content rule). */
