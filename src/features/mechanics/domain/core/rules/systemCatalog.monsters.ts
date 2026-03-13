@@ -112,7 +112,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         armor: {
           scraps: {
             armorId: "chain-shirt",
-            acModifier: -2,
+            acModifier: -1,
             aliasName: "Armor Scraps",
             notes: "Made from scrap metal and chain mail.",
           },
@@ -152,7 +152,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
     },
     mechanics: {
       hitPoints: { count: 6, die: 8 },
-      armorClass: { kind: 'equipment', armorRefs: ["hide"] },
+      armorClass: { kind: 'equipment', armorRefs: ["hide", "shield-wood"] },
       movement: { ground: 30 },
       actions: [
         { kind: "natural", name: "Rend", attackType: "claw", attackBonus: 4, reach: 5, damage: "1d6", damageBonus: 2, damageType: "piercing" },
@@ -171,7 +171,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
       proficiencyBonus: 2,
       equipment: {
         weapons: { 'bone-bow': { weaponId: "longbow", aliasName: "Bone Bow", damageOverride: "1d10", notes: "Uses a monster-specific bow profile." } },
-        armor: { hide: { armorId: "hide" } },
+        armor: { hide: { armorId: "hide" }, 'shield-wood': { armorId: "shield-wood" } },
       },
       senses: { special: [{ type: "darkvision", range: 60 }], passivePerception: 10 },
       abilities: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 },
@@ -240,9 +240,9 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
     },
     mechanics: {
       hitPoints: {
-        count: 2,
+        count: 3,
         die: 6,
-        modifier: -2
+        modifier: -3
       },
       armorClass: { kind: 'natural', base: 12, dexApplies: true },
       movement: { ground: 30 },

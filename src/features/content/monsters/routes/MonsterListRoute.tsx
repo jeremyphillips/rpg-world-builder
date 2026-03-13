@@ -28,6 +28,7 @@ import {
   buildMonsterCustomFilters,
   type MonsterListRow,
 } from '@/features/content/monsters/domain';
+import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
@@ -69,7 +70,10 @@ export default function MonsterListRoute() {
   const items = controller.items as MonsterListRow[];
   const hasCampaignSources = items.some((r) => (r as { source?: string }).source === 'campaign');
 
-  const customColumns = useMemo(() => buildMonsterCustomColumns(), []);
+  const customColumns = useMemo(
+    () => buildMonsterCustomColumns(catalog.armorById as Record<string, CreatureArmorCatalogEntry>),
+    [catalog.armorById],
+  );
   const customFilters = useMemo(() => buildMonsterCustomFilters(), []);
 
   const handleToggleAllowed = useValidatedAllowedToggle({

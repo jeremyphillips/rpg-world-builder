@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
 import type { Monster } from '@/features/content/monsters/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
@@ -10,11 +11,12 @@ import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { monsterRepo, MONSTER_DETAIL_SPECS } from '@/features/content/monsters/domain';
+import { monsterRepo, MONSTER_DETAIL_SPECS, type MonsterDetailCtx } from '@/features/content/monsters/domain';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
 
 export default function MonsterDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();
+  const { catalog } = useCampaignRules();
   const { monsterId } = useParams<{ monsterId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -42,7 +44,9 @@ export default function MonsterDetailRoute() {
   const listPath = `/campaigns/${campaignId}/world/monsters`;
   const editPath = `${listPath}/${monsterId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, {});
+  const items = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, {
+    armorById: catalog.armorById,
+  } satisfies MonsterDetailCtx);
 
   return (
     <ContentDetailScaffold

@@ -6,8 +6,12 @@ import {
   formatHitPointsWithAverage,
   formatMovement,
 } from '@/features/content/monsters/utils/formatters';
+import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
+import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass';
 
-export type MonsterDetailCtx = Record<string, never>;
+export type MonsterDetailCtx = {
+  armorById: Record<string, CreatureArmorCatalogEntry>;
+};
 
 export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
   {
@@ -55,7 +59,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     key: 'armorClass',
     label: 'Armor Class',
     order: 90,
-    render: (m) => <StructuredValue value={m.mechanics?.armorClass} />,
+    render: (m, ctx) => calculateMonsterArmorClass(m, ctx.armorById).value,
   },
   {
     key: 'movement',

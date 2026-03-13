@@ -2,6 +2,8 @@ import type { AppDataGridColumn } from '@/ui/patterns';
 import type { MonsterListRow } from './monsterList.types';
 import type { MonsterAction } from '@/features/content/monsters/domain/types';
 import { formatHitPointsWithAverage } from '@/features/content/monsters/utils/formatters';
+import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
+import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass';
 
 function getActionsDisplay(actions?: MonsterAction[]): string {
   if (!actions?.length) return '—';
@@ -12,7 +14,9 @@ function getActionsDisplay(actions?: MonsterAction[]): string {
 
 function getBonusActionsDisplay(bonusActions?: MonsterAction[]): string {
   if (!bonusActions?.length) return '—';
-  return bonusActions.map((b) => b.name ?? '—').join(', ');
+  return bonusActions
+    .map((b) => (b.kind === 'weapon' ? b.weaponRef : b.name ?? '—'))
+    .join(', ');
 }
 
 function getTraitsDisplay(traits?: { name: string }[]): string {
@@ -29,7 +33,9 @@ function getEquipmentDisplay(row: MonsterListRow): string {
   return keys.length > 0 ? keys.join(', ') : '—';
 }
 
-export function buildMonsterCustomColumns(): AppDataGridColumn<MonsterListRow>[] {
+export function buildMonsterCustomColumns(
+  armorById: Record<string, CreatureArmorCatalogEntry>,
+): AppDataGridColumn<MonsterListRow>[] {
   return [
     {
       field: 'hitPoints',
@@ -44,7 +50,7 @@ export function buildMonsterCustomColumns(): AppDataGridColumn<MonsterListRow>[]
       field: 'armorClass',
       headerName: 'Armor Class',
       width: 100,
-      accessor: () => '', // Empty for now, will calculate later
+      accessor: (row) => String(calculateMonsterArmorClass(row, armorById).value),
     },
     {
       field: 'actions',
