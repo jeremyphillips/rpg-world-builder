@@ -1,5 +1,6 @@
 export { 
   formatAttacks, 
+  formatMonsterArmorClassBreakdown,
   formatMovement, 
   formatHitDice, 
   formatMorale, 
