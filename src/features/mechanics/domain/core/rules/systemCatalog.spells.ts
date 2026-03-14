@@ -446,14 +446,20 @@ const SPELLS_RAW: readonly SpellBase[] = [
   },
 ];
 
-function withSource<T extends Record<string, unknown>>(
-  s: T,
-): T & { source: 'system' } {
-  return { ...s, source: 'system' as const };
+function toSystemSpell(
+  spell: SpellBase,
+  systemId: SystemRulesetId,
+): Spell {
+  return {
+    ...spell,
+    source: 'system',
+    systemId,
+    patched: false,
+  };
 }
 
 const SYSTEM_SPELLS_SRD_CC_V5_2_1: readonly Spell[] = SPELLS_RAW.map(
-  (s) => withSource(s) as Spell,
+  (s) => toSystemSpell(s, DEFAULT_SYSTEM_RULESET_ID),
 );
 
 // ---------------------------------------------------------------------------

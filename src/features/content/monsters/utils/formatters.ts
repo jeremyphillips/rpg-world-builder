@@ -1,4 +1,8 @@
 type EditionRule = any
+import type {
+  CreatureArmorClassBreakdownPart,
+  CreatureArmorClassResult,
+} from '@/features/mechanics/domain/core/creatureArmorClass'
 
 /** Hit Points: {count}d{die}{modifier} e.g. 3d6+4 */
 export function formatHitPoints(m: {
@@ -29,7 +33,9 @@ export function formatHitPointsWithAverage(m: {
 
 export function formatAttacks(attacks: EditionRule['mechanics']['attacks']): string {
   if (!attacks?.length) return '—'
-  return attacks.map((a) => `${a.name} (${a.dice})`).join(', ')
+  return attacks
+    .map((a: { name?: string; dice?: string }) => `${a.name} (${a.dice})`)
+    .join(', ')
 }
 
 export function formatMovement(m: EditionRule['mechanics']['movement']): string {
@@ -79,4 +85,59 @@ export function formatNumberAppearing(na: unknown): string {
     return `${n.min}–${n.max}`
   }
   return '—'
+}
+
+function normalizeArmorClassLabel(part: CreatureArmorClassBreakdownPart): string {
+  if (part.kind === 'modifier' && part.label.startsWith('Shield')) {
+    return 'Shield'
+  }
+
+  return part.label
+}
+
+function formatArmorClassPart(part: CreatureArmorClassBreakdownPart): string {
+  const label = normalizeArmorClassLabel(part)
+
+  if (part.kind === 'base' || part.kind === 'override') {
+    return `${label} ${part.value}`
+  }
+
+  return `${label} ${Math.abs(part.value)}`
+}
+
+export function formatMonsterArmorClassBreakdown(
+  result: CreatureArmorClassResult,
+  options?: {
+    includePrefix?: boolean
+  },
+): string {
+  const includePrefix = options?.includePrefix ?? true
+  const visibleParts = result.breakdown.parts.filter((part) => {
+    if (part.kind === 'base' || part.kind === 'override') return true
+    return part.value !== 0
+  })
+
+  const orderedParts = [
+    ...visibleParts.filter((part) => part.kind === 'base' || part.kind === 'override'),
+    ...visibleParts.filter((part) => part.kind === 'modifier'),
+    ...visibleParts.filter((part) => part.kind === 'dex'),
+  ]
+
+  if (orderedParts.length === 0) {
+    return includePrefix ? `AC ${result.value}` : String(result.value)
+  }
+
+  const [firstPart, ...restParts] = orderedParts
+  const breakdown = [
+    formatArmorClassPart(firstPart),
+    ...restParts.map((part) =>
+      `${part.value < 0 ? '-' : '+'} ${formatArmorClassPart(part)}`,
+    ),
+  ].join(' ')
+
+  if (!includePrefix) {
+    return `${result.value} (${breakdown})`
+  }
+
+  return `AC ${result.value} (${breakdown})`
 }

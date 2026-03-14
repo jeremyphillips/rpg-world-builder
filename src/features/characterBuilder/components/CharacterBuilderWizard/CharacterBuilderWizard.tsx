@@ -36,7 +36,6 @@ const CharacterBuilderWizard = ({
   onGenerate,
   isGenerating = false,
   hitPointMode = 'average',
-  abilityScoreMode = 'default',
   editStepId,
   onSave,
   onCancel,

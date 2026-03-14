@@ -1,9 +1,10 @@
 import type { DiceOrFlat } from "@/features/mechanics/domain/dice";
 import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
+import type { Effect } from "@/features/mechanics/domain/effects/effects.types";
 import type { MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
 import type { MonsterWeaponAction } from "./monster-equipment.types";
 import type { MonsterAttackType, AttackAbility, DamageType } from "./monster-combat.types";
-import type { MonsterOnHitEffect, MonsterEffect, MonsterActionRule, MonsterActionTrigger } from "./monster-effects.types";
+import type { EffectUses, RechargeSpec } from "@/features/mechanics/domain/effects/timing.types";
 
 export type MonsterNaturalAttackAction = {
   kind: 'natural';
@@ -17,8 +18,7 @@ export type MonsterNaturalAttackAction = {
   notes?: string;
   attackAbilityOverride?: AttackAbility;
   damageAbilityOverride?: AttackAbility | null;
-  onHitEffects?: MonsterOnHitEffect[];
-  rules?: MonsterActionRule[];
+  onHitEffects?: Effect[];
 };
 
 export type MonsterSpecialAction = {
@@ -47,20 +47,12 @@ export type MonsterSpecialAction = {
     targetSizeMax?: MonsterSizeCategory;
     straightTowardVisibleEnemy?: boolean;
   };
-  recharge?: {
-    min: number;
-    max: number;
-  };
-  uses?: {
-    count: number;
-    period: 'day';
-  };
-  trigger?: MonsterActionTrigger;
+  recharge?: RechargeSpec;
+  uses?: EffectUses;
   halfDamageOnSave?: boolean;
-  onFail?: MonsterEffect[];
-  onSuccess?: MonsterEffect[];
-  effects?: MonsterEffect[];
-  rules?: MonsterActionRule[];
+  onFail?: Effect[];
+  onSuccess?: Effect[];
+  effects?: Effect[];
   sequence?: {
     actionName: string,
     count: number

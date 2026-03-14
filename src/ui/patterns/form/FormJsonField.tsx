@@ -103,6 +103,7 @@ function FormJsonFieldInner({
       label={label}
       value={text}
       onChange={handleChange}
+      disabled={disabled}
       placeholder={placeholder}
       helperText={fieldState.error?.message ?? helperText}
       minRows={minRows}

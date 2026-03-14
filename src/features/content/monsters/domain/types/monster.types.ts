@@ -5,7 +5,7 @@ import type {
   ContentItem,
   ContentInput,
 } from '@/features/content/shared/domain/types/content.types';
-import type { AbilityScoreMapResolved } from "@/features/mechanics/domain/core/character/abilities.types";
+import type { AbilityScoreMap } from "@/features/mechanics/domain/core/character/abilities.types";
 import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
 import type { AlignmentId } from "@/features/content/shared/domain/types";
 import type { MonsterType, MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
@@ -83,7 +83,7 @@ export interface MonsterFields {
     };
     armorClass: MonsterArmorClass;
     movement: MonsterMovement;
-    abilities?: AbilityScoreMapResolved;
+    abilities?: AbilityScoreMap;
     savingThrows?: Partial<Record<AbilityId, ProficiencySkillAdjustment>>;
     traits?: MonsterTrait[];
     actions?: MonsterAction[];

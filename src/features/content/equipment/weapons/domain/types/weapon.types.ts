@@ -18,7 +18,15 @@ import type { DiceOrFlat } from '@/features/mechanics/domain/dice';
 export type { WeaponCategory, WeaponMode, WeaponProperty, WeaponDamageType };
 
 /** TODO: decide whether to show mastery. Leave for now */
-// export type Mastery = 'slow' | 'nick' | 'push' | 'vex' | 'sap' | 'topple' | 'graze';
+export type WeaponMastery =
+  | 'slow'
+  | 'nick'
+  | 'push'
+  | 'vex'
+  | 'sap'
+  | 'topple'
+  | 'graze'
+  | 'cleave';
 
 export interface WeaponFields extends EquipmentBase {
   cost: Money;
@@ -28,8 +36,7 @@ export interface WeaponFields extends EquipmentBase {
   properties: WeaponProperty[];
   damage: { default: DiceOrFlat; versatile?: DiceOrFlat };
   damageType: WeaponDamageType;
-  /** TODO: decide whether to show mastery */
-  // mastery: string;
+  mastery?: WeaponMastery;
 }
 
 /** Canonical weapon content item */

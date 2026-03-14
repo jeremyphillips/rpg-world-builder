@@ -80,7 +80,6 @@ function setAtPath(
   for (let i = 0; i < segments.length - 1; i++) {
     const seg = segments[i];
     const nextSeg = segments[i + 1];
-    const nextKey = segments[i + 1];
     let next = current[seg];
     if (next == null || typeof next !== 'object') {
       next = /^\d+$/.test(nextSeg) ? [] : {};

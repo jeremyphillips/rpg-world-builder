@@ -11,6 +11,7 @@ import type { CampaignRulesetPatch } from './ruleset.types';
 import type {
   ClassEntryRequirement,
   AbilityRequirementGroup,
+  AbilityRequirement,
   ClassId,
 } from '@/shared/types/ruleset';
 
@@ -70,7 +71,7 @@ function normalizeRequirementGroup(
     .map(item => ({
       ability: typeof item.ability === 'string' ? item.ability.trim() : '',
       min: typeof item.min === 'number' ? item.min : Number(item.min),
-    }))
+    }) as AbilityRequirement)
     .filter(item => item.ability.length > 0 && Number.isFinite(item.min));
 
   if (cleaned.length === 0) return undefined;

@@ -31,28 +31,22 @@ export const MAGIC_ITEM_DETAIL_SPECS: DetailSpec<MagicItem, MagicItemDetailCtx>[
     render: (item) => (item.requiresAttunement ? 'Yes' : 'No'),
   },
   {
-    key: 'bonus',
-    label: 'Bonus',
-    order: 50,
-    render: (item) => (item.bonus != null ? `+${item.bonus}` : '—'),
-  },
-  {
     key: 'charges',
     label: 'Charges',
-    order: 60,
+    order: 50,
     render: (item) => (item.charges != null ? String(item.charges) : '—'),
   },
   {
     key: 'weight',
     label: 'Weight',
-    order: 90,
+    order: 80,
     render: (item) =>
       item.weight ? `${item.weight.value} ${item.weight.unit}` : '—',
   },
   {
     key: 'source',
     label: 'Source',
-    order: 100,
+    order: 90,
     render: (item) => (
       <AppBadge
         label={item.source}

@@ -31,6 +31,7 @@ export const WEAPON_DAMAGE_TYPE_OPTIONS = [
   { value: 'bludgeoning', label: 'Bludgeoning' },
   { value: 'piercing', label: 'Piercing' },
   { value: 'slashing', label: 'Slashing' },
+  { value: 'none', label: 'None' },
 ] as const;
 
 export type WeaponDamageType = (typeof WEAPON_DAMAGE_TYPE_OPTIONS)[number]['value'];

@@ -4,6 +4,7 @@ import { AppBadge } from '@/ui/primitives';
 import { StructuredValue, VisibilityBadge } from '@/ui/patterns';
 import {
   formatHitPointsWithAverage,
+  formatMonsterArmorClassBreakdown,
   formatMovement,
 } from '@/features/content/monsters/utils/formatters';
 import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
@@ -59,7 +60,11 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     key: 'armorClass',
     label: 'Armor Class',
     order: 90,
-    render: (m, ctx) => calculateMonsterArmorClass(m, ctx.armorById).value,
+    render: (m, ctx) =>
+      formatMonsterArmorClassBreakdown(
+        calculateMonsterArmorClass(m, ctx.armorById),
+        { includePrefix: false },
+      ),
   },
   {
     key: 'movement',

@@ -109,7 +109,7 @@ const ClassStep = () => {
   /* ---------- Primary class options ---------- */
   const classOptions = Object.values(catalog.classesById)
     .map(cls => {
-      const { allowed } = evaluateClassEligibility(cls.id, state, classesById)
+      const { allowed } = evaluateClassEligibility(cls.id, state)
       return {
         id: cls.id,
         label: cls.name,
@@ -119,7 +119,7 @@ const ClassStep = () => {
 
   const primaryClassSelected = Boolean(selectedClasses[0]?.classId)
 
-  const restrictionNotes = getClassRestrictionNotes(Object.keys(classesById), classesById)
+  const restrictionNotes = getClassRestrictionNotes(Object.keys(classesById))
 
   const classNotices = stepNotices.get('class') ?? []
 
@@ -287,13 +287,6 @@ const ClassStep = () => {
                         <Box sx={{ mt: 2, p: 1.5, bgcolor: 'action.hover', borderRadius: 1 }}>
                           <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap alignItems="center">
                             <Chip label={`Hit Die: ${formatHitDie(prog)}`} size="small" variant="outlined" />
-                            {prog.role && (
-                              <Chip
-                                label={`${prog.role}${prog.powerSource ? ` (${prog.powerSource})` : ''}`}
-                                size="small"
-                                variant="outlined"
-                              />
-                            )}
                             {spellLabel && <Chip label={spellLabel} size="small" variant="outlined" />}
                             {savesLabel && <Chip label={`Saves: ${savesLabel}`} size="small" variant="outlined" />}
                           </Stack>

@@ -3,6 +3,7 @@ import { getSystemArmor } from '@/features/mechanics/domain/core/rules/systemCat
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
 import { resolveStat } from '@/features/mechanics/domain/resolution/stat-resolver'
 import type { EvaluationContext } from '@/features/mechanics/domain/conditions/evaluation-context.types'
+import type { AbilityScoreValue } from '@/features/mechanics/domain/core/character/abilities.types'
 import { getEquipmentEffects, selectActiveEquipmentEffects } from './equipment-to-effects'
 
 function buildArmorById() {
@@ -11,7 +12,7 @@ function buildArmorById() {
   )
 }
 
-function buildContext(dexterity: number): EvaluationContext {
+function buildContext(dexterity: AbilityScoreValue): EvaluationContext {
   return {
     self: {
       id: 'test-character',

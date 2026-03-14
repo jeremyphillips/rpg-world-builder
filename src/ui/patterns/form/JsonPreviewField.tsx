@@ -7,6 +7,7 @@ type JsonPreviewFieldProps = {
   label: string;
   value: string;
   onChange: (next: string) => void;
+  disabled?: boolean;
   placeholder?: string;
   helperText?: string;
   minRows?: number;
@@ -22,6 +23,7 @@ const JsonPreviewField = ({
   label,
   value,
   onChange,
+  disabled = false,
   placeholder,
   helperText,
   minRows = 4,
@@ -62,6 +64,7 @@ const JsonPreviewField = ({
         size={size}
         placeholder={placeholder}
         value={value}
+        disabled={disabled}
         onChange={e => onChange(e.target.value)}
         error={error || !!jsonError}
         helperText={jsonError ?? helperText}
@@ -72,6 +75,7 @@ const JsonPreviewField = ({
           size="small"
           variant="text"
           sx={{ mt: 0.5 }}
+          disabled={disabled}
           onClick={() => onChange(placeholder!)}
         >
           {insertExampleLabel}

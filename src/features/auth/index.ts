@@ -1,2 +1,2 @@
-export * from './invite'
+export * from './routes'
 export * from './register'

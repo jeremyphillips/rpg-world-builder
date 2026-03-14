@@ -1,4 +1,7 @@
-import type { LoreBase } from "../../edition/shared/monster.types"
+type LoreBase = {
+  alignment?: string
+  xpValue?: number
+}
 
 export interface LoreClassicDnD extends LoreBase {
   numberAppearing?: { wandering: string; lair: string } // dice expressions

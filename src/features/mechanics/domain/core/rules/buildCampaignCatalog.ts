@@ -200,7 +200,15 @@ export function buildCampaignCatalog(
     result[allByIdField] = allById
     result[allowedIdsField] = Array.from(allowedSet)
 
-    if (process.env.NODE_ENV === 'development') {
+    const env = (
+      globalThis as typeof globalThis & {
+        process?: {
+          env?: Record<string, string | undefined>
+        }
+      }
+    ).process?.env
+
+    if (env?.NODE_ENV === 'development') {
       const allCount = Object.keys(allById).length
       const byIdCount = Object.keys(allowedById).length
       if (allCount < byIdCount) {

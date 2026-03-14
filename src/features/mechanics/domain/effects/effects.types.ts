@@ -3,18 +3,12 @@ import type { TriggerType } from '../triggers/trigger.types';
 import type { StatTarget } from '../resolution/stat-resolver';
 import type { FormulaEffect } from '../resolution/formula.engine';
 import type { DiceOrFlat } from '../dice/dice.types';
-import type { AbilityId } from '../core/character';
+import type { AbilityKey, AbilityRef } from '../core/character';
+import type { EffectDuration } from './timing.types';
+import type { WeaponDamageType } from '@/features/content/equipment/weapons/domain/vocab';
+import type { MonsterSizeCategory } from '@/features/content/monsters/domain/vocab/monster.vocab';
 
 export type { FormulaDefinition, FormulaEffect } from '../resolution/formula.engine';
-
-export type Duration =
-  | '1 minute'
-  | '1 hour'
-  | '1 day'
-  | '1 week'
-  | '1 month'
-  | '1 year'
-  | 'instant';
 
 export type ScalingRule = {};
 
@@ -23,7 +17,30 @@ export type ResourceCost = {
   amount: number;
 };
 
+export type ActivationKind = 'action' | 'bonus_action' | 'reaction' | 'special';
+export type SaveDcSpec = number | { kind: '5-plus-damage-taken' };
+
 export type EffectMode = 'add' | 'set' | 'multiply';
+
+export type EffectConditionId =
+  | 'blinded'
+  | 'charmed'
+  | 'deafened'
+  | 'frightened'
+  | 'grappled'
+  | 'incapacitated'
+  | 'invisible'
+  | 'paralyzed'
+  | 'petrified'
+  | 'poisoned'
+  | 'prone'
+  | 'restrained'
+  | 'stunned'
+  | 'unconscious';
+
+export type ConditionImmunityId = EffectConditionId | 'exhaustion';
+export type EffectDamageType = WeaponDamageType | 'acid' | DamageTypeModifierValue;
+export type EffectSizeCategory = MonsterSizeCategory;
 
 /**
  * Shared optional metadata for every effect.
@@ -34,7 +51,7 @@ export type EffectMeta = {
   text?: string;
   source?: string;
   condition?: Condition;
-  duration?: Duration;
+  duration?: EffectDuration;
   priority?: number;
 };
 
@@ -46,29 +63,44 @@ export type CustomEffect = EffectBase<'custom'> & {
   params?: Record<string, unknown>;
 };
 
-export type BonusEffect = EffectBase<'bonus'> & {
-  target: StatTarget;
-  value: number;
+export type DamageTypeModifierValue =
+  | 'cold'
+  | 'fire'
+  | 'poison'
+  | 'necrotic'
+  | 'radiant'
+  | 'thunder'
+  | 'lightning'
+  | 'psychic'
+  | 'force';
+
+export type AbilityModifierValue = {
+  ability: AbilityKey;
+  perLevel?: never;
+  dice?: never;
+  type?: never;
 };
 
-// TODO: split into variants.
+export type PerLevelModifierValue = {
+  perLevel: number;
+  ability?: never;
+  dice?: never;
+  type?: never;
+};
+
+export type DiceModifierValue = {
+  dice: DiceOrFlat;
+  type?: DamageTypeModifierValue;
+  ability?: never;
+  perLevel?: never;
+};
+
 export type ModifierValue =
   | number
-  | {
-      ability?: AbilityId;
-      perLevel?: number;
-      dice?: DiceOrFlat;
-      type?:
-        | 'cold'
-        | 'fire'
-        | 'poison'
-        | 'necrotic'
-        | 'radiant'
-        | 'thunder'
-        | 'lightning'
-        | 'psychic'
-        | 'force';
-    };
+  | DamageTypeModifierValue
+  | AbilityModifierValue
+  | PerLevelModifierValue
+  | DiceModifierValue;
 
 export type ModifierEffect = EffectBase<'modifier'> & {
   target: StatTarget;
@@ -82,10 +114,17 @@ export type ProficiencyGrantValue = {
   items?: string[];
 };
 
-export type GrantEffect = EffectBase<'grant'> & {
-  grantType: 'proficiency' | 'action' | 'spell' | 'condition_immunity';
-  value: ProficiencyGrantValue[] | unknown;
+export type ProficiencyGrantEffect = EffectBase<'grant'> & {
+  grantType: 'proficiency';
+  value: ProficiencyGrantValue[];
 };
+
+export type ConditionImmunityGrantEffect = EffectBase<'grant'> & {
+  grantType: 'condition_immunity';
+  value: ConditionImmunityId;
+};
+
+export type GrantEffect = ProficiencyGrantEffect | ConditionImmunityGrantEffect;
 
 export type ResourceEffect = EffectBase<'resource'> & {
   resource: {
@@ -102,6 +141,200 @@ export type TriggeredEffect = EffectBase<'trigger'> & {
   cost?: ResourceCost;
 };
 
+export type SaveEffect = EffectBase<'save'> & {
+  save: {
+    ability: AbilityRef;
+    dc?: SaveDcSpec;
+  };
+  onFail: Effect[];
+  onSuccess?: Effect[];
+};
+
+export type CheckEffect = EffectBase<'check'> & {
+  name?: string;
+  actor: 'nearby-creature';
+  distanceFeet?: number;
+  actionRequired?: boolean;
+  check: {
+    ability: AbilityRef;
+    skill?: string;
+    dc: number;
+  };
+  target?: 'creature-inside' | 'object-inside';
+  onSuccess?: Effect[];
+  onFail?: Effect[];
+};
+
+export type ConditionEffect = EffectBase<'condition'> & {
+  conditionId: EffectConditionId;
+  targetSizeMax?: EffectSizeCategory;
+  escapeDc?: number;
+  escapeCheckDisadvantage?: boolean;
+};
+
+export type ActivationEffect = EffectBase<'activation'> & {
+  activation: ActivationKind;
+  effects: Effect[];
+  cost?: ResourceCost;
+};
+
+export type DamageEffect = EffectBase<'damage'> & {
+  damage: DiceOrFlat;
+  damageType?: EffectDamageType;
+};
+
+export type RollModifierEffect = EffectBase<'roll_modifier'> & {
+  appliesTo: string | string[];
+  modifier: 'advantage' | 'disadvantage';
+};
+
+export type ContainmentEffect = EffectBase<'containment'> & {
+  fillsEntireSpace?: boolean;
+  canContainCreatures?: boolean;
+  creatureCover?: 'total-cover';
+  capacity?: {
+    large?: number;
+    mediumOrSmall?: number;
+  };
+};
+
+export type VisibilityRuleEffect = EffectBase<'visibility_rule'> & {
+  transparent?: boolean;
+  noticeCheck?: {
+    ability: AbilityRef;
+    skill?: string;
+    dc: number;
+    unlessWitnessedMoveOrAction?: boolean;
+  };
+};
+
+export type StateEffect = EffectBase<'state'> & {
+  stateId: string;
+  targetSizeMax?: EffectSizeCategory;
+  escape?: {
+    dc: number;
+    ability?: AbilityRef;
+    skill?: string;
+    actionRequired?: boolean;
+  };
+  ongoingEffects?: Effect[];
+  notes?: string;
+};
+
+export type TargetingEffect = EffectBase<'targeting'> & {
+  target: 'one-creature' | 'creatures-in-area' | 'creatures-entered-during-move';
+  targetType?: 'creature';
+  rangeFeet?: number;
+  requiresSight?: boolean;
+  area?: {
+    kind: 'cone' | 'sphere' | 'line' | 'square' | 'cylinder' | 'cube';
+    size: number;
+  };
+};
+
+export type IntervalEffect = EffectBase<'interval'> & {
+  stateId: string;
+  every: {
+    value: number;
+    unit: 'turn' | 'round' | 'minute' | 'hour' | 'day';
+  };
+  effects: Effect[];
+};
+
+export type ImmunityEffect = EffectBase<'immunity'> & {
+  scope: 'source-action';
+  duration: EffectDuration;
+  notes?: string;
+};
+
+export type DeathOutcomeEffect = EffectBase<'death_outcome'> & {
+  trigger: 'reduced-to-0-hit-points-by-this-action';
+  targetType?: 'creature';
+  outcome: 'turns-to-dust';
+};
+
+export type HoldBreathEffect = EffectBase<'hold_breath'> & {
+  duration: EffectDuration;
+};
+
+type TrackedPartDefinition = {
+  initialCount: number;
+  loss?: {
+    trigger: 'damage_taken_in_single_turn';
+    minDamage: number;
+    count: number;
+  };
+  deathWhenCountReaches?: number;
+  regrowth?: {
+    trigger: 'turn_end';
+    requiresLivingPart?: boolean;
+    countPerPartLostSinceLastTurn: number;
+    suppressedByDamageTypes?: EffectDamageType[];
+    healHitPoints?: number;
+  };
+  change?: never;
+};
+
+type TrackedPartChange = {
+  change: {
+    mode: 'sever' | 'grow';
+    count: number;
+  };
+  initialCount?: never;
+  loss?: never;
+  deathWhenCountReaches?: never;
+  regrowth?: never;
+};
+
+export type TrackedPartEffect = EffectBase<'tracked_part'> & {
+  part: 'head' | 'limb';
+} & (TrackedPartDefinition | TrackedPartChange);
+
+export type ExtraReactionEffect = EffectBase<'extra_reaction'> & {
+  appliesTo: 'opportunity-attacks-only';
+  count: {
+    kind: 'per-part-beyond';
+    part: 'head' | 'limb';
+    baseline: number;
+  };
+};
+
+export type MoveEffect = EffectBase<'move'> & {
+  distance?: number;
+  upToSpeedFraction?: 0.5 | 1;
+  forced?: boolean;
+  toNearestUnoccupiedSpace?: boolean;
+  withinFeetOfSource?: number;
+  failIfNoSpace?: boolean;
+  movesWithSource?: boolean;
+  ignoresExtraCostForGrappledCreature?: boolean;
+};
+
+export type ActionEffect = EffectBase<'action'> & {
+  action: string;
+};
+
+export type FormEffect = EffectBase<'form'> & {
+  form: 'true-form' | 'object';
+  allowedSizes?: EffectSizeCategory[];
+  canReturnToTrueForm?: boolean;
+  retainsStatistics?: boolean;
+  equipmentTransforms?: boolean;
+  notes?: string;
+};
+
+export type SpawnEffect = EffectBase<'spawn'> & {
+  creature: string;
+  count: number;
+  location: 'self-space' | 'self-cell';
+  actsWhen: 'immediately-after-source-turn';
+};
+
+export type HitPointsEffect = EffectBase<'hit_points'> & {
+  mode: 'heal' | 'damage';
+  value: number;
+};
+
 export type AuraEffect = EffectBase<'aura'> & {
   range: number;
   affects: 'allies' | 'enemies' | 'self';
@@ -114,12 +347,32 @@ export type NoteEffect = EffectBase<'note'> & {
 };
 
 export type Effect =
-  | BonusEffect
   | ModifierEffect
   | FormulaEffect
   | GrantEffect
   | ResourceEffect
   | TriggeredEffect
+  | SaveEffect
+  | CheckEffect
+  | ConditionEffect
+  | ActivationEffect
+  | DamageEffect
+  | RollModifierEffect
+  | ContainmentEffect
+  | VisibilityRuleEffect
+  | StateEffect
+  | TargetingEffect
+  | IntervalEffect
+  | ImmunityEffect
+  | DeathOutcomeEffect
+  | HoldBreathEffect
+  | TrackedPartEffect
+  | ExtraReactionEffect
+  | MoveEffect
+  | ActionEffect
+  | FormEffect
+  | SpawnEffect
+  | HitPointsEffect
   | AuraEffect
   | NoteEffect
   | CustomEffect;

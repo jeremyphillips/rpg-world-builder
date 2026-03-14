@@ -25,11 +25,11 @@ export const SYSTEM_ENHANCEMENT_TEMPLATES: EnchantmentTemplate[] = [
     requiresAttunement: false,
     effectsBySlot: {
       weapon: [
-        { kind: 'bonus', target: 'attack_roll', value: 1 },
-        { kind: 'bonus', target: 'damage', value: 1 },
+        { kind: 'modifier', target: 'attack_roll', mode: 'add', value: 1 },
+        { kind: 'modifier', target: 'damage', mode: 'add', value: 1 },
       ],
-      armor:  [{ kind: 'bonus', target: 'armor_class', value: 1 }],
-      shield: [{ kind: 'bonus', target: 'armor_class', value: 1 }],
+      armor:  [{ kind: 'modifier', target: 'armor_class', mode: 'add', value: 1 }],
+      shield: [{ kind: 'modifier', target: 'armor_class', mode: 'add', value: 1 }],
     },
   },
   {
@@ -44,11 +44,11 @@ export const SYSTEM_ENHANCEMENT_TEMPLATES: EnchantmentTemplate[] = [
     requiresAttunement: false,
     effectsBySlot: {
       weapon: [
-        { kind: 'bonus', target: 'attack_roll', value: 2 },
-        { kind: 'bonus', target: 'damage', value: 2 },
+        { kind: 'modifier', target: 'attack_roll', mode: 'add', value: 2 },
+        { kind: 'modifier', target: 'damage', mode: 'add', value: 2 },
       ],
-      armor:  [{ kind: 'bonus', target: 'armor_class', value: 2 }],
-      shield: [{ kind: 'bonus', target: 'armor_class', value: 2 }],
+      armor:  [{ kind: 'modifier', target: 'armor_class', mode: 'add', value: 2 }],
+      shield: [{ kind: 'modifier', target: 'armor_class', mode: 'add', value: 2 }],
     },
   },
   {
@@ -63,11 +63,11 @@ export const SYSTEM_ENHANCEMENT_TEMPLATES: EnchantmentTemplate[] = [
     requiresAttunement: false,
     effectsBySlot: {
       weapon: [
-        { kind: 'bonus', target: 'attack_roll', value: 3 },
-        { kind: 'bonus', target: 'damage', value: 3 },
+        { kind: 'modifier', target: 'attack_roll', mode: 'add', value: 3 },
+        { kind: 'modifier', target: 'damage', mode: 'add', value: 3 },
       ],
-      armor:  [{ kind: 'bonus', target: 'armor_class', value: 3 }],
-      shield: [{ kind: 'bonus', target: 'armor_class', value: 3 }],
+      armor:  [{ kind: 'modifier', target: 'armor_class', mode: 'add', value: 3 }],
+      shield: [{ kind: 'modifier', target: 'armor_class', mode: 'add', value: 3 }],
     },
   },
 ];

@@ -1,4 +1,4 @@
-import type { Effect, GrantEffect, ProficiencyGrantValue } from '../effects/effects.types'
+import type { Effect, ProficiencyGrantEffect } from '../effects/effects.types'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -20,12 +20,8 @@ export type EquipmentEligibility = {
 // Derive proficiency from engine effects
 // ---------------------------------------------------------------------------
 
-function isProficiencyGrant(e: Effect): e is GrantEffect {
-  return e.kind === 'grant' && (e as GrantEffect).grantType === 'proficiency'
-}
-
-function isGrantValueArray(value: unknown): value is ProficiencyGrantValue[] {
-  return Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && 'target' in value[0]
+function isProficiencyGrant(e: Effect): e is ProficiencyGrantEffect {
+  return e.kind === 'grant' && e.grantType === 'proficiency'
 }
 
 /**
@@ -46,10 +42,7 @@ export function deriveEquipmentProficiency(
   for (const e of effects) {
     if (!isProficiencyGrant(e)) continue
 
-    const grants = e.value
-    if (!isGrantValueArray(grants)) continue
-
-    for (const g of grants) {
+    for (const g of e.value) {
       if (g.target !== target) continue
       for (const c of g.categories ?? []) categories.add(c)
       for (const id of g.items ?? []) items.add(id)

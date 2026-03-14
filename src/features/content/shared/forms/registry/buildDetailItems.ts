@@ -5,9 +5,11 @@ import type { ReactNode } from 'react';
 import type { KeyValueItem } from '@/ui/patterns';
 import type { FieldSpec } from './fieldSpec.types';
 
-export type BuildDetailItemsOptions<ItemShape> = {
+export type BuildDetailItemsOptions<ItemShape extends Record<string, unknown>> = {
   /** Exclude specs from output. */
-  exclude?: (spec: FieldSpec<unknown, unknown, ItemShape>) => boolean;
+  exclude?: (
+    spec: FieldSpec<Record<string, unknown>, Record<string, unknown>, ItemShape>
+  ) => boolean;
   /** Override display for specific fields. Receives full item. */
   overrides?: Partial<
     Record<string, (item: ItemShape) => ReactNode>
@@ -19,6 +21,14 @@ export type BuildDetailItemsOptions<ItemShape> = {
 const isEmpty = (v: unknown): boolean =>
   v === undefined || v === null || v === '';
 
+const toDisplayValue = (value: unknown): ReactNode => {
+  if (value == null) return '';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  return value as ReactNode;
+};
+
 /**
  * Builds KeyValueItem[] from FieldSpecs for a given item.
  * Uses spec.label, spec.formatForDisplay or spec.format for value.
@@ -27,7 +37,7 @@ const isEmpty = (v: unknown): boolean =>
 export const buildDetailItems = <
   FormValues extends Record<string, unknown>,
   InputShape extends Record<string, unknown>,
-  ItemShape extends object,
+  ItemShape extends Record<string, unknown>,
 >(
   specs: readonly FieldSpec<FormValues, InputShape, ItemShape>[],
   item: ItemShape,
@@ -42,12 +52,19 @@ export const buildDetailItems = <
   const items: KeyValueItem[] = [];
 
   for (const spec of specs) {
-    if (exclude?.(spec as FieldSpec<unknown, unknown, ItemShape>)) continue;
+    if (
+      exclude?.(
+        spec as FieldSpec<Record<string, unknown>, Record<string, unknown>, ItemShape>
+      )
+    ) {
+      continue;
+    }
 
     let value: ReactNode;
+    const override = overrides?.[spec.name];
 
-    if (overrides?.[spec.name]) {
-      value = overrides[spec.name](item);
+    if (override) {
+      value = override(item);
     } else {
       const itemValue = (item as Record<string, unknown>)[
         spec.name as string
@@ -59,9 +76,9 @@ export const buildDetailItems = <
         const option = spec.options.find((o) => o.value === itemValue);
         value = option?.label ?? itemValue;
       } else if (spec.format) {
-        value = spec.format(itemValue);
+        value = toDisplayValue(spec.format(itemValue));
       } else {
-        value = itemValue != null ? String(itemValue) : '';
+        value = toDisplayValue(itemValue);
       }
     }
 

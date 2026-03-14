@@ -95,22 +95,22 @@ export async function loadCampaignCatalogOverrides(
   if (weapons.length > 0) {
     result.weaponsById = keyById(
       weapons.map(equipmentEntryToCatalogShape),
-    ) as CampaignCatalog['weaponsById'];
+    ) as unknown as CampaignCatalog['weaponsById'];
   }
   if (armor.length > 0) {
     result.armorById = keyById(
       armor.map(equipmentEntryToCatalogShape),
-    ) as CampaignCatalog['armorById'];
+    ) as unknown as CampaignCatalog['armorById'];
   }
   if (gear.length > 0) {
     result.gearById = keyById(
       gear.map(equipmentEntryToCatalogShape),
-    ) as CampaignCatalog['gearById'];
+    ) as unknown as CampaignCatalog['gearById'];
   }
   if (magicItems.length > 0) {
     result.magicItemsById = keyById(
       magicItems.map(equipmentEntryToCatalogShape),
-    ) as CampaignCatalog['magicItemsById'];
+    ) as unknown as CampaignCatalog['magicItemsById'];
   }
   if (enhancements.length > 0) {
     result.enhancementsById = keyById(

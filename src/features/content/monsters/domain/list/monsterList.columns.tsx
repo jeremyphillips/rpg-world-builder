@@ -1,9 +1,14 @@
+import Box from '@mui/material/Box';
 import type { AppDataGridColumn } from '@/ui/patterns';
 import type { MonsterListRow } from './monsterList.types';
 import type { MonsterAction } from '@/features/content/monsters/domain/types';
-import { formatHitPointsWithAverage } from '@/features/content/monsters/utils/formatters';
+import {
+  formatHitPointsWithAverage,
+  formatMonsterArmorClassBreakdown,
+} from '@/features/content/monsters/utils/formatters';
 import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass';
+import { AppTooltip } from '@/ui/primitives';
 
 function getActionsDisplay(actions?: MonsterAction[]): string {
   if (!actions?.length) return '—';
@@ -50,7 +55,18 @@ export function buildMonsterCustomColumns(
       field: 'armorClass',
       headerName: 'Armor Class',
       width: 100,
-      accessor: (row) => String(calculateMonsterArmorClass(row, armorById).value),
+      type: 'number',
+      accessor: (row) => calculateMonsterArmorClass(row, armorById).value,
+      renderCell: (params) => {
+        const row = params.row as MonsterListRow;
+        const armorClass = calculateMonsterArmorClass(row, armorById);
+
+        return (
+          <AppTooltip title={formatMonsterArmorClassBreakdown(armorClass)}>
+            <Box component="span">{String(armorClass.value)}</Box>
+          </AppTooltip>
+        );
+      },
     },
     {
       field: 'actions',

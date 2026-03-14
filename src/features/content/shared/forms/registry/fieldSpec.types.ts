@@ -22,8 +22,8 @@ export type FieldSpecOption = { value: string; label: string };
 
 export type FieldSpec<
   FormValues extends Record<string, unknown>,
-  InputShape extends Record<string, unknown> = Record<string, unknown>,
-  ItemShape extends Record<string, unknown> = Record<string, unknown>,
+  _InputShape extends Record<string, unknown> = Record<string, unknown>,
+  _ItemShape extends Record<string, unknown> = Record<string, unknown>,
 > = {
   name: keyof FormValues & string;
   label: string;

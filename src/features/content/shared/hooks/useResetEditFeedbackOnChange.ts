@@ -5,7 +5,6 @@ export function useResetEditFeedbackOnChange(
   clearFeedback: () => void
 ) {
   useEffect(() => {
-    const sub = watch(() => clearFeedback());
-    return () => sub.unsubscribe();
+    return watch(() => clearFeedback());
   }, [watch, clearFeedback]);
 }

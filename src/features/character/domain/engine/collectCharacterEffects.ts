@@ -26,6 +26,7 @@ function extractEffects(node: FeatureRecord, clsLevel: number, out: Effect[]): v
 
   if (isEffectLike(node)) {
     out.push(node as unknown as Effect)
+    return
   }
 
   if (Array.isArray(node.effects)) {
@@ -77,7 +78,7 @@ function collectBaseProficiencyEffects(character: Character): Effect[] {
           grantType: 'proficiency',
           value: [{ target: targetMap[slot], categories, items }],
           source: `class:${cls.classId}`,
-        } as Effect)
+        })
       }
     }
   }

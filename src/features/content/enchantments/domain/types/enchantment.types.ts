@@ -1,24 +1,10 @@
 import type { MagicItemRarity } from '@/features/content/equipment/magicItems/domain/types/magicItem.types'
 import type { Money } from '@/shared/money/types'
-import type { BonusEffect, CustomEffect, GrantEffect, ModifierEffect } from '@/features/mechanics/domain/effects/effects.types'
+import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 
 export type EnchantableSlot = 'weapon' | 'armor' | 'shield'
 
-/**
- * Data-layer effect descriptor (stored in enchantment templates, magic items).
- * Resolved to Effect[] by resolveEffectDescriptors.
- */
-export type EffectDescriptor =
-  | { kind: 'bonus'; target: string; value: number }
-  | { kind: 'stat_bonus'; stat: string; value: number }
-  | { kind: 'grant'; grantType: string; value: unknown }
-  | { kind: 'custom'; id: string; params?: Record<string, unknown> }
-
-export type EnchantmentEffect =
-  | BonusEffect
-  | ModifierEffect
-  | GrantEffect
-  | CustomEffect
+export type EnchantmentEffect = Effect
 
 export type EnchantmentTemplate = {
   id: string
@@ -27,5 +13,5 @@ export type EnchantmentTemplate = {
   rarity?: MagicItemRarity
   cost?: Money
   requiresAttunement?: boolean | string
-  effectsBySlot: Partial<Record<EnchantableSlot, EffectDescriptor[]>>
+  effectsBySlot: Partial<Record<EnchantableSlot, EnchantmentEffect[]>>
 }

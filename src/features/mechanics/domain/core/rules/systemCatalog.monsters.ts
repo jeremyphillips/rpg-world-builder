@@ -163,9 +163,28 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         name: "Rampage",
         description: "Immediately after dealing damage to a creature that is already Bloodied, the gnoll moves up to half its Speed and makes one Rend attack.",
         uses: { count: 1, period: "day" },
-        trigger: { when: "after-dealing-damage", targetState: "bloodied" },
-        movement: { upToSpeedFraction: 0.5 },
-        sequence: [{ actionName: "Rend", count: 1 }],
+        effects: [
+          {
+            kind: 'trigger',
+            trigger: 'damage_dealt',
+            condition: {
+              kind: 'state',
+              target: 'target',
+              property: 'combat.bloodied',
+              equals: true,
+            },
+            effects: [
+              {
+                kind: 'move',
+                upToSpeedFraction: 0.5,
+              },
+              {
+                kind: 'action',
+                action: 'Rend',
+              },
+            ],
+          },
+        ],
       }],
       proficiencies: { weapons: { longbow: { proficiencyLevel: 1 } } },
       proficiencyBonus: 2,
@@ -274,13 +293,13 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'The creature has Advantage on attack rolls against a creature if at least one of its allies is within 5 feet of the creature and the ally doesn’t have the Incapacitated condition.',
           trigger: {
-            kind: 'ally-near-target',
+            kind: 'ally_near_target',
             withinFeet: 5,
             allyConditionNot: 'incapacitated',
           },
           effects: [
             {
-              kind: 'roll-modifier',
+              kind: 'roll_modifier',
               appliesTo: 'attack-rolls',
               modifier: 'advantage',
             },
@@ -291,12 +310,12 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'While in sunlight, the kobold has Disadvantage on ability checks and attack rolls.',
           trigger: {
-            kind: 'in-environment',
+            kind: 'in_environment',
             environment: 'sunlight',
           },
           effects: [
             {
-              kind: 'roll-modifier',
+              kind: 'roll_modifier',
               appliesTo: ['ability-checks', 'attack-rolls'],
               modifier: 'disadvantage',
             },
@@ -347,7 +366,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             {
               kind: 'save',
               save: { ability: 'str', dc: 11 },
-              onFail: [{ kind: 'condition', condition: 'prone' }],
+              onFail: [{ kind: 'condition', conditionId: 'prone' }],
             },
           ],
         },
@@ -359,13 +378,13 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'The creature has Advantage on attack rolls against a creature if at least one of its allies is within 5 feet of the creature and the ally doesn’t have the Incapacitated condition.',
           trigger: {
-            kind: 'ally-near-target',
+            kind: 'ally_near_target',
             withinFeet: 5,
             allyConditionNot: 'incapacitated',
           },
           effects: [
             {
-              kind: 'roll-modifier',
+              kind: 'roll_modifier',
               appliesTo: 'attack-rolls',
               modifier: 'advantage',
             },
@@ -405,19 +424,29 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'If damage reduces the zombie to 0 Hit Points, it makes a Constitution saving throw...',
           trigger: {
-            kind: 'reduced-to-0-hp',
+            kind: 'reduced_to_0_hp',
           },
-          save: {
-            ability: 'con',
-            dc: { kind: '5-plus-damage-taken' },
-            except: {
-              damageTypes: ['radiant'],
-              criticalHit: true,
+          effects: [
+            {
+              kind: 'custom',
+              id: 'monster.save_exception',
+              params: {
+                damageTypes: ['radiant'],
+                criticalHit: true,
+              },
             },
-            onSuccess: [
-              { kind: 'text', description: 'Drops to 1 Hit Point instead.' },
-            ],
-          },
+            {
+              kind: 'save',
+              save: {
+                ability: 'con',
+                dc: { kind: '5-plus-damage-taken' },
+              },
+              onFail: [],
+              onSuccess: [
+                { kind: 'note', text: 'Drops to 1 Hit Point instead.' },
+              ],
+            },
+          ],
         }
       ],
       abilities: { str: 13, dex: 6, con: 16, int: 3, wis: 6, cha: 5 },
@@ -482,41 +511,37 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
               damage: "3d6",
               damageType: "necrotic",
             },
-          ],
-          rules: [
             {
-              kind: "apply-state",
-              trigger: "on-hit",
-              state: "mummy-rot",
-              targetType: "creature",
+              kind: "state",
+              stateId: "mummy-rot",
               ongoingEffects: [
                 {
-                  kind: "text",
-                  description: "Target can't regain Hit Points.",
+                  kind: "note",
+                  text: "Target can't regain Hit Points.",
                 },
                 {
-                  kind: "text",
-                  description:
+                  kind: "note",
+                  text:
                     "Target's Hit Point maximum doesn't return to normal when finishing a Long Rest.",
                 },
               ],
             },
             {
-              kind: "interval-effect",
-              state: "mummy-rot",
+              kind: "interval",
+              stateId: "mummy-rot",
               every: {
                 value: 24,
                 unit: "hour",
               },
               effects: [
                 {
-                  kind: "text",
-                  description: "Target's Hit Point maximum decreases by 10 (3d6).",
+                  kind: "note",
+                  text: "Target's Hit Point maximum decreases by 10 (3d6).",
                 },
               ],
             },
             {
-              kind: "death-outcome",
+              kind: "death_outcome",
               trigger: "reduced-to-0-hit-points-by-this-action",
               targetType: "creature",
               outcome: "turns-to-dust",
@@ -534,31 +559,18 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           onFail: [
             {
               kind: "condition",
-              condition: "frightened",
+              conditionId: "frightened",
+              duration: {
+                kind: "until_turn_boundary",
+                subject: "source",
+                turn: "next",
+                boundary: "end",
+              },
             },
           ],
-          rules: [
+          onSuccess: [
             {
-              kind: "targeting",
-              target: "one-creature",
-              targetType: "creature",
-              rangeFeet: 60,
-              requiresSight: true,
-            },
-            {
-              kind: "duration",
-              trigger: "on-failed-save",
-              appliesTo: {
-                kind: "condition",
-                condition: "frightened",
-              },
-              duration: {
-                kind: "until-end-of-source-next-turn",
-              },
-            },
-            {
-              kind: "immunity-on-success",
-              trigger: "on-successful-save",
+              kind: "immunity",
               scope: "source-action",
               duration: {
                 kind: "fixed",
@@ -566,6 +578,15 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
                 unit: "hour",
               },
               notes: "Target is immune to this mummy's Dreadful Glare.",
+            },
+          ],
+          effects: [
+            {
+              kind: "targeting",
+              target: "one-creature",
+              targetType: "creature",
+              rangeFeet: 60,
+              requiresSight: true,
             },
           ],
         },
@@ -621,7 +642,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           damageType: "bludgeoning",
           description: "If the target is a Medium or smaller creature, it has the Grappled condition with an escape DC of 12.",
           onSuccess: [
-            { kind: 'condition', condition: 'grappled', targetSizeMax: 'medium', escapeDc: 12 }
+            { kind: 'condition', conditionId: 'grappled', targetSizeMax: 'medium', escapeDc: 12 }
           ]
         },
         { kind: "weapon", weaponRef: "light-hammer" }
@@ -631,7 +652,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         description:
           'The bugbear needn’t spend extra movement to move a creature it is grappling.',
         trigger: {
-          kind: 'while-moving-grappled-creature',
+          kind: 'while_moving_grappled_creature',
         },
         effects: [
           {
@@ -785,14 +806,21 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             period: 'day',
           },
           trigger: {
-            kind: 'end-of-turn',
+            kind: 'turn_end',
           },
           requirements: [
             { kind: 'self-state', state: 'bloodied' },
             { kind: 'damage-taken-this-turn', damageType: 'slashing', min: 15 },
           ],
           effects: [
-            { kind: 'limb', mode: 'sever', count: 1 },
+            {
+              kind: 'tracked_part',
+              part: 'limb',
+              change: {
+                mode: 'sever',
+                count: 1,
+              },
+            },
             {
               kind: 'spawn',
               creature: 'Troll Limb',
@@ -801,10 +829,14 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
               actsWhen: 'immediately-after-source-turn',
             },
             {
-              kind: 'resource',
-              resource: 'exhaustion',
-              mode: 'set',
-              value: 'per-missing-limb',
+              kind: 'custom',
+              id: 'monster.resource_from_tracked_parts',
+              params: {
+                resource: 'exhaustion',
+                mode: 'set',
+                value: 'per-missing-limb',
+                part: 'limb',
+              },
             },
           ],
           notes:
@@ -815,14 +847,19 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           description:
             'The troll regains 15 Hit Points at the start of each of its turns. Acid or Fire damage suppresses this trait on its next turn.',
           trigger: {
-            kind: 'start-of-turn',
+            kind: 'turn_start',
           },
           effects: [
-            { kind: 'hit-points', mode: 'heal', value: 15 },
+            { kind: 'hit_points', mode: 'heal', value: 15 },
           ],
           suppression: {
             ifTookDamageTypes: ['acid', 'fire'],
-            duration: 'next-turn',
+            duration: {
+              kind: 'until_turn_boundary',
+              subject: 'self',
+              turn: 'next',
+              boundary: 'end',
+            },
           },
           notes:
             'The troll dies only if it starts its turn with 0 Hit Points and does not regenerate.',
@@ -939,7 +976,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             { kind: 'damage', damage: '3d6', damageType: 'acid' },
             {
               kind: 'state',
-              state: 'engulfed',
+              stateId: 'engulfed',
               targetSizeMax: 'large',
               escape: {
                 dc: 12,
@@ -948,10 +985,10 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
                 actionRequired: true,
               },
               ongoingEffects: [
-                { kind: 'condition', condition: 'restrained' },
+                { kind: 'condition', conditionId: 'restrained' },
                 { kind: 'damage', damage: '3d6', damageType: 'acid' },
-                { kind: 'text', description: 'Target is suffocating.' },
-                { kind: 'text', description: 'Target cannot cast spells with verbal components.' },
+                { kind: 'note', text: 'Target is suffocating.' },
+                { kind: 'note', text: 'Target cannot cast spells with verbal components.' },
                 { kind: 'move', movesWithSource: true },
               ],
               notes: 'Target takes the acid damage at the start of the cube’s turns.',
@@ -982,29 +1019,34 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           name: 'Ooze Cube',
           description:
             'The cube fills its entire space and is transparent. Other creatures can enter that space, but a creature that does so is subjected to the cube’s Engulf and has Disadvantage on the saving throw. Creatures inside the cube have Total Cover, and the cube can hold one Large creature or up to four Medium or Small creatures inside itself at a time. As an action, a creature within 5 feet of the cube can pull a creature or an object out of the cube by succeeding on a DC 12 Strength (Athletics) check, and the puller takes 10 (3d6) Acid damage.',
-          containment: {
-            fillsEntireSpace: true,
-            canContainCreatures: true,
-            creatureCover: 'total-cover',
-            capacity: {
-              large: 1,
-              mediumOrSmall: 4,
-            },
-          },
-          visibility: {
-            transparent: true,
-          },
-          modifiesAction: [
+          effects: [
             {
-              actionName: 'Engulf',
-              trigger: {
-                kind: 'enters-space',
+              kind: 'containment',
+              fillsEntireSpace: true,
+              canContainCreatures: true,
+              creatureCover: 'total-cover',
+              capacity: {
+                large: 1,
+                mediumOrSmall: 4,
               },
-              saveModifier: 'disadvantage',
             },
-          ],
-          checks: [
             {
+              kind: 'visibility_rule',
+              transparent: true,
+            },
+            {
+              kind: 'custom',
+              id: 'monster.action_modifier',
+              params: {
+                actionName: 'Engulf',
+                trigger: {
+                  kind: 'enters_space',
+                },
+                saveModifier: 'disadvantage',
+              },
+            },
+            {
+              kind: 'check',
               name: 'Pull From Cube',
               actor: 'nearby-creature',
               distanceFeet: 5,
@@ -1020,6 +1062,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
               ],
             },
             {
+              kind: 'check',
               name: 'Pull Object From Cube',
               actor: 'nearby-creature',
               distanceFeet: 5,
@@ -1040,15 +1083,18 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           name: 'Transparent',
           description:
             'Even when the cube is in plain sight, a creature must succeed on a DC 15 Wisdom (Perception) check to notice the cube if it hasn’t witnessed the cube move or otherwise act.',
-          visibility: {
-            transparent: true,
-            noticeCheck: {
-              ability: 'wis',
-              skill: 'perception',
-              dc: 15,
-              unlessWitnessedMoveOrAction: true,
+          effects: [
+            {
+              kind: 'visibility_rule',
+              transparent: true,
+              noticeCheck: {
+                ability: 'wis',
+                skill: 'perception',
+                dc: 15,
+                unlessWitnessedMoveOrAction: true,
+              },
             },
-          },
+          ],
         }
       ],
     },
@@ -1116,7 +1162,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             },
             {
               kind: "condition",
-              condition: "grappled",
+              conditionId: "grappled",
               targetSizeMax: "large",
               escapeDc: 13,
               escapeCheckDisadvantage: true
@@ -1145,13 +1191,13 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         description:
           'The mimic adheres to anything that touches it while in object form.',
         trigger: [
-          { kind: 'in-form', form: 'object' },
+          { kind: 'in_form', form: 'object' },
           { kind: 'contact' },
         ],
         effects: [
           {
             kind: 'condition',
-            condition: 'grappled',
+            conditionId: 'grappled',
             targetSizeMax: 'huge',
             escapeDc: 13,
             escapeCheckDisadvantage: true,
@@ -1312,10 +1358,11 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         {
           name: "Hold Breath",
           description: "The hydra can hold its breath for 1 hour.",
-          rules: [
+          effects: [
             {
-              kind: "hold-breath",
+              kind: "hold_breath",
               duration: {
+                kind: "fixed",
                 value: 1,
                 unit: "hour",
               },
@@ -1326,19 +1373,19 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           name: "Multiple Heads",
           description:
             "The hydra has five heads. Whenever the hydra takes 25 damage or more on a single turn, one of its heads dies. The hydra dies if all its heads are dead. At the end of each of its turns when it has at least one living head, the hydra grows two heads for each of its heads that died since its last turn, unless it has taken Fire damage since its last turn. The hydra regains 20 Hit Points when it grows new heads.",
-          rules: [
+          effects: [
             {
-              kind: "tracked-part",
+              kind: "tracked_part",
               part: "head",
               initialCount: 5,
               loss: {
-                trigger: "damage-taken-in-single-turn",
+                trigger: "damage_taken_in_single_turn",
                 minDamage: 25,
                 count: 1,
               },
               deathWhenCountReaches: 0,
               regrowth: {
-                trigger: "end-of-turn",
+                trigger: "turn_end",
                 requiresLivingPart: true,
                 countPerPartLostSinceLastTurn: 2,
                 suppressedByDamageTypes: ["fire"],
@@ -1351,9 +1398,9 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           name: "Reactive Heads",
           description:
             "For each head the hydra has beyond one, it gets an extra Reaction that can be used only for Opportunity Attacks.",
-          rules: [
+          effects: [
             {
-              kind: "extra-reaction",
+              kind: "extra_reaction",
               appliesTo: "opportunity-attacks-only",
               count: {
                 kind: "per-part-beyond",

@@ -85,6 +85,8 @@ export type ProficiencyAdjustmentBase = {
 export type ProficiencySkillAdjustment = 
   ProficiencyAdjustmentBase & RollModifier
 
+export type ProficiencyAdjustment = ProficiencySkillAdjustment
+
 export type ProficiencyWeaponAdjustment = ProficiencyAdjustmentBase
 
 export type ProficiencyArmorAdjustment = 

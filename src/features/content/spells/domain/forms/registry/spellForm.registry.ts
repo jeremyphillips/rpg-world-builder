@@ -105,7 +105,7 @@ export const SPELL_FORM_FIELDS = [
     label: 'Effects',
     kind: 'json' as const,
     placeholder: '[{ "kind": "note", "text": "..." }]',
-    helperText: 'Effect objects with kind (e.g. note, modifier, grant).',
+    helperText: 'Canonical effect objects with kind (e.g. note, modifier, grant, condition, save, activation).',
     minRows: 4,
     maxRows: 16,
     defaultValue: '[]' as SpellFormValues['effects'],

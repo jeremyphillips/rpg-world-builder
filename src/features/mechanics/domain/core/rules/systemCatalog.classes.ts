@@ -45,7 +45,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
                 {
                   id: 'fighter.battle_master.on_weapon_hit',
                   kind: 'trigger',
-                  trigger: 'on_weapon_hit',
+                  trigger: 'weapon_hit',
                   cost: { resource: 'superiority_dice', amount: 1 },
                   effects: [
                     {
@@ -56,8 +56,13 @@ const CLASSES_RAW: readonly CharacterClass[] = [
                     },
                     {
                       kind: 'save',
-                      ability: 'strength',
-                      onFail: { applyCondition: 'prone' },
+                      save: { ability: 'strength' },
+                      onFail: [
+                        {
+                          kind: 'condition',
+                          conditionId: 'prone',
+                        },
+                      ],
                     },
                   ],
                 },
@@ -203,11 +208,18 @@ const CLASSES_RAW: readonly CharacterClass[] = [
               id: 'paladin.subclass.sacred_oath.oath_of_devotion.sacred_weapon',
               name: 'Sacred Weapon',
               level: 3,
-              type: 'active_buff',
-              action: 'action',
-              duration: '1 minute',
-              resource: 'channel_divinity',
-              effects: [{ target: 'attack_roll', stat: 'charisma', type: 'additive' }],
+              kind: 'activation',
+              activation: 'action',
+              cost: { resource: 'channel_divinity', amount: 1 },
+              effects: [
+                {
+                  kind: 'modifier',
+                  target: 'attack_roll',
+                  mode: 'add',
+                  value: { ability: 'charisma' },
+                  duration: { kind: 'fixed', value: 1, unit: 'minute' },
+                },
+              ],
             },
             {
               name: 'Turn the Unholy',
@@ -425,7 +437,12 @@ const CLASSES_RAW: readonly CharacterClass[] = [
               kind: 'formula',
               target: 'armor_class',
               level: 1,
-              condition: { type: 'unarmored' },
+              condition: {
+                kind: 'state',
+                target: 'self',
+                property: 'equipment.armorEquipped',
+                equals: null,
+              },
               formula: { base: 13, ability: 'dexterity' },
             },
             {

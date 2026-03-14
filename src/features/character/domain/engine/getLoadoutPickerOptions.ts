@@ -1,6 +1,7 @@
 import type { Character } from '@/features/character/domain/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { EquipmentLoadout } from '@/features/character/domain/types'
+import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass'
 import { resolveStatDetailed, type BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
 import { buildCharacterContext, withLoadout } from './buildCharacterContext'
 import {
@@ -22,7 +23,7 @@ type InventoryItem = {
 
 function getOwnedArmors(
   character: Character,
-  armorById: Record<string, { id: string; name: string; category: string }>,
+  armorById: Record<string, CreatureArmorCatalogEntry>,
 ): InventoryItem[] {
   const items: InventoryItem[] = []
   for (const id of character.equipment?.armor ?? []) {
@@ -36,7 +37,7 @@ function getOwnedArmors(
 
 function getOwnedShields(
   character: Character,
-  armorById: Record<string, { id: string; name: string; category: string }>,
+  armorById: Record<string, CreatureArmorCatalogEntry>,
 ): InventoryItem[] {
   const items: InventoryItem[] = []
   for (const id of character.equipment?.armor ?? []) {
@@ -58,7 +59,7 @@ function getOwnedShields(
 export function getLoadoutPickerOptions(
   character: Character,
   intrinsicEffects: Effect[],
-  armorById: Record<string, { id: string; name: string; category: string }>,
+  armorById: Record<string, CreatureArmorCatalogEntry>,
 ): LoadoutOption[] {
   const context = buildCharacterContext(character)
   const candidateEffects = getEquipmentEffects(character.equipment, armorById)
