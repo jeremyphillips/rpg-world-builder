@@ -7,6 +7,7 @@ import type {
   RuntimeEffectInstance,
   RuntimeMarker,
   RuntimeMarkerDuration,
+  RuntimeTrackedPart,
   RuntimeTurnHook,
   RuntimeTurnHookRequirement,
 } from './combatant.types'
@@ -191,10 +192,33 @@ function seedRuntimeEffects(combatant: CombatantInstance): CombatantInstance {
   return {
     ...combatant,
     actions: combatant.actions ?? [],
+    trackedParts: combatant.trackedParts ?? deriveTrackedParts(combatant),
     turnResources: combatant.turnResources ?? createCombatantTurnResources(combatant),
     runtimeEffects:
       combatant.runtimeEffects.length > 0 ? combatant.runtimeEffects : deriveRuntimeEffects(combatant),
   }
+}
+
+function deriveTrackedParts(combatant: CombatantInstance): RuntimeTrackedPart[] {
+  return combatant.activeEffects.flatMap((effect) => {
+    if (effect.kind !== 'tracked_part' || !('initialCount' in effect)) return []
+
+    return [
+      {
+        part: effect.part,
+        currentCount: effect.initialCount,
+        initialCount: effect.initialCount,
+        lostSinceLastTurn: 0,
+        lossAppliedThisTurn: 0,
+        damageTakenThisTurn: 0,
+        damageTakenByTypeThisTurn: {},
+        regrowthSuppressedByDamageTypes: [],
+        loss: effect.loss,
+        deathWhenCountReaches: effect.deathWhenCountReaches,
+        regrowth: effect.regrowth,
+      },
+    ]
+  })
 }
 
 function formatRuntimeEffectLabel(effect: RuntimeEffectInstance): string {
@@ -287,6 +311,10 @@ function normalizeDamageType(damageType?: string): string | null {
   return trimmed ? trimmed : null
 }
 
+function getTurnKey(state: EncounterState): string {
+  return `${state.roundNumber}:${state.turnIndex + 1}`
+}
+
 function requirementLabel(requirement: RuntimeTurnHookRequirement): string {
   switch (requirement.kind) {
     case 'self-state':
@@ -348,6 +376,87 @@ function formatTurnHookNote(effect: Effect): string | null {
     default:
       return null
   }
+}
+
+function processTrackedPartTurnEnd(
+  state: EncounterState,
+  combatantId: string | null,
+): EncounterState {
+  if (!combatantId) return state
+
+  const combatant = state.combatantsById[combatantId]
+  if (!combatant || (combatant.trackedParts?.length ?? 0) === 0) return state
+
+  const trackedParts = combatant.trackedParts ?? []
+  const updatedTrackedParts = trackedParts.map((trackedPart) => {
+    if (trackedPart.regrowth?.trigger !== 'turn_end') {
+      return {
+        ...trackedPart,
+        lostSinceLastTurn: 0,
+        regrowthSuppressedByDamageTypes: [],
+      }
+    }
+
+    const isSuppressed =
+      trackedPart.regrowth.suppressedByDamageTypes?.some((damageType) =>
+        trackedPart.regrowthSuppressedByDamageTypes.includes(normalizeDamageType(damageType) ?? '')
+      ) ?? false
+    const canRegrow =
+      trackedPart.lostSinceLastTurn > 0 &&
+      !isSuppressed &&
+      (!trackedPart.regrowth.requiresLivingPart || trackedPart.currentCount > 0)
+    const regrowthCount = canRegrow
+      ? trackedPart.lostSinceLastTurn * trackedPart.regrowth.countPerPartLostSinceLastTurn
+      : 0
+
+    return {
+      ...trackedPart,
+      currentCount: trackedPart.currentCount + regrowthCount,
+      lostSinceLastTurn: 0,
+      regrowthSuppressedByDamageTypes: [],
+    }
+  })
+
+  let nextState = updateCombatant(state, combatantId, (current) => ({
+    ...current,
+    trackedParts: updatedTrackedParts,
+  }))
+
+  trackedParts.forEach((trackedPart, index) => {
+    const nextTrackedPart = updatedTrackedParts[index]
+    if (!nextTrackedPart) return
+
+    const regrowthCount = nextTrackedPart.currentCount - trackedPart.currentCount
+    if (regrowthCount > 0) {
+      nextState = appendLog(nextState, {
+        type: 'note',
+        actorId: combatantId,
+        targetIds: [combatantId],
+        round: nextState.roundNumber,
+        turn: nextState.turnIndex + 1,
+        summary: `${getCombatantLabel(nextState, combatantId)} grows ${regrowthCount} ${trackedPart.part}${regrowthCount === 1 ? '' : 's'}.`,
+      })
+
+      if (trackedPart.regrowth?.healHitPoints) {
+        nextState = applyHealingToCombatant(nextState, combatantId, trackedPart.regrowth.healHitPoints, {
+          actorId: combatantId,
+          sourceLabel: `${trackedPart.part} regrowth`,
+        })
+      }
+    } else if (trackedPart.lostSinceLastTurn > 0 && trackedPart.regrowthSuppressedByDamageTypes.length > 0) {
+      nextState = appendLog(nextState, {
+        type: 'note',
+        actorId: combatantId,
+        targetIds: [combatantId],
+        round: nextState.roundNumber,
+        turn: nextState.turnIndex + 1,
+        summary: `${getCombatantLabel(nextState, combatantId)} cannot regrow ${trackedPart.part}s this turn.`,
+        details: `Suppressed by ${trackedPart.regrowthSuppressedByDamageTypes.join(', ')} damage.`,
+      })
+    }
+  })
+
+  return nextState
 }
 
 function processMarkerBoundary(
@@ -648,7 +757,10 @@ export function advanceEncounterTurn(state: EncounterState): EncounterState {
   }
   const endedState = processMarkerBoundary(
     processRuntimeEffectBoundary(
-      executeTurnHooks(withTurnEndLog, state.activeCombatantId, 'end'),
+      processTrackedPartTurnEnd(
+        executeTurnHooks(withTurnEndLog, state.activeCombatantId, 'end'),
+        state.activeCombatantId,
+      ),
       state.activeCombatantId,
       'end',
     ),
@@ -705,6 +817,8 @@ export function applyDamageToCombatant(
   const target = state.combatantsById[targetId]
   if (!target || amount <= 0) return state
 
+  const turnKey = getTurnKey(state)
+
   const nextState = updateCombatant(state, targetId, (combatant) => {
     const normalizedDamageType = normalizeDamageType(options?.damageType)
     const currentTurnContext = combatant.turnContext ?? createEmptyTurnContext()
@@ -730,13 +844,60 @@ export function applyDamageToCombatant(
               },
             ]
           }, existingSuppressedHooks)
+    const trackedParts = (combatant.trackedParts ?? []).map((trackedPart) => {
+      const resetsForNewTurn = trackedPart.damageWindowTurnKey !== turnKey
+      const baseDamageTakenThisTurn = resetsForNewTurn ? 0 : trackedPart.damageTakenThisTurn
+      const baseDamageTakenByTypeThisTurn = resetsForNewTurn ? {} : trackedPart.damageTakenByTypeThisTurn
+      const baseLossAppliedThisTurn = resetsForNewTurn ? 0 : trackedPart.lossAppliedThisTurn
+      const damageTakenThisTurn = baseDamageTakenThisTurn + amount
+      const damageTakenByTypeThisTurn =
+        normalizedDamageType == null
+          ? baseDamageTakenByTypeThisTurn
+          : {
+              ...baseDamageTakenByTypeThisTurn,
+              [normalizedDamageType]:
+                (baseDamageTakenByTypeThisTurn[normalizedDamageType] ?? 0) + amount,
+            }
+      const thresholdCrossings =
+        trackedPart.loss?.trigger === 'damage_taken_in_single_turn'
+          ? Math.floor(damageTakenThisTurn / trackedPart.loss.minDamage) * trackedPart.loss.count
+          : 0
+      const newLossCount = Math.max(0, thresholdCrossings - baseLossAppliedThisTurn)
+      const regrowthSuppressedByDamageTypes =
+        normalizedDamageType == null
+          ? trackedPart.regrowthSuppressedByDamageTypes
+          : trackedPart.regrowth?.suppressedByDamageTypes?.some(
+                (damageType) => normalizeDamageType(damageType) === normalizedDamageType,
+              )
+            ? Array.from(new Set([...trackedPart.regrowthSuppressedByDamageTypes, normalizedDamageType]))
+            : trackedPart.regrowthSuppressedByDamageTypes
+
+      return {
+        ...trackedPart,
+        currentCount: Math.max(0, trackedPart.currentCount - newLossCount),
+        lostSinceLastTurn: trackedPart.lostSinceLastTurn + newLossCount,
+        lossAppliedThisTurn: baseLossAppliedThisTurn + newLossCount,
+        damageWindowTurnKey: turnKey,
+        damageTakenThisTurn,
+        damageTakenByTypeThisTurn,
+        regrowthSuppressedByDamageTypes,
+      }
+    })
+    const fatalTrackedPart = trackedParts.find(
+      (trackedPart) =>
+        trackedPart.deathWhenCountReaches != null &&
+        trackedPart.currentCount <= trackedPart.deathWhenCountReaches,
+    )
 
     return {
       ...combatant,
       stats: {
         ...combatant.stats,
-        currentHitPoints: Math.max(0, combatant.stats.currentHitPoints - amount),
+        currentHitPoints: fatalTrackedPart
+          ? 0
+          : Math.max(0, combatant.stats.currentHitPoints - amount),
       },
+      trackedParts,
       suppressedHooks,
       turnContext: {
         totalDamageTaken: currentTurnContext.totalDamageTaken + amount,
@@ -752,7 +913,7 @@ export function applyDamageToCombatant(
     }
   })
 
-  return appendLog(nextState, {
+  let loggedState = appendLog(nextState, {
     type: 'damage_applied',
     actorId: options?.actorId ?? state.activeCombatantId ?? undefined,
     targetIds: [targetId],
@@ -766,6 +927,44 @@ export function applyDamageToCombatant(
       .filter(Boolean)
       .join(' ') || undefined,
   })
+
+  const previousTrackedParts = target.trackedParts ?? []
+  const nextTrackedParts = nextState.combatantsById[targetId]?.trackedParts ?? []
+
+  nextTrackedParts.forEach((trackedPart, index) => {
+    const previousTrackedPart = previousTrackedParts[index]
+    if (!previousTrackedPart) return
+
+    const lostCount = trackedPart.currentCount - previousTrackedPart.currentCount
+    if (lostCount < 0) {
+      const severedCount = Math.abs(lostCount)
+      loggedState = appendLog(loggedState, {
+        type: 'note',
+        actorId: options?.actorId ?? state.activeCombatantId ?? undefined,
+        targetIds: [targetId],
+        round: state.roundNumber,
+        turn: state.turnIndex + 1,
+        summary: `${getCombatantLabel(state, targetId)} loses ${severedCount} ${trackedPart.part}${severedCount === 1 ? '' : 's'}.`,
+      })
+    }
+
+    if (
+      trackedPart.deathWhenCountReaches != null &&
+      previousTrackedPart.currentCount > trackedPart.deathWhenCountReaches &&
+      trackedPart.currentCount <= trackedPart.deathWhenCountReaches
+    ) {
+      loggedState = appendLog(loggedState, {
+        type: 'note',
+        actorId: options?.actorId ?? state.activeCombatantId ?? undefined,
+        targetIds: [targetId],
+        round: state.roundNumber,
+        turn: state.turnIndex + 1,
+        summary: `${getCombatantLabel(state, targetId)} collapses as all ${trackedPart.part}s are destroyed.`,
+      })
+    }
+  })
+
+  return loggedState
 }
 
 export function applyHealingToCombatant(

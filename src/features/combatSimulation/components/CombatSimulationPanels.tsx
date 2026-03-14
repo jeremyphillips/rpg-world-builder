@@ -1,6 +1,9 @@
+import { useState } from 'react'
+
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
+import Collapse from '@mui/material/Collapse'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
@@ -94,6 +97,7 @@ export function EncounterControlsPanel({
 }: EncounterControlsPanelProps) {
   const hasEncounter = Boolean(encounterState)
   const controlOptions = encounterState?.initiative ?? []
+  const [manualToolsOpen, setManualToolsOpen] = useState(false)
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -191,153 +195,169 @@ export function EncounterControlsPanel({
 
         <Divider />
 
-        <Stack spacing={2}>
-          <Typography variant="subtitle2">Manual Trigger Context</Typography>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <TextField
-              select
-              label="Environment"
-              value={environmentContext}
-              onChange={(event) => onEnvironmentContextChange(event.target.value as ManualEnvironmentContext)}
-              sx={{ minWidth: 180 }}
-            >
-              <MenuItem value="none">Normal</MenuItem>
-              <MenuItem value="sunlight">Sunlight</MenuItem>
-            </TextField>
+        <Stack spacing={1}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+            <Box>
+              <Typography variant="subtitle2">Manual Trigger Context And Test Actions</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Manual sandbox controls for environment, damage, healing, and runtime markers.
+              </Typography>
+            </Box>
+            <Button variant="text" color="inherit" onClick={() => setManualToolsOpen((open) => !open)}>
+              {manualToolsOpen ? 'Hide' : 'Show'}
+            </Button>
           </Stack>
 
-          <Divider />
-
-          <Typography variant="subtitle2">Test Actions</Typography>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <TextField
-              select
-              fullWidth
-              label="Target Combatant"
-              value={controlTargetId}
-              onChange={(event) => onControlTargetIdChange(event.target.value)}
-              disabled={!hasEncounter}
-            >
-              {controlOptions.map((option) => (
-                <MenuItem key={option.combatantId} value={option.combatantId}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flex={1}>
-              <TextField
-                label="Damage"
-                type="number"
-                value={damageAmount}
-                onChange={(event) => onDamageAmountChange(event.target.value)}
-                disabled={!hasEncounter}
-                sx={{ minWidth: 110 }}
-              />
-              <TextField
-                label="Damage Type"
-                value={damageTypeInput}
-                onChange={(event) => onDamageTypeInputChange(event.target.value)}
-                disabled={!hasEncounter}
-                sx={{ minWidth: 130 }}
-              />
-              <Button variant="outlined" onClick={onApplyDamage} disabled={!hasEncounter || !controlTargetId}>
-                Apply Damage
-              </Button>
-            </Stack>
-
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flex={1}>
-              <TextField
-                label="Healing"
-                type="number"
-                value={healingAmount}
-                onChange={(event) => onHealingAmountChange(event.target.value)}
-                disabled={!hasEncounter}
-                sx={{ minWidth: 110 }}
-              />
-              <Button variant="outlined" onClick={onApplyHealing} disabled={!hasEncounter || !controlTargetId}>
-                Apply Healing
-              </Button>
-              {controlTargetHasReducedToZeroSave && (
+          <Collapse in={manualToolsOpen}>
+            <Stack spacing={2} sx={{ pt: 1 }}>
+              <Typography variant="subtitle2">Manual Trigger Context</Typography>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                 <TextField
                   select
-                  label="0 HP Save"
-                  value={reducedToZeroSaveOutcome}
-                  onChange={(event) => onReducedToZeroSaveOutcomeChange(event.target.value as 'success' | 'fail')}
-                  disabled={!hasEncounter || !controlTargetId}
-                  sx={{ minWidth: 140 }}
+                  label="Environment"
+                  value={environmentContext}
+                  onChange={(event) => onEnvironmentContextChange(event.target.value as ManualEnvironmentContext)}
+                  sx={{ minWidth: 180 }}
                 >
-                  <MenuItem value="success">Success</MenuItem>
-                  <MenuItem value="fail">Fail</MenuItem>
+                  <MenuItem value="none">Normal</MenuItem>
+                  <MenuItem value="sunlight">Sunlight</MenuItem>
                 </TextField>
-              )}
-              <Button
-                variant="outlined"
-                color="warning"
-                onClick={onTriggerReducedToZeroHook}
-                disabled={!canTriggerReducedToZeroHook}
-              >
-                Trigger 0 HP Hook
-              </Button>
-            </Stack>
-          </Stack>
+              </Stack>
 
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flex={1}>
-              <TextField
-                fullWidth
-                label="Condition"
-                value={conditionInput}
-                onChange={(event) => onConditionInputChange(event.target.value)}
-                disabled={!hasEncounter}
-              />
-              <Button variant="outlined" onClick={onAddCondition} disabled={!hasEncounter || !controlTargetId}>
-                Add
-              </Button>
-              <Button variant="text" color="inherit" onClick={onRemoveCondition} disabled={!hasEncounter || !controlTargetId}>
-                Remove
-              </Button>
-            </Stack>
+              <Divider />
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flex={1}>
-              <TextField
-                fullWidth
-                label="State Marker"
-                value={stateInput}
-                onChange={(event) => onStateInputChange(event.target.value)}
-                disabled={!hasEncounter}
-              />
-              <Button variant="outlined" onClick={onAddState} disabled={!hasEncounter || !controlTargetId}>
-                Add
-              </Button>
-              <Button variant="text" color="inherit" onClick={onRemoveState} disabled={!hasEncounter || !controlTargetId}>
-                Remove
-              </Button>
-            </Stack>
-          </Stack>
+              <Typography variant="subtitle2">Test Actions</Typography>
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Target Combatant"
+                  value={controlTargetId}
+                  onChange={(event) => onControlTargetIdChange(event.target.value)}
+                  disabled={!hasEncounter}
+                >
+                  {controlOptions.map((option) => (
+                    <MenuItem key={option.combatantId} value={option.combatantId}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <TextField
-              label="Marker Duration Turns"
-              type="number"
-              value={markerDurationTurns}
-              onChange={(event) => onMarkerDurationTurnsChange(event.target.value)}
-              disabled={!hasEncounter}
-              helperText="Leave blank for persistent markers."
-              sx={{ minWidth: 200 }}
-            />
-            <TextField
-              select
-              label="Tick On"
-              value={markerDurationBoundary}
-              onChange={(event) => onMarkerDurationBoundaryChange(event.target.value as 'start' | 'end')}
-              disabled={!hasEncounter}
-              sx={{ minWidth: 180 }}
-            >
-              <MenuItem value="start">Turn Start</MenuItem>
-              <MenuItem value="end">Turn End</MenuItem>
-            </TextField>
-          </Stack>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flex={1}>
+                  <TextField
+                    label="Damage"
+                    type="number"
+                    value={damageAmount}
+                    onChange={(event) => onDamageAmountChange(event.target.value)}
+                    disabled={!hasEncounter}
+                    sx={{ minWidth: 110 }}
+                  />
+                  <TextField
+                    label="Damage Type"
+                    value={damageTypeInput}
+                    onChange={(event) => onDamageTypeInputChange(event.target.value)}
+                    disabled={!hasEncounter}
+                    sx={{ minWidth: 130 }}
+                  />
+                  <Button variant="outlined" onClick={onApplyDamage} disabled={!hasEncounter || !controlTargetId}>
+                    Apply Damage
+                  </Button>
+                </Stack>
+
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flex={1}>
+                  <TextField
+                    label="Healing"
+                    type="number"
+                    value={healingAmount}
+                    onChange={(event) => onHealingAmountChange(event.target.value)}
+                    disabled={!hasEncounter}
+                    sx={{ minWidth: 110 }}
+                  />
+                  <Button variant="outlined" onClick={onApplyHealing} disabled={!hasEncounter || !controlTargetId}>
+                    Apply Healing
+                  </Button>
+                  {controlTargetHasReducedToZeroSave && (
+                    <TextField
+                      select
+                      label="0 HP Save"
+                      value={reducedToZeroSaveOutcome}
+                      onChange={(event) => onReducedToZeroSaveOutcomeChange(event.target.value as 'success' | 'fail')}
+                      disabled={!hasEncounter || !controlTargetId}
+                      sx={{ minWidth: 140 }}
+                    >
+                      <MenuItem value="success">Success</MenuItem>
+                      <MenuItem value="fail">Fail</MenuItem>
+                    </TextField>
+                  )}
+                  <Button
+                    variant="outlined"
+                    color="warning"
+                    onClick={onTriggerReducedToZeroHook}
+                    disabled={!canTriggerReducedToZeroHook}
+                  >
+                    Trigger 0 HP Hook
+                  </Button>
+                </Stack>
+              </Stack>
+
+              <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flex={1}>
+                  <TextField
+                    fullWidth
+                    label="Condition"
+                    value={conditionInput}
+                    onChange={(event) => onConditionInputChange(event.target.value)}
+                    disabled={!hasEncounter}
+                  />
+                  <Button variant="outlined" onClick={onAddCondition} disabled={!hasEncounter || !controlTargetId}>
+                    Add
+                  </Button>
+                  <Button variant="text" color="inherit" onClick={onRemoveCondition} disabled={!hasEncounter || !controlTargetId}>
+                    Remove
+                  </Button>
+                </Stack>
+
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} flex={1}>
+                  <TextField
+                    fullWidth
+                    label="State Marker"
+                    value={stateInput}
+                    onChange={(event) => onStateInputChange(event.target.value)}
+                    disabled={!hasEncounter}
+                  />
+                  <Button variant="outlined" onClick={onAddState} disabled={!hasEncounter || !controlTargetId}>
+                    Add
+                  </Button>
+                  <Button variant="text" color="inherit" onClick={onRemoveState} disabled={!hasEncounter || !controlTargetId}>
+                    Remove
+                  </Button>
+                </Stack>
+              </Stack>
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <TextField
+                  label="Marker Duration Turns"
+                  type="number"
+                  value={markerDurationTurns}
+                  onChange={(event) => onMarkerDurationTurnsChange(event.target.value)}
+                  disabled={!hasEncounter}
+                  helperText="Leave blank for persistent markers."
+                  sx={{ minWidth: 200 }}
+                />
+                <TextField
+                  select
+                  label="Tick On"
+                  value={markerDurationBoundary}
+                  onChange={(event) => onMarkerDurationBoundaryChange(event.target.value as 'start' | 'end')}
+                  disabled={!hasEncounter}
+                  sx={{ minWidth: 180 }}
+                >
+                  <MenuItem value="start">Turn Start</MenuItem>
+                  <MenuItem value="end">Turn End</MenuItem>
+                </TextField>
+              </Stack>
+            </Stack>
+          </Collapse>
         </Stack>
       </Stack>
     </Paper>

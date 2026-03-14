@@ -1,5 +1,5 @@
 import { applyDamageToCombatant, appendEncounterLogEvent, getEncounterCombatantLabel, updateEncounterCombatant } from './encounter-state'
-import type { CombatActionCost, CombatActionDefinition } from './combat-actions.types'
+import type { CombatActionCost, CombatActionDefinition, CombatActionSequenceStep } from './combat-actions.types'
 import { createCombatTurnResources, type CombatantInstance, type CombatantTurnResources } from './combatant.types'
 import type { EncounterState } from './encounter.types'
 
@@ -27,6 +27,26 @@ function getActionLabel(action: CombatActionDefinition): string {
 
 function getCombatantActions(combatant: CombatantInstance): CombatActionDefinition[] {
   return combatant.actions ?? []
+}
+
+function getTrackedPartCount(
+  state: EncounterState,
+  actorId: string,
+  part: 'head' | 'limb',
+): number {
+  return state.combatantsById[actorId]?.trackedParts?.find((trackedPart) => trackedPart.part === part)?.currentCount ?? 0
+}
+
+function getSequenceStepCount(
+  state: EncounterState,
+  actorId: string,
+  step: CombatActionSequenceStep,
+): number {
+  if (step.countFromTrackedPart) {
+    return getTrackedPartCount(state, actorId, step.countFromTrackedPart)
+  }
+
+  return step.count
 }
 
 function parseDamageExpression(input?: string): ParsedDamageExpression | null {
@@ -119,6 +139,15 @@ export function resolveCombatAction(
   selection: ResolveCombatActionSelection,
   options: ResolveCombatActionOptions = {},
 ): EncounterState {
+  return resolveCombatActionInternal(state, selection, options, { skipCost: false })
+}
+
+function resolveCombatActionInternal(
+  state: EncounterState,
+  selection: ResolveCombatActionSelection,
+  options: ResolveCombatActionOptions,
+  behavior: { skipCost: boolean },
+): EncounterState {
   const actor = state.combatantsById[selection.actorId]
   if (!actor || state.activeCombatantId !== selection.actorId) return state
 
@@ -126,7 +155,7 @@ export function resolveCombatAction(
   if (!action) return state
 
   const resources = getCombatantTurnResources(actor)
-  if (!canSpendActionCost(resources, action.cost)) return state
+  if (!behavior.skipCost && !canSpendActionCost(resources, action.cost)) return state
 
   const target = selection.targetId ? state.combatantsById[selection.targetId] : undefined
   if (action.resolutionMode === 'attack_roll') {
@@ -147,6 +176,46 @@ export function resolveCombatAction(
     turn: state.turnIndex + 1,
     summary: `${actor.source.label} uses ${actionLabel}${target ? ` against ${targetLabel}` : ''}.`,
   })
+
+  if (action.sequence && action.sequence.length > 0) {
+    for (const step of action.sequence) {
+      const iterationCount = getSequenceStepCount(nextState, actor.instanceId, step)
+      const childAction = getCombatantActions(nextState.combatantsById[actor.instanceId] ?? actor).find(
+        (candidate) => candidate.label === step.actionLabel,
+      )
+      if (!childAction) continue
+
+      for (let index = 0; index < iterationCount; index += 1) {
+        nextState = resolveCombatActionInternal(
+          nextState,
+          {
+            actorId: actor.instanceId,
+            targetId: selection.targetId,
+            actionId: childAction.id,
+          },
+          options,
+          { skipCost: true },
+        )
+      }
+    }
+
+    nextState = appendEncounterLogEvent(nextState, {
+      type: 'action_resolved',
+      actorId: actor.instanceId,
+      targetIds: target ? [target.instanceId] : undefined,
+      round: state.roundNumber,
+      turn: state.turnIndex + 1,
+      summary: `${actionLabel} resolves its action sequence.`,
+      details: action.logText,
+    })
+
+    return behavior.skipCost
+      ? nextState
+      : updateEncounterCombatant(nextState, actor.instanceId, (combatant) => ({
+          ...combatant,
+          turnResources: spendActionCost(getCombatantTurnResources(combatant), action.cost),
+        }))
+  }
 
   if (action.resolutionMode === 'attack_roll') {
     const attackBonus = action.attackProfile?.attackBonus
@@ -220,8 +289,10 @@ export function resolveCombatAction(
     })
   }
 
-  return updateEncounterCombatant(nextState, actor.instanceId, (combatant) => ({
-    ...combatant,
-    turnResources: spendActionCost(getCombatantTurnResources(combatant), action.cost),
-  }))
+  return behavior.skipCost
+    ? nextState
+    : updateEncounterCombatant(nextState, actor.instanceId, (combatant) => ({
+        ...combatant,
+        turnResources: spendActionCost(getCombatantTurnResources(combatant), action.cost),
+      }))
 }

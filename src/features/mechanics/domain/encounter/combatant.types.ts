@@ -80,6 +80,31 @@ export interface CombatantTurnResources {
   hasCastBonusActionSpell: boolean
 }
 
+export interface RuntimeTrackedPart {
+  part: 'head' | 'limb'
+  currentCount: number
+  initialCount: number
+  lostSinceLastTurn: number
+  lossAppliedThisTurn: number
+  damageWindowTurnKey?: string
+  damageTakenThisTurn: number
+  damageTakenByTypeThisTurn: Record<string, number>
+  regrowthSuppressedByDamageTypes: string[]
+  loss?: {
+    trigger: 'damage_taken_in_single_turn'
+    minDamage: number
+    count: number
+  }
+  deathWhenCountReaches?: number
+  regrowth?: {
+    trigger: 'turn_end'
+    requiresLivingPart?: boolean
+    countPerPartLostSinceLastTurn: number
+    suppressedByDamageTypes?: string[]
+    healHitPoints?: number
+  }
+}
+
 export function createCombatTurnResources(movementRemaining = 0): CombatantTurnResources {
   return {
     actionAvailable: true,
@@ -100,6 +125,7 @@ export interface CombatantInstance {
   activeEffects: Effect[]
   runtimeEffects: RuntimeEffectInstance[]
   turnHooks: RuntimeTurnHook[]
+  trackedParts?: RuntimeTrackedPart[]
   suppressedHooks?: RuntimeMarker[]
   turnContext?: CombatantTurnContext
   turnResources?: CombatantTurnResources

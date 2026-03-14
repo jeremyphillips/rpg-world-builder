@@ -301,4 +301,87 @@ describe('resolveCombatAction', () => {
       'action_resolved',
     ])
   })
+
+  it('expands sequence actions using tracked part counts', () => {
+    const state = createEncounterState(
+      [
+        {
+          ...createCombatant({
+            instanceId: 'hydra',
+            label: 'Hydra',
+            side: 'enemies',
+            initiativeModifier: 5,
+            dexterityScore: 12,
+            armorClass: 15,
+            actions: [
+              {
+                id: 'multiattack',
+                label: 'Multiattack',
+                kind: 'monster_action',
+                cost: { action: true },
+                resolutionMode: 'log_only',
+                sequence: [
+                  {
+                    actionLabel: 'Bite',
+                    count: 5,
+                    countFromTrackedPart: 'head',
+                  },
+                ],
+              },
+              {
+                id: 'bite',
+                label: 'Bite',
+                kind: 'monster_action',
+                cost: { action: true },
+                resolutionMode: 'attack_roll',
+                attackProfile: {
+                  attackBonus: 8,
+                  damage: '1',
+                  damageType: 'piercing',
+                },
+              },
+            ],
+          }),
+          trackedParts: [
+            {
+              part: 'head',
+              currentCount: 2,
+              initialCount: 5,
+              lostSinceLastTurn: 0,
+              lossAppliedThisTurn: 0,
+              damageTakenThisTurn: 0,
+              damageTakenByTypeThisTurn: {},
+              regrowthSuppressedByDamageTypes: [],
+            },
+          ],
+        },
+        createCombatant({
+          instanceId: 'target',
+          label: 'Fighter',
+          side: 'party',
+          initiativeModifier: 1,
+          dexterityScore: 12,
+          armorClass: 16,
+        }),
+      ],
+      { rng: () => 0.9 }
+    )
+
+    const resolved = resolveCombatAction(
+      state,
+      {
+        actorId: 'hydra',
+        targetId: 'target',
+        actionId: 'multiattack',
+      },
+      {
+        rng: () => 0.7,
+      },
+    )
+
+    expect(resolved.combatantsById['target']?.stats.currentHitPoints).toBe(10)
+    expect(resolved.combatantsById['hydra']?.turnResources?.actionAvailable).toBe(false)
+    expect(resolved.log.filter((entry) => entry.summary.includes('Hydra hits Fighter with Bite.'))).toHaveLength(2)
+    expect(resolved.log[resolved.log.length - 1]?.summary).toBe('Multiattack resolves its action sequence.')
+  })
 })

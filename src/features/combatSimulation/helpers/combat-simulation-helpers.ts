@@ -255,6 +255,20 @@ function buildMonsterActionLogText(action: MonsterAction): string | undefined {
   return undefined
 }
 
+function buildMonsterActionSequence(action: MonsterAction): CombatActionDefinition['sequence'] {
+  if (action.kind !== 'special' || !action.sequence) return undefined
+
+  const usesCurrentHeadCount =
+    action.notes?.toLowerCase().includes('current number of heads') ||
+    action.description.toLowerCase().includes('as many')
+
+  return action.sequence.map((step) => ({
+    actionLabel: step.actionName,
+    count: step.count,
+    countFromTrackedPart: usesCurrentHeadCount ? 'head' : undefined,
+  }))
+}
+
 function buildMonsterActionDefinition(
   monster: Monster,
   action: MonsterAction,
@@ -338,6 +352,7 @@ function buildMonsterActionDefinition(
             damageType: action.damageType,
           }
         : undefined,
+    sequence: buildMonsterActionSequence(action),
     logText: buildMonsterActionLogText(action),
   }
 }

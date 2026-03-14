@@ -23,6 +23,12 @@ export interface CombatActionAttackProfile {
   damageBreakdown?: BreakdownToken[]
 }
 
+export interface CombatActionSequenceStep {
+  actionLabel: string
+  count: number
+  countFromTrackedPart?: 'head' | 'limb'
+}
+
 export interface CombatActionDefinition {
   id: string
   label: string
@@ -30,5 +36,6 @@ export interface CombatActionDefinition {
   cost: CombatActionCost
   resolutionMode: CombatActionResolutionMode
   attackProfile?: CombatActionAttackProfile
+  sequence?: CombatActionSequenceStep[]
   logText?: string
 }
