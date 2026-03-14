@@ -414,7 +414,7 @@ Primary files:
 
 - `src/features/mechanics/domain/core/rules/systemCatalog.normalization.test.ts`
 - monster/effect source tests
-- `docs/EFFECT_MODEL_UNIFICATION_PLAN.md`
+- `docs/plans/effect_model_unification.md`
 
 Tasks:
 
@@ -428,7 +428,7 @@ Tasks:
 Status update:
 
 - regression assertions have been added for migrated monster save/trigger/meta-rule cases
-- `docs/EFFECT_MODEL_UNIFICATION_PLAN.md` now documents the new canonical kinds, allowed temporary `CustomEffect` ids, and forbidden legacy shapes
+- `docs/plans/effect_model_unification.md` now documents the new canonical kinds, allowed temporary `CustomEffect` ids, and forbidden legacy shapes
 - catalog-wide guardrail coverage now forbids reintroducing legacy monster wrapper fields and legacy monster-only effect payloads
 - remaining follow-up is adding representative spell snapshots once spell migration lands
 

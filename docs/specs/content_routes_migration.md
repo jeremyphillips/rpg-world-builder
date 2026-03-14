@@ -2,7 +2,7 @@
 
 **Goal:** Migrate content routes from campaign ownership to content ownership. Content features should live under `src/features/content/{feature}/routes` (client) and `server/features/content/{feature}/` (server), with each feature owning its controllers, routes, and services.
 
-**Related:** See [FEATURE_FIRST_MIGRATION.md](./FEATURE_FIRST_MIGRATION.md) for broader server scaffolding and Build 11/15 overlap.
+**Related:** See [feature_first_migration.md](./feature_first_migration.md) for broader server scaffolding and Build 11/15 overlap.
 
 ---
 
