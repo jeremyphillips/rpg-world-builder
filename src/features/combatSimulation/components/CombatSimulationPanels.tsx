@@ -17,16 +17,9 @@ type EncounterControlsPanelProps = {
   unresolvedCombatantCount: number
   encounterState: EncounterState | null
   activeCombatant: CombatantInstance | null
-  availableActions: { id: string; label: string; resolutionMode: string; kind: string }[]
-  availableActionTargets: { id: string; label: string }[]
-  selectedActionId: string
-  onSelectedActionIdChange: (value: string) => void
-  selectedActionTargetId: string
-  onSelectedActionTargetIdChange: (value: string) => void
   canStartEncounter: boolean
   onStartEncounter: () => void
   onNextTurn: () => void
-  onResolveAction: () => void
   onResetEncounter: () => void
   environmentContext: ManualEnvironmentContext
   onEnvironmentContextChange: (value: ManualEnvironmentContext) => void
@@ -65,16 +58,9 @@ export function EncounterControlsPanel({
   unresolvedCombatantCount,
   encounterState,
   activeCombatant,
-  availableActions,
-  availableActionTargets,
-  selectedActionId,
-  onSelectedActionIdChange,
-  selectedActionTargetId,
-  onSelectedActionTargetIdChange,
   canStartEncounter,
   onStartEncounter,
   onNextTurn,
-  onResolveAction,
   onResetEncounter,
   environmentContext,
   onEnvironmentContextChange,
@@ -197,43 +183,6 @@ export function EncounterControlsPanel({
                     size="small"
                     variant="outlined"
                   />
-                </Stack>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Action"
-                    value={selectedActionId}
-                    onChange={(event) => onSelectedActionIdChange(event.target.value)}
-                    disabled={!hasEncounter || availableActions.length === 0}
-                  >
-                    {availableActions.map((action) => (
-                      <MenuItem key={action.id} value={action.id}>
-                        {action.label} ({action.kind.replaceAll('_', ' ')}, {action.resolutionMode.replaceAll('_', ' ')})
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Target"
-                    value={selectedActionTargetId}
-                    onChange={(event) => onSelectedActionTargetIdChange(event.target.value)}
-                    disabled={!hasEncounter || availableActionTargets.length === 0}
-                  >
-                    {availableActionTargets.map((target) => (
-                      <MenuItem key={target.id} value={target.id}>
-                        {target.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                  <Button
-                    variant="contained"
-                    onClick={onResolveAction}
-                    disabled={!hasEncounter || !selectedActionId || availableActions.length === 0 || availableActionTargets.length === 0}
-                  >
-                    Resolve Action
-                  </Button>
                 </Stack>
               </>
             )}

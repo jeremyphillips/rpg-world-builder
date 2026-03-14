@@ -249,4 +249,56 @@ describe('resolveCombatAction', () => {
       'spell_logged',
     ])
   })
+
+  it('spends only the bonus action for bonus-action log entries', () => {
+    const state = createEncounterState(
+      [
+        createCombatant({
+          instanceId: 'actor',
+          label: 'Goblin',
+          side: 'enemies',
+          initiativeModifier: 5,
+          dexterityScore: 16,
+          armorClass: 15,
+          actions: [
+            {
+              id: 'nimble-escape',
+              label: 'Nimble Escape',
+              kind: 'monster_action',
+              cost: { bonusAction: true },
+              resolutionMode: 'log_only',
+              logText: 'The goblin takes the Disengage or Hide action.',
+            },
+          ],
+        }),
+        createCombatant({
+          instanceId: 'target',
+          label: 'Fighter',
+          side: 'party',
+          initiativeModifier: 1,
+          dexterityScore: 12,
+          armorClass: 16,
+        }),
+      ],
+      { rng: () => 0.9 }
+    )
+
+    const resolved = resolveCombatAction(state, {
+      actorId: 'actor',
+      actionId: 'nimble-escape',
+      targetId: 'target',
+    })
+
+    expect(resolved.combatantsById['actor']?.turnResources).toEqual({
+      actionAvailable: true,
+      bonusActionAvailable: false,
+      reactionAvailable: true,
+      movementRemaining: 30,
+      hasCastBonusActionSpell: false,
+    })
+    expect(resolved.log.slice(-2).map((entry) => entry.type)).toEqual([
+      'action_declared',
+      'action_resolved',
+    ])
+  })
 })

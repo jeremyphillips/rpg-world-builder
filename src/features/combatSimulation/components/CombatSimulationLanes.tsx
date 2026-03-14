@@ -20,6 +20,13 @@ type PartyLaneProps = {
   loadingParty: boolean
   encounterState: { combatantsById: Record<string, CombatantInstance> } | null
   activeCombatantId: string | null
+  availableActions: { id: string; label: string; resolutionMode: string; kind: string }[]
+  availableActionTargets: { id: string; label: string }[]
+  selectedActionId: string
+  onSelectedActionIdChange: (value: string) => void
+  selectedActionTargetId: string
+  onSelectedActionTargetIdChange: (value: string) => void
+  onResolveAction: () => void
   onPartySelectionChange: (ids: string[]) => void
   onResolvedCombatant: (runtimeId: string, combatant: CombatantInstance | null) => void
   onRemovePartyCombatant: (characterId: string) => void
@@ -32,6 +39,13 @@ export function PartyRosterLane({
   loadingParty,
   encounterState,
   activeCombatantId,
+  availableActions,
+  availableActionTargets,
+  selectedActionId,
+  onSelectedActionIdChange,
+  selectedActionTargetId,
+  onSelectedActionTargetIdChange,
+  onResolveAction,
   onPartySelectionChange,
   onResolvedCombatant,
   onRemovePartyCombatant,
@@ -82,6 +96,19 @@ export function PartyRosterLane({
               onResolved={(combatant) => onResolvedCombatant(characterId, combatant)}
               onRemove={() => onRemovePartyCombatant(characterId)}
               isActive={activeCombatantId === characterId}
+              activeActionControls={
+                activeCombatantId === characterId
+                  ? {
+                      availableActions,
+                      availableTargets: availableActionTargets,
+                      selectedActionId,
+                      onSelectedActionIdChange,
+                      selectedTargetId: selectedActionTargetId,
+                      onSelectedTargetIdChange: onSelectedActionTargetIdChange,
+                      onResolveAction,
+                    }
+                  : undefined
+              }
             />
           ))
         )}
@@ -98,6 +125,13 @@ type EnemyLaneProps = {
   monstersById: Record<string, Monster>
   encounterState: { combatantsById: Record<string, CombatantInstance> } | null
   activeCombatantId: string | null
+  availableActions: { id: string; label: string; resolutionMode: string; kind: string }[]
+  availableActionTargets: { id: string; label: string }[]
+  selectedActionId: string
+  onSelectedActionIdChange: (value: string) => void
+  selectedActionTargetId: string
+  onSelectedActionTargetIdChange: (value: string) => void
+  onResolveAction: () => void
   environmentContext: ManualEnvironmentContext
   monsterFormsById: Record<string, MonsterFormContext>
   monsterManualTriggersById: Record<string, ManualMonsterTriggerContext>
@@ -118,6 +152,13 @@ export function EnemyRosterLane({
   monstersById,
   encounterState,
   activeCombatantId,
+  availableActions,
+  availableActionTargets,
+  selectedActionId,
+  onSelectedActionIdChange,
+  selectedActionTargetId,
+  onSelectedActionTargetIdChange,
+  onResolveAction,
   environmentContext,
   monsterFormsById,
   monsterManualTriggersById,
@@ -180,6 +221,19 @@ export function EnemyRosterLane({
                   onResolved={(combatant) => onResolvedCombatant(entry.runtimeId, combatant)}
                   onRemove={() => onRemoveEnemyCombatant(entry.runtimeId)}
                   isActive={activeCombatantId === entry.runtimeId}
+                  activeActionControls={
+                    activeCombatantId === entry.runtimeId
+                      ? {
+                          availableActions,
+                          availableTargets: availableActionTargets,
+                          selectedActionId,
+                          onSelectedActionIdChange,
+                          selectedTargetId: selectedActionTargetId,
+                          onSelectedTargetIdChange: onSelectedActionTargetIdChange,
+                          onResolveAction,
+                        }
+                      : undefined
+                  }
                 />
               )
             }
@@ -224,6 +278,19 @@ export function EnemyRosterLane({
                 onAddCopy={() => onAddEnemyCopy(entry)}
                 onRemove={() => onRemoveEnemyCombatant(entry.runtimeId)}
                 isActive={activeCombatantId === entry.runtimeId}
+                activeActionControls={
+                  activeCombatantId === entry.runtimeId
+                    ? {
+                        availableActions,
+                        availableTargets: availableActionTargets,
+                        selectedActionId,
+                        onSelectedActionIdChange,
+                        selectedTargetId: selectedActionTargetId,
+                        onSelectedTargetIdChange: onSelectedActionTargetIdChange,
+                        onResolveAction,
+                      }
+                    : undefined
+                }
               />
             )
           })

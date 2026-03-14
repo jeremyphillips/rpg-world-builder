@@ -41,6 +41,7 @@ import {
 import {
   buildSpellPlaceholderActions,
   buildCharacterCombatantInstance,
+  buildMonsterExecutableActions,
   buildMonsterAttackEntries,
   buildMonsterCombatantInstance,
   buildMonsterEffectLabels,
@@ -126,6 +127,90 @@ function AttackList({
         </Box>
       ))}
     </Stack>
+  )
+}
+
+type ActiveActionControlsProps = {
+  availableActions: { id: string; label: string; resolutionMode: string; kind: string }[]
+  availableTargets: { id: string; label: string }[]
+  selectedActionId: string
+  onSelectedActionIdChange: (value: string) => void
+  selectedTargetId: string
+  onSelectedTargetIdChange: (value: string) => void
+  onResolveAction: () => void
+}
+
+function ActiveActionControls({
+  availableActions,
+  availableTargets,
+  selectedActionId,
+  onSelectedActionIdChange,
+  selectedTargetId,
+  onSelectedTargetIdChange,
+  onResolveAction,
+}: ActiveActionControlsProps) {
+  return (
+    <Box>
+      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+        Turn Action
+      </Typography>
+      <Stack spacing={1.5}>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          {availableActions.length > 0 ? (
+            availableActions.map((action) => (
+              <Chip
+                key={action.id}
+                label={`${action.label} (${action.kind.replaceAll('_', ' ')})`}
+                size="small"
+                color={action.id === selectedActionId ? 'primary' : 'default'}
+                variant={action.id === selectedActionId ? 'filled' : 'outlined'}
+              />
+            ))
+          ) : (
+            <Chip label="No actions available" size="small" variant="outlined" />
+          )}
+        </Stack>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+          <TextField
+            select
+            fullWidth
+            label="Action"
+            value={selectedActionId}
+            onChange={(event) => onSelectedActionIdChange(event.target.value)}
+            disabled={availableActions.length === 0}
+            size="small"
+          >
+            {availableActions.map((action) => (
+              <MenuItem key={action.id} value={action.id}>
+                {action.label} ({action.kind.replaceAll('_', ' ')}, {action.resolutionMode.replaceAll('_', ' ')})
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            fullWidth
+            label="Target"
+            value={selectedTargetId}
+            onChange={(event) => onSelectedTargetIdChange(event.target.value)}
+            disabled={availableTargets.length === 0}
+            size="small"
+          >
+            {availableTargets.map((target) => (
+              <MenuItem key={target.id} value={target.id}>
+                {target.label}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Button
+            variant="contained"
+            onClick={onResolveAction}
+            disabled={!selectedActionId || availableActions.length === 0 || availableTargets.length === 0}
+          >
+            Resolve Action
+          </Button>
+        </Stack>
+      </Stack>
+    </Box>
   )
 }
 
@@ -363,6 +448,7 @@ export function CharacterCombatantCard({
   onResolved,
   onRemove,
   isActive = false,
+  activeActionControls,
 }: {
   runtimeId: string
   characterId: string
@@ -372,6 +458,7 @@ export function CharacterCombatantCard({
   onResolved: (combatant: CombatantInstance | null) => void
   onRemove: () => void
   isActive?: boolean
+  activeActionControls?: ActiveActionControlsProps
 }) {
   const { character, loading, error } = useCharacter(characterId)
 
@@ -419,6 +506,7 @@ export function CharacterCombatantCard({
       onResolved={onResolved}
       onRemove={onRemove}
       isActive={isActive}
+      activeActionControls={activeActionControls}
     />
   )
 }
@@ -432,6 +520,7 @@ function LoadedCharacterCombatantCard({
   onResolved,
   onRemove,
   isActive = false,
+  activeActionControls,
 }: {
   runtimeId: string
   side: CombatantSide
@@ -441,6 +530,7 @@ function LoadedCharacterCombatantCard({
   onResolved: (combatant: CombatantInstance) => void
   onRemove: () => void
   isActive?: boolean
+  activeActionControls?: ActiveActionControlsProps
 }) {
   const { catalog } = useCampaignRules()
   const engineCharacter = useMemo(() => toCharacterForEngine(character), [character])
@@ -529,8 +619,11 @@ function LoadedCharacterCombatantCard({
               value: `${displayCombatant.stats.currentHitPoints} / ${displayCombatant.stats.maxHitPoints}`,
             },
             { label: 'Init', value: formatSigned(displayCombatant.stats.initiativeModifier) },
+            { label: 'Move', value: `${displayCombatant.turnResources?.movementRemaining ?? 0} ft` },
           ]}
         />
+
+        {isActive && activeActionControls && <ActiveActionControls {...activeActionControls} />}
 
         <Divider />
 
@@ -571,6 +664,7 @@ export function MonsterCombatantCard({
   onAddCopy,
   onRemove,
   isActive = false,
+  activeActionControls,
 }: {
   monster: Monster
   runtimeId: string
@@ -584,6 +678,7 @@ export function MonsterCombatantCard({
   onAddCopy: () => void
   onRemove: () => void
   isActive?: boolean
+  activeActionControls?: ActiveActionControlsProps
 }) {
   const { catalog } = useCampaignRules()
   const dexterityScore = monster.mechanics.abilities?.dexterity
@@ -593,10 +688,6 @@ export function MonsterCombatantCard({
     Math.floor(monster.mechanics.hitPoints.count * ((monster.mechanics.hitPoints.die + 1) / 2)) +
     (monster.mechanics.hitPoints.modifier ?? 0)
 
-  const attacks = useMemo(
-    () => buildMonsterAttackEntries(monster, catalog.weaponsById),
-    [monster, catalog.weaponsById],
-  )
   const activeEffects = useMemo(
     () =>
       buildActiveMonsterEffects(monster, {
@@ -605,6 +696,14 @@ export function MonsterCombatantCard({
         manual: manualTriggerContext,
       }),
     [currentForm, environmentContext, manualTriggerContext, monster],
+  )
+  const attacks = useMemo(
+    () => buildMonsterAttackEntries(monster, catalog.weaponsById, activeEffects),
+    [activeEffects, monster, catalog.weaponsById],
+  )
+  const executableActions = useMemo(
+    () => buildMonsterExecutableActions(monster, catalog.weaponsById, activeEffects),
+    [activeEffects, monster, catalog.weaponsById],
   )
   const effectLabels = useMemo(
     () =>
@@ -635,13 +734,14 @@ export function MonsterCombatantCard({
         runtimeId,
         monster,
         attacks,
+        actions: executableActions,
         initiativeModifier,
         armorClass,
         currentHitPoints: averageHitPoints,
         activeEffects,
         turnHooks,
       }),
-    [activeEffects, armorClass, attacks, averageHitPoints, initiativeModifier, monster, runtimeId, turnHooks],
+    [activeEffects, armorClass, attacks, averageHitPoints, executableActions, initiativeModifier, monster, runtimeId, turnHooks],
   )
 
   useEffect(() => {
@@ -692,8 +792,11 @@ export function MonsterCombatantCard({
             },
             { label: 'Init', value: formatSigned(displayCombatant.stats.initiativeModifier) },
             { label: 'Speed', value: formatMovement(monster.mechanics.movement) },
+            { label: 'Move', value: `${displayCombatant.turnResources?.movementRemaining ?? 0} ft` },
           ]}
         />
+
+        {isActive && activeActionControls && <ActiveActionControls {...activeActionControls} />}
 
         <Typography variant="body2" color="text.secondary">
           {formatHitPointsWithAverage(monster.mechanics.hitPoints)}

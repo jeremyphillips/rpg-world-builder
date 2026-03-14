@@ -137,16 +137,9 @@ export default function CombatSimulationRoute() {
         unresolvedCombatantCount={unresolvedCombatantCount}
         encounterState={encounterState}
         activeCombatant={activeCombatant}
-        availableActions={availableActions}
-        availableActionTargets={availableActionTargets}
-        selectedActionId={selectedActionId}
-        onSelectedActionIdChange={setSelectedActionId}
-        selectedActionTargetId={selectedActionTargetId}
-        onSelectedActionTargetIdChange={setSelectedActionTargetId}
         canStartEncounter={selectedCombatants.length > 0 && unresolvedCombatantCount === 0}
         onStartEncounter={handleStartEncounter}
         onNextTurn={handleNextTurn}
-        onResolveAction={handleResolveAction}
         onResetEncounter={handleResetEncounter}
         environmentContext={environmentContext}
         onEnvironmentContextChange={setEnvironmentContext}
@@ -193,6 +186,13 @@ export default function CombatSimulationRoute() {
           loadingParty={loadingParty}
           encounterState={encounterState}
           activeCombatantId={activeCombatantId}
+          availableActions={availableActions}
+          availableActionTargets={availableActionTargets}
+          selectedActionId={selectedActionId}
+          onSelectedActionIdChange={setSelectedActionId}
+          selectedActionTargetId={selectedActionTargetId}
+          onSelectedActionTargetIdChange={setSelectedActionTargetId}
+          onResolveAction={handleResolveAction}
           onPartySelectionChange={setSelectedPartyIds}
           onResolvedCombatant={handleResolvedCombatant}
           onRemovePartyCombatant={removePartyCombatant}
@@ -206,6 +206,13 @@ export default function CombatSimulationRoute() {
           monstersById={monstersById}
           encounterState={encounterState}
           activeCombatantId={activeCombatantId}
+          availableActions={availableActions}
+          availableActionTargets={availableActionTargets}
+          selectedActionId={selectedActionId}
+          onSelectedActionIdChange={setSelectedActionId}
+          selectedActionTargetId={selectedActionTargetId}
+          onSelectedActionTargetIdChange={setSelectedActionTargetId}
+          onResolveAction={handleResolveAction}
           environmentContext={environmentContext}
           monsterFormsById={monsterFormsById}
           monsterManualTriggersById={monsterManualTriggersById}
