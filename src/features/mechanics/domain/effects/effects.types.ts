@@ -180,7 +180,8 @@ export type ActivationEffect = EffectBase<'activation'> & {
 
 export type DamageLevelThreshold = {
   level: number;
-  damage: DiceOrFlat;
+  damage?: DiceOrFlat;
+  instances?: number;
 };
 
 export type DamageEffect = EffectBase<'damage'> & {

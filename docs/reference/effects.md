@@ -108,7 +108,8 @@ Status meanings:
 - Use when: a mechanic directly deals damage
 - Do not use when: save branches own the differing result
 - Key fields: `damage`, `damageType`, `instances`, `levelScaling`
-- `levelScaling.thresholds`: character-level breakpoints where the dice expression changes (e.g. cantrip upgrades at levels 5, 11, 17)
+- `levelScaling.thresholds`: character-level breakpoints that override damage dice or instance count (e.g. cantrip upgrades at levels 5, 11, 17)
+- Each threshold may specify `damage` (new dice expression), `instances` (new instance count), or both
 
 ```ts
 { kind: 'damage', damage: '8d6', damageType: 'fire' }
@@ -116,6 +117,10 @@ Status meanings:
 
 ```ts
 { kind: 'damage', damage: '1d8', damageType: 'radiant', levelScaling: { thresholds: [{ level: 5, damage: '2d8' }, { level: 11, damage: '3d8' }, { level: 17, damage: '4d8' }] } }
+```
+
+```ts
+{ kind: 'damage', damage: '1d10', damageType: 'force', instances: { count: 1, canSplitTargets: true }, levelScaling: { thresholds: [{ level: 5, instances: 2 }, { level: 11, instances: 3 }, { level: 17, instances: 4 }] } }
 ```
 
 ### `save`

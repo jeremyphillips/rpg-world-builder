@@ -72,7 +72,27 @@ const SPELLS_RAW: readonly SpellEntry[] = [
     school: 'evocation',
     level: 0,
     classes: ['sorcerer', 'wizard'],
-    effects: [{ kind: 'note', text: '' }],
+    castingTime: { normal: { value: 1, unit: 'action' } },
+    range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
+    duration: { kind: 'instantaneous' },
+    components: { verbal: true, somatic: true },
+    effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      {
+        kind: 'damage',
+        damage: '1d10',
+        damageType: 'fire',
+        levelScaling: cantripDamageScaling('d10'),
+      },
+      {
+        kind: 'note',
+        text: "Requires a ranged spell attack. A flammable object hit by this spell starts burning if it isn't being worn or carried.",
+      },
+    ],
+    description: {
+      full: "You hurl a mote of fire at a creature or an object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Fire damage. A flammable object hit by this spell starts burning if it isn't being worn or carried. Cantrip Upgrade. The damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10).",
+      summary: 'Ranged spell attack dealing 1d10 fire damage; flammable objects start burning.',
+    },
   },
   {
     id: 'eldritch-blast',
@@ -80,7 +100,39 @@ const SPELLS_RAW: readonly SpellEntry[] = [
     school: 'evocation',
     level: 0,
     classes: ['warlock'],
-    effects: [{ kind: 'note', text: '' }],
+    castingTime: { normal: { value: 1, unit: 'action' } },
+    range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
+    duration: { kind: 'instantaneous' },
+    components: { verbal: true, somatic: true },
+    effects: [
+      {
+        kind: 'targeting',
+        target: 'chosen-creatures',
+        targetType: 'creature',
+        canSelectSameTargetMultipleTimes: true,
+      },
+      {
+        kind: 'damage',
+        damage: '1d10',
+        damageType: 'force',
+        instances: { count: 1, canSplitTargets: true, canStackOnSingleTarget: true },
+        levelScaling: {
+          thresholds: [
+            { level: 5, instances: 2 },
+            { level: 11, instances: 3 },
+            { level: 17, instances: 4 },
+          ],
+        },
+      },
+      {
+        kind: 'note',
+        text: 'Each beam requires a separate ranged spell attack roll.',
+      },
+    ],
+    description: {
+      full: 'You hurl a beam of crackling energy. Make a ranged spell attack against one creature or object in range. On a hit, the target takes 1d10 Force damage. Cantrip Upgrade. The spell creates two beams at level 5, three beams at level 11, and four beams at level 17. You can direct the beams at the same target or at different ones. Make a separate attack roll for each beam.',
+      summary: 'Ranged spell attack dealing 1d10 force damage per beam; beam count increases at levels 5, 11, and 17.',
+    },
   },
   {
     id: 'sacred-flame',
@@ -548,6 +600,33 @@ const SPELLS_RAW: readonly SpellEntry[] = [
     level: 4,
     classes: ['druid', 'sorcerer', 'wizard'],
     effects: [{ kind: 'note', text: '' }],
+  },
+  {
+    id: 'fire-shield',
+    name: 'Fire Shield',
+    school: 'evocation',
+    level: 4,
+    classes: ['druid', 'sorcerer', 'wizard'],
+    castingTime: { normal: { value: 1, unit: 'action' } },
+    range: { kind: 'self' },
+    duration: { kind: 'timed', value: 10, unit: 'minute' },
+    components: { verbal: true, somatic: true, material: { description: 'a bit of phosphorus or a firefly' } },
+    effects: [
+      {
+        kind: 'note',
+        text: 'Choose warm shield (Resistance to Cold, retaliatory 2d8 Fire) or chill shield (Resistance to Fire, retaliatory 2d8 Cold). Shield variant selection is under-modeled.',
+      },
+      {
+        kind: 'trigger',
+        trigger: 'hit',
+        effects: [{ kind: 'damage', damage: '2d8' }],
+        text: 'When a creature within 5 feet hits you with a melee attack roll. Damage type is Fire (warm) or Cold (chill) depending on shield choice.',
+      },
+    ],
+    description: {
+      full: 'Wispy flames wreathe your body for the duration, shedding Bright Light in a 10-foot radius and Dim Light for an additional 10 feet. The flames provide you with a warm shield or a chill shield, as you choose. The warm shield grants you Resistance to Cold damage, and the chill shield grants you Resistance to Fire damage. In addition, whenever a creature within 5 feet of you hits you with a melee attack roll, the shield erupts with flame. The attacker takes 2d8 Fire damage from a warm shield or 2d8 Cold damage from a chill shield.',
+      summary: 'Flames wreathe you for 10 minutes, granting damage resistance and dealing 2d8 retaliatory damage when hit in melee.',
+    },
   },
   {
     id: 'wall-of-force',
