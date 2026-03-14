@@ -34,10 +34,12 @@ import {
   applyDamageToCombatant,
   applyHealingToCombatant,
   createEncounterState,
+  formatMarkerLabel,
   removeConditionFromCombatant,
   removeStateFromCombatant,
   type CombatantAttackEntry,
   type CombatantInstance,
+  type RuntimeMarker,
   type CombatantSide,
   type EncounterState,
 } from '@/features/mechanics/domain/encounter'
@@ -366,7 +368,7 @@ function MarkerList({
   labels,
 }: {
   title: string
-  labels: string[]
+  labels: RuntimeMarker[]
 }) {
   return (
     <Box>
@@ -380,7 +382,7 @@ function MarkerList({
       ) : (
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {labels.map((label) => (
-            <Chip key={label} label={label} size="small" variant="outlined" />
+            <Chip key={label.id} label={formatMarkerLabel(label)} size="small" variant="outlined" />
           ))}
         </Stack>
       )}
@@ -789,6 +791,8 @@ export default function CombatTestRoute() {
   const [healingAmount, setHealingAmount] = useState('5')
   const [conditionInput, setConditionInput] = useState('poisoned')
   const [stateInput, setStateInput] = useState('concentrating')
+  const [markerDurationTurns, setMarkerDurationTurns] = useState('1')
+  const [markerDurationBoundary, setMarkerDurationBoundary] = useState<'start' | 'end'>('end')
 
   const selectedPartyOptions = useMemo(
     () => partyOptions.filter((option) => selectedPartyIds.includes(option.id)),
@@ -882,6 +886,13 @@ export default function CombatTestRoute() {
     return Math.floor(parsed)
   }
 
+  function parseDurationTurns(value: string): number | undefined {
+    if (value.trim() === '') return undefined
+    const parsed = Number(value)
+    if (!Number.isFinite(parsed) || parsed <= 0) return undefined
+    return Math.floor(parsed)
+  }
+
   function handleApplyDamage() {
     const amount = parsePositiveAmount(damageAmount)
     if (!encounterState || !controlTargetId || amount == null) return
@@ -896,7 +907,12 @@ export default function CombatTestRoute() {
 
   function handleAddCondition() {
     if (!encounterState || !controlTargetId) return
-    setEncounterState(addConditionToCombatant(encounterState, controlTargetId, conditionInput))
+    setEncounterState(
+      addConditionToCombatant(encounterState, controlTargetId, conditionInput, {
+        durationTurns: parseDurationTurns(markerDurationTurns),
+        tickOn: markerDurationBoundary,
+      }),
+    )
   }
 
   function handleRemoveCondition() {
@@ -906,7 +922,12 @@ export default function CombatTestRoute() {
 
   function handleAddState() {
     if (!encounterState || !controlTargetId) return
-    setEncounterState(addStateToCombatant(encounterState, controlTargetId, stateInput))
+    setEncounterState(
+      addStateToCombatant(encounterState, controlTargetId, stateInput, {
+        durationTurns: parseDurationTurns(markerDurationTurns),
+        tickOn: markerDurationBoundary,
+      }),
+    )
   }
 
   function handleRemoveState() {
@@ -1079,6 +1100,31 @@ export default function CombatTestRoute() {
                   Remove
                 </Button>
               </Stack>
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField
+                label="Marker Duration Turns"
+                type="number"
+                value={markerDurationTurns}
+                onChange={(event) => setMarkerDurationTurns(event.target.value)}
+                disabled={!encounterState}
+                helperText="Leave blank for persistent markers."
+                sx={{ minWidth: 200 }}
+              />
+              <TextField
+                select
+                label="Tick On"
+                value={markerDurationBoundary}
+                onChange={(event) =>
+                  setMarkerDurationBoundary(event.target.value as 'start' | 'end')
+                }
+                disabled={!encounterState}
+                sx={{ minWidth: 180 }}
+              >
+                <MenuItem value="start">Turn Start</MenuItem>
+                <MenuItem value="end">Turn End</MenuItem>
+              </TextField>
             </Stack>
           </Stack>
         </Stack>

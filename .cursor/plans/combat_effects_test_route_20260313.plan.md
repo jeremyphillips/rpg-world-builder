@@ -89,6 +89,9 @@ Status update:
 - added targeted local test controls for damage, healing, condition markers, and state markers
 - runtime HP, conditions, and states now render back onto combatant cards from encounter state
 - added encounter helper coverage for HP mutation plus condition/state add-remove operations
+- condition and state markers can now carry turn-based duration metadata
+- `Next Turn` now ticks timed markers on turn start/end boundaries and logs automatic expirations
+- combatant cards now show remaining timed-marker duration inline
 
 ## Locked Decisions
 

@@ -7,6 +7,7 @@ import {
   applyDamageToCombatant,
   applyHealingToCombatant,
   createEncounterState,
+  formatMarkerLabel,
   removeConditionFromCombatant,
   removeStateFromCombatant,
 } from './encounter-state'
@@ -135,8 +136,8 @@ describe('rollInitiative', () => {
 
     expect(damaged.combatantsById['pc-1'].stats.currentHitPoints).toBe(13)
     expect(healed.combatantsById['pc-1'].stats.currentHitPoints).toBe(16)
-    expect(stated.combatantsById['pc-1'].conditions).toEqual(['poisoned'])
-    expect(stated.combatantsById['pc-1'].states).toEqual(['concentrating'])
+    expect(stated.combatantsById['pc-1'].conditions.map((entry) => entry.label)).toEqual(['poisoned'])
+    expect(stated.combatantsById['pc-1'].states.map((entry) => entry.label)).toEqual(['concentrating'])
     expect(stateRemoved.combatantsById['pc-1'].conditions).toEqual([])
     expect(stateRemoved.combatantsById['pc-1'].states).toEqual([])
     expect(stateRemoved.log.slice(-6).map((entry) => entry.type)).toEqual([
@@ -146,6 +147,62 @@ describe('rollInitiative', () => {
       'state_applied',
       'condition_removed',
       'state_removed',
+    ])
+  })
+
+  it('expires timed markers on the configured turn boundary', () => {
+    const combatants: CombatantInstance[] = [
+      {
+        instanceId: 'pc-1',
+        side: 'party',
+        source: { kind: 'pc', sourceId: 'pc-1', label: 'Cleric' },
+        stats: { armorClass: 18, maxHitPoints: 20, currentHitPoints: 20, initiativeModifier: 0, dexterityScore: 10 },
+        attacks: [],
+        activeEffects: [],
+        conditions: [],
+        states: [],
+      },
+      {
+        instanceId: 'monster-1',
+        side: 'enemies',
+        source: { kind: 'monster', sourceId: 'goblin', label: 'Goblin' },
+        stats: { armorClass: 15, maxHitPoints: 7, currentHitPoints: 7, initiativeModifier: 2, dexterityScore: 14 },
+        attacks: [],
+        activeEffects: [],
+        conditions: [],
+        states: [],
+      },
+    ]
+
+    const started = createEncounterState(combatants, {
+      rng: () => 0.45,
+    })
+    const withStartMarker = addConditionToCombatant(started, 'pc-1', 'blessed', {
+      durationTurns: 1,
+      tickOn: 'start',
+    })
+    const withBothMarkers = addStateToCombatant(withStartMarker, 'monster-1', 'charging', {
+      durationTurns: 1,
+      tickOn: 'end',
+    })
+    const secondTurn = advanceEncounterTurn(withBothMarkers)
+    const wrappedTurn = advanceEncounterTurn(secondTurn)
+
+    expect(formatMarkerLabel(withBothMarkers.combatantsById['pc-1'].conditions[0]!)).toBe(
+      'blessed (1 turn start)',
+    )
+    expect(secondTurn.combatantsById['monster-1'].states).toEqual([])
+    expect(secondTurn.combatantsById['pc-1'].conditions).toEqual([])
+    expect(secondTurn.log.slice(-4).map((entry) => entry.type)).toEqual([
+      'turn_ended',
+      'state_removed',
+      'turn_started',
+      'condition_removed',
+    ])
+    expect(wrappedTurn.log.slice(-3).map((entry) => entry.type)).toEqual([
+      'turn_ended',
+      'round_started',
+      'turn_started',
     ])
   })
 })

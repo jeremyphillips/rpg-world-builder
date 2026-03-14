@@ -28,6 +28,17 @@ export interface CombatantStatBlock {
   speeds?: Partial<Record<'ground' | 'climb' | 'fly' | 'swim' | 'burrow', number>>
 }
 
+export interface RuntimeMarkerDuration {
+  remainingTurns: number
+  tickOn: 'start' | 'end'
+}
+
+export interface RuntimeMarker {
+  id: string
+  label: string
+  duration?: RuntimeMarkerDuration
+}
+
 export interface CombatantInstance {
   instanceId: string
   side: CombatantSide
@@ -35,6 +46,6 @@ export interface CombatantInstance {
   stats: CombatantStatBlock
   attacks: CombatantAttackEntry[]
   activeEffects: Effect[]
-  conditions: string[]
-  states: string[]
+  conditions: RuntimeMarker[]
+  states: RuntimeMarker[]
 }
