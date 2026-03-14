@@ -103,14 +103,19 @@ Status meanings:
 
 ### `damage`
 
-- Status: `canonical`; `instances` is `provisional`
+- Status: `canonical`; `instances` is `provisional`; `levelScaling` is `provisional`
 - Purpose: damage payload
 - Use when: a mechanic directly deals damage
 - Do not use when: save branches own the differing result
-- Key fields: `damage`, `damageType`, `instances`
+- Key fields: `damage`, `damageType`, `instances`, `levelScaling`
+- `levelScaling.thresholds`: character-level breakpoints where the dice expression changes (e.g. cantrip upgrades at levels 5, 11, 17)
 
 ```ts
 { kind: 'damage', damage: '8d6', damageType: 'fire' }
+```
+
+```ts
+{ kind: 'damage', damage: '1d8', damageType: 'radiant', levelScaling: { thresholds: [{ level: 5, damage: '2d8' }, { level: 11, damage: '3d8' }, { level: 17, damage: '4d8' }] } }
 ```
 
 ### `save`

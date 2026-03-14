@@ -178,9 +178,17 @@ export type ActivationEffect = EffectBase<'activation'> & {
   cost?: ResourceCost;
 };
 
+export type DamageLevelThreshold = {
+  level: number;
+  damage: DiceOrFlat;
+};
+
 export type DamageEffect = EffectBase<'damage'> & {
   damage: DiceOrFlat;
   damageType?: EffectDamageType;
+  levelScaling?: {
+    thresholds: DamageLevelThreshold[];
+  };
   instances?: {
     count: number;
     simultaneous?: boolean;

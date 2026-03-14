@@ -8,8 +8,20 @@
  * Stub entries use SpellEntry and are minimally typed until authoring reaches them.
  */
 import type { Spell, SpellBase } from '@/features/content/spells/domain/types';
+import type { DiceOrFlat, dY } from '@/features/mechanics/domain/dice';
 import type { SystemRulesetId } from './ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds';
+
+/** Standard cantrip damage upgrade thresholds (levels 5, 11, 17). */
+function cantripDamageScaling(die: dY) {
+  return {
+    thresholds: [
+      { level: 5, damage: `2${die}` as DiceOrFlat },
+      { level: 11, damage: `3${die}` as DiceOrFlat },
+      { level: 17, damage: `4${die}` as DiceOrFlat },
+    ],
+  };
+}
 
 type SpellEntry = Partial<SpellBase> & Pick<SpellBase, 'id' | 'name' | 'school' | 'level' | 'classes' | 'effects'>;
 
@@ -76,7 +88,31 @@ const SPELLS_RAW: readonly SpellEntry[] = [
     school: 'evocation',
     level: 0,
     classes: ['cleric'],
-    effects: [{ kind: 'note', text: '' }],
+    castingTime: { normal: { value: 1, unit: 'action' } },
+    range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
+    duration: { kind: 'instantaneous' },
+    components: { verbal: true, somatic: true },
+    effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresSight: true },
+      {
+        kind: 'save',
+        save: { ability: 'dex' },
+        onFail: [{
+          kind: 'damage',
+          damage: '1d8',
+          damageType: 'radiant',
+          levelScaling: cantripDamageScaling('d8'),
+        }],
+      },
+      {
+        kind: 'note',
+        text: 'The target gains no benefit from Half Cover or Three-Quarters Cover for this save.',
+      },
+    ],
+    description: {
+      full: 'Flame-like radiance descends on a creature that you can see within range. The target must succeed on a Dexterity saving throw or take 1d8 Radiant damage. The target gains no benefit from Half Cover or Three-Quarters Cover for this save. Cantrip Upgrade. The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).',
+      summary: 'A creature you can see makes a Dexterity save or takes 1d8 radiant damage; ignores half and three-quarters cover.',
+    },
   },
   {
     id: 'mage-hand',
