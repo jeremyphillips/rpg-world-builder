@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
-import { createEncounterState } from './encounter-state'
+import {
+  addConditionToCombatant,
+  addStateToCombatant,
+  advanceEncounterTurn,
+  applyDamageToCombatant,
+  applyHealingToCombatant,
+  createEncounterState,
+  removeConditionFromCombatant,
+  removeStateFromCombatant,
+} from './encounter-state'
 import { rollInitiative } from './initiative-resolver'
 import type { CombatantInstance } from './combatant.types'
 
@@ -30,6 +39,8 @@ describe('rollInitiative', () => {
         stats: { armorClass: 18, maxHitPoints: 20, currentHitPoints: 20, initiativeModifier: 0, dexterityScore: 10 },
         attacks: [],
         activeEffects: [],
+        conditions: [],
+        states: [],
       },
       {
         instanceId: 'monster-1',
@@ -38,6 +49,8 @@ describe('rollInitiative', () => {
         stats: { armorClass: 15, maxHitPoints: 7, currentHitPoints: 7, initiativeModifier: 2, dexterityScore: 14 },
         attacks: [],
         activeEffects: [],
+        conditions: [],
+        states: [],
       },
     ]
 
@@ -50,5 +63,89 @@ describe('rollInitiative', () => {
     expect(state.roundNumber).toBe(1)
     expect(state.partyCombatantIds).toEqual(['pc-1'])
     expect(state.enemyCombatantIds).toEqual(['monster-1'])
+    expect(state.log.map((entry) => entry.type)).toEqual(['encounter_started', 'turn_started'])
+  })
+
+  it('advances turn order and starts a new round when initiative wraps', () => {
+    const combatants: CombatantInstance[] = [
+      {
+        instanceId: 'pc-1',
+        side: 'party',
+        source: { kind: 'pc', sourceId: 'pc-1', label: 'Cleric' },
+        stats: { armorClass: 18, maxHitPoints: 20, currentHitPoints: 20, initiativeModifier: 0, dexterityScore: 10 },
+        attacks: [],
+        activeEffects: [],
+        conditions: [],
+        states: [],
+      },
+      {
+        instanceId: 'monster-1',
+        side: 'enemies',
+        source: { kind: 'monster', sourceId: 'goblin', label: 'Goblin' },
+        stats: { armorClass: 15, maxHitPoints: 7, currentHitPoints: 7, initiativeModifier: 2, dexterityScore: 14 },
+        attacks: [],
+        activeEffects: [],
+        conditions: [],
+        states: [],
+      },
+    ]
+
+    const started = createEncounterState(combatants, {
+      rng: () => 0.45,
+    })
+    const secondTurn = advanceEncounterTurn(started)
+    const wrappedTurn = advanceEncounterTurn(secondTurn)
+
+    expect(secondTurn.activeCombatantId).toBe('pc-1')
+    expect(secondTurn.roundNumber).toBe(1)
+    expect(secondTurn.log.slice(-2).map((entry) => entry.type)).toEqual(['turn_ended', 'turn_started'])
+
+    expect(wrappedTurn.activeCombatantId).toBe('monster-1')
+    expect(wrappedTurn.roundNumber).toBe(2)
+    expect(wrappedTurn.log.slice(-3).map((entry) => entry.type)).toEqual([
+      'turn_ended',
+      'round_started',
+      'turn_started',
+    ])
+  })
+
+  it('applies damage, healing, and runtime markers with log output', () => {
+    const combatants: CombatantInstance[] = [
+      {
+        instanceId: 'pc-1',
+        side: 'party',
+        source: { kind: 'pc', sourceId: 'pc-1', label: 'Cleric' },
+        stats: { armorClass: 18, maxHitPoints: 20, currentHitPoints: 20, initiativeModifier: 0, dexterityScore: 10 },
+        attacks: [],
+        activeEffects: [],
+        conditions: [],
+        states: [],
+      },
+    ]
+
+    const started = createEncounterState(combatants, {
+      rng: () => 0.45,
+    })
+    const damaged = applyDamageToCombatant(started, 'pc-1', 7)
+    const healed = applyHealingToCombatant(damaged, 'pc-1', 3)
+    const conditioned = addConditionToCombatant(healed, 'pc-1', 'poisoned')
+    const stated = addStateToCombatant(conditioned, 'pc-1', 'concentrating')
+    const conditionRemoved = removeConditionFromCombatant(stated, 'pc-1', 'poisoned')
+    const stateRemoved = removeStateFromCombatant(conditionRemoved, 'pc-1', 'concentrating')
+
+    expect(damaged.combatantsById['pc-1'].stats.currentHitPoints).toBe(13)
+    expect(healed.combatantsById['pc-1'].stats.currentHitPoints).toBe(16)
+    expect(stated.combatantsById['pc-1'].conditions).toEqual(['poisoned'])
+    expect(stated.combatantsById['pc-1'].states).toEqual(['concentrating'])
+    expect(stateRemoved.combatantsById['pc-1'].conditions).toEqual([])
+    expect(stateRemoved.combatantsById['pc-1'].states).toEqual([])
+    expect(stateRemoved.log.slice(-6).map((entry) => entry.type)).toEqual([
+      'damage_applied',
+      'healing_applied',
+      'condition_applied',
+      'state_applied',
+      'condition_removed',
+      'state_removed',
+    ])
   })
 })

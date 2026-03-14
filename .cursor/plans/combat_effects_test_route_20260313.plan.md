@@ -10,10 +10,10 @@ todos:
     status: completed
   - id: define-encounter-state
     content: Introduce encounter state for sides, combatants, initiative order, round, active turn, and combat log events.
-    status: in_progress
+    status: completed
   - id: define-turn-rules
     content: Define the minimum turn and round rules needed to step combat forward and trigger timed effects.
-    status: pending
+    status: completed
   - id: define-log-model
     content: Define the combat log event schema and the actions that should emit log entries.
     status: completed
@@ -22,7 +22,7 @@ todos:
     status: in_progress
   - id: implement-encounter-controls
     content: Add initiative, next-turn, reset, and targeted test controls for validating combat effects.
-    status: pending
+    status: completed
   - id: add-guardrails
     content: Add tests around turn order, encounter state transitions, and combat log output for the test route milestone.
     status: in_progress
@@ -83,6 +83,12 @@ Status update:
 - party multiselect now loads approved party members into detailed combatant cards
 - enemy multiselect now loads NPC and monster sources, with duplicate monster copies supported from the rendered cards
 - combatant cards now surface core stats, attacks, and currently derivable effect chips
+- encounter start now auto-rolls initiative and records initial log events
+- next-turn now advances active combatant, wraps rounds, and appends deterministic encounter log entries
+- selection changes currently reset the local encounter so lineup edits stay simple for milestone 1
+- added targeted local test controls for damage, healing, condition markers, and state markers
+- runtime HP, conditions, and states now render back onto combatant cards from encounter state
+- added encounter helper coverage for HP mutation plus condition/state add-remove operations
 
 ## Locked Decisions
 

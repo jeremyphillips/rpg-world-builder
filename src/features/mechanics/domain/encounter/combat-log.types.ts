@@ -7,6 +7,8 @@ export type CombatLogEventType =
   | 'healing_applied'
   | 'condition_applied'
   | 'condition_removed'
+  | 'state_applied'
+  | 'state_removed'
   | 'note'
 
 export interface CombatLogEvent {

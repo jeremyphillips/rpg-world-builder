@@ -35,4 +35,6 @@ export interface CombatantInstance {
   stats: CombatantStatBlock
   attacks: CombatantAttackEntry[]
   activeEffects: Effect[]
+  conditions: string[]
+  states: string[]
 }
