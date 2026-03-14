@@ -4,7 +4,7 @@ import { useAuth } from '@/app/providers/AuthProvider'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { ROUTES } from '@/app/routes'
 
-export default function CombatTestGuard() {
+export default function CombatSimulationGuard() {
   const { user } = useAuth()
   const { campaign, loading } = useActiveCampaign()
 

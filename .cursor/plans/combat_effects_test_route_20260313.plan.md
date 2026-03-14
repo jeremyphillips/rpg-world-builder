@@ -95,6 +95,19 @@ Status update:
 - encounter start now seeds timed runtime effects from canonical effect duration metadata when the duration is turn-boundary compatible
 - effect-derived timers render separately from manual conditions/states and expire with their own log entries
 - added encounter helper coverage for seeded effect expiration alongside manual marker ticking
+- combatants now expose explicit turn-start and turn-end hook lists in the runtime model
+- encounter start / next turn can automatically fire simple turn hooks and apply canonical `hit_points` effects
+- hook firings now log distinctly and the active combatant surface shows which hooks are available
+- turn hooks can now also apply simple canonical `condition` and `state` payloads, seeding runtime marker durations from effect timing metadata when compatible
+- typed damage test actions can now suppress matching monster hooks like regeneration for a bounded duration, with suppression rendered on combatant cards and skipped-hook logging
+- monster turn hooks can now honor basic declarative requirements for `bloodied`, exact HP values, and per-turn damage thresholds by type, with unmet reasons logged instead of silently failing
+- fired monster hooks now emit readable combat-log notes for `tracked_part`, `spawn`, `custom`, and canonical `note` payloads so trait resolution is inspectable even when full board-state simulation is still deferred
+- combatant cards now show richer turn-hook detail directly in the route, including boundary, effect summaries, requirements, and suppression rules so hook behavior is inspectable before and during encounter stepping
+- the route now includes first-pass manual context inputs for deferred trigger families, with global environment selection plus per-monster form selection and card-level status rendering for non-turn triggers like `in_environment`, `in_form`, `ally_near_target`, `contact`, and `while_moving_grappled_creature`
+- `in_environment` and `in_form` are now partially executable in the route: matching context activates their monster effects through the normal active-effect pipeline, while changing manual context resets the local encounter so seeded runtime state stays consistent
+- route-level manual toggles now make `contact`, `ally_near_target`, and `while_moving_grappled_creature` partially executable too, letting authored monster effects like `Adhesive`, `Pack Tactics`, and `Abduct` flow through the same active-effect path without requiring full positional or movement simulation
+- monster `reduced_to_0_hp` triggers now have a first-pass route action too: when a selected monster combatant is at 0 HP, the sandbox can append a real hook-fired log plus readable payload notes for authored event effects such as `custom`, `save`, and nested success notes
+- `reduced_to_0_hp` save hooks can now branch manually in the route, with a success/fail selector and limited nested effect execution for safe cases like `note`, `custom`, `condition`, `state`, and `hit_points` so scenarios like `Undead Fortitude` can restore to 1 HP instead of staying log-only
 
 ## Locked Decisions
 

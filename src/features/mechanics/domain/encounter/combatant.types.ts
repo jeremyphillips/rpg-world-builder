@@ -46,6 +46,28 @@ export interface RuntimeEffectInstance {
   duration: RuntimeMarkerDuration
 }
 
+export type RuntimeTurnHookRequirement =
+  | { kind: 'self-state'; state: 'bloodied' }
+  | { kind: 'damage-taken-this-turn'; damageType?: string; min?: number }
+  | { kind: 'hit-points-equals'; value: number }
+
+export interface RuntimeTurnHook {
+  id: string
+  label: string
+  boundary: 'start' | 'end'
+  effects: Effect[]
+  requirements?: RuntimeTurnHookRequirement[]
+  suppression?: {
+    damageTypes?: string[]
+    duration?: RuntimeMarkerDuration
+  }
+}
+
+export interface CombatantTurnContext {
+  totalDamageTaken: number
+  damageTakenByType: Record<string, number>
+}
+
 export interface CombatantInstance {
   instanceId: string
   side: CombatantSide
@@ -54,6 +76,9 @@ export interface CombatantInstance {
   attacks: CombatantAttackEntry[]
   activeEffects: Effect[]
   runtimeEffects: RuntimeEffectInstance[]
+  turnHooks: RuntimeTurnHook[]
+  suppressedHooks?: RuntimeMarker[]
+  turnContext?: CombatantTurnContext
   conditions: RuntimeMarker[]
   states: RuntimeMarker[]
 }

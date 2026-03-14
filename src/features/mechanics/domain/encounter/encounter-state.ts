@@ -1,6 +1,14 @@
 import type { CombatLogEvent } from './combat-log.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
-import type { CombatantInstance, RuntimeEffectInstance, RuntimeMarker, RuntimeMarkerDuration } from './combatant.types'
+import type {
+  CombatantInstance,
+  CombatantTurnContext,
+  RuntimeEffectInstance,
+  RuntimeMarker,
+  RuntimeMarkerDuration,
+  RuntimeTurnHook,
+  RuntimeTurnHookRequirement,
+} from './combatant.types'
 import { rollInitiative, type InitiativeResolverOptions } from './initiative-resolver'
 import type { EncounterState } from './encounter.types'
 
@@ -83,8 +91,21 @@ function appendLog(state: EncounterState, event: Omit<CombatLogEvent, 'id' | 'ti
   }
 }
 
-function buildRuntimeMarker(label: string, options?: { durationTurns?: number; tickOn?: 'start' | 'end' }): RuntimeMarker {
+function buildRuntimeMarker(label: string, options?: {
+  durationTurns?: number
+  tickOn?: 'start' | 'end'
+  duration?: RuntimeMarkerDuration
+}): RuntimeMarker {
+  const duration = options?.duration
   const durationTurns = options?.durationTurns
+  if (duration) {
+    return {
+      id: label,
+      label,
+      duration,
+    }
+  }
+
   if (!durationTurns || durationTurns <= 0) {
     return {
       id: label,
@@ -239,6 +260,81 @@ function tickRuntimeEffects(
   return { nextEffects, expired }
 }
 
+function createEmptyTurnContext(): CombatantTurnContext {
+  return {
+    totalDamageTaken: 0,
+    damageTakenByType: {},
+  }
+}
+
+function normalizeDamageType(damageType?: string): string | null {
+  const trimmed = damageType?.trim().toLowerCase()
+  return trimmed ? trimmed : null
+}
+
+function requirementLabel(requirement: RuntimeTurnHookRequirement): string {
+  switch (requirement.kind) {
+    case 'self-state':
+      return requirement.state
+    case 'damage-taken-this-turn':
+      if (requirement.damageType && requirement.min) {
+        return `${requirement.min}+ ${requirement.damageType} damage taken this turn`
+      }
+      if (requirement.damageType) {
+        return `${requirement.damageType} damage taken this turn`
+      }
+      if (requirement.min) {
+        return `${requirement.min}+ damage taken this turn`
+      }
+      return 'damage taken this turn'
+    case 'hit-points-equals':
+      return `hit points equal ${requirement.value}`
+  }
+}
+
+function requirementMet(combatant: CombatantInstance, requirement: RuntimeTurnHookRequirement): boolean {
+  switch (requirement.kind) {
+    case 'self-state':
+      return requirement.state === 'bloodied'
+        ? combatant.stats.currentHitPoints <= combatant.stats.maxHitPoints / 2
+        : false
+    case 'hit-points-equals':
+      return combatant.stats.currentHitPoints === requirement.value
+    case 'damage-taken-this-turn': {
+      const turnContext = combatant.turnContext ?? createEmptyTurnContext()
+      const damageAmount = requirement.damageType
+        ? turnContext.damageTakenByType[normalizeDamageType(requirement.damageType) ?? ''] ?? 0
+        : turnContext.totalDamageTaken
+      return damageAmount >= (requirement.min ?? 1)
+    }
+  }
+}
+
+function unmetHookRequirements(combatant: CombatantInstance, hook: RuntimeTurnHook): RuntimeTurnHookRequirement[] {
+  return (hook.requirements ?? []).filter((requirement) => !requirementMet(combatant, requirement))
+}
+
+function formatTurnHookNote(effect: Effect): string | null {
+  switch (effect.kind) {
+    case 'tracked_part': {
+      const change = 'change' in effect ? effect.change : undefined
+      if (change) {
+        const verb = change.mode === 'sever' ? 'Sever' : 'Grow'
+        return `${verb} ${change.count} ${effect.part}${change.count === 1 ? '' : 's'}.`
+      }
+      return `Track ${effect.part} count.`
+    }
+    case 'spawn':
+      return `Spawn ${effect.count} ${effect.creature}${effect.count === 1 ? '' : 's'} at ${effect.location}.`
+    case 'custom':
+      return effect.text ?? `Custom effect: ${effect.id}.`
+    case 'note':
+      return effect.text
+    default:
+      return null
+  }
+}
+
 function processMarkerBoundary(
   state: EncounterState,
   combatantId: string | null,
@@ -251,13 +347,18 @@ function processMarkerBoundary(
 
   const conditionTick = tickMarkers(combatant.conditions, boundary)
   const stateTick = tickMarkers(combatant.states, boundary)
-  const hasChanges = conditionTick.expired.length > 0 || stateTick.expired.length > 0
+  const suppressionTick = tickMarkers(combatant.suppressedHooks ?? [], boundary)
+  const hasChanges =
+    conditionTick.expired.length > 0 ||
+    stateTick.expired.length > 0 ||
+    suppressionTick.expired.length > 0
 
   const withTicks = hasChanges
     ? updateCombatant(state, combatantId, (current) => ({
         ...current,
         conditions: conditionTick.nextMarkers,
         states: stateTick.nextMarkers,
+        suppressedHooks: suppressionTick.nextMarkers,
       }))
     : state
 
@@ -283,6 +384,18 @@ function processMarkerBoundary(
       round: nextState.roundNumber,
       turn: nextState.turnIndex + 1,
       summary: `${getCombatantLabel(nextState, combatantId)} state expires: ${marker.label}.`,
+      details: `Expired at turn ${boundary}.`,
+    })
+  })
+
+  suppressionTick.expired.forEach((marker) => {
+    nextState = appendLog(nextState, {
+      type: 'note',
+      actorId: combatantId,
+      targetIds: [combatantId],
+      round: nextState.roundNumber,
+      turn: nextState.turnIndex + 1,
+      summary: `${getCombatantLabel(nextState, combatantId)} hook suppression ends: ${marker.label}.`,
       details: `Expired at turn ${boundary}.`,
     })
   })
@@ -323,6 +436,117 @@ function processRuntimeEffectBoundary(
   return nextState
 }
 
+function executeTurnHooks(
+  state: EncounterState,
+  combatantId: string | null,
+  boundary: 'start' | 'end',
+): EncounterState {
+  if (!combatantId) return state
+
+  const combatant = state.combatantsById[combatantId]
+  if (!combatant) return state
+
+  const hooks = combatant.turnHooks.filter((hook) => hook.boundary === boundary)
+  if (hooks.length === 0) return state
+
+  let nextState = state
+
+  hooks.forEach((hook) => {
+    if ((combatant.suppressedHooks ?? []).some((marker) => marker.id === hook.id)) {
+      nextState = appendLog(nextState, {
+        type: 'note',
+        actorId: combatantId,
+        targetIds: [combatantId],
+        round: nextState.roundNumber,
+        turn: nextState.turnIndex + 1,
+        summary: `${getCombatantLabel(nextState, combatantId)} hook is suppressed: ${hook.label}.`,
+        details: `${boundary} of turn.`,
+      })
+      return
+    }
+
+    const unmetRequirements = unmetHookRequirements(combatant, hook)
+    if (unmetRequirements.length > 0) {
+      nextState = appendLog(nextState, {
+        type: 'note',
+        actorId: combatantId,
+        targetIds: [combatantId],
+        round: nextState.roundNumber,
+        turn: nextState.turnIndex + 1,
+        summary: `${getCombatantLabel(nextState, combatantId)} hook requirements not met: ${hook.label}.`,
+        details: unmetRequirements.map(requirementLabel).join(', '),
+      })
+      return
+    }
+
+    nextState = appendLog(nextState, {
+      type: 'hook_triggered',
+      actorId: combatantId,
+      targetIds: [combatantId],
+      round: nextState.roundNumber,
+      turn: nextState.turnIndex + 1,
+      summary: `${getCombatantLabel(nextState, combatantId)} hook fires: ${hook.label}.`,
+      details: `${boundary} of turn.`,
+    })
+
+    hook.effects.forEach((effect) => {
+      if (effect.kind === 'hit_points') {
+        nextState =
+          effect.mode === 'heal'
+            ? applyHealingToCombatant(nextState, combatantId, effect.value, {
+                actorId: combatantId,
+                sourceLabel: hook.label,
+              })
+            : applyDamageToCombatant(nextState, combatantId, effect.value, {
+                actorId: combatantId,
+                sourceLabel: hook.label,
+              })
+        return
+      }
+
+      if (effect.kind === 'condition') {
+        nextState = addConditionToCombatant(nextState, combatantId, effect.conditionId, {
+          duration: effectDurationToRuntimeDuration(effect) ?? undefined,
+          sourceLabel: hook.label,
+        })
+        return
+      }
+
+      if (effect.kind === 'state') {
+        nextState = addStateToCombatant(nextState, combatantId, effect.stateId, {
+          duration: effectDurationToRuntimeDuration(effect) ?? undefined,
+          sourceLabel: hook.label,
+        })
+        return
+      }
+
+      const turnHookNote = formatTurnHookNote(effect)
+      if (turnHookNote) {
+        nextState = appendLog(nextState, {
+          type: 'note',
+          actorId: combatantId,
+          targetIds: [combatantId],
+          round: nextState.roundNumber,
+          turn: nextState.turnIndex + 1,
+          summary: `${hook.label}: ${turnHookNote}`,
+        })
+        return
+      }
+
+      nextState = appendLog(nextState, {
+        type: 'note',
+        actorId: combatantId,
+        targetIds: [combatantId],
+        round: nextState.roundNumber,
+        turn: nextState.turnIndex + 1,
+        summary: `${hook.label} has unsupported runtime effect: ${effect.kind}.`,
+      })
+    })
+  })
+
+  return nextState
+}
+
 function updateCombatant(
   state: EncounterState,
   combatantId: string,
@@ -338,6 +562,15 @@ function updateCombatant(
       [combatantId]: updater(combatant),
     },
   }
+}
+
+function resetCombatantTurnContext(state: EncounterState, combatantId: string | null): EncounterState {
+  if (!combatantId) return state
+
+  return updateCombatant(state, combatantId, (combatant) => ({
+    ...combatant,
+    turnContext: createEmptyTurnContext(),
+  }))
 }
 
 export function createEncounterState(
@@ -379,6 +612,10 @@ export function createEncounterState(
   state.log = [createEncounterStartedLog(state)]
   if (state.activeCombatantId) {
     state.log.push(createTurnStartedLog(state))
+    const withResetContext = resetCombatantTurnContext(state, state.activeCombatantId)
+    const withStartExpiry = processRuntimeEffectBoundary(withResetContext, state.activeCombatantId, 'start')
+    const withMarkerExpiry = processMarkerBoundary(withStartExpiry, state.activeCombatantId, 'start')
+    return executeTurnHooks(withMarkerExpiry, state.activeCombatantId, 'start')
   }
 
   return state
@@ -389,12 +626,13 @@ export function advanceEncounterTurn(state: EncounterState): EncounterState {
     return state
   }
 
+  const withTurnEndLog: EncounterState = {
+    ...state,
+    log: [...state.log, createTurnEndedLog(state)],
+  }
   const endedState = processMarkerBoundary(
     processRuntimeEffectBoundary(
-      {
-        ...state,
-        log: [...state.log, createTurnEndedLog(state)],
-      },
+      executeTurnHooks(withTurnEndLog, state.activeCombatantId, 'end'),
       state.activeCombatantId,
       'end',
     ),
@@ -429,9 +667,15 @@ export function advanceEncounterTurn(state: EncounterState): EncounterState {
     log: [...nextState.log, createTurnStartedLog(nextState)],
   }
 
-  return processMarkerBoundary(
-    processRuntimeEffectBoundary(startedState, startedState.activeCombatantId, 'start'),
-    startedState.activeCombatantId,
+  const withResetContext = resetCombatantTurnContext(startedState, startedState.activeCombatantId)
+
+  return executeTurnHooks(
+    processMarkerBoundary(
+      processRuntimeEffectBoundary(withResetContext, withResetContext.activeCombatantId, 'start'),
+      withResetContext.activeCombatantId,
+      'start',
+    ),
+    withResetContext.activeCombatantId,
     'start',
   )
 }
@@ -440,25 +684,71 @@ export function applyDamageToCombatant(
   state: EncounterState,
   targetId: string,
   amount: number,
+  options?: { actorId?: string | null; sourceLabel?: string; damageType?: string },
 ): EncounterState {
   const target = state.combatantsById[targetId]
   if (!target || amount <= 0) return state
 
-  const nextState = updateCombatant(state, targetId, (combatant) => ({
-    ...combatant,
-    stats: {
-      ...combatant.stats,
-      currentHitPoints: Math.max(0, combatant.stats.currentHitPoints - amount),
-    },
-  }))
+  const nextState = updateCombatant(state, targetId, (combatant) => {
+    const normalizedDamageType = normalizeDamageType(options?.damageType)
+    const currentTurnContext = combatant.turnContext ?? createEmptyTurnContext()
+    const existingSuppressedHooks = combatant.suppressedHooks ?? []
+    const suppressedHooks =
+      normalizedDamageType == null
+        ? existingSuppressedHooks
+        : combatant.turnHooks.reduce<RuntimeMarker[]>((markers, hook) => {
+            const matchesDamageType = hook.suppression?.damageTypes?.some(
+              (damageType) => normalizeDamageType(damageType) === normalizedDamageType,
+            )
+            const alreadySuppressed = existingSuppressedHooks.some((marker) => marker.id === hook.id)
+
+            if (!matchesDamageType || alreadySuppressed) return markers
+
+            return [
+              ...markers,
+              {
+                ...buildRuntimeMarker(hook.label, {
+                  duration: hook.suppression?.duration,
+                }),
+                id: hook.id,
+              },
+            ]
+          }, existingSuppressedHooks)
+
+    return {
+      ...combatant,
+      stats: {
+        ...combatant.stats,
+        currentHitPoints: Math.max(0, combatant.stats.currentHitPoints - amount),
+      },
+      suppressedHooks,
+      turnContext: {
+        totalDamageTaken: currentTurnContext.totalDamageTaken + amount,
+        damageTakenByType:
+          normalizedDamageType == null
+            ? currentTurnContext.damageTakenByType
+            : {
+                ...currentTurnContext.damageTakenByType,
+                [normalizedDamageType]:
+                  (currentTurnContext.damageTakenByType[normalizedDamageType] ?? 0) + amount,
+              },
+      },
+    }
+  })
 
   return appendLog(nextState, {
     type: 'damage_applied',
-    actorId: state.activeCombatantId ?? undefined,
+    actorId: options?.actorId ?? state.activeCombatantId ?? undefined,
     targetIds: [targetId],
     round: state.roundNumber,
     turn: state.turnIndex + 1,
     summary: `${getCombatantLabel(state, targetId)} takes ${amount} damage.`,
+    details: [
+      options?.sourceLabel ? `Source: ${options.sourceLabel}.` : null,
+      options?.damageType ? `Damage type: ${options.damageType}.` : null,
+    ]
+      .filter(Boolean)
+      .join(' ') || undefined,
   })
 }
 
@@ -466,6 +756,7 @@ export function applyHealingToCombatant(
   state: EncounterState,
   targetId: string,
   amount: number,
+  options?: { actorId?: string | null; sourceLabel?: string },
 ): EncounterState {
   const target = state.combatantsById[targetId]
   if (!target || amount <= 0) return state
@@ -483,11 +774,12 @@ export function applyHealingToCombatant(
 
   return appendLog(nextState, {
     type: 'healing_applied',
-    actorId: state.activeCombatantId ?? undefined,
+    actorId: options?.actorId ?? state.activeCombatantId ?? undefined,
     targetIds: [targetId],
     round: state.roundNumber,
     turn: state.turnIndex + 1,
     summary: `${getCombatantLabel(state, targetId)} regains ${amount} hit points.`,
+    details: options?.sourceLabel ? `Source: ${options.sourceLabel}.` : undefined,
   })
 }
 
@@ -495,7 +787,12 @@ export function addConditionToCombatant(
   state: EncounterState,
   targetId: string,
   condition: string,
-  options?: { durationTurns?: number; tickOn?: 'start' | 'end' },
+  options?: {
+    durationTurns?: number
+    tickOn?: 'start' | 'end'
+    duration?: RuntimeMarkerDuration
+    sourceLabel?: string
+  },
 ): EncounterState {
   const trimmedCondition = condition.trim()
   const target = state.combatantsById[targetId]
@@ -515,10 +812,16 @@ export function addConditionToCombatant(
     round: state.roundNumber,
     turn: state.turnIndex + 1,
     summary: `${getCombatantLabel(state, targetId)} gains condition: ${trimmedCondition}.`,
-    details:
-      options?.durationTurns && options.durationTurns > 0
-        ? `Duration: ${options.durationTurns} turn(s), tick on ${options.tickOn ?? 'end'}.`
-        : undefined,
+    details: [
+      options?.sourceLabel ? `Source: ${options.sourceLabel}.` : null,
+      options?.duration
+        ? `Duration: ${options.duration.remainingTurns} turn(s), tick on ${options.duration.tickOn}.`
+        : options?.durationTurns && options.durationTurns > 0
+          ? `Duration: ${options.durationTurns} turn(s), tick on ${options.tickOn ?? 'end'}.`
+          : null,
+    ]
+      .filter(Boolean)
+      .join(' ') || undefined,
   })
 }
 
@@ -552,7 +855,12 @@ export function addStateToCombatant(
   state: EncounterState,
   targetId: string,
   marker: string,
-  options?: { durationTurns?: number; tickOn?: 'start' | 'end' },
+  options?: {
+    durationTurns?: number
+    tickOn?: 'start' | 'end'
+    duration?: RuntimeMarkerDuration
+    sourceLabel?: string
+  },
 ): EncounterState {
   const trimmedMarker = marker.trim()
   const target = state.combatantsById[targetId]
@@ -572,10 +880,16 @@ export function addStateToCombatant(
     round: state.roundNumber,
     turn: state.turnIndex + 1,
     summary: `${getCombatantLabel(state, targetId)} gains state: ${trimmedMarker}.`,
-    details:
-      options?.durationTurns && options.durationTurns > 0
-        ? `Duration: ${options.durationTurns} turn(s), tick on ${options.tickOn ?? 'end'}.`
-        : undefined,
+    details: [
+      options?.sourceLabel ? `Source: ${options.sourceLabel}.` : null,
+      options?.duration
+        ? `Duration: ${options.duration.remainingTurns} turn(s), tick on ${options.duration.tickOn}.`
+        : options?.durationTurns && options.durationTurns > 0
+          ? `Duration: ${options.durationTurns} turn(s), tick on ${options.tickOn ?? 'end'}.`
+          : null,
+    ]
+      .filter(Boolean)
+      .join(' ') || undefined,
   })
 }
 
@@ -603,6 +917,152 @@ export function removeStateFromCombatant(
     turn: state.turnIndex + 1,
     summary: `${getCombatantLabel(state, targetId)} loses state: ${trimmedMarker}.`,
   })
+}
+
+function formatManualEffectLabel(effect: Effect): string {
+  if (effect.kind === 'custom') {
+    return `Custom: ${effect.id}`
+  }
+
+  if (effect.kind === 'save') {
+    const successNotes = (effect.onSuccess ?? [])
+      .map((nestedEffect) => (nestedEffect.kind === 'note' ? nestedEffect.text : formatEffectLabel(nestedEffect)))
+      .join('; ')
+
+    return successNotes
+      ? `Save: ${effect.save.ability} (success: ${successNotes})`
+      : `Save: ${effect.save.ability}`
+  }
+
+  if (effect.kind === 'note') {
+    return effect.text
+  }
+
+  return formatEffectLabel(effect)
+}
+
+function noteRestoresToOneHitPoint(effect: Effect): boolean {
+  return effect.kind === 'note' && /drops to 1 hit point instead/i.test(effect.text)
+}
+
+function applyManualEffectToCombatant(
+  state: EncounterState,
+  targetId: string,
+  sourceLabel: string,
+  effect: Effect,
+  options?: { saveOutcome?: 'success' | 'fail' },
+): EncounterState {
+  if (effect.kind === 'condition') {
+    return addConditionToCombatant(state, targetId, effect.conditionId, {
+      sourceLabel,
+    })
+  }
+
+  if (effect.kind === 'state') {
+    return addStateToCombatant(state, targetId, effect.stateId, {
+      sourceLabel,
+    })
+  }
+
+  if (effect.kind === 'hit_points') {
+    return effect.mode === 'heal'
+      ? applyHealingToCombatant(state, targetId, effect.value, {
+          sourceLabel,
+        })
+      : applyDamageToCombatant(state, targetId, effect.value, {
+          sourceLabel,
+        })
+  }
+
+  if (effect.kind === 'save') {
+    const saveOutcome = options?.saveOutcome ?? 'success'
+    const branchEffects = saveOutcome === 'success' ? (effect.onSuccess ?? []) : effect.onFail
+    let nextState = appendEncounterNote(
+      state,
+      `${sourceLabel}: Save ${effect.save.ability} -> ${saveOutcome}.`,
+      {
+        actorId: targetId,
+        targetIds: [targetId],
+      },
+    )
+
+    branchEffects.forEach((branchEffect) => {
+      nextState = applyManualEffectToCombatant(nextState, targetId, sourceLabel, branchEffect, options)
+    })
+
+    return nextState
+  }
+
+  let nextState = appendEncounterNote(state, `${sourceLabel}: ${formatManualEffectLabel(effect)}.`, {
+    actorId: targetId,
+    targetIds: [targetId],
+  })
+
+  if (noteRestoresToOneHitPoint(effect) && nextState.combatantsById[targetId]?.stats.currentHitPoints === 0) {
+    nextState = applyHealingToCombatant(nextState, targetId, 1, {
+      sourceLabel,
+    })
+  }
+
+  return nextState
+}
+
+export function appendEncounterNote(
+  state: EncounterState,
+  summary: string,
+  options?: {
+    actorId?: string
+    targetIds?: string[]
+    details?: string
+  },
+): EncounterState {
+  return appendLog(state, {
+    type: 'note',
+    actorId: options?.actorId,
+    targetIds: options?.targetIds,
+    round: state.roundNumber,
+    turn: state.turnIndex + 1,
+    summary,
+    details: options?.details,
+  })
+}
+
+export function appendHookTriggeredLog(
+  state: EncounterState,
+  combatantId: string,
+  hookLabel: string,
+  details?: string,
+): EncounterState {
+  return appendLog(state, {
+    type: 'hook_triggered',
+    actorId: combatantId,
+    targetIds: [combatantId],
+    round: state.roundNumber,
+    turn: state.turnIndex + 1,
+    summary: `${getCombatantLabel(state, combatantId)} hook fires: ${hookLabel}.`,
+    details,
+  })
+}
+
+export function triggerManualHook(
+  state: EncounterState,
+  combatantId: string,
+  hookLabel: string,
+  effects: Effect[],
+  options?: {
+    details?: string
+    saveOutcome?: 'success' | 'fail'
+  },
+): EncounterState {
+  let nextState = appendHookTriggeredLog(state, combatantId, hookLabel, options?.details)
+
+  effects.forEach((effect) => {
+    nextState = applyManualEffectToCombatant(nextState, combatantId, hookLabel, effect, {
+      saveOutcome: options?.saveOutcome,
+    })
+  })
+
+  return nextState
 }
 
 export { formatMarkerLabel }
