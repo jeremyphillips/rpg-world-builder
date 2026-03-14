@@ -163,9 +163,28 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
         name: "Rampage",
         description: "Immediately after dealing damage to a creature that is already Bloodied, the gnoll moves up to half its Speed and makes one Rend attack.",
         uses: { count: 1, period: "day" },
-        trigger: { when: "after_damage", targetState: "bloodied" },
-        movement: { upToSpeedFraction: 0.5 },
-        sequence: [{ actionName: "Rend", count: 1 }],
+        effects: [
+          {
+            kind: 'trigger',
+            trigger: 'damage_dealt',
+            condition: {
+              kind: 'state',
+              target: 'target',
+              property: 'combat.bloodied',
+              equals: true,
+            },
+            effects: [
+              {
+                kind: 'move',
+                upToSpeedFraction: 0.5,
+              },
+              {
+                kind: 'action',
+                action: 'Rend',
+              },
+            ],
+          },
+        ],
       }],
       proficiencies: { weapons: { longbow: { proficiencyLevel: 1 } } },
       proficiencyBonus: 2,
@@ -407,17 +426,27 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           trigger: {
             kind: 'reduced_to_0_hp',
           },
-          save: {
-            ability: 'con',
-            dc: { kind: '5-plus-damage-taken' },
-            except: {
-              damageTypes: ['radiant'],
-              criticalHit: true,
+          effects: [
+            {
+              kind: 'custom',
+              id: 'monster.save_exception',
+              params: {
+                damageTypes: ['radiant'],
+                criticalHit: true,
+              },
             },
-            onSuccess: [
-              { kind: 'note', text: 'Drops to 1 Hit Point instead.' },
-            ],
-          },
+            {
+              kind: 'save',
+              save: {
+                ability: 'con',
+                dc: { kind: '5-plus-damage-taken' },
+              },
+              onFail: [],
+              onSuccess: [
+                { kind: 'note', text: 'Drops to 1 Hit Point instead.' },
+              ],
+            },
+          ],
         }
       ],
       abilities: { str: 13, dex: 6, con: 16, int: 3, wis: 6, cha: 5 },
@@ -784,7 +813,14 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
             { kind: 'damage-taken-this-turn', damageType: 'slashing', min: 15 },
           ],
           effects: [
-            { kind: 'limb', mode: 'sever', count: 1 },
+            {
+              kind: 'tracked_part',
+              part: 'limb',
+              change: {
+                mode: 'sever',
+                count: 1,
+              },
+            },
             {
               kind: 'spawn',
               creature: 'Troll Limb',
@@ -793,10 +829,14 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
               actsWhen: 'immediately-after-source-turn',
             },
             {
-              kind: 'resource',
-              resource: 'exhaustion',
-              mode: 'set',
-              value: 'per-missing-limb',
+              kind: 'custom',
+              id: 'monster.resource_from_tracked_parts',
+              params: {
+                resource: 'exhaustion',
+                mode: 'set',
+                value: 'per-missing-limb',
+                part: 'limb',
+              },
             },
           ],
           notes:
@@ -979,29 +1019,34 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           name: 'Ooze Cube',
           description:
             'The cube fills its entire space and is transparent. Other creatures can enter that space, but a creature that does so is subjected to the cube’s Engulf and has Disadvantage on the saving throw. Creatures inside the cube have Total Cover, and the cube can hold one Large creature or up to four Medium or Small creatures inside itself at a time. As an action, a creature within 5 feet of the cube can pull a creature or an object out of the cube by succeeding on a DC 12 Strength (Athletics) check, and the puller takes 10 (3d6) Acid damage.',
-          containment: {
-            fillsEntireSpace: true,
-            canContainCreatures: true,
-            creatureCover: 'total-cover',
-            capacity: {
-              large: 1,
-              mediumOrSmall: 4,
-            },
-          },
-          visibility: {
-            transparent: true,
-          },
-          modifiesAction: [
+          effects: [
             {
-              actionName: 'Engulf',
-              trigger: {
-                kind: 'enters_space',
+              kind: 'containment',
+              fillsEntireSpace: true,
+              canContainCreatures: true,
+              creatureCover: 'total-cover',
+              capacity: {
+                large: 1,
+                mediumOrSmall: 4,
               },
-              saveModifier: 'disadvantage',
             },
-          ],
-          checks: [
             {
+              kind: 'visibility_rule',
+              transparent: true,
+            },
+            {
+              kind: 'custom',
+              id: 'monster.action_modifier',
+              params: {
+                actionName: 'Engulf',
+                trigger: {
+                  kind: 'enters_space',
+                },
+                saveModifier: 'disadvantage',
+              },
+            },
+            {
+              kind: 'check',
               name: 'Pull From Cube',
               actor: 'nearby-creature',
               distanceFeet: 5,
@@ -1017,6 +1062,7 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
               ],
             },
             {
+              kind: 'check',
               name: 'Pull Object From Cube',
               actor: 'nearby-creature',
               distanceFeet: 5,
@@ -1037,15 +1083,18 @@ const MONSTERS_RAW: readonly MonsterFields[] = [
           name: 'Transparent',
           description:
             'Even when the cube is in plain sight, a creature must succeed on a DC 15 Wisdom (Perception) check to notice the cube if it hasn’t witnessed the cube move or otherwise act.',
-          visibility: {
-            transparent: true,
-            noticeCheck: {
-              ability: 'wis',
-              skill: 'perception',
-              dc: 15,
-              unlessWitnessedMoveOrAction: true,
+          effects: [
+            {
+              kind: 'visibility_rule',
+              transparent: true,
+              noticeCheck: {
+                ability: 'wis',
+                skill: 'perception',
+                dc: 15,
+                unlessWitnessedMoveOrAction: true,
+              },
             },
-          },
+          ],
         }
       ],
     },

@@ -78,7 +78,7 @@ function collectBaseProficiencyEffects(character: Character): Effect[] {
           grantType: 'proficiency',
           value: [{ target: targetMap[slot], categories, items }],
           source: `class:${cls.classId}`,
-        } as Effect)
+        })
       }
     }
   }

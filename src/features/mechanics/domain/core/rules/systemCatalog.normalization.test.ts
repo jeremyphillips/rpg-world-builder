@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getSystemClass } from './systemCatalog.classes'
-import { getSystemMonster } from './systemCatalog.monsters'
+import { getSystemMonster, getSystemMonsters } from './systemCatalog.monsters'
 import { DEFAULT_SYSTEM_RULESET_ID } from './systemIds'
 import type { SubclassFeature } from '@/features/content/classes/domain/types'
 
@@ -18,6 +18,24 @@ function hasNestedFeatures(
   feature: SubclassFeature | undefined,
 ): feature is SubclassFeature & { features: SubclassFeature[] } {
   return Array.isArray((feature as { features?: unknown } | undefined)?.features)
+}
+
+function visitUnknown(
+  value: unknown,
+  visitor: (node: unknown) => void,
+): void {
+  visitor(value)
+
+  if (Array.isArray(value)) {
+    for (const entry of value) visitUnknown(entry, visitor)
+    return
+  }
+
+  if (value && typeof value === 'object') {
+    for (const entry of Object.values(value)) {
+      visitUnknown(entry, visitor)
+    }
+  }
 }
 
 describe('system catalog normalization', () => {
@@ -180,6 +198,46 @@ describe('system catalog normalization', () => {
     ])
   })
 
+  it('migrates monster triggered bonus actions into canonical trigger effects', () => {
+    const gnoll = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'gnoll-warrior')
+    const rampage = gnoll?.mechanics.bonusActions?.find(
+      (action) => action.kind === 'special' && action.name === 'Rampage',
+    ) as
+      | {
+          trigger?: unknown
+          movement?: unknown
+          sequence?: unknown
+          effects?: unknown[]
+        }
+      | undefined
+
+    expect(rampage?.trigger).toBeUndefined()
+    expect(rampage?.movement).toBeUndefined()
+    expect(rampage?.sequence).toBeUndefined()
+    expect(rampage?.effects).toEqual([
+      {
+        kind: 'trigger',
+        trigger: 'damage_dealt',
+        condition: {
+          kind: 'state',
+          target: 'target',
+          property: 'combat.bloodied',
+          equals: true,
+        },
+        effects: [
+          {
+            kind: 'move',
+            upToSpeedFraction: 0.5,
+          },
+          {
+            kind: 'action',
+            action: 'Rend',
+          },
+        ],
+      },
+    ])
+  })
+
   it('uses shared turn-boundary durations for monster suppression windows', () => {
     const troll = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'troll')
     const regeneration = troll?.mechanics.traits?.find((trait) => trait.name === 'Regeneration')
@@ -194,6 +252,157 @@ describe('system catalog normalization', () => {
       turn: 'next',
       boundary: 'end',
     })
+  })
+
+  it('migrates zombie save traits into canonical effect arrays', () => {
+    const zombie = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'zombie')
+    const undeadFortitude = zombie?.mechanics.traits?.find(
+      (trait) => trait.name === 'Undead Fortitude',
+    ) as { save?: unknown; effects?: unknown[] } | undefined
+
+    expect(undeadFortitude?.save).toBeUndefined()
+    expect(undeadFortitude?.effects).toEqual([
+      {
+        kind: 'custom',
+        id: 'monster.save_exception',
+        params: {
+          damageTypes: ['radiant'],
+          criticalHit: true,
+        },
+      },
+      {
+        kind: 'save',
+        save: {
+          ability: 'con',
+          dc: { kind: '5-plus-damage-taken' },
+        },
+        onFail: [],
+        onSuccess: [{ kind: 'note', text: 'Drops to 1 Hit Point instead.' }],
+      },
+    ])
+  })
+
+  it('migrates gelatinous cube trait rules into canonical effect arrays', () => {
+    const cube = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'gelatinous-cube')
+    const oozeCube = cube?.mechanics.traits?.find((trait) => trait.name === 'Ooze Cube') as
+      | {
+          containment?: unknown
+          visibility?: unknown
+          modifiesAction?: unknown
+          checks?: unknown
+          effects?: unknown[]
+        }
+      | undefined
+    const transparent = cube?.mechanics.traits?.find((trait) => trait.name === 'Transparent') as
+      | { visibility?: unknown; effects?: unknown[] }
+      | undefined
+
+    expect(oozeCube?.containment).toBeUndefined()
+    expect(oozeCube?.visibility).toBeUndefined()
+    expect(oozeCube?.modifiesAction).toBeUndefined()
+    expect(oozeCube?.checks).toBeUndefined()
+    expect(oozeCube?.effects).toEqual([
+      {
+        kind: 'containment',
+        fillsEntireSpace: true,
+        canContainCreatures: true,
+        creatureCover: 'total-cover',
+        capacity: {
+          large: 1,
+          mediumOrSmall: 4,
+        },
+      },
+      {
+        kind: 'visibility_rule',
+        transparent: true,
+      },
+      {
+        kind: 'custom',
+        id: 'monster.action_modifier',
+        params: {
+          actionName: 'Engulf',
+          trigger: {
+            kind: 'enters_space',
+          },
+          saveModifier: 'disadvantage',
+        },
+      },
+      {
+        kind: 'check',
+        name: 'Pull From Cube',
+        actor: 'nearby-creature',
+        distanceFeet: 5,
+        actionRequired: true,
+        target: 'creature-inside',
+        check: {
+          ability: 'str',
+          skill: 'athletics',
+          dc: 12,
+        },
+        onSuccess: [{ kind: 'damage', damage: '3d6', damageType: 'acid' }],
+      },
+      {
+        kind: 'check',
+        name: 'Pull Object From Cube',
+        actor: 'nearby-creature',
+        distanceFeet: 5,
+        actionRequired: true,
+        target: 'object-inside',
+        check: {
+          ability: 'str',
+          skill: 'athletics',
+          dc: 12,
+        },
+        onSuccess: [{ kind: 'damage', damage: '3d6', damageType: 'acid' }],
+      },
+    ])
+
+    expect(transparent?.visibility).toBeUndefined()
+    expect(transparent?.effects).toEqual([
+      {
+        kind: 'visibility_rule',
+        transparent: true,
+        noticeCheck: {
+          ability: 'wis',
+          skill: 'perception',
+          dc: 15,
+          unlessWitnessedMoveOrAction: true,
+        },
+      },
+    ])
+  })
+
+  it('migrates troll limb rules into tracked part and custom effects', () => {
+    const troll = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'troll')
+    const loathsomeLimbs = troll?.mechanics.traits?.find((trait) => trait.name === 'Loathsome Limbs')
+
+    expect(loathsomeLimbs?.effects).toEqual([
+      {
+        kind: 'tracked_part',
+        part: 'limb',
+        change: {
+          mode: 'sever',
+          count: 1,
+        },
+      },
+      {
+        kind: 'spawn',
+        creature: 'Troll Limb',
+        count: 1,
+        location: 'self-space',
+        actsWhen: 'immediately-after-source-turn',
+      },
+      {
+        kind: 'custom',
+        id: 'monster.resource_from_tracked_parts',
+        params: {
+          resource: 'exhaustion',
+          mode: 'set',
+          value: 'per-missing-limb',
+          part: 'limb',
+        },
+      },
+    ])
   })
 
   it('uses canonical effect kinds for monster trait meta rules', () => {
@@ -245,5 +454,40 @@ describe('system catalog normalization', () => {
         },
       },
     ])
+  })
+
+  it('forbids reintroducing legacy monster effect wrapper shapes', () => {
+    const monsters = getSystemMonsters(DEFAULT_SYSTEM_RULESET_ID)
+
+    for (const monster of monsters) {
+      for (const trait of monster.mechanics.traits ?? []) {
+        expect(trait).not.toHaveProperty('save')
+        expect(trait).not.toHaveProperty('modifiesAction')
+        expect(trait).not.toHaveProperty('checks')
+        expect(trait).not.toHaveProperty('containment')
+        expect(trait).not.toHaveProperty('visibility')
+      }
+
+      for (const action of [
+        ...(monster.mechanics.actions ?? []),
+        ...(monster.mechanics.bonusActions ?? []),
+      ]) {
+        if (action.kind === 'special') {
+          expect(action).not.toHaveProperty('trigger')
+        }
+      }
+
+      visitUnknown(monster.mechanics, (node) => {
+        if (!node || typeof node !== 'object') return
+
+        const candidate = node as Record<string, unknown>
+
+        expect(candidate.kind).not.toBe('limb')
+
+        if (candidate.kind === 'resource') {
+          expect(candidate.value).not.toBe('per-missing-limb')
+        }
+      })
+    }
   })
 })

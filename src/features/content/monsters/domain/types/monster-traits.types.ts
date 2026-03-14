@@ -1,50 +1,6 @@
-import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
-import type { MonsterEffect, MonsterTriggeredSave } from "./monster-effects.types";
+import type { Effect } from "@/features/mechanics/domain/effects/effects.types";
 import type { ConditionId, DamageType } from "./monster-combat.types";
 import type { EffectDuration, EffectUses } from "@/features/mechanics/domain/effects/timing.types";
-
-export type MonsterTraitActionModifier = {
-  actionName: string;
-  trigger: {
-    kind: 'enters_space';
-  };
-  saveModifier?: 'advantage' | 'disadvantage';
-};
-
-export type MonsterTraitCheckRule = {
-  name?: string;
-  actor: 'nearby-creature';
-  distanceFeet?: number;
-  actionRequired?: boolean;
-  check: {
-    ability: AbilityId;
-    skill?: string;
-    dc: number;
-  };
-  onSuccess?: MonsterEffect[];
-  onFail?: MonsterEffect[];
-  target?: 'creature-inside' | 'object-inside';
-};
-
-type MonsterContainmentRule = {
-  fillsEntireSpace?: boolean;
-  canContainCreatures?: boolean;
-  creatureCover?: 'total-cover';
-  capacity?: {
-    large?: number;
-    mediumOrSmall?: number;
-  };
-};
-
-type MonsterVisibilityRule = {
-  transparent?: boolean;
-  noticeCheck?: {
-    ability: AbilityId;
-    skill?: string;
-    dc: number;
-    unlessWitnessedMoveOrAction?: boolean;
-  };
-};
 
 export type MonsterTraitRequirement =
   | { kind: 'self-state'; state: 'bloodied' }
@@ -82,12 +38,7 @@ export type MonsterTrait = {
   description: string;
   trigger?: MonsterTraitTrigger | MonsterTraitTrigger[];
   requirements?: MonsterTraitRequirement[];
-  save?: MonsterTriggeredSave;
-  effects?: MonsterEffect[];
-  modifiesAction?: MonsterTraitActionModifier[];
-  checks?: MonsterTraitCheckRule[];
-  containment?: MonsterContainmentRule;
-  visibility?: MonsterVisibilityRule;
+  effects?: Effect[];
   uses?: EffectUses
   suppression?: {
     ifTookDamageTypes?: DamageType[];

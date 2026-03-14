@@ -35,7 +35,7 @@ Every effect may include shared metadata:
   Define a computed base value such as armor class.
 
 - `grant`
-  Grant a proficiency, action, spell, or immunity.
+  Grant a proficiency or condition immunity.
 
 - `resource`
   Define a tracked resource with max and recharge behavior.
@@ -49,6 +49,9 @@ Every effect may include shared metadata:
 - `save`
   Represent a saving throw gate with canonical `onFail` / `onSuccess` effect arrays.
 
+- `check`
+  Represent non-save ability or skill checks with canonical `onFail` / `onSuccess` effect arrays.
+
 - `condition`
   Apply a named condition directly.
 
@@ -57,6 +60,12 @@ Every effect may include shared metadata:
 
 - `roll_modifier`
   Apply Advantage or Disadvantage to a defined roll scope.
+
+- `containment`
+  Represent occupancy and cover rules for engulf/swallow-style mechanics.
+
+- `visibility_rule`
+  Represent transparency and notice-check visibility rules.
 
 - `state`
   Apply a named ongoing state with optional escape and nested effects.
@@ -88,7 +97,7 @@ Every effect may include shared metadata:
 ### Canonical Supporting Vocabulary
 
 - Trigger:
-  Use canonical trigger ids such as `attack`, `weapon_hit`, `hit`, `damage_taken`, `turn_start`, `turn_end`, `spell_cast`.
+  Use canonical trigger ids such as `attack`, `weapon_hit`, `hit`, `damage_dealt`, `damage_taken`, `turn_start`, `turn_end`, `spell_cast`.
 
 - Duration:
   Use structured objects from `timing.types.ts`, not ad hoc strings.
@@ -179,11 +188,37 @@ Use `custom` only when all of the following are true:
 
 Do not use `custom` for common mechanics such as:
 - saving throws
+- checks
 - condition application
 - duration
 - activation/action economy
 - damage or numeric modifiers
 - common triggered outcomes
+
+### Allowed Custom Effect IDs
+
+The following `custom` ids are currently allowed and documented:
+
+- `monster.action_modifier`
+  Temporary contract for action-resolution hooks that alter another authored action.
+  Current params shape:
+  - `actionName: string`
+  - `trigger: { kind: 'enters_space' }`
+  - `saveModifier?: 'advantage' | 'disadvantage'`
+
+- `monster.resource_from_tracked_parts`
+  Temporary contract for derived resource adjustments based on tracked anatomy.
+  Current params shape:
+  - `resource: 'exhaustion'`
+  - `mode: 'set' | 'add'`
+  - `value: 'per-missing-limb'`
+  - `part: 'limb'`
+
+- `monster.save_exception`
+  Temporary contract for save-bypass carveouts that are not yet modeled as shared effect conditions.
+  Current params shape:
+  - `damageTypes?: string[]`
+  - `criticalHit?: boolean`
 
 ## Legacy Shapes To Remove
 
@@ -192,17 +227,20 @@ The following shapes are not part of the target authoring contract:
 - `active_buff`
 - subclass-only save payloads like `{ kind: 'save', ability, onFail: { applyCondition } }`
 - `EffectDescriptor`
-- `MonsterEffect`
-- `MonsterActionRule`
+- `MonsterAppliedEffect`
+- `MonsterOnHitEffect`
+- `MonsterTriggeredSave`
+- `MonsterActionTrigger`
 - source-only trigger aliases such as `on_hit`
+- monster trait/action meta-rule fields such as `save`, `modifiesAction`, `checks`, `containment`, and `visibility`
+- monster-only effect variants such as `kind: 'limb'` or the special `resource` payload for `per-missing-limb`
 
 ## Compatibility Notes
 
-Some legacy shapes still exist in the codebase during migration.
+Some compatibility scaffolding still exists while the broader cleanup is being finished.
 
-- `bonus` still exists in runtime typing for compatibility, but new canonical authoring should prefer `modifier` with `mode: 'add'`.
-- monster-specific trait/meta wrappers still exist until the remaining monster migration is complete.
-- monster-only meta structures such as containment, visibility, action modifiers, checks, and special resource adjustments still exist until the remaining monster migration is complete.
+- some stringly typed identifiers in shared effect payloads still need future tightening where stable vocab types already exist.
+- representative spell authoring still needs migration away from note-heavy payloads.
 
 ## Migration Status
 
@@ -210,16 +248,16 @@ Some legacy shapes still exist in the codebase during migration.
   Representative class features now use canonical `activation`, `save`, and `condition`.
 
 - Monsters: in progress
-  Monster effect payloads, action save outcomes, and former action/trait rule payloads now use the canonical effect vocabulary, but monster meta structures still remain for cases like containment, visibility, action modifiers, and checks.
+  Monster actions and traits now author canonical `Effect[]` directly, former wrapper/meta-rule payloads have been removed, and the remaining monster-specific surface is limited to documented temporary `custom` contracts.
 
 - Spells: partial
   Already store `Effect[]`, but authoring guidance still needs to converge on the canonical vocabulary.
 
 - Enchantments: in progress
-  System enchantment templates now author canonical effects directly, but item-side cleanup and remaining compatibility assumptions are still in progress.
+  System enchantment templates now author canonical effects directly; remaining work is shared-schema follow-up rather than enchantment-specific translation cleanup.
 
-- Magic items: partial
-  The system item catalog now authors canonical effects directly, but broader item action/resource modeling still needs follow-up work.
+- Magic items: in progress
+  The system item catalog now authors canonical effects directly and no longer relies on broad compatibility casts for modifier payloads, but broader item action/resource modeling still needs follow-up work.
 
 ## Authoring Checklist
 
@@ -230,7 +268,8 @@ When adding new effect-bearing content:
 - use structured durations
 - use `activation` for explicit action economy
 - use `save` for saving throw gates
+- use `check` for non-save ability or skill gates
 - use canonical nested `Effect[]` outcomes instead of source-specific payload objects
-- prefer `modifier` over `bonus`
+- use `containment` and `visibility_rule` instead of source-specific monster meta fields
 - avoid `custom` unless the mechanic clearly exceeds the current vocabulary
 - do not introduce a new source-specific effect DSL

@@ -2,6 +2,7 @@ export type TriggerType =
   | 'attack'
   | 'weapon_hit'
   | 'hit'
+  | 'damage_dealt'
   | 'damage_taken'
   | 'turn_start'
   | 'turn_end'
@@ -12,6 +13,7 @@ export type TriggerInput =
   | 'on_attack'
   | 'on_weapon_hit'
   | 'on_hit'
+  | 'on_damage_dealt'
   | 'on_damage_taken'
   | 'on_turn_start'
   | 'on_turn_end'
@@ -21,6 +23,7 @@ const TRIGGER_INPUT_MAP: Record<TriggerInput, TriggerType> = {
   attack: 'attack',
   weapon_hit: 'weapon_hit',
   hit: 'hit',
+  damage_dealt: 'damage_dealt',
   damage_taken: 'damage_taken',
   turn_start: 'turn_start',
   turn_end: 'turn_end',
@@ -28,6 +31,7 @@ const TRIGGER_INPUT_MAP: Record<TriggerInput, TriggerType> = {
   on_attack: 'attack',
   on_weapon_hit: 'weapon_hit',
   on_hit: 'hit',
+  on_damage_dealt: 'damage_dealt',
   on_damage_taken: 'damage_taken',
   on_turn_start: 'turn_start',
   on_turn_end: 'turn_end',

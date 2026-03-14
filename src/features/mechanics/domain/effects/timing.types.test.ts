@@ -22,6 +22,7 @@ describe('timing semantics', () => {
 
   it('normalizes legacy trigger strings into canonical trigger ids', () => {
     expect(normalizeTriggerType('on_weapon_hit')).toBe('weapon_hit')
+    expect(normalizeTriggerType('on_damage_dealt')).toBe('damage_dealt')
     expect(normalizeTriggerType('on_turn_start')).toBe('turn_start')
   })
 })
