@@ -1,11 +1,10 @@
 import type { EvaluationContext } from "../conditions/evaluation-context.types"
 import type { Effect, ModifierEffect } from "../effects/effects.types"
 import { evaluateCondition } from "../effects/effect-engine"
-import { resolveFormulaValue } from "./formula.engine"
+import { resolveFormulaProficiency, resolveFormulaValue } from "./formula.engine"
 import type { FormulaEffect, FormulaDefinition } from "./formula.engine"
 import { getBaseStat } from "../core/base-stat-resolver"
 import { getAbilityModifier } from "../core/ability.utils"
-import { getProficiencyAttackBonus } from "@/features/mechanics/domain/character/progression"
 import type { AbilityId, AbilityKey } from "../core/character"
 
 // ---------------------------------------------------------------------------
@@ -169,8 +168,12 @@ function buildFormulaTokens(
   }
 
   if (formula.proficiency) {
-    const prof = getProficiencyAttackBonus(context.self.level)
-    tokens.push({ label: 'Prof', value: sign(prof), type: 'proficiency' })
+    const proficiency = resolveFormulaProficiency(formula.proficiency, context)
+    tokens.push({
+      label: proficiency.label,
+      value: sign(proficiency.value),
+      type: 'proficiency',
+    })
   }
 
   if (formula.perLevel) {

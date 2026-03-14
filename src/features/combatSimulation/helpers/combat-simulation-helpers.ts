@@ -5,9 +5,11 @@ import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import {
   buildActiveMonsterEffects,
+  type CombatActionDefinition,
   type CombatantAttackEntry,
   type CombatantInstance,
   type CombatantSide,
+  createCombatTurnResources,
   type ManualEnvironmentContext,
   type ManualMonsterTriggerContext,
   type MonsterFormContext,
@@ -174,6 +176,30 @@ export function formatRuntimeLabel(name: string, runtimeId: string, sourceId: st
   return runtimeId === sourceId ? name : `${name} (${runtimeId})`
 }
 
+function buildAttackActions(
+  attacks: CombatantAttackEntry[],
+  kind: 'weapon_attack' | 'monster_action',
+): CombatActionDefinition[] {
+  return attacks.map((attack) => ({
+    id: attack.id,
+    label: attack.name,
+    kind,
+    cost: { action: true },
+    resolutionMode: attack.attackBonus != null ? 'attack_roll' : 'log_only',
+    attackProfile:
+      attack.attackBonus != null
+        ? {
+            attackBonus: attack.attackBonus,
+            attackBreakdown: attack.attackBreakdown,
+            damage: attack.damage,
+            damageType: attack.damageType,
+            damageBreakdown: attack.damageBreakdown,
+          }
+        : undefined,
+    logText: attack.notes,
+  }))
+}
+
 export function buildCharacterCombatantInstance(args: {
   runtimeId: string
   side: CombatantSide
@@ -201,6 +227,7 @@ export function buildCharacterCombatantInstance(args: {
       dexterityScore: character.abilityScores.dexterity,
     },
     attacks,
+    actions: buildAttackActions(attacks, 'weapon_attack'),
     activeEffects: combatStats.activeEffects,
     runtimeEffects: [],
     turnHooks,
@@ -209,6 +236,7 @@ export function buildCharacterCombatantInstance(args: {
       totalDamageTaken: 0,
       damageTakenByType: {},
     },
+    turnResources: createCombatTurnResources(),
     conditions: [],
     states: [],
   }
@@ -243,6 +271,7 @@ export function buildMonsterCombatantInstance(args: {
       speeds: monster.mechanics.movement,
     },
     attacks,
+    actions: buildAttackActions(attacks, 'monster_action'),
     activeEffects,
     runtimeEffects: [],
     turnHooks,
@@ -251,6 +280,9 @@ export function buildMonsterCombatantInstance(args: {
       totalDamageTaken: 0,
       damageTakenByType: {},
     },
+    turnResources: createCombatTurnResources(
+      Math.max(...Object.values(monster.mechanics.movement ?? {}).filter((speed): speed is number => typeof speed === 'number' && speed > 0), 0)
+    ),
     conditions: [],
     states: [],
   }

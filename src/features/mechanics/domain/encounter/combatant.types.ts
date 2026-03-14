@@ -1,4 +1,6 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
+import type { BreakdownToken } from '../resolution/stat-resolver'
+import type { CombatActionDefinition } from './combat-actions.types'
 
 export type CombatantSide = 'party' | 'enemies'
 
@@ -14,8 +16,10 @@ export interface CombatantAttackEntry {
   id: string
   name: string
   attackBonus?: number
+  attackBreakdown?: BreakdownToken[]
   damage?: string
   damageType?: string
+  damageBreakdown?: BreakdownToken[]
   notes?: string
 }
 
@@ -68,17 +72,37 @@ export interface CombatantTurnContext {
   damageTakenByType: Record<string, number>
 }
 
+export interface CombatantTurnResources {
+  actionAvailable: boolean
+  bonusActionAvailable: boolean
+  reactionAvailable: boolean
+  movementRemaining: number
+  hasCastBonusActionSpell: boolean
+}
+
+export function createCombatTurnResources(movementRemaining = 0): CombatantTurnResources {
+  return {
+    actionAvailable: true,
+    bonusActionAvailable: true,
+    reactionAvailable: true,
+    movementRemaining,
+    hasCastBonusActionSpell: false,
+  }
+}
+
 export interface CombatantInstance {
   instanceId: string
   side: CombatantSide
   source: CombatantSourceRef
   stats: CombatantStatBlock
   attacks: CombatantAttackEntry[]
+  actions?: CombatActionDefinition[]
   activeEffects: Effect[]
   runtimeEffects: RuntimeEffectInstance[]
   turnHooks: RuntimeTurnHook[]
   suppressedHooks?: RuntimeMarker[]
   turnContext?: CombatantTurnContext
+  turnResources?: CombatantTurnResources
   conditions: RuntimeMarker[]
   states: RuntimeMarker[]
 }

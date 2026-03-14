@@ -11,6 +11,7 @@ import {
   resolveWeaponDamage,
   type AttackHand,
 } from '@/features/mechanics/domain/resolution/attack-resolver'
+import { getProficiencyAttackBonus } from '@/features/mechanics/domain/character/progression'
 import type { EvaluationContext } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import {
@@ -55,6 +56,8 @@ export function getCharacterAttacks(
 ): AttackEntry[] {
   if (wieldedWeaponIds.length === 0) return []
 
+  const proficiencyBonus = getProficiencyAttackBonus(context.self.level)
+
   return wieldedWeaponIds.map((id, idx) => {
     const hand: AttackHand = idx === 0 ? 'main' : 'off'
     const weapon = weaponsById[id]
@@ -66,7 +69,11 @@ export function getCharacterAttacks(
       damageType: weapon?.damageType,
     }
 
-    const atk = resolveWeaponAttackBonus(context, weaponInput, effects, { hand })
+    const atk = resolveWeaponAttackBonus(context, weaponInput, effects, {
+      hand,
+      proficiencyLevel: 1,
+      proficiencyBonus,
+    })
     const dmg = resolveWeaponDamage(context, weaponInput, effects, { hand })
 
     return {

@@ -452,8 +452,10 @@ function LoadedCharacterCombatantCard({
         id: `${character.id}-${attack.weaponId}-${attack.hand}`,
         name: attack.name,
         attackBonus: attack.attackBonus,
+        attackBreakdown: attack.attackBreakdown,
         damage: attack.damage,
         damageType: attack.damageType,
+        damageBreakdown: attack.damageBreakdown,
       })),
     [character.id, combatStats.attacks],
   )

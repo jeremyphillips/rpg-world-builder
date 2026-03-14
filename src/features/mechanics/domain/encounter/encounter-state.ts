@@ -3,12 +3,14 @@ import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type {
   CombatantInstance,
   CombatantTurnContext,
+  CombatantTurnResources,
   RuntimeEffectInstance,
   RuntimeMarker,
   RuntimeMarkerDuration,
   RuntimeTurnHook,
   RuntimeTurnHookRequirement,
 } from './combatant.types'
+import { createCombatTurnResources } from './combatant.types'
 import { rollInitiative, type InitiativeResolverOptions } from './initiative-resolver'
 import type { EncounterState } from './encounter.types'
 
@@ -188,6 +190,8 @@ function deriveRuntimeEffects(combatant: CombatantInstance): RuntimeEffectInstan
 function seedRuntimeEffects(combatant: CombatantInstance): CombatantInstance {
   return {
     ...combatant,
+    actions: combatant.actions ?? [],
+    turnResources: combatant.turnResources ?? createCombatantTurnResources(combatant),
     runtimeEffects:
       combatant.runtimeEffects.length > 0 ? combatant.runtimeEffects : deriveRuntimeEffects(combatant),
   }
@@ -265,6 +269,17 @@ function createEmptyTurnContext(): CombatantTurnContext {
     totalDamageTaken: 0,
     damageTakenByType: {},
   }
+}
+
+function getCombatantBaseMovement(combatant: CombatantInstance): number {
+  const speeds = Object.values(combatant.stats.speeds ?? {}).filter(
+    (speed): speed is number => typeof speed === 'number' && speed > 0
+  )
+  return speeds.length > 0 ? Math.max(...speeds) : 0
+}
+
+function createCombatantTurnResources(combatant: CombatantInstance): CombatantTurnResources {
+  return createCombatTurnResources(getCombatantBaseMovement(combatant))
 }
 
 function normalizeDamageType(damageType?: string): string | null {
@@ -564,12 +579,13 @@ function updateCombatant(
   }
 }
 
-function resetCombatantTurnContext(state: EncounterState, combatantId: string | null): EncounterState {
+function resetCombatantTurnState(state: EncounterState, combatantId: string | null): EncounterState {
   if (!combatantId) return state
 
   return updateCombatant(state, combatantId, (combatant) => ({
     ...combatant,
     turnContext: createEmptyTurnContext(),
+    turnResources: createCombatantTurnResources(combatant),
   }))
 }
 
@@ -612,7 +628,7 @@ export function createEncounterState(
   state.log = [createEncounterStartedLog(state)]
   if (state.activeCombatantId) {
     state.log.push(createTurnStartedLog(state))
-    const withResetContext = resetCombatantTurnContext(state, state.activeCombatantId)
+    const withResetContext = resetCombatantTurnState(state, state.activeCombatantId)
     const withStartExpiry = processRuntimeEffectBoundary(withResetContext, state.activeCombatantId, 'start')
     const withMarkerExpiry = processMarkerBoundary(withStartExpiry, state.activeCombatantId, 'start')
     return executeTurnHooks(withMarkerExpiry, state.activeCombatantId, 'start')
@@ -667,7 +683,7 @@ export function advanceEncounterTurn(state: EncounterState): EncounterState {
     log: [...nextState.log, createTurnStartedLog(nextState)],
   }
 
-  const withResetContext = resetCombatantTurnContext(startedState, startedState.activeCombatantId)
+  const withResetContext = resetCombatantTurnState(startedState, startedState.activeCombatantId)
 
   return executeTurnHooks(
     processMarkerBoundary(
