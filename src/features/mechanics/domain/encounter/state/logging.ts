@@ -1,5 +1,8 @@
 import type { EncounterState, CombatLogEvent } from './types'
 
+/** Maximum combat log entries to prevent unbounded memory growth during long encounters. */
+const MAX_LOG_ENTRIES = 500
+
 function createLogId(prefix: string, count: number): string {
   return `${prefix}_${count}`
 }
@@ -65,16 +68,16 @@ export function appendLog(
   state: EncounterState,
   event: Omit<CombatLogEvent, 'id' | 'timestamp'>,
 ): EncounterState {
+  const newEntry: CombatLogEvent = {
+    ...event,
+    id: createLogId(event.type, state.log.length + 1),
+    timestamp: new Date().toISOString(),
+  }
+  const nextLog = [...state.log, newEntry]
+  const cappedLog = nextLog.length > MAX_LOG_ENTRIES ? nextLog.slice(-MAX_LOG_ENTRIES) : nextLog
   return {
     ...state,
-    log: [
-      ...state.log,
-      {
-        ...event,
-        id: createLogId(event.type, state.log.length + 1),
-        timestamp: new Date().toISOString(),
-      },
-    ],
+    log: cappedLog,
   }
 }
 

@@ -427,22 +427,43 @@ export function CombatLogPanel({ encounterState, selectedPartyCount, enemyCombat
               <Typography variant="subtitle2" sx={{ mb: 1 }}>
                 Events
               </Typography>
-              <Stack spacing={1}>
-                {encounterState.log.map((entry) => (
-                  <Paper key={entry.id} variant="outlined" sx={{ p: 1.25 }}>
-                    <Stack direction="row" justifyContent="space-between" spacing={1} flexWrap="wrap" useFlexGap>
-                      <Typography variant="body2" fontWeight={600}>
-                        {entry.summary}
-                      </Typography>
-                      <Chip label={`R${entry.round} T${entry.turn}`} size="small" variant="outlined" />
-                    </Stack>
-                    {entry.details && (
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                        {entry.details}
-                      </Typography>
-                    )}
-                  </Paper>
-                ))}
+              <Stack
+                spacing={1}
+                sx={{
+                  maxHeight: 400,
+                  overflowY: 'auto',
+                }}
+              >
+                {(() => {
+                  const maxDisplayed = 150
+                  const log = encounterState.log
+                  const displayed = log.length > maxDisplayed ? log.slice(-maxDisplayed) : log
+                  const hiddenCount = log.length - displayed.length
+                  return (
+                    <>
+                      {hiddenCount > 0 && (
+                        <Typography variant="caption" color="text.secondary">
+                          … {hiddenCount} earlier event{hiddenCount === 1 ? '' : 's'} omitted
+                        </Typography>
+                      )}
+                      {displayed.map((entry) => (
+                        <Paper key={entry.id} variant="outlined" sx={{ p: 1.25 }}>
+                          <Stack direction="row" justifyContent="space-between" spacing={1} flexWrap="wrap" useFlexGap>
+                            <Typography variant="body2" fontWeight={600}>
+                              {entry.summary}
+                            </Typography>
+                            <Chip label={`R${entry.round} T${entry.turn}`} size="small" variant="outlined" />
+                          </Stack>
+                          {entry.details && (
+                            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                              {entry.details}
+                            </Typography>
+                          )}
+                        </Paper>
+                      ))}
+                    </>
+                  )
+                })()}
               </Stack>
             </Box>
           </Box>
