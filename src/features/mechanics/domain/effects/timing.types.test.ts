@@ -13,7 +13,7 @@ describe('timing semantics', () => {
 
   it('normalizes next-turn shorthand into a shared turn-boundary duration', () => {
     expect(normalizeDuration('next-turn')).toEqual({
-      kind: 'until_turn_boundary',
+      kind: 'until-turn-boundary',
       subject: 'self',
       turn: 'next',
       boundary: 'end',
@@ -21,8 +21,8 @@ describe('timing semantics', () => {
   })
 
   it('normalizes legacy trigger strings into canonical trigger ids', () => {
-    expect(normalizeTriggerType('on_weapon_hit')).toBe('weapon_hit')
-    expect(normalizeTriggerType('on_damage_dealt')).toBe('damage_dealt')
-    expect(normalizeTriggerType('on_turn_start')).toBe('turn_start')
+    expect(normalizeTriggerType('on_weapon_hit')).toBe('weapon-hit')
+    expect(normalizeTriggerType('on_damage_dealt')).toBe('damage-dealt')
+    expect(normalizeTriggerType('on_turn_start')).toBe('turn-start')
   })
 })

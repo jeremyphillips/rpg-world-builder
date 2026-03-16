@@ -1,7 +1,6 @@
 import type { EvaluationContext } from '../conditions/evaluation-context.types'
 import type { Effect } from '../effects/effects.types'
 import { getAbilityModifier } from '../core/ability.utils'
-import { getProficiencyAttackBonus } from '@/features/mechanics/domain/character/progression'
 import { resolveStatDetailed, type BreakdownToken } from './stat-resolver'
 import type { WeaponDamageType } from '@/features/content/equipment/weapons/domain/vocab'
 import type { AbilityKey } from '@/features/mechanics/domain/core/character/abilities.types'
@@ -14,6 +13,8 @@ export type AttackHand = 'main' | 'off'
 
 export type AttackOptions = {
   hand?: AttackHand
+  proficiencyLevel?: number
+  proficiencyBonus?: number
 }
 
 export type WeaponAttackInput = {
@@ -28,7 +29,9 @@ export type AttackBonusResult = {
   bonus: number
   abilityUsed: AbilityKey
   abilityMod: number
+  proficiencyLevel: number
   proficiencyBonus: number
+  proficiencyContribution: number
   breakdown: BreakdownToken[]
 }
 
@@ -96,16 +99,24 @@ export function resolveWeaponAttackBonus(
   context: EvaluationContext,
   weapon: WeaponAttackInput,
   effects: Effect[],
-  _options: AttackOptions = {}
+  options: AttackOptions = {}
 ): AttackBonusResult {
   const abilityUsed = pickAttackAbility(context, weapon)
   const abilityMod = getAbilityModifier(context.self, abilityUsed)
-  const proficiencyBonus = getProficiencyAttackBonus(context.self.level)
+  const proficiencyLevel = options.proficiencyLevel ?? 1
+  const proficiencyBonus = options.proficiencyBonus ?? 2
+  const proficiencyContribution = proficiencyLevel * proficiencyBonus
 
   const weaponFormula: Effect = {
     kind: 'formula',
     target: 'attack_roll',
-    formula: { ability: abilityUsed, proficiency: true },
+    formula: {
+      ability: abilityUsed,
+      proficiency: {
+        level: proficiencyLevel,
+        bonus: proficiencyBonus,
+      },
+    },
     source: 'weapon',
   } as Effect
 
@@ -115,7 +126,9 @@ export function resolveWeaponAttackBonus(
     bonus: result.value,
     abilityUsed,
     abilityMod,
+    proficiencyLevel,
     proficiencyBonus,
+    proficiencyContribution,
     breakdown: result.breakdown,
   }
 }

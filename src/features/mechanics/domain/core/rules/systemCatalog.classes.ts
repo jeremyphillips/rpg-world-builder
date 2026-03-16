@@ -39,13 +39,13 @@ const CLASSES_RAW: readonly CharacterClass[] = [
                     id: 'superiority_dice',
                     max: 4,
                     dice: 'd8',
-                    recharge: 'short_rest',
+                    recharge: 'short-rest',
                   },
                 },
                 {
                   id: 'fighter.battle_master.on_weapon_hit',
                   kind: 'trigger',
-                  trigger: 'weapon_hit',
+                  trigger: 'weapon-hit',
                   cost: { resource: 'superiority_dice', amount: 1 },
                   effects: [
                     {
@@ -227,7 +227,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
               level: 7,
               range: 10,
               affects: 'allies',
-              effects: [{ kind: 'grant', grantType: 'condition_immunity', value: 'charmed' }],
+              effects: [{ kind: 'grant', grantType: 'condition-immunity', value: 'charmed' }],
             },
           ],
         },

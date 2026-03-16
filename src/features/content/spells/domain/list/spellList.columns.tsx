@@ -1,5 +1,5 @@
 import type { AppDataGridColumn } from '@/ui/patterns';
-import { makeBooleanGlyphColumn } from '@/features/content/shared/components';
+// import { makeBooleanGlyphColumn } from '@/features/content/shared/components';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab/magicSchools.vocab';
 import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 import type { SpellListRow } from './spellList.types';
@@ -41,15 +41,15 @@ export function buildSpellCustomColumns(
       },
       valueFormatter: (v) => (v != null && v !== '' ? String(v) : EMPTY_PLACEHOLDER),
     },
-    makeBooleanGlyphColumn<SpellListRow>(
-      'ritual',
-      'Ritual',
-      (row) => Boolean(row.ritual),
-    ),
-    makeBooleanGlyphColumn<SpellListRow>(
-      'concentration',
-      'Concentration',
-      (row) => Boolean(row.concentration),
-    ),
+    // makeBooleanGlyphColumn<SpellListRow>(
+    //   'ritual',
+    //   'Ritual',
+    //   (row) => Boolean(row.ritual),
+    // ),
+    // makeBooleanGlyphColumn<SpellListRow>(
+    //   'concentration',
+    //   'Concentration',
+    //   (row) => Boolean(row.concentration),
+    // ),
   ];
 }

@@ -30,7 +30,7 @@ Move the codebase to one effect authoring model so content is stored in the same
 - no parallel DSLs for monsters, classes, enchantments, and items
 - one shared vocabulary for triggers, duration, cadence, targeting, application, and payloads
 - one set of tests that every content source must satisfy
-- one repo doc that defines the canonical model and migration rules: [docs/EFFECT_MODEL_UNIFICATION_PLAN.md](docs/EFFECT_MODEL_UNIFICATION_PLAN.md)
+- one repo doc that defines the canonical model and migration rules: [docs/plans/effect_model_unification.md](docs/plans/effect_model_unification.md)
 
 ## Current Gaps To Close
 
@@ -188,7 +188,7 @@ Delete once migrations are complete:
 
 ## Docs Deliverable
 
-Add a permanent design doc at [docs/EFFECT_MODEL_UNIFICATION_PLAN.md](docs/EFFECT_MODEL_UNIFICATION_PLAN.md) with:
+Add a permanent design doc at [docs/plans/effect_model_unification.md](docs/plans/effect_model_unification.md) with:
 
 - canonical type definitions and vocabulary rules
 - allowed effect patterns with examples

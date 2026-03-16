@@ -29,18 +29,18 @@ export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
     render: (spell) =>
       spell.classes.map((c) => classLabel(c)).join(', ') || '—',
   },
-  {
-    key: 'ritual',
-    label: 'Ritual',
-    order: 40,
-    render: (spell) => (spell.ritual ? 'Yes' : 'No'),
-  },
-  {
-    key: 'concentration',
-    label: 'Concentration',
-    order: 50,
-    render: (spell) => (spell.concentration ? 'Yes' : 'No'),
-  },
+  // {
+  //   key: 'ritual',
+  //   label: 'Ritual',
+  //   order: 40,
+  //   render: (spell) => (spell.ritual ? 'Yes' : 'No'),
+  // },
+  // {
+  //   key: 'concentration',
+  //   label: 'Concentration',
+  //   order: 50,
+  //   render: (spell) => (spell.concentration ? 'Yes' : 'No'),
+  // },
   {
     key: 'effects',
     label: 'Effects',

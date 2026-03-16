@@ -101,7 +101,7 @@ export default function CharacterView({
   const navigate = useNavigate()
   const { ruleset, catalog } = useCampaignRules()
   const xpTable = resolveXpTable(ruleset.mechanics?.progression?.xp)
-  
+  console.log('isOwner', isOwner)
   // ── UI toggle state ────────────────────────────────────────────────
   const [awardXpOpen, setAwardXpOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
@@ -211,7 +211,7 @@ export default function CharacterView({
       wealth: { ...character.wealth, gp: wealth.gp, sp: wealth.sp, cp: wealth.cp, baseBudget },
     })
   }
-
+console.log('isOwner', isOwner)
   return (
     <Box sx={{ maxWidth: 920, mx: 'auto' }}>
       {error && <AppAlert tone="danger" sx={{ mb: 2 }}>{error}</AppAlert>}

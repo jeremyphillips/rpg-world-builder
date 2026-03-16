@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 
 export function useResetEditFeedbackOnChange(
-  watch: (callback: () => void) => () => void,
+  watch: (callback: () => void) => { unsubscribe: () => void },
   clearFeedback: () => void
 ) {
   useEffect(() => {
-    return watch(() => clearFeedback());
+    const subscription = watch(() => clearFeedback());
+    return () => subscription.unsubscribe();
   }, [watch, clearFeedback]);
 }

@@ -5,6 +5,7 @@ import type { TriggerType } from "../triggers/trigger.types";
 export interface EvaluationContext {
   self: CreatureSnapshot
   target?: CreatureSnapshot
+  source?: CreatureSnapshot
   event?: EventSnapshot
   world?: WorldSnapshot
   turn?: TurnSnapshot
@@ -22,6 +23,7 @@ export interface CreatureSnapshot {
 
   abilities: AbilityScoreMapResolved
 
+  creatureType?: string
   conditions: string[] // prone, charmed, frightened, etc.
 
   resources: Record<string, number>

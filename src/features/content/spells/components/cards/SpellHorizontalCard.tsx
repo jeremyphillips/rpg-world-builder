@@ -41,8 +41,8 @@ const SpellHorizontalCard = ({
     { type: 'tag', value: schoolLabel(spell.school) },
   ]
 
-  if (spell.ritual) badges.push({ type: 'tag', value: 'Ritual' })
-  if (spell.concentration) badges.push({ type: 'tag', value: 'Concentration' })
+  // if (spell.ritual) badges.push({ type: 'tag', value: 'Ritual' })
+  // if (spell.concentration) badges.push({ type: 'tag', value: 'Concentration' })
 
   const classNames = spell.classes
     .map(c => c.charAt(0).toUpperCase() + c.slice(1))

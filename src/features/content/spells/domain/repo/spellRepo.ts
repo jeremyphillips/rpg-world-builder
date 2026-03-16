@@ -7,12 +7,15 @@
  * 3) Raw system entry
  */
 import { apiFetch, ApiError } from '@/app/api';
-import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
+import type { Spell, SpellCastingTime, SpellComponents, SpellDuration, SpellEffects, SpellInput, SpellLevel, SpellRange, SpellScalingRule } from '@/features/content/spells/domain/types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
 import { getSystemSpells, getSystemSpell } from '@/features/mechanics/domain/core/rules/systemCatalog.spells';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
 import type { ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
+import type { ClassId } from '@/shared/types/ruleset';
+import type { MagicSchool } from '@/features/content/shared/domain/vocab';
+import type { AccessPolicy } from '@/shared/domain/accessPolicy';
 
 // ---------------------------------------------------------------------------
 // API response shapes
@@ -23,15 +26,21 @@ type CampaignSpellDto = {
   campaignId: string;
   spellId: string;
   name: string;
-  description: string;
+  description: {
+    full: string;
+    summary: string;
+  };
   imageKey: string;
-  school: string;
-  level: number;
-  classes: string[];
-  ritual: boolean;
-  concentration: boolean;
-  effects: unknown[];
-  accessPolicy?: { scope: string; allowCharacterIds?: string[] };
+  school: MagicSchool;
+  level: SpellLevel;
+  classes: ClassId[];
+  effects: SpellEffects;
+  accessPolicy?: AccessPolicy;
+  duration: SpellDuration;
+  components: SpellComponents;
+  scaling?: SpellScalingRule[];
+  castingTime: SpellCastingTime;
+  range: SpellRange;
   createdAt: string;
   updatedAt: string;
 };

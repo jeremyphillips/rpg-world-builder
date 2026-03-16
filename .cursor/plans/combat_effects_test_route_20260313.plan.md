@@ -4,28 +4,28 @@ overview: Add a campaign-scoped test route for assembling a party and enemy line
 todos:
   - id: define-route-surface
     content: Add a campaign-scoped combat test route and decide its URL, navigation entry, and access guard.
-    status: pending
+    status: completed
   - id: define-combatant-selection
     content: Define how party, monster, and NPC options are loaded and normalized into a shared selectable combatant model.
-    status: pending
+    status: completed
   - id: define-encounter-state
     content: Introduce encounter state for sides, combatants, initiative order, round, active turn, and combat log events.
-    status: pending
+    status: completed
   - id: define-turn-rules
     content: Define the minimum turn and round rules needed to step combat forward and trigger timed effects.
-    status: pending
+    status: completed
   - id: define-log-model
     content: Define the combat log event schema and the actions that should emit log entries.
-    status: pending
+    status: completed
   - id: implement-test-route-ui
     content: Build the two-column encounter setup UI and the full-width combat log panel.
-    status: pending
+    status: in_progress
   - id: implement-encounter-controls
     content: Add initiative, next-turn, reset, and targeted test controls for validating combat effects.
-    status: pending
+    status: completed
   - id: add-guardrails
     content: Add tests around turn order, encounter state transitions, and combat log output for the test route milestone.
-    status: pending
+    status: in_progress
 isProject: false
 ---
 
@@ -72,6 +72,42 @@ Recommendation:
 - gate the route to:
   - campaign owner
   - platform owner
+
+Status update:
+
+- added `/campaigns/:id/combat-test`
+- route is wired into the campaign router and admin-only campaign navigation
+- added a dedicated owner/platform-admin guard for the route
+- added initial encounter domain types for combatants, encounter state, initiative rolls, and combat log events
+- added a first deterministic initiative test file to anchor the pure helper layer
+- party multiselect now loads approved party members into detailed combatant cards
+- enemy multiselect now loads NPC and monster sources, with duplicate monster copies supported from the rendered cards
+- combatant cards now surface core stats, attacks, and currently derivable effect chips
+- encounter start now auto-rolls initiative and records initial log events
+- next-turn now advances active combatant, wraps rounds, and appends deterministic encounter log entries
+- selection changes currently reset the local encounter so lineup edits stay simple for milestone 1
+- added targeted local test controls for damage, healing, condition markers, and state markers
+- runtime HP, conditions, and states now render back onto combatant cards from encounter state
+- added encounter helper coverage for HP mutation plus condition/state add-remove operations
+- condition and state markers can now carry turn-based duration metadata
+- `Next Turn` now ticks timed markers on turn start/end boundaries and logs automatic expirations
+- combatant cards now show remaining timed-marker duration inline
+- encounter start now seeds timed runtime effects from canonical effect duration metadata when the duration is turn-boundary compatible
+- effect-derived timers render separately from manual conditions/states and expire with their own log entries
+- added encounter helper coverage for seeded effect expiration alongside manual marker ticking
+- combatants now expose explicit turn-start and turn-end hook lists in the runtime model
+- encounter start / next turn can automatically fire simple turn hooks and apply canonical `hit_points` effects
+- hook firings now log distinctly and the active combatant surface shows which hooks are available
+- turn hooks can now also apply simple canonical `condition` and `state` payloads, seeding runtime marker durations from effect timing metadata when compatible
+- typed damage test actions can now suppress matching monster hooks like regeneration for a bounded duration, with suppression rendered on combatant cards and skipped-hook logging
+- monster turn hooks can now honor basic declarative requirements for `bloodied`, exact HP values, and per-turn damage thresholds by type, with unmet reasons logged instead of silently failing
+- fired monster hooks now emit readable combat-log notes for `tracked_part`, `spawn`, `custom`, and canonical `note` payloads so trait resolution is inspectable even when full board-state simulation is still deferred
+- combatant cards now show richer turn-hook detail directly in the route, including boundary, effect summaries, requirements, and suppression rules so hook behavior is inspectable before and during encounter stepping
+- the route now includes first-pass manual context inputs for deferred trigger families, with global environment selection plus per-monster form selection and card-level status rendering for non-turn triggers like `in_environment`, `in_form`, `ally_near_target`, `contact`, and `while_moving_grappled_creature`
+- `in_environment` and `in_form` are now partially executable in the route: matching context activates their monster effects through the normal active-effect pipeline, while changing manual context resets the local encounter so seeded runtime state stays consistent
+- route-level manual toggles now make `contact`, `ally_near_target`, and `while_moving_grappled_creature` partially executable too, letting authored monster effects like `Adhesive`, `Pack Tactics`, and `Abduct` flow through the same active-effect path without requiring full positional or movement simulation
+- monster `reduced_to_0_hp` triggers now have a first-pass route action too: when a selected monster combatant is at 0 HP, the sandbox can append a real hook-fired log plus readable payload notes for authored event effects such as `custom`, `save`, and nested success notes
+- `reduced_to_0_hp` save hooks can now branch manually in the route, with a success/fail selector and limited nested effect execution for safe cases like `note`, `custom`, `condition`, `state`, and `hit_points` so scenarios like `Undead Fortitude` can restore to 1 HP instead of staying log-only
 
 ## Locked Decisions
 

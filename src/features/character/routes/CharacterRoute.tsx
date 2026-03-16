@@ -19,10 +19,11 @@ export default function CharacterRoute() {
   const { id } = useParams<{ id: string }>()
   const location = useLocation()
 
-  const ctx = toViewerContext(campaign?.viewer);
+  const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
+  const ctx = toViewerContext(campaign?.viewer, viewerCharacterIds);
   const canManage = canManageContent(ctx);
-  const characterIds = ctx?.characterIds ?? [];
-  const userOwnsCharacter = characterIds.includes(id ?? '');
+  const userOwnsCharacter = viewerCharacterIds.includes(id ?? '');
+
 
   const breadcrumbs = useBreadcrumbs()
 

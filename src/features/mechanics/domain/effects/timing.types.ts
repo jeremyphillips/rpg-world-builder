@@ -16,7 +16,7 @@ export type EffectDuration =
       unit: TimeUnit
     }
   | {
-      kind: 'until_turn_boundary'
+      kind: 'until-turn-boundary'
       subject: 'self' | 'source' | 'target'
       turn: 'current' | 'next'
       boundary: 'start' | 'end'
@@ -55,7 +55,7 @@ export function normalizeDuration(
   if (duration === 'instant') return { kind: 'instant' }
   if (duration === 'next-turn') {
     return {
-      kind: 'until_turn_boundary',
+      kind: 'until-turn-boundary',
       subject: 'self',
       turn: 'next',
       boundary: 'end',

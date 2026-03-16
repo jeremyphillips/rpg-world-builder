@@ -51,7 +51,7 @@ describe('system catalog normalization', () => {
       | undefined
 
     expect(nestedTrigger?.kind).toBe('trigger')
-    expect(nestedTrigger?.trigger).toBe('weapon_hit')
+    expect(nestedTrigger?.trigger).toBe('weapon-hit')
   })
 
   it('uses canonical activation wrappers for active class buffs', () => {
@@ -129,7 +129,7 @@ describe('system catalog normalization', () => {
         kind: 'condition',
         conditionId: 'frightened',
         duration: {
-          kind: 'until_turn_boundary',
+          kind: 'until-turn-boundary',
           subject: 'source',
           turn: 'next',
           boundary: 'end',
@@ -162,7 +162,7 @@ describe('system catalog normalization', () => {
 
     expect(glare?.onFail?.[0]).toMatchObject({
       duration: {
-        kind: 'until_turn_boundary',
+        kind: 'until-turn-boundary',
         subject: 'source',
         turn: 'next',
         boundary: 'end',
@@ -191,7 +191,7 @@ describe('system catalog normalization', () => {
 
     expect(packTactics?.effects).toEqual([
       {
-        kind: 'roll_modifier',
+        kind: 'roll-modifier',
         appliesTo: 'attack-rolls',
         modifier: 'advantage',
       },
@@ -217,7 +217,7 @@ describe('system catalog normalization', () => {
     expect(rampage?.effects).toEqual([
       {
         kind: 'trigger',
-        trigger: 'damage_dealt',
+        trigger: 'damage-dealt',
         condition: {
           kind: 'state',
           target: 'target',
@@ -243,11 +243,11 @@ describe('system catalog normalization', () => {
     const regeneration = troll?.mechanics.traits?.find((trait) => trait.name === 'Regeneration')
 
     expect(regeneration?.effects).toEqual([
-      { kind: 'hit_points', mode: 'heal', value: 15 },
+      { kind: 'hit-points', mode: 'heal', value: 15 },
     ])
 
     expect(regeneration?.suppression?.duration).toEqual({
-      kind: 'until_turn_boundary',
+      kind: 'until-turn-boundary',
       subject: 'self',
       turn: 'next',
       boundary: 'end',
@@ -313,7 +313,7 @@ describe('system catalog normalization', () => {
         },
       },
       {
-        kind: 'visibility_rule',
+        kind: 'visibility-rule',
         transparent: true,
       },
       {
@@ -360,7 +360,7 @@ describe('system catalog normalization', () => {
     expect(transparent?.visibility).toBeUndefined()
     expect(transparent?.effects).toEqual([
       {
-        kind: 'visibility_rule',
+        kind: 'visibility-rule',
         transparent: true,
         noticeCheck: {
           ability: 'wis',
@@ -378,7 +378,7 @@ describe('system catalog normalization', () => {
 
     expect(loathsomeLimbs?.effects).toEqual([
       {
-        kind: 'tracked_part',
+        kind: 'tracked-part',
         part: 'limb',
         change: {
           mode: 'sever',
@@ -413,7 +413,7 @@ describe('system catalog normalization', () => {
 
     expect(holdBreath?.effects).toEqual([
       {
-        kind: 'hold_breath',
+        kind: 'hold-breath',
         duration: {
           kind: 'fixed',
           value: 1,
@@ -424,17 +424,17 @@ describe('system catalog normalization', () => {
 
     expect(multipleHeads?.effects).toEqual([
       {
-        kind: 'tracked_part',
+        kind: 'tracked-part',
         part: 'head',
         initialCount: 5,
         loss: {
-          trigger: 'damage_taken_in_single_turn',
+          trigger: 'damage-taken-in-single-turn',
           minDamage: 25,
           count: 1,
         },
         deathWhenCountReaches: 0,
         regrowth: {
-          trigger: 'turn_end',
+          trigger: 'turn-end',
           requiresLivingPart: true,
           countPerPartLostSinceLastTurn: 2,
           suppressedByDamageTypes: ['fire'],
@@ -445,7 +445,7 @@ describe('system catalog normalization', () => {
 
     expect(reactiveHeads?.effects).toEqual([
       {
-        kind: 'extra_reaction',
+        kind: 'extra-reaction',
         appliesTo: 'opportunity-attacks-only',
         count: {
           kind: 'per-part-beyond',

@@ -17,6 +17,7 @@ import {
   CharacterRoute,
   CampaignsRoute,
   CampaignRoute,
+  CombatSimulationRoute,
   RulesRoute,
   PartyRoute,
   SessionsRoute,
@@ -49,6 +50,7 @@ import {
   GearCreateRoute,
   MagicItemCreateRoute,
   AdminGuard,
+  CombatSimulationGuard,
   ContentManageGuard,
   CampaignAdminInvitesRoute,
   CampaignAdminSettingsRoute,
@@ -165,6 +167,10 @@ export const router = createBrowserRouter([
               { path: 'messages/:conversationId', element: <MessagingRoute /> },
               { path: 'party', element: <PartyRoute /> },
               { path: 'rules', element: <RulesRoute /> },
+              {
+                element: <CombatSimulationGuard />,
+                children: [{ path: 'combat-simulation', element: <CombatSimulationRoute /> }],
+              },
               {
                 path: 'admin',
                 element: <AdminGuard />,

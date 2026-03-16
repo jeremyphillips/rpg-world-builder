@@ -27,7 +27,7 @@ describe('collectClassEffects', () => {
     expect(effects).toContainEqual(
       expect.objectContaining({
         kind: 'trigger',
-        trigger: 'weapon_hit',
+        trigger: 'weapon-hit',
       }),
     )
 

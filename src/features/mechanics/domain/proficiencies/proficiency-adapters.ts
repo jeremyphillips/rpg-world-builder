@@ -4,7 +4,7 @@ import type { Effect, ProficiencyGrantEffect } from '../effects/effects.types'
 // Types
 // ---------------------------------------------------------------------------
 
-export type ProficiencyTarget = 'armor' | 'weapon' | 'tool' | 'skill' | 'saving_throw'
+export type ProficiencyTarget = 'armor' | 'weapon' | 'tool' | 'skill' | 'saving-throw'
 
 export type EquipmentProficiency = {
   categories: string[]

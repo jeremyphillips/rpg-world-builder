@@ -62,9 +62,9 @@ export default function SpellDetailRoute() {
         </Box>
       )}
 
-      {spell.description && (
+      {spell.description.full && (
         <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {spell.description}
+          {spell.description.full}
         </Typography>
       )}
 

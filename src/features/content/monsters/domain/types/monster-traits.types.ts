@@ -8,26 +8,26 @@ export type MonsterTraitRequirement =
   | { kind: 'hit-points-equals'; value: number };
 
 export type MonsterTraitTrigger =
-  | { kind: 'turn_start' }
-  | { kind: 'turn_end' }
+  | { kind: 'turn-start' }
+  | { kind: 'turn-end' }
   | {
-      kind: 'ally_near_target';
+      kind: 'ally-near-target';
       withinFeet: number;
       allyConditionNot?: ConditionId;
     }
   | {
-      kind: 'in_environment';
+      kind: 'in-environment';
       environment: 'sunlight';
     }
   | {
-      kind: 'in_form';
+      kind: 'in-form';
       form: 'object' | 'true-form';
     }
   | {
-      kind: 'while_moving_grappled_creature';
+      kind: 'while-moving-grappled-creature';
     }
   | {
-      kind: 'reduced_to_0_hp';
+      kind: 'reduced-to-0-hp';
     }
   | {
       kind: 'contact';

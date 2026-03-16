@@ -48,7 +48,7 @@ const formatEffectsJson = (v: unknown): string => {
 export const SPELL_FORM_FIELDS = [
   ...getBaseContentFieldSpecs<
     SpellFormValues,
-    SpellInput & Record<string, unknown>,
+    Omit<SpellInput, 'description'> & Record<string, unknown>,
     Spell & Record<string, unknown>
   >(),
   {
@@ -82,24 +82,24 @@ export const SPELL_FORM_FIELDS = [
     parse: (v: unknown) => (Array.isArray(v) ? (v as SpellInput['classes']) : undefined),
     format: (v: unknown) => arrOrEmpty(v) as SpellInput['classes'],
   },
-  {
-    name: 'ritual',
-    label: 'Ritual',
-    kind: 'checkbox' as const,
-    defaultValue: false as SpellFormValues['ritual'],
-    parse: (v: unknown) => Boolean(v),
-    format: (v: unknown) => Boolean(v ?? false),
-    formatForDisplay: (v: unknown) => (v ? 'Yes' : 'No'),
-  },
-  {
-    name: 'concentration',
-    label: 'Concentration',
-    kind: 'checkbox' as const,
-    defaultValue: false as SpellFormValues['concentration'],
-    parse: (v: unknown) => Boolean(v),
-    format: (v: unknown) => Boolean(v ?? false),
-    formatForDisplay: (v: unknown) => (v ? 'Yes' : 'No'),
-  },
+  // {
+  //   name: 'ritual',
+  //   label: 'Ritual',
+  //   kind: 'checkbox' as const,
+  //   defaultValue: false as SpellFormValues['ritual'],
+  //   parse: (v: unknown) => Boolean(v),
+  //   format: (v: unknown) => Boolean(v ?? false),
+  //   formatForDisplay: (v: unknown) => (v ? 'Yes' : 'No'),
+  // },
+  // {
+  //   name: 'concentration',
+  //   label: 'Concentration',
+  //   kind: 'checkbox' as const,
+  //   defaultValue: false as SpellFormValues['concentration'],
+  //   parse: (v: unknown) => Boolean(v),
+  //   format: (v: unknown) => Boolean(v ?? false),
+  //   formatForDisplay: (v: unknown) => (v ? 'Yes' : 'No'),
+  // },
   {
     name: 'effects',
     label: 'Effects',
