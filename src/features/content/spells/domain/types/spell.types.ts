@@ -1,6 +1,7 @@
 import type { ClassId } from '@/shared/types/ruleset';
 import type { MagicSchool } from '@/features/content/shared/domain/vocab';
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
+import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types';
 import type { Visibility } from '@/shared/types/visibility';
 import type { ContentItem } from '@/features/content/shared/domain/types/content.types';
 import type { Distance } from '@/shared/distance';
@@ -52,7 +53,7 @@ export type TurnBoundarySpellDuration = {
   kind: 'until-turn-boundary';
   subject: 'self' | 'source' | 'target';
   turn: 'current' | 'next';
-  boundary: 'start' | 'end';
+  boundary: TurnBoundary;
   concentration?: boolean;
 };
 

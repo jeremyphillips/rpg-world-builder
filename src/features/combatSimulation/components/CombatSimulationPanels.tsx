@@ -1,8 +1,9 @@
 import { useState } from 'react'
 
+import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
+import { AppBadge } from '@/ui/primitives'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import Collapse from '@mui/material/Collapse'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
@@ -51,8 +52,8 @@ type EncounterControlsPanelProps = {
   onRemoveState: () => void
   markerDurationTurns: string
   onMarkerDurationTurnsChange: (value: string) => void
-  markerDurationBoundary: 'start' | 'end'
-  onMarkerDurationBoundaryChange: (value: 'start' | 'end') => void
+  markerDurationBoundary: TurnBoundary
+  onMarkerDurationBoundaryChange: (value: TurnBoundary) => void
 }
 
 export function EncounterControlsPanel({
@@ -123,16 +124,17 @@ export function EncounterControlsPanel({
         </Stack>
 
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          <Chip label={`Selected: ${selectedCombatantCount}`} size="small" variant="outlined" />
-          <Chip label={`Resolved: ${resolvedCombatantCount}`} size="small" variant="outlined" />
-          <Chip
+          <AppBadge label={`Selected: ${selectedCombatantCount}`} tone="default" variant="outlined" size="small" />
+          <AppBadge label={`Resolved: ${resolvedCombatantCount}`} tone="default" variant="outlined" size="small" />
+          <AppBadge
             label={
               encounterState
                 ? `Round ${encounterState.roundNumber} • Turn ${encounterState.turnIndex + 1}`
                 : 'Encounter not started'
             }
+            tone={encounterState ? 'success' : 'default'}
+            variant="outlined"
             size="small"
-            color={encounterState ? 'success' : 'default'}
           />
         </Stack>
 
@@ -152,45 +154,48 @@ export function EncounterControlsPanel({
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   {activeCombatant.turnHooks.length > 0 ? (
                     activeCombatant.turnHooks.map((hook) => (
-                      <Chip
+                      <AppBadge
                         key={hook.id}
                         label={`${hook.boundary === 'start' ? 'Start' : 'End'} hook: ${hook.label}`}
-                        size="small"
+                        tone="default"
                         variant="outlined"
+                        size="small"
                       />
                     ))
                   ) : (
-                    <Chip label="No turn hooks" size="small" variant="outlined" />
+                    <AppBadge label="No turn hooks" tone="default" variant="outlined" size="small" />
                   )}
                 </Stack>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  <Chip
+                  <AppBadge
                     label={`Action: ${activeCombatant.turnResources?.actionAvailable ? 'ready' : 'spent'}`}
-                    size="small"
-                    color={activeCombatant.turnResources?.actionAvailable ? 'success' : 'default'}
+                    tone={activeCombatant.turnResources?.actionAvailable ? 'success' : 'default'}
                     variant="outlined"
+                    size="small"
                   />
-                  <Chip
+                  <AppBadge
                     label={`Bonus: ${activeCombatant.turnResources?.bonusActionAvailable ? 'ready' : 'spent'}`}
-                    size="small"
-                    color={activeCombatant.turnResources?.bonusActionAvailable ? 'success' : 'default'}
+                    tone={activeCombatant.turnResources?.bonusActionAvailable ? 'success' : 'default'}
                     variant="outlined"
+                    size="small"
                   />
-                  <Chip
+                  <AppBadge
                     label={`Reaction: ${activeCombatant.turnResources?.reactionAvailable ? 'ready' : 'spent'}`}
-                    size="small"
-                    color={activeCombatant.turnResources?.reactionAvailable ? 'success' : 'default'}
+                    tone={activeCombatant.turnResources?.reactionAvailable ? 'success' : 'default'}
                     variant="outlined"
+                    size="small"
                   />
-                  <Chip
+                  <AppBadge
                     label={`OA Reactions: ${activeCombatant.turnResources?.opportunityAttackReactionsRemaining ?? 0}`}
-                    size="small"
+                    tone="default"
                     variant="outlined"
+                    size="small"
                   />
-                  <Chip
+                  <AppBadge
                     label={`Move: ${activeCombatant.turnResources?.movementRemaining ?? 0} ft`}
-                    size="small"
+                    tone="default"
                     variant="outlined"
+                    size="small"
                   />
                 </Stack>
               </>
@@ -353,7 +358,7 @@ export function EncounterControlsPanel({
                   select
                   label="Tick On"
                   value={markerDurationBoundary}
-                  onChange={(event) => onMarkerDurationBoundaryChange(event.target.value as 'start' | 'end')}
+                  onChange={(event) => onMarkerDurationBoundaryChange(event.target.value as TurnBoundary)}
                   disabled={!hasEncounter}
                   sx={{ minWidth: 180 }}
                 >
@@ -452,7 +457,7 @@ export function CombatLogPanel({ encounterState, selectedPartyCount, enemyCombat
                             <Typography variant="body2" fontWeight={600}>
                               {entry.summary}
                             </Typography>
-                            <Chip label={`R${entry.round} T${entry.turn}`} size="small" variant="outlined" />
+                            <AppBadge label={`R${entry.round} T${entry.turn}`} tone="default" variant="outlined" size="small" />
                           </Stack>
                           {entry.details && (
                             <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import {
   addConditionToCombatant,
   addStateToCombatant,
@@ -44,7 +45,7 @@ export function useCombatSimulationEncounter({
   const [conditionInput, setConditionInput] = useState('poisoned')
   const [stateInput, setStateInput] = useState('concentrating')
   const [markerDurationTurns, setMarkerDurationTurns] = useState('1')
-  const [markerDurationBoundary, setMarkerDurationBoundary] = useState<'start' | 'end'>('end')
+  const [markerDurationBoundary, setMarkerDurationBoundary] = useState<TurnBoundary>('end')
   const [environmentContext, setEnvironmentContext] = useState<ManualEnvironmentContext>('none')
   const [monsterFormsById, setMonsterFormsById] = useState<Record<string, MonsterFormContext>>({})
   const [monsterManualTriggersById, setMonsterManualTriggersById] = useState<

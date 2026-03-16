@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import CircularProgress from '@mui/material/CircularProgress'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
@@ -12,6 +11,7 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 
+import { AppBadge } from '@/ui/primitives'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { useCharacter, useCombatStats } from '@/features/character/hooks'
 import { toCharacterForEngine, type CharacterDetailDto } from '@/features/character/read-model'
@@ -61,11 +61,12 @@ function StatChips({
   return (
     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
       {items.map((item) => (
-        <Chip
+        <AppBadge
           key={item.label}
           label={`${item.label}: ${item.value}`}
-          size="small"
+          tone="default"
           variant="outlined"
+          size="small"
         />
       ))}
     </Stack>
@@ -104,17 +105,18 @@ function AttackList({
             </Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
               {typeof attack.attackBonus === 'number' && (
-                <Chip label={`To hit ${formatSigned(attack.attackBonus)}`} size="small" />
+                <AppBadge label={`To hit ${formatSigned(attack.attackBonus)}`} tone="default" size="small" />
               )}
               {attack.damage && (
-                <Chip
+                <AppBadge
                   label={
                     attack.damageType
                       ? `${attack.damage} ${attack.damageType}`
                       : attack.damage
                   }
-                  size="small"
+                  tone="default"
                   variant="outlined"
+                  size="small"
                 />
               )}
             </Stack>
@@ -158,16 +160,16 @@ function ActiveActionControls({
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {availableActions.length > 0 ? (
             availableActions.map((action) => (
-              <Chip
+              <AppBadge
                 key={action.id}
                 label={`${action.label} (${action.kind.replaceAll('_', ' ')})`}
                 size="small"
-                color={action.id === selectedActionId ? 'primary' : 'default'}
+                tone={action.id === selectedActionId ? 'primary' : 'default'}
                 variant={action.id === selectedActionId ? 'filled' : 'outlined'}
               />
             ))
           ) : (
-            <Chip label="No actions available" size="small" variant="outlined" />
+            <AppBadge label="No actions available" tone="default" variant="outlined" size="small" />
           )}
         </Stack>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
@@ -230,7 +232,7 @@ function EffectList({
   return (
     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
       {labels.map((label, index) => (
-        <Chip key={`${label}-${index}`} label={label} size="small" variant="outlined" />
+        <AppBadge key={`${label}-${index}`} label={label} tone="default" variant="outlined" size="small" />
       ))}
     </Stack>
   )
@@ -255,7 +257,7 @@ function MarkerList({
       ) : (
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {labels.map((label) => (
-            <Chip key={label.id} label={formatMarkerLabel(label)} size="small" variant="outlined" />
+            <AppBadge key={label.id} label={formatMarkerLabel(label)} tone="default" variant="outlined" size="small" />
           ))}
         </Stack>
       )}
@@ -315,7 +317,7 @@ function RuntimeEffectList({
       ) : (
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {effects.map((effect) => (
-            <Chip key={effect.id} label={formatRuntimeEffectLabel(effect)} size="small" variant="outlined" />
+            <AppBadge key={effect.id} label={formatRuntimeEffectLabel(effect)} tone="default" variant="outlined" size="small" />
           ))}
         </Stack>
       )}
@@ -343,37 +345,38 @@ function TurnHookList({
             <Paper key={hook.id} variant="outlined" sx={{ p: 1.25 }}>
               <Stack spacing={1}>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  <Chip
+                  <AppBadge
                     label={`${hook.boundary === 'start' ? 'Start' : 'End'}: ${hook.label}`}
-                    size="small"
+                    tone="default"
                     variant="outlined"
+                    size="small"
                   />
                   {hook.requirements?.map((requirement, index) => (
-                    <Chip
+                    <AppBadge
                       key={`${hook.id}-requirement-${index}`}
                       label={formatHookRequirementLabel(requirement)}
-                      size="small"
+                      tone="warning"
                       variant="outlined"
-                      color="warning"
+                      size="small"
                     />
                   ))}
                   {formatHookSuppressionLabel(hook) && (
-                    <Chip
+                    <AppBadge
                       label={formatHookSuppressionLabel(hook) ?? ''}
-                      size="small"
+                      tone="default"
                       variant="outlined"
-                      color="secondary"
+                      size="small"
                     />
                   )}
                 </Stack>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   {hook.effects.map((effect, index) => (
-                    <Chip
+                    <AppBadge
                       key={`${hook.id}-effect-${index}`}
                       label={formatEffectLabel(effect)}
-                      size="small"
-                      color="primary"
+                      tone="primary"
                       variant="filled"
+                      size="small"
                     />
                   ))}
                 </Stack>
@@ -405,9 +408,9 @@ function ContextTriggerList({
           {triggers.map((trigger) => (
             <Paper key={trigger.id} variant="outlined" sx={{ p: 1.25 }}>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                <Chip label={trigger.traitName} size="small" variant="outlined" />
-                <Chip label={trigger.label} size="small" variant="outlined" color="primary" />
-                <Chip
+                <AppBadge label={trigger.traitName} tone="default" variant="outlined" size="small" />
+                <AppBadge label={trigger.label} tone="primary" variant="outlined" size="small" />
+                <AppBadge
                   label={
                     trigger.status === 'matched'
                       ? 'Matched by context'
@@ -415,9 +418,9 @@ function ContextTriggerList({
                         ? 'Context not met'
                         : 'Manual event'
                   }
-                  size="small"
+                  tone={trigger.status === 'matched' ? 'success' : trigger.status === 'inactive' ? 'default' : 'warning'}
                   variant="outlined"
-                  color={trigger.status === 'matched' ? 'success' : trigger.status === 'inactive' ? 'default' : 'warning'}
+                  size="small"
                 />
               </Stack>
             </Paper>
@@ -620,8 +623,8 @@ function LoadedCharacterCombatantCard({
           <Box>
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
               <Typography variant="h6">{character.name}</Typography>
-              <Chip label={sourceKind === 'pc' ? 'Party' : 'NPC'} size="small" color="primary" />
-              {isActive && <Chip label="Active Turn" size="small" color="success" />}
+              <AppBadge label={sourceKind === 'pc' ? 'Party' : 'NPC'} tone="primary" size="small" />
+              {isActive && <AppBadge label="Active Turn" tone="success" size="small" />}
             </Stack>
             <Typography variant="body2" color="text.secondary">
               {formatCharacterSubtitle(character)}
@@ -800,8 +803,8 @@ export function MonsterCombatantCard({
           <Box>
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
               <Typography variant="h6">{monster.name}</Typography>
-              <Chip label="Monster" size="small" color="error" />
-              {isActive && <Chip label="Active Turn" size="small" color="success" />}
+              <AppBadge label="Monster" tone="danger" size="small" />
+              {isActive && <AppBadge label="Active Turn" tone="success" size="small" />}
             </Stack>
             <Typography variant="body2" color="text.secondary">
               {formatMonsterOptionSubtitle(monster)}
@@ -845,10 +848,11 @@ export function MonsterCombatantCard({
         </Typography>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-          <Chip
+          <AppBadge
             label={`Environment: ${environmentContext === 'sunlight' ? 'Sunlight' : 'Normal'}`}
-            size="small"
+            tone="default"
             variant="outlined"
+            size="small"
           />
           {hasFormTriggers && (
             <TextField

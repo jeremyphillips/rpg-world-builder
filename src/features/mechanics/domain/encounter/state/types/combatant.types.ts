@@ -1,4 +1,5 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
+import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import type { AbilityKey } from '@/features/mechanics/domain/core/character/abilities.types'
 import type { BreakdownToken } from '../../../resolution/stat-resolver'
 import type { CombatActionDefinition } from '../../resolution/combat-action.types'
@@ -37,7 +38,7 @@ export interface CombatantStatBlock {
 
 export interface RuntimeMarkerDuration {
   remainingTurns: number
-  tickOn: 'start' | 'end'
+  tickOn: TurnBoundary
 }
 
 export interface RuntimeMarker {
@@ -61,7 +62,7 @@ export type RuntimeTurnHookRequirement =
 export interface RuntimeTurnHook {
   id: string
   label: string
-  boundary: 'start' | 'end'
+  boundary: TurnBoundary
   effects: Effect[]
   requirements?: RuntimeTurnHookRequirement[]
   suppression?: {

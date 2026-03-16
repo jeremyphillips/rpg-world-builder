@@ -1,7 +1,7 @@
+import { AppBadge } from '@/ui/primitives'
 import Autocomplete from '@mui/material/Autocomplete'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
@@ -199,7 +199,7 @@ export function EnemyRosterLane({
               <Stack spacing={0.25}>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <Typography variant="body2">{option.label}</Typography>
-                  <Chip label={option.kind === 'npc' ? 'NPC' : 'Monster'} size="small" />
+                  <AppBadge label={option.kind === 'npc' ? 'NPC' : 'Monster'} tone="default" size="small" />
                 </Stack>
                 <Typography variant="caption" color="text.secondary">
                   {option.subtitle}
@@ -312,11 +312,12 @@ export function EnemyRosterLane({
       {selectedEnemyOptions.length > 0 && (
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {selectedEnemyOptions.map((option) => (
-            <Chip
+            <AppBadge
               key={option.key}
               label={`${option.label} × ${enemySourceCounts[option.key] ?? 0}`}
-              size="small"
+              tone="default"
               variant="outlined"
+              size="small"
             />
           ))}
         </Stack>

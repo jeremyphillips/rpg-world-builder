@@ -25,22 +25,6 @@ export type DamageType =
   | 'radiant'
   | 'necrotic';
 
-export type ConditionId =
-  | 'blinded'
-  | 'charmed'
-  | 'deafened'
-  | 'frightened'
-  | 'grappled'
-  | 'incapacitated'
-  | 'invisible'
-  | 'paralyzed'
-  | 'petrified'
-  | 'poisoned'
-  | 'prone'
-  | 'restrained'
-  | 'stunned'
-  | 'unconscious';
-
 export type TraitRollTarget =
   | 'attack-rolls'
   | 'ability-checks'
