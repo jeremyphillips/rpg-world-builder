@@ -283,12 +283,16 @@ src/features/combatSimulation/
 
 ## Summary
 
-| Phase | Focus | Risk |
-|-------|-------|------|
-| 1 | Types + UI map | Low |
-| 2 | Normalization | Medium (key derivation for hooks) |
-| 3 | Enrichment + sort/group | Low |
-| 4 | UI integration | Low |
-| 5 | Polish | Low |
+| Phase | Focus | Risk | Status |
+|-------|-------|------|--------|
+| 1 | Types + UI map | Low | ✅ Done |
+| 2 | Normalization | Medium (key derivation for hooks) | ✅ Done |
+| 3 | Enrichment + sort/group | Low | ✅ Done |
+| 4 | UI integration | Low | ✅ Done |
+| 5 | Polish | Low | Pending |
 
 **Critical path:** Phase 2 key derivation for turn hooks and runtime effects. Resolve key strategy before implementation.
+
+## Implementation Status (2025-03)
+
+- **Phase 1–4 implemented.** Files: `combatSimulation/domain/` (types, UI map, presentable-effects), `PresentableEffectsList.tsx`. CombatSimulationCards now uses `PresentableEffectsList` and `PresentableEffectsHeaderChips` instead of flat RuntimeEffectList, TurnHookList, MarkerList sections.

@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 
 import { AppBadge } from '@/ui/primitives'
+import { PresentableEffectsHeaderChips, PresentableEffectsList } from './PresentableEffectsList'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { useCharacter, useCombatStats } from '@/features/character/hooks'
 import { toCharacterForEngine, type CharacterDetailDto } from '@/features/character/read-model'
@@ -23,8 +24,6 @@ import {
   buildActiveMonsterEffects,
   buildMonsterContextTriggers,
   buildMonsterTurnHooks,
-  formatMarkerLabel,
-  formatRuntimeEffectLabel,
   monsterHasFormTriggers,
   monsterSupportedManualTriggers,
   type ManualEnvironmentContext,
@@ -32,9 +31,6 @@ import {
   type MonsterFormContext,
   type CombatantAttackEntry,
   type CombatantInstance,
-  type RuntimeEffectInstance,
-  type RuntimeMarker,
-  type RuntimeTurnHook,
   type CombatantSide,
 } from '@/features/mechanics/domain/encounter'
 import {
@@ -235,157 +231,6 @@ function EffectList({
         <AppBadge key={`${label}-${index}`} label={label} tone="default" variant="outlined" size="small" />
       ))}
     </Stack>
-  )
-}
-
-function MarkerList({
-  title,
-  labels,
-}: {
-  title: string
-  labels: RuntimeMarker[]
-}) {
-  return (
-    <Box>
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        {title}
-      </Typography>
-      {labels.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
-          None.
-        </Typography>
-      ) : (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          {labels.map((label) => (
-            <AppBadge key={label.id} label={formatMarkerLabel(label)} tone="default" variant="outlined" size="small" />
-          ))}
-        </Stack>
-      )}
-    </Box>
-  )
-}
-
-function formatHookRequirementLabel(requirement: RuntimeTurnHook['requirements'] extends infer T
-  ? T extends readonly (infer U)[]
-    ? U
-    : never
-  : never): string {
-  switch (requirement.kind) {
-    case 'self-state':
-      return `Requires: ${requirement.state}`
-    case 'damage-taken-this-turn':
-      if (requirement.damageType && requirement.min) {
-        return `Requires: ${requirement.min}+ ${requirement.damageType} damage this turn`
-      }
-      if (requirement.damageType) {
-        return `Requires: ${requirement.damageType} damage this turn`
-      }
-      if (requirement.min) {
-        return `Requires: ${requirement.min}+ damage this turn`
-      }
-      return 'Requires: damage this turn'
-    case 'hit-points-equals':
-      return `Requires: HP = ${requirement.value}`
-  }
-}
-
-function formatHookSuppressionLabel(hook: RuntimeTurnHook): string | null {
-  if (!hook.suppression?.damageTypes || hook.suppression.damageTypes.length === 0) return null
-
-  const damageTypes = hook.suppression.damageTypes.join(' / ')
-  const duration = hook.suppression.duration
-    ? ` (${hook.suppression.duration.remainingTurns} turn${hook.suppression.duration.remainingTurns === 1 ? '' : 's'} ${hook.suppression.duration.tickOn})`
-    : ''
-
-  return `Suppressed by ${damageTypes}${duration}`
-}
-
-function RuntimeEffectList({
-  effects,
-}: {
-  effects: RuntimeEffectInstance[]
-}) {
-  return (
-    <Box>
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        Timed Effects
-      </Typography>
-      {effects.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
-          None.
-        </Typography>
-      ) : (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          {effects.map((effect) => (
-            <AppBadge key={effect.id} label={formatRuntimeEffectLabel(effect)} tone="default" variant="outlined" size="small" />
-          ))}
-        </Stack>
-      )}
-    </Box>
-  )
-}
-
-function TurnHookList({
-  hooks,
-}: {
-  hooks: RuntimeTurnHook[]
-}) {
-  return (
-    <Box>
-      <Typography variant="subtitle2" sx={{ mb: 1 }}>
-        Turn Hooks
-      </Typography>
-      {hooks.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
-          None.
-        </Typography>
-      ) : (
-        <Stack spacing={1.5}>
-          {hooks.map((hook) => (
-            <Paper key={hook.id} variant="outlined" sx={{ p: 1.25 }}>
-              <Stack spacing={1}>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  <AppBadge
-                    label={`${hook.boundary === 'start' ? 'Start' : 'End'}: ${hook.label}`}
-                    tone="default"
-                    variant="outlined"
-                    size="small"
-                  />
-                  {hook.requirements?.map((requirement, index) => (
-                    <AppBadge
-                      key={`${hook.id}-requirement-${index}`}
-                      label={formatHookRequirementLabel(requirement)}
-                      tone="warning"
-                      variant="outlined"
-                      size="small"
-                    />
-                  ))}
-                  {formatHookSuppressionLabel(hook) && (
-                    <AppBadge
-                      label={formatHookSuppressionLabel(hook) ?? ''}
-                      tone="default"
-                      variant="outlined"
-                      size="small"
-                    />
-                  )}
-                </Stack>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  {hook.effects.map((effect, index) => (
-                    <AppBadge
-                      key={`${hook.id}-effect-${index}`}
-                      label={formatEffectLabel(effect)}
-                      tone="primary"
-                      variant="filled"
-                      size="small"
-                    />
-                  ))}
-                </Stack>
-              </Stack>
-            </Paper>
-          ))}
-        </Stack>
-      )}
-    </Box>
   )
 }
 
@@ -625,6 +470,9 @@ function LoadedCharacterCombatantCard({
               <Typography variant="h6">{character.name}</Typography>
               <AppBadge label={sourceKind === 'pc' ? 'Party' : 'NPC'} tone="primary" size="small" />
               {isActive && <AppBadge label="Active Turn" tone="success" size="small" />}
+              {displayCombatant && (
+                <PresentableEffectsHeaderChips combatant={displayCombatant} />
+              )}
             </Stack>
             <Typography variant="body2" color="text.secondary">
               {formatCharacterSubtitle(character)}
@@ -672,11 +520,7 @@ function LoadedCharacterCombatantCard({
           <EffectList labels={effectLabels} />
         </Box>
 
-        <RuntimeEffectList effects={displayCombatant.runtimeEffects} />
-        <TurnHookList hooks={displayCombatant.turnHooks} />
-        <MarkerList title="Hook Suppressions" labels={displayCombatant.suppressedHooks ?? []} />
-        <MarkerList title="Conditions" labels={displayCombatant.conditions} />
-        <MarkerList title="States" labels={displayCombatant.states} />
+        <PresentableEffectsList combatant={displayCombatant} />
       </Stack>
     </Paper>
   )
@@ -805,6 +649,7 @@ export function MonsterCombatantCard({
               <Typography variant="h6">{monster.name}</Typography>
               <AppBadge label="Monster" tone="danger" size="small" />
               {isActive && <AppBadge label="Active Turn" tone="success" size="small" />}
+              <PresentableEffectsHeaderChips combatant={displayCombatant} />
             </Stack>
             <Typography variant="body2" color="text.secondary">
               {formatMonsterOptionSubtitle(monster)}
@@ -900,12 +745,8 @@ export function MonsterCombatantCard({
           <EffectList labels={effectLabels} />
         </Box>
 
-        <RuntimeEffectList effects={displayCombatant.runtimeEffects} />
-        <TurnHookList hooks={displayCombatant.turnHooks} />
+        <PresentableEffectsList combatant={displayCombatant} />
         <ContextTriggerList triggers={contextTriggers} />
-        <MarkerList title="Hook Suppressions" labels={displayCombatant.suppressedHooks ?? []} />
-        <MarkerList title="Conditions" labels={displayCombatant.conditions} />
-        <MarkerList title="States" labels={displayCombatant.states} />
       </Stack>
     </Paper>
   )
