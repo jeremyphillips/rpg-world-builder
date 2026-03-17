@@ -9,25 +9,23 @@ import Typography from '@mui/material/Typography'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 
 import type { Monster } from '@/features/content/monsters/domain/types'
-import { DEFAULT_MANUAL_MONSTER_TRIGGER_CONTEXT, type CombatantInstance, type ManualEnvironmentContext, type ManualMonsterTriggerContext, type MonsterFormContext } from '@/features/mechanics/domain/encounter'
+import {
+  DEFAULT_MANUAL_MONSTER_TRIGGER_CONTEXT,
+  type CombatantInstance,
+  type ManualEnvironmentContext,
+  type ManualMonsterTriggerContext,
+  type MonsterFormContext,
+} from '@/features/mechanics/domain/encounter'
 import type { OpponentOption, OpponentRosterEntry, AllyOption } from '../types'
-import { CharacterCombatantCard, CombatLane, MonsterCombatantCard } from './CombatSimulationCards'
+import { CombatLane } from './CombatSimulationCards'
+import { AllyCombatantSetupPreviewCard } from './AllyCombatantSetupPreviewCard'
+import { OpponentCombatantSetupPreviewCard } from './OpponentCombatantSetupPreviewCard'
 
 type AllyLaneProps = {
   allyOptions: AllyOption[]
   selectedAllyOptions: AllyOption[]
   selectedAllyIds: string[]
   loadingAllies: boolean
-  encounterState: { combatantsById: Record<string, CombatantInstance> } | null
-  activeCombatantId: string | null
-  availableActions: { id: string; label: string; resolutionMode: string; kind: string }[]
-  availableActionTargets: { id: string; label: string }[]
-  selectedActionId: string
-  onSelectedActionIdChange: (value: string) => void
-  selectedActionTargetId: string
-  onSelectedActionTargetIdChange: (value: string) => void
-  onResolveAction: () => void
-  onPassTurn: () => void
   onAllySelectionChange: (ids: string[]) => void
   onResolvedCombatant: (runtimeId: string, combatant: CombatantInstance | null) => void
   onRemoveAllyCombatant: (characterId: string) => void
@@ -38,16 +36,6 @@ export function AllyRosterLane({
   selectedAllyOptions,
   selectedAllyIds,
   loadingAllies,
-  encounterState,
-  activeCombatantId,
-  availableActions,
-  availableActionTargets,
-  selectedActionId,
-  onSelectedActionIdChange,
-  selectedActionTargetId,
-  onSelectedActionTargetIdChange,
-  onResolveAction,
-  onPassTurn,
   onAllySelectionChange,
   onResolvedCombatant,
   onRemoveAllyCombatant,
@@ -55,7 +43,7 @@ export function AllyRosterLane({
   return (
     <CombatLane
       title="Allies"
-      description="Choose approved allies to append PC combatant cards with initiative, AC, HP, attacks, and surfaced active effects."
+      description="Choose approved allies to include as combatants with initiative, AC, HP, attacks, and surfaced active effects."
     >
       <Autocomplete<AllyOption, true, false, false>
         multiple
@@ -84,37 +72,21 @@ export function AllyRosterLane({
         )}
       />
 
-      <Stack spacing={2}>
+      <Stack spacing={1.5}>
         {selectedAllyIds.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             No ally combatants selected yet.
           </Typography>
         ) : (
           selectedAllyIds.map((characterId) => (
-            <CharacterCombatantCard
+            <AllyCombatantSetupPreviewCard
               key={characterId}
-              runtimeId={characterId}
               characterId={characterId}
+              runtimeId={characterId}
               side="party"
               sourceKind="pc"
-              runtimeCombatant={encounterState?.combatantsById[characterId]}
               onResolved={(combatant) => onResolvedCombatant(characterId, combatant)}
               onRemove={() => onRemoveAllyCombatant(characterId)}
-              onPassTurn={onPassTurn}
-              isActive={activeCombatantId === characterId}
-              activeActionControls={
-                activeCombatantId === characterId
-                  ? {
-                      availableActions,
-                      availableTargets: availableActionTargets,
-                      selectedActionId,
-                      onSelectedActionIdChange,
-                      selectedTargetId: selectedActionTargetId,
-                      onSelectedTargetIdChange: onSelectedActionTargetIdChange,
-                      onResolveAction,
-                    }
-                  : undefined
-              }
             />
           ))
         )}
@@ -129,16 +101,6 @@ type OpponentLaneProps = {
   opponentRoster: OpponentRosterEntry[]
   loadingOpponents: boolean
   monstersById: Record<string, Monster>
-  encounterState: { combatantsById: Record<string, CombatantInstance> } | null
-  activeCombatantId: string | null
-  availableActions: { id: string; label: string; resolutionMode: string; kind: string }[]
-  availableActionTargets: { id: string; label: string }[]
-  selectedActionId: string
-  onSelectedActionIdChange: (value: string) => void
-  selectedActionTargetId: string
-  onSelectedActionTargetIdChange: (value: string) => void
-  onResolveAction: () => void
-  onPassTurn: () => void
   environmentContext: ManualEnvironmentContext
   monsterFormsById: Record<string, MonsterFormContext>
   monsterManualTriggersById: Record<string, ManualMonsterTriggerContext>
@@ -147,8 +109,6 @@ type OpponentLaneProps = {
   onResolvedCombatant: (runtimeId: string, combatant: CombatantInstance | null) => void
   onRemoveOpponentCombatant: (runtimeId: string) => void
   onAddOpponentCopy: (entry: OpponentRosterEntry) => void
-  onMonsterFormChange: (runtimeId: string, form: MonsterFormContext) => void
-  onMonsterManualTriggerChange: (runtimeId: string, trigger: keyof ManualMonsterTriggerContext, active: boolean) => void
 }
 
 export function OpponentRosterLane({
@@ -157,16 +117,6 @@ export function OpponentRosterLane({
   opponentRoster,
   loadingOpponents,
   monstersById,
-  encounterState,
-  activeCombatantId,
-  availableActions,
-  availableActionTargets,
-  selectedActionId,
-  onSelectedActionIdChange,
-  selectedActionTargetId,
-  onSelectedActionTargetIdChange,
-  onResolveAction,
-  onPassTurn,
   environmentContext,
   monsterFormsById,
   monsterManualTriggersById,
@@ -175,13 +125,11 @@ export function OpponentRosterLane({
   onResolvedCombatant,
   onRemoveOpponentCombatant,
   onAddOpponentCopy,
-  onMonsterFormChange,
-  onMonsterManualTriggerChange,
 }: OpponentLaneProps) {
   return (
     <CombatLane
       title="Opponents"
-      description="Choose NPC or monster sources. Removing a source from the multiselect clears every copy, while selected monster cards can add duplicate runtime instances."
+      description="Choose NPC or monster sources. Removing a source from the multiselect clears every copy."
     >
       <Autocomplete<OpponentOption, true, false, false>
         multiple
@@ -213,7 +161,7 @@ export function OpponentRosterLane({
         )}
       />
 
-      <Stack spacing={2}>
+      <Stack spacing={1.5}>
         {opponentRoster.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             No opponent combatants selected yet.
@@ -222,30 +170,14 @@ export function OpponentRosterLane({
           opponentRoster.map((entry) => {
             if (entry.kind === 'npc') {
               return (
-                <CharacterCombatantCard
+                <AllyCombatantSetupPreviewCard
                   key={entry.runtimeId}
-                  runtimeId={entry.runtimeId}
                   characterId={entry.sourceId}
+                  runtimeId={entry.runtimeId}
                   side="enemies"
                   sourceKind="npc"
-                  runtimeCombatant={encounterState?.combatantsById[entry.runtimeId]}
                   onResolved={(combatant) => onResolvedCombatant(entry.runtimeId, combatant)}
                   onRemove={() => onRemoveOpponentCombatant(entry.runtimeId)}
-                  onPassTurn={onPassTurn}
-                  isActive={activeCombatantId === entry.runtimeId}
-                  activeActionControls={
-                    activeCombatantId === entry.runtimeId
-                      ? {
-                          availableActions,
-                          availableTargets: availableActionTargets,
-                          selectedActionId,
-                          onSelectedActionIdChange,
-                          selectedTargetId: selectedActionTargetId,
-                          onSelectedTargetIdChange: onSelectedActionTargetIdChange,
-                          onResolveAction,
-                        }
-                      : undefined
-                  }
                 />
               )
             }
@@ -253,7 +185,7 @@ export function OpponentRosterLane({
             const monster = monstersById[entry.sourceId]
             if (!monster) {
               return (
-                <Paper key={entry.runtimeId} sx={{ p: 2.5 }}>
+                <Paper key={entry.runtimeId} variant="outlined" sx={{ p: 1.5 }}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center">
                     <Typography variant="body2" color="error">
                       Monster `{entry.sourceId}` could not be resolved.
@@ -271,38 +203,18 @@ export function OpponentRosterLane({
             }
 
             return (
-              <MonsterCombatantCard
+              <OpponentCombatantSetupPreviewCard
                 key={entry.runtimeId}
                 monster={monster}
                 runtimeId={entry.runtimeId}
-                runtimeCombatant={encounterState?.combatantsById[entry.runtimeId]}
                 environmentContext={environmentContext}
                 currentForm={monsterFormsById[entry.runtimeId] ?? 'true-form'}
                 manualTriggerContext={
                   monsterManualTriggersById[entry.runtimeId] ?? DEFAULT_MANUAL_MONSTER_TRIGGER_CONTEXT
                 }
-                onFormChange={(form) => onMonsterFormChange(entry.runtimeId, form)}
-                onManualTriggerChange={(trigger, active) =>
-                  onMonsterManualTriggerChange(entry.runtimeId, trigger, active)
-                }
                 onResolved={(combatant) => onResolvedCombatant(entry.runtimeId, combatant)}
-                onAddCopy={() => onAddOpponentCopy(entry)}
                 onRemove={() => onRemoveOpponentCombatant(entry.runtimeId)}
-                onPassTurn={onPassTurn}
-                isActive={activeCombatantId === entry.runtimeId}
-                activeActionControls={
-                  activeCombatantId === entry.runtimeId
-                    ? {
-                        availableActions,
-                        availableTargets: availableActionTargets,
-                        selectedActionId,
-                        onSelectedActionIdChange,
-                        selectedTargetId: selectedActionTargetId,
-                        onSelectedTargetIdChange: onSelectedActionTargetIdChange,
-                        onResolveAction,
-                      }
-                    : undefined
-                }
+                onDuplicate={() => onAddOpponentCopy(entry)}
               />
             )
           })
@@ -314,7 +226,7 @@ export function OpponentRosterLane({
           {selectedOpponentOptions.map((option) => (
             <AppBadge
               key={option.key}
-              label={`${option.label} × ${opponentSourceCounts[option.key] ?? 0}`}
+              label={`${option.label} \u00d7 ${opponentSourceCounts[option.key] ?? 0}`}
               tone="default"
               variant="outlined"
               size="small"

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
@@ -7,7 +7,6 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
-import { AppAlert } from '@/ui/primitives'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
 import {
   CombatLogPanel,
@@ -18,7 +17,17 @@ import {
   EncounterSetupHeader,
   EncounterActiveHeader,
   EncounterActiveFooter,
+  EncounterSetupView,
+  EncounterEnvironmentSetup,
 } from '../components'
+import type { EnvironmentSetupValues } from '../components/EncounterEnvironmentSetup'
+
+const DEFAULT_ENVIRONMENT: EnvironmentSetupValues = {
+  setting: 'outdoors',
+  lightingLevel: 'bright',
+  terrainMovement: 'normal',
+  visibilityObscured: 'none',
+}
 
 export default function EncounterRoute() {
   const { campaignId, campaignName } = useActiveCampaign()
@@ -112,6 +121,8 @@ export default function EncounterRoute() {
     monstersById,
   })
 
+  const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(DEFAULT_ENVIRONMENT)
+
   const mode = encounterState ? 'active' : 'setup'
   const canStartEncounter = selectedCombatants.length > 0 && unresolvedCombatantCount === 0
 
@@ -133,8 +144,13 @@ export default function EncounterRoute() {
       }
     : null
 
-  const environmentSummary =
-    environmentContext !== 'none' ? environmentContext : undefined
+  const environmentSummaryParts = [
+    environmentSetup.setting,
+    environmentSetup.lightingLevel !== 'bright' ? environmentSetup.lightingLevel : null,
+    environmentSetup.terrainMovement !== 'normal' ? environmentSetup.terrainMovement : null,
+    environmentSetup.visibilityObscured !== 'none' ? environmentSetup.visibilityObscured : null,
+  ].filter(Boolean)
+  const environmentSummary = environmentSummaryParts.length > 0 ? environmentSummaryParts.join(', ') : undefined
 
   const setupHeader = (
     <EncounterSetupHeader
@@ -175,95 +191,31 @@ export default function EncounterRoute() {
       activeFooter={activeFooter}
     >
       {mode === 'setup' && (
-        <Stack spacing={3}>
-          <AppAlert tone="info">
-            Select allies and opponents below, then start the encounter to begin turn-by-turn combat with auto-rolled initiative.
-          </AppAlert>
-
-          <EncounterControlsPanel
-            selectedCombatantCount={selectedCombatantIds.length}
-            resolvedCombatantCount={selectedCombatants.length}
-            unresolvedCombatantCount={unresolvedCombatantCount}
-            encounterState={encounterState}
-            activeCombatant={activeCombatant}
-            canStartEncounter={canStartEncounter}
-            onStartEncounter={handleStartEncounter}
-            onNextTurn={handleNextTurn}
-            onResetEncounter={handleResetEncounter}
-            environmentContext={environmentContext}
-            onEnvironmentContextChange={setEnvironmentContext}
-            controlTargetId={controlTargetId}
-            onControlTargetIdChange={setControlTargetId}
-            damageAmount={damageAmount}
-            onDamageAmountChange={setDamageAmount}
-            damageTypeInput={damageTypeInput}
-            onDamageTypeInputChange={setDamageTypeInput}
-            onApplyDamage={handleApplyDamage}
-            healingAmount={healingAmount}
-            onHealingAmountChange={setHealingAmount}
-            onApplyHealing={handleApplyHealing}
-            controlTargetHasReducedToZeroSave={controlTargetHasReducedToZeroSave}
-            reducedToZeroSaveOutcome={reducedToZeroSaveOutcome}
-            onReducedToZeroSaveOutcomeChange={setReducedToZeroSaveOutcome}
-            onTriggerReducedToZeroHook={handleTriggerReducedToZeroHook}
-            canTriggerReducedToZeroHook={canTriggerReducedToZeroHook}
-            conditionInput={conditionInput}
-            onConditionInputChange={setConditionInput}
-            onAddCondition={handleAddCondition}
-            onRemoveCondition={handleRemoveCondition}
-            stateInput={stateInput}
-            onStateInputChange={setStateInput}
-            onAddState={handleAddState}
-            onRemoveState={handleRemoveState}
-            markerDurationTurns={markerDurationTurns}
-            onMarkerDurationTurnsChange={setMarkerDurationTurns}
-            markerDurationBoundary={markerDurationBoundary}
-            onMarkerDurationBoundaryChange={setMarkerDurationBoundary}
-          />
-
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, minmax(0, 1fr))' },
-              gap: 3,
-            }}
-          >
+        <EncounterSetupView
+          environmentSetup={
+            <EncounterEnvironmentSetup
+              values={environmentSetup}
+              onChange={setEnvironmentSetup}
+            />
+          }
+          allyLane={
             <AllyRosterLane
               allyOptions={allyOptions}
               selectedAllyOptions={selectedAllyOptions}
               selectedAllyIds={selectedAllyIds}
               loadingAllies={loadingParty}
-              encounterState={encounterState}
-              activeCombatantId={activeCombatantId}
-              availableActions={availableActions}
-              availableActionTargets={availableActionTargets}
-              selectedActionId={selectedActionId}
-              onSelectedActionIdChange={setSelectedActionId}
-              selectedActionTargetId={selectedActionTargetId}
-              onSelectedActionTargetIdChange={setSelectedActionTargetId}
-              onResolveAction={handleResolveAction}
-              onPassTurn={handleNextTurn}
               onAllySelectionChange={setSelectedAllyIds}
               onResolvedCombatant={handleResolvedCombatant}
               onRemoveAllyCombatant={removeAllyCombatant}
             />
-
+          }
+          opponentLane={
             <OpponentRosterLane
               opponentOptions={opponentOptions}
               selectedOpponentOptions={selectedOpponentOptions}
               opponentRoster={opponentRoster}
               loadingOpponents={loadingNpcs}
               monstersById={monstersById}
-              encounterState={encounterState}
-              activeCombatantId={activeCombatantId}
-              availableActions={availableActions}
-              availableActionTargets={availableActionTargets}
-              selectedActionId={selectedActionId}
-              onSelectedActionIdChange={setSelectedActionId}
-              selectedActionTargetId={selectedActionTargetId}
-              onSelectedActionTargetIdChange={setSelectedActionTargetId}
-              onResolveAction={handleResolveAction}
-              onPassTurn={handleNextTurn}
               environmentContext={environmentContext}
               monsterFormsById={monsterFormsById}
               monsterManualTriggersById={monsterManualTriggersById}
@@ -272,11 +224,9 @@ export default function EncounterRoute() {
               onResolvedCombatant={handleResolvedCombatant}
               onRemoveOpponentCombatant={removeOpponentCombatant}
               onAddOpponentCopy={addOpponentCopy}
-              onMonsterFormChange={handleMonsterFormChange}
-              onMonsterManualTriggerChange={handleMonsterManualTriggerChange}
             />
-          </Box>
-        </Stack>
+          }
+        />
       )}
 
       {mode === 'active' && (
@@ -334,16 +284,6 @@ export default function EncounterRoute() {
               selectedAllyOptions={selectedAllyOptions}
               selectedAllyIds={selectedAllyIds}
               loadingAllies={loadingParty}
-              encounterState={encounterState}
-              activeCombatantId={activeCombatantId}
-              availableActions={availableActions}
-              availableActionTargets={availableActionTargets}
-              selectedActionId={selectedActionId}
-              onSelectedActionIdChange={setSelectedActionId}
-              selectedActionTargetId={selectedActionTargetId}
-              onSelectedActionTargetIdChange={setSelectedActionTargetId}
-              onResolveAction={handleResolveAction}
-              onPassTurn={handleNextTurn}
               onAllySelectionChange={setSelectedAllyIds}
               onResolvedCombatant={handleResolvedCombatant}
               onRemoveAllyCombatant={removeAllyCombatant}
@@ -355,16 +295,6 @@ export default function EncounterRoute() {
               opponentRoster={opponentRoster}
               loadingOpponents={loadingNpcs}
               monstersById={monstersById}
-              encounterState={encounterState}
-              activeCombatantId={activeCombatantId}
-              availableActions={availableActions}
-              availableActionTargets={availableActionTargets}
-              selectedActionId={selectedActionId}
-              onSelectedActionIdChange={setSelectedActionId}
-              selectedActionTargetId={selectedActionTargetId}
-              onSelectedActionTargetIdChange={setSelectedActionTargetId}
-              onResolveAction={handleResolveAction}
-              onPassTurn={handleNextTurn}
               environmentContext={environmentContext}
               monsterFormsById={monsterFormsById}
               monsterManualTriggersById={monsterManualTriggersById}
@@ -373,8 +303,6 @@ export default function EncounterRoute() {
               onResolvedCombatant={handleResolvedCombatant}
               onRemoveOpponentCombatant={removeOpponentCombatant}
               onAddOpponentCopy={addOpponentCopy}
-              onMonsterFormChange={handleMonsterFormChange}
-              onMonsterManualTriggerChange={handleMonsterManualTriggerChange}
             />
           </Box>
 

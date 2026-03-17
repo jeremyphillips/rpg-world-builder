@@ -1,0 +1,177 @@
+import { useEffect, useMemo, useRef } from 'react'
+
+import CircularProgress from '@mui/material/CircularProgress'
+import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import { useCharacter, useCombatStats } from '@/features/character/hooks'
+import { toCharacterForEngine } from '@/features/character/read-model'
+import type { Spell } from '@/features/content/spells/domain/types/spell.types'
+import type { CombatantInstance, CombatantSide } from '@/features/mechanics/domain/encounter'
+import type { CombatantPreviewCardProps, PreviewStat } from '../domain'
+import {
+  buildCharacterCombatantInstance,
+  buildSpellCombatActions,
+  buildTurnHooksFromEffects,
+  formatCharacterSubtitle,
+  formatSigned,
+  getCharacterSpellcastingStats,
+} from '../helpers'
+import { CombatantPreviewCard } from './CombatantPreviewCard'
+
+type AllyCombatantSetupPreviewCardProps = {
+  characterId: string
+  runtimeId: string
+  side: CombatantSide
+  sourceKind: 'pc' | 'npc'
+  onResolved: (combatant: CombatantInstance | null) => void
+  onRemove: () => void
+}
+
+export function AllyCombatantSetupPreviewCard({
+  characterId,
+  runtimeId,
+  side,
+  sourceKind,
+  onResolved,
+  onRemove,
+}: AllyCombatantSetupPreviewCardProps) {
+  const { character, loading, error } = useCharacter(characterId)
+  const onResolvedRef = useRef(onResolved)
+  onResolvedRef.current = onResolved
+
+  useEffect(() => {
+    if (!loading && !character) {
+      onResolvedRef.current(null)
+    }
+  }, [character, loading])
+
+  if (loading) {
+    return (
+      <Paper variant="outlined" sx={{ p: 1.5 }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <CircularProgress size={16} />
+          <Typography variant="body2" color="text.secondary">
+            Loading{sourceKind === 'npc' ? ' NPC' : ''}…
+          </Typography>
+        </Stack>
+      </Paper>
+    )
+  }
+
+  if (!character) {
+    return (
+      <Paper variant="outlined" sx={{ p: 1.5 }}>
+        <Typography variant="body2" color="error">
+          {error ?? 'Character could not be loaded.'}
+        </Typography>
+      </Paper>
+    )
+  }
+
+  return (
+    <LoadedAllyCombatantSetupPreviewCard
+      characterId={characterId}
+      runtimeId={runtimeId}
+      side={side}
+      sourceKind={sourceKind}
+      onResolved={onResolved}
+      onRemove={onRemove}
+    />
+  )
+}
+
+function LoadedAllyCombatantSetupPreviewCard({
+  characterId,
+  runtimeId,
+  side,
+  sourceKind,
+  onResolved,
+  onRemove,
+}: AllyCombatantSetupPreviewCardProps) {
+  const { character } = useCharacter(characterId)
+  const { catalog } = useCampaignRules()
+
+  const engineCharacter = useMemo(() => (character ? toCharacterForEngine(character) : null), [character])
+  const combatStats = useCombatStats(engineCharacter!)
+
+  const attacks = useMemo(
+    () =>
+      combatStats.attacks.map((attack) => ({
+        id: `${characterId}-${attack.weaponId}-${attack.hand}`,
+        name: attack.name,
+        attackBonus: attack.attackBonus,
+        attackBreakdown: attack.attackBreakdown,
+        damage: attack.damage,
+        damageType: attack.damageType,
+        damageBreakdown: attack.damageBreakdown,
+      })),
+    [characterId, combatStats.attacks],
+  )
+  const turnHooks = useMemo(
+    () => buildTurnHooksFromEffects(combatStats.activeEffects),
+    [combatStats.activeEffects],
+  )
+  const spellStats = useMemo(
+    () => (character ? getCharacterSpellcastingStats(character) : { spellSaveDc: 10, spellAttackBonus: 0 }),
+    [character],
+  )
+  const spellActions = useMemo(
+    () =>
+      character
+        ? buildSpellCombatActions({
+            runtimeId,
+            spellIds: character.spells,
+            spellsById: catalog.spellsById as Record<string, Spell>,
+            spellSaveDc: spellStats.spellSaveDc,
+            spellAttackBonus: spellStats.spellAttackBonus,
+            casterLevel: character.level ?? 1,
+          })
+        : [],
+    [catalog.spellsById, character, runtimeId, spellStats],
+  )
+  const combatant = useMemo(
+    () =>
+      character
+        ? buildCharacterCombatantInstance({
+            runtimeId,
+            side,
+            sourceKind,
+            character,
+            combatStats,
+            attacks,
+            extraActions: spellActions,
+            turnHooks,
+          })
+        : null,
+    [attacks, character, combatStats, runtimeId, side, sourceKind, spellActions, turnHooks],
+  )
+
+  const onResolvedRef = useRef(onResolved)
+  onResolvedRef.current = onResolved
+  useEffect(() => {
+    if (combatant) onResolvedRef.current(combatant)
+  }, [combatant])
+
+  if (!character || !combatant) return null
+
+  const stats: PreviewStat[] = [
+    { label: 'AC', value: String(combatant.stats.armorClass) },
+    { label: 'HP', value: `${combatant.stats.currentHitPoints}/${combatant.stats.maxHitPoints}` },
+    { label: 'Init', value: formatSigned(combatant.stats.initiativeModifier) },
+  ]
+
+  const previewProps: CombatantPreviewCardProps = {
+    id: runtimeId,
+    kind: 'character',
+    mode: 'setup',
+    title: character.name,
+    subtitle: formatCharacterSubtitle(character),
+    stats,
+    secondaryActions: [{ id: 'remove', label: 'Remove', onClick: onRemove }],
+  }
+
+  return <CombatantPreviewCard {...previewProps} />
+}
