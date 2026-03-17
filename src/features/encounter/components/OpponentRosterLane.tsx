@@ -15,61 +15,11 @@ import {
   type MonsterFormContext,
 } from '@/features/mechanics/domain/encounter'
 import type { OpponentOption, OpponentRosterEntry } from '../types'
-import { CombatLane } from './CombatSimulationCards'
+import { CombatLane } from './CombatLane'
 import { AllyCombatantSetupPreviewCard } from './AllyCombatantSetupPreviewCard'
 import { OpponentCombatantSetupPreviewCard } from './OpponentCombatantSetupPreviewCard'
 
-type AllyLaneProps = {
-  selectedAllyIds: string[]
-  onOpenModal: () => void
-  onResolvedCombatant: (runtimeId: string, combatant: CombatantInstance | null) => void
-  onRemoveAllyCombatant: (characterId: string) => void
-}
-
-export function AllyRosterLane({
-  selectedAllyIds,
-  onOpenModal,
-  onResolvedCombatant,
-  onRemoveAllyCombatant,
-}: AllyLaneProps) {
-  return (
-    <CombatLane
-      title="Allies"
-      description="Choose approved allies to include as combatants with initiative, AC, HP, attacks, and surfaced active effects."
-    >
-      <Button
-        variant="outlined"
-        fullWidth
-        startIcon={<AddIcon />}
-        onClick={onOpenModal}
-      >
-        Add Allies
-      </Button>
-
-      <Stack spacing={1.5}>
-        {selectedAllyIds.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No ally combatants selected yet.
-          </Typography>
-        ) : (
-          selectedAllyIds.map((characterId) => (
-            <AllyCombatantSetupPreviewCard
-              key={characterId}
-              characterId={characterId}
-              runtimeId={characterId}
-              side="party"
-              sourceKind="pc"
-              onResolved={(combatant) => onResolvedCombatant(characterId, combatant)}
-              onRemove={() => onRemoveAllyCombatant(characterId)}
-            />
-          ))
-        )}
-      </Stack>
-    </CombatLane>
-  )
-}
-
-type OpponentLaneProps = {
+type OpponentRosterLaneProps = {
   opponentRoster: OpponentRosterEntry[]
   monstersById: Record<string, Monster>
   environmentContext: ManualEnvironmentContext
@@ -95,7 +45,7 @@ export function OpponentRosterLane({
   onResolvedCombatant,
   onRemoveOpponentCombatant,
   onAddOpponentCopy,
-}: OpponentLaneProps) {
+}: OpponentRosterLaneProps) {
   return (
     <CombatLane
       title="Opponents"
