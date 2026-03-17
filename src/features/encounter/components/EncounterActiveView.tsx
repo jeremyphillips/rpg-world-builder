@@ -22,12 +22,25 @@ export function EncounterActiveView({
 }: EncounterActiveViewProps) {
   return (
     <Stack spacing={3}>
-      {focusedCard}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) 320px' },
+          gap: 3,
+          alignItems: 'start',
+        }}
+      >
+        <Stack spacing={3}>
+          {focusedCard}
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-        <Box sx={{ flex: 1 }}>{actionPreview}</Box>
-        <Box sx={{ flex: 1 }}>{targetPreview}</Box>
-      </Stack>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <Box sx={{ flex: 1 }}>{actionPreview}</Box>
+            <Box sx={{ flex: 1 }}>{targetPreview}</Box>
+          </Stack>
+        </Stack>
+
+        {combatLog}
+      </Box>
 
       {environmentSummary}
 
@@ -41,8 +54,6 @@ export function EncounterActiveView({
         {allyLane}
         {opponentLane}
       </Box>
-
-      {combatLog}
     </Stack>
   )
 }

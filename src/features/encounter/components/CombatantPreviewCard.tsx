@@ -133,7 +133,6 @@ export function CombatantPreviewCard({
       sx={{
         border: '1px solid',
         borderColor,
-        borderLeftWidth: isCurrentTurn ? 3 : 1,
         opacity: isDefeated ? 0.5 : 1,
         overflow: 'hidden',
       }}

@@ -77,7 +77,7 @@ export function EncounterActiveFooter({
               />
             </Stack>
           )}
-          <Typography variant="body2" color="text.secondary" noWrap>
+          <Typography variant="h3" color="text.secondary" noWrap>
             {stateLine}
           </Typography>
         </Box>
@@ -85,13 +85,13 @@ export function EncounterActiveFooter({
         <Stack direction="row" spacing={1} sx={{ flexShrink: 0 }}>
           <Button
             variant="contained"
-            size="small"
+            size="large"
             disabled={!canResolveAction}
             onClick={onResolveAction}
           >
             Resolve Action
           </Button>
-          <Button variant="outlined" size="small" onClick={onEndTurn}>
+          <Button variant="outlined" size="large" onClick={onEndTurn}>
             End Turn
           </Button>
         </Stack>

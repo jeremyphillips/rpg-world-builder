@@ -127,7 +127,6 @@ function TargetRow({
         p: 1.5,
         cursor: 'pointer',
         borderColor: isSelected ? 'primary.main' : 'divider',
-        borderLeftWidth: isSelected ? 3 : 1,
         opacity: target.isDefeated ? 0.5 : 1,
         '&:hover': { bgcolor: 'action.hover' },
       }}

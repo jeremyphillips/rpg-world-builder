@@ -1,6 +1,7 @@
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import { alpha } from '@mui/material/styles'
 
 import { AppBadge } from '@/ui/primitives'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
@@ -30,8 +31,9 @@ export function CombatTargetPreviewCard({
       sx={{
         p: 2,
         borderColor: 'info.main',
-        borderLeftWidth: 3,
         opacity: isDefeated ? 0.5 : 1,
+        bgcolor: (theme) => alpha(theme.palette.info.main, 0.1),
+        color: 'white'
       }}
     >
       <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>

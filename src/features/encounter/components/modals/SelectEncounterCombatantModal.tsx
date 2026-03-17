@@ -101,7 +101,6 @@ export function SelectEncounterCombatantModal({
                       p: 1.5,
                       cursor: 'pointer',
                       borderColor: isSelected ? 'primary.main' : 'divider',
-                      borderLeftWidth: isSelected ? 3 : 1,
                       bgcolor: isSelected ? 'action.selected' : undefined,
                       '&:hover': { bgcolor: 'action.hover' },
                     }}

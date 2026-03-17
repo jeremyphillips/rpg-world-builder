@@ -29,6 +29,8 @@ import {
   CombatLane,
   SelectEncounterAllyModal,
   SelectEncounterOpponentModal,
+  EncounterEditModal,
+  CombatTurnOrderModal,
 } from '../components'
 import type { EnvironmentSetupValues } from '../components/EncounterEnvironmentSetup'
 
@@ -134,6 +136,8 @@ export default function EncounterRoute() {
   const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(DEFAULT_ENVIRONMENT)
   const [allyModalOpen, setAllyModalOpen] = useState(false)
   const [opponentModalOpen, setOpponentModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [turnOrderModalOpen, setTurnOrderModalOpen] = useState(false)
 
   const allyModalOptions = useMemo(
     () => allyOptions.map((a) => ({ id: a.id, name: a.label })),
@@ -208,13 +212,26 @@ export default function EncounterRoute() {
     />
   )
 
+  const nextCombatantLabel = useMemo(() => {
+    if (!encounterState) return null
+    const nextIdx = encounterState.turnIndex + 1
+    const nextId = nextIdx < encounterState.initiativeOrder.length
+      ? encounterState.initiativeOrder[nextIdx]
+      : encounterState.initiativeOrder[0] ?? null
+    if (!nextId) return null
+    return encounterState.combatantsById[nextId]?.source.label ?? null
+  }, [encounterState])
+
   const activeHeader = encounterState ? (
     <EncounterActiveHeader
       roundNumber={encounterState.roundNumber}
       turnIndex={encounterState.turnIndex}
+      turnCount={encounterState.initiativeOrder.length}
       activeCombatantLabel={activeCombatant?.source.label ?? null}
-      onNextTurn={handleNextTurn}
+      nextCombatantLabel={nextCombatantLabel}
+      onEditEncounter={() => setEditModalOpen(true)}
       onResetEncounter={handleResetEncounter}
+      onViewTurnOrder={() => setTurnOrderModalOpen(true)}
     />
   ) : undefined
 
@@ -293,18 +310,24 @@ export default function EncounterRoute() {
             ) : null
           }
           actionPreview={
-            <CombatActionPreviewCard
-              action={availableActions.find((a) => a.id === selectedActionId) ?? null}
-            />
+            <>
+              <Typography variant="subtitle2" color="text.secondary">Action</Typography>
+              <CombatActionPreviewCard
+                action={availableActions.find((a) => a.id === selectedActionId) ?? null}
+              />
+            </>
           }
           targetPreview={
-            <CombatTargetPreviewCard
-              target={
-                selectedActionTargetId
-                  ? encounterState.combatantsById[selectedActionTargetId] ?? null
-                  : null
-              }
-            />
+            <>
+              <Typography variant="subtitle2" color="text.secondary">Target</Typography>  
+              <CombatTargetPreviewCard
+                target={
+                  selectedActionTargetId
+                    ? encounterState.combatantsById[selectedActionTargetId] ?? null
+                    : null
+                }
+              />
+            </>
           }
           environmentSummary={<EncounterEnvironmentSummary values={environmentSetup} />}
           allyLane={
@@ -374,6 +397,44 @@ export default function EncounterRoute() {
       selectedOpponentKeys={selectedOpponentKeys}
       onApply={handleOpponentModalApply}
     />
+
+    <EncounterEditModal
+      open={editModalOpen}
+      onClose={() => setEditModalOpen(false)}
+      environmentValues={environmentSetup}
+      onSave={setEnvironmentSetup}
+      allyLane={
+        <AllyRosterLane
+          selectedAllyIds={selectedAllyIds}
+          onOpenModal={() => { setEditModalOpen(false); setAllyModalOpen(true) }}
+          onResolvedCombatant={handleResolvedCombatant}
+          onRemoveAllyCombatant={removeAllyCombatant}
+        />
+      }
+      opponentLane={
+        <OpponentRosterLane
+          opponentRoster={opponentRoster}
+          monstersById={monstersById}
+          environmentContext={environmentContext}
+          monsterFormsById={monsterFormsById}
+          monsterManualTriggersById={monsterManualTriggersById}
+          opponentSourceCounts={opponentSourceCounts}
+          selectedOpponentOptions={selectedOpponentOptions}
+          onOpenModal={() => { setEditModalOpen(false); setOpponentModalOpen(true) }}
+          onResolvedCombatant={handleResolvedCombatant}
+          onRemoveOpponentCombatant={removeOpponentCombatant}
+          onAddOpponentCopy={addOpponentCopy}
+        />
+      }
+    />
+
+    {encounterState && (
+      <CombatTurnOrderModal
+        open={turnOrderModalOpen}
+        onClose={() => setTurnOrderModalOpen(false)}
+        encounterState={encounterState}
+      />
+    )}
   </>
   )
 }

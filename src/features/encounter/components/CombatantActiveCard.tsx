@@ -113,7 +113,7 @@ function ActionRow({
         p: 1.5,
         cursor: onSelect ? 'pointer' : 'default',
         borderColor: isSelected ? 'primary.main' : 'divider',
-        borderLeftWidth: isSelected ? 3 : 1,
+        
         '&:hover': onSelect ? { bgcolor: 'action.hover' } : undefined,
       }}
       onClick={onSelect}
@@ -150,7 +150,12 @@ export function CombatantActiveCard({
   const totalEffects = effectSections.reduce((sum, [, effects]) => sum + effects.length, 0)
 
   return (
-    <Paper sx={{ p: 3 }}>
+    <Paper sx={{ 
+      p: 3,
+      border: '1px solid',
+      borderColor: 'primary.main'
+    }}
+    >
       <Stack spacing={2}>
         <Box>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>{title}</Typography>

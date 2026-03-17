@@ -55,7 +55,6 @@ export function TurnOrderList({ entries }: TurnOrderListProps) {
             p: 1.25,
             borderColor:
               entry.status === 'current' ? 'primary.main' : 'divider',
-            borderLeftWidth: entry.status === 'current' ? 3 : 1,
             opacity: entry.status === 'defeated' ? 0.5 : 1,
           }}
         >

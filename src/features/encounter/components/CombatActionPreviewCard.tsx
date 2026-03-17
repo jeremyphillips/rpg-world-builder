@@ -1,6 +1,7 @@
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+import { alpha } from '@mui/material/styles'
 
 import { AppBadge } from '@/ui/primitives'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
@@ -60,7 +61,12 @@ export function CombatActionPreviewCard({
   return (
     <Paper
       variant="outlined"
-      sx={{ p: 2, borderColor: 'primary.main', borderLeftWidth: 3 }}
+      sx={{ 
+        p: 2,
+        borderColor: 'primary.main',
+        bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+        color: 'white',
+      }}
     >
       <Stack spacing={0.5}>
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
