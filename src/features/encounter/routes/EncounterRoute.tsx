@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -27,6 +27,8 @@ import {
   CombatActionPreviewCard,
   CombatTargetPreviewCard,
   CombatLane,
+  SelectEncounterAllyModal,
+  SelectEncounterOpponentModal,
 } from '../components'
 import type { EnvironmentSetupValues } from '../components/EncounterEnvironmentSetup'
 
@@ -130,6 +132,42 @@ export default function EncounterRoute() {
   })
 
   const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(DEFAULT_ENVIRONMENT)
+  const [allyModalOpen, setAllyModalOpen] = useState(false)
+  const [opponentModalOpen, setOpponentModalOpen] = useState(false)
+
+  const allyModalOptions = useMemo(
+    () => allyOptions.map((a) => ({ id: a.id, name: a.label })),
+    [allyOptions],
+  )
+
+  const { monsterModalOptions, npcModalOptions } = useMemo(() => {
+    const monsters = opponentOptions
+      .filter((o) => o.kind === 'monster')
+      .map((o) => ({ id: o.sourceId, name: o.label }))
+    const npcList = opponentOptions
+      .filter((o) => o.kind === 'npc')
+      .map((o) => ({ id: o.sourceId, name: o.label }))
+    return { monsterModalOptions: monsters, npcModalOptions: npcList }
+  }, [opponentOptions])
+
+  const selectedOpponentKeys = useMemo(
+    () => selectedOpponentOptions.map((o) => o.key),
+    [selectedOpponentOptions],
+  )
+
+  const handleAllyModalApply = useCallback(
+    (ids: string[]) => setSelectedAllyIds(ids),
+    [setSelectedAllyIds],
+  )
+
+  const handleOpponentModalApply = useCallback(
+    (keys: string[]) => {
+      const keySet = new Set(keys)
+      const nextSelection = opponentOptions.filter((o) => keySet.has(o.key))
+      handleOpponentSelectionChange(nextSelection)
+    },
+    [opponentOptions, handleOpponentSelectionChange],
+  )
 
   const mode = encounterState ? 'active' : 'setup'
   const canStartEncounter = selectedCombatants.length > 0 && unresolvedCombatantCount === 0
@@ -192,6 +230,7 @@ export default function EncounterRoute() {
   ) : undefined
 
   return (
+    <>
     <EncounterView
       mode={mode}
       setupHeader={setupHeader}
@@ -208,27 +247,22 @@ export default function EncounterRoute() {
           }
           allyLane={
             <AllyRosterLane
-              allyOptions={allyOptions}
-              selectedAllyOptions={selectedAllyOptions}
               selectedAllyIds={selectedAllyIds}
-              loadingAllies={loadingParty}
-              onAllySelectionChange={setSelectedAllyIds}
+              onOpenModal={() => setAllyModalOpen(true)}
               onResolvedCombatant={handleResolvedCombatant}
               onRemoveAllyCombatant={removeAllyCombatant}
             />
           }
           opponentLane={
             <OpponentRosterLane
-              opponentOptions={opponentOptions}
-              selectedOpponentOptions={selectedOpponentOptions}
               opponentRoster={opponentRoster}
-              loadingOpponents={loadingNpcs}
               monstersById={monstersById}
               environmentContext={environmentContext}
               monsterFormsById={monsterFormsById}
               monsterManualTriggersById={monsterManualTriggersById}
               opponentSourceCounts={opponentSourceCounts}
-              onOpponentSelectionChange={handleOpponentSelectionChange}
+              selectedOpponentOptions={selectedOpponentOptions}
+              onOpenModal={() => setOpponentModalOpen(true)}
               onResolvedCombatant={handleResolvedCombatant}
               onRemoveOpponentCombatant={removeOpponentCombatant}
               onAddOpponentCopy={addOpponentCopy}
@@ -323,5 +357,23 @@ export default function EncounterRoute() {
         />
       )}
     </EncounterView>
+
+    <SelectEncounterAllyModal
+      open={allyModalOpen}
+      onClose={() => setAllyModalOpen(false)}
+      allies={allyModalOptions}
+      selectedAllyIds={selectedAllyIds}
+      onApply={handleAllyModalApply}
+    />
+
+    <SelectEncounterOpponentModal
+      open={opponentModalOpen}
+      onClose={() => setOpponentModalOpen(false)}
+      monsters={monsterModalOptions}
+      npcs={npcModalOptions}
+      selectedOpponentKeys={selectedOpponentKeys}
+      onApply={handleOpponentModalApply}
+    />
+  </>
   )
 }

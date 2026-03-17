@@ -1,11 +1,9 @@
 import { AppBadge } from '@/ui/primitives'
-import Autocomplete from '@mui/material/Autocomplete'
-import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 
 import type { Monster } from '@/features/content/monsters/domain/types'
@@ -16,27 +14,21 @@ import {
   type ManualMonsterTriggerContext,
   type MonsterFormContext,
 } from '@/features/mechanics/domain/encounter'
-import type { OpponentOption, OpponentRosterEntry, AllyOption } from '../types'
+import type { OpponentOption, OpponentRosterEntry } from '../types'
 import { CombatLane } from './CombatSimulationCards'
 import { AllyCombatantSetupPreviewCard } from './AllyCombatantSetupPreviewCard'
 import { OpponentCombatantSetupPreviewCard } from './OpponentCombatantSetupPreviewCard'
 
 type AllyLaneProps = {
-  allyOptions: AllyOption[]
-  selectedAllyOptions: AllyOption[]
   selectedAllyIds: string[]
-  loadingAllies: boolean
-  onAllySelectionChange: (ids: string[]) => void
+  onOpenModal: () => void
   onResolvedCombatant: (runtimeId: string, combatant: CombatantInstance | null) => void
   onRemoveAllyCombatant: (characterId: string) => void
 }
 
 export function AllyRosterLane({
-  allyOptions,
-  selectedAllyOptions,
   selectedAllyIds,
-  loadingAllies,
-  onAllySelectionChange,
+  onOpenModal,
   onResolvedCombatant,
   onRemoveAllyCombatant,
 }: AllyLaneProps) {
@@ -45,32 +37,14 @@ export function AllyRosterLane({
       title="Allies"
       description="Choose approved allies to include as combatants with initiative, AC, HP, attacks, and surfaced active effects."
     >
-      <Autocomplete<AllyOption, true, false, false>
-        multiple
-        options={allyOptions}
-        value={selectedAllyOptions}
-        loading={loadingAllies}
-        onChange={(_, nextValue) => onAllySelectionChange(nextValue.map((option) => option.id))}
-        isOptionEqualToValue={(option, value) => option.id === value.id}
-        getOptionLabel={(option) => option.label}
-        noOptionsText="No approved allies found."
-        renderOption={(props, option) => {
-          const { key, ...rest } = props
-          return (
-            <Box component="li" key={key} {...rest}>
-              <Stack spacing={0.25}>
-                <Typography variant="body2">{option.label}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {option.subtitle}
-                </Typography>
-              </Stack>
-            </Box>
-          )
-        }}
-        renderInput={(params) => (
-          <TextField {...params} label="Approved Allies" placeholder="Search allies" />
-        )}
-      />
+      <Button
+        variant="outlined"
+        fullWidth
+        startIcon={<AddIcon />}
+        onClick={onOpenModal}
+      >
+        Add Allies
+      </Button>
 
       <Stack spacing={1.5}>
         {selectedAllyIds.length === 0 ? (
@@ -96,32 +70,28 @@ export function AllyRosterLane({
 }
 
 type OpponentLaneProps = {
-  opponentOptions: OpponentOption[]
-  selectedOpponentOptions: OpponentOption[]
   opponentRoster: OpponentRosterEntry[]
-  loadingOpponents: boolean
   monstersById: Record<string, Monster>
   environmentContext: ManualEnvironmentContext
   monsterFormsById: Record<string, MonsterFormContext>
   monsterManualTriggersById: Record<string, ManualMonsterTriggerContext>
   opponentSourceCounts: Record<string, number>
-  onOpponentSelectionChange: (nextValue: OpponentOption[]) => void
+  selectedOpponentOptions: OpponentOption[]
+  onOpenModal: () => void
   onResolvedCombatant: (runtimeId: string, combatant: CombatantInstance | null) => void
   onRemoveOpponentCombatant: (runtimeId: string) => void
   onAddOpponentCopy: (entry: OpponentRosterEntry) => void
 }
 
 export function OpponentRosterLane({
-  opponentOptions,
-  selectedOpponentOptions,
   opponentRoster,
-  loadingOpponents,
   monstersById,
   environmentContext,
   monsterFormsById,
   monsterManualTriggersById,
   opponentSourceCounts,
-  onOpponentSelectionChange,
+  selectedOpponentOptions,
+  onOpenModal,
   onResolvedCombatant,
   onRemoveOpponentCombatant,
   onAddOpponentCopy,
@@ -129,37 +99,16 @@ export function OpponentRosterLane({
   return (
     <CombatLane
       title="Opponents"
-      description="Choose NPC or monster sources. Removing a source from the multiselect clears every copy."
+      description="Choose NPC or monster sources. Use the button below to add opponents."
     >
-      <Autocomplete<OpponentOption, true, false, false>
-        multiple
-        options={opponentOptions}
-        value={selectedOpponentOptions}
-        loading={loadingOpponents}
-        onChange={(_, nextValue) => onOpponentSelectionChange(nextValue)}
-        isOptionEqualToValue={(option, value) => option.key === value.key}
-        getOptionLabel={(option) => option.label}
-        noOptionsText="No NPC or monster options found."
-        renderOption={(props, option) => {
-          const { key, ...rest } = props
-          return (
-            <Box component="li" key={key} {...rest}>
-              <Stack spacing={0.25}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <Typography variant="body2">{option.label}</Typography>
-                  <AppBadge label={option.kind === 'npc' ? 'NPC' : 'Monster'} tone="default" size="small" />
-                </Stack>
-                <Typography variant="caption" color="text.secondary">
-                  {option.subtitle}
-                </Typography>
-              </Stack>
-            </Box>
-          )
-        }}
-        renderInput={(params) => (
-          <TextField {...params} label="Opponent Sources" placeholder="Search NPCs and monsters" />
-        )}
-      />
+      <Button
+        variant="outlined"
+        fullWidth
+        startIcon={<AddIcon />}
+        onClick={onOpenModal}
+      >
+        Add Opponents
+      </Button>
 
       <Stack spacing={1.5}>
         {opponentRoster.length === 0 ? (

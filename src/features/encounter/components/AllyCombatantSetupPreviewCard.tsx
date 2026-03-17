@@ -73,6 +73,7 @@ export function AllyCombatantSetupPreviewCard({
 
   return (
     <LoadedAllyCombatantSetupPreviewCard
+      character={character}
       characterId={characterId}
       runtimeId={runtimeId}
       side={side}
@@ -83,19 +84,23 @@ export function AllyCombatantSetupPreviewCard({
   )
 }
 
+type LoadedProps = AllyCombatantSetupPreviewCardProps & {
+  character: NonNullable<ReturnType<typeof useCharacter>['character']>
+}
+
 function LoadedAllyCombatantSetupPreviewCard({
+  character,
   characterId,
   runtimeId,
   side,
   sourceKind,
   onResolved,
   onRemove,
-}: AllyCombatantSetupPreviewCardProps) {
-  const { character } = useCharacter(characterId)
+}: LoadedProps) {
   const { catalog } = useCampaignRules()
 
-  const engineCharacter = useMemo(() => (character ? toCharacterForEngine(character) : null), [character])
-  const combatStats = useCombatStats(engineCharacter!)
+  const engineCharacter = useMemo(() => toCharacterForEngine(character), [character])
+  const combatStats = useCombatStats(engineCharacter)
 
   const attacks = useMemo(
     () =>
@@ -115,47 +120,43 @@ function LoadedAllyCombatantSetupPreviewCard({
     [combatStats.activeEffects],
   )
   const spellStats = useMemo(
-    () => (character ? getCharacterSpellcastingStats(character) : { spellSaveDc: 10, spellAttackBonus: 0 }),
+    () => getCharacterSpellcastingStats(character),
     [character],
   )
   const spellActions = useMemo(
     () =>
-      character
-        ? buildSpellCombatActions({
-            runtimeId,
-            spellIds: character.spells,
-            spellsById: catalog.spellsById as Record<string, Spell>,
-            spellSaveDc: spellStats.spellSaveDc,
-            spellAttackBonus: spellStats.spellAttackBonus,
-            casterLevel: character.level ?? 1,
-          })
-        : [],
+      buildSpellCombatActions({
+        runtimeId,
+        spellIds: character.spells,
+        spellsById: catalog.spellsById as Record<string, Spell>,
+        spellSaveDc: spellStats.spellSaveDc,
+        spellAttackBonus: spellStats.spellAttackBonus,
+        casterLevel: character.level ?? 1,
+      }),
     [catalog.spellsById, character, runtimeId, spellStats],
   )
   const combatant = useMemo(
     () =>
-      character
-        ? buildCharacterCombatantInstance({
-            runtimeId,
-            side,
-            sourceKind,
-            character,
-            combatStats,
-            attacks,
-            extraActions: spellActions,
-            turnHooks,
-          })
-        : null,
+      buildCharacterCombatantInstance({
+        runtimeId,
+        side,
+        sourceKind,
+        character,
+        combatStats,
+        attacks,
+        extraActions: spellActions,
+        turnHooks,
+      }),
     [attacks, character, combatStats, runtimeId, side, sourceKind, spellActions, turnHooks],
   )
 
   const onResolvedRef = useRef(onResolved)
   onResolvedRef.current = onResolved
   useEffect(() => {
-    if (combatant) onResolvedRef.current(combatant)
+    onResolvedRef.current(combatant)
   }, [combatant])
 
-  if (!character || !combatant) return null
+  if (!combatant) return null
 
   const stats: PreviewStat[] = [
     { label: 'AC', value: String(combatant.stats.armorClass) },
