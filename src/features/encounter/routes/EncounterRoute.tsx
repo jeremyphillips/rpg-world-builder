@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 
-import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
@@ -10,7 +10,6 @@ import { useCharacters } from '@/features/character/hooks'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
 import {
   CombatLogPanel,
-  EncounterControlsPanel,
   OpponentRosterLane,
   AllyRosterLane,
   EncounterView,
@@ -18,7 +17,16 @@ import {
   EncounterActiveHeader,
   EncounterActiveFooter,
   EncounterSetupView,
+  EncounterActiveView,
   EncounterEnvironmentSetup,
+  EncounterEnvironmentSummary,
+  AllyCombatantActiveCard,
+  OpponentCombatantActiveCard,
+  AllyCombatantActivePreviewCard,
+  OpponentCombatantActivePreviewCard,
+  CombatActionPreviewCard,
+  CombatTargetPreviewCard,
+  CombatLane,
 } from '../components'
 import type { EnvironmentSetupValues } from '../components/EncounterEnvironmentSetup'
 
@@ -229,89 +237,90 @@ export default function EncounterRoute() {
         />
       )}
 
-      {mode === 'active' && (
-        <Stack spacing={3}>
-          <EncounterControlsPanel
-            selectedCombatantCount={selectedCombatantIds.length}
-            resolvedCombatantCount={selectedCombatants.length}
-            unresolvedCombatantCount={unresolvedCombatantCount}
-            encounterState={encounterState}
-            activeCombatant={activeCombatant}
-            canStartEncounter={canStartEncounter}
-            onStartEncounter={handleStartEncounter}
-            onNextTurn={handleNextTurn}
-            onResetEncounter={handleResetEncounter}
-            environmentContext={environmentContext}
-            onEnvironmentContextChange={setEnvironmentContext}
-            controlTargetId={controlTargetId}
-            onControlTargetIdChange={setControlTargetId}
-            damageAmount={damageAmount}
-            onDamageAmountChange={setDamageAmount}
-            damageTypeInput={damageTypeInput}
-            onDamageTypeInputChange={setDamageTypeInput}
-            onApplyDamage={handleApplyDamage}
-            healingAmount={healingAmount}
-            onHealingAmountChange={setHealingAmount}
-            onApplyHealing={handleApplyHealing}
-            controlTargetHasReducedToZeroSave={controlTargetHasReducedToZeroSave}
-            reducedToZeroSaveOutcome={reducedToZeroSaveOutcome}
-            onReducedToZeroSaveOutcomeChange={setReducedToZeroSaveOutcome}
-            onTriggerReducedToZeroHook={handleTriggerReducedToZeroHook}
-            canTriggerReducedToZeroHook={canTriggerReducedToZeroHook}
-            conditionInput={conditionInput}
-            onConditionInputChange={setConditionInput}
-            onAddCondition={handleAddCondition}
-            onRemoveCondition={handleRemoveCondition}
-            stateInput={stateInput}
-            onStateInputChange={setStateInput}
-            onAddState={handleAddState}
-            onRemoveState={handleRemoveState}
-            markerDurationTurns={markerDurationTurns}
-            onMarkerDurationTurnsChange={setMarkerDurationTurns}
-            markerDurationBoundary={markerDurationBoundary}
-            onMarkerDurationBoundaryChange={setMarkerDurationBoundary}
-          />
-
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, minmax(0, 1fr))' },
-              gap: 3,
-            }}
-          >
-            <AllyRosterLane
-              allyOptions={allyOptions}
-              selectedAllyOptions={selectedAllyOptions}
-              selectedAllyIds={selectedAllyIds}
-              loadingAllies={loadingParty}
-              onAllySelectionChange={setSelectedAllyIds}
-              onResolvedCombatant={handleResolvedCombatant}
-              onRemoveAllyCombatant={removeAllyCombatant}
+      {mode === 'active' && encounterState && (
+        <EncounterActiveView
+          focusedCard={
+            activeCombatant ? (
+              activeCombatant.side === 'party' ? (
+                <AllyCombatantActiveCard
+                  combatant={activeCombatant}
+                  availableActions={availableActions}
+                  selectedActionId={selectedActionId}
+                  onSelectAction={setSelectedActionId}
+                />
+              ) : (
+                <OpponentCombatantActiveCard
+                  combatant={activeCombatant}
+                  availableActions={availableActions}
+                  selectedActionId={selectedActionId}
+                  onSelectAction={setSelectedActionId}
+                />
+              )
+            ) : null
+          }
+          actionPreview={
+            <CombatActionPreviewCard
+              action={availableActions.find((a) => a.id === selectedActionId) ?? null}
             />
-
-            <OpponentRosterLane
-              opponentOptions={opponentOptions}
-              selectedOpponentOptions={selectedOpponentOptions}
-              opponentRoster={opponentRoster}
-              loadingOpponents={loadingNpcs}
-              monstersById={monstersById}
-              environmentContext={environmentContext}
-              monsterFormsById={monsterFormsById}
-              monsterManualTriggersById={monsterManualTriggersById}
-              opponentSourceCounts={opponentSourceCounts}
-              onOpponentSelectionChange={handleOpponentSelectionChange}
-              onResolvedCombatant={handleResolvedCombatant}
-              onRemoveOpponentCombatant={removeOpponentCombatant}
-              onAddOpponentCopy={addOpponentCopy}
+          }
+          targetPreview={
+            <CombatTargetPreviewCard
+              target={
+                selectedActionTargetId
+                  ? encounterState.combatantsById[selectedActionTargetId] ?? null
+                  : null
+              }
             />
-          </Box>
-
-          <CombatLogPanel
-            encounterState={encounterState}
-            selectedAllyCount={selectedAllyIds.length}
-            opponentCombatantCount={opponentRoster.length}
-          />
-        </Stack>
+          }
+          environmentSummary={<EncounterEnvironmentSummary values={environmentSetup} />}
+          allyLane={
+            <CombatLane title="Allies" description="Party members in this encounter.">
+              <Stack spacing={1.5}>
+                {encounterState.partyCombatantIds.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">No ally combatants.</Typography>
+                ) : (
+                  encounterState.partyCombatantIds.map((id) => {
+                    const combatant = encounterState.combatantsById[id]
+                    if (!combatant) return null
+                    return (
+                      <AllyCombatantActivePreviewCard
+                        key={id}
+                        combatant={combatant}
+                        isCurrentTurn={id === activeCombatantId}
+                        isSelected={id === selectedActionTargetId}
+                        onClick={() => setSelectedActionTargetId(id)}
+                      />
+                    )
+                  })
+                )}
+              </Stack>
+            </CombatLane>
+          }
+          opponentLane={
+            <CombatLane title="Opponents" description="Enemy combatants in this encounter.">
+              <Stack spacing={1.5}>
+                {encounterState.enemyCombatantIds.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">No opponent combatants.</Typography>
+                ) : (
+                  encounterState.enemyCombatantIds.map((id) => {
+                    const combatant = encounterState.combatantsById[id]
+                    if (!combatant) return null
+                    return (
+                      <OpponentCombatantActivePreviewCard
+                        key={id}
+                        combatant={combatant}
+                        isCurrentTurn={id === activeCombatantId}
+                        isSelected={id === selectedActionTargetId}
+                        onClick={() => setSelectedActionTargetId(id)}
+                      />
+                    )
+                  })
+                )}
+              </Stack>
+            </CombatLane>
+          }
+          combatLog={<CombatLogPanel log={encounterState.log} />}
+        />
       )}
     </EncounterView>
   )
