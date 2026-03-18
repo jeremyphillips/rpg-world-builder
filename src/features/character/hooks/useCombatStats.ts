@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import type { Character } from '@/features/character/domain/types'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { buildCharacterContext } from '../domain/engine/buildCharacterContext'
 import { collectIntrinsicEffects } from '../domain/engine/collectCharacterEffects'
 import { getLoadoutPickerOptions } from '../domain/engine/getLoadoutPickerOptions'
 import { getWeaponPickerOptions } from '../domain/engine/getWeaponPickerOptions'
 import {
   resolveStat,
   resolveStatDetailed,
+  buildCharacterResolutionInput,
   type BreakdownToken,
   resolveWeaponAttackBonus,
   resolveWeaponDamage,
@@ -17,8 +17,6 @@ import { getProficiencyAttackBonus } from '@/features/mechanics/domain/progressi
 import type { EvaluationContext } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import {
-  getEquipmentEffects,
-  selectActiveEquipmentEffects,
   resolveLoadout,
   resolveEquipmentLoadoutDetailed,
   resolveWieldedWeaponIds,
@@ -105,14 +103,10 @@ export function useCombatStats(character: Character) {
   const { catalog } = useCampaignRules()
 
   return useMemo(() => {
-    const context = buildCharacterContext(character)
-    const intrinsicEffects = collectIntrinsicEffects(character)
-    const candidateEffects = getEquipmentEffects(character.equipment, catalog.armorById)
+    const base = buildCharacterResolutionInput(character, { armorById: catalog.armorById })
+    const { context } = base
 
-    const loadout = resolveLoadout(character.combat)
     const resolved = resolveEquipmentLoadoutDetailed(character.combat, character.equipment)
-
-    const activeEquipmentEffects = selectActiveEquipmentEffects(candidateEffects, resolved)
     const enchantmentEffects = getEnchantmentCandidateEffects({ resolved })
 
     const ownedMagicItemIds = character.equipment?.magicItems ?? []
@@ -123,11 +117,13 @@ export function useCombatStats(character: Character) {
     })
 
     const allEffects = [
-      ...intrinsicEffects,
-      ...activeEquipmentEffects,
+      ...base.effects,
       ...enchantmentEffects,
       ...activeMagicEffects,
     ]
+
+    const intrinsicEffects = collectIntrinsicEffects(character)
+    const loadout = resolveLoadout(character.combat)
 
     const acResult = resolveStatDetailed('armor_class', context, allEffects)
     const maxHp = resolveStat('hit_points_max', context, allEffects)
