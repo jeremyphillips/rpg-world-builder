@@ -163,6 +163,11 @@ export type MagicItemBudget = {
   tiers: MagicItemBudgetTier[];
 };
 
+export type ProficiencyBonusTier = {
+  levelRange: [number, number];
+  bonus: number;
+};
+
 export type Progression = {
   multiclassing: MulticlassingRules;
   starting: {
@@ -171,6 +176,7 @@ export type Progression = {
   leveling?: LevelingRules;
   spellcasting: SpellcastingProgression;
   magicItemBudget: MagicItemBudget;
+  proficiencyBonusTable?: readonly ProficiencyBonusTier[];
   xp: XpRules;
   overrides?: {
     byClassId?: Record<string, {
