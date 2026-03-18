@@ -4,7 +4,7 @@ import type {
   RuntimeEffectInstance,
   RuntimeMarker,
 } from './types'
-import { rollInitiative, type InitiativeResolverOptions } from '../resolution'
+import { rollInitiative, type InitiativeParticipant, type InitiativeResolverOptions } from '../resolution'
 import type { EncounterState } from './types'
 import {
   createCombatantTurnResources,
@@ -519,6 +519,18 @@ function processActionRecharge(
   return nextState
 }
 
+function buildAliveInitiativeParticipants(state: EncounterState): InitiativeParticipant[] {
+  return state.initiativeOrder
+    .map((id) => state.combatantsById[id])
+    .filter((c): c is CombatantInstance => c != null && c.stats.currentHitPoints > 0)
+    .map((c) => ({
+      instanceId: c.instanceId,
+      label: c.source.label,
+      initiativeModifier: c.stats.initiativeModifier,
+      dexterityScore: c.stats.dexterityScore,
+    }))
+}
+
 export function createEncounterState(
   combatants: CombatantInstance[],
   options: InitiativeResolverOptions = {},
@@ -597,21 +609,42 @@ export function advanceEncounterTurn(
     'end',
   )
 
+  const participants = buildAliveInitiativeParticipants(endedState)
+  if (participants.length === 0) {
+    return endedState
+  }
+
   const nextTurnIndex = (state.turnIndex + 1) % state.initiativeOrder.length
   const wrappedRound = nextTurnIndex === 0
   const nextRoundNumber = wrappedRound ? state.roundNumber + 1 : state.roundNumber
 
-  let nextState: EncounterState = {
-    ...endedState,
-    turnIndex: nextTurnIndex,
-    roundNumber: nextRoundNumber,
-    activeCombatantId: state.initiativeOrder[nextTurnIndex] ?? null,
-  }
+  let nextState: EncounterState
 
   if (wrappedRound) {
+    const initiative = rollInitiative(participants, options)
+    const initiativeOrder = initiative.map((entry) => entry.combatantId)
     nextState = {
-      ...nextState,
-      log: [...nextState.log, createRoundStartedLog(nextState)],
+      ...endedState,
+      initiative,
+      initiativeOrder,
+      turnIndex: 0,
+      roundNumber: nextRoundNumber,
+      activeCombatantId: initiativeOrder[0] ?? null,
+      log: [...endedState.log, createRoundStartedLog({
+        ...endedState,
+        initiative,
+        initiativeOrder,
+        roundNumber: nextRoundNumber,
+        turnIndex: 0,
+        activeCombatantId: initiativeOrder[0] ?? null,
+      })],
+    }
+  } else {
+    nextState = {
+      ...endedState,
+      turnIndex: nextTurnIndex,
+      roundNumber: nextRoundNumber,
+      activeCombatantId: state.initiativeOrder[nextTurnIndex] ?? null,
     }
   }
 

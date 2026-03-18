@@ -61,6 +61,12 @@ export function createRoundStartedLog(state: EncounterState): CombatLogEvent {
     round: state.roundNumber,
     turn: 1,
     summary: `Round ${state.roundNumber} starts.`,
+    details:
+      state.initiative.length > 0
+        ? `Initiative order: ${state.initiative
+            .map((entry) => `${entry.label} (${entry.total})`)
+            .join(', ')}`
+        : undefined,
   }
 }
 
