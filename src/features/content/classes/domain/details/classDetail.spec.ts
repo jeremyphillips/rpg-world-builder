@@ -1,7 +1,6 @@
 import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
-import { abilityIdToName } from '@/features/mechanics/domain/core/character/abilities.utils';
-import type { AbilityId } from '@/features/mechanics/domain/core/character/abilities.types';
+import { abilityIdToName, type AbilityId } from '@/features/mechanics/domain/character';
 
 export type ClassDetailCtx = Record<string, never>;
 

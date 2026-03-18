@@ -1,7 +1,7 @@
 import type { Effect } from '../effects.types'
 import type { Equipment, EquipmentLoadout, EquipmentItemInstance } from '@/features/character/domain/types'
-import { getSystemArmor } from '@/features/mechanics/domain/core/rules/systemCatalog.armor'
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
+import { getSystemArmor } from '@/features/mechanics/domain/rulesets/system/armor'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import {
   getCreatureArmorBonusValue,
   getCreatureArmorFormulaDefinition,

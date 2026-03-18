@@ -30,7 +30,7 @@ import {
   type SpellListRow,
 } from '@/features/content/spells/domain';
 import type { ContentSummary } from '@/features/content/shared/domain/types';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

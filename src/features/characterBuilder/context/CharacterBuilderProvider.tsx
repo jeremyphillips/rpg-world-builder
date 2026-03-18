@@ -3,13 +3,13 @@ import CharacterBuilderContext from './CharacterBuilderContext'
 import type { CharacterBuilderState, StepId, AbilityScoreSource, AbilityScoresStatus } from '../types'
 import type { CharacterClassInfo } from '@/features/character/domain/types'
 import type { CharacterProficiencies, EquipmentItemInstance } from '@/features/character/domain/types'
-import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
+import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import {
   detectInvalidations,
   resolveInvalidations,
   INVALIDATION_RULES,
-} from '@/features/mechanics/domain/character-build/invalidation'
+} from '@/features/mechanics/domain/character'
 import {
   getStepConfig,
   createInitialBuilderState,
@@ -18,8 +18,8 @@ import { getSkillIds } from '@/features/character/domain/utils/character-profici
 import {
   generateAbilityScores,
 } from '@/features/mechanics/domain/generation/ability-scores'
-import { getXpForLevel } from '@/features/mechanics/domain/core/progression/xp'
-import { getSubclassUnlockLevel } from '@/features/mechanics/domain/classes/progression'
+import { getXpForLevel } from '@/features/mechanics/domain/progression'
+import { getSubclassUnlockLevel } from '@/features/mechanics/domain/progression/subclass'
 import {
   calculateEquipmentWeight,
   calculateEquipmentCostCp,
@@ -27,7 +27,7 @@ import {
 } from '@/features/characterBuilder/domain/equipment'
 import { moneyToCp, cpToDenoms } from '@/shared/money'
 import type { CharacterType } from "@/features/character/domain/types"
-import { resolveXpTable } from "@/features/mechanics/domain/core/rules/xp/resolveXpTable"
+import { resolveXpTable } from '@/features/mechanics/domain/progression'
 import type { AlignmentId } from '@/features/content/shared/domain/types'
 import { 
   ABILITY_KEYS, 
@@ -35,7 +35,7 @@ import {
   type AbilityScoreValue, 
   type AbilityKey,
   type AbilityScoreMap
-} from '@/features/mechanics/domain/core/character'
+} from '@/features/mechanics/domain/character'
 
 export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
   const { ruleset, catalog } = useCampaignRules()

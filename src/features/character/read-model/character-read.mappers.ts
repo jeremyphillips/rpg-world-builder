@@ -74,6 +74,7 @@ type ResolveImageUrl = (key: string) => string | undefined
 /**
  * Map one stored character class entry to a display-ready class summary.
  * Resolves class/subclass names from references. Supports subclassId (current) and classDefinitionId (legacy).
+ * Includes progression when classProgressionById is populated (e.g. for detail DTO).
  */
 export function toCharacterClassSummary(
   cls: CharacterClassReadSource,
@@ -83,12 +84,14 @@ export function toCharacterClassSummary(
   const subclassId = (cls.classDefinitionId ?? cls.subclassId) ?? null
   const classEntry = refs.classById.get(classId)
   const subclassEntry = subclassId ? refs.subclassById.get(subclassId) : null
+  const progression = refs.classProgressionById?.get(classId)
   return {
     classId,
     className: classEntry?.name ?? classId,
     subclassId: subclassId ?? undefined,
     subclassName: subclassEntry?.name ?? undefined,
     level: cls.level ?? 1,
+    ...(progression && { progression }),
   }
 }
 
@@ -213,7 +216,7 @@ export function toCharacterForEngine(dto: CharacterDetailDto): import('@/feature
     totalLevel: dto.totalLevel ?? dto.level,
     levelUpPending: dto.levelUpPending,
     pendingLevel: dto.pendingLevel,
-    abilityScores: dto.abilityScores as import('@/features/mechanics/domain/core/character/abilities.types').AbilityScoreMapResolved,
+    abilityScores: dto.abilityScores as import('@/features/mechanics/domain/character').AbilityScoreMapResolved,
     hitPoints: dto.hitPoints,
     armorClass: dto.armorClass,
     combat: dto.combat,

@@ -1,4 +1,4 @@
-import { systemCatalog } from '@/features/mechanics/domain/core/rules/systemCatalog'
+import { systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog'
 import type { ClassProficiencySkillSelection, CharacterClass } from '@/features/content/classes/domain/types'
 import type { CharacterClassInfo, CharacterProficiencies } from '@/features/character/domain/types'
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'

@@ -16,8 +16,8 @@ export {
   CampaignRulesetEditorRoute,
   ContentManageGuard,
 } from '@/features/campaign/routes'
-export { default as CombatSimulationRoute } from '@/features/combatSimulation/routes/CombatSimulationRoute'
-export { default as CombatSimulationGuard } from '@/features/combatSimulation/routes/CombatSimulationGuard'
+export { default as EncounterRoute } from '@/features/encounter/routes/EncounterRoute'
+export { default as EncounterGuard } from '@/features/encounter/routes/EncounterGuard'
 export { LocationsRoute, LocationRoute } from '@/features/content/locations/routes'
 export {
   MonsterListRoute,

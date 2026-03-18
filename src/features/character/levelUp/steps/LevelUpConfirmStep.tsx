@@ -3,10 +3,10 @@
 // Final summary of all level-up choices before confirmation.
 
 import { useMemo } from 'react'
-import { getSubclassNameById } from '@/features/mechanics/domain/classes/progression'
-import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
-import { getSystemSpells } from '@/features/mechanics/domain/core/rules/systemCatalog.spells'
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
+import { getSubclassNameById } from '@/features/mechanics/domain/progression/subclass'
+import { getClassProgression } from '@/features/mechanics/domain/progression/class'
+import { getSystemSpells } from '@/features/mechanics/domain/rulesets/system/spells'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import type { LevelUpState } from '../levelUp.types'
 
 import Box from '@mui/material/Box'

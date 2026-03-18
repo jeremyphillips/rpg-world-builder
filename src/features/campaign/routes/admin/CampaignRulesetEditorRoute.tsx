@@ -19,13 +19,13 @@ import {
   getCampaignRulesetPatch,
   saveCampaignRulesetPatch,
   createDefaultCampaignRulesetPatch
-} from '@/features/mechanics/domain/core/rules/campaignRulesetRepo';
-import { getSystemRuleset, systemCatalog } from '@/features/mechanics/domain/core/rules/systemCatalog';
-import { resolveCampaignRuleset } from '@/features/mechanics/domain/core/rules/resolveCampaignRuleset';
-import { normalizeCampaignRulesetPatch } from '@/features/mechanics/domain/core/rules/normalizeCampaignRulesetPatch';
-import type { CampaignRulesetPatch } from '@/features/mechanics/domain/core/rules/ruleset.types';
+} from '@/features/mechanics/domain/rulesets/campaign/repo';
+import { getSystemRuleset, systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog';
+import { resolveCampaignRuleset } from '@/features/mechanics/domain/rulesets/resolve/ruleset';
+import { normalizeCampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/campaign/patch/normalize';
+import type { CampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import type { ContentPolicy, MulticlassingRuleSet } from '@/shared/types/ruleset';
-import type { ValidationError } from '@/features/mechanics/domain/core/rules/validateCampaignRulesetPatch';
+import type { ValidationError } from '@/features/mechanics/domain/rulesets/campaign/patch/validate';
 import { AppAlert } from '@/ui/primitives';
 
 // ---------------------------------------------------------------------------

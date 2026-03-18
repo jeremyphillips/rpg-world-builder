@@ -6,9 +6,9 @@
 // builder context).
 
 import { useMemo, useCallback } from 'react'
-import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
+import { getClassProgression } from '@/features/mechanics/domain/progression/class'
 import { groupSpellsByLevel } from '@/features/mechanics/domain/spells'
-import { getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/classes/progression'
+import { getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/progression/class'
 import { getAvailableSpellsByClass } from '@/features/mechanics/domain/spells/selection'
 import { SpellHorizontalCard } from '@/features/content/spells/components'
 import type { LevelUpState } from '../levelUp.types'

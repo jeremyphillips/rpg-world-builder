@@ -5,13 +5,15 @@ import { buildCharacterContext } from '../domain/engine/buildCharacterContext'
 import { collectIntrinsicEffects } from '../domain/engine/collectCharacterEffects'
 import { getLoadoutPickerOptions } from '../domain/engine/getLoadoutPickerOptions'
 import { getWeaponPickerOptions } from '../domain/engine/getWeaponPickerOptions'
-import { resolveStat, resolveStatDetailed, type BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
 import {
+  resolveStat,
+  resolveStatDetailed,
+  type BreakdownToken,
   resolveWeaponAttackBonus,
   resolveWeaponDamage,
   type AttackHand,
-} from '@/features/mechanics/domain/resolution/attack-resolver'
-import { getProficiencyAttackBonus } from '@/features/mechanics/domain/character/progression'
+} from '@/features/mechanics/domain/resolution'
+import { getProficiencyAttackBonus } from '@/features/mechanics/domain/progression'
 import type { EvaluationContext } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import {

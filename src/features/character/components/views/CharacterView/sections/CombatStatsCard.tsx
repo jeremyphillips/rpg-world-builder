@@ -2,13 +2,13 @@ import { useState } from 'react'
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import { toCharacterForEngine } from '@/features/character/read-model'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
+import { getClassProgression } from '@/features/mechanics/domain/progression/class'
 import type { ClassProgression } from '@/features/content/classes/domain/types'
 import { useCombatStats } from '@/features/character/hooks'
 import type { LoadoutOption } from '@/features/character/domain/engine/getLoadoutPickerOptions'
 import type { WeaponPickerOption } from '@/features/character/domain/engine/getWeaponPickerOptions'
 import type { AttackEntry } from '@/features/character/hooks/useCombatStats'
-import { formatBreakdown } from '@/features/mechanics/domain/resolution/stat-resolver'
+import { formatBreakdown } from '@/features/mechanics/domain/resolution'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -27,7 +27,7 @@ import Tooltip from '@mui/material/Tooltip'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import { StatShield } from '@/ui/primitives'
 import Divider from '@mui/material/Divider'
-import type { BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
+import type { BreakdownToken } from '@/features/mechanics/domain/resolution'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -158,7 +158,11 @@ export default function CombatStatsCard({
 
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="h4" fontWeight={700}>
-                {character.hitPoints?.total ?? '—'}{maxHp > 0 ? ` / ${maxHp}` : ''}
+                {character.hitPoints?.current ?? character.hitPoints?.total ?? '—'}
+                {(() => {
+                  const max = character.hitPoints?.total ?? maxHp
+                  return max > 0 ? ` / ${max}` : ''
+                })()}
               </Typography>
               <Typography variant="caption" color="text.secondary">HP</Typography>
               {character.hitPoints?.generationMethod && (

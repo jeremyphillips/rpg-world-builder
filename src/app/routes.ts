@@ -17,7 +17,7 @@ export const ROUTES = {
   CAMPAIGN_ADMIN_INVITES: '/campaigns/:id/admin/invites',
   CAMPAIGN_ADMIN_SETTINGS: '/campaigns/:id/admin/settings',
   CAMPAIGN_ADMIN_RULESET: '/campaigns/:id/admin/ruleset',
-  CAMPAIGN_COMBAT_SIMULATION: '/campaigns/:id/combat-simulation',
+  CAMPAIGN_ENCOUNTER: '/campaigns/:id/encounter',
   CAMPAIGN_RULES: '/campaigns/:id/rules',
   CAMPAIGN_PARTY: '/campaigns/:id/party',
   INVITE: '/invites/:inviteId',

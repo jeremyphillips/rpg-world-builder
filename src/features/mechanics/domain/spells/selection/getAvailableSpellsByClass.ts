@@ -1,5 +1,5 @@
-import { getSystemSpells } from '@/features/mechanics/domain/core/rules/systemCatalog.spells'
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
+import { getSystemSpells } from '@/features/mechanics/domain/rulesets/system/spells'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import type { Spell } from '@/features/content/spells/domain/types'
 
 /** Get all spells available to a given class. */

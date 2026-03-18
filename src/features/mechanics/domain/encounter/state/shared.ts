@@ -1,4 +1,5 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
+import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 
 import type {
   CombatantInstance,
@@ -22,7 +23,7 @@ export function buildRuntimeMarker(
   label: string,
   options?: {
     durationTurns?: number
-    tickOn?: 'start' | 'end'
+    tickOn?: TurnBoundary
     duration?: RuntimeMarkerDuration
   },
 ): RuntimeMarker {

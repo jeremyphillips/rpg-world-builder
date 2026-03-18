@@ -3,7 +3,7 @@ import { InvalidationNotice } from '@/features/characterBuilder/components'
 import { ButtonGroup } from '@/ui/patterns'
 import { getAlignmentOptionsForClass } from '@/features/mechanics/domain/character/selection'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { resolveAlignmentOptions } from '@/features/mechanics/domain/core/rules/alignment/resolveAlignmentOptions'
+import { resolveAlignmentOptions } from '@/features/mechanics/domain/rulesets/alignment/resolveOptions'
 
 const AlignmentStep = () => {
   const { state, setAlignment, stepNotices, dismissNotice } = useCharacterBuilder()

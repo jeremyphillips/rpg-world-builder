@@ -1,11 +1,9 @@
-import type { CoreMechanics } from "../core/combat.types"
-
 // ---------------------------------------------------------------------------
 // CR estimation from core stats (rough heuristic)
 // ---------------------------------------------------------------------------
 
-export function estimateThreatLevel(core: CoreMechanics): number {
-  const hp = core.hpAverage
+export function estimateThreatLevel(hp: number): number {
+  // const hp = core.hpAverage
   if (hp <= 6) return 0
   if (hp <= 35) return 0.25
   if (hp <= 49) return 0.5

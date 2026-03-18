@@ -8,8 +8,8 @@
  */
 import { apiFetch, ApiError } from '@/app/api';
 import type { Spell, SpellCastingTime, SpellComponents, SpellDuration, SpellEffects, SpellInput, SpellLevel, SpellRange, SpellScalingRule } from '@/features/content/spells/domain/types';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
-import { getSystemSpells, getSystemSpell } from '@/features/mechanics/domain/core/rules/systemCatalog.spells';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
+import { getSystemSpells, getSystemSpell } from '@/features/mechanics/domain/rulesets/system/spells';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
 import type { ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';

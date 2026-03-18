@@ -1,10 +1,9 @@
 import type { Character } from '@/features/character/domain/types'
 import type { EquipmentLoadout } from '@/features/character/domain/types'
 import type { EvaluationContext, CreatureSnapshot } from '@/features/mechanics/domain/conditions/evaluation-context.types'
-import { getClassProgression } from '@/features/mechanics/domain/classes/progression'
+import { getClassProgression } from '@/features/mechanics/domain/progression/class'
 import { resolveLoadout, resolveWieldedWeaponIds } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
-import { ABILITY_KEYS } from '@/features/mechanics/domain/core/character';
-import type { AbilityScoreMapResolved, AbilityScoreValue } from '@/features/mechanics/domain/core/character/abilities.types'
+import { ABILITY_KEYS, type AbilityScoreMapResolved, type AbilityScoreValue } from '@/features/mechanics/domain/character';
 import type { DieFace } from '@/features/mechanics/domain/dice/dice.types'
 
 /**

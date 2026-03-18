@@ -1,5 +1,6 @@
 import type { CharacterDetailDto } from '@/features/character/read-model'
-import { getClassProgression, getSubclassFeatures } from '@/features/mechanics/domain/classes/progression'
+import { getClassProgression } from '@/features/mechanics/domain/progression/class'
+import { getSubclassFeatures } from '@/features/mechanics/domain/progression/subclass'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'

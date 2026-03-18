@@ -6,8 +6,8 @@
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
 import type { Spell } from '@/features/content/spells/domain/types'
 import type { CharacterClass } from '@/features/content/classes/domain/types'
-import { getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/classes/progression'
-import { systemCatalog } from '../../core/rules/systemCatalog'
+import { getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/progression/class'
+import { systemCatalog } from '../../rulesets/system/catalog'
 
 export type SpellPruneResult = {
   kept: string[]

@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { useCharacterBuilder } from '@/features/characterBuilder/context';
-import { ABILITY_KEYS, type AbilityKey, type AbilityScoreValue } from '@/features/mechanics/domain/core/character';
+import { ABILITY_KEYS, type AbilityKey, type AbilityScoreValue } from '@/features/mechanics/domain/character';
 
 function formatAbilityLabel(id: string): string {
   return id.charAt(0).toUpperCase() + id.slice(1);

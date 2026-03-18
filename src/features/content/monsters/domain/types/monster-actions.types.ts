@@ -1,5 +1,5 @@
 import type { DiceOrFlat } from "@/features/mechanics/domain/dice";
-import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
+import type { AbilityId } from '@/features/mechanics/domain/character';
 import type { Effect } from "@/features/mechanics/domain/effects/effects.types";
 import type { MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
 import type { MonsterWeaponAction } from "./monster-equipment.types";

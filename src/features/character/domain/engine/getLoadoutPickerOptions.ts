@@ -2,7 +2,7 @@ import type { Character } from '@/features/character/domain/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { EquipmentLoadout } from '@/features/character/domain/types'
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass'
-import { resolveStatDetailed, type BreakdownToken } from '@/features/mechanics/domain/resolution/stat-resolver'
+import { resolveStatDetailed, type BreakdownToken } from '@/features/mechanics/domain/resolution'
 import { buildCharacterContext, withLoadout } from './buildCharacterContext'
 import {
   getEquipmentEffects,

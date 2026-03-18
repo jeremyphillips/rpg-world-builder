@@ -3,15 +3,17 @@
  * Batch-loads reference data for race, class, subclass, proficiencies, equipment.
  */
 
-import { getSystemRaces } from '@/features/mechanics/domain/core/rules/systemCatalog.races'
-import { getSystemClasses } from '@/features/mechanics/domain/core/rules/systemCatalog.classes'
-import { getSystemSkillProficiencies } from '@/features/mechanics/domain/core/rules/systemCatalog.skillProficiencies'
-import { getSystemArmor } from '@/features/mechanics/domain/core/rules/systemCatalog.armor'
-import { getSystemWeapons } from '@/features/mechanics/domain/core/rules/systemCatalog.weapons'
-import { getSystemGear } from '@/features/mechanics/domain/core/rules/systemCatalog.gear'
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
+import { abilityIdToKey } from '@/features/mechanics/domain/character'
+import { getSystemRaces } from '@/features/mechanics/domain/rulesets/system/races'
+import { getSystemClasses } from '@/features/mechanics/domain/rulesets/system/classes'
+import { getSystemSkillProficiencies } from '@/features/mechanics/domain/rulesets/system/skillProficiencies'
+import { getSystemArmor } from '@/features/mechanics/domain/rulesets/system/armor'
+import { getSystemWeapons } from '@/features/mechanics/domain/rulesets/system/weapons'
+import { getSystemGear } from '@/features/mechanics/domain/rulesets/system/gear'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import type {
   CharacterReadReferences,
+  ClassProgressionSummary,
   IdNameSummary,
   LoadCharacterReadReferencesArgs,
 } from './character-read.types'
@@ -63,17 +65,36 @@ export async function loadCharacterReadReferences(
   const { include = {} } = args
   const includeProficiencies = include.proficiencies ?? false
   const includeItems = include.items ?? false
+  const includeClassProgression = include.classProgression ?? false
 
   const catalog = loadIdNameRecords()
 
   const raceById = toIdNameMap(catalog.races)
   const classById = new Map<string, IdNameSummary>()
   const subclassById = new Map<string, IdNameSummary>()
+  const classProgressionById = new Map<string, ClassProgressionSummary>()
   for (const c of catalog.classes) {
     classById.set(c.id, { id: c.id, name: c.name })
     const opts = c.definitions?.options ?? []
     for (const opt of opts) {
       if (opt.id && opt.name) subclassById.set(opt.id, { id: opt.id, name: opt.name })
+    }
+    if (includeClassProgression && c.progression) {
+      const p = c.progression
+      classProgressionById.set(c.id, {
+        hitDie: p.hitDie,
+        spellcasting: p.spellcasting,
+        spellProgression: p.spellProgression
+          ? {
+              ability: p.spellProgression.ability
+                ? abilityIdToKey(p.spellProgression.ability)
+                : undefined,
+              type: p.spellProgression.type,
+            }
+          : undefined,
+        attackProgression: p.attackProgression,
+        savingThrows: p.savingThrows?.map((id) => abilityIdToKey(id)),
+      })
     }
   }
 
@@ -92,6 +113,7 @@ export async function loadCharacterReadReferences(
     raceById,
     classById,
     subclassById,
+    classProgressionById,
     proficiencyById,
     itemById,
   }

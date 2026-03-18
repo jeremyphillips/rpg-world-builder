@@ -91,7 +91,7 @@ export async function getCharacterDetail(characterId: string): Promise<Character
 
   const refs = await loadCharacterReadReferences({
     characters: [doc],
-    include: { proficiencies: true, items: true },
+    include: { proficiencies: true, items: true, classProgression: true },
   })
   return toCharacterDetailDto(doc, campaignsSimple, refs, getPublicUrl)
 }

@@ -9,7 +9,7 @@ import {
   getClassSpellLimitsAtLevel, 
   getClassProgression, 
   getSubclassUnlockLevel 
-} from '@/features/mechanics/domain/classes/progression'
+} from '@/features/mechanics/domain/progression'
 
 /**
  * Returns the ordered list of level-up wizard steps required for this

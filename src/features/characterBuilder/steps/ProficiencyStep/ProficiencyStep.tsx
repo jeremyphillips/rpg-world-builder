@@ -10,7 +10,7 @@ import { useMemo, useCallback } from 'react'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getSuggestedSkillProficienciesByClass } from '@/features/characterBuilder/domain/classes'
-import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
+import { skillProficiencyIdToName } from '@/features/mechanics/domain/character'
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import type { ProficiencyAdjustment } from '@/features/character/domain/types'
 

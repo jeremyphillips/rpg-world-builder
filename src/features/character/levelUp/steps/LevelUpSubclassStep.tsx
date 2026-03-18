@@ -4,7 +4,7 @@
 // the subclass unlock for their class.
 
 import { useMemo, useCallback } from 'react'
-import { getAvailableSubclassesByLevel } from '@/features/mechanics/domain/classes/progression'
+import { getAvailableSubclassesByLevel } from '@/features/mechanics/domain/progression/class'
 import { ButtonGroup } from '@/ui/patterns'
 import type { LevelUpState } from '../levelUp.types'
 

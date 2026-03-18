@@ -6,7 +6,7 @@
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import type { SkillProficiencyInput } from '../types/skillProficiencyForm.types';
-import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities';
+import { ABILITIES } from '@/features/mechanics/domain/character';
 import { type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { SkillProficiencyFormValues } from '../types/skillProficiencyForm.types';
 

@@ -4,6 +4,7 @@ import type {
   MonsterTraitTrigger,
 } from '@/features/content/monsters/domain/types/monster-traits.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
+import type { EffectDuration, TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 
 import type { RuntimeTurnHook } from '../state'
 import type {
@@ -50,18 +51,7 @@ export function buildActiveMonsterEffects(
   })
 }
 
-function toRuntimeTurnDuration(duration: {
-  kind: 'instant'
-} | {
-  kind: 'fixed'
-  value: number
-  unit: 'turn' | 'round' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year'
-} | {
-  kind: 'until-turn-boundary'
-  subject: 'self' | 'source' | 'target'
-  turn: 'current' | 'next'
-  boundary: 'start' | 'end'
-}): { remainingTurns: number; tickOn: 'start' | 'end' } | undefined {
+function toRuntimeTurnDuration(duration: EffectDuration): { remainingTurns: number; tickOn: TurnBoundary } | undefined {
   if (duration.kind === 'until-turn-boundary') {
     return {
       remainingTurns: duration.turn === 'current' ? 0 : 1,

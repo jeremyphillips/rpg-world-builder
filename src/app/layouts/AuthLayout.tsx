@@ -430,12 +430,12 @@ export default function AuthLayout() {
 
                     <ListItemButton
                       component={NavLink}
-                      to={activeCampaignId ? ROUTES.CAMPAIGN_COMBAT_SIMULATION.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
-                      selected={activeCampaignId ? location.pathname === ROUTES.CAMPAIGN_COMBAT_SIMULATION.replace(':id', activeCampaignId) : false}
+                      to={activeCampaignId ? ROUTES.CAMPAIGN_ENCOUNTER.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
+                      selected={activeCampaignId ? location.pathname === ROUTES.CAMPAIGN_ENCOUNTER.replace(':id', activeCampaignId) : false}
                       sx={{ pl: 0 }}
                     >
                       <ListItemIcon sx={{ minWidth: 36 }}><ShieldIcon fontSize="small" /></ListItemIcon>
-                      <ListItemText primary="Combat Simulation" slotProps={{ primary: { fontSize: '0.85rem' } }} />
+                      <ListItemText primary="Encounter" slotProps={{ primary: { fontSize: '0.85rem' } }} />
                     </ListItemButton>
 
                     <ListItemButton

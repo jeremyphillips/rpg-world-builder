@@ -5,8 +5,8 @@
  * Campaign-owned custom enchantments are stubbed (no API yet).
  */
 import type { EnchantmentTemplate } from '../types';
-import { getSystemEnchantmentTemplates, getSystemEnchantmentTemplate } from '@/features/mechanics/domain/core/rules/systemCatalog.enchantments';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+import { getSystemEnchantmentTemplates, getSystemEnchantmentTemplate } from '@/features/mechanics/domain/rulesets/system/enchantments';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 // ---------------------------------------------------------------------------
 // Campaign entry shape (matches CampaignEquipmentEntry pattern when API exists)

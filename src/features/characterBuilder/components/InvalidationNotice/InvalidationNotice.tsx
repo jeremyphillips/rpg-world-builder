@@ -1,6 +1,6 @@
 import { AlertTitle, Box, Typography } from '@mui/material'
 
-import type { InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
+import type { InvalidationItem } from '@/features/mechanics/domain/character'
 import { AppAlert } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------

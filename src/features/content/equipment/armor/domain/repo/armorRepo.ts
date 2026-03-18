@@ -7,12 +7,12 @@
 
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import type { Armor, ArmorSummary, ArmorInput, ArmorFields } from '@/features/content/equipment/armor/domain/types';
-import { getSystemArmor, getSystemArmorEntry } from '@/features/mechanics/domain/core/rules/systemCatalog.armor';
+import { getSystemArmor, getSystemArmorEntry } from '@/features/mechanics/domain/rulesets/system/armor';
 import { campaignArmorRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 function toSummary(armor: Armor): ArmorSummary {
   const base = {

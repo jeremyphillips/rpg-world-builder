@@ -5,8 +5,7 @@ import type {
   ContentItem,
   ContentInput,
 } from '@/features/content/shared/domain/types/content.types';
-import type { AbilityScoreMap } from "@/features/mechanics/domain/core/character/abilities.types";
-import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
+import type { AbilityScoreMap, AbilityId } from '@/features/mechanics/domain/character';
 import type { AlignmentId } from "@/features/content/shared/domain/types";
 import type { MonsterType, MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
 import type {
@@ -19,6 +18,7 @@ import type { MonsterSenses } from "./monster-senses.types";
 import type { MonsterTrait } from "./monster-traits.types";
 import type { MonsterAction } from "./monster-actions.types";
 import type { ImmunityType, VulnerabilityType } from "./monster-combat.types";
+import type { Movement } from "@/features/mechanics/domain/movement";
 
 // TODO: create dynamic type
 export type MonsterId = ContentId;
@@ -35,14 +35,6 @@ export type IntelligenceCategory =
   | 'low-to-average'
   | 'low-to-very'
   | 'semi-to-average';
-
-export type MonsterMovement = {
-  ground?: number;
-  climb?: number;
-  fly?: number;
-  swim?: number;
-  burrow?: number;
-};
 
 type MonsterLanguage = {
   id: string;
@@ -82,7 +74,7 @@ export interface MonsterFields {
       modifier?: number;
     };
     armorClass: MonsterArmorClass;
-    movement: MonsterMovement;
+    movement: Movement;
     abilities?: AbilityScoreMap;
     savingThrows?: Partial<Record<AbilityId, ProficiencySkillAdjustment>>;
     traits?: MonsterTrait[];

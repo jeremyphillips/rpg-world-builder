@@ -7,12 +7,12 @@
 
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import type { MagicItem, MagicItemSummary, MagicItemInput, MagicItemFields } from '@/features/content/equipment/magicItems/domain/types';
-import { getSystemMagicItems, getSystemMagicItem } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems';
+import { getSystemMagicItems, getSystemMagicItem } from '@/features/mechanics/domain/rulesets/system/magicItems';
 import { campaignMagicItemRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 function toSummary(item: MagicItem): MagicItemSummary {
   const base = {

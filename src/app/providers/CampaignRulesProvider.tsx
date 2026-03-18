@@ -15,19 +15,19 @@ import { useActiveCampaign } from './ActiveCampaignProvider';
 import {
   resolveCampaignRulesContext,
   type CampaignRulesContext,
-} from '@/features/mechanics/domain/core/rules/resolveCampaignRulesContext';
-import { getResolvedCampaignRuleset } from '@/features/mechanics/domain/core/rules/campaignRulesetRepo';
+} from '@/features/mechanics/domain/rulesets/resolve/context';
+import { getResolvedCampaignRuleset } from '@/features/mechanics/domain/rulesets/campaign/repo';
 import {
   systemCatalog,
   type CampaignCatalog,
-} from '@/features/mechanics/domain/core/rules/systemCatalog';
+} from '@/features/mechanics/domain/rulesets/system/catalog';
 import {
   buildCampaignCatalog,
   type CampaignCatalogAdmin,
-} from '@/features/mechanics/domain/core/rules/buildCampaignCatalog';
-import { loadCampaignCatalogOverrides } from '@/features/mechanics/domain/core/rules/loadCampaignCatalogOverrides';
+} from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import { loadCampaignCatalogOverrides } from '@/features/mechanics/domain/rulesets/campaign/patch/loadOverrides';
 import type { Ruleset } from '@/shared/types/ruleset';
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 
 // ---------------------------------------------------------------------------

@@ -10,10 +10,10 @@ import { apiFetch, ApiError } from '@/app/api';
 import type { Visibility } from '@/shared/types/visibility';
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import type { Monster, MonsterSummary, MonsterInput } from '@/features/content/monsters/domain/types';
-import { getSystemMonsters, getSystemMonster } from '@/features/mechanics/domain/core/rules/systemCatalog.monsters';
+import { getSystemMonsters, getSystemMonster } from '@/features/mechanics/domain/rulesets/system/monsters';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 type CampaignMonsterDto = {
   _id: string;

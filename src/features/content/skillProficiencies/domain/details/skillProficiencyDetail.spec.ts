@@ -3,7 +3,7 @@
  */
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
-import { abilityIdToName } from '@/features/mechanics/domain/core/character/abilities.utils';
+import { abilityIdToName } from '@/features/mechanics/domain/character';
 
 export type SkillProficiencyDetailCtx = Record<string, never>;
 

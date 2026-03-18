@@ -7,8 +7,8 @@
 
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import type { Gear, GearSummary, GearInput, GearFields } from '@/features/content/equipment/gear/domain/types';
-import { getSystemGear, getSystemGearEntry } from '@/features/mechanics/domain/core/rules/systemCatalog.gear';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+import { getSystemGear, getSystemGearEntry } from '@/features/mechanics/domain/rulesets/system/gear';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import { campaignGearRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';

@@ -10,7 +10,7 @@
  */
 import type { Spell } from '@/features/content/spells/domain/types'
 import type { CharacterClass } from '@/features/content/classes/domain/types'
-import { getClassSpellLimitsAtLevel, type CastingMode } from '@/features/mechanics/domain/classes/progression'
+import { getClassSpellLimitsAtLevel, type CastingMode } from '@/features/mechanics/domain/progression/class'
 
 // ---------------------------------------------------------------------------
 // Types

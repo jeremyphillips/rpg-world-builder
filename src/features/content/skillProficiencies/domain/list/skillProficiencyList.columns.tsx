@@ -1,5 +1,5 @@
 import type { AppDataGridColumn } from '@/ui/patterns';
-import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities';
+import { ABILITIES } from '@/features/mechanics/domain/character';
 import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 import type { SkillProficiencyListRow } from './skillProficiencyList.types';
 

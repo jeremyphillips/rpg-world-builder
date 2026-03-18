@@ -1,8 +1,8 @@
 import type { Character } from '@/features/character/domain/types'
-import type { StatTarget } from '@/features/mechanics/domain/resolution/stat-resolver'
+import type { StatTarget } from '@/features/mechanics/domain/resolution'
 import { buildCharacterContext } from './buildCharacterContext'
 import { collectIntrinsicEffects } from './collectCharacterEffects'
-import { resolveStat } from '@/features/mechanics/domain/resolution/stat-resolver'
+import { resolveStat } from '@/features/mechanics/domain/resolution'
 import {
   getEquipmentEffects,
   selectActiveEquipmentEffects,

@@ -1,4 +1,4 @@
-import type { AbilityId } from '@/features/mechanics/domain/core/character'
+import type { AbilityId } from '@/features/mechanics/domain/character'
 
 import type { SubclassSelection } from './subclass.types'
 import type { ClassProficiencies} from './proficiencies.types'

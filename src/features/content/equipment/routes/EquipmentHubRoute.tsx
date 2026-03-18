@@ -16,7 +16,7 @@ import { magicItemRepo } from '@/features/content/equipment/magicItems/domain/re
 import { AppPageHeader } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 
 interface EquipmentCategoryCard {
   title: string;

@@ -1,3 +1,4 @@
+import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import type {
   CombatantInstance,
   RuntimeEffectInstance,
@@ -39,7 +40,7 @@ import type { StatModifierMarker } from './types'
 
 function tickMarkers<T extends RuntimeMarker>(
   markers: T[],
-  boundary: 'start' | 'end',
+  boundary: TurnBoundary,
 ): { nextMarkers: T[]; expired: T[] } {
   const nextMarkers: T[] = []
   const expired: T[] = []
@@ -70,7 +71,7 @@ function tickMarkers<T extends RuntimeMarker>(
 
 function tickRuntimeEffects(
   runtimeEffects: RuntimeEffectInstance[],
-  boundary: 'start' | 'end',
+  boundary: TurnBoundary,
 ): { nextEffects: RuntimeEffectInstance[]; expired: RuntimeEffectInstance[] } {
   const nextEffects: RuntimeEffectInstance[] = []
   const expired: RuntimeEffectInstance[] = []
@@ -186,7 +187,7 @@ function processTrackedPartTurnEnd(
 
 function tickStatModifiers(
   modifiers: StatModifierMarker[],
-  boundary: 'start' | 'end',
+  boundary: TurnBoundary,
 ): { nextModifiers: StatModifierMarker[]; expired: StatModifierMarker[] } {
   const nextModifiers: StatModifierMarker[] = []
   const expired: StatModifierMarker[] = []
@@ -215,7 +216,7 @@ function tickStatModifiers(
 function processMarkerBoundary(
   state: EncounterState,
   combatantId: string | null,
-  boundary: 'start' | 'end',
+  boundary: TurnBoundary,
 ): EncounterState {
   if (!combatantId) return state
 
@@ -299,7 +300,7 @@ function processMarkerBoundary(
 function processRuntimeEffectBoundary(
   state: EncounterState,
   combatantId: string | null,
-  boundary: 'start' | 'end',
+  boundary: TurnBoundary,
 ): EncounterState {
   if (!combatantId) return state
 
@@ -332,7 +333,7 @@ function processRuntimeEffectBoundary(
 function executeTurnHooks(
   state: EncounterState,
   combatantId: string | null,
-  boundary: 'start' | 'end',
+  boundary: TurnBoundary,
 ): EncounterState {
   if (!combatantId) return state
 

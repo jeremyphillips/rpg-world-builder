@@ -3,7 +3,7 @@ import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import type { ClassProgression } from '@/features/content/classes/domain/types'
 import type { StepId } from '../../types'
-import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
+import { skillProficiencyIdToName } from '@/features/mechanics/domain/character'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -16,7 +16,7 @@ import Stack from '@mui/material/Stack'
 
 import EditIcon from '@mui/icons-material/Edit'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import { resolveAlignmentOptions } from '@/features/mechanics/domain/core/rules/alignment/resolveAlignmentOptions'
+import { resolveAlignmentOptions } from '@/features/mechanics/domain/rulesets/alignment/resolveOptions'
 
 // ---------------------------------------------------------------------------
 // Helpers

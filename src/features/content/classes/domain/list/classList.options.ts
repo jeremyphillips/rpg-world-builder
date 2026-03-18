@@ -1,5 +1,5 @@
 import type { ClassSummary } from '../repo/classRepo';
-import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities';
+import { ABILITIES } from '@/features/mechanics/domain/character';
 
 export type FilterOption = { label: string; value: string };
 

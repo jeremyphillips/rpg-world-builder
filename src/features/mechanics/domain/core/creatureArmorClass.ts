@@ -1,6 +1,6 @@
 import type { ArmorCategory, DexContribution } from '@/features/content/equipment/armor/domain/types'
-import type { FormulaDefinition } from '../resolution/formula.engine'
-import { getAbilityModifier } from './ability.utils'
+import type { FormulaDefinition } from '../resolution/engines/formula.engine'
+import { getAbilityModifier } from '../abilities/getAbilityModifier'
 
 export type CreatureArmorCatalogEntry = {
   id: string

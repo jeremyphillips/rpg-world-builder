@@ -1,8 +1,8 @@
 import type { Spell } from '@/features/content/spells/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
-import { classIdToName } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
+import { classIdToName } from '@/features/mechanics/domain/rulesets/system/classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 
 const schoolLabel = (value: string) =>
   MAGIC_SCHOOL_OPTIONS.find((o) => o.value === value)?.label ?? value;

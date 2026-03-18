@@ -3,7 +3,7 @@ import type { RaceId } from '@/shared/types/ruleset'
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import { getAlignmentOptionsForClass } from '@/features/mechanics/domain/character/selection'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { resolveAlignmentOptions } from '@/features/mechanics/domain/core/rules/alignment/resolveAlignmentOptions'
+import { resolveAlignmentOptions } from '@/features/mechanics/domain/rulesets/alignment/resolveOptions'
 import type { AlignmentId } from '@/features/content/shared/domain/types'
 
 export interface CharacterNarrative {

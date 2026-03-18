@@ -5,10 +5,23 @@
 
 import type { Money } from "@/shared/money/types"
 import type { ProficiencyAdjustment } from '@/features/character/domain/types'
+import type { AbilityKey } from '@/features/mechanics/domain/character'
 
 // ---------------------------------------------------------------------------
 // Class summary (shared by card, detail, roster)
 // ---------------------------------------------------------------------------
+
+/** Progression data exposed on class summaries in the detail DTO. */
+export type ClassProgressionSummary = {
+  spellcasting?: 'none' | 'half' | 'full' | 'third' | 'pact'
+  spellProgression?: {
+    ability?: AbilityKey
+    type?: 'prepared' | 'known'
+  }
+  hitDie: number
+  attackProgression?: string
+  savingThrows?: AbilityKey[]
+}
 
 export type CharacterClassSummary = {
   classId: string
@@ -16,6 +29,7 @@ export type CharacterClassSummary = {
   subclassId?: string | null
   subclassName?: string | null
   level: number
+  progression?: ClassProgressionSummary
 }
 
 /** Stored character class entry shape. Supports subclassId (current) and classDefinitionId (legacy). */
@@ -98,6 +112,7 @@ export type CharacterDetailDto = {
 
   hitPoints: {
     total: number
+    current?: number
     generationMethod?: string
   }
 
@@ -156,6 +171,7 @@ export type CharacterReadReferences = {
   raceById: Map<string, IdNameSummary>
   classById: Map<string, IdNameSummary>
   subclassById: Map<string, IdNameSummary>
+  classProgressionById: Map<string, ClassProgressionSummary>
   proficiencyById: Map<string, IdNameSummary>
   itemById: Map<string, IdNameSummary>
 }
@@ -165,5 +181,6 @@ export type LoadCharacterReadReferencesArgs = {
   include?: {
     proficiencies?: boolean
     items?: boolean
+    classProgression?: boolean
   }
 }

@@ -1,5 +1,5 @@
-import type { Effect } from "@/features/mechanics/domain/effects/effects.types";
-import type { ConditionId, DamageType } from "./monster-combat.types";
+import type { Effect, EffectConditionId } from "@/features/mechanics/domain/effects/effects.types";
+import type { DamageType } from "./monster-combat.types";
 import type { EffectDuration, EffectUses } from "@/features/mechanics/domain/effects/timing.types";
 
 export type MonsterTraitRequirement =
@@ -13,7 +13,7 @@ export type MonsterTraitTrigger =
   | {
       kind: 'ally-near-target';
       withinFeet: number;
-      allyConditionNot?: ConditionId;
+      allyConditionNot?: EffectConditionId;
     }
   | {
       kind: 'in-environment';

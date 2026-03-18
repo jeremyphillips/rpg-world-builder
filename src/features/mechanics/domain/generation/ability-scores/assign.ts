@@ -1,7 +1,6 @@
-import type { AbilityScoreMethod } from '@/features/mechanics/domain/core/rules/abilityScores.types'
+import type { AbilityScoreMethod } from '@/features/mechanics/domain/rulesets/types/abilityScores.types'
 import { generateScoreArray, type Rng } from './methods'
-import { ABILITY_KEYS } from '@/features/mechanics/domain/core/character'
-import type { AbilityScoreMapResolved, AbilityKey } from '@/features/mechanics/domain/core/character/abilities.types'
+import { ABILITY_KEYS, type AbilityScoreMapResolved, type AbilityKey } from '@/features/mechanics/domain/character'
 
 /**
  * Generate a complete AbilityScores object with scores assigned to abilities

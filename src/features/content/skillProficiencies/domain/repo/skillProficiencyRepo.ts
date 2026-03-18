@@ -17,10 +17,10 @@ import type {
 import {
   getSystemSkillProficiencies,
   getSystemSkillProficiency,
-} from '@/features/mechanics/domain/core/rules/systemCatalog.skillProficiencies';
+} from '@/features/mechanics/domain/rulesets/system/skillProficiencies';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 // ---------------------------------------------------------------------------
 // API response shapes

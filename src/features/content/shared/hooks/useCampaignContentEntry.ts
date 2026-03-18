@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules/ruleset.types';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 
 export interface UseCampaignContentEntryResult<T> {
   entry: T | null;

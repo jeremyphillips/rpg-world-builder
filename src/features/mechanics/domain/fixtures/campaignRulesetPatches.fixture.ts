@@ -1,4 +1,4 @@
-import type { CampaignRulesetPatch } from '@/features/mechanics/domain/core/rules/ruleset.types';
+import type { CampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 
 export const CAMPAIGN_RULESET_PATCHES_FIXTURE: CampaignRulesetPatch[] = [
   {

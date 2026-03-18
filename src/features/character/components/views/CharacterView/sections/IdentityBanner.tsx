@@ -1,11 +1,11 @@
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { CampaignSummary } from '@/shared/types/campaign.types'
-import { getXpForLevel } from '@/features/mechanics/domain/core/progression/xp'
+import { getXpForLevel } from '@/features/mechanics/domain/progression'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { CampaignHorizontalCard }from '@/features/campaign/components'
 import { EditableTextField } from '@/ui/patterns'
 import { ImageUploadField } from '@/ui/patterns'
-import { resolveXpTable } from '@/features/mechanics/domain/core/rules/xp/resolveXpTable'
+import { resolveXpTable } from '@/features/mechanics/domain/progression'
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'

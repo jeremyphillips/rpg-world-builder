@@ -37,8 +37,8 @@ import Grid from '@mui/material/Grid'
 import { AppAlert } from '@/ui/primitives'
 import type { AlignmentId } from '@/features/content/shared/domain/types'
 import type { RaceId } from '@/features/content/races/domain/types'
-import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character'
-import { resolveXpTable } from '@/features/mechanics/domain/core/rules/xp/resolveXpTable'
+import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/character'
+import { resolveXpTable } from '@/features/mechanics/domain/progression'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -101,7 +101,7 @@ export default function CharacterView({
   const navigate = useNavigate()
   const { ruleset, catalog } = useCampaignRules()
   const xpTable = resolveXpTable(ruleset.mechanics?.progression?.xp)
-  console.log('isOwner', isOwner)
+  
   // ── UI toggle state ────────────────────────────────────────────────
   const [awardXpOpen, setAwardXpOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)

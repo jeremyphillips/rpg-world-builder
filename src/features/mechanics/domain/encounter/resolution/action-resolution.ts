@@ -8,9 +8,8 @@ import {
   getEncounterCombatantLabel,
   updateEncounterCombatant,
 } from '../state'
-import { getAbilityModifier } from '../../core/ability.utils'
-import { abilityIdToKey } from '../../core/character/abilities.utils'
-import type { AbilityRef } from '../../core/character/abilities.types'
+import { getAbilityModifier } from '../../abilities/getAbilityModifier'
+import { abilityIdToKey, type AbilityRef } from '../../character'
 import type { Effect } from '../../effects/effects.types'
 import type {
   CombatActionCost,

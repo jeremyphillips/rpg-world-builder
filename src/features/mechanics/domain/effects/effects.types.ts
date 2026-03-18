@@ -1,14 +1,14 @@
 import type { Condition } from '../conditions/condition.types';
 import type { TriggerType } from '../triggers/trigger.types';
-import type { StatTarget } from '../resolution/stat-resolver';
-import type { FormulaEffect } from '../resolution/formula.engine';
+import type { StatTarget } from '../resolution/resolvers/stat-resolver';
+import type { FormulaEffect } from '../resolution/engines/formula.engine';
 import type { DiceOrFlat } from '../dice/dice.types';
-import type { AbilityKey, AbilityRef } from '../core/character';
+import type { AbilityKey, AbilityRef } from '../character';
 import type { EffectDuration } from './timing.types';
 import type { WeaponDamageType } from '@/features/content/equipment/weapons/domain/vocab';
 import type { MonsterSizeCategory } from '@/features/content/monsters/domain/vocab/monster.vocab';
 
-export type { FormulaDefinition, FormulaEffect } from '../resolution/formula.engine';
+export type { FormulaDefinition, FormulaEffect } from '../resolution/engines/formula.engine';
 
 export type ScalingRule = {};
 

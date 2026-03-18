@@ -4,7 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 
 import { useCharacterBuilder } from '../../context'
 import { getStepConfig } from '../../constants'
-import type { HitPointMode } from '@/features/mechanics/domain/character/progression'
+import type { HitPointMode } from '@/features/mechanics/domain/progression'
 import InvalidationConfirmDialog from '@/features/characterBuilder/components/InvalidationConfirmDialog/InvalidationConfirmDialog'
 
 export type AbilityScoreMode = 'default' | 'ai' | 'custom'

@@ -4,8 +4,8 @@
 // take the average or roll.
 
 import { useCallback } from 'react'
-import { getHitPointInfoByClassId } from '@/features/mechanics/domain/classes/progression'
-import { getAverageHitPointsForLevel } from '@/features/mechanics/domain/character/progression/getAverageHitPointsForLevel'
+import { getHitPointInfoByClassId } from '@/features/mechanics/domain/progression/class'
+import { getAverageHitPointsForLevel } from '@/features/mechanics/domain/progression/hit-points'
 import { rollHitDie } from '@/features/mechanics/domain/dice'
 import type { LevelUpState } from '../levelUp.types'
 

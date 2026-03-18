@@ -8,6 +8,9 @@ export type TimeUnit =
   | 'month'
   | 'year'
 
+/** Turn boundary for duration tick and hook trigger timing. */
+export type TurnBoundary = 'start' | 'end'
+
 export type EffectDuration =
   | { kind: 'instant' }
   | {
@@ -19,7 +22,7 @@ export type EffectDuration =
       kind: 'until-turn-boundary'
       subject: 'self' | 'source' | 'target'
       turn: 'current' | 'next'
-      boundary: 'start' | 'end'
+      boundary: TurnBoundary
     }
 
 export type EffectDurationInput =

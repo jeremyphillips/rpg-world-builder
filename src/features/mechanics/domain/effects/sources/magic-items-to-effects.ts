@@ -5,8 +5,8 @@
  * Each effect carries `source: 'magic_item:<id>'`.
  */
 import type { Effect } from '../effects.types'
-import { getSystemMagicItems } from '@/features/mechanics/domain/core/rules/systemCatalog.magicItems'
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds'
+import { getSystemMagicItems } from '@/features/mechanics/domain/rulesets/system/magicItems'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types'
 
 // ---------------------------------------------------------------------------

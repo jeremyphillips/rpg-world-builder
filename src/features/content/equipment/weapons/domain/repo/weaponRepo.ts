@@ -16,12 +16,12 @@
  */
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import type { Weapon, WeaponSummary, WeaponInput, WeaponFields } from '@/features/content/equipment/weapons/domain/types';
-import { getSystemWeapons, getSystemWeapon } from '@/features/mechanics/domain/core/rules/systemCatalog.weapons';
+import { getSystemWeapons, getSystemWeapon } from '@/features/mechanics/domain/rulesets/system/weapons';
 import { campaignWeaponRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
 import { moneyToCp } from '@/shared/money';
-import type { SystemRulesetId } from '@/features/mechanics/domain/core/rules';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 function toSummary(weapon: Weapon): WeaponSummary {
   const base = {

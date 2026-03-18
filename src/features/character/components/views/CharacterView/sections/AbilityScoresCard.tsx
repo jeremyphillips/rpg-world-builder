@@ -1,6 +1,6 @@
 import type { CharacterDoc } from '@/features/character/domain/types'
 import { StatCircle } from '@/ui/primitives'
-import { ABILITY_UI } from '@/features/mechanics/domain/core/character/abilities'
+import { ABILITY_UI } from '@/features/mechanics/domain/character'
 import { Card, CardContent, Typography, Stack } from '@mui/material'
 
 type AbilityScoresCardProps = {

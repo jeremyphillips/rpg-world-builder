@@ -1,0 +1,1 @@
+export { getProficiencyAttackBonus } from './getProficiencyAttackBonus'

@@ -7,20 +7,20 @@ import type { AbilityScoreMode } from '@/features/characterBuilder/components/Ch
 import { AppModal, ConfirmModal } from '@/ui/patterns'
 import { apiFetch } from '@/app/api'
 import type { CharacterClassInfo } from '@/features/character/domain/types'
-import { getSystemClass } from '@/features/mechanics/domain/core/rules/systemCatalog.classes';
-import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/core/rules/systemIds';
+import { getSystemClass } from '@/features/mechanics/domain/rulesets/system/classes';
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import { generateAbilityScores, prioritizeAbilityScores } from '@/features/mechanics/domain/generation/ability-scores'
-import { generateHitPoints } from '@/features/mechanics/domain/character/progression/generateHitPoints'
+import { generateHitPoints } from '@/features/mechanics/domain/progression/hit-points'
 import { LoadingOverlay } from '@/ui/patterns'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import type { AbilityScoreMethod } from '@/features/mechanics/domain/core/rules/abilityScores.types'
-import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'
+import type { AbilityScoreMethod } from '@/features/mechanics/domain/rulesets/types/abilityScores.types'
+import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/character'
 import type { CharacterBuilderState } from '@/features/characterBuilder/types'
 import { getSkillIds, toSkillProficienciesRecord } from '@/features/character/domain/utils/character-proficiency.utils'
 import { AppAlert } from '@/ui/primitives'
-import { abilityIdToKey } from '@/features/mechanics/domain/core/character'
-import type { AbilityId } from '@/features/mechanics/domain/core/character/abilities.types'
+import { abilityIdToKey } from '@/features/mechanics/domain/character'
+import type { AbilityId } from '@/features/mechanics/domain/character'
 
 // ---------------------------------------------------------------------------
 // ChatMessageItem

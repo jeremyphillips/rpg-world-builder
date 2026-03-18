@@ -1,5 +1,5 @@
 import type { DieFace } from "@/features/mechanics/domain/dice/dice.types";
-import type { AbilityScoreMapResolved } from "@/features/mechanics/domain/core/character/abilities.types";
+import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/character';
 import type { TriggerType } from "../triggers/trigger.types";
 
 export interface EvaluationContext {
