@@ -1,12 +1,10 @@
 import type { MulticlassingRules } from '@/shared/types/ruleset';
 import type { AbilityRequirementGroup, RequirementExpr } from '@/features/content/classes/domain/types';
-import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types';
-import type { AbilityScoreValue } from '@/features/mechanics/domain/core/character/abilities.types';
+import type { AbilityScoreMapResolved, AbilityScoreValue } from '@/features/mechanics/domain/character';
 import { getSystemClass } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import { resolveRule, type RuleResolveContext } from '@/features/mechanics/domain/rulesets';
-import { ABILITY_KEYS } from '@/features/mechanics/domain/core/character';
-import { abilityIdToKey } from '@/features/mechanics/domain/core/character/abilities.utils';
+import { ABILITY_KEYS, abilityIdToKey } from '@/features/mechanics/domain/character';
 
 // ---------------------------------------------------------------------------
 // Result type

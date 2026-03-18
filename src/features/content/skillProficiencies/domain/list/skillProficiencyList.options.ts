@@ -1,5 +1,5 @@
 import type { SkillProficiencySummary } from '@/features/content/skillProficiencies/domain/types';
-import { ABILITIES } from '@/features/mechanics/domain/core/character/abilities';
+import { ABILITIES } from '@/features/mechanics/domain/character';
 import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 
 export type FilterOption = { label: string; value: string };

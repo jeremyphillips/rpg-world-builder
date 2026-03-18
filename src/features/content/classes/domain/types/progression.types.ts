@@ -1,5 +1,5 @@
 import type { DieFace } from '@/features/mechanics/domain/dice/dice.types'
-import type { AbilityId } from '@/features/mechanics/domain/core/character'
+import type { AbilityId } from '@/features/mechanics/domain/character'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
 
 export type AttackProgression = 'good' | 'average' | 'poor'

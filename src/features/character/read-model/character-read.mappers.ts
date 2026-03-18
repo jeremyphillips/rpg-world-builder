@@ -216,7 +216,7 @@ export function toCharacterForEngine(dto: CharacterDetailDto): import('@/feature
     totalLevel: dto.totalLevel ?? dto.level,
     levelUpPending: dto.levelUpPending,
     pendingLevel: dto.pendingLevel,
-    abilityScores: dto.abilityScores as import('@/features/mechanics/domain/core/character/abilities.types').AbilityScoreMapResolved,
+    abilityScores: dto.abilityScores as import('@/features/mechanics/domain/character').AbilityScoreMapResolved,
     hitPoints: dto.hitPoints,
     armorClass: dto.armorClass,
     combat: dto.combat,

@@ -3,7 +3,7 @@ import type { EffectBase } from "../effects/effects.types"
 import type { EvaluationContext } from "../conditions/evaluation-context.types"
 import { getAbilityModifier } from "../core"
 import { getProficiencyAttackBonus } from "@/features/mechanics/domain/progression"
-import type { AbilityKey } from "../core/character"
+import type { AbilityKey } from '../character'
 
 // Responsible for:
 //   - Evaluating formula definitions

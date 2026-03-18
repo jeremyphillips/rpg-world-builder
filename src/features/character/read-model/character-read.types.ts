@@ -5,7 +5,7 @@
 
 import type { Money } from "@/shared/money/types"
 import type { ProficiencyAdjustment } from '@/features/character/domain/types'
-import type { AbilityKey } from '@/features/mechanics/domain/core/character'
+import type { AbilityKey } from '@/features/mechanics/domain/character'
 
 // ---------------------------------------------------------------------------
 // Class summary (shared by card, detail, roster)

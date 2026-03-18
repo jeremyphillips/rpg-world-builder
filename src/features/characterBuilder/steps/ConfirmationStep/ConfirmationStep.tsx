@@ -3,7 +3,7 @@ import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import type { ClassProgression } from '@/features/content/classes/domain/types'
 import type { StepId } from '../../types'
-import { skillProficiencyIdToName } from '@/features/mechanics/domain/core/character/skillProficiencies.utils'
+import { skillProficiencyIdToName } from '@/features/mechanics/domain/character'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'

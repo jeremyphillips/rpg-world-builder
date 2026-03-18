@@ -8,9 +8,7 @@ import type {
   EquipmentItemInstance,
 } from '@/features/character/domain/types'
 import type { HitPointMode } from '@/features/mechanics/domain/progression'
-import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
-import type { AbilityScoreValue, AbilityScoreMapResolved } from '@/features/mechanics/domain/core/character/abilities.types'
-import type { AbilityKey } from '@/features/mechanics/domain/core/character'
+import type { InvalidationResult, InvalidationItem, AbilityScoreValue, AbilityScoreMapResolved, AbilityKey } from '@/features/mechanics/domain/character'
 
 export type AbilityScoreSource = 'import_manual' | 'generated_roll';
 export type AbilityScoresStatus = 'unset' | 'partial' | 'complete';

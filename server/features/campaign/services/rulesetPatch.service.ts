@@ -1,6 +1,6 @@
 import { CampaignRulesetPatch } from '../../../shared/models/CampaignRulesetPatch.model';
 import { DEFAULT_SYSTEM_RULESET_ID, SYSTEM_RULESET_IDS } from '../../../../src/features/mechanics/domain/rulesets';
-import { ABILITY_KEYS, type AbilityKey } from '../../../../src/features/mechanics/domain/core/character';
+import { ABILITY_KEYS, type AbilityKey } from '../../../../src/features/mechanics/domain/character';
 
 // ---------------------------------------------------------------------------
 // Canonical ability IDs (shared with client via convention)

@@ -3,7 +3,7 @@ import type { Effect } from '../effects/effects.types'
 import { getAbilityModifier } from '../abilities/getAbilityModifier'
 import { resolveStatDetailed, type BreakdownToken } from './stat-resolver'
 import type { WeaponDamageType } from '@/features/content/equipment/weapons/domain/vocab'
-import type { AbilityKey } from '@/features/mechanics/domain/core/character/abilities.types'
+import type { AbilityKey } from '@/features/mechanics/domain/character'
 
 // ---------------------------------------------------------------------------
 // Types

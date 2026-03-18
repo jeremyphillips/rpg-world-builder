@@ -3,7 +3,7 @@
  * Batch-loads reference data for race, class, subclass, proficiencies, equipment.
  */
 
-import { abilityIdToKey } from '@/features/mechanics/domain/core/character/abilities.utils'
+import { abilityIdToKey } from '@/features/mechanics/domain/character'
 import { getSystemRaces } from '@/features/mechanics/domain/rulesets/system/races'
 import { getSystemClasses } from '@/features/mechanics/domain/rulesets/system/classes'
 import { getSystemSkillProficiencies } from '@/features/mechanics/domain/rulesets/system/skillProficiencies'

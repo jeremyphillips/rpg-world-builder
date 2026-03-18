@@ -3,7 +3,7 @@ import type { TriggerType } from '../triggers/trigger.types';
 import type { StatTarget } from '../resolution/stat-resolver';
 import type { FormulaEffect } from '../resolution/formula.engine';
 import type { DiceOrFlat } from '../dice/dice.types';
-import type { AbilityKey, AbilityRef } from '../core/character';
+import type { AbilityKey, AbilityRef } from '../character';
 import type { EffectDuration } from './timing.types';
 import type { WeaponDamageType } from '@/features/content/equipment/weapons/domain/vocab';
 import type { MonsterSizeCategory } from '@/features/content/monsters/domain/vocab/monster.vocab';

@@ -5,7 +5,7 @@ import { resolveFormulaProficiency, resolveFormulaValue } from "./formula.engine
 import type { FormulaEffect, FormulaDefinition } from "./formula.engine"
 import { getBaseStat } from "../core/base-stat-resolver"
 import { getAbilityModifier } from "../abilities/getAbilityModifier"
-import type { AbilityId, AbilityKey } from "../core/character"
+import type { AbilityId, AbilityKey } from '../character'
 
 // ---------------------------------------------------------------------------
 // Stat target

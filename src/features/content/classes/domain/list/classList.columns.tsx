@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import type { AppDataGridColumn } from '@/ui/patterns';
 import { AppTooltip } from '@/ui/primitives';
-import { abilityIdToAbbrev } from '@/features/mechanics/domain/core/character/abilities.utils';
+import { abilityIdToAbbrev } from '@/features/mechanics/domain/character';
 import type { ClassListRow } from './classList.types';
 
 function subclassTooltipText(options: { id: string; name: string }[]): string {

@@ -1,5 +1,5 @@
 import type { CreatureSnapshot } from '../conditions/evaluation-context.types'
-import type { AbilityKey } from '@/features/mechanics/domain/core/character/abilities.types'
+import type { AbilityKey } from '@/features/mechanics/domain/character'
 
 export function getAbilityModifier(score: number): number
 export function getAbilityModifier(creature: CreatureSnapshot, ability: AbilityKey): number

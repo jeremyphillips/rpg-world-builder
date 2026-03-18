@@ -1,4 +1,4 @@
-import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
+import type { AbilityId } from '@/features/mechanics/domain/character';
 import type { WeaponDamageType } from "@/features/content/equipment/weapons/domain/vocab";
 
 export type AttackAbility = AbilityId;

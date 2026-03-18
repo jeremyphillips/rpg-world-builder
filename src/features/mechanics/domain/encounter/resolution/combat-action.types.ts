@@ -1,5 +1,5 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
-import type { AbilityId } from '@/features/mechanics/domain/core/character/abilities.types'
+import type { AbilityId } from '@/features/mechanics/domain/character'
 import type { BreakdownToken } from '../../resolution/stat-resolver'
 
 export type CombatActionKind =

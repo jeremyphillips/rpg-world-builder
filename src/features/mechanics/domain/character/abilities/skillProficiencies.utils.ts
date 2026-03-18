@@ -7,5 +7,3 @@ const skillProficiencyById = Object.fromEntries(skills.map((s) => [s.id, s]))
 
 export const skillProficiencyIdToName = (id: SkillProficiencyId | string): string =>
   skillProficiencyById[id]?.name ?? id
-
-

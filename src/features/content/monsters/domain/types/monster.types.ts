@@ -5,8 +5,7 @@ import type {
   ContentItem,
   ContentInput,
 } from '@/features/content/shared/domain/types/content.types';
-import type { AbilityScoreMap } from "@/features/mechanics/domain/core/character/abilities.types";
-import type { AbilityId } from "@/features/mechanics/domain/core/character/abilities.types";
+import type { AbilityScoreMap, AbilityId } from '@/features/mechanics/domain/character';
 import type { AlignmentId } from "@/features/content/shared/domain/types";
 import type { MonsterType, MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
 import type {

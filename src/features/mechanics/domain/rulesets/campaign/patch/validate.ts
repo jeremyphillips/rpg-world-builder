@@ -5,7 +5,7 @@
  * map issues back to specific fields (UI form errors, API responses, etc.).
  */
 import type { CampaignRulesetPatch, SystemRuleset } from '../../types/ruleset.types';
-import { ABILITY_KEYS, type AbilityKey } from '@/features/mechanics/domain/core/character';
+import { ABILITY_KEYS, type AbilityKey } from '@/features/mechanics/domain/character';
 
 // ---------------------------------------------------------------------------
 // Types

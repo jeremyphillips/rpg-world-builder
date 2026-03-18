@@ -3,7 +3,7 @@ import Box from '@mui/material/Box'
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
 
 import { ConfirmModal } from '@/ui/patterns'
-import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
+import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character'
 
 // ---------------------------------------------------------------------------
 // Props

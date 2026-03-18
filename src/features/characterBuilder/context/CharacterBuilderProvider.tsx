@@ -3,13 +3,13 @@ import CharacterBuilderContext from './CharacterBuilderContext'
 import type { CharacterBuilderState, StepId, AbilityScoreSource, AbilityScoresStatus } from '../types'
 import type { CharacterClassInfo } from '@/features/character/domain/types'
 import type { CharacterProficiencies, EquipmentItemInstance } from '@/features/character/domain/types'
-import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character-build/invalidation'
+import type { InvalidationResult, InvalidationItem } from '@/features/mechanics/domain/character'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import {
   detectInvalidations,
   resolveInvalidations,
   INVALIDATION_RULES,
-} from '@/features/mechanics/domain/character-build/invalidation'
+} from '@/features/mechanics/domain/character'
 import {
   getStepConfig,
   createInitialBuilderState,
@@ -35,7 +35,7 @@ import {
   type AbilityScoreValue, 
   type AbilityKey,
   type AbilityScoreMap
-} from '@/features/mechanics/domain/core/character'
+} from '@/features/mechanics/domain/character'
 
 export const CharacterBuilderProvider = ({ children }: PropsWithChildren) => {
   const { ruleset, catalog } = useCampaignRules()
