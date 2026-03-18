@@ -4,17 +4,6 @@ import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { AppAlert } from '@/ui/primitives'
 
-function formatClassDisplay(classes: { className: string; subclassName?: string | null }[]): string {
-  if (classes.length === 0) return '—'
-  return classes
-    .map((c) => (c.subclassName ? `${c.className} (${c.subclassName})` : c.className))
-    .join(', ')
-}
-
-function totalLevel(classes: { level: number }[]): number {
-  return classes.reduce((sum, c) => sum + c.level, 0)
-}
-
 export interface CampaignPartySectionProps {
   status?: 'pending' | 'approved'
 }
@@ -52,8 +41,7 @@ export default function CampaignPartySection({
               characterId={char.id}
               name={char.name}
               race={char.race?.name ?? '—'}
-              class={formatClassDisplay(char.classes)}
-              level={totalLevel(char.classes)}
+              classes={char.classes}
               imageUrl={char.imageUrl ?? undefined}
               status={char.status}
               attribution={{ name: char.ownerName, imageUrl: char.ownerAvatarUrl ?? undefined }}

@@ -2,13 +2,14 @@ import { MediaTopCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
 import Box from '@mui/material/Box'
 import PersonIcon from '@mui/icons-material/Person'
+import { formatCharacterClassLine } from '@/features/character/helpers/formatCharacterClassLine'
+import type { CharacterClassSummary } from '@/features/character/read-model'
 
 interface CharacterMediaTopCardProps {
   characterId: string
   name: string
   race?: string
-  class: string
-  level?: number
+  classes: CharacterClassSummary[]
   description?: string
   imageUrl?: string
   status?: 'pending' | 'approved'
@@ -23,8 +24,7 @@ const CharacterMediaTopCard = ({
   characterId,
   name,
   race,
-  class: className,
-  level,
+  classes,
   description,
   imageUrl,
   status,
@@ -34,7 +34,8 @@ const CharacterMediaTopCard = ({
   onEdit,
   actions,
 }: CharacterMediaTopCardProps) => {
-  const subheadline = [race, className, level != null ? `Level ${level}` : undefined]
+  const classLine = formatCharacterClassLine(classes)
+  const subheadline = [race, classLine]
     .filter(Boolean)
     .join(' · ')
   const badges: CardBadgeProps[] = status ? [{ type: 'status', value: status }] : []
