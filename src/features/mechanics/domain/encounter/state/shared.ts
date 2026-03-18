@@ -1,5 +1,6 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
+import { rollDie } from '@/features/mechanics/domain/resolution/engines/dice.engine'
 
 import type {
   CombatantInstance,
@@ -195,7 +196,7 @@ export function syncCombatantTurnResources(combatant: CombatantInstance): Combat
 }
 
 export function rollRechargeDie(rng: () => number): number {
-  return Math.floor(rng() * 6) + 1
+  return rollDie(6, rng)
 }
 
 export function normalizeDamageType(damageType?: string): string | null {

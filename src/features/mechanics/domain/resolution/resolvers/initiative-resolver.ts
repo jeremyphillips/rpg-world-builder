@@ -18,9 +18,7 @@ export interface InitiativeResolverOptions {
   rng?: () => number
 }
 
-function rollD20(rng: () => number): number {
-  return Math.floor(rng() * 20) + 1
-}
+import { rollDie } from '../engines/dice.engine'
 
 function compareInitiative(a: InitiativeRoll, b: InitiativeRoll): number {
   if (b.total !== a.total) return b.total - a.total
@@ -43,7 +41,7 @@ export function rollInitiative(
 
   return participants
     .map((participant) => {
-      const roll = rollD20(rng)
+      const roll = rollDie(20, rng)
       return {
         combatantId: participant.instanceId,
         label: participant.label,

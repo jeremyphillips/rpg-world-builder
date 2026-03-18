@@ -43,12 +43,9 @@ src/features/mechanics/domain/resolution/
     └── buildCharacterResolutionInput.ts # Extends creature with character concerns
 
 src/features/mechanics/domain/encounter/resolution/
-├── index.ts                           # Encounter resolution barrel
+├── index.ts                           # Encounter resolution barrel (re-exports initiative from resolution/)
 ├── combat-action.types.ts            # CombatActionDefinition, profiles, costs
 ├── action-resolution.types.ts        # Selection and options types
-├── action-resolution.ts              # Re-export barrel (backwards compat)
-├── initiative-resolution.ts          # Re-export from resolution/resolvers/
-├── initiative-resolution.types.ts    # Re-export from resolution/resolvers/
 └── action/
     ├── action-resolver.ts            # Combat action orchestrator
     ├── action-cost.ts                # Turn resource management

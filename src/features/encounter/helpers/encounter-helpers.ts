@@ -7,11 +7,10 @@ import type { Weapon } from '@/features/content/equipment/weapons/domain/types/w
 import type { Spell, SpellDuration } from '@/features/content/spells/domain/types/spell.types'
 import type { EffectDuration } from '@/features/mechanics/domain/effects/timing.types'
 import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
-import type { EvaluationContext } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
 import { findCharacterSpellcastingClassEntry } from '@/features/mechanics/domain/spellcasting'
-import { resolveWeaponAttackBonus, resolveWeaponDamage } from '@/features/mechanics/domain/resolution'
+import { resolveWeaponAttackBonus, resolveWeaponDamage, buildCreatureResolutionInput } from '@/features/mechanics/domain/resolution'
 import { getProficiencyAttackBonus } from '@/features/mechanics/domain/progression'
 import {
   buildActiveMonsterEffects,
@@ -69,29 +68,23 @@ function formatAuthoredDamage(
   return `${baseDamage} ${damageBonus > 0 ? '+' : '-'} ${Math.abs(damageBonus)}`
 }
 
-function buildMonsterEvaluationContext(monster: Monster): EvaluationContext {
+function buildMonsterEvaluationContext(monster: Monster) {
   const abilities = monster.mechanics.abilities
 
-  return {
-    self: {
-      id: monster.id,
-      level: 1,
-      hp: 1,
-      hpMax: 1,
-      abilities: {
-        strength: abilities?.str ?? 10,
-        dexterity: abilities?.dex ?? 10,
-        constitution: abilities?.con ?? 10,
-        intelligence: abilities?.int ?? 10,
-        wisdom: abilities?.wis ?? 10,
-        charisma: abilities?.cha ?? 10,
-      },
-      conditions: [],
-      resources: {},
-      equipment: {},
-      flags: {},
+  return buildCreatureResolutionInput({
+    id: monster.id,
+    level: 1,
+    hp: 1,
+    hpMax: 1,
+    abilities: {
+      strength: abilities?.str ?? 10,
+      dexterity: abilities?.dex ?? 10,
+      constitution: abilities?.con ?? 10,
+      intelligence: abilities?.int ?? 10,
+      wisdom: abilities?.wis ?? 10,
+      charisma: abilities?.cha ?? 10,
     },
-  }
+  })
 }
 
 function resolveMonsterWeaponAttack(args: {
@@ -110,7 +103,7 @@ function resolveMonsterWeaponAttack(args: {
   const { monster, proficiencyWeaponId, weapon, equippedWeapon, effects } = args
   if (!weapon) return null
 
-  const context = buildMonsterEvaluationContext(monster)
+  const { context } = buildMonsterEvaluationContext(monster)
   const proficiencyLevel =
     monster.mechanics.proficiencies?.weapons?.[proficiencyWeaponId]?.proficiencyLevel ?? 1
   const proficiencyBonus = monster.mechanics.proficiencyBonus ?? 2
