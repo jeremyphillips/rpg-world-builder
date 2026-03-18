@@ -7,7 +7,7 @@
 import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { SystemRulesetId } from '../types/ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from '../ids/systemIds';
-import { FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, WARLOCK_PACT_SLOTS_5E } from '@/data/ruleSets/spellSlotTables';
+import { FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, WARLOCK_PACT_SLOTS_5E } from '@/features/mechanics/domain/progression/class';
 
 // ---------------------------------------------------------------------------
 // 5e v1 system classes (SRD_CC_v5_2_1)
@@ -83,7 +83,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       spellProgression: {
         ability: 'wis',
         type: 'prepared',
-        cantripsKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+        cantripsKnown: 'standard3',
         spellSlots: FULL_CASTER_SLOTS,
         maxSpellLevel: 9,
       },
@@ -183,7 +183,6 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       spellProgression: {
         ability: 'cha',
         type: 'prepared',
-        cantripsKnown: [],
         spellSlots: HALF_CASTER_SLOTS,
         maxSpellLevel: 5,
       },
@@ -218,7 +217,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       spellProgression: {
         ability: 'cha',
         type: 'prepared',
-        cantripsKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+        cantripsKnown: 'standard2',
         spellSlots: FULL_CASTER_SLOTS,
         maxSpellLevel: 9,
       },
@@ -252,8 +251,6 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       spellProgression: {
         ability: 'wis',
         type: 'prepared',
-        // TODO: double check cantripsKnown
-        cantripsKnown: [],
         spellSlots: HALF_CASTER_SLOTS,
         maxSpellLevel: 5,
       },
@@ -322,7 +319,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       spellProgression: {
         ability: 'wis',
         type: 'known',
-        cantripsKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+        cantripsKnown: 'standard2',
         spellSlots: FULL_CASTER_SLOTS,
         maxSpellLevel: 9,
       },
@@ -356,7 +353,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       spellProgression: {
         ability: 'cha',
         type: 'known',
-        cantripsKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+        cantripsKnown: 'standard2',
         // spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
         spellSlots: WARLOCK_PACT_SLOTS_5E,
         maxSpellLevel: 5,
@@ -433,7 +430,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       spellProgression: {
         ability: 'cha',
         type: 'known',
-        cantripsKnown: [4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+        cantripsKnown: 'standard4',
         // spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
         spellSlots: FULL_CASTER_SLOTS,
         maxSpellLevel: 9,
@@ -539,7 +536,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       spellProgression: {
         ability: 'int',
         type: 'prepared',
-        cantripsKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+        cantripsKnown: 'standard3',
         spellSlots: FULL_CASTER_SLOTS,
         maxSpellLevel: 9,
       },

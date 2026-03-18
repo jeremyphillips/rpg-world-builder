@@ -5,6 +5,7 @@
  * Callers provide the ClassProgression; this function interprets it.
  */
 import type { ClassProgression } from '@/features/content/classes/domain/types'
+import { getCantripsFromProfile } from './cantripProgressionProfiles'
 
 // ---------------------------------------------------------------------------
 // Casting mode
@@ -55,7 +56,9 @@ export function getClassSpellLimitsAtLevel(
   if (!sp) return { castingMode: 'none', cantrips: 0, totalKnown: 0, maxSpellLevel: 0, slotsByLevel: [] }
 
   const idx = Math.min(classLevel, sp.spellSlots.length) - 1
-  const cantrips = sp.cantripsKnown?.[idx] ?? 0
+  const cantrips = sp.cantripsKnown
+    ? getCantripsFromProfile(sp.cantripsKnown, classLevel)
+    : 0
   const totalKnown = sp.spellsKnown?.[idx] ?? 0
   const slots = idx >= 0 ? sp.spellSlots[idx] : []
 

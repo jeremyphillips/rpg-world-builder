@@ -33,10 +33,9 @@ export interface SpellProgression {
    *  - 'prepared' — choose daily from class list or spellbook (Wizard, Cleric, Druid, Paladin) */
   type: 'known' | 'prepared'
 
-  /** Cantrips / 0-level spells available at each class level. Index 0 = level 1.
-   *  5e: number of cantrips known.
-   *  3.5e: number of 0-level spell slots per day. */
-  cantripsKnown?: number[]
+  /** Cantrips / 0-level spells: profile key from CANTRIP_PROGRESSION_PROFILES.
+   *  Omit for classes with no cantrips (e.g. Paladin, Ranger). */
+  cantripsKnown?: 'standard2' | 'standard3' | 'standard4'
 
   /** Total spells known at each class level. Index 0 = level 1.
    *  5e 'known' casters only (Sorcerer, Bard, Warlock, Ranger).

@@ -15,3 +15,18 @@ export const CANTRIP_PROGRESSION_PROFILES = {
     { level: 10, known: 6 },
   ],
 } as const;
+
+export type CantripProgressionProfileId = keyof typeof CANTRIP_PROGRESSION_PROFILES;
+
+/** Resolve cantrips known at a given class level from a profile. */
+export function getCantripsFromProfile(
+  profileId: CantripProgressionProfileId,
+  classLevel: number,
+): number {
+  const profile = CANTRIP_PROGRESSION_PROFILES[profileId]
+  let result = 0
+  for (const entry of profile) {
+    if (entry.level <= classLevel) result = entry.known
+  }
+  return result
+}
