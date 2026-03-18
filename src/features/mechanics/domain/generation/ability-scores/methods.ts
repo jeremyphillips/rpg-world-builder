@@ -1,11 +1,7 @@
 import type { AbilityScoreMethod } from '@/features/mechanics/domain/rulesets/types/abilityScores.types'
+import { rollDie } from '@/features/mechanics/domain/resolution/engines/dice.engine'
 
 export type Rng = () => number
-
-/** Roll a single die with `sides` faces (1-indexed). */
-function rollDie(sides: number, rng: Rng): number {
-  return Math.floor(rng() * sides) + 1
-}
 
 /** Roll `count` dice, return the individual results. */
 function rollDice(count: number, sides: number, rng: Rng): number[] {

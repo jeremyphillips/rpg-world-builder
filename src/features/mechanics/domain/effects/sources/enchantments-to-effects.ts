@@ -8,7 +8,7 @@ import type { Effect } from '../effects.types'
 import type { EnchantableSlot } from '@/features/content/enchantments/domain/types'
 import { enchantmentRepo } from '@/features/content/shared/domain/repo'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
-import type { ResolvedEquipmentLoadout, ResolvedSlot } from './equipment-to-effects'
+import type { ResolvedEquipmentLoadout, ResolvedSlot } from '@/features/mechanics/domain/equipment/loadout'
 
 // ---------------------------------------------------------------------------
 // Slot mapping

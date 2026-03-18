@@ -4,15 +4,15 @@ import type { MonsterAction } from '@/features/content/monsters/domain/types/mon
 import type { MonsterEquippedWeapon } from '@/features/content/monsters/domain/types/monster-equipment.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types/weapon.types'
-import type { Spell, SpellDuration } from '@/features/content/spells/domain/types/spell.types'
+import type { Spell, SpellDuration, SpellRange } from '@/features/content/spells/domain/types/spell.types'
 import type { EffectDuration } from '@/features/mechanics/domain/effects/timing.types'
 import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
-import type { EvaluationContext } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
-import { findCharacterSpellcastingClassEntry } from '@/features/mechanics/domain/spellcasting'
-import { resolveWeaponAttackBonus, resolveWeaponDamage } from '@/features/mechanics/domain/resolution'
-import { getProficiencyAttackBonus } from '@/features/mechanics/domain/progression'
+import { findCharacterSpellcastingClassEntry, getSpellcastingAbility, getSpellSaveDc, getSpellAttackBonus } from '@/features/mechanics/domain/spellcasting'
+import { resolveWeaponAttackBonus, resolveWeaponDamage, buildCreatureResolutionInput } from '@/features/mechanics/domain/resolution'
+import { resolveProficiencyBonusAtLevel, resolveProficiencyContribution } from '@/features/mechanics/domain/progression'
+import type { MechanicsRules } from '@/shared/types/ruleset'
 import {
   buildActiveMonsterEffects,
   type CombatActionDefinition,
@@ -30,24 +30,30 @@ export function formatSigned(value: number): string {
   return value >= 0 ? `+${value}` : String(value)
 }
 
-export function getCharacterSpellcastingStats(character: CharacterDetailDto): {
+export function getCharacterSpellcastingStats(
+  character: CharacterDetailDto,
+  ruleset: { mechanics: MechanicsRules },
+): {
   spellSaveDc: number
   spellAttackBonus: number
 } {
   const spellcastingClass = findCharacterSpellcastingClassEntry(character)
-  const abilityKey = spellcastingClass?.progression?.spellProgression?.ability
+  const abilityKey = getSpellcastingAbility(character)
   const abilityScore = abilityKey ? character.abilityScores?.[abilityKey] ?? 10 : 10
   const abilityMod = getAbilityModifier(abilityScore)
-  const profBonus = getProficiencyAttackBonus(spellcastingClass?.level ?? 1)
+  const profBonus = resolveProficiencyBonusAtLevel({
+    level: spellcastingClass?.level ?? 1,
+    ruleset,
+  })
 
   return {
-    spellSaveDc: 8 + profBonus + abilityMod,
-    spellAttackBonus: profBonus + abilityMod,
+    spellSaveDc: getSpellSaveDc(profBonus, abilityMod),
+    spellAttackBonus: getSpellAttackBonus(profBonus, abilityMod),
   }
 }
 
 function toSavingThrowModifier(score: number | null | undefined, proficiencyLevel = 0, proficiencyBonus = 2): number {
-  return getAbilityModifier(score ?? 10) + proficiencyLevel * proficiencyBonus
+  return getAbilityModifier(score ?? 10) + resolveProficiencyContribution(proficiencyBonus, proficiencyLevel)
 }
 
 export function formatDice(value: DiceOrFlat | undefined): string | undefined {
@@ -69,29 +75,24 @@ function formatAuthoredDamage(
   return `${baseDamage} ${damageBonus > 0 ? '+' : '-'} ${Math.abs(damageBonus)}`
 }
 
-function buildMonsterEvaluationContext(monster: Monster): EvaluationContext {
+function buildMonsterEvaluationContext(monster: Monster) {
   const abilities = monster.mechanics.abilities
 
-  return {
-    self: {
-      id: monster.id,
-      level: 1,
-      hp: 1,
-      hpMax: 1,
-      abilities: {
-        strength: abilities?.str ?? 10,
-        dexterity: abilities?.dex ?? 10,
-        constitution: abilities?.con ?? 10,
-        intelligence: abilities?.int ?? 10,
-        wisdom: abilities?.wis ?? 10,
-        charisma: abilities?.cha ?? 10,
-      },
-      conditions: [],
-      resources: {},
-      equipment: {},
-      flags: {},
+  return buildCreatureResolutionInput({
+    id: monster.id,
+    level: 1,
+    proficiencyBonus: monster.mechanics.proficiencyBonus ?? 2,
+    hp: 1,
+    hpMax: 1,
+    abilities: {
+      strength: abilities?.str ?? 10,
+      dexterity: abilities?.dex ?? 10,
+      constitution: abilities?.con ?? 10,
+      intelligence: abilities?.int ?? 10,
+      wisdom: abilities?.wis ?? 10,
+      charisma: abilities?.cha ?? 10,
     },
-  }
+  })
 }
 
 function resolveMonsterWeaponAttack(args: {
@@ -110,7 +111,7 @@ function resolveMonsterWeaponAttack(args: {
   const { monster, proficiencyWeaponId, weapon, equippedWeapon, effects } = args
   if (!weapon) return null
 
-  const context = buildMonsterEvaluationContext(monster)
+  const { context } = buildMonsterEvaluationContext(monster)
   const proficiencyLevel =
     monster.mechanics.proficiencies?.weapons?.[proficiencyWeaponId]?.proficiencyLevel ?? 1
   const proficiencyBonus = monster.mechanics.proficiencyBonus ?? 2
@@ -330,6 +331,12 @@ function buildMonsterActionDefinition(
       effects,
     })
 
+    const weaponRange = weapon?.range
+      ? weapon.range.long
+        ? `${weapon.range.normal}/${weapon.range.long}${weapon.range.unit}`
+        : `${weapon.range.normal}${weapon.range.unit}`
+      : undefined
+
     return {
       id: `${monster.id}-action-${action.weaponRef}-${index}-${cost.bonusAction ? 'bonus' : 'action'}`,
       label: equippedWeapon?.aliasName ?? weapon?.name ?? action.weaponRef,
@@ -351,6 +358,7 @@ function buildMonsterActionDefinition(
             }
           : undefined,
       logText: equippedWeapon?.notes,
+      displayMeta: { source: 'weapon' as const, range: weaponRange },
     }
   }
 
@@ -374,6 +382,12 @@ function buildMonsterActionDefinition(
           : undefined,
       onHitEffects: action.onHitEffects,
       logText: action.notes,
+      displayMeta: {
+        source: 'natural' as const,
+        attackType: action.attackType,
+        reach: action.reach,
+        description: action.notes,
+      },
     }
   }
 
@@ -422,6 +436,12 @@ function buildMonsterActionDefinition(
     onSuccessEffects: action.onSuccess,
     sequence: buildMonsterActionSequence(action),
     logText: buildMonsterActionLogText(action),
+    displayMeta: {
+      source: 'natural' as const,
+      attackType: 'special',
+      reach: action.reach,
+      description: action.description,
+    },
   }
 }
 
@@ -499,7 +519,34 @@ function buildAttackActions(
           }
         : undefined,
     logText: attack.notes,
+    displayMeta: { source: 'weapon' as const },
   }))
+}
+
+export function formatSpellRange(range: SpellRange): string {
+  switch (range.kind) {
+    case 'self': return 'Self'
+    case 'touch': return 'Touch'
+    case 'sight': return 'Sight'
+    case 'unlimited': return 'Unlimited'
+    case 'special': return range.description
+    case 'distance': return `${range.value.value}${range.value.unit}`
+  }
+}
+
+function isConcentrationSpell(duration: SpellDuration | undefined): boolean {
+  if (!duration || duration.kind === 'instantaneous') return false
+  return 'concentration' in duration && duration.concentration === true
+}
+
+function buildSpellDisplayMeta(spell: Spell): CombatActionDefinition['displayMeta'] {
+  return {
+    source: 'spell' as const,
+    level: spell.level,
+    concentration: isConcentrationSpell(spell.duration),
+    range: spell.range ? formatSpellRange(spell.range) : '',
+    summary: spell.description?.summary || undefined,
+  }
 }
 
 function buildSpellLogText(spell: Spell): string {
@@ -586,6 +633,8 @@ function buildSpellAttackAction(
     (e) => e.kind !== 'targeting' && e.kind !== 'damage' && e.kind !== 'note',
   )
 
+  const displayMeta = buildSpellDisplayMeta(spell)
+
   if (instanceCount <= 1) {
     return [{
       id: `${runtimeId}-spell-${spell.id}`,
@@ -601,6 +650,7 @@ function buildSpellAttackAction(
       targeting: { kind: 'single-target' },
       onHitEffects: onHitEffects.length > 0 ? onHitEffects : undefined,
       logText: buildSpellLogText(spell),
+      displayMeta,
     }]
   }
 
@@ -620,6 +670,7 @@ function buildSpellAttackAction(
     },
     targeting: { kind: 'single-target' },
     onHitEffects: onHitEffects.length > 0 ? onHitEffects : undefined,
+    displayMeta,
   }
 
   const parentAction: CombatActionDefinition = {
@@ -636,6 +687,7 @@ function buildSpellAttackAction(
     targeting: { kind: 'single-target' },
     sequence: [{ actionLabel: beamLabel, count: instanceCount }],
     logText: buildSpellLogText(spell),
+    displayMeta,
   }
 
   return [parentAction, beamAction]
@@ -681,6 +733,7 @@ function buildSpellEffectsAction(
     effects: resolvableEffects,
     targeting: buildSpellTargeting(spell),
     logText: buildSpellLogText(spell),
+    displayMeta: buildSpellDisplayMeta(spell),
   }
 }
 
@@ -715,6 +768,7 @@ export function buildSpellCombatActions(args: {
       cost: buildSpellActionCost(spell),
       resolutionMode: 'log-only',
       logText: buildSpellLogText(spell),
+      displayMeta: buildSpellDisplayMeta(spell),
     }]
   })
 }

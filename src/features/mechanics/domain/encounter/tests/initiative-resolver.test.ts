@@ -104,8 +104,8 @@ describe('rollInitiative', () => {
     const started = createEncounterState(combatants, {
       rng: () => 0.45,
     })
-    const secondTurn = advanceEncounterTurn(started)
-    const wrappedTurn = advanceEncounterTurn(secondTurn)
+    const secondTurn = advanceEncounterTurn(started, { rng: () => 0.45 })
+    const wrappedTurn = advanceEncounterTurn(secondTurn, { rng: () => 0.45 })
 
     expect(secondTurn.activeCombatantId).toBe('pc-1')
     expect(secondTurn.roundNumber).toBe(1)
@@ -118,6 +118,53 @@ describe('rollInitiative', () => {
       'round-started',
       'turn-started',
     ])
+    const roundStartedLog = wrappedTurn.log.find((e) => e.type === 'round-started')
+    expect(roundStartedLog?.details).toContain('Initiative order:')
+  })
+
+  it('does not progress when all combatants are dead', () => {
+    const combatants: CombatantInstance[] = [
+      {
+        instanceId: 'pc-1',
+        side: 'party',
+        source: { kind: 'pc', sourceId: 'pc-1', label: 'Cleric' },
+        stats: { armorClass: 18, maxHitPoints: 20, currentHitPoints: 20, initiativeModifier: 0, dexterityScore: 10 },
+        attacks: [],
+        activeEffects: [],
+        runtimeEffects: [],
+        turnHooks: [],
+        conditions: [],
+        states: [],
+      },
+      {
+        instanceId: 'monster-1',
+        side: 'enemies',
+        source: { kind: 'monster', sourceId: 'goblin', label: 'Goblin' },
+        stats: { armorClass: 15, maxHitPoints: 7, currentHitPoints: 7, initiativeModifier: 2, dexterityScore: 14 },
+        attacks: [],
+        activeEffects: [],
+        runtimeEffects: [],
+        turnHooks: [],
+        conditions: [],
+        states: [],
+      },
+    ]
+
+    const started = createEncounterState(combatants, { rng: () => 0.45 })
+    const afterFirstTurn = advanceEncounterTurn(started, { rng: () => 0.45 })
+    const damaged = applyDamageToCombatant(
+      applyDamageToCombatant(afterFirstTurn, 'monster-1', 7),
+      'pc-1',
+      20,
+    )
+    const locked = advanceEncounterTurn(damaged, { rng: () => 0.45 })
+
+    expect(locked.roundNumber).toBe(damaged.roundNumber)
+    expect(locked.turnIndex).toBe(damaged.turnIndex)
+    expect(locked.activeCombatantId).toBe(damaged.activeCombatantId)
+    const roundOrTurnStartedInLocked = locked.log.filter((e) => e.type === 'round-started' || e.type === 'turn-started')
+    const roundOrTurnStartedInDamaged = damaged.log.filter((e) => e.type === 'round-started' || e.type === 'turn-started')
+    expect(roundOrTurnStartedInLocked).toEqual(roundOrTurnStartedInDamaged)
   })
 
   it('applies damage, healing, and runtime markers with log output', () => {
@@ -201,8 +248,8 @@ describe('rollInitiative', () => {
       durationTurns: 1,
       tickOn: 'end',
     })
-    const secondTurn = advanceEncounterTurn(withBothMarkers)
-    const wrappedTurn = advanceEncounterTurn(secondTurn)
+    const secondTurn = advanceEncounterTurn(withBothMarkers, { rng: () => 0.45 })
+    const wrappedTurn = advanceEncounterTurn(secondTurn, { rng: () => 0.45 })
 
     expect(formatMarkerLabel(withBothMarkers.combatantsById['pc-1'].conditions[0]!)).toBe(
       'blessed (1 turn start)',
@@ -264,8 +311,8 @@ describe('rollInitiative', () => {
     const started = createEncounterState(combatants, {
       rng: () => 0.45,
     })
-    const secondTurn = advanceEncounterTurn(started)
-    const wrappedTurn = advanceEncounterTurn(secondTurn)
+    const secondTurn = advanceEncounterTurn(started, { rng: () => 0.45 })
+    const wrappedTurn = advanceEncounterTurn(secondTurn, { rng: () => 0.45 })
 
     expect(started.combatantsById['pc-1'].runtimeEffects).toHaveLength(1)
     expect(formatRuntimeEffectLabel(started.combatantsById['pc-1'].runtimeEffects[0]!)).toBe(
@@ -380,8 +427,8 @@ describe('rollInitiative', () => {
     const started = createEncounterState(combatants, {
       rng: () => 0.45,
     })
-    const secondTurn = advanceEncounterTurn(started)
-    const wrappedTurn = advanceEncounterTurn(secondTurn)
+    const secondTurn = advanceEncounterTurn(started, { rng: () => 0.45 })
+    const wrappedTurn = advanceEncounterTurn(secondTurn, { rng: () => 0.45 })
 
     expect(started.combatantsById['pc-1'].conditions).toHaveLength(1)
     expect(formatMarkerLabel(started.combatantsById['pc-1'].conditions[0]!)).toBe(

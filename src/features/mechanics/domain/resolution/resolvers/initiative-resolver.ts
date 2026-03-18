@@ -1,11 +1,24 @@
-import type { InitiativeParticipant, InitiativeResolverOptions } from './initiative-resolution.types'
-import type { InitiativeRoll } from './initiative-resolution.types'
-
-export type { InitiativeParticipant, InitiativeRoll, InitiativeResolverOptions } from './initiative-resolution.types'
-
-function rollD20(rng: () => number): number {
-  return Math.floor(rng() * 20) + 1
+export interface InitiativeParticipant {
+  instanceId: string
+  label: string
+  initiativeModifier: number
+  dexterityScore?: number
 }
+
+export interface InitiativeRoll {
+  combatantId: string
+  label: string
+  roll: number
+  modifier: number
+  total: number
+  dexterityScore?: number
+}
+
+export interface InitiativeResolverOptions {
+  rng?: () => number
+}
+
+import { rollDie } from '../engines/dice.engine'
 
 function compareInitiative(a: InitiativeRoll, b: InitiativeRoll): number {
   if (b.total !== a.total) return b.total - a.total
@@ -28,7 +41,7 @@ export function rollInitiative(
 
   return participants
     .map((participant) => {
-      const roll = rollD20(rng)
+      const roll = rollDie(20, rng)
       return {
         combatantId: participant.instanceId,
         label: participant.label,

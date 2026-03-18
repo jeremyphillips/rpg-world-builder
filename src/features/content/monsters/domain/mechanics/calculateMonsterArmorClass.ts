@@ -4,7 +4,7 @@ import {
   type CreatureArmorCatalogEntry,
   type CreatureArmorClassResult,
   type CreatureArmorInput,
-} from '@/features/mechanics/domain/core/creatureArmorClass'
+} from '@/features/mechanics/domain/equipment/armorClass'
 
 type ArmorCatalog = Record<string, CreatureArmorCatalogEntry>
 type MonsterArmorSource = Pick<Monster, 'mechanics'>

@@ -4,21 +4,7 @@ import Stack from '@mui/material/Stack'
 import CircularProgress from '@mui/material/CircularProgress'
 
 /** Card summary from GET /api/characters/me (resolved race/class/subclass names). */
-type CharacterCardSummary = {
-  id: string
-  name: string
-  type?: string
-  imageUrl: string | null
-  race: { id: string; name: string } | null
-  classes: Array<{
-    classId: string
-    className: string
-    subclassId?: string | null
-    subclassName?: string | null
-    level: number
-  }>
-  campaign: { id: string; name: string } | null
-}
+import type { CharacterCardSummary } from '../read-model'
 import { AppPageHeader } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/app/navigation'
 import { apiFetch } from '@/app/api'

@@ -8,6 +8,7 @@ import type { Effect } from '../effects.types'
 import { getSystemMagicItems } from '@/features/mechanics/domain/rulesets/system/magicItems'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types'
+import { effectSource, matchesSourceCategory, getSourceId } from '../source'
 
 // ---------------------------------------------------------------------------
 // Magic item loadout (minimal — no UI for equip/attune yet)
@@ -23,7 +24,7 @@ export type MagicItemLoadout = {
 // ---------------------------------------------------------------------------
 
 function effectsForItem(item: MagicItem): Effect[] {
-  const source = `magic_item:${item.id}`
+  const source = effectSource('magic_item', item.id)
   const effects = item.effects ?? []
 
   return effects.map((effect) => ({
@@ -71,11 +72,10 @@ export function selectActiveMagicItemEffects(
   const attunedSet = new Set(loadout.attunedIds)
 
   return candidateEffects.filter(e => {
-    const source = 'source' in e ? (e as { source?: string }).source : undefined
-    if (!source?.startsWith('magic_item:')) return true
+    if (!matchesSourceCategory(e.source, 'magic_item')) return true
 
-    const itemId = source.slice('magic_item:'.length)
-    if (!equippedSet.has(itemId)) return false
+    const itemId = getSourceId(e.source)
+    if (!itemId || !equippedSet.has(itemId)) return false
 
     const item = magicItemsById.get(itemId)
     if (!item) return false

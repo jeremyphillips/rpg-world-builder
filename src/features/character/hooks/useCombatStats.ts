@@ -1,28 +1,26 @@
 import { useMemo } from 'react'
 import type { Character } from '@/features/character/domain/types'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import { buildCharacterContext } from '../domain/engine/buildCharacterContext'
 import { collectIntrinsicEffects } from '../domain/engine/collectCharacterEffects'
 import { getLoadoutPickerOptions } from '../domain/engine/getLoadoutPickerOptions'
 import { getWeaponPickerOptions } from '../domain/engine/getWeaponPickerOptions'
 import {
   resolveStat,
   resolveStatDetailed,
+  buildCharacterResolutionInput,
   type BreakdownToken,
   resolveWeaponAttackBonus,
   resolveWeaponDamage,
   type AttackHand,
 } from '@/features/mechanics/domain/resolution'
-import { getProficiencyAttackBonus } from '@/features/mechanics/domain/progression'
+import { resolveProficiencyBonusAtLevel } from '@/features/mechanics/domain/progression'
 import type { EvaluationContext } from '@/features/mechanics/domain/conditions/evaluation-context.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import {
-  getEquipmentEffects,
-  selectActiveEquipmentEffects,
   resolveLoadout,
   resolveEquipmentLoadoutDetailed,
   resolveWieldedWeaponIds,
-} from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
+} from '@/features/mechanics/domain/equipment/loadout'
 import {
   getMagicItemCandidateEffects,
   selectActiveMagicItemEffects,
@@ -58,8 +56,6 @@ export function getCharacterAttacks(
 ): AttackEntry[] {
   if (wieldedWeaponIds.length === 0) return []
 
-  const proficiencyBonus = getProficiencyAttackBonus(context.self.level)
-
   return wieldedWeaponIds.map((id, idx) => {
     const hand: AttackHand = idx === 0 ? 'main' : 'off'
     const weapon = weaponsById[id]
@@ -74,7 +70,6 @@ export function getCharacterAttacks(
     const atk = resolveWeaponAttackBonus(context, weaponInput, effects, {
       hand,
       proficiencyLevel: 1,
-      proficiencyBonus,
     })
     const dmg = resolveWeaponDamage(context, weaponInput, effects, { hand })
 
@@ -102,17 +97,22 @@ export type UseCombatStatsReturn = ReturnType<typeof useCombatStats>
 // ---------------------------------------------------------------------------
 
 export function useCombatStats(character: Character) {
-  const { catalog } = useCampaignRules()
+  const { catalog, ruleset } = useCampaignRules()
 
   return useMemo(() => {
-    const context = buildCharacterContext(character)
-    const intrinsicEffects = collectIntrinsicEffects(character)
-    const candidateEffects = getEquipmentEffects(character.equipment, catalog.armorById)
+    const base = buildCharacterResolutionInput(character, { armorById: catalog.armorById })
+    const context: EvaluationContext = {
+      ...base.context,
+      self: {
+        ...base.context.self,
+        proficiencyBonus: resolveProficiencyBonusAtLevel({
+          level: base.context.self.level,
+          ruleset,
+        }),
+      },
+    }
 
-    const loadout = resolveLoadout(character.combat)
     const resolved = resolveEquipmentLoadoutDetailed(character.combat, character.equipment)
-
-    const activeEquipmentEffects = selectActiveEquipmentEffects(candidateEffects, resolved)
     const enchantmentEffects = getEnchantmentCandidateEffects({ resolved })
 
     const ownedMagicItemIds = character.equipment?.magicItems ?? []
@@ -123,11 +123,13 @@ export function useCombatStats(character: Character) {
     })
 
     const allEffects = [
-      ...intrinsicEffects,
-      ...activeEquipmentEffects,
+      ...base.effects,
       ...enchantmentEffects,
       ...activeMagicEffects,
     ]
+
+    const intrinsicEffects = collectIntrinsicEffects(character)
+    const loadout = resolveLoadout(character.combat)
 
     const acResult = resolveStatDetailed('armor_class', context, allEffects)
     const maxHp = resolveStat('hit_points_max', context, allEffects)
@@ -161,5 +163,5 @@ export function useCombatStats(character: Character) {
       weaponOptions,
       wieldedWeaponIds,
     }
-  }, [character, catalog])
+  }, [character, catalog, ruleset])
 }

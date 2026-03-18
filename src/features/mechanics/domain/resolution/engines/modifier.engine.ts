@@ -1,17 +1,14 @@
 import type { EvaluationContext } from '../../conditions/evaluation-context.types'
 import type { ModifierEffect } from '../../effects/effects.types'
 import type { BreakdownToken } from '../types'
+import { getSourceLabel } from '../../effects/source'
 
 function sign(n: number): string {
   return n >= 0 ? `+${n}` : `${n}`
 }
 
-export function sourceToLabel(source: string | undefined): string {
-  if (!source) return 'Bonus'
-  const parts = source.split(':')
-  const id = parts[parts.length - 1]
-  return id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-}
+/** @deprecated Use `getSourceLabel` from `effects/source` directly. */
+export const sourceToLabel = getSourceLabel
 
 export function resolveModifierValue(
   mod: ModifierEffect,

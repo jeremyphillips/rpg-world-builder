@@ -1,8 +1,8 @@
 import type { StatTarget } from '../types'
 import type { EffectBase } from '../../effects/effects.types'
 import type { EvaluationContext } from '../../conditions/evaluation-context.types'
-import { getAbilityModifier } from '../../core'
-import { getProficiencyAttackBonus } from '@/features/mechanics/domain/progression'
+import { getAbilityModifier } from '../../abilities/getAbilityModifier'
+import { resolveProficiencyContribution } from '@/features/mechanics/domain/progression'
 import type { AbilityKey } from '../../character'
 
 export type FormulaDefinition = {
@@ -28,19 +28,21 @@ export function resolveFormulaProficiency(
     return { value: 0, label: 'Prof' }
   }
 
+  const baseBonus = context.self.proficiencyBonus ?? 0
+
   if (proficiency === true) {
     return {
-      value: getProficiencyAttackBonus(context.self.level),
+      value: resolveProficiencyContribution(baseBonus, 1),
       label: 'Prof',
     }
   }
 
   const level = proficiency.level ?? 1
-  const bonus = proficiency.bonus ?? 2
+  const bonus = proficiency.bonus ?? baseBonus
 
   return {
-    value: level * bonus,
-    label: level === 1 && bonus === 2 ? 'Prof' : `Prof (${level}x${bonus})`,
+    value: resolveProficiencyContribution(bonus, level),
+    label: level === 1 && bonus === baseBonus ? 'Prof' : `Prof (${level}x${bonus})`,
   }
 }
 

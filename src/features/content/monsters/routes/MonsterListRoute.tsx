@@ -28,7 +28,7 @@ import {
   buildMonsterCustomFilters,
   type MonsterListRow,
 } from '@/features/content/monsters/domain';
-import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass';
+import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';

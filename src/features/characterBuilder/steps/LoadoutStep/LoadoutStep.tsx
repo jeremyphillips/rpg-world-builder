@@ -2,7 +2,7 @@ import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import type { Armor } from '@/features/content/equipment/armor/domain/types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types'
-import { resolveLoadout } from '@/features/mechanics/domain/effects/sources/equipment-to-effects'
+import { resolveLoadout } from '@/features/mechanics/domain/equipment/loadout'
 import { formatMoney } from '@/shared/money'
 
 // ---------------------------------------------------------------------------

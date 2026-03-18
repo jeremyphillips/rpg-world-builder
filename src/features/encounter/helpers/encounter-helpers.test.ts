@@ -3,8 +3,18 @@ import { describe, expect, it } from 'vitest'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types/weapon.types'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
+import type { Ruleset } from '@/shared/types/ruleset'
+import { CHARACTER_PROFICIENCY_BONUS_TABLE } from '@/features/mechanics/domain/progression'
 import { buildMonsterAttackEntries, buildMonsterExecutableActions, buildSpellCombatActions, getCharacterSpellcastingStats } from './encounter-helpers'
 import type { CharacterDetailDto } from '@/features/character/read-model'
+
+const TEST_RULESET = {
+  mechanics: {
+    progression: {
+      proficiencyBonusTable: CHARACTER_PROFICIENCY_BONUS_TABLE,
+    },
+  },
+} as unknown as Ruleset
 
 const TEST_MONSTER = {
   id: 'test-monster',
@@ -585,7 +595,16 @@ describe('getCharacterSpellcastingStats', () => {
   it('computes spell save DC and attack bonus from primary class ability', () => {
     const character = {
       level: 5,
-      classes: [{ classId: 'wizard', level: 5, className: 'Wizard' }],
+      classes: [{
+        classId: 'wizard',
+        level: 5,
+        className: 'Wizard',
+        progression: {
+          hitDie: 6,
+          spellcasting: 'full',
+          spellProgression: { ability: 'intelligence', type: 'prepared' },
+        },
+      }],
       abilityScores: {
         strength: 8,
         dexterity: 14,
@@ -596,7 +615,7 @@ describe('getCharacterSpellcastingStats', () => {
       },
     } as CharacterDetailDto
 
-    const stats = getCharacterSpellcastingStats(character)
+    const stats = getCharacterSpellcastingStats(character, TEST_RULESET)
 
     expect(stats.spellAttackBonus).toBe(6)
     expect(stats.spellSaveDc).toBe(14)
@@ -605,7 +624,16 @@ describe('getCharacterSpellcastingStats', () => {
   it('uses charisma for sorcerer', () => {
     const character = {
       level: 3,
-      classes: [{ classId: 'sorcerer', level: 3, className: 'Sorcerer' }],
+      classes: [{
+        classId: 'sorcerer',
+        level: 3,
+        className: 'Sorcerer',
+        progression: {
+          hitDie: 6,
+          spellcasting: 'full',
+          spellProgression: { ability: 'charisma', type: 'known' },
+        },
+      }],
       abilityScores: {
         strength: 8,
         dexterity: 14,
@@ -616,7 +644,7 @@ describe('getCharacterSpellcastingStats', () => {
       },
     } as CharacterDetailDto
 
-    const stats = getCharacterSpellcastingStats(character)
+    const stats = getCharacterSpellcastingStats(character, TEST_RULESET)
 
     expect(stats.spellAttackBonus).toBe(6)
     expect(stats.spellSaveDc).toBe(14)

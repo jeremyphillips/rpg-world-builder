@@ -3,11 +3,12 @@ import { describe, expect, it } from 'vitest'
 import type { EvaluationContext } from '../../conditions/evaluation-context.types'
 import { resolveWeaponAttackBonus } from '../resolvers/attack-resolver'
 
-function createContext(level: number): EvaluationContext {
+function createContext(level: number, proficiencyBonus = 2): EvaluationContext {
   return {
     self: {
       id: 'test-creature',
       level,
+      proficiencyBonus,
       hp: 12,
       hpMax: 12,
       abilities: {

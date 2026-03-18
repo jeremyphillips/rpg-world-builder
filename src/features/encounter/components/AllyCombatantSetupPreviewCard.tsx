@@ -97,7 +97,7 @@ function LoadedAllyCombatantSetupPreviewCard({
   onResolved,
   onRemove,
 }: LoadedProps) {
-  const { catalog } = useCampaignRules()
+  const { catalog, ruleset } = useCampaignRules()
 
   const engineCharacter = useMemo(() => toCharacterForEngine(character), [character])
   const combatStats = useCombatStats(engineCharacter)
@@ -120,8 +120,8 @@ function LoadedAllyCombatantSetupPreviewCard({
     [combatStats.activeEffects],
   )
   const spellStats = useMemo(
-    () => getCharacterSpellcastingStats(character),
-    [character],
+    () => getCharacterSpellcastingStats(character, ruleset),
+    [character, ruleset],
   )
   const spellActions = useMemo(
     () =>

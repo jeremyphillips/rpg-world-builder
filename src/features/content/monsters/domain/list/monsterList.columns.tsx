@@ -7,7 +7,7 @@ import {
   formatMonsterArmorClassBreakdown,
 } from '@/features/content/monsters/utils/formatters';
 import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
-import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass';
+import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
 import { AppTooltip } from '@/ui/primitives';
 
 function getActionsDisplay(actions?: MonsterAction[]): string {

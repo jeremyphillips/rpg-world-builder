@@ -2,7 +2,7 @@ type EditionRule = any
 import type {
   CreatureArmorClassBreakdownPart,
   CreatureArmorClassResult,
-} from '@/features/mechanics/domain/core/creatureArmorClass'
+} from '@/features/mechanics/domain/equipment/armorClass'
 
 /** Hit Points: {count}d{die}{modifier} e.g. 3d6+4 */
 export function formatHitPoints(m: {

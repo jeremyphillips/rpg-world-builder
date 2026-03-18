@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import Box from '@mui/material/Box'
 import ButtonBase from '@mui/material/ButtonBase'
@@ -11,9 +11,9 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 import { AppBadge } from '@/ui/primitives'
-import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
+import type { CombatActionDefinition, CombatActionKind } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import type { EnrichedPresentableEffect, CombatStateSection } from '../domain'
-import { formatSigned } from '../helpers'
+import { ActionRow } from './ActionRow'
 
 type StatEntry = { label: string; value: string }
 
@@ -67,70 +67,65 @@ function CollapsibleSection({
   )
 }
 
-function ActionRow({
-  action,
-  isSelected,
-  onSelect,
+const ACTION_KIND_ORDER: CombatActionKind[] = ['weapon-attack', 'monster-action', 'spell', 'combat-effect']
+
+const ACTION_KIND_LABELS: Partial<Record<CombatActionKind, string>> = {
+  'weapon-attack': 'Weapons',
+  'monster-action': 'Natural',
+  'spell': 'Spells',
+  'combat-effect': 'Effects',
+}
+
+function groupActionsByKind(actions: CombatActionDefinition[]) {
+  const groups = new Map<CombatActionKind, CombatActionDefinition[]>()
+  for (const action of actions) {
+    const list = groups.get(action.kind)
+    if (list) list.push(action)
+    else groups.set(action.kind, [action])
+  }
+  return ACTION_KIND_ORDER
+    .filter((kind) => groups.has(kind))
+    .map((kind) => ({ kind, label: ACTION_KIND_LABELS[kind] ?? kind, actions: groups.get(kind)! }))
+}
+
+function GroupedActionList({
+  actions,
+  selectedActionId,
+  onSelectAction,
 }: {
-  action: CombatActionDefinition
-  isSelected: boolean
-  onSelect?: () => void
+  actions: CombatActionDefinition[]
+  selectedActionId?: string
+  onSelectAction?: (actionId: string) => void
 }) {
-  const costParts: string[] = []
-  if (action.cost.action) costParts.push('Action')
-  if (action.cost.bonusAction) costParts.push('Bonus')
-  if (action.cost.reaction) costParts.push('Reaction')
-  if (action.cost.movementFeet) costParts.push(`${action.cost.movementFeet} ft`)
-  const costLabel = costParts.join(', ') || '—'
-
-  const detailParts: string[] = []
-  if (action.attackProfile) {
-    detailParts.push(`${formatSigned(action.attackProfile.attackBonus)} to hit`)
-    if (action.attackProfile.damage) {
-      const dmgStr = action.attackProfile.damageType
-        ? `${action.attackProfile.damage} ${action.attackProfile.damageType}`
-        : action.attackProfile.damage
-      detailParts.push(dmgStr)
-    }
-  } else if (action.saveProfile) {
-    detailParts.push(`DC ${action.saveProfile.dc} ${action.saveProfile.ability.toUpperCase()} save`)
-  }
-  if (action.damage && !action.attackProfile) {
-    const dmgStr = action.damageType ? `${action.damage} ${action.damageType}` : action.damage
-    detailParts.push(dmgStr)
-  }
-
-  const usageLabel = action.usage?.recharge
-    ? `Recharge ${action.usage.recharge.min}–${action.usage.recharge.max}`
-    : action.usage?.uses
-      ? `${action.usage.uses.remaining}/${action.usage.uses.max} per ${action.usage.uses.period}`
-      : null
+  const groups = useMemo(() => groupActionsByKind(actions), [actions])
+  const needsHeaders = groups.length > 1
 
   return (
-    <Paper
-      variant="outlined"
-      sx={{
-        p: 1.5,
-        cursor: onSelect ? 'pointer' : 'default',
-        borderColor: isSelected ? 'primary.main' : 'divider',
-        
-        '&:hover': onSelect ? { bgcolor: 'action.hover' } : undefined,
-      }}
-      onClick={onSelect}
-    >
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>{action.label}</Typography>
-          {detailParts.length > 0 && (
-            <Typography variant="caption" color="text.secondary">{detailParts.join(' · ')}</Typography>
-          )}
-        </Box>
-        <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }} alignItems="center">
-          {usageLabel && <AppBadge label={usageLabel} tone="default" variant="outlined" size="small" />}
-          <Typography variant="caption" color="text.secondary" noWrap>{costLabel}</Typography>
-        </Stack>
-      </Stack>
-    </Paper>
+    <Stack spacing={1} sx={{ pt: 0.5 }}>
+      {actions.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">No actions available.</Typography>
+      ) : (
+        groups.map(({ kind, label, actions: groupActions }) => (
+          <Box key={kind}>
+            {needsHeaders && (
+              <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                {label}
+              </Typography>
+            )}
+            <Stack spacing={1}>
+              {groupActions.map((action) => (
+                <ActionRow
+                  key={action.id}
+                  action={action}
+                  isSelected={action.id === selectedActionId}
+                  onSelect={onSelectAction ? () => onSelectAction(action.id) : undefined}
+                />
+              ))}
+            </Stack>
+          </Box>
+        ))
+      )}
+    </Stack>
   )
 }
 
@@ -180,37 +175,19 @@ export function CombatantActiveCard({
         <Divider />
 
         <CollapsibleSection title="Actions" count={actions.length}>
-          <Stack spacing={1} sx={{ pt: 0.5 }}>
-            {actions.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">No actions available.</Typography>
-            ) : (
-              actions.map((action) => (
-                <ActionRow
-                  key={action.id}
-                  action={action}
-                  isSelected={action.id === selectedActionId}
-                  onSelect={onSelectAction ? () => onSelectAction(action.id) : undefined}
-                />
-              ))
-            )}
-          </Stack>
+          <GroupedActionList
+            actions={actions}
+            selectedActionId={selectedActionId}
+            onSelectAction={onSelectAction}
+          />
         </CollapsibleSection>
 
         <CollapsibleSection title="Bonus Actions" count={bonusActions.length} defaultOpen={bonusActions.length > 0}>
-          <Stack spacing={1} sx={{ pt: 0.5 }}>
-            {bonusActions.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">No bonus actions available.</Typography>
-            ) : (
-              bonusActions.map((action) => (
-                <ActionRow
-                  key={action.id}
-                  action={action}
-                  isSelected={action.id === selectedActionId}
-                  onSelect={onSelectAction ? () => onSelectAction(action.id) : undefined}
-                />
-              ))
-            )}
-          </Stack>
+          <GroupedActionList
+            actions={bonusActions}
+            selectedActionId={selectedActionId}
+            onSelectAction={onSelectAction}
+          />
         </CollapsibleSection>
 
         <CollapsibleSection title="Combat Effects" count={totalEffects} defaultOpen={totalEffects > 0}>

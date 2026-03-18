@@ -28,6 +28,7 @@ import { getSystemRaces } from './races'
 import type { EnchantmentTemplate } from '@/features/content/enchantments/domain/types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import { FULL_CASTER_SLOTS_5E, HALF_CASTER_SLOTS_5E } from '@/data/ruleSets/spellSlotTables'
+import { CHARACTER_PROFICIENCY_BONUS_TABLE } from '@/features/mechanics/domain/progression/proficiency/proficiencyBonusTable'
 import type { SystemRuleset, SystemRulesetId } from '../types/ruleset.types'
 import { DEFAULT_SYSTEM_RULESET_ID } from '../ids/systemIds'
 
@@ -124,6 +125,7 @@ const SYSTEM_RULESET_SRD_CC_V5_2_1: SystemRuleset = {
   },
   mechanics: {
     progression: {
+      proficiencyBonusTable: CHARACTER_PROFICIENCY_BONUS_TABLE,
       xp: {
         enabled: true,
         tableId: 'standard',

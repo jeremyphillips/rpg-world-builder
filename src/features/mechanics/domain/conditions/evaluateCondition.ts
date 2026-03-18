@@ -1,5 +1,5 @@
-import type { Condition } from "../conditions/condition.types"
-import type { EvaluationContext } from "../conditions/evaluation-context.types"
+import type { Condition } from "./condition.types"
+import type { EvaluationContext } from "./evaluation-context.types"
 
 function getSnapshotForTarget(
   target: 'self' | 'target' | 'source' | 'ally',

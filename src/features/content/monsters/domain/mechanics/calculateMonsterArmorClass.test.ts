@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Monster } from '@/features/content/monsters/domain/types'
-import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/core/creatureArmorClass'
+import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass'
 import { calculateMonsterArmorClass } from './calculateMonsterArmorClass'
 
 function buildArmorById(): Record<string, CreatureArmorCatalogEntry> {

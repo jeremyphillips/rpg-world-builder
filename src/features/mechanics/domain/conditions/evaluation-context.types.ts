@@ -16,6 +16,7 @@ export interface CreatureSnapshot {
   id: string
 
   level: number
+  proficiencyBonus?: number
   hp: number
   hpMax: number
 

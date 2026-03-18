@@ -1,6 +1,6 @@
 import type { EvaluationContext } from '../../conditions/evaluation-context.types'
 import type { Effect, ModifierEffect } from '../../effects/effects.types'
-import { evaluateCondition } from '../engines/condition.engine'
+import { evaluateCondition } from '../../conditions/evaluateCondition'
 import { resolveFormulaProficiency, resolveFormulaValue } from '../engines/formula.engine'
 import type { FormulaEffect, FormulaDefinition } from '../engines/formula.engine'
 import { resolveModifierValue, buildModifierToken, sourceToLabel } from '../engines/modifier.engine'

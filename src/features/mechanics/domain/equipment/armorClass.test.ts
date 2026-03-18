@@ -3,7 +3,7 @@ import {
   calculateCreatureArmorClass,
   getCreatureArmorFormulaDefinition,
   type CreatureArmorInput,
-} from './creatureArmorClass'
+} from './armorClass'
 
 describe('creatureArmorClass', () => {
   it('uses armor dex content shape instead of category fallback', () => {
