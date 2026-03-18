@@ -7,7 +7,8 @@ import type { AbilityId, AbilityKey } from '../character'
 export type AbilityScoreTarget = `ability_score.${AbilityId}`
 
 export type StatTarget =
-  | AbilityKey
+  | AbilityKey // @deprecated('Use AbilityId instead')
+  | AbilityId
   | AbilityScoreTarget
   | 'armor_class'
   | 'attack_roll'

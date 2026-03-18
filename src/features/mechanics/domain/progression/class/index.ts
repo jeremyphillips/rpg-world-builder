@@ -6,3 +6,4 @@ export {
   type SpellLimits,
 } from './getClassSpellLimitsAtLevel'
 export { getAvailableSubclassesByLevel } from './getAvailableSubclassesByLevel'
+export { CANTRIP_PROGRESSION_PROFILES } from './cantripProgressionProfiles'

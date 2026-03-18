@@ -7,7 +7,7 @@
 import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { SystemRulesetId } from '../types/ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from '../ids/systemIds';
-import { FULL_CASTER_SLOTS_5E, HALF_CASTER_SLOTS_5E, WARLOCK_PACT_SLOTS_5E } from '@/data/ruleSets/spellSlotTables';
+import { FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, WARLOCK_PACT_SLOTS_5E } from '@/data/ruleSets/spellSlotTables';
 
 // ---------------------------------------------------------------------------
 // 5e v1 system classes (SRD_CC_v5_2_1)
@@ -19,61 +19,14 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Fighter',
     description: 'A class of brave and skilled warriors.',
     definitions: {
-      id: 'fighter.martial_archetype',
-      name: 'Martial Archetype',
+      id: 'fighter_subclasses',
+      name: 'Fighter Subclasses',
       selectionLevel: 3,
       options: [
-        {
-          id: 'fighter.martial_archetype.battle_master',
-          name: 'Battle Master',
-          source: 'PHB',
-          features: [
-            {
-              name: 'Combat Superiority',
-              id: 'fighter.martial_archetype.battle_master.combat_superiority',
-              level: 3,
-              features: [
-                {
-                  kind: 'resource',
-                  resource: {
-                    id: 'superiority_dice',
-                    max: 4,
-                    dice: 'd8',
-                    recharge: 'short-rest',
-                  },
-                },
-                {
-                  id: 'fighter.battle_master.on_weapon_hit',
-                  kind: 'trigger',
-                  trigger: 'weapon-hit',
-                  cost: { resource: 'superiority_dice', amount: 1 },
-                  effects: [
-                    {
-                      kind: 'modifier',
-                      target: 'damage',
-                      mode: 'add',
-                      value: { dice: 'superiority_dice' },
-                    },
-                    {
-                      kind: 'save',
-                      save: { ability: 'strength' },
-                      onFail: [
-                        {
-                          kind: 'condition',
-                          conditionId: 'prone',
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        { id: 'fighter.battle_master.champion', name: 'Champion', source: 'PHB' },
-        { id: 'fighter.battle_master.eldritch_knight', name: 'Eldritch Knight', source: 'PHB' },
+        { id: 'champion', name: 'Champion' },
       ],
     },
+    generation: { primaryAbilities: ['str', 'dex'] },
     progression: {
       hitDie: 10,
       attackProgression: 'good',
@@ -97,7 +50,6 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       weapons: { type: 'fixed', level: 1, categories: ['simple', 'martial'] },
       armor: { type: 'fixed', level: 1, categories: ['allArmor', 'shields'] },
     },
-    generation: { primaryAbilities: ['str', 'con'] },
     requirements: {
       allowedRaces: ['human'],
       allowedAlignments: 'any',
@@ -115,20 +67,14 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Cleric',
     description: 'A class of holy and compassionate healers.',
     definitions: {
-      id: 'divine_domain',
-      name: 'Divine Domain',
-      selectionLevel: 1,
+      id: 'cleric_subclasses',
+      name: 'Cleric Subclasses',
+      selectionLevel: 3,
       options: [
-        { id: 'cleric.divine_domain.knowledge', name: 'Knowledge Domain', source: 'PHB' },
-        { id: 'cleric.divine_domain.life', name: 'Life Domain', source: 'PHB' },
-        { id: 'cleric.divine_domain.light', name: 'Light Domain', source: 'PHB' },
-        { id: 'cleric.divine_domain.nature', name: 'Nature Domain', source: 'PHB' },
-        { id: 'cleric.divine_domain.tempest', name: 'Tempest Domain', source: 'PHB' },
-        { id: 'cleric.divine_domain.trickery', name: 'Trickery Domain', source: 'PHB' },
-        { id: 'cleric.divine_domain.war', name: 'War Domain', source: 'PHB' },
+        { id: 'life_domain', name: 'Life Domain' },
       ],
     },
-    generation: { primaryAbilities: ['wis', 'con'] },
+    generation: { primaryAbilities: ['wis'] },
     progression: {
       hitDie: 8,
       attackProgression: 'average',
@@ -138,7 +84,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
         ability: 'wis',
         type: 'prepared',
         cantripsKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-        spellSlots: FULL_CASTER_SLOTS_5E,
+        spellSlots: FULL_CASTER_SLOTS,
         maxSpellLevel: 9,
       },
       asiLevels: [4, 8, 12, 16, 19],
@@ -163,23 +109,19 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Rogue',
     description: 'A class of cunning and stealthy thieves.',
     definitions: {
-      id: 'rogue_specialization',
-      name: 'Rogue Specialization',
+      id: 'rogue_subclasses',
+      name: 'Rogue Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'rogue.rogue_specialization.arcane_trickster', name: 'Arcane Trickster', source: 'PHB' },
-        { id: 'rogue.rogue_specialization.assassin', name: 'Assassin', source: 'PHB' },
-        { id: 'rogue.rogue_specialization.soulknife', name: 'Soulknife', source: 'TCOE' },
-        { id: 'rogue.rogue_specialization.thief', name: 'Thief', source: 'PHB' },
+        { id: 'thief', name: 'Thief' },
       ],
     },
-    generation: { primaryAbilities: ['dex', 'int'] },
+    generation: { primaryAbilities: ['dex'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
       savingThrows: ['dex', 'int'],
       spellcasting: 'none',
-      extraAttackLevel: 3,
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
@@ -194,18 +136,16 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Paladin',
     description: 'A class of righteous and noble protectors.',
     definitions: {
-      id: 'paladin.subclass.sacred_oath',
-      name: 'Sacred Oath',
+      id: 'paladin_subclasses',
+      name: 'Paladin Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'paladin.subclass.sacred_oath.ancients', name: 'Oath of the Ancients', source: 'PHB' },
         {
-          id: 'paladin.subclass.sacred_oath.oath_of_devotion',
+          id: 'oath_of_devotion',
           name: 'Oath of Devotion',
-          source: 'PHB',
           features: [
             {
-              id: 'paladin.subclass.sacred_oath.oath_of_devotion.sacred_weapon',
+              id: 'oath_of_devotion.feature.sacred_weapon',
               name: 'Sacred Weapon',
               level: 3,
               kind: 'activation',
@@ -216,12 +156,13 @@ const CLASSES_RAW: readonly CharacterClass[] = [
                   kind: 'modifier',
                   target: 'attack_roll',
                   mode: 'add',
-                  value: { ability: 'charisma' },
+                  value: { ability: 'cha' },
                   duration: { kind: 'fixed', value: 1, unit: 'minute' },
                 },
               ],
             },
             {
+              id: 'oath_of_devotion.feature.turn_the_unholy',
               name: 'Turn the Unholy',
               kind: 'aura',
               level: 7,
@@ -231,16 +172,22 @@ const CLASSES_RAW: readonly CharacterClass[] = [
             },
           ],
         },
-        { id: 'paladin.subclass.sacred_oath.oath_of_vengeance', name: 'Oath of Vengeance', source: 'PHB' },
       ],
     },
-    generation: { primaryAbilities: ['cha', 'con'] },
+    generation: { primaryAbilities: ['str', 'cha'] },
     progression: {
-      hitDie: 8,
+      hitDie: 10,
       attackProgression: 'good',
-      savingThrows: ['cha', 'con'],
-      spellcasting: 'none',
-      extraAttackLevel: 3,
+      savingThrows: ['wis', 'cha'],
+      spellcasting: 'half',
+      spellProgression: {
+        ability: 'cha',
+        type: 'prepared',
+        cantripsKnown: [],
+        spellSlots: HALF_CASTER_SLOTS,
+        maxSpellLevel: 5,
+      },
+      extraAttackLevel: 5,
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
@@ -255,29 +202,26 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Bard',
     description: 'A class of talented and charismatic storytellers.',
     definitions: {
-      id: 'bardic_college',
-      name: 'Bardic College',
+      id: 'bard_subclasses',
+      name: 'Bard Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'bard.bardic_college.college_of_lore', name: 'College of Lore', source: 'PHB' },
-        { id: 'bard.bardic_college.college_of_valor', name: 'College of Valor', source: 'PHB' },
+        { id: 'college_of_lore', name: 'College of Lore' },
       ],
     },
-    generation: { primaryAbilities: ['cha', 'dex'] },
+    generation: { primaryAbilities: ['cha'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      savingThrows: ['cha', 'dex'],
-      spellcasting: 'half',
+      savingThrows: ['dex', 'cha'],
+      spellcasting: 'full',
       spellProgression: {
         ability: 'cha',
         type: 'prepared',
-        // TODO: double check cantripsKnown
-        cantripsKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-        spellSlots: HALF_CASTER_SLOTS_5E,
+        cantripsKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+        spellSlots: FULL_CASTER_SLOTS,
         maxSpellLevel: 9,
       },
-      extraAttackLevel: 3,
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
@@ -292,17 +236,16 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Ranger',
     description: 'A class of skilled and knowledgeable trackers.',
     definitions: {
-      id: 'ranger_path',
-      name: 'Ranger Path',
+      id: 'ranger_subclasses',
+      name: 'Ranger Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'ranger.ranger_path.beast_master', name: 'Beast Master', source: 'PHB' },
-        { id: 'ranger.ranger_path.hunter', name: 'Hunter', source: 'PHB' },
+        { id: 'hunter', name: 'Hunter' },
       ],
     },
-    generation: { primaryAbilities: ['str', 'dex'] },
+    generation: { primaryAbilities: ['dex', 'wis'] },
     progression: {
-      hitDie: 8,
+      hitDie: 10,
       attackProgression: 'good',
       savingThrows: ['str', 'dex'],
       spellcasting: 'half',
@@ -310,11 +253,17 @@ const CLASSES_RAW: readonly CharacterClass[] = [
         ability: 'wis',
         type: 'prepared',
         // TODO: double check cantripsKnown
-        cantripsKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-        spellSlots: HALF_CASTER_SLOTS_5E,
-        maxSpellLevel: 9,
+        cantripsKnown: [],
+        spellSlots: HALF_CASTER_SLOTS,
+        maxSpellLevel: 5,
       },
-      extraAttackLevel: 3,
+      extraAttackLevel: 5,
+      features: [
+        { id: 'prime_hunter', name: 'Favored Enemy', level: 1 },
+        { id: 'weapon_mastery', name: 'Weapon Mastery', level: 1 },
+        { id: 'deft_explorer', name: 'Deft Explorer', level: 2 },
+        { id: 'roving', name: 'Roving', level: 6, description: "Your Speed increases by 10 feet while you aren’t wearing Heavy armor. You also have a Climb Speed and a Swim Speed equal to your Speed."},
+      ],
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
@@ -329,22 +278,20 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Monk',
     description: 'A class of disciplined and focused martial artists.',
     definitions: {
-      id: 'monastic_tradition',
-      name: 'Monastic Tradition',
+      id: 'monk_subclasses',
+      name: 'Monk Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'monk.monastic_tradition.way_of_the_four_elements', name: 'Way of the Four Elements', source: 'PHB' },
-        { id: 'monk.monastic_tradition.way_of_shadow', name: 'Way of Shadow', source: 'PHB' },
-        { id: 'monk.monastic_tradition.way_of_the_open_hand', name: 'Way of the Open Hand', source: 'PHB' },
+        { id: 'way_of_the_open_hand', name: 'Way of the Open Hand' },
       ],
     },
-    generation: { primaryAbilities: ['dex', 'con'] },
+    generation: { primaryAbilities: ['dex', 'wis'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      savingThrows: ['dex', 'con'],
+      savingThrows: ['str', 'dex'],
       spellcasting: 'none',
-      extraAttackLevel: 3,
+      extraAttackLevel: 5,
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
@@ -359,21 +306,26 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Druid',
     description: 'A class of nature-loving and wise protectors.',
     definitions: {
-      id: 'druid_circle',
-      name: 'Druid Circle',
-      selectionLevel: 2,
+      id: 'druid_subclasses',
+      name: 'Druid Subclasses',
+      selectionLevel: 3,
       options: [
-        { id: 'druid.druid_circle.circle_of_the_land', name: 'Circle of the Land', source: 'PHB' },
-        { id: 'druid.druid_circle.circle_of_the_moon', name: 'Circle of the Moon', source: 'PHB' },
+        { id: 'circle_of_the_land', name: 'Circle of the Land' },
       ],
     },
-    generation: { primaryAbilities: ['wis', 'con'] },
+    generation: { primaryAbilities: ['wis'] },
     progression: {
       hitDie: 8,
       attackProgression: 'good',
-      savingThrows: ['wis', 'con'],
-      spellcasting: 'none',
-      extraAttackLevel: 3,
+      savingThrows: ['int', 'wis'],
+      spellcasting: 'full',
+      spellProgression: {
+        ability: 'wis',
+        type: 'known',
+        cantripsKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+        spellSlots: FULL_CASTER_SLOTS,
+        maxSpellLevel: 9,
+      },
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
     },
     proficiencies: {
@@ -388,16 +340,14 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Warlock',
     description: 'A class of powerful and mysterious spellcasters.',
     definitions: {
-      id: 'warlock_patron',
-      name: 'Warlock Patron',
-      selectionLevel: 1,
+      id: 'warlock_subclasses',
+      name: 'Warlock Subclasses',
+      selectionLevel: 3,
       options: [
-        { id: 'warlock.warlock_patron.archfey', name: 'The Archfey', source: 'PHB' },
-        { id: 'warlock.warlock_patron.fiend', name: 'The Fiend', source: 'PHB' },
-        { id: 'warlock.warlock_patron.great_old_one', name: 'The Great Old One', source: 'PHB' },
+        { id: 'fiend_patron', name: 'Fiend Patron' },
       ],
     },
-    generation: { primaryAbilities: ['cha', 'con'] },
+    generation: { primaryAbilities: ['cha'] },
     progression: {
       hitDie: 8,
       attackProgression: 'average',
@@ -407,7 +357,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
         ability: 'cha',
         type: 'known',
         cantripsKnown: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-        spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
+        // spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
         spellSlots: WARLOCK_PACT_SLOTS_5E,
         maxSpellLevel: 5,
         mysticArcanum: [
@@ -439,18 +389,17 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Sorcerer',
     description: 'A class of powerful and mysterious spellcasters.',
     definitions: {
-      id: 'sorcerer_origin',
-      name: 'Sorcerer Origin',
-      selectionLevel: 1,
+      id: 'sorcerer_subclasses',
+      name: 'Sorcerer Subclasses',
+      selectionLevel: 3,
       options: [
         {
-          id: 'sorcerer.sorcerer_origin.draconic_bloodline',
+          id: 'draconic_bloodline',
           name: 'Draconic Bloodline',
-          source: 'PHB',
           features: [
             {
               name: 'Draconic Ancestry',
-              id: 'sorcerer.sorcerer_origin.draconic_bloodline.draconic_ancestry',
+              id: 'draconic_bloodline.draconic_ancestry',
               kind: 'formula',
               target: 'armor_class',
               level: 1,
@@ -460,11 +409,11 @@ const CLASSES_RAW: readonly CharacterClass[] = [
                 property: 'equipment.armorEquipped',
                 equals: null,
               },
-              formula: { base: 13, ability: 'dexterity' },
+              formula: { base: 13, ability: 'dex' },
             },
             {
               name: 'Draconic Resilience',
-              id: 'sorcerer.sorcerer_origin.draconic_bloodline.draconic_resilience',
+              id: 'draconic_bloodline.draconic_resilience',
               kind: 'modifier',
               level: 1,
               target: 'hit_points_max',
@@ -473,10 +422,9 @@ const CLASSES_RAW: readonly CharacterClass[] = [
             },
           ],
         },
-        { id: 'sorcerer.sorcerer_origin.draconic_bloodline.wild_magic', name: 'Wild Magic', source: 'PHB' },
       ],
     },
-    generation: { primaryAbilities: ['cha', 'con'] },
+    generation: { primaryAbilities: ['cha'] },
     progression: {
       hitDie: 6,
       attackProgression: 'poor',
@@ -486,8 +434,8 @@ const CLASSES_RAW: readonly CharacterClass[] = [
         ability: 'cha',
         type: 'known',
         cantripsKnown: [4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-        spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
-        spellSlots: FULL_CASTER_SLOTS_5E,
+        // spellsKnown: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
+        spellSlots: FULL_CASTER_SLOTS,
         maxSpellLevel: 9,
       },
       asiLevels: [4, 8, 12, 16, 19],
@@ -515,21 +463,20 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Barbarian',
     description: 'A class of powerful and mysterious spellcasters.',
     definitions: {
-      id: 'barbarian_path',
-      name: 'Barbarian Path',
+      id: 'barbarian_subclasses',
+      name: 'Barbarian Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'barbarian.barbarian_path.totem_warrior', name: 'Path of the Totem Warrior', source: 'PHB' },
-        { id: 'barbarian.barbarian_path.berserker', name: 'Path of the Berserker', source: 'PHB' },
+        { id: 'berserker', name: 'Path of the Berserker', source: 'PHB' },
       ],
     },
     generation: { primaryAbilities: ['str', 'con'] },
     progression: {
-      hitDie: 8,
+      hitDie: 12,
       attackProgression: 'good',
-      savingThrows: ['con', 'cha'],
+      savingThrows: ['str', 'con'],
       spellcasting: 'none',
-      extraAttackLevel: 3,
+      extraAttackLevel: 5,
       asiLevels: [4, 6, 8, 12, 14, 16, 19],
       features: [
         {
@@ -540,7 +487,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
             {
               kind: 'formula',
               target: 'armor_class',
-              formula: { base: 10, abilities: ['dexterity', 'constitution'] },
+              formula: { base: 10, abilities: ['dex', 'con'] },
               condition: {
                 kind: 'state',
                 target: 'self',
@@ -576,21 +523,14 @@ const CLASSES_RAW: readonly CharacterClass[] = [
     name: 'Wizard',
     description: 'A class of wise and powerful spellcasters.',
     definitions: {
-      id: 'wizard.subclass.arcane_tradition',
-      name: 'Arcane Tradition',
-      selectionLevel: 2,
+      id: 'wizard_subclasses',
+      name: 'Wizard Subclasses',
+      selectionLevel: 3,
       options: [
-        { id: 'wizard.subclass.arcane_tradition.school_of_abjuration', name: 'School of Abjuration', source: 'PHB' },
-        { id: 'wizard.subclass.arcane_tradition.school_of_conjuration', name: 'School of Conjuration', source: 'PHB' },
-        { id: 'wizard.subclass.arcane_tradition.school_of_divination', name: 'School of Divination', source: 'PHB' },
-        { id: 'wizard.subclass.arcane_tradition.school_of_enchantment', name: 'School of Enchantment', source: 'PHB' },
-        { id: 'wizard.subclass.arcane_tradition.school_of_evocation', name: 'School of Evocation', source: 'PHB' },
-        { id: 'wizard.subclass.arcane_tradition.school_of_illusion', name: 'School of Illusion', source: 'PHB' },
-        { id: 'wizard.subclass.arcane_tradition.school_of_necromancy', name: 'School of Necromancy', source: 'PHB' },
-        { id: 'wizard.subclass.arcane_tradition.school_of_transmutation', name: 'School of Transmutation', source: 'PHB' },
+        { id: 'evoker', name: 'Evoker' },
       ],
     },
-    generation: { primaryAbilities: ['int', 'con'] },
+    generation: { primaryAbilities: ['int'] },
     progression: {
       hitDie: 6,
       attackProgression: 'poor',
@@ -600,7 +540,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
         ability: 'int',
         type: 'prepared',
         cantripsKnown: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-        spellSlots: FULL_CASTER_SLOTS_5E,
+        spellSlots: FULL_CASTER_SLOTS,
         maxSpellLevel: 9,
       },
       asiLevels: [4, 8, 12, 16, 19],

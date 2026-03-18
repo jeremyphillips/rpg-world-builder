@@ -3,12 +3,16 @@ import type { EffectBase } from '../../effects/effects.types'
 import type { EvaluationContext } from '../../conditions/evaluation-context.types'
 import { getAbilityModifier } from '../../abilities/getAbilityModifier'
 import { resolveProficiencyContribution } from '@/features/mechanics/domain/progression'
-import type { AbilityKey } from '../../character'
+import type { AbilityKey, AbilityId } from '../../character'
 
 export type FormulaDefinition = {
   base?: number
-  ability?: AbilityKey
-  abilities?: AbilityKey[]
+  ability?: 
+    | AbilityKey // @deprecated('Use AbilityId instead')
+    | AbilityId
+  abilities?: 
+    | AbilityKey[] // @deprecated('Use AbilityId[] instead')
+    | AbilityId[]
   /** Cap ability contribution (e.g. medium armor: min(dex, 2)) */
   maxAbilityContribution?: number
   proficiency?: true | { level?: number; bonus?: number }

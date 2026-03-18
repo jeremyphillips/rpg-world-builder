@@ -68,6 +68,6 @@ export {
   GearCreateRoute,
   MagicItemCreateRoute,
 } from '@/features/content/equipment/routes'
-export { InviteRoute } from '@/features/auth/routes'
+export { InviteRoute } from '@/features/campaign/routes'
 export { UsersRoute } from '@/features/user/routes'
 export { AccountRoute, AccountSettingsRoute } from '@/features/account/routes'
