@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import Box from '@mui/material/Box'
 import ButtonBase from '@mui/material/ButtonBase'
@@ -11,7 +11,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
 import { AppBadge } from '@/ui/primitives'
-import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
+import type { CombatActionDefinition, CombatActionKind } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import type { EnrichedPresentableEffect, CombatStateSection } from '../domain'
 import { ActionRow } from './ActionRow'
 
@@ -67,6 +67,68 @@ function CollapsibleSection({
   )
 }
 
+const ACTION_KIND_ORDER: CombatActionKind[] = ['weapon-attack', 'monster-action', 'spell', 'combat-effect']
+
+const ACTION_KIND_LABELS: Partial<Record<CombatActionKind, string>> = {
+  'weapon-attack': 'Weapons',
+  'monster-action': 'Natural',
+  'spell': 'Spells',
+  'combat-effect': 'Effects',
+}
+
+function groupActionsByKind(actions: CombatActionDefinition[]) {
+  const groups = new Map<CombatActionKind, CombatActionDefinition[]>()
+  for (const action of actions) {
+    const list = groups.get(action.kind)
+    if (list) list.push(action)
+    else groups.set(action.kind, [action])
+  }
+  return ACTION_KIND_ORDER
+    .filter((kind) => groups.has(kind))
+    .map((kind) => ({ kind, label: ACTION_KIND_LABELS[kind] ?? kind, actions: groups.get(kind)! }))
+}
+
+function GroupedActionList({
+  actions,
+  selectedActionId,
+  onSelectAction,
+}: {
+  actions: CombatActionDefinition[]
+  selectedActionId?: string
+  onSelectAction?: (actionId: string) => void
+}) {
+  const groups = useMemo(() => groupActionsByKind(actions), [actions])
+  const needsHeaders = groups.length > 1
+
+  return (
+    <Stack spacing={1} sx={{ pt: 0.5 }}>
+      {actions.length === 0 ? (
+        <Typography variant="body2" color="text.secondary">No actions available.</Typography>
+      ) : (
+        groups.map(({ kind, label, actions: groupActions }) => (
+          <Box key={kind}>
+            {needsHeaders && (
+              <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                {label}
+              </Typography>
+            )}
+            <Stack spacing={1}>
+              {groupActions.map((action) => (
+                <ActionRow
+                  key={action.id}
+                  action={action}
+                  isSelected={action.id === selectedActionId}
+                  onSelect={onSelectAction ? () => onSelectAction(action.id) : undefined}
+                />
+              ))}
+            </Stack>
+          </Box>
+        ))
+      )}
+    </Stack>
+  )
+}
+
 export function CombatantActiveCard({
   title,
   subtitle,
@@ -113,37 +175,19 @@ export function CombatantActiveCard({
         <Divider />
 
         <CollapsibleSection title="Actions" count={actions.length}>
-          <Stack spacing={1} sx={{ pt: 0.5 }}>
-            {actions.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">No actions available.</Typography>
-            ) : (
-              actions.map((action) => (
-                <ActionRow
-                  key={action.id}
-                  action={action}
-                  isSelected={action.id === selectedActionId}
-                  onSelect={onSelectAction ? () => onSelectAction(action.id) : undefined}
-                />
-              ))
-            )}
-          </Stack>
+          <GroupedActionList
+            actions={actions}
+            selectedActionId={selectedActionId}
+            onSelectAction={onSelectAction}
+          />
         </CollapsibleSection>
 
         <CollapsibleSection title="Bonus Actions" count={bonusActions.length} defaultOpen={bonusActions.length > 0}>
-          <Stack spacing={1} sx={{ pt: 0.5 }}>
-            {bonusActions.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">No bonus actions available.</Typography>
-            ) : (
-              bonusActions.map((action) => (
-                <ActionRow
-                  key={action.id}
-                  action={action}
-                  isSelected={action.id === selectedActionId}
-                  onSelect={onSelectAction ? () => onSelectAction(action.id) : undefined}
-                />
-              ))
-            )}
-          </Stack>
+          <GroupedActionList
+            actions={bonusActions}
+            selectedActionId={selectedActionId}
+            onSelectAction={onSelectAction}
+          />
         </CollapsibleSection>
 
         <CollapsibleSection title="Combat Effects" count={totalEffects} defaultOpen={totalEffects > 0}>
