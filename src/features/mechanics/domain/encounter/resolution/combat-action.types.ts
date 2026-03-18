@@ -63,6 +63,11 @@ export interface CombatActionUsage {
   }
 }
 
+export type CombatActionDisplayMeta =
+  | { source: 'weapon'; range?: string }
+  | { source: 'spell'; level: number; concentration: boolean; range: string; summary?: string }
+  | { source: 'natural'; attackType: string; reach?: number; description?: string }
+
 export interface CombatActionDefinition {
   id: string
   label: string
@@ -82,4 +87,5 @@ export interface CombatActionDefinition {
   onSuccessEffects?: Effect[]
   sequence?: CombatActionSequenceStep[]
   logText?: string
+  displayMeta?: CombatActionDisplayMeta
 }

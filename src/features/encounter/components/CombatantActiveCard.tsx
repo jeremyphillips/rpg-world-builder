@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { AppBadge } from '@/ui/primitives'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import type { EnrichedPresentableEffect, CombatStateSection } from '../domain'
-import { formatSigned } from '../helpers'
+import { ActionRow } from './ActionRow'
 
 type StatEntry = { label: string; value: string }
 
@@ -64,73 +64,6 @@ function CollapsibleSection({
       </ButtonBase>
       <Collapse in={open}>{children}</Collapse>
     </Box>
-  )
-}
-
-function ActionRow({
-  action,
-  isSelected,
-  onSelect,
-}: {
-  action: CombatActionDefinition
-  isSelected: boolean
-  onSelect?: () => void
-}) {
-  const costParts: string[] = []
-  if (action.cost.action) costParts.push('Action')
-  if (action.cost.bonusAction) costParts.push('Bonus')
-  if (action.cost.reaction) costParts.push('Reaction')
-  if (action.cost.movementFeet) costParts.push(`${action.cost.movementFeet} ft`)
-  const costLabel = costParts.join(', ') || '—'
-
-  const detailParts: string[] = []
-  if (action.attackProfile) {
-    detailParts.push(`${formatSigned(action.attackProfile.attackBonus)} to hit`)
-    if (action.attackProfile.damage) {
-      const dmgStr = action.attackProfile.damageType
-        ? `${action.attackProfile.damage} ${action.attackProfile.damageType}`
-        : action.attackProfile.damage
-      detailParts.push(dmgStr)
-    }
-  } else if (action.saveProfile) {
-    detailParts.push(`DC ${action.saveProfile.dc} ${action.saveProfile.ability.toUpperCase()} save`)
-  }
-  if (action.damage && !action.attackProfile) {
-    const dmgStr = action.damageType ? `${action.damage} ${action.damageType}` : action.damage
-    detailParts.push(dmgStr)
-  }
-
-  const usageLabel = action.usage?.recharge
-    ? `Recharge ${action.usage.recharge.min}–${action.usage.recharge.max}`
-    : action.usage?.uses
-      ? `${action.usage.uses.remaining}/${action.usage.uses.max} per ${action.usage.uses.period}`
-      : null
-
-  return (
-    <Paper
-      variant="outlined"
-      sx={{
-        p: 1.5,
-        cursor: onSelect ? 'pointer' : 'default',
-        borderColor: isSelected ? 'primary.main' : 'divider',
-        
-        '&:hover': onSelect ? { bgcolor: 'action.hover' } : undefined,
-      }}
-      onClick={onSelect}
-    >
-      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>{action.label}</Typography>
-          {detailParts.length > 0 && (
-            <Typography variant="caption" color="text.secondary">{detailParts.join(' · ')}</Typography>
-          )}
-        </Box>
-        <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }} alignItems="center">
-          {usageLabel && <AppBadge label={usageLabel} tone="default" variant="outlined" size="small" />}
-          <Typography variant="caption" color="text.secondary" noWrap>{costLabel}</Typography>
-        </Stack>
-      </Stack>
-    </Paper>
   )
 }
 
