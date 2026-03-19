@@ -25,10 +25,10 @@ todos:
     status: done
   - id: phase-5-combat-stubs
     content: Author structured effects for ~60 remaining combat-adjacent stub spells (save+condition, area control, attack-roll, buff)
-    status: pending
+    status: done
   - id: phase-6-auto-hit
     content: Add auto-hit resolution mode, HP-threshold gating, and contest/check resolution; upgrade Magic Missile, Power Words, Counterspell
-    status: pending
+    status: done
   - id: phase-7-reduce-undermodeled
     content: Systematically convert under-modeled notes to structured effects or reclassify as flavor; target ~60% reduction
     status: pending
@@ -74,7 +74,7 @@ Update [encounter-helpers/index.ts](src/features/encounter/helpers/index.ts) bar
 
 [runtime.ts](src/features/mechanics/domain/encounter/state/runtime.ts) handles marker lifecycle, turn hooks, encounter creation, and turn advance. Split into:
 
-- `**marker-lifecycle.ts**` — `tickMarkers`, `tickRuntimeEffects`, `tickStatModifiers`, `processMarkerBoundary`, `processRuntimeEffectBoundary`, `processTrackedPartTurnEnd`
+- `**marker-lifecycle.ts`** — `tickMarkers`, `tickRuntimeEffects`, `tickStatModifiers`, `processMarkerBoundary`, `processRuntimeEffectBoundary`, `processTrackedPartTurnEnd`
 - `**turn-hooks.ts**` — `executeTurnHooks` (already a self-contained unit)
 - `**runtime.ts**` — retains `createEncounterState`, `advanceEncounterTurn`, `resetCombatantTurnState`, `processActionRecharge`, `buildAliveInitiativeParticipants`, `formatRuntimeEffectLabel`. Imports from the extracted modules.
 
