@@ -51,6 +51,7 @@ Boundaries:
 - `description.full` is authoritative rules text.
 - `description.summary` is short UI copy.
 - **Catalog audit:** run `npm run test:run -- src/features/encounter/helpers/spell-catalog-audit.test.ts` for merged-system-spell metrics (stranded counts, ambiguous delivery, explicit `save.dc`, etc.). Counts are for reporting, not CI gates; see `spell-resolution-audit.ts` and [resolution.md](./resolution.md) §7 “Spell combat adapter”.
+- **`resolution.hpThreshold`** — optional HP-gated branches: main `effects` when target current HP ≤ `maxHp`, `aboveMaxHpEffects` when above (combat adapter maps to `CombatActionDefinition`). Use for spells like Power Word Kill; keep rules text in `description.full`.
 
 ### Delivery Method
 
@@ -65,6 +66,29 @@ Boundaries:
 - Top-level spell range = where the origin or target point can be chosen.
 - `targeting` = who or what is affected after placement.
 - Do not restate spell range in `targeting` unless it is distinct from the parent range.
+
+### Area targeting and encounter combat (limitations)
+
+Authored `targeting` with `creatures-in-area` and `area` (cone, sphere, line, etc.) describes the **intended template** for rules text, UI, audits, and future spatial engines. It is **not** wired to point-and-shape simulation in encounter combat today.
+
+**What the spell combat adapter does**
+
+- Area-style spells are mapped to **`all-enemies`** action targeting (`buildSpellTargeting` in `spell-combat-adapter.ts`).
+- Resolution uses **`getActionTargetCandidates`**: every **living enemy** combatant that passes `isValidActionTarget` can receive the spell’s effects — there is **no** check that a creature lies inside the authored `area` or origin point.
+
+**What is not modeled**
+
+- **Geometry:** no chosen point, no distance-from-center, no templates on a grid, no line of effect, no cover or blocking.
+- **Friendly fire / mixed allegiance:** the adapter path is **hostile, enemies only**. Spells that can legally affect **allies** in the area (or the caster’s space, or “creatures you choose” inside an AoE) **do not** get that behavior here — allies are simply **not** in the `all-enemies` pool. Do **not** assume encounter resolution matches the full SRD for those cases.
+- **Partial areas / exclusions** (e.g. “creatures you designate”, “you and creatures you choose”, evasion behind total cover) are likewise **not** represented mechanically.
+
+**Authoring**
+
+- Keep **`description.full`** (and `description.summary`) authoritative for human rules.
+- Use **`note`** (and optional `resolution.caveats`) to flag under-modeled encounter behavior where it matters.
+- For mechanics that require picking specific creatures regardless of side, prefer patterns that map to **`single-creature`**, **`self`**, or other supported kinds where possible.
+
+See [resolution.md §9 — Targeting families](./resolution.md#targeting-families) (and **Area spells vs `all-enemies`**) for the runtime architecture framing.
 
 ### Duration
 
@@ -122,6 +146,7 @@ Status meanings:
 
 - `one-dead-creature`: targets a single creature at 0 HP. The spell combat adapter maps this to `dead-creature` action targeting, which restricts selection to 0 HP combatants regardless of side.
 - `creatureTypeFilter`: restricts valid targets to creatures whose `creatureType` matches one of the listed types. The spell combat adapter propagates this to `CombatActionTargetingProfile.creatureTypeFilter`, and both the resolution engine and the encounter UI filter targets accordingly. Uses `MonsterType` values from the shared monster vocabulary.
+- **`creatures-in-area` in encounter combat:** the adapter treats area spells as **`all-enemies`** only — see §3 **Area targeting and encounter combat (limitations)** above.
 
 ### `damage`
 

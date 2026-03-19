@@ -12,6 +12,8 @@ function createCombatant(args: {
   initiativeModifier: number
   dexterityScore: number
   armorClass: number
+  maxHitPoints?: number
+  currentHitPoints?: number
   abilityScores?: {
     strength?: number
     dexterity?: number
@@ -40,8 +42,8 @@ function createCombatant(args: {
     },
     stats: {
       armorClass: args.armorClass,
-      maxHitPoints: 12,
-      currentHitPoints: 12,
+      maxHitPoints: args.maxHitPoints ?? 12,
+      currentHitPoints: args.currentHitPoints ?? args.maxHitPoints ?? 12,
       initiativeModifier: args.initiativeModifier,
       dexterityScore: args.dexterityScore,
       abilityScores: {
@@ -1598,5 +1600,82 @@ describe('resolveCombatAction', () => {
 
     expect(resolved.combatantsById['fallen-ally']!.stats.currentHitPoints).toBe(0)
     expect(resolved.log.some((entry) => entry.summary.includes('no valid targets'))).toBe(true)
+  })
+
+  it('effects mode branches by hpThreshold when defined on the action', () => {
+    const hpThresholdAction = (id: string): CombatActionDefinition => ({
+      id,
+      label: 'Power Word Test',
+      kind: 'spell',
+      cost: { action: true },
+      resolutionMode: 'effects',
+      hpThreshold: { maxHp: 100 },
+      effects: [{ kind: 'damage', damage: '99', damageType: 'psychic' }],
+      aboveThresholdEffects: [{ kind: 'damage', damage: '3', damageType: 'psychic' }],
+      targeting: { kind: 'single-target' },
+      displayMeta: { source: 'spell', spellId: id, level: 9, concentration: false, range: '60 ft' },
+    })
+
+    const low = createEncounterState(
+      [
+        createCombatant({
+          instanceId: 'wiz',
+          label: 'Wizard',
+          side: 'party',
+          initiativeModifier: 5,
+          dexterityScore: 10,
+          armorClass: 12,
+          actions: [hpThresholdAction('pwk-low')],
+        }),
+        createCombatant({
+          instanceId: 'low',
+          label: 'Weakened',
+          side: 'enemies',
+          initiativeModifier: 1,
+          dexterityScore: 14,
+          armorClass: 13,
+          maxHitPoints: 80,
+          currentHitPoints: 80,
+        }),
+      ],
+      { rng: () => 0.1 },
+    )
+    const rLow = resolveCombatAction(
+      low,
+      { actorId: 'wiz', targetId: 'low', actionId: 'pwk-low' },
+      { rng: () => 0.5 },
+    )
+    expect(rLow.combatantsById['low']?.stats.currentHitPoints).toBe(0)
+
+    const high = createEncounterState(
+      [
+        createCombatant({
+          instanceId: 'wiz',
+          label: 'Wizard',
+          side: 'party',
+          initiativeModifier: 5,
+          dexterityScore: 10,
+          armorClass: 12,
+          actions: [hpThresholdAction('pwk-high')],
+        }),
+        createCombatant({
+          instanceId: 'high',
+          label: 'Healthy',
+          side: 'enemies',
+          initiativeModifier: 1,
+          dexterityScore: 14,
+          armorClass: 13,
+          maxHitPoints: 200,
+          currentHitPoints: 150,
+        }),
+      ],
+      { rng: () => 0.1 },
+    )
+    const rHigh = resolveCombatAction(
+      high,
+      { actorId: 'wiz', targetId: 'high', actionId: 'pwk-high' },
+      { rng: () => 0.5 },
+    )
+    expect(rHigh.combatantsById['high']?.stats.currentHitPoints).toBe(147)
   })
 })

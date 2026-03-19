@@ -162,11 +162,16 @@ export const SPELLS_LEVEL_9: readonly SpellEntry[] = [
     duration: { kind: 'instantaneous' },
     components: { verbal: true },
     effects: [
-      {
-        kind: 'note',
-        text: 'Creature with 100 HP or fewer dies. Otherwise 12d12 psychic.',
-      },
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      // Overkill damage when at/below threshold — instant death for typical encounter HP (does not model “die regardless of HP” verbatim).
+      { kind: 'damage', damage: '5000', damageType: 'psychic' },
     ],
+    resolution: {
+      hpThreshold: {
+        maxHp: 100,
+        aboveMaxHpEffects: [{ kind: 'damage', damage: '12d12', damageType: 'psychic' }],
+      },
+    },
     description: {
       full: "You compel one creature you can see within range to die. If the target has 100 Hit Points or fewer, it dies. Otherwise, it takes 12d12 Psychic damage.",
       summary: '100 HP or fewer: die. Otherwise 12d12 psychic.',

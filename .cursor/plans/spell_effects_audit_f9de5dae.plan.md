@@ -15,7 +15,7 @@ todos:
     content: Grep/script—save.dc, damage vs save branches, deliveryMethod for spell attacks, ambiguous delivery shape flag
     status: completed
   - id: phase3-triage
-    content: Triage remaining stranded by targeting flags—instances/chosen-creatures, then area, then hpThreshold/auto-hit, then concentration/duration gaps
+    content: "Remaining: area semantics (all-enemies vs allies-in-area) — needs targeting model work"
     status: pending
 isProject: false
 ---
@@ -143,6 +143,8 @@ Triage **remaining** stranded or mis-behaving spells using Phase 1 **targeting**
 2. **Area semantics** — `creatures-in-area` → `all-enemies` and ally/exclusion gaps (resolution.md §9).
 3. `**hpThreshold` / explicit auto-hit authoring** — important but **lower volume** until spells define `spell.resolution` (currently sparse/absent in system data).
 4. **Concentration + duration injection** — correctness for sustained effects; often less visible than wrong targets.
+
+**Progress:** (1) **Shipped** — multi-instance `effects` sequence (Magic Missile). (2) Area ally/foe — still open. (3) `**resolution.hpThreshold`** + `aboveThresholdEffects` on `CombatActionDefinition` and Power Word Kill data — shipped. (4) **Timed spell duration** → `fixed` turn effect duration for inject — shipped; concentration/dispel edge cases may still need follow-up.
 
 ---
 

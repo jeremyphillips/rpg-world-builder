@@ -113,6 +113,7 @@ export function computeAmbiguousDelivery(spell: Spell): boolean {
   const hasTopLevelDamage = effects.some((e) => e.kind === 'damage')
   if (!hasTopLevelDamage) return false
   if (effects.some((e) => e.kind === 'save')) return false
+  if (spell.resolution?.hpThreshold) return false
   if (spell.resolution && Object.keys(spell.resolution).length > 0) return false
   return true
 }

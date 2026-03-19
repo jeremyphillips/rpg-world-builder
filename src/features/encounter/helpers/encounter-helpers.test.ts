@@ -573,6 +573,101 @@ describe('buildSpellCombatActions', () => {
     expect(actions[0]!.effects?.some((e) => e.kind === 'state')).toBe(true)
   })
 
+  it('splits multi-instance auto-hit spells into parent sequence + child effects hits', () => {
+    const spell = makeSpell({
+      id: 'magic-missile',
+      name: 'Magic Missile',
+      level: 1,
+      effects: [
+        {
+          kind: 'targeting',
+          target: 'chosen-creatures',
+          targetType: 'creature',
+          count: 3,
+          canSelectSameTargetMultipleTimes: true,
+        },
+        {
+          kind: 'damage',
+          damage: '1d4+1',
+          damageType: 'force',
+          instances: {
+            count: 3,
+            simultaneous: true,
+            canSplitTargets: true,
+            canStackOnSingleTarget: true,
+          },
+        },
+      ],
+    })
+
+    const actions = buildSpellCombatActions({
+      ...baseArgs,
+      spellIds: ['magic-missile'],
+      spellsById: { 'magic-missile': spell },
+    })
+
+    expect(actions).toHaveLength(2)
+    const parent = actions[0]!
+    const hit = actions[1]!
+    expect(parent.sequence).toEqual([{ actionLabel: 'Magic Missile hit', count: 3 }])
+    expect(parent.resolutionMode).toBe('effects')
+    expect(hit.resolutionMode).toBe('effects')
+    expect(hit.label).toBe('Magic Missile hit')
+    const dmg = hit.effects?.find((e) => e.kind === 'damage')
+    expect(dmg?.kind).toBe('damage')
+    if (dmg?.kind === 'damage') {
+      expect(dmg.instances).toBeUndefined()
+    }
+  })
+
+  it('maps spell resolution hpThreshold onto combat action fields', () => {
+    const spell = makeSpell({
+      id: 'pwk',
+      name: 'Power Word Kill',
+      level: 9,
+      effects: [
+        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+        { kind: 'damage', damage: '100', damageType: 'psychic' },
+      ],
+      resolution: {
+        hpThreshold: {
+          maxHp: 100,
+          aboveMaxHpEffects: [{ kind: 'damage', damage: '12d12', damageType: 'psychic' }],
+        },
+      },
+    })
+
+    const actions = buildSpellCombatActions({
+      ...baseArgs,
+      spellIds: ['pwk'],
+      spellsById: { pwk: spell },
+    })
+
+    expect(actions).toHaveLength(1)
+    expect(actions[0]!.hpThreshold).toEqual({ maxHp: 100 })
+    expect(actions[0]!.aboveThresholdEffects?.some((e) => e.kind === 'damage')).toBe(true)
+    expect(actions[0]!.effects?.some((e) => e.kind === 'damage')).toBe(true)
+  })
+
+  it('injects timed spell duration as fixed combat turns on effects without their own duration', () => {
+    const spell = makeSpell({
+      id: 'timed-buff',
+      name: 'Timed Buff',
+      range: { kind: 'self' },
+      duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true },
+      effects: [{ kind: 'modifier', target: 'armor_class', mode: 'add', value: 1 }],
+    })
+
+    const actions = buildSpellCombatActions({
+      ...baseArgs,
+      spellIds: ['timed-buff'],
+      spellsById: { 'timed-buff': spell },
+    })
+
+    const mod = actions[0]!.effects?.find((e) => e.kind === 'modifier')
+    expect(mod?.duration).toEqual({ kind: 'fixed', value: 10, unit: 'turn' })
+  })
+
   it('maps bonus-action casting time to bonus action cost', () => {
     const spell = makeSpell({
       id: 'healing-word',

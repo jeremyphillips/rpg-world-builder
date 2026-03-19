@@ -466,6 +466,12 @@ Healing actions use `targeting: { kind: 'single-creature' }`, which allows any l
 - **`effects`** — spell has at least one effect kind the adapter treats as mechanically actionable (e.g. `damage`, `save`, `hit-points`, `condition`, `state`, `roll-modifier`, `modifier`, `immunity`, `interval`, `remove-classification`), and effects are not **only** `note` and/or `targeting`.
 - **`log-only`** — empty effects, only `note` / `targeting`, or only kinds such as `grant` / `move` that the encounter layer currently resolves as structured log output without the same mechanical path.
 
+Multi-instance **auto-hit** spells authored with a single root `damage` effect and `instances.count` above 1 (no top-level `save`) are built as a **parent `effects` action with `sequence`** plus a child `effects` action per hit (same pattern as multi-beam spell attacks). Each child applies one damage resolution against the selected target until proper multi-target selection exists.
+
+**HP threshold:** `CombatActionDefinition` may set `hpThreshold: { maxHp }` with `aboveThresholdEffects`. In `effects` resolution, if the target’s current HP is at or below `maxHp`, `action.effects` apply; otherwise `aboveThresholdEffects` apply (or none if omitted). Spells author this via `spell.resolution.hpThreshold` in [spell.types.ts](../../src/features/content/spells/domain/types/spell.types.ts) (e.g. Power Word Kill).
+
+**Timed spell duration on effects:** `until-turn-boundary` spell durations map to the same-shaped effect duration; `timed` spell durations (minute/hour/day) map to `fixed` effect duration in **combat turns** via the same 6-second-per-turn heuristic used for concentration display, so modifiers and similar markers can tick down in encounter time.
+
 Behavioral tests in `encounter-helpers.test.ts` lock in representative routing; catalog-wide stranded counts are for manual or PR reporting, not CI thresholds.
 
 ## 8. Supported Effect Matrix
@@ -514,6 +520,18 @@ Current targeting covers creature-selectable cases only. Future work will likely
 - **Creature-selectable** — the current model. Actor picks one or more creatures from a candidate pool (single-target, all-enemies, single-creature, dead-creature, self).
 - **Event-driven** — targeting determined by a game event rather than player choice. `entered-during-move` is the current example. This should not be treated as a template for general creature-targeting abstraction.
 - **Spatial/area** — point-and-shape selection (cone, sphere, line, cube) with inclusion/exclusion, friend/foe filtering, line-of-effect, and range. This is a qualitatively different problem from creature selection and should be designed as its own subsystem.
+
+### Area spells vs `all-enemies` (friendly-fire gap)
+
+Spells authored with **`creatures-in-area`** (and `targeting.area`) are **not** resolved with spatial inclusion. The spell combat adapter maps them to **`all-enemies`**: `getActionTargetCandidates` returns **all living enemy** combatants that satisfy `isValidActionTarget` (including charmed / hostile-action rules via `cannotTargetWithHostileAction`), and those targets receive the effect bundle.
+
+**Limitations (by design today)**
+
+- **No geometry** — no origin point, template, or per-creature “inside the AoE” test.
+- **No friendly fire** — **allies are never** selected on this path, even when the spell’s rules allow or require hitting allies in the area. Mixed allegiance, “creatures you choose” inside a zone, and similar cases are **not** modeled.
+- **No cover, line of effect, or selective exclusion** beyond what targeting predicates already express (e.g. `creatureTypeFilter`).
+
+Authoring and content expectations: [effects.md — Area targeting and encounter combat (limitations)](./effects.md#area-targeting-and-encounter-combat-limitations).
 
 If the creature-selectable kind union (`single-target`, `all-enemies`, etc.) grows beyond its current six members — especially if new kinds overlap with existing ones (e.g., `single-ally` vs `single-creature`) — consider decomposing into dimensional fields (allegiance, lifeState, cardinality) rather than continuing to extend the flat union.
 

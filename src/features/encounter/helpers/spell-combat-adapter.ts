@@ -86,6 +86,14 @@ function buildSpellActionCost(spell: Spell): { action?: boolean; bonusAction?: b
   return { action: true }
 }
 
+function getSpellCreatureTypeFilter(spell: Spell): string[] | undefined {
+  const targeting = spell.effects?.find((e) => e.kind === 'targeting')
+  if (targeting?.kind === 'targeting' && targeting.creatureTypeFilter?.length) {
+    return [...targeting.creatureTypeFilter]
+  }
+  return undefined
+}
+
 function buildSpellTargeting(spell: Spell): { kind: 'single-target' | 'all-enemies' | 'self' | 'single-creature' | 'dead-creature'; creatureTypeFilter?: string[] } {
   if (spell.range?.kind === 'self') return { kind: 'self' }
   const effects = spell.effects ?? []
@@ -96,12 +104,24 @@ function buildSpellTargeting(spell: Spell): { kind: 'single-target' | 'all-enemi
   const hasHealing = effects.some((e) => e.kind === 'hit-points' && e.mode === 'heal')
   if (hasHealing) return { kind: 'single-creature' }
   const targeting = effects.find((e) => e.kind === 'targeting')
-  const creatureTypeFilter = targeting?.kind === 'targeting' && targeting.creatureTypeFilter?.length
-    ? [...targeting.creatureTypeFilter]
-    : undefined
+  const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
   if (targeting?.kind === 'targeting' && targeting.area) return { kind: 'all-enemies', creatureTypeFilter }
   if (targeting?.kind === 'targeting' && targeting.target === 'creatures-in-area') return { kind: 'all-enemies', creatureTypeFilter }
   return { kind: 'single-target', creatureTypeFilter }
+}
+
+/**
+ * Multi-instance auto-hit damage (e.g. Magic Missile): one damage roll per instance, same target until multi-select exists.
+ * Requires a lone mechanical root effect (the `damage` with `instances`); no top-level `save` / buff riders.
+ */
+function spellShouldUseEffectsSequence(spell: Spell, casterLevel: number): boolean {
+  if (resolveInstanceCount(spell, casterLevel) <= 1) return false
+  const root = spell.effects ?? []
+  if (root.some((e) => e.kind === 'save')) return false
+  const mechanicalRoot = root.filter((e) => e.kind !== 'targeting' && e.kind !== 'note')
+  if (mechanicalRoot.length !== 1) return false
+  const only = mechanicalRoot[0]
+  return only?.kind === 'damage' && Boolean(only.instances)
 }
 
 function injectSpellSaveDc(effects: Effect[], spellSaveDc: number): Effect[] {
@@ -141,7 +161,27 @@ function spellDurationToEffectDuration(spellDuration: SpellDuration): EffectDura
       boundary: spellDuration.boundary,
     }
   }
+  if (spellDuration.kind === 'timed') {
+    const turns = spellDurationToTurns(spellDuration)
+    if (turns != null && turns > 0) {
+      return { kind: 'fixed', value: turns, unit: 'turn' }
+    }
+  }
   return undefined
+}
+
+function enrichSpellEffectsForCombat(
+  spell: Spell,
+  effects: Effect[],
+  spellSaveDc: number,
+  spellcastingAbilityModifier?: number,
+): Effect[] {
+  let out = injectSpellSaveDc(effects, spellSaveDc)
+  if (typeof spellcastingAbilityModifier === 'number') {
+    out = injectHealingAbilityModifier(out, spellcastingAbilityModifier)
+  }
+  out = injectSpellEffectDuration(out, spell.duration)
+  return out
 }
 
 function injectSpellEffectDuration(effects: Effect[], spellDuration: SpellDuration): Effect[] {
@@ -249,12 +289,20 @@ function buildSpellEffectsAction(
   usage: CombatActionDefinition['usage'],
   spellcastingAbilityModifier?: number,
 ): CombatActionDefinition {
-  let enrichedEffects = injectSpellSaveDc(spell.effects ?? [], spellSaveDc)
-  if (typeof spellcastingAbilityModifier === 'number') {
-    enrichedEffects = injectHealingAbilityModifier(enrichedEffects, spellcastingAbilityModifier)
-  }
-  enrichedEffects = injectSpellEffectDuration(enrichedEffects, spell.duration)
+  const enrichedEffects = enrichSpellEffectsForCombat(
+    spell,
+    spell.effects ?? [],
+    spellSaveDc,
+    spellcastingAbilityModifier,
+  )
   const resolvableEffects = enrichedEffects.filter((e) => e.kind !== 'targeting')
+
+  const hpCfg = spell.resolution?.hpThreshold
+  const aboveThresholdEffects = hpCfg?.aboveMaxHpEffects?.length
+    ? enrichSpellEffectsForCombat(spell, hpCfg.aboveMaxHpEffects, spellSaveDc, spellcastingAbilityModifier).filter(
+        (e) => e.kind !== 'targeting',
+      )
+    : undefined
 
   return {
     id: `${runtimeId}-spell-${spell.id}`,
@@ -263,11 +311,56 @@ function buildSpellEffectsAction(
     cost: buildSpellActionCost(spell),
     resolutionMode: 'effects',
     effects: resolvableEffects,
+    hpThreshold: hpCfg ? { maxHp: hpCfg.maxHp } : undefined,
+    aboveThresholdEffects: aboveThresholdEffects && aboveThresholdEffects.length > 0 ? aboveThresholdEffects : undefined,
     targeting: buildSpellTargeting(spell),
     logText: buildSpellLogText(spell),
     displayMeta: buildSpellDisplayMeta(spell),
     usage,
   }
+}
+
+function buildSpellEffectsSequenceActions(
+  spell: Spell,
+  runtimeId: string,
+  usage: CombatActionDefinition['usage'],
+  casterLevel: number,
+): CombatActionDefinition[] {
+  const instanceCount = resolveInstanceCount(spell, casterLevel)
+  const damageEffect = findSpellDamageEffect(spell)!
+  const { instances: _omit, ...damageWithoutInstances } = damageEffect
+  let childEffects: Effect[] = [damageWithoutInstances as Effect]
+  childEffects = injectSpellEffectDuration(childEffects, spell.duration)
+
+  const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
+  const hitLabel = `${spell.name} hit`
+  const displayMeta = buildSpellDisplayMeta(spell)
+
+  const childAction: CombatActionDefinition = {
+    id: `${runtimeId}-spell-${spell.id}-hit`,
+    label: hitLabel,
+    kind: 'spell',
+    cost: {},
+    resolutionMode: 'effects',
+    effects: childEffects,
+    targeting: { kind: 'single-target', creatureTypeFilter },
+    displayMeta,
+  }
+
+  const parentAction: CombatActionDefinition = {
+    id: `${runtimeId}-spell-${spell.id}`,
+    label: spell.name,
+    kind: 'spell',
+    cost: buildSpellActionCost(spell),
+    resolutionMode: 'effects',
+    sequence: [{ actionLabel: hitLabel, count: instanceCount }],
+    targeting: { kind: 'single-target', creatureTypeFilter },
+    logText: buildSpellLogText(spell),
+    displayMeta,
+    usage,
+  }
+
+  return [parentAction, childAction]
 }
 
 export function buildSpellCombatActions(args: {
@@ -306,6 +399,9 @@ export function buildSpellCombatActions(args: {
     }
 
     if (mode === 'effects') {
+      if (spellShouldUseEffectsSequence(spell, casterLevel)) {
+        return buildSpellEffectsSequenceActions(spell, runtimeId, effectiveUsage, casterLevel)
+      }
       return [buildSpellEffectsAction(spell, runtimeId, spellSaveDc, effectiveUsage, spellcastingAbilityModifier)]
     }
 

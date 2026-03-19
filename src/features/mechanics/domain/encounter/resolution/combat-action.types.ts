@@ -94,6 +94,9 @@ export interface CombatActionDefinition {
   onFailEffects?: Effect[]
   onSuccessEffects?: Effect[]
   sequence?: CombatActionSequenceStep[]
+  /** When set with `aboveThresholdEffects`, `effects` apply if target current HP ≤ maxHp; otherwise `aboveThresholdEffects` apply. */
+  hpThreshold?: { maxHp: number }
+  aboveThresholdEffects?: Effect[]
   logText?: string
   displayMeta?: CombatActionDisplayMeta
 }

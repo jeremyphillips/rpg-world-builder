@@ -478,12 +478,19 @@ function resolveCombatActionInternal(
       })
     } else {
       for (const effectTarget of targets) {
+        const resolvedTarget = nextState.combatantsById[effectTarget.instanceId] ?? effectTarget
+        const effectPayload =
+          action.hpThreshold != null
+            ? resolvedTarget.stats.currentHitPoints <= action.hpThreshold.maxHp
+              ? action.effects
+              : action.aboveThresholdEffects ?? []
+            : action.effects
         const effectResult = applyActionEffects(
           nextState,
           actor,
-          nextState.combatantsById[effectTarget.instanceId] ?? effectTarget,
+          resolvedTarget,
           action,
-          action.effects,
+          effectPayload,
           { rng, sourceLabel: actionLabel },
         )
         nextState = effectResult.state
