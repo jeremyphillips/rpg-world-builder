@@ -371,3 +371,33 @@ How each effect kind is resolved at runtime by `action-effects.ts`:
 - **Partial**: Some sub-cases resolved, others degrade to log.
 - **Handled**: Consumed elsewhere in the pipeline (not in `applyActionEffects`).
 - **Log**: Structured summary logged to encounter log; no mechanical state changes.
+
+## 9. Known Pressure Points
+
+### Conditions vs states
+
+`conditions` holds canonical status effects that participate broadly in mechanics (the SRD set: blinded, charmed, frightened, etc.). `states` holds encounter/runtime markers and custom flags that are not part of that canonical set (banished, concentrating, immune-to-X, etc.). New markers should follow this boundary so that code which iterates conditions for mechanical purposes does not accidentally pick up custom markers, and vice versa.
+
+### Targeting families
+
+Current targeting covers creature-selectable cases only. Future work will likely require separate handling for at least three targeting families:
+
+- **Creature-selectable** — the current model. Actor picks one or more creatures from a candidate pool (single-target, all-enemies, single-creature, dead-creature, self).
+- **Event-driven** — targeting determined by a game event rather than player choice. `entered-during-move` is the current example. This should not be treated as a template for general creature-targeting abstraction.
+- **Spatial/area** — point-and-shape selection (cone, sphere, line, cube) with inclusion/exclusion, friend/foe filtering, line-of-effect, and range. This is a qualitatively different problem from creature selection and should be designed as its own subsystem.
+
+If the creature-selectable kind union (`single-target`, `all-enemies`, etc.) grows beyond its current six members — especially if new kinds overlap with existing ones (e.g., `single-ally` vs `single-creature`) — consider decomposing into dimensional fields (allegiance, lifeState, cardinality) rather than continuing to extend the flat union.
+
+### "Condition" is overloaded
+
+Three distinct concepts share the term "condition" in this codebase:
+
+- **Status condition** — a canonical mechanical status on a combatant (blinded, charmed, etc.). Typed as `EffectConditionId`.
+- **Effect condition / predicate** — a boolean expression that gates whether an effect applies. Typed as `Condition` in `conditions/condition.types.ts`.
+- **Form/display condition** — a UI visibility rule for form fields. Typed as `Condition` in `ui/patterns/form/conditions.ts`.
+
+Any future naming cleanup should address all three usages together rather than renaming one in isolation.
+
+### Stable ids over labels
+
+Targeting checks, condition/state queries, and authored rule matching should rely on stable machine ids rather than display labels. Where existing code matches on `label` strings (e.g., `s.label === 'banished'`), treat those as interim shortcuts and prefer typed ids when the relevant type surface is extended.
