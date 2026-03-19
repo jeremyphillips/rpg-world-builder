@@ -22,6 +22,21 @@ function isConcentrationSpell(duration: SpellDuration | undefined): boolean {
   return 'concentration' in duration && duration.concentration === true
 }
 
+const SECONDS_PER_TURN = 6
+
+const TIME_UNIT_TO_SECONDS: Record<string, number> = {
+  minute: 60,
+  hour: 3600,
+  day: 86400,
+}
+
+function spellDurationToTurns(duration: SpellDuration | undefined): number | undefined {
+  if (!duration || duration.kind !== 'timed') return undefined
+  const unitSeconds = TIME_UNIT_TO_SECONDS[duration.unit]
+  if (!unitSeconds) return undefined
+  return Math.round((duration.value * unitSeconds) / SECONDS_PER_TURN)
+}
+
 /**
  * Compute usage for a spell action. One use per day per spell.
  * Cantrips (level 0): no usage limit — one use per turn via action cost.
@@ -42,11 +57,13 @@ function resolveSpellUsage(
 }
 
 export function buildSpellDisplayMeta(spell: Spell): CombatActionDefinition['displayMeta'] {
+  const concentration = isConcentrationSpell(spell.duration)
   return {
     source: 'spell' as const,
     spellId: spell.id,
     level: spell.level,
-    concentration: isConcentrationSpell(spell.duration),
+    concentration,
+    concentrationDurationTurns: concentration ? spellDurationToTurns(spell.duration) : undefined,
     range: spell.range ? formatSpellRange(spell.range) : '',
     summary: spell.description?.summary || undefined,
   }

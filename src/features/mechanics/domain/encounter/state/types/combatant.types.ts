@@ -166,6 +166,11 @@ export interface ConcentrationState {
   spellId: string
   spellLabel: string
   linkedMarkerIds: string[]
+  // Encounter-scoped turn counters. When a non-encounter consumer needs duration
+  // tracking (exploration, world clock), refactor to a canonical { value, unit }
+  // duration with a shared durationToRounds() utility.
+  remainingTurns?: number
+  totalTurns?: number
 }
 
 export interface CombatantInstance {

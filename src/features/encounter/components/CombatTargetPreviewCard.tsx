@@ -50,6 +50,9 @@ export function CombatTargetPreviewCard({
           variant="outlined"
           size="small"
         />
+        {target.concentration && (
+          <AppBadge key="concentrating" label="Concentrating" tone="info" size="small" />
+        )}
         {target.conditions.length > 0 && target.conditions.map((c) => (
           <AppBadge key={c.id} label={c.label} tone="warning" size="small" />
         ))}

@@ -39,7 +39,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
       summary: '30ft aura: Necrotic resistance, HP max protection, 0 HP allies regain 1 HP at turn start.',
     },
   },
-{
+  {
     id: 'banishment',
     name: 'Banishment',
     school: 'abjuration',
@@ -65,7 +65,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
       summary: 'Cha save or banished to demiplane. Native outsiders permanently banished at full duration.',
     },
   },
-{
+  {
     id: 'black-tentacles',
     name: 'Black Tentacles',
     school: 'conjuration',

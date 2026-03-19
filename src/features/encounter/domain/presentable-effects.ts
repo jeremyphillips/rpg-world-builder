@@ -104,6 +104,22 @@ export function collectPresentableEffects(combatant: CombatantInstance): Present
   const { instanceId } = combatant
   const effects: PresentableCombatEffect[] = []
 
+  // Derived: concentrating
+  if (combatant.concentration) {
+    const SECONDS_PER_TURN = 6
+    const { remainingTurns, totalTurns } = combatant.concentration
+    const timeLabel =
+      remainingTurns != null && totalTurns != null
+        ? ` (${(totalTurns - remainingTurns) * SECONDS_PER_TURN}s/${totalTurns * SECONDS_PER_TURN}s)`
+        : ''
+    effects.push({
+      id: `${instanceId}-concentrating`,
+      kind: 'effect',
+      key: 'concentrating',
+      label: `Concentrating: ${combatant.concentration.spellLabel}${timeLabel}`,
+    })
+  }
+
   // Derived: bloodied
   const isBloodied =
     combatant.stats.currentHitPoints > 0 &&

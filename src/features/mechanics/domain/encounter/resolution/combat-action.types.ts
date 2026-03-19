@@ -73,7 +73,7 @@ export interface CombatActionUsage {
 
 export type CombatActionDisplayMeta =
   | { source: 'weapon'; range?: string }
-  | { source: 'spell'; spellId: string; level: number; concentration: boolean; range: string; summary?: string }
+  | { source: 'spell'; spellId: string; level: number; concentration: boolean; concentrationDurationTurns?: number; range: string; summary?: string }
   | { source: 'natural'; attackType: string; reach?: number; description?: string }
 
 export interface CombatActionDefinition {

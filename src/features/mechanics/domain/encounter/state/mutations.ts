@@ -27,6 +27,7 @@ export {
 export {
   setConcentration,
   dropConcentration,
+  tickConcentrationDuration,
 } from './concentration-mutations'
 export {
   addDamageResistanceMarker,

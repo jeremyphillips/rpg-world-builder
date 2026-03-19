@@ -116,6 +116,11 @@ function formatNestedEffectSummary(effect: Effect): string | null {
   return null
 }
 
+export type ApplyEffectsResult = {
+  state: EncounterState
+  createdMarkerIds: string[]
+}
+
 export function applyActionEffects(
   state: EncounterState,
   actor: CombatantInstance,
@@ -123,10 +128,11 @@ export function applyActionEffects(
   action: CombatActionDefinition,
   effects: Effect[] | undefined,
   options: { rng: () => number; sourceLabel: string },
-): EncounterState {
-  if (!effects || effects.length === 0) return state
+): ApplyEffectsResult {
+  if (!effects || effects.length === 0) return { state, createdMarkerIds: [] }
 
   let nextState = state
+  const markerIds: string[] = []
 
   effects.forEach((effect) => {
     if (effect.kind === 'save') {
@@ -153,7 +159,7 @@ export function applyActionEffects(
         },
       )
 
-      nextState = applyActionEffects(
+      const nested = applyActionEffects(
         nextState,
         actor,
         target,
@@ -161,6 +167,8 @@ export function applyActionEffects(
         succeeded ? effect.onSuccess : effect.onFail,
         options,
       )
+      nextState = nested.state
+      markerIds.push(...nested.createdMarkerIds)
       return
     }
 
@@ -199,15 +207,17 @@ export function applyActionEffects(
         sourceLabel: options.sourceLabel,
         sourceInstanceId: actor.instanceId,
       })
+      markerIds.push(effect.conditionId)
       if (effect.repeatSave) {
         const dc = resolveRepeatSaveDc(action, effect.repeatSave.ability)
         if (dc != null) {
+          const hookId = `repeat-save-${effect.conditionId}-${action.id}-${target.instanceId}`
           nextState = updateEncounterCombatant(nextState, target.instanceId, (combatant) => ({
             ...combatant,
             turnHooks: [
               ...combatant.turnHooks,
               {
-                id: `repeat-save-${effect.conditionId}-${action.id}-${target.instanceId}`,
+                id: hookId,
                 label: `${options.sourceLabel}: repeat save (${effect.conditionId})`,
                 boundary: effect.repeatSave!.timing === 'turn-start' ? 'start' as const : 'end' as const,
                 effects: [],
@@ -219,6 +229,7 @@ export function applyActionEffects(
               },
             ],
           }))
+          markerIds.push(hookId)
         }
       }
       return
@@ -228,16 +239,18 @@ export function applyActionEffects(
       nextState = addStateToCombatant(nextState, target.instanceId, effect.stateId, {
         sourceLabel: options.sourceLabel,
       })
+      markerIds.push(effect.stateId)
 
       if (effect.repeatSave) {
         const dc = resolveRepeatSaveDc(action, effect.repeatSave.ability)
         if (dc != null) {
+          const hookId = `repeat-save-${effect.stateId}-${action.id}-${target.instanceId}`
           nextState = updateEncounterCombatant(nextState, target.instanceId, (combatant) => ({
             ...combatant,
             turnHooks: [
               ...combatant.turnHooks,
               {
-                id: `repeat-save-${effect.stateId}-${action.id}-${target.instanceId}`,
+                id: hookId,
                 label: `${options.sourceLabel}: repeat save (${effect.stateId})`,
                 boundary: effect.repeatSave!.timing === 'turn-start' ? 'start' as const : 'end' as const,
                 effects: [],
@@ -249,6 +262,7 @@ export function applyActionEffects(
               },
             ],
           }))
+          markerIds.push(hookId)
         }
       }
 
@@ -273,18 +287,20 @@ export function applyActionEffects(
       }
 
       if (effect.ongoingEffects && effect.ongoingEffects.length > 0) {
+        const hookId = `ongoing-${effect.stateId}-${action.id}-${target.instanceId}`
         nextState = updateEncounterCombatant(nextState, target.instanceId, (combatant) => ({
           ...combatant,
           turnHooks: [
             ...combatant.turnHooks,
             {
-              id: `ongoing-${effect.stateId}-${action.id}-${target.instanceId}`,
+              id: hookId,
               label: `${options.sourceLabel}: ${effect.stateId} (ongoing)`,
               boundary: 'start' as const,
               effects: effect.ongoingEffects!,
             },
           ],
         }))
+        markerIds.push(hookId)
         const ongoingSummary = effect.ongoingEffects
           .map((nestedEffect) => formatNestedEffectSummary(nestedEffect))
           .filter((summary): summary is string => Boolean(summary))
@@ -301,11 +317,12 @@ export function applyActionEffects(
 
     if (effect.kind === 'modifier' && effect.target === 'resistance' && typeof effect.value === 'string') {
       const runtimeDuration = effectDurationToRuntimeDuration(effect) ?? undefined
+      const markerId = `dmg-res-${effect.value}-${action.id}-${target.instanceId}`
       nextState = addDamageResistanceMarker(
         nextState,
         target.instanceId,
         {
-          id: `dmg-res-${effect.value}-${action.id}-${target.instanceId}`,
+          id: markerId,
           damageType: effect.value,
           level: effect.mode === 'add' ? 'resistance' : 'resistance',
           sourceId: action.id,
@@ -314,6 +331,7 @@ export function applyActionEffects(
         },
         { sourceLabel: options.sourceLabel },
       )
+      markerIds.push(markerId)
       return
     }
 
@@ -321,11 +339,12 @@ export function applyActionEffects(
       const runtimeDuration = effectDurationToRuntimeDuration(effect) ?? undefined
       const sign = effect.mode === 'add' && effect.value > 0 ? '+' : ''
       const modeLabel = effect.mode === 'set' ? `set ${effect.target} ${effect.value}` : `${sign}${effect.value} ${effect.target}`
+      const markerId = `stat-mod-${effect.target}-${action.id}-${target.instanceId}`
       nextState = addStatModifierToCombatant(
         nextState,
         target.instanceId,
         {
-          id: `stat-mod-${effect.target}-${action.id}-${target.instanceId}`,
+          id: markerId,
           label: modeLabel,
           target: effect.target,
           mode: effect.mode,
@@ -334,16 +353,18 @@ export function applyActionEffects(
         },
         { sourceLabel: options.sourceLabel },
       )
+      markerIds.push(markerId)
       return
     }
 
     if (effect.kind === 'roll-modifier') {
       const runtimeDuration = effectDurationToRuntimeDuration(effect) ?? undefined
+      const markerId = `roll-mod-${action.id}-${target.instanceId}`
       nextState = addRollModifierToCombatant(
         nextState,
         target.instanceId,
         {
-          id: `roll-mod-${action.id}-${target.instanceId}`,
+          id: markerId,
           label: `${effect.modifier} on ${Array.isArray(effect.appliesTo) ? effect.appliesTo.join(', ') : effect.appliesTo}`,
           appliesTo: effect.appliesTo,
           modifier: effect.modifier,
@@ -352,6 +373,7 @@ export function applyActionEffects(
         },
         { sourceLabel: options.sourceLabel },
       )
+      markerIds.push(markerId)
       return
     }
 
@@ -362,13 +384,16 @@ export function applyActionEffects(
         duration: runtimeDuration,
         sourceLabel: options.sourceLabel,
       })
+      markerIds.push(stateLabel)
       return
     }
 
     if (effect.kind === 'immunity' && effect.scope === 'source-action') {
-      nextState = addStateToCombatant(nextState, target.instanceId, getImmunityStateLabel(action.label), {
+      const stateLabel = getImmunityStateLabel(action.label)
+      nextState = addStateToCombatant(nextState, target.instanceId, stateLabel, {
         sourceLabel: options.sourceLabel,
       })
+      markerIds.push(stateLabel)
       return
     }
 
@@ -384,18 +409,20 @@ export function applyActionEffects(
 
     if (effect.kind === 'interval') {
       const boundary = effect.every.unit === 'turn' ? 'start' : 'end'
+      const hookId = `interval-${effect.stateId}-${action.id}-${target.instanceId}`
       nextState = updateEncounterCombatant(nextState, target.instanceId, (combatant) => ({
         ...combatant,
         turnHooks: [
           ...combatant.turnHooks,
           {
-            id: `interval-${effect.stateId}-${action.id}-${target.instanceId}`,
+            id: hookId,
             label: `${options.sourceLabel}: ${effect.stateId}`,
             boundary: boundary as 'start' | 'end',
             effects: effect.effects,
           },
         ],
       }))
+      markerIds.push(hookId)
       nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Interval effect ${effect.stateId} registered (${boundary} of turn).`, {
         actorId: actor.instanceId,
         targetIds: [target.instanceId],
@@ -469,5 +496,5 @@ export function applyActionEffects(
     })
   })
 
-  return nextState
+  return { state: nextState, createdMarkerIds: markerIds }
 }

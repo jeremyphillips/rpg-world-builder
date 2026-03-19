@@ -3,6 +3,7 @@ import {
   appendEncounterLogEvent,
   appendEncounterNote,
   getEncounterCombatantLabel,
+  setConcentration,
   updateEncounterCombatant,
   type CombatantInstance,
   type RollModifierMarker,
@@ -86,12 +87,39 @@ export function getCombatantAvailableActions(
   )
 }
 
+function isConcentrationAction(action: CombatActionDefinition): boolean {
+  return action.displayMeta?.source === 'spell' && action.displayMeta.concentration === true
+}
+
 export function resolveCombatAction(
   state: EncounterState,
   selection: ResolveCombatActionSelection,
   options: ResolveCombatActionOptions = {},
 ): EncounterState {
-  return resolveCombatActionInternal(state, selection, options, { skipCost: false })
+  const actor = state.combatantsById[selection.actorId]
+  const action = actor ? getCombatantActions(actor).find((a) => a.id === selection.actionId) : undefined
+
+  const result = resolveCombatActionInternal(state, selection, options, { skipCost: false })
+  let finalState = result.state
+
+  if (action && isConcentrationAction(action) && result.createdMarkerIds.length > 0) {
+    const meta = action.displayMeta as { source: 'spell'; spellId: string; concentrationDurationTurns?: number }
+    const durationTurns = meta.concentrationDurationTurns
+    finalState = setConcentration(finalState, selection.actorId, {
+      spellId: meta.spellId,
+      spellLabel: action.label,
+      linkedMarkerIds: result.createdMarkerIds,
+      remainingTurns: durationTurns,
+      totalTurns: durationTurns,
+    })
+  }
+
+  return finalState
+}
+
+type InternalResolutionResult = {
+  state: EncounterState
+  createdMarkerIds: string[]
 }
 
 function resolveCombatActionInternal(
@@ -99,28 +127,30 @@ function resolveCombatActionInternal(
   selection: ResolveCombatActionSelection,
   options: ResolveCombatActionOptions,
   behavior: { skipCost: boolean },
-): EncounterState {
+): InternalResolutionResult {
+  const noOp: InternalResolutionResult = { state, createdMarkerIds: [] }
   const actor = state.combatantsById[selection.actorId]
-  if (!actor || state.activeCombatantId !== selection.actorId) return state
+  if (!actor || state.activeCombatantId !== selection.actorId) return noOp
 
   const action = getCombatantActions(actor).find((candidate) => candidate.id === selection.actionId)
-  if (!action) return state
+  if (!action) return noOp
 
   const resources = getCombatantTurnResources(actor)
-  if (!behavior.skipCost && !canSpendActionCost(resources, action.cost)) return state
-  if (!behavior.skipCost && !canUseCombatAction(action)) return state
+  if (!behavior.skipCost && !canSpendActionCost(resources, action.cost)) return noOp
+  if (!behavior.skipCost && !canUseCombatAction(action)) return noOp
 
   const targets = getActionTargets(state, actor, selection, action)
   const target = targets[0]
   if (action.resolutionMode === 'attack-roll') {
     if (!target) {
-      return state
+      return noOp
     }
   }
 
   const rng = options.rng ?? Math.random
   const actionLabel = getActionLabel(action)
   const targetLabel = target ? getEncounterCombatantLabel(state, target.instanceId) : 'no target'
+  const allMarkerIds: string[] = []
 
   let nextState = appendEncounterLogEvent(state, {
     type: 'action-declared',
@@ -155,7 +185,7 @@ function resolveCombatActionInternal(
       if (!childAction) continue
 
       for (let index = 0; index < iterationCount; index += 1) {
-        nextState = resolveCombatActionInternal(
+        const childResult = resolveCombatActionInternal(
           nextState,
           {
             actorId: actor.instanceId,
@@ -165,6 +195,8 @@ function resolveCombatActionInternal(
           options,
           { skipCost: true },
         )
+        nextState = childResult.state
+        allMarkerIds.push(...childResult.createdMarkerIds)
       }
     }
 
@@ -181,7 +213,7 @@ function resolveCombatActionInternal(
     if (!behavior.skipCost && action.kind === 'spell' && action.usage?.uses && action.displayMeta?.source === 'spell') {
       options.onSpellSlotSpent?.(actor.source.sourceId, action.displayMeta.spellId)
     }
-    return behavior.skipCost
+    const finalState = behavior.skipCost
       ? nextState
       : updateEncounterCombatant(nextState, actor.instanceId, (combatant) => ({
           ...combatant,
@@ -190,11 +222,12 @@ function resolveCombatActionInternal(
           ),
           turnResources: spendActionCost(getCombatantTurnResources(combatant), action.cost),
         }))
+    return { state: finalState, createdMarkerIds: allMarkerIds }
   }
 
   if (action.resolutionMode === 'attack-roll') {
     const attackBonus = action.attackProfile?.attackBonus
-    if (target == null || attackBonus == null) return nextState
+    if (target == null || attackBonus == null) return { state: nextState, createdMarkerIds: [] }
 
     const rollMod = resolveRollModifier(actor, target, 'attack rolls')
     const { rawRoll, detail: rollDetail } = rollD20WithModifier(rollMod, rng)
@@ -241,7 +274,7 @@ function resolveCombatActionInternal(
         })
       }
 
-      nextState = applyActionEffects(
+      const hitResult = applyActionEffects(
         nextState,
         actor,
         nextState.combatantsById[target.instanceId] ?? target,
@@ -249,6 +282,8 @@ function resolveCombatActionInternal(
         action.onHitEffects,
         { rng, sourceLabel: actionLabel },
       )
+      nextState = hitResult.state
+      allMarkerIds.push(...hitResult.createdMarkerIds)
     } else {
       nextState = appendEncounterLogEvent(nextState, {
         type: 'action-resolved',
@@ -260,7 +295,7 @@ function resolveCombatActionInternal(
       })
     }
   } else if (action.resolutionMode === 'saving-throw') {
-    if (targets.length === 0 || !action.saveProfile) return nextState
+    if (targets.length === 0 || !action.saveProfile) return { state: nextState, createdMarkerIds: [] }
 
     for (const saveTarget of targets) {
       if (saveTarget.states.some((stateMarker) => stateMarker.label === getImmunityStateLabel(action.label))) {
@@ -311,7 +346,7 @@ function resolveCombatActionInternal(
         }
       }
 
-      nextState = applyActionEffects(
+      const saveEffectResult = applyActionEffects(
         nextState,
         actor,
         saveTarget,
@@ -319,6 +354,8 @@ function resolveCombatActionInternal(
         succeeded ? action.onSuccessEffects : action.onFailEffects,
         { rng, sourceLabel: actionLabel },
       )
+      nextState = saveEffectResult.state
+      allMarkerIds.push(...saveEffectResult.createdMarkerIds)
     }
   } else if (action.resolutionMode === 'effects') {
     if (targets.length === 0 && action.effects?.length) {
@@ -331,7 +368,7 @@ function resolveCombatActionInternal(
       })
     } else {
       for (const effectTarget of targets) {
-        nextState = applyActionEffects(
+        const effectResult = applyActionEffects(
           nextState,
           actor,
           nextState.combatantsById[effectTarget.instanceId] ?? effectTarget,
@@ -339,6 +376,8 @@ function resolveCombatActionInternal(
           action.effects,
           { rng, sourceLabel: actionLabel },
         )
+        nextState = effectResult.state
+        allMarkerIds.push(...effectResult.createdMarkerIds)
       }
 
       nextState = appendEncounterLogEvent(nextState, {
@@ -369,7 +408,7 @@ function resolveCombatActionInternal(
   if (!behavior.skipCost && action.kind === 'spell' && action.usage?.uses && action.displayMeta?.source === 'spell') {
     options.onSpellSlotSpent?.(actor.source.sourceId, action.displayMeta.spellId)
   }
-  return behavior.skipCost
+  const finalState = behavior.skipCost
     ? nextState
     : updateEncounterCombatant(nextState, actor.instanceId, (combatant) => ({
         ...combatant,
@@ -378,4 +417,5 @@ function resolveCombatActionInternal(
         ),
         turnResources: spendActionCost(getCombatantTurnResources(combatant), action.cost),
       }))
+  return { state: finalState, createdMarkerIds: allMarkerIds }
 }

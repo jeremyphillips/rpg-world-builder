@@ -18,6 +18,7 @@ export {
   removeConditionFromCombatant,
   removeStateFromCombatant,
   setConcentration,
+  tickConcentrationDuration,
   updateEncounterCombatant,
 } from './mutations'
 export { createEncounterState, advanceEncounterTurn, formatRuntimeEffectLabel } from './runtime'

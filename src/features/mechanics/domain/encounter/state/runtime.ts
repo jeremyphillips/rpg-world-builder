@@ -23,6 +23,7 @@ import {
   processTrackedPartTurnEnd,
 } from './marker-lifecycle'
 import { executeTurnHooks } from './turn-hooks'
+import { tickConcentrationDuration } from './concentration-mutations'
 import { formatRuntimeEffectLabel } from './shared'
 
 function resetCombatantTurnState(state: EncounterState, combatantId: string | null): EncounterState {
@@ -180,10 +181,12 @@ export function advanceEncounterTurn(
     ...state,
     log: [...state.log, createTurnEndedLog(state)],
   }
+  const withTurnEndHooks = executeTurnHooks(withTurnEndLog, state.activeCombatantId, 'end')
+  const withConcentrationTick = tickConcentrationDuration(withTurnEndHooks, state.activeCombatantId)
   const endedState = processMarkerBoundary(
     processRuntimeEffectBoundary(
       processTrackedPartTurnEnd(
-        executeTurnHooks(withTurnEndLog, state.activeCombatantId, 'end'),
+        withConcentrationTick,
         state.activeCombatantId,
       ),
       state.activeCombatantId,

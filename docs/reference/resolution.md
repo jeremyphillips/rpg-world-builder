@@ -162,16 +162,32 @@ Concentration is tracked on `CombatantInstance` via a `ConcentrationState`:
 ```typescript
 type ConcentrationState = {
   spellId: string;
-  sourceId: string;
-  linkedEffects: string[];
+  spellLabel: string;
+  linkedMarkerIds: string[];
+  remainingTurns?: number; // encounter-scoped, see note below
 };
 ```
 
-- `setConcentration` establishes concentration, automatically dropping any previous concentration (and cleaning up linked effects).
-- `dropConcentration` removes concentration state and cleans up linked effects.
+**Wiring:**
+
+- When a concentration spell is cast, `resolveCombatAction` (in `action-resolver.ts`) calls `setConcentration` after effects resolve, passing the IDs of all markers created by `applyActionEffects`.
+- `applyActionEffects` returns `{ state, createdMarkerIds }` — the IDs of conditions, states, statModifiers, rollModifiers, damageResistanceMarkers, and turnHooks created during effect application.
+- `setConcentration` establishes concentration, automatically dropping any previous concentration (and cleaning up linked markers).
+- `dropConcentration` removes concentration state and cleans up all linked markers (conditions, states, statModifiers, rollModifiers, turnHooks, damageResistanceMarkers) on both the caster and all other combatants.
 - When a concentrating combatant takes damage, `applyDamageToCombatant` triggers a CON save (DC = max(10, damage/2)). On failure, concentration drops.
 
-To add new linked effects to concentration cleanup, include their identifiers in `linkedEffects` when calling `setConcentration`.
+**Duration tracking:**
+
+- `remainingTurns` is decremented at the caster's turn-end via `tickConcentrationDuration` (called from `advanceEncounterTurn`). When it reaches 0, concentration drops automatically.
+- The spell combat adapter pre-computes `concentrationDurationTurns` from the spell's `TimedDuration` (1 minute = 10 turns, 1 hour = 600 turns at 6 seconds per turn). Indefinite durations (`until-dispelled`, `until-triggered`, `special`) omit `remainingTurns`.
+- `remainingTurns` is encounter-scoped. When a non-encounter consumer needs spell duration tracking (exploration timers, world clock), refactor to store a canonical `{ value, unit }` duration alongside or instead of `remainingTurns`, with a shared `durationToRounds()` utility.
+
+**UI:**
+
+- `collectPresentableEffects` derives a "Concentrating" presentable effect from `combatant.concentration`, mapped to the `concentrating` entry in `COMBAT_STATE_UI_MAP` (`critical-now` section, `info` tone, `showAsChip`).
+- Preview cards (`AllyCombatantActivePreviewCard`, `OpponentCombatantActivePreviewCard`, `CombatTargetPreviewCard`) show a "Concentrating" chip when `combatant.concentration` is set.
+
+To add new linked effects to concentration cleanup, include their identifiers in `linkedMarkerIds` when calling `setConcentration`.
 
 ### Adding ongoing/interval effects
 

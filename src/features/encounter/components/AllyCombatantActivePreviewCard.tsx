@@ -25,6 +25,9 @@ export function AllyCombatantActivePreviewCard({
   ]
 
   const chips: PreviewChip[] = [
+    ...(combatant.concentration
+      ? [{ id: 'concentrating', label: 'Concentrating', tone: 'info' as const }]
+      : []),
     ...combatant.conditions.map((c) => ({ id: c.id, label: c.label, tone: 'warning' as const })),
     ...combatant.states.map((s) => ({ id: s.id, label: s.label, tone: 'info' as const })),
   ]
