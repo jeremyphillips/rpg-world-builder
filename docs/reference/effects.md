@@ -186,7 +186,8 @@ Status meanings:
 - Purpose: apply a standard condition
 - Use when: the mechanic applies a shared condition
 - Do not use when: the mechanic is a broader ongoing state
-- Key fields: `conditionId`, `targetSizeMax`, `escapeDc`
+- Key fields: `conditionId`, `targetSizeMax`, `escapeDc`, `repeatSave`
+- `repeatSave`: optional. When present, the engine registers a turn hook that rolls a save at the specified timing. On success, the condition is removed. Shape: `{ ability: AbilityRef; timing: 'turn-start' | 'turn-end' }`.
 
 ```ts
 { kind: 'condition', conditionId: 'prone' }
@@ -535,10 +536,66 @@ Scopes an effect to interactions involving specific creature types. The `target`
 
 ```ts
 [
+  { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+  { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'condition', conditionId: 'charmed' }] },
+  { kind: 'note', text: 'Charmed target pursues a suggested course of activity. Ends if caster or allies damage target.', category: 'flavor' },
+]
+```
+
+### Auto-Hit Spell
+
+- `damage` defines the hit payload (no `deliveryMethod`, no top-level `save`)
+- the adapter classifies as `auto-hit` resolution mode — skips attack roll, applies damage directly
+- multi-instance auto-hit spells (e.g. Magic Missile) use `damage.instances` and generate sequence steps
+
+```ts
+[
   { kind: 'targeting', target: 'chosen-creatures', count: 3, canSelectSameTargetMultipleTimes: true, requiresSight: true },
   { kind: 'damage', damage: '1d4+1', damageType: 'force', instances: { count: 3, simultaneous: true, canSplitTargets: true, canStackOnSingleTarget: true } },
-  { kind: 'note', text: 'Auto-hit and exact simultaneous dart resolution remain intentionally under-modeled.' },
 ]
+```
+
+### HP-Threshold Spell
+
+- `resolution.hpThreshold` gates effect application on the target's current HP
+- below-threshold effects come from the spell's `effects` array
+- above-threshold effects come from `resolution.hpThreshold.aboveEffects`
+- the adapter maps these to `CombatActionDefinition.hpThreshold` and `aboveThresholdEffects`
+
+```ts
+// spell-level fields
+resolution: {
+  hpThreshold: {
+    maxHp: 100,
+    aboveEffects: [{ kind: 'damage', damage: '12d12', damageType: 'psychic' }],
+  },
+}
+
+// effects array (applied when target HP <= threshold)
+[
+  { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+  { kind: 'hit-points', mode: 'damage', value: 9999 },
+]
+```
+
+### Repeat-Save Condition
+
+- `condition.repeatSave` triggers a save at turn start or end
+- on success, the condition is automatically removed
+- used for Hold Person, Hold Monster, Flesh to Stone, Fear, etc.
+
+```ts
+{ kind: 'condition', conditionId: 'paralyzed', repeatSave: { ability: 'wis', timing: 'turn-end' } }
+```
+
+### Damage Resistance Spell
+
+- `modifier` with `target: 'resistance'` and `mode: 'add'` registers a `DamageResistanceMarker`
+- damage application automatically halves matching damage types
+- used for Protection from Energy, Stoneskin, etc.
+
+```ts
+{ kind: 'modifier', target: 'resistance', mode: 'add', value: 'fire' }
 ```
 
 ### Object-Targeting Spell
@@ -574,7 +631,7 @@ The `category: 'under-modeled'` pattern is the canonical way to mark partial mod
 2. Change remaining notes to `category: 'flavor'` if they are purely descriptive.
 3. Remove notes entirely if the structured effects fully capture the mechanic.
 
-Example — Magic Missile currently models targeting, damage, and notes, but does not yet fully model auto-hit semantics, simultaneous resolution, or split/stack nuances.
+Example — Suggestion models the save and charmed condition, but the behavioral aspects of the suggested course of action remain under-modeled as flavor notes.
 
 Do not solve under-modeling gaps with domain-specific hacks. If a gap proves recurring, promote it to a shared primitive per the extension policy.
 
@@ -629,9 +686,10 @@ Rules:
 
 ### Spell Combat Adapter
 
-The spell combat adapter (`buildSpellCombatActions`) converts canonical spell content into executable `CombatActionDefinition` objects for the combat simulation. It classifies spells into three resolution modes:
+The spell combat adapter (`buildSpellCombatActions`) converts canonical spell content into executable `CombatActionDefinition` objects for the combat simulation. It classifies spells into four resolution modes:
 
 - `attack-roll`: spells with `deliveryMethod`. The adapter builds an attack profile from the caster's spell attack bonus and the spell's `damage` effect. Multi-instance spells (beams, rays) generate sequence steps for independent attack rolls.
+- `auto-hit`: spells with a top-level `damage` effect but no `deliveryMethod` and no top-level `save`. Damage is applied directly without an attack roll. Multi-instance auto-hit spells (e.g. Magic Missile) generate sequence steps for independent resolution. HP-threshold gating is applied when `resolution.hpThreshold` is present.
 - `effects`: spells with a top-level `save` effect or a `hit-points` heal effect. The adapter injects the caster's spell save DC into save effects and the spellcasting ability modifier into `hit-points` effects where `abilityModifier` is `true`. Healing spells use `single-creature` targeting (any living combatant including self and allies). The engine's `applyActionEffects` handles save branching, damage, healing, conditions, states, and notes recursively.
 - `log-only`: all other spells (utility, buff, stubs). The adapter generates a log-text summary from effect text or the spell description.
 
@@ -659,20 +717,30 @@ When a combatant has the `charmed` condition, the `sourceInstanceId` on the cond
 The following spell mechanics are not yet fully resolved by the combat adapter:
 
 - ~~Self-buff spells~~ — **resolved**: modifier/immunity spells with any range now classify as `effects` mode
-- Auto-hit spells (Magic Missile — no attack roll, no save)
+- ~~Auto-hit spells~~ — **resolved**: `auto-hit` resolution mode skips attack roll, applies damage directly; multi-instance spells generate sequence steps
 - ~~Concentration tracking~~ — **resolved**: `ConcentrationState` on `CombatantInstance` with damage-triggered CON saves and linked effect cleanup
+- ~~Repeat saves~~ — **resolved**: `condition.repeatSave` registers turn hooks for automatic save-or-remove at turn boundaries
+- ~~Damage type resistance~~ — **resolved**: `DamageResistanceMarker` on `CombatantInstance`; damage application halves/doubles matching damage
+- ~~HP-threshold gating~~ — **resolved**: `resolution.hpThreshold` gates effect application; used by Power Word Kill/Stun/Heal
 - Spell slot resource management
 - Healing upcasting (`extra-healing` scaling category is authored but not yet resolved at runtime)
 - Charmed save advantage when allies are fighting the target (authored as `save.text`, not yet resolved)
-- Damage type resistance (authored as notes, no runtime halving)
 - Form changes (Polymorph, Shapechange — stat block replacement)
+- Caster-choice mechanics (element selection, condition selection at cast time)
+- Multi-area targeting and deduplication (e.g. Meteor Swarm)
+- Moving areas and trigger-timing resolution (e.g. Flaming Sphere, Cloudkill)
+- Success/failure tracking (e.g. Flesh to Stone, Contagion)
 
 Mechanics resolved since initial authoring:
 
-- **Modifier effects**: `armor_class` (add/set) and `speed` (add) are fully resolved. Other stat targets log gracefully.
-- **Roll-modifier effects**: advantage/disadvantage tracked on `CombatantInstance.rollModifiers` and applied to attack rolls.
+- **Modifier effects**: `armor_class` (add/set), `speed` (add/set/multiply), and `resistance` (add) are fully resolved. Other stat targets log gracefully.
+- **Roll-modifier effects**: advantage/disadvantage tracked on `CombatantInstance.rollModifiers` and applied to attack rolls and saving throws.
 - **Interval/ongoing effects**: interval effects register as turn hooks; `state.ongoingEffects` also register as turn hooks for per-turn resolution.
 - **Concentration**: automatic CON saves on damage, linked effect cleanup on failure or new concentration spell.
+- **Repeat saves**: `condition.repeatSave` and `state.repeatSave` register turn hooks that roll saves at turn boundaries; on success, the condition/state is removed.
+- **Damage resistance**: `DamageResistanceMarker` tracks active resistances/vulnerabilities; `applyDamageToCombatant` halves or doubles matching damage types.
+- **Auto-hit resolution**: `auto-hit` action mode skips attack rolls; multi-instance spells generate sequence steps for independent resolution.
+- **HP-threshold gating**: `CombatActionDefinition.hpThreshold` gates effect application on target current HP vs threshold.
 - **Advanced effect logging**: `trigger`, `activation`, `check`, `grant`, `form`, and `targeting` effects log meaningful summaries instead of "unsupported".
 
 ## 11. Anti-Patterns
@@ -694,20 +762,20 @@ How effect kinds evolve as more spells are authored:
 
 Already stable. No scaling concerns.
 
-- `save`, `damage`, `hit-points`, `condition`, `state`, `note`, `targeting`
+- `save`, `damage`, `hit-points`, `condition` (including `repeatSave`), `state` (including `repeatSave`), `note`, `targeting`
 
 ### Tier 2 — Extended Partial Support
 
 Small, bounded engine changes with high payoff.
 
-- `modifier`: `armor_class` (add/set) and `speed` (add) are fully resolved. Other stat targets (`attack`, `damage_bonus`, saving throw modifiers) and modes (`multiply`) log gracefully until resolved.
-- `immunity`: `spell` and `source-action` scopes resolved. Damage-type resistance and condition immunity scopes remain under-modeled.
+- `modifier`: `armor_class` (add/set), `speed` (add/set/multiply), and `resistance` (add) are fully resolved. Other stat targets (`attack`, `damage_bonus`, saving throw modifiers) log gracefully until resolved.
+- `immunity`: `spell` and `source-action` scopes resolved. Condition immunity scopes remain under-modeled.
 
 ### Tier 3 — New Runtime Resolution
 
 Medium engine work, now landed.
 
-- `roll-modifier`: advantage/disadvantage tracked as runtime state on `CombatantInstance.rollModifiers`; wired into attack-roll resolution.
+- `roll-modifier`: advantage/disadvantage tracked as runtime state on `CombatantInstance.rollModifiers`; wired into attack-roll and saving throw resolution.
 - `interval`: per-turn effect application via turn hooks. Registered by `applyActionEffects` when an interval effect is applied.
 - `move`: forced movement logged with structured summary. Actual position tracking deferred.
 

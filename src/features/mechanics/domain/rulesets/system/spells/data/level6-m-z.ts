@@ -14,7 +14,7 @@ export const SPELLS_LEVEL_6_M_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresSight: true },
       { kind: 'hit-points', mode: 'heal', value: 70 },
-      { kind: 'note', text: 'Also ends Blinded, Deafened, and Poisoned conditions on the target.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Also ends Blinded, Deafened, and Poisoned conditions on the target.', category: 'flavor' as const },
     ],
     scaling: [{ category: 'extra-healing', description: '+10 HP per slot level above 6', mode: 'per-slot-level', startsAtSlotLevel: 7, amount: 10 }],
     description: {
@@ -81,7 +81,10 @@ export const SPELLS_LEVEL_6_M_Z: readonly SpellEntry[] = [
         save: { ability: 'wis' },
         onFail: [{ kind: 'condition', conditionId: 'charmed' }],
       },
-      { kind: 'note', text: 'Charmed target dances, must spend all movement dancing in place, has Disadvantage on Dex saves and attacks, Advantage against it. Action to repeat save. On initial success, dances until end of next turn only.', category: 'under-modeled' as const },
+      { kind: 'roll-modifier', appliesTo: 'attack-rolls', modifier: 'disadvantage' },
+      { kind: 'roll-modifier', appliesTo: 'dexterity-saves', modifier: 'disadvantage' },
+      { kind: 'modifier', target: 'speed' as const, mode: 'set' as const, value: 0 },
+      { kind: 'note', text: 'Advantage on attacks against target. Action to repeat save. On initial success, dances until end of next turn only.', category: 'under-modeled' as const },
     ],
     description: {
       full: "One creature that you can see within range must make a Wisdom saving throw. On a successful save, the target dances comically until the end of its next turn, during which it must spend all its movement to dance in place. On a failed save, the target has the Charmed condition for the duration. While Charmed, the target dances comically, must use all its movement to dance in place, and has Disadvantage on Dexterity saving throws and attack rolls, and other creatures have Advantage on attack rolls against it. On each of its turns, the target can take an action to collect itself and repeat the save, ending the spell on itself on a success.",
@@ -122,7 +125,7 @@ export const SPELLS_LEVEL_6_M_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'chosen-creatures', targetType: 'creature', requiresSight: true, count: 12 },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'condition', conditionId: 'charmed' }] },
-      { kind: 'note', text: 'Charmed targets pursue suggested course (25 words or fewer). Must sound achievable, not obviously harmful. Ends if caster or allies damage target.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Charmed targets pursue suggested course (25 words or fewer). Must sound achievable, not obviously harmful. Ends if caster or allies damage target.', category: 'flavor' as const },
     ],
     description: {
       full: "You suggest a course of activity—described in no more than 25 words—to twelve or fewer creatures you can see within range that can hear and understand you. The suggestion must sound achievable and not involve obvious damage to targets or allies. Each target must succeed on a Wisdom saving throw or have the Charmed condition for the duration or until you or your allies deal damage to the target. Each Charmed target pursues the suggestion to the best of its ability. Using a Higher-Level Spell Slot. The duration is longer with a spell slot of level 7 (10 days), 8 (30 days), or 9 (366 days).",
@@ -210,7 +213,8 @@ export const SPELLS_LEVEL_6_M_Z: readonly SpellEntry[] = [
         ],
         onSuccess: [{ kind: 'damage', damage: '3d8', damageType: 'radiant' }],
       },
-      { kind: 'note', text: 'Magic action on subsequent turns to create new Line. Mote sheds Bright Light 30ft and Dim Light 30ft (counts as sunlight).', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Magic action on subsequent turns to create new Line.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Mote sheds Bright Light 30ft and Dim Light 30ft (counts as sunlight).', category: 'flavor' as const },
     ],
     description: {
       full: "You launch a sunbeam in a 5-foot-wide, 60-foot-long Line. Each creature in the Line makes a Constitution saving throw. On a failed save, a creature takes 6d8 Radiant damage and has the Blinded condition until the start of your next turn. On a successful save, it takes half as much damage only. Until the spell ends, you can take a Magic action to create a new Line of radiance. For the duration, a mote of brilliant radiance shines above you. It sheds Bright Light in a 30-foot radius and Dim Light for an additional 30 feet. This light is sunlight.",
@@ -312,7 +316,7 @@ export const SPELLS_LEVEL_6_M_Z: readonly SpellEntry[] = [
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'piercing' as const },
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'slashing' as const },
       { kind: 'grant', grantType: 'condition-immunity', value: 'prone' },
-      { kind: 'note', text: 'Up to 10 willing creatures. Reverting takes 1 min (Stunned). Can revert to cloud again with Magic action + 1 min.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Up to 10 willing creatures. Reverting takes 1 min (Stunned). Can revert to cloud again with Magic action + 1 min.', category: 'flavor' as const },
     ],
     description: {
       full: "You and up to ten willing creatures of your choice within range assume gaseous forms for the duration, appearing as wisps of cloud. While in this cloud form, a target has a Fly Speed of 300 feet and can hover; it has Immunity to the Prone condition; and it has Resistance to Bludgeoning, Piercing, and Slashing damage. The only actions a target can take in this form are the Dash action or a Magic action to begin reverting to its normal form. Reverting takes 1 minute, during which the target has the Stunned condition. Until the spell ends, the target can revert to cloud form, which also requires a Magic action followed by a 1-minute transformation. If a target is in cloud form and flying when the effect ends, the target descends 60 feet per round for 1 minute until it lands, which it does safely. If it can't land after 1 minute, it falls the remaining distance.",

@@ -111,11 +111,12 @@ The encounter action system resolves combat actions against encounter state:
 | `action-resolver` | Orchestrates action resolution: validates, targets, resolves, updates state |
 | `action-cost` | Turn resource management: spend/check action, bonus action, reaction, movement |
 | `action-targeting` | Target selection: self, all-enemies, single-target, single-creature; sequence step counts |
-| `action-effects` | Applies effects to encounter state: damage, healing, conditions, states, saves, modifiers (AC add/set, speed add), roll-modifiers (advantage/disadvantage), immunities, intervals (registered as turn hooks), movement, and advanced effect logging (trigger, activation, check, grant, form) |
+| `action-effects` | Applies effects to encounter state: damage, healing, conditions (with repeat-save hooks), states, saves, modifiers (AC add/set, speed add/set/multiply, resistance add), roll-modifiers (advantage/disadvantage), immunities, intervals (registered as turn hooks), damage resistance markers, movement, and advanced effect logging (trigger, activation, check, grant, form) |
 
 **Action resolution modes:**
 
 - `attack-roll` — roll d20 + attack bonus vs AC, apply damage and on-hit effects
+- `auto-hit` — apply damage directly without attack roll or save. Supports HP-threshold gating and multi-instance sequences (e.g. Magic Missile darts)
 - `saving-throw` — targets roll saves vs DC, apply damage (with half on save) and on-fail/on-success effects
 - `effects` — apply effects directly to targets (no roll). Used for save-based spells, healing spells, and self-buff spells
 - `log-only` — log the action with no mechanical resolution
@@ -186,6 +187,45 @@ To add a new ongoing effect pattern:
 1. Author it as an `interval` or `state` effect with `ongoingEffects`.
 2. The existing turn hook infrastructure will register and fire it automatically.
 3. For custom timing or logic, add a new hook type to `RuntimeTurnHook`.
+
+### Adding repeat saves
+
+Conditions and states can include a `repeatSave` field:
+
+```typescript
+repeatSave?: {
+  ability: AbilityRef;
+  timing: 'turn-start' | 'turn-end';
+};
+```
+
+When `applyActionEffects` applies a condition or state with `repeatSave`, it registers a `RuntimeTurnHook` of type `repeat-save` on the target combatant. At the specified turn boundary, `executeTurnHooks` rolls the save vs the source's DC. On success, the linked condition/state is automatically removed.
+
+### Adding damage resistance
+
+`DamageResistanceMarker` on `CombatantInstance` tracks active damage resistances and vulnerabilities:
+
+```typescript
+type DamageResistanceMarker = {
+  damageType: string;
+  level: 'resistance' | 'vulnerability' | 'immunity';
+  sourceId: string;
+  label: string;
+};
+```
+
+Modifier effects with `target: 'resistance'` register markers via `applyActionEffects`. The `applyDamageToCombatant` function checks for active resistance/vulnerability markers and halves or doubles matching damage before applying.
+
+### Adding HP-threshold gating
+
+`CombatActionDefinition` supports `hpThreshold` for conditional effect application:
+
+```typescript
+hpThreshold?: { maxHp: number };
+aboveThresholdEffects?: Effect[];
+```
+
+During `auto-hit` resolution, the engine checks the target's current HP against `hpThreshold.maxHp`. If below or equal, the main `effects` are applied. If above, `aboveThresholdEffects` are applied instead. The spell adapter reads `spell.resolution.hpThreshold` and maps it to the action definition.
 
 ### Edition-specific rules
 
@@ -281,15 +321,15 @@ How each effect kind is resolved at runtime by `action-effects.ts`:
 
 | Effect Kind | Resolution | Notes |
 |-------------|-----------|-------|
-| `damage` | **Full** | Rolls dice expression, applies to target HP |
+| `damage` | **Full** | Rolls dice expression, applies to target HP; respects active damage resistance markers |
 | `save` | **Full** | Target rolls ability save vs DC; gates subsequent effects |
-| `condition` | **Full** | Applies/removes conditions on target |
+| `condition` | **Full** | Applies/removes conditions on target; `repeatSave` registers turn hooks for automatic save-or-remove |
 | `hit-points` | **Full** | Rolls healing dice, applies via `applyHealingToCombatant`; supports `abilityModifier` injection |
-| `state` | **Full** | Sets state flags; registers `ongoingEffects` as turn hooks |
+| `state` | **Full** | Sets state flags; registers `ongoingEffects` as turn hooks; supports `repeatSave` |
 | `note` | **Full** | Logs text; `category` distinguishes `under-modeled` from `flavor` |
 | `targeting` | **Handled** | Consumed by the action resolver for target selection, not by `applyActionEffects` |
-| `modifier` | **Partial** | `armor_class` (add/set) and `speed` (add) fully resolved; other targets log gracefully |
-| `roll-modifier` | **Full** | Registers `RollModifierMarker` on target; applied during attack-roll resolution |
+| `modifier` | **Partial** | `armor_class` (add/set), `speed` (add/set/multiply), and `resistance` (add) fully resolved; other targets log gracefully |
+| `roll-modifier` | **Full** | Registers `RollModifierMarker` on target; applied during attack-roll and saving throw resolution |
 | `interval` | **Full** | Registers `RuntimeTurnHook` for per-turn effect application |
 | `immunity` | **Partial** | `spell` and `source-action` scopes resolved; other scopes log |
 | `move` | **Log** | Logs structured summary (direction, distance); no position tracking |
@@ -299,6 +339,7 @@ How each effect kind is resolved at runtime by `action-effects.ts`:
 | `check` | **Log** | Logs ability check requirement |
 | `grant` | **Log** | Logs granted capability |
 | `form` | **Log** | Logs form change description |
+| `spawn` | **Log** | Logs summoned creature description |
 
 **Resolution levels:**
 

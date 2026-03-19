@@ -19,7 +19,7 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
         effects: [{ kind: 'damage', damage: '2d8', damageType: 'fire' }],
         text: 'When a creature within 5 feet hits you with a melee attack roll.',
       },
-      { kind: 'note', text: 'Caster chooses warm shield (Resistance Cold, retaliatory Fire) or chill shield (Resistance Fire, retaliatory Cold). Modeled as warm shield.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Caster chooses warm shield (Resistance Cold, retaliatory Fire) or chill shield (Resistance Fire, retaliatory Cold). Modeled as warm shield.', category: 'flavor' as const },
     ],
     description: {
       full: 'Wispy flames wreathe your body for the duration, shedding Bright Light in a 10-foot radius and Dim Light for an additional 10 feet. The flames provide you with a warm shield or a chill shield, as you choose. The warm shield grants you Resistance to Cold damage, and the chill shield grants you Resistance to Fire damage. In addition, whenever a creature within 5 feet of you hits you with a melee attack roll, the shield erupts with flame. The attacker takes 2d8 Fire damage from a warm shield or 2d8 Cold damage from a chill shield.',
@@ -391,7 +391,7 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
           { kind: 'damage', damage: '5d8', damageType: 'fire' },
         ],
       },
-      { kind: 'note', text: 'Wall is 60ft long (or 20ft ring), 20ft high, 1ft thick. One side deals damage to creatures entering or ending turn within 10ft.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Wall is 60ft long (or 20ft ring), 20ft high, 1ft thick. One side deals damage to creatures entering or ending turn within 10ft.', category: 'flavor' as const },
     ],
     scaling: [{ category: 'extra-damage', description: '+1d8 fire per slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5, amount: '1d8' }],
     description: {

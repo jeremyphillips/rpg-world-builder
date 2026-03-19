@@ -85,7 +85,8 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
         onFail: [{ kind: 'damage', damage: '4d10', damageType: 'cold' }],
         onSuccess: [{ kind: 'damage', damage: '2d10', damageType: 'cold' }],
       },
-      { kind: 'note', text: 'Area is Lightly Obscured and Difficult Terrain. Creature also saves when entering or ending turn in area.', category: 'under-modeled' as const },
+      { kind: 'state', stateId: 'lightly-obscured-difficult-terrain', notes: 'Area is Lightly Obscured and Difficult Terrain.' },
+      { kind: 'note', text: 'Creature also saves when entering or ending turn in area.', category: 'under-modeled' as const },
     ],
     scaling: [{ category: 'extra-damage', description: '+1d10 piercing per slot level above 5', mode: 'per-slot-level', startsAtSlotLevel: 6, amount: '1d10' }],
     description: {
@@ -232,7 +233,7 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'state', stateId: 'scried', notes: 'Invisible sensor within 10ft. Caster sees and hears through sensor.' }] },
-      { kind: 'note', text: 'Save DC modified by familiarity and physical connection. On success, cannot target again for 24h. Can target a location instead (no save, sensor stays in place).', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Save DC modified by familiarity and physical connection. On success, cannot target again for 24h. Can target a location instead (no save, sensor stays in place).', category: 'flavor' as const },
     ],
     description: {
       full: "You can see and hear a creature you choose that is on the same plane of existence as you. The target makes a Wisdom saving throw, which is modified by how well you know the target and the sort of physical connection you have to it. On a successful save, the target isn't affected, and you can't use this spell on it again for 24 hours. On a failed save, the spell creates an Invisible, intangible sensor within 10 feet of the target. You can see and hear through the sensor as if you were there. The sensor moves with the target, remaining within 10 feet of it for the duration. Instead of targeting a creature, you can target a location you have seen. When you do so, the sensor appears at that location and doesn't move.",

@@ -349,7 +349,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       { kind: 'modifier', target: 'armor_class', mode: 'set', value: 13 },
-      { kind: 'note', text: 'Target must not be wearing armor. True AC is 13 + Dex modifier. Ends if target dons armor.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Target must not be wearing armor. True AC is 13 + Dex modifier. Ends if target dons armor.', category: 'flavor' as const },
     ],
     description: {
       full: "You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 plus its Dexterity modifier. The spell ends early if the target dons armor.",

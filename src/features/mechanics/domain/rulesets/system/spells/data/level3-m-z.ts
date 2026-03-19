@@ -116,7 +116,7 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'fire' as const },
-      { kind: 'note', text: 'Caster chooses damage type at cast time: Acid, Cold, Fire, Lightning, or Thunder. Modeled as Fire by default.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Caster chooses damage type at cast time: Acid, Cold, Fire, Lightning, or Thunder. Modeled as Fire by default.', category: 'flavor' as const },
     ],
     description: {
       full: "For the duration, the willing creature you touch has Resistance to one damage type of your choice: Acid, Cold, Fire, Lightning, or Thunder.",
@@ -157,7 +157,7 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-dead-creature', targetType: 'creature' },
       { kind: 'hit-points', mode: 'heal', value: 1 },
-      { kind: 'note', text: "Must have died within the last minute. Can't revive creatures that died of old age. Does not restore missing body parts.", category: 'under-modeled' as const },
+      { kind: 'note', text: "Must have died within the last minute. Can't revive creatures that died of old age. Does not restore missing body parts.", category: 'flavor' as const },
     ],
     description: {
       full: "You touch a creature that has died within the last minute. That creature revives with 1 Hit Point. This spell can't revive a creature that has died of old age, nor does it restore any missing body parts.",
@@ -293,7 +293,8 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
           },
         ],
       },
-      { kind: 'note', text: 'Caster designates creatures unaffected. Others have Speed halved in area. Damage type is necrotic if caster is evil.', category: 'under-modeled' as const },
+      { kind: 'modifier', target: 'speed' as const, mode: 'multiply' as const, value: 0.5 },
+      { kind: 'note', text: 'Caster designates creatures unaffected. Damage type is necrotic if caster is evil.', category: 'flavor' as const },
     ],
     scaling: [{ category: 'extra-damage', description: '+1d8 per slot level above 3', mode: 'per-slot-level', startsAtSlotLevel: 4, amount: '1d8' }],
     description: {
@@ -318,7 +319,8 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
         save: { ability: 'con' },
         onFail: [{ kind: 'condition', conditionId: 'poisoned' }],
       },
-      { kind: 'note', text: 'Area is Heavily Obscured. Creatures starting turn in the area must save. Poisoned creature wastes its action. Dispersed by strong wind.', category: 'under-modeled' as const },
+      { kind: 'state', stateId: 'heavily-obscured', notes: 'Area is Heavily Obscured.' },
+      { kind: 'note', text: 'Poisoned creature wastes its action. Save when starting turn in area. Dispersed by strong wind.', category: 'under-modeled' as const },
     ],
     description: {
       full: "You create a 20-foot-radius Sphere of yellow, nauseating gas centered on a point within range. The cloud is Heavily Obscured. The cloud lingers in the air for the duration or until a strong wind (such as the one created by Gust of Wind) disperses it. Each creature that starts its turn in the Sphere must succeed on a Constitution saving throw or have the Poisoned condition until the end of the current turn. While Poisoned in this way, the creature can't take an action or a Bonus Action.",

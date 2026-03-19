@@ -83,7 +83,8 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
         onFail: [{ kind: 'damage', damage: '5d8', damageType: 'poison' }],
         onSuccess: [{ kind: 'damage', damage: '2d8', damageType: 'poison' }],
       },
-      { kind: 'note', text: 'Area is Heavily Obscured. Sphere moves 10ft away from caster at start of each turn. Dispersed by strong wind.', category: 'under-modeled' as const },
+      { kind: 'state', stateId: 'heavily-obscured', notes: 'Area is Heavily Obscured.' },
+      { kind: 'note', text: 'Sphere moves 10ft away from caster at start of each turn. Dispersed by strong wind.', category: 'under-modeled' as const },
     ],
     scaling: [{ category: 'extra-damage', description: '+1d8 poison per slot level above 5', mode: 'per-slot-level', startsAtSlotLevel: 6, amount: '1d8' }],
     description: {
@@ -184,7 +185,7 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     components: { verbal: true },
     effects: [
       { kind: 'save', save: { ability: 'int', dc: 15 }, onFail: [{ kind: 'damage', damage: '6d6', damageType: 'psychic' }, { kind: 'condition', conditionId: 'incapacitated' }], onSuccess: [{ kind: 'state', stateId: 'contact-other-plane', notes: 'Ask up to 5 questions. GM answers each with one word.' }] },
-      { kind: 'note', text: 'Incapacitated condition lasts until Long Rest. Greater Restoration ends it. This is a self-targeted save.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Incapacitated condition lasts until Long Rest. Greater Restoration ends it. This is a self-targeted save.', category: 'flavor' as const },
     ],
     description: {
       full: "You mentally contact a demigod, the spirit of a long-dead sage, or some other knowledgeable entity from another plane. When you cast this spell, make a DC 15 Intelligence saving throw. On a successful save, you can ask the entity up to five questions. You must ask your questions before the spell ends. The GM answers each question with one word. On a failed save, you take 6d6 Psychic damage and have the Incapacitated condition until you finish a Long Rest. A Greater Restoration spell cast on you ends this effect.",
@@ -328,7 +329,8 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresSight: true },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'condition', conditionId: 'charmed' }] },
-      { kind: 'note', text: '5d10 Psychic damage (max 1/day) if target acts counter to command. Remove Curse, Greater Restoration, or Wish ends.', category: 'under-modeled' as const },
+      { kind: 'damage', damage: '5d10', damageType: 'psychic' },
+      { kind: 'note', text: 'Damage max 1/day if target acts against command. Remove Curse, Greater Restoration, or Wish ends.', category: 'flavor' as const },
     ],
     description: {
       full: "You give a verbal command to a creature that you can see within range, ordering it to carry out some service or refrain from an action or a course of activity as you decide. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target automatically succeeds if it can't understand your command. While Charmed, the creature takes 5d10 Psychic damage if it acts in a manner directly counter to your command. It takes this damage no more than once each day. You can issue any command you choose, short of an activity that would result in certain death. Should you issue a suicidal command, the spell ends. A Remove Curse, Greater Restoration, or Wish spell ends this spell. Using a Higher-Level Spell Slot. If you use a level 7 or 8 spell slot, the duration is 365 days. If you use a level 9 spell slot, the spell lasts until it is ended by one of the spells mentioned above.",

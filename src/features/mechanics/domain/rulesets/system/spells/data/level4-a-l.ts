@@ -31,7 +31,8 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     components: { verbal: true },
     effects: [
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'necrotic' as const },
-      { kind: 'note', text: '30ft aura: HP max cannot be reduced. Ally at 0 HP regains 1 HP at start of turn.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'HP max cannot be reduced for creatures in aura.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Ally at 0 HP regains 1 HP at start of turn.', category: 'under-modeled' as const },
     ],
     description: {
       full: "An aura radiates from you in a 30-foot Emanation for the duration. While in the aura, you and your allies have Resistance to Necrotic damage, and your Hit Point maximums can't be reduced. If an ally with 0 Hit Points starts its turn in the aura, that ally regains 1 Hit Point.",
@@ -55,7 +56,8 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
         save: { ability: 'cha' },
         onFail: [{ kind: 'condition', conditionId: 'incapacitated' }],
       },
-      { kind: 'note', text: 'Target is transported to a harmless demiplane. Aberrations, Celestials, Elementals, Fey, Fiends: permanent banishment if spell lasts full duration.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Target is transported to a harmless demiplane for the duration.', category: 'flavor' as const },
+      { kind: 'note', text: 'Aberrations, Celestials, Elementals, Fey, Fiends: permanent banishment if spell lasts full duration.', category: 'flavor' as const },
     ],
     scaling: [{ category: 'extra-targets', description: '+1 target per slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5 }],
     description: {
@@ -97,7 +99,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
         onFail: [{ kind: 'damage', damage: '8d8', damageType: 'necrotic' }],
         onSuccess: [{ kind: 'damage', damage: '4d8', damageType: 'necrotic' }],
       },
-      { kind: 'note', text: 'Plant creatures automatically fail the save. Alternatively, targets a nonmagical plant (not a creature) which withers and dies.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Plant creatures automatically fail the save. Alternatively, targets a nonmagical plant (not a creature) which withers and dies.', category: 'flavor' as const },
     ],
     scaling: [{ category: 'extra-damage', description: '+1d8 necrotic per slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5, amount: '1d8' }],
     description: {
@@ -160,7 +162,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
       { kind: 'state', stateId: 'confused', notes: 'Cannot take Bonus Actions or Reactions. Roll 1d10 each turn: move randomly, do nothing, attack random creature, or act normally.', repeatSave: { ability: 'wis', timing: 'turn-end' } },
     ],
   },
-  { kind: 'note', text: 'Behavior determined by 1d10 roll each turn.', category: 'under-modeled' as const },
+  { kind: 'note', text: 'Behavior determined by 1d10 roll each turn.', category: 'flavor' as const },
 ],
     scaling: [{ category: 'expanded-area', description: '+5ft sphere radius per slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5 }],
     description: {
@@ -180,7 +182,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true },
     effects: [
       { kind: 'state', stateId: 'conjure-minor-elementals', notes: '15ft Emanation. Attacks deal +2d8 Acid/Cold/Fire/Lightning (choice per attack). Ground is Difficult Terrain for enemies.' },
-      { kind: 'note', text: 'Extra damage type chosen per attack. Difficult Terrain for enemies only.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Extra damage type chosen per attack. Difficult Terrain for enemies only.', category: 'flavor' as const },
     ],
     description: {
       full: "You conjure spirits from the Elemental Planes that flit around you in a 15-foot Emanation for the duration. Until the spell ends, any attack you make deals an extra 2d8 damage when you hit a creature in the Emanation. This damage is Acid, Cold, Fire, or Lightning (your choice when you make the attack). In addition, the ground in the Emanation is Difficult Terrain for your enemies. Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 4.",
@@ -200,7 +202,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'creatures-in-area', area: { kind: 'sphere', size: 10 } },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'damage', damage: '5d8', damageType: 'force' }], onSuccess: [{ kind: 'damage', damage: '2d8', damageType: 'force' }] },
-      { kind: 'note', text: '10ft Emanation. Save triggered when entering or ending turn in area. Can take Disengage as Bonus Action.', category: 'under-modeled' as const },
+      { kind: 'note', text: '10ft Emanation. Save triggered when entering or ending turn in area. Can take Disengage as Bonus Action.', category: 'flavor' as const },
     ],
     description: {
       full: "You conjure nature spirits that flit around you in a 10-foot Emanation for the duration. Whenever the Emanation enters the space of a creature you can see and whenever a creature you can see enters the Emanation or ends its turn there, you can force that creature to make a Wisdom saving throw. The creature takes 5d8 Force damage on a failed save or half as much damage on a successful one. A creature makes this save only once per turn. In addition, you can take the Disengage action as a Bonus Action for the spell’s duration. Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 4.",

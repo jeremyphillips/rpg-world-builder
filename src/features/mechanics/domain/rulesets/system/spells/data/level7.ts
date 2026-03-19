@@ -284,7 +284,8 @@ export const SPELLS_LEVEL_7: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       { kind: 'hit-points', mode: 'heal', value: '4d8+15' },
-      { kind: 'note', text: 'For the duration, target regains 1 HP at start of each turn. Severed body parts regrow after 2 minutes.', category: 'under-modeled' as const },
+      { kind: 'interval', stateId: 'regeneration', every: { value: 1, unit: 'turn' }, effects: [{ kind: 'hit-points', mode: 'heal', value: 1 }] },
+      { kind: 'note', text: 'Severed body parts regrow after 2 minutes.', category: 'flavor' as const },
     ],
     description: {
       full: "A creature you touch regains 4d8 + 15 Hit Points. For the duration, the target regains 1 Hit Point at the start of each of its turns, and any severed body parts regrow after 2 minutes.",
@@ -304,7 +305,7 @@ export const SPELLS_LEVEL_7: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-dead-creature', targetType: 'creature' },
       { kind: 'hit-points', mode: 'heal', value: 1 },
-      { kind: 'note', text: 'Revives to full HP. Not dead >100 years, not old age, not Undead. Neutralizes poisons, closes wounds, restores body parts. -4 penalty to d20 tests, reduced by 1 per Long Rest. If dead 365+ days, caster cannot cast spells and has Disadvantage on d20 tests until Long Rest.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Revives to full HP. Not dead >100 years, not old age, not Undead. Neutralizes poisons, closes wounds, restores body parts. -4 penalty to d20 tests, reduced by 1 per Long Rest. If dead 365+ days, caster cannot cast spells and has Disadvantage on d20 tests until Long Rest.', category: 'flavor' as const },
     ],
     description: {
       full: "With a touch, you revive a dead creature that has been dead for no more than a century, didn't die of old age, and wasn't Undead when it died. The creature returns to life with all its Hit Points. This spell also neutralizes any poisons that affected the creature at the time of death. This spell closes all mortal wounds and restores any missing body parts. Coming back from the dead is an ordeal. The target takes a −4 penalty to D20 Tests. Every time the target finishes a Long Rest, the penalty is reduced by 1 until it becomes 0. Casting this spell to revive a creature that has been dead for 365 days or longer taxes you. Until you finish a Long Rest, you can't cast spells again, and you have Disadvantage on D20 Tests.",

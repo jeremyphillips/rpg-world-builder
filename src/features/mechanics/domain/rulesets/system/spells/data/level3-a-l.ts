@@ -1,7 +1,7 @@
 import type { SpellEntry } from '../types';
 
 export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
-{
+  {
     id: 'animate-dead',
     name: 'Animate Dead',
     school: 'necromancy',
@@ -17,7 +17,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
       summary: 'Create Skeleton or Zombie from bones/corpse. Control 24h; re-cast to maintain. Scales with extra undead.',
     },
   },
-{
+  {
     id: 'beacon-of-hope',
     name: 'Beacon of Hope',
     school: 'abjuration',
@@ -33,7 +33,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
       summary: 'Advantage on Wis and Death saves; healing restores max HP.',
     },
   },
-{
+  {
     id: 'bestow-curse',
     name: 'Bestow Curse',
     school: 'necromancy',
@@ -132,7 +132,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
       summary: 'Spectral animal pack. Dex save 3d10 slashing when near. Damage scales with slot.',
     },
   },
-{
+  {
     id: 'counterspell',
     name: 'Counterspell',
     school: 'abjuration',
@@ -148,7 +148,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
       summary: 'Reaction: interrupt spell. Con save or spell fails.',
     },
   },
-{
+  {
     id: 'create-food-and-water',
     name: 'Create Food and Water',
     school: 'conjuration',
@@ -166,7 +166,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
       summary: 'Create 45 lb food and 30 gal water. Spoils after 24h.',
     },
   },
-{
+  {
     id: 'daylight',
     name: 'Daylight',
     school: 'evocation',
@@ -182,7 +182,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
       summary: '60ft sphere sunlight. Dispels lower-level Darkness.',
     },
   },
-{
+  {
     id: 'dispel-magic',
     name: 'Dispel Magic',
     school: 'abjuration',
@@ -215,7 +215,8 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
         save: { ability: 'wis' },
     onFail: [{ kind: 'condition', conditionId: 'frightened', repeatSave: { ability: 'wis', timing: 'turn-end' } }],
   },
-  { kind: 'note', text: 'Frightened creature drops held items, must Dash away each turn. Repeat save only available when no line of sight to caster.', category: 'under-modeled' as const },
+  { kind: 'note', text: 'Frightened creature drops held items, must Dash away each turn.', category: 'flavor' as const },
+  { kind: 'note', text: 'Repeat save only available when no line of sight to caster.', category: 'under-modeled' as const },
 ],
     description: {
       full: "Each creature in a 30-foot Cone must succeed on a Wisdom saving throw or drop whatever it is holding and have the Frightened condition for the duration. A Frightened creature takes the Dash action and moves away from you by the safest route on each of its turns unless there is nowhere to move. If the creature ends its turn in a space where it doesn't have line of sight to you, the creature makes a Wisdom saving throw. On a successful save, the spell ends on that creature.",
@@ -338,8 +339,9 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       { kind: 'modifier', target: 'armor_class', mode: 'add', value: 2 },
-      { kind: 'modifier', target: 'speed', mode: 'add', value: 30 },
-      { kind: 'note', text: 'Advantage on Dex saves. Extra action each turn (Attack one weapon only, Dash, Disengage, Hide, Utilize). When spell ends: Incapacitated and Speed 0 until end of next turn.', category: 'under-modeled' as const },
+      { kind: 'roll-modifier', appliesTo: 'dexterity-saves', modifier: 'advantage' },
+      { kind: 'modifier', target: 'speed' as const, mode: 'multiply' as const, value: 2 },
+      { kind: 'note', text: 'Extra action each turn (Attack one weapon only, Dash, Disengage, Hide, Utilize). When spell ends: cannot move or take actions until end of next turn.', category: 'under-modeled' as const },
     ],
     description: {
       full: "Choose a willing creature that you can see within range. Until the spell ends, the target's Speed is doubled, it gains a +2 bonus to Armor Class, it has Advantage on Dexterity saving throws, and it gains an additional action on each of its turns. That action can be used to take only the Attack (one attack only), Dash, Disengage, Hide, or Utilize action. When the spell ends, the target is Incapacitated and has a Speed of 0 until the end of its next turn, as a wave of lethargy washes over it.",
@@ -364,9 +366,10 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
         onFail: [
           { kind: 'condition', conditionId: 'charmed' },
           { kind: 'condition', conditionId: 'incapacitated' },
+          { kind: 'modifier', target: 'speed' as const, mode: 'set' as const, value: 0 },
         ],
       },
-      { kind: 'note', text: 'Charmed creature has Speed 0. Ends if creature takes damage or another creature uses an action to shake it.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Ends if creature takes damage or another creature uses an action to shake it.', category: 'flavor' as const },
     ],
     description: {
       full: "You create a twisting pattern of colors in a 30-foot Cube within range. The pattern appears for a moment and vanishes. Each creature in the area who can see the pattern must succeed on a Wisdom saving throw or have the Charmed condition for the duration. While Charmed, the creature has the Incapacitated condition and a Speed of 0. The spell ends for an affected creature if it takes any damage or if someone else uses an action to shake the creature out of its stupor.",

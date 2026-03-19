@@ -35,7 +35,7 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresSight: true, creatureTypeFilter: ['beast'] },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'condition', conditionId: 'charmed' }] },
-      { kind: 'note', text: 'Ends if you or allies deal damage to the target.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Ends if you or allies deal damage to the target.', category: 'flavor' as const },
     ],
     description: {
       full: "Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spells ends. Using a Higher-Level Spell Slot. You can target one additional Beast for each spell slot level above 1.",
@@ -195,7 +195,7 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresSight: true },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'state', stateId: 'commanded', notes: 'Target follows one-word command on its next turn: Approach, Drop, Flee, Grovel, or Halt.' }] },
-      { kind: 'note', text: 'Specific command behavior (Approach, Drop, Flee, Grovel, Halt) is under-modeled.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Specific command behavior (Approach, Drop, Flee, Grovel, Halt) varies by DM ruling.', category: 'flavor' as const },
     ],
     description: {
       full: "You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. Choose: Approach, Drop, Flee, Grovel, or Halt. Using a Higher-Level Spell Slot. You can affect one additional creature for each spell slot level above 1.",
@@ -454,7 +454,7 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
         save: { ability: 'dex' },
         onFail: [
           { kind: 'roll-modifier', appliesTo: 'attacks against', modifier: 'advantage' },
-          { kind: 'note', text: 'Target outlined in light; sheds Dim Light 10ft. Cannot benefit from being Invisible.', category: 'under-modeled' as const },
+          { kind: 'note', text: 'Target outlined in light; sheds Dim Light 10ft. Cannot benefit from being Invisible.', category: 'flavor' as const },
         ],
       },
     ],
@@ -509,7 +509,7 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true, material: { description: 'burning incense worth 10+ GP', cost: { value: 10, unit: 'gp', atLeast: true }, consumed: true } },
     effects: [
       { kind: 'spawn', creature: 'familiar', count: 1, location: 'self-space', actsWhen: 'immediately-after-source-turn' },
-      { kind: 'note', text: 'Familiar is CR 0 Beast form (Celestial/Fey/Fiend). Telepathy 100ft. Bonus Action: see/hear through it. Can deliver touch spells.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Familiar is CR 0 Beast form (Celestial/Fey/Fiend). Telepathy 100ft. Bonus Action: see/hear through it. Can deliver touch spells.', category: 'flavor' as const },
     ],
     description: {
       full: "You gain the service of a familiar, a spirit that takes an animal form you choose (Bat, Cat, Frog, Hawk, Lizard, Octopus, Owl, Rat, Raven, Spider, Weasel, or CR 0 Beast). The familiar has the statistics of the chosen form but is Celestial, Fey, or Fiend. Telepathic connection within 100 feet. Bonus Action: see through familiar's eyes. Familiar can deliver touch spells. Dismiss to pocket dimension as Magic action.",

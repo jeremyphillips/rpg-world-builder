@@ -31,10 +31,10 @@ todos:
     status: done
   - id: phase-7-reduce-undermodeled
     content: Systematically convert under-modeled notes to structured effects or reclassify as flavor; target ~60% reduction
-    status: pending
+    status: done
   - id: phase-8-docs
     content: Update effects.md scaling tiers and resolution.md supported effect matrix to reflect all Phase 2 changes
-    status: pending
+    status: done
 isProject: false
 ---
 

@@ -208,7 +208,8 @@ export const SPELLS_LEVEL_2_G_Z: readonly SpellEntry[] = [
           },
         ],
       },
-      { kind: 'note', text: 'Sheds Dim Light. Shape-shifted creature reverts and cannot shape-shift in area. Magic action to move beam 60ft.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Sheds Dim Light. Shape-shifted creature reverts and cannot shape-shift in area.', category: 'flavor' as const },
+      { kind: 'note', text: 'Magic action to move beam 60ft.', category: 'under-modeled' as const },
     ],
     scaling: [{ category: 'extra-damage', description: '+1d10 radiant per slot level above 2', mode: 'per-slot-level', startsAtSlotLevel: 3, amount: '1d10' }],
     description: {
@@ -550,7 +551,7 @@ export const SPELLS_LEVEL_2_G_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresSight: true },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'condition', conditionId: 'charmed' }] },
-      { kind: 'note', text: 'Charmed target pursues a suggested course of activity (25 words or fewer). Must sound achievable, not obviously harmful. Ends if caster or allies damage target.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Charmed target pursues a suggested course of activity (25 words or fewer). Must sound achievable, not obviously harmful. Ends if caster or allies damage target.', category: 'flavor' as const },
     ],
     description: {
       full: "You suggest a course of activity—described in no more than 25 words—to one creature you can see within range that can hear and understand you. The suggestion must sound achievable and not involve anything that would obviously deal damage to the target or its allies. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration or until you or your allies deal damage to the target. The Charmed target pursues the suggestion to the best of its ability. The suggested activity can continue for the entire duration, but if the suggested activity can be completed in a shorter time, the spell ends for the target upon completing it.",
@@ -631,7 +632,7 @@ export const SPELLS_LEVEL_2_G_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'creatures-in-area', area: { kind: 'sphere', size: 15 } },
       { kind: 'save', save: { ability: 'cha' }, onFail: [{ kind: 'state', stateId: 'zone-of-truth', notes: 'Cannot speak a deliberate lie while in the radius.' }] },
-      { kind: 'note', text: 'Caster knows whether each creature succeeds or fails. Affected creatures are aware and can avoid answering.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Caster knows whether each creature succeeds or fails. Affected creatures are aware and can avoid answering.', category: 'flavor' as const },
     ],
     description: {
       full: "You create a magical zone that guards against deception in a 15-foot-radius Sphere centered on a point within range. Until the spell ends, a creature that enters the spell's area for the first time on a turn or starts its turn there makes a Charisma saving throw. On a failed save, a creature can't speak a deliberate lie while in the radius. You know whether a creature succeeds or fails on this save. An affected creature is aware of the spell and can avoid answering questions to which it would normally respond with a lie. Such a creature can be evasive yet must be truthful.",

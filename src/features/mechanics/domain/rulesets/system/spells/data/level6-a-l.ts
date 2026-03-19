@@ -138,7 +138,7 @@ export const SPELLS_LEVEL_6_A_L: readonly SpellEntry[] = [
         save: { ability: 'dex' },
         onFail: [{ kind: 'damage', damage: '10d6+40', damageType: 'force' }],
       },
-      { kind: 'note', text: 'Target reduced to 0 HP is disintegrated (turned to fine gray dust). Nonmagical objects and Huge or smaller creations of magical force are automatically destroyed.', category: 'under-modeled' as const },
+      { kind: 'note', text: 'Target reduced to 0 HP is disintegrated (turned to fine gray dust). Nonmagical objects and Huge or smaller creations of magical force are automatically destroyed.', category: 'flavor' as const },
     ],
     scaling: [{ category: 'extra-damage', description: '+3d6 force per slot level above 6', mode: 'per-slot-level', startsAtSlotLevel: 7, amount: '3d6' }],
     description: {
