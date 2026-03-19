@@ -135,6 +135,9 @@ function resolveCombatActionInternal(
       details: action.logText,
     })
 
+    if (!behavior.skipCost && action.kind === 'spell' && action.usage?.uses && action.displayMeta?.source === 'spell') {
+      options.onSpellSlotSpent?.(actor.source.sourceId, action.displayMeta.spellId)
+    }
     return behavior.skipCost
       ? nextState
       : updateEncounterCombatant(nextState, actor.instanceId, (combatant) => ({
@@ -319,6 +322,9 @@ function resolveCombatActionInternal(
     })
   }
 
+  if (!behavior.skipCost && action.kind === 'spell' && action.usage?.uses && action.displayMeta?.source === 'spell') {
+    options.onSpellSlotSpent?.(actor.source.sourceId, action.displayMeta.spellId)
+  }
   return behavior.skipCost
     ? nextState
     : updateEncounterCombatant(nextState, actor.instanceId, (combatant) => ({

@@ -36,6 +36,12 @@ export function canSpendActionCost(
   return true
 }
 
+/**
+ * Check if an action can be used (recharge ready, uses remaining).
+ *
+ * KNOWN EDGE CASES:
+ * - Warlock pact: period 'short-rest' not yet modeled; would need separate check.
+ */
 export function canUseCombatAction(action: CombatActionDefinition): boolean {
   if (action.usage?.recharge && !action.usage.recharge.ready) return false
   if (action.usage?.uses && action.usage.uses.remaining <= 0) return false

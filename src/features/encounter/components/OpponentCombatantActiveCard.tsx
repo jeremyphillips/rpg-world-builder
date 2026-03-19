@@ -24,13 +24,17 @@ export function OpponentCombatantActiveCard({
   selectedActionId,
   onSelectAction,
 }: OpponentCombatantActiveCardProps) {
-  const actions = useMemo(
-    () => availableActions.filter((a) => a.cost.action && !a.cost.bonusAction),
+  const availableActionIds = useMemo(
+    () => new Set(availableActions.map((a) => a.id)),
     [availableActions],
   )
+  const actions = useMemo(
+    () => (combatant.actions ?? []).filter((a) => a.cost.action && !a.cost.bonusAction),
+    [combatant.actions],
+  )
   const bonusActions = useMemo(
-    () => availableActions.filter((a) => a.cost.bonusAction),
-    [availableActions],
+    () => (combatant.actions ?? []).filter((a) => a.cost.bonusAction),
+    [combatant.actions],
   )
 
   const combatEffects = useMemo(() => {
@@ -65,6 +69,7 @@ export function OpponentCombatantActiveCard({
       stats={stats}
       actions={actions}
       bonusActions={bonusActions}
+      availableActionIds={availableActionIds}
       selectedActionId={selectedActionId}
       onSelectAction={onSelectAction}
       combatEffects={combatEffects}

@@ -6,16 +6,18 @@ import { ActionRowBase } from './ActionRowBase'
 type WeaponActionRowProps = {
   action: CombatActionDefinition
   isSelected: boolean
+  isAvailable?: boolean
   onSelect?: () => void
 }
 
-export function WeaponActionRow({ action, isSelected, onSelect }: WeaponActionRowProps) {
+export function WeaponActionRow({ action, isSelected, isAvailable = true, onSelect }: WeaponActionRowProps) {
   const meta = action.displayMeta?.source === 'weapon' ? action.displayMeta : undefined
   const ap = action.attackProfile
 
   return (
     <ActionRowBase
       isSelected={isSelected}
+      isAvailable={isAvailable}
       onSelect={onSelect}
       name={action.label}
       badges={

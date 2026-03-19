@@ -10,9 +10,16 @@ import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
 import { findCharacterSpellcastingClassEntry, getSpellcastingAbility, getSpellSaveDc, getSpellAttackBonus } from '@/features/mechanics/domain/spellcasting'
-import { resolveWeaponAttackBonus, resolveWeaponDamage, buildCreatureResolutionInput } from '@/features/mechanics/domain/resolution'
+import {
+  resolveWeaponAttackBonus,
+  resolveWeaponDamage,
+  buildCreatureResolutionInput,
+} from '@/features/mechanics/domain/resolution'
 import { resolveProficiencyBonusAtLevel, resolveProficiencyContribution } from '@/features/mechanics/domain/progression'
 import type { MechanicsRules } from '@/shared/types/ruleset'
+
+/** Resource key for persisting spell use. Export for onSpellSlotSpent handlers. */
+export const SPELL_USED_PREFIX = 'spell_used_'
 import {
   buildActiveMonsterEffects,
   type CombatActionDefinition,
@@ -539,9 +546,29 @@ function isConcentrationSpell(duration: SpellDuration | undefined): boolean {
   return 'concentration' in duration && duration.concentration === true
 }
 
+/**
+ * Compute usage for a spell action. One use per day per spell.
+ * Cantrips (level 0): no usage limit — one use per turn via action cost.
+ *
+ * KNOWN EDGE CASES:
+ * - Cantrips: No usage (unlimited per turn).
+ * - Warlock pact: Short-rest recharge not yet modeled.
+ */
+function resolveSpellUsage(
+  spellId: string,
+  spellLevel: number,
+  resources?: Record<string, number>,
+): CombatActionDefinition['usage'] {
+  if (spellLevel <= 0) return undefined
+  const key = `${SPELL_USED_PREFIX}${spellId}`
+  const used = resources?.[key] === 1
+  return { uses: { max: 1, remaining: used ? 0 : 1, period: 'day' } }
+}
+
 function buildSpellDisplayMeta(spell: Spell): CombatActionDefinition['displayMeta'] {
   return {
     source: 'spell' as const,
+    spellId: spell.id,
     level: spell.level,
     concentration: isConcentrationSpell(spell.duration),
     range: spell.range ? formatSpellRange(spell.range) : '',
@@ -623,6 +650,7 @@ function buildSpellAttackAction(
   runtimeId: string,
   spellAttackBonus: number,
   casterLevel: number,
+  usage: CombatActionDefinition['usage'],
 ): CombatActionDefinition[] {
   const damageEffect = findSpellDamageEffect(spell)
   const instanceCount = resolveInstanceCount(spell, casterLevel)
@@ -651,6 +679,7 @@ function buildSpellAttackAction(
       onHitEffects: onHitEffects.length > 0 ? onHitEffects : undefined,
       logText: buildSpellLogText(spell),
       displayMeta,
+      usage,
     }]
   }
 
@@ -688,6 +717,7 @@ function buildSpellAttackAction(
     sequence: [{ actionLabel: beamLabel, count: instanceCount }],
     logText: buildSpellLogText(spell),
     displayMeta,
+    usage,
   }
 
   return [parentAction, beamAction]
@@ -719,6 +749,7 @@ function buildSpellEffectsAction(
   spell: Spell,
   runtimeId: string,
   spellSaveDc: number,
+  usage: CombatActionDefinition['usage'],
 ): CombatActionDefinition {
   let enrichedEffects = injectSpellSaveDc(spell.effects ?? [], spellSaveDc)
   enrichedEffects = injectSpellEffectDuration(enrichedEffects, spell.duration)
@@ -734,6 +765,7 @@ function buildSpellEffectsAction(
     targeting: buildSpellTargeting(spell),
     logText: buildSpellLogText(spell),
     displayMeta: buildSpellDisplayMeta(spell),
+    usage,
   }
 }
 
@@ -744,21 +776,35 @@ export function buildSpellCombatActions(args: {
   spellSaveDc: number
   spellAttackBonus: number
   casterLevel: number
+  /** Persisted resources e.g. { spell_used_fireball: 1 }. When absent, remaining = 1. */
+  resources?: Record<string, number>
 }): CombatActionDefinition[] {
-  const { runtimeId, spellIds = [], spellsById, spellSaveDc, spellAttackBonus, casterLevel } = args
+  const {
+    runtimeId,
+    spellIds = [],
+    spellsById,
+    spellSaveDc,
+    spellAttackBonus,
+    casterLevel,
+    resources,
+  } = args
 
   return spellIds.flatMap((spellId) => {
     const spell = spellsById[spellId]
     if (!spell) return []
 
+    const usage = resolveSpellUsage(spell.id, spell.level, resources)
+    // Cantrips: no usage. Leveled spells: 1 use per day.
+    const effectiveUsage = spell.level > 0 ? usage : undefined
+
     const mode = classifySpellResolutionMode(spell)
 
     if (mode === 'attack-roll') {
-      return buildSpellAttackAction(spell, runtimeId, spellAttackBonus, casterLevel)
+      return buildSpellAttackAction(spell, runtimeId, spellAttackBonus, casterLevel, effectiveUsage)
     }
 
     if (mode === 'effects') {
-      return [buildSpellEffectsAction(spell, runtimeId, spellSaveDc)]
+      return [buildSpellEffectsAction(spell, runtimeId, spellSaveDc, effectiveUsage)]
     }
 
     return [{
@@ -769,6 +815,7 @@ export function buildSpellCombatActions(args: {
       resolutionMode: 'log-only',
       logText: buildSpellLogText(spell),
       displayMeta: buildSpellDisplayMeta(spell),
+      usage: effectiveUsage,
     }]
   })
 }

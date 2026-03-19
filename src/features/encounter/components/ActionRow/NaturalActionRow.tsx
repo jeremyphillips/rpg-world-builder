@@ -8,10 +8,11 @@ import { ActionRowBase } from './ActionRowBase'
 type NaturalActionRowProps = {
   action: CombatActionDefinition
   isSelected: boolean
+  isAvailable?: boolean
   onSelect?: () => void
 }
 
-export function NaturalActionRow({ action, isSelected, onSelect }: NaturalActionRowProps) {
+export function NaturalActionRow({ action, isSelected, isAvailable = true, onSelect }: NaturalActionRowProps) {
   const meta = action.displayMeta?.source === 'natural' ? action.displayMeta : undefined
   const ap = action.attackProfile
   const damage = ap?.damage ?? action.damage
@@ -20,6 +21,7 @@ export function NaturalActionRow({ action, isSelected, onSelect }: NaturalAction
   return (
     <ActionRowBase
       isSelected={isSelected}
+      isAvailable={isAvailable}
       onSelect={onSelect}
       name={action.label}
       secondLine={

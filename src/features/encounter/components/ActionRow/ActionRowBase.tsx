@@ -5,18 +5,20 @@ import Typography from '@mui/material/Typography'
 
 export type ActionRowBaseProps = {
   isSelected: boolean
+  isAvailable?: boolean
   onSelect?: () => void
   name: React.ReactNode
   secondLine?: React.ReactNode
   badges: React.ReactNode
 }
 
-export function ActionRowBase({ isSelected, onSelect, name, secondLine, badges }: ActionRowBaseProps) {
+export function ActionRowBase({ isSelected, isAvailable = true, onSelect, name, secondLine, badges }: ActionRowBaseProps) {
   return (
     <Paper
       variant="outlined"
       sx={{
         p: 1.5,
+        opacity: isAvailable ? 1 : 0.5,
         cursor: onSelect ? 'pointer' : 'default',
         borderColor: isSelected ? 'primary.main' : 'divider',
         '&:hover': onSelect ? { bgcolor: 'action.hover' } : undefined,

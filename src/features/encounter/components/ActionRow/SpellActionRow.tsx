@@ -7,10 +7,11 @@ import { ActionRowBase } from './ActionRowBase'
 type SpellActionRowProps = {
   action: CombatActionDefinition
   isSelected: boolean
+  isAvailable?: boolean
   onSelect?: () => void
 }
 
-export function SpellActionRow({ action, isSelected, onSelect }: SpellActionRowProps) {
+export function SpellActionRow({ action, isSelected, isAvailable = true, onSelect }: SpellActionRowProps) {
   const meta = action.displayMeta?.source === 'spell' ? action.displayMeta : undefined
 
   const nameLabel = meta != null
@@ -20,6 +21,7 @@ export function SpellActionRow({ action, isSelected, onSelect }: SpellActionRowP
   return (
     <ActionRowBase
       isSelected={isSelected}
+      isAvailable={isAvailable}
       onSelect={onSelect}
       name={nameLabel}
       secondLine={

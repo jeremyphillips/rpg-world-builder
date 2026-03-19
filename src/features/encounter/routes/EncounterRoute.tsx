@@ -240,7 +240,13 @@ export default function EncounterRoute() {
       turnResources={turnResources}
       selectedActionLabel={selectedActionLabel}
       selectedTargetLabel={selectedTargetLabel}
-      canResolveAction={Boolean(selectedActionId && selectedActionTargetId)}
+      canResolveAction={
+        Boolean(
+          selectedActionId &&
+          selectedActionTargetId &&
+          availableActions.some((a) => a.id === selectedActionId),
+        )
+      }
       onResolveAction={handleResolveAction}
       onEndTurn={handleNextTurn}
     />

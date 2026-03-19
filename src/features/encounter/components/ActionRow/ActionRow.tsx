@@ -11,10 +11,11 @@ import { NaturalActionRow } from './NaturalActionRow'
 type ActionRowProps = {
   action: CombatActionDefinition
   isSelected: boolean
+  isAvailable?: boolean
   onSelect?: () => void
 }
 
-function GenericActionRow({ action, isSelected, onSelect }: ActionRowProps) {
+function GenericActionRow({ action, isSelected, isAvailable = true, onSelect }: ActionRowProps) {
   const ap = action.attackProfile
   const detailParts: string[] = []
 
@@ -32,13 +33,12 @@ function GenericActionRow({ action, isSelected, onSelect }: ActionRowProps) {
 
   const usageLabel = action.usage?.recharge
     ? `Recharge ${action.usage.recharge.min}\u2013${action.usage.recharge.max}`
-    : action.usage?.uses
-      ? `${action.usage.uses.remaining}/${action.usage.uses.max} per ${action.usage.uses.period}`
-      : null
+    : null
 
   return (
     <ActionRowBase
       isSelected={isSelected}
+      isAvailable={isAvailable}
       onSelect={onSelect}
       name={action.label}
       secondLine={
@@ -55,15 +55,15 @@ function GenericActionRow({ action, isSelected, onSelect }: ActionRowProps) {
   )
 }
 
-export function ActionRow({ action, isSelected, onSelect }: ActionRowProps) {
+export function ActionRow({ action, isSelected, isAvailable = true, onSelect }: ActionRowProps) {
   switch (action.kind) {
     case 'weapon-attack':
-      return <WeaponActionRow action={action} isSelected={isSelected} onSelect={onSelect} />
+      return <WeaponActionRow action={action} isSelected={isSelected} isAvailable={isAvailable} onSelect={onSelect} />
     case 'spell':
-      return <SpellActionRow action={action} isSelected={isSelected} onSelect={onSelect} />
+      return <SpellActionRow action={action} isSelected={isSelected} isAvailable={isAvailable} onSelect={onSelect} />
     case 'monster-action':
-      return <NaturalActionRow action={action} isSelected={isSelected} onSelect={onSelect} />
+      return <NaturalActionRow action={action} isSelected={isSelected} isAvailable={isAvailable} onSelect={onSelect} />
     default:
-      return <GenericActionRow action={action} isSelected={isSelected} onSelect={onSelect} />
+      return <GenericActionRow action={action} isSelected={isSelected} isAvailable={isAvailable} onSelect={onSelect} />
   }
 }

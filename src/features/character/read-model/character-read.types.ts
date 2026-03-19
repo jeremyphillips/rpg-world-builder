@@ -132,6 +132,15 @@ export type CharacterDetailDto = {
 
   spells?: string[]
 
+  /**
+   * Persisted daily resources. Keys like spell_slot_1, spell_slot_2 = remaining slots.
+   * When absent, treat as full. Reset on long rest (future).
+   *
+   * KNOWN EDGE CASES:
+   * - Warlock pact: Would need pact_slots key with short-rest semantics.
+   */
+  resources?: Record<string, number>
+
   narrative?: {
     personalityTraits?: string[]
     ideals?: string

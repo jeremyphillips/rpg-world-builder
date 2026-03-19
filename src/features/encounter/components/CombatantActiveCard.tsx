@@ -23,6 +23,7 @@ type CombatantActiveCardProps = {
   stats: StatEntry[]
   actions: CombatActionDefinition[]
   bonusActions: CombatActionDefinition[]
+  availableActionIds?: Set<string>
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
   combatEffects: Record<CombatStateSection, EnrichedPresentableEffect[]>
@@ -90,15 +91,18 @@ function groupActionsByKind(actions: CombatActionDefinition[]) {
 
 function GroupedActionList({
   actions,
+  availableActionIds,
   selectedActionId,
   onSelectAction,
 }: {
   actions: CombatActionDefinition[]
+  availableActionIds?: Set<string>
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
 }) {
   const groups = useMemo(() => groupActionsByKind(actions), [actions])
   const needsHeaders = groups.length > 1
+  const allTreatAsAvailable = availableActionIds == null
 
   return (
     <Stack spacing={1} sx={{ pt: 0.5 }}>
@@ -113,14 +117,20 @@ function GroupedActionList({
               </Typography>
             )}
             <Stack spacing={1}>
-              {groupActions.map((action) => (
-                <ActionRow
-                  key={action.id}
-                  action={action}
-                  isSelected={action.id === selectedActionId}
-                  onSelect={onSelectAction ? () => onSelectAction(action.id) : undefined}
-                />
-              ))}
+              {groupActions.map((action) => {
+                const isAvailable = allTreatAsAvailable || availableActionIds!.has(action.id)
+                return (
+                  <ActionRow
+                    key={action.id}
+                    action={action}
+                    isSelected={action.id === selectedActionId}
+                    isAvailable={isAvailable}
+                    onSelect={
+                      onSelectAction && isAvailable ? () => onSelectAction(action.id) : undefined
+                    }
+                  />
+                )
+              })}
             </Stack>
           </Box>
         ))
@@ -135,6 +145,7 @@ export function CombatantActiveCard({
   stats,
   actions,
   bonusActions,
+  availableActionIds,
   selectedActionId,
   onSelectAction,
   combatEffects,
@@ -177,6 +188,7 @@ export function CombatantActiveCard({
         <CollapsibleSection title="Actions" count={actions.length}>
           <GroupedActionList
             actions={actions}
+            availableActionIds={availableActionIds}
             selectedActionId={selectedActionId}
             onSelectAction={onSelectAction}
           />
@@ -185,6 +197,7 @@ export function CombatantActiveCard({
         <CollapsibleSection title="Bonus Actions" count={bonusActions.length} defaultOpen={bonusActions.length > 0}>
           <GroupedActionList
             actions={bonusActions}
+            availableActionIds={availableActionIds}
             selectedActionId={selectedActionId}
             onSelectAction={onSelectAction}
           />
