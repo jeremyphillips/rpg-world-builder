@@ -110,7 +110,7 @@ The encounter action system resolves combat actions against encounter state:
 |--------|----------------|
 | `action-resolver` | Orchestrates action resolution: validates, targets, resolves, updates state |
 | `action-cost` | Turn resource management: spend/check action, bonus action, reaction, movement |
-| `action-targeting` | Target selection: self, all-enemies, single-target, single-creature; sequence step counts |
+| `action-targeting` | Shared targeting query layer: `isValidActionTarget` (predicate), `getActionTargetCandidates` (candidate list for UI), `getActionTargets` (resolved targets for action resolution); sequence step counts |
 | `action-effects` | Applies effects to encounter state: damage, healing, conditions (with repeat-save hooks), states, saves, modifiers (AC add/set, speed add/set/multiply, resistance add), roll-modifiers (advantage/disadvantage), immunities, intervals (registered as turn hooks), damage resistance markers, movement, and advanced effect logging (trigger, activation, check, grant, form) |
 
 **Action resolution modes:**
@@ -129,6 +129,14 @@ The encounter action system resolves combat actions against encounter state:
 - `single-creature` — any living combatant regardless of side (used by healing spells and other creature-targeting effects)
 - `dead-creature` — any combatant at 0 HP regardless of side (used by resurrection spells)
 - `entered-during-move` — creatures entered during movement
+
+**Targeting query layer** (`action-targeting.ts`):
+
+Targeting validation is centralized so the resolver and UI share a single source of truth:
+
+- `isValidActionTarget(combatant, actor, action)` — pure predicate. Checks banished state, creature type filter, charmed exclusion, HP alive/dead, and side filtering for a single combatant.
+- `getActionTargetCandidates(state, actor, action)` — returns all combatants that pass `isValidActionTarget`, in initiative order. Used by the UI to populate the target picker.
+- `getActionTargets(state, actor, selection, action)` — resolves the actual target(s) for a selected action. Handles selection-specific concerns (targetId lookup, `self` auto-targeting, no-target fallbacks) and delegates validation to `isValidActionTarget`.
 
 ## 5. Extension Points
 

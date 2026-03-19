@@ -398,7 +398,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
       summary: 'Three automatic-hit darts deal 1d4 + 1 force damage each and can be split among visible creatures in range.',
     },
   },
-{
+ {
     id: 'protection-from-evil',
     name: 'Protection from Evil and Good',
     school: 'abjuration',
@@ -439,7 +439,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
       summary: 'Touch a willing creature to protect it against Aberrations, Celestials, Elementals, Fey, Fiends, and Undead for up to 10 minutes.',
     },
   },
-{
+ {
     id: 'purify-food-and-drink',
     name: 'Purify Food and Drink',
     school: 'transmutation',

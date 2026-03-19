@@ -44,53 +44,67 @@ export function getCharmedSourceIds(combatant: CombatantInstance): string[] {
     .map((m) => m.sourceInstanceId!)
 }
 
+export function isValidActionTarget(
+  combatant: CombatantInstance,
+  actor: CombatantInstance,
+  action: CombatActionDefinition,
+): boolean {
+  const kind = action.targeting?.kind
+
+  if (combatant.states.some((s) => s.label === 'banished')) return false
+  if (!passesCreatureTypeFilter(combatant, action.targeting?.creatureTypeFilter)) return false
+
+  if (isHostileAction(action) && getCharmedSourceIds(actor).includes(combatant.instanceId)) {
+    return false
+  }
+
+  if (kind === 'dead-creature') return combatant.stats.currentHitPoints === 0
+  if (combatant.stats.currentHitPoints <= 0) return false
+  if (kind === 'single-creature') return true
+
+  return combatant.side !== actor.side
+}
+
+export function getActionTargetCandidates(
+  state: EncounterState,
+  actor: CombatantInstance,
+  action: CombatActionDefinition,
+): CombatantInstance[] {
+  return state.initiativeOrder
+    .map((id) => state.combatantsById[id])
+    .filter(
+      (c): c is CombatantInstance => Boolean(c) && isValidActionTarget(c, actor, action),
+    )
+}
+
 export function getActionTargets(
   state: EncounterState,
   actor: CombatantInstance,
   selection: ResolveCombatActionSelection,
   action: CombatActionDefinition,
 ): CombatantInstance[] {
-  const creatureTypeFilter = action.targeting?.creatureTypeFilter
-  const charmedSourceIds = isHostileAction(action) ? getCharmedSourceIds(actor) : []
-
-  function isValidTarget(combatant: CombatantInstance): boolean {
-    if (combatant.states.some((s) => s.label === 'banished')) return false
-    if (!passesCreatureTypeFilter(combatant, creatureTypeFilter)) return false
-    if (charmedSourceIds.includes(combatant.instanceId)) return false
-    return true
-  }
-
-  if (action.targeting?.kind === 'self') {
-    return [actor]
-  }
+  if (action.targeting?.kind === 'self') return [actor]
 
   if (action.targeting?.kind === 'all-enemies') {
-    return Object.values(state.combatantsById).filter(
-      (combatant) =>
-        combatant.side !== actor.side &&
-        combatant.stats.currentHitPoints > 0 &&
-        isValidTarget(combatant),
-    )
+    return getActionTargetCandidates(state, actor, action)
   }
 
   if (action.targeting?.kind === 'single-creature') {
     if (!selection.targetId) return [actor]
     const target = state.combatantsById[selection.targetId]
-    if (!target || target.stats.currentHitPoints <= 0) return []
-    if (!isValidTarget(target)) return []
+    if (!target || !isValidActionTarget(target, actor, action)) return []
     return [target]
   }
 
   if (action.targeting?.kind === 'dead-creature') {
     if (!selection.targetId) return []
     const target = state.combatantsById[selection.targetId]
-    if (!target || target.stats.currentHitPoints > 0) return []
+    if (!target || !isValidActionTarget(target, actor, action)) return []
     return [target]
   }
 
   if (!selection.targetId) return []
   const target = state.combatantsById[selection.targetId]
-  if (!target || target.side === actor.side || target.stats.currentHitPoints <= 0) return []
-  if (!isValidTarget(target)) return []
+  if (!target || !isValidActionTarget(target, actor, action)) return []
   return [target]
 }
