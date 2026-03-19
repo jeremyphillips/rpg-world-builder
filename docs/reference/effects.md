@@ -130,7 +130,7 @@ Status meanings:
 - Purpose: selection and affected-entity shape
 - Use when: modeling targets, areas, sight requirements, target count, repeat-target rules, creature type restrictions
 - Do not use when: storing spell placement range or save/damage outcomes
-- Key fields: `target`, `targetType`, `creatureTypeFilter`, `requiresSight`, `count`, `canSelectSameTargetMultipleTimes`, `area`
+- Key fields: `target`, `targetType`, `creatureTypeFilter`, `condition` (effect meta), `requiresSight`, `count`, `canSelectSameTargetMultipleTimes`, `area`
 
 ```ts
 { kind: 'targeting', target: 'creatures-in-area', area: { kind: 'sphere', size: 20 } }
@@ -146,6 +146,7 @@ Status meanings:
 
 - `one-dead-creature`: targets a single creature at 0 HP. The spell combat adapter maps this to `dead-creature` action targeting, which restricts selection to 0 HP combatants regardless of side.
 - `creatureTypeFilter`: restricts valid targets to creatures whose `creatureType` matches one of the listed types. The spell combat adapter propagates this to `CombatActionTargetingProfile.creatureTypeFilter`, and both the resolution engine and the encounter UI filter targets accordingly. Uses `MonsterType` values from the shared monster vocabulary.
+- **Equivalent:** `condition: { kind: 'creature-type', target: 'target', creatureTypes: [...] }` on the same targeting effect is also mapped to combat `creatureTypeFilter` when `target` is `'target'` (the selected creature). Prefer one style per spell; `creatureTypeFilter` is slightly shorter for pure type gates.
 - **`creatures-in-area` in encounter combat:** the adapter treats area spells as **`all-enemies`** only — see §3 **Area targeting and encounter combat (limitations)** above.
 
 ### `damage`

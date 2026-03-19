@@ -475,7 +475,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
       summary: '60ft line of wind. Str save or pushed 15ft. Difficult to approach. Bonus to change direction.',
     },
   },
-{
+  {
     id: 'hold-person',
     name: 'Hold Person',
     school: 'enchantment',
@@ -510,7 +510,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
       summary: 'A humanoid you can see makes a Wisdom save or is Paralyzed; repeats save at end of each turn.',
     },
   },
-{
+  {
     id: 'invisibility',
     name: 'Invisibility',
     school: 'illusion',

@@ -88,8 +88,13 @@ function buildSpellActionCost(spell: Spell): { action?: boolean; bonusAction?: b
 
 function getSpellCreatureTypeFilter(spell: Spell): string[] | undefined {
   const targeting = spell.effects?.find((e) => e.kind === 'targeting')
-  if (targeting?.kind === 'targeting' && targeting.creatureTypeFilter?.length) {
+  if (targeting?.kind !== 'targeting') return undefined
+  if (targeting.creatureTypeFilter?.length) {
     return [...targeting.creatureTypeFilter]
+  }
+  const cond = targeting.condition
+  if (cond?.kind === 'creature-type' && cond.target === 'target' && cond.creatureTypes?.length) {
+    return [...cond.creatureTypes]
   }
   return undefined
 }

@@ -686,6 +686,36 @@ describe('buildSpellCombatActions', () => {
     expect(actions[0]!.cost).toEqual({ bonusAction: true })
   })
 
+  it('maps targeting effect creature-type condition to creatureTypeFilter for combat', () => {
+    const spell = makeSpell({
+      id: 'hold-person-style',
+      name: 'Hold Person Style',
+      level: 2,
+      effects: [
+        {
+          kind: 'targeting',
+          target: 'one-creature',
+          targetType: 'creature',
+          requiresSight: true,
+          condition: { kind: 'creature-type', target: 'target', creatureTypes: ['humanoid'] },
+        },
+        {
+          kind: 'save',
+          save: { ability: 'wis' },
+          onFail: [{ kind: 'condition', conditionId: 'paralyzed' }],
+        },
+      ],
+    })
+
+    const actions = buildSpellCombatActions({
+      ...baseArgs,
+      spellIds: ['hold-person-style'],
+      spellsById: { 'hold-person-style': spell },
+    })
+
+    expect(actions[0]!.targeting?.creatureTypeFilter).toEqual(['humanoid'])
+  })
+
   it('maps area targeting to all-enemies', () => {
     const spell = makeSpell({
       id: 'fireball',
