@@ -13,9 +13,17 @@ export {
   computeAmbiguousDelivery,
   computeMechanicalSupportLevel,
   computeSpellTargetingAuditFlags,
+  spellHasExplicitSaveDc,
+  spellHasTopLevelDamageAndSave,
+  spellMissingDeliveryMethodAttackCandidate,
   summarizeSpellAudit,
 } from './spell-resolution-audit'
-export type { MechanicalSupportLevel, SpellAuditRow, SpellTargetingAuditFlags } from './spell-resolution-audit'
+export type {
+  MechanicalSupportLevel,
+  SpellAuditRow,
+  SpellAuditSummary,
+  SpellTargetingAuditFlags,
+} from './spell-resolution-audit'
 export {
   buildMonsterAttackEntries,
   buildMonsterExecutableActions,

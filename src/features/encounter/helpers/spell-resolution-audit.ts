@@ -117,6 +117,34 @@ export function computeAmbiguousDelivery(spell: Spell): boolean {
   return true
 }
 
+/** True if any `save` effect (including nested under saves) authors a numeric DC. Prefer leaving DC unset for caster-derived spell DCs per effects.md. */
+export function spellHasExplicitSaveDc(spell: Spell): boolean {
+  let found = false
+  walkNestedEffects(spell.effects ?? [], (e) => {
+    if (e.kind === 'save' && typeof e.save.dc === 'number') found = true
+  })
+  return found
+}
+
+/**
+ * Top-level `damage` alongside a top-level `save` on the same spell — often damage should live only under `save.onFail` / `onSuccess`.
+ */
+export function spellHasTopLevelDamageAndSave(spell: Spell): boolean {
+  const root = spell.effects ?? []
+  return root.some((e) => e.kind === 'damage') && root.some((e) => e.kind === 'save')
+}
+
+/** Heuristic: spell attack delivery likely but `deliveryMethod` missing (review list only). */
+export function spellMissingDeliveryMethodAttackCandidate(spell: Spell): boolean {
+  if (spell.deliveryMethod) return false
+  const root = spell.effects ?? []
+  if (!root.some((e) => e.kind === 'damage')) return false
+  if (root.some((e) => e.kind === 'save')) return false
+  const r = spell.range
+  if (r?.kind === 'touch' || r?.kind === 'self') return true
+  return false
+}
+
 export type SpellAuditRow = {
   id: string
   level: number
@@ -126,6 +154,9 @@ export type SpellAuditRow = {
   adapterMode: ReturnType<typeof classifySpellResolutionMode>
   stranded: boolean
   ambiguousDelivery: boolean
+  explicitSaveDc: boolean
+  topLevelDamageWithSave: boolean
+  missingDeliveryMethodAttackCandidate: boolean
   targeting: SpellTargetingAuditFlags
 }
 
@@ -143,33 +174,54 @@ export function buildSpellAuditRow(spell: Spell): SpellAuditRow {
     adapterMode,
     stranded,
     ambiguousDelivery: computeAmbiguousDelivery(spell),
+    explicitSaveDc: spellHasExplicitSaveDc(spell),
+    topLevelDamageWithSave: spellHasTopLevelDamageAndSave(spell),
+    missingDeliveryMethodAttackCandidate: spellMissingDeliveryMethodAttackCandidate(spell),
     targeting: computeSpellTargetingAuditFlags(spell),
   }
 }
 
-export function summarizeSpellAudit(spells: readonly Spell[]): {
+export type SpellAuditSummary = {
   total: number
   stranded: number
   strandedFullSupport: number
+  strandedWithChosenCreatures: number
   ambiguousDelivery: number
-} {
+  explicitSaveDc: number
+  topLevelDamageWithSave: number
+  missingDeliveryMethodAttackCandidate: number
+}
+
+export function summarizeSpellAudit(spells: readonly Spell[]): SpellAuditSummary {
   let stranded = 0
   let strandedFullSupport = 0
+  let strandedWithChosenCreatures = 0
   let ambiguousDelivery = 0
+  let explicitSaveDc = 0
+  let topLevelDamageWithSave = 0
+  let missingDeliveryMethodAttackCandidate = 0
 
   for (const spell of spells) {
     const row = buildSpellAuditRow(spell)
     if (row.stranded) {
       stranded += 1
       if (row.mechanicalSupportLevel === 'full') strandedFullSupport += 1
+      if (row.targeting.hasChosenCreatures) strandedWithChosenCreatures += 1
     }
     if (row.ambiguousDelivery) ambiguousDelivery += 1
+    if (row.explicitSaveDc) explicitSaveDc += 1
+    if (row.topLevelDamageWithSave) topLevelDamageWithSave += 1
+    if (row.missingDeliveryMethodAttackCandidate) missingDeliveryMethodAttackCandidate += 1
   }
 
   return {
     total: spells.length,
     stranded,
     strandedFullSupport,
+    strandedWithChosenCreatures,
     ambiguousDelivery,
+    explicitSaveDc,
+    topLevelDamageWithSave,
+    missingDeliveryMethodAttackCandidate,
   }
 }

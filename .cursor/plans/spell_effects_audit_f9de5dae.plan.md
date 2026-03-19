@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: authoring-lint
     content: Grep/script—save.dc, damage vs save branches, deliveryMethod for spell attacks, ambiguous delivery shape flag
-    status: pending
+    status: completed
   - id: phase3-triage
     content: Triage remaining stranded by targeting flags—instances/chosen-creatures, then area, then hpThreshold/auto-hit, then concentration/duration gaps
     status: pending

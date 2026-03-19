@@ -50,6 +50,7 @@ Boundaries:
 - `deliveryMethod` owns attack delivery when the spell requires a spell attack roll.
 - `description.full` is authoritative rules text.
 - `description.summary` is short UI copy.
+- **Catalog audit:** run `npm run test:run -- src/features/encounter/helpers/spell-catalog-audit.test.ts` for merged-system-spell metrics (stranded counts, ambiguous delivery, explicit `save.dc`, etc.). Counts are for reporting, not CI gates; see `spell-resolution-audit.ts` and [resolution.md](./resolution.md) §7 “Spell combat adapter”.
 
 ### Delivery Method
 
