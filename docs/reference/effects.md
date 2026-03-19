@@ -111,6 +111,12 @@ Status meanings:
 { kind: 'targeting', target: 'creatures-in-area', area: { kind: 'sphere', size: 20 } }
 ```
 
+```ts
+{ kind: 'targeting', target: 'one-dead-creature', targetType: 'creature' }
+```
+
+- `one-dead-creature`: targets a single creature at 0 HP. The spell combat adapter maps this to `dead-creature` action targeting, which restricts selection to 0 HP combatants regardless of side.
+
 ### `damage`
 
 - Status: `canonical`; `instances` is `provisional`; `levelScaling` is `provisional`
@@ -483,6 +489,21 @@ Scopes an effect to interactions involving specific creature types. The `target`
 [
   { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
   { kind: 'hit-points', mode: 'heal', value: '2d8', abilityModifier: true },
+]
+```
+
+### Resurrection Spell
+
+- `targeting` with `one-dead-creature` restricts to 0 HP creatures
+- `hit-points` with `mode: 'heal'` restores HP (flat value, no dice)
+- unsupported nuance (time limit, creature type restrictions, penalties) goes in `note`
+- the adapter classifies as `effects` mode with `dead-creature` action targeting
+
+```ts
+[
+  { kind: 'targeting', target: 'one-dead-creature', targetType: 'creature' },
+  { kind: 'hit-points', mode: 'heal', value: 1 },
+  { kind: 'note', text: 'Target must have been dead no longer than 10 days and not Undead. -4 d20 penalty, reduced by 1 per Long Rest.' },
 ]
 ```
 

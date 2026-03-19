@@ -81,14 +81,17 @@ export function useEncounterState({
     if (!encounterState || !activeCombatant) return []
 
     const isCreatureTargeting = selectedAction?.targeting?.kind === 'single-creature'
+    const isDeadCreatureTargeting = selectedAction?.targeting?.kind === 'dead-creature'
 
     return encounterState.initiativeOrder
       .map((combatantId) => encounterState.combatantsById[combatantId])
       .filter(
         (combatant): combatant is CombatantInstance =>
           Boolean(combatant) &&
-          combatant.stats.currentHitPoints > 0 &&
-          (isCreatureTargeting || combatant.side !== activeCombatant.side),
+          (isDeadCreatureTargeting
+            ? combatant.stats.currentHitPoints === 0
+            : combatant.stats.currentHitPoints > 0) &&
+          (isCreatureTargeting || isDeadCreatureTargeting || combatant.side !== activeCombatant.side),
       )
       .map((combatant) => ({
         id: combatant.instanceId,

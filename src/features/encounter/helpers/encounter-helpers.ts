@@ -614,9 +614,13 @@ function buildSpellActionCost(spell: Spell): { action?: boolean; bonusAction?: b
   return { action: true }
 }
 
-function buildSpellTargeting(spell: Spell): { kind: 'single-target' | 'all-enemies' | 'self' | 'single-creature' } {
+function buildSpellTargeting(spell: Spell): { kind: 'single-target' | 'all-enemies' | 'self' | 'single-creature' | 'dead-creature' } {
   if (spell.range?.kind === 'self') return { kind: 'self' }
   const effects = spell.effects ?? []
+  const hasDeadCreatureTargeting = effects.some(
+    (e) => e.kind === 'targeting' && e.target === 'one-dead-creature',
+  )
+  if (hasDeadCreatureTargeting) return { kind: 'dead-creature' }
   const hasHealing = effects.some((e) => e.kind === 'hit-points' && e.mode === 'heal')
   if (hasHealing) return { kind: 'single-creature' }
   const targeting = effects.find((e) => e.kind === 'targeting')

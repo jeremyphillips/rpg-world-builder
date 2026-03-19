@@ -54,6 +54,8 @@ export function CombatActionPreviewCard({
       'all-enemies': 'All Enemies',
       'entered-during-move': 'Entered During Move',
       'self': 'Self',
+      'single-creature': 'Single Creature',
+      'dead-creature': 'Dead Creature',
     }
     detailParts.push(targetLabels[action.targeting.kind] ?? action.targeting.kind)
   }

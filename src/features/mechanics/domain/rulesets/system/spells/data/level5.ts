@@ -504,9 +504,11 @@ export const SPELLS_LEVEL_5: readonly SpellEntry[] = [
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'a diamond worth 500+ GP', cost: { value: 500, unit: 'gp', atLeast: true }, consumed: true } },
     effects: [
+      { kind: 'targeting', target: 'one-dead-creature', targetType: 'creature' },
+      { kind: 'hit-points', mode: 'heal', value: 1 },
       {
         kind: 'note',
-        text: 'Revive dead (≤10 days, not Undead). 1 HP. Neutralize poisons. Close wounds but not restore missing parts. -4 d20 penalty, -1 per Long Rest. Lacking vital parts = auto fail.',
+        text: 'Target must have been dead no longer than 10 days and not Undead. Neutralize poisons. Close wounds but not restore missing parts. -4 d20 penalty to all d20 tests, reduced by 1 per Long Rest. Lacking vital body parts = auto fail.',
       },
     ],
     description: {

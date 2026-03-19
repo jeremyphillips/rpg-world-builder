@@ -126,6 +126,7 @@ The encounter action system resolves combat actions against encounter state:
 - `all-enemies` — all living enemy combatants
 - `self` — the acting combatant
 - `single-creature` — any living combatant regardless of side (used by healing spells and other creature-targeting effects)
+- `dead-creature` — any combatant at 0 HP regardless of side (used by resurrection spells)
 - `entered-during-move` — creatures entered during movement
 
 ## 5. Extension Points

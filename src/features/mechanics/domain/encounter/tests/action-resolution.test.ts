@@ -1442,4 +1442,161 @@ describe('resolveCombatAction', () => {
 
     expect(resolved.log.some((entry) => entry.summary.includes('no valid targets'))).toBe(true)
   })
+
+  it('resurrection spell heals a 0 HP target to 1 HP', () => {
+    const state = createEncounterState(
+      [
+        createCombatant({
+          instanceId: 'cleric',
+          label: 'Cleric',
+          side: 'party',
+          initiativeModifier: 3,
+          dexterityScore: 10,
+          armorClass: 14,
+          actions: [
+            {
+              id: 'raise-dead',
+              label: 'Raise Dead',
+              kind: 'spell',
+              cost: { action: true },
+              resolutionMode: 'effects',
+              effects: [
+                { kind: 'hit-points', mode: 'heal', value: 1 },
+                { kind: 'note', text: 'Target revived.' },
+              ],
+              targeting: { kind: 'dead-creature' },
+            },
+          ],
+        }),
+        createCombatant({
+          instanceId: 'fallen-ally',
+          label: 'Fallen Fighter',
+          side: 'party',
+          initiativeModifier: 1,
+          dexterityScore: 14,
+          armorClass: 16,
+        }),
+      ],
+      { rng: () => 0.99 },
+    )
+
+    const withDead = {
+      ...state,
+      combatantsById: {
+        ...state.combatantsById,
+        'fallen-ally': {
+          ...state.combatantsById['fallen-ally']!,
+          stats: { ...state.combatantsById['fallen-ally']!.stats, currentHitPoints: 0 },
+        },
+      },
+    }
+
+    const resolved = resolveCombatAction(
+      withDead,
+      { actorId: 'cleric', actionId: 'raise-dead', targetId: 'fallen-ally' },
+      { rng: () => 0.5 },
+    )
+
+    expect(resolved.combatantsById['fallen-ally']!.stats.currentHitPoints).toBe(1)
+    expect(resolved.log.some((entry) => entry.summary.includes('regains 1 hit points'))).toBe(true)
+  })
+
+  it('resurrection spell resolves with no valid targets when target has HP > 0', () => {
+    const state = createEncounterState(
+      [
+        createCombatant({
+          instanceId: 'cleric',
+          label: 'Cleric',
+          side: 'party',
+          initiativeModifier: 3,
+          dexterityScore: 10,
+          armorClass: 14,
+          actions: [
+            {
+              id: 'raise-dead',
+              label: 'Raise Dead',
+              kind: 'spell',
+              cost: { action: true },
+              resolutionMode: 'effects',
+              effects: [{ kind: 'hit-points', mode: 'heal', value: 1 }],
+              targeting: { kind: 'dead-creature' },
+            },
+          ],
+        }),
+        createCombatant({
+          instanceId: 'alive-ally',
+          label: 'Fighter',
+          side: 'party',
+          initiativeModifier: 1,
+          dexterityScore: 14,
+          armorClass: 16,
+        }),
+      ],
+      { rng: () => 0.99 },
+    )
+
+    const resolved = resolveCombatAction(
+      state,
+      { actorId: 'cleric', actionId: 'raise-dead', targetId: 'alive-ally' },
+      { rng: () => 0.5 },
+    )
+
+    expect(resolved.combatantsById['alive-ally']!.stats.currentHitPoints).toBe(12)
+    expect(resolved.log.some((entry) => entry.summary.includes('no valid targets'))).toBe(true)
+  })
+
+  it('resurrection spell resolves with no valid targets when no target is selected', () => {
+    const state = createEncounterState(
+      [
+        createCombatant({
+          instanceId: 'cleric',
+          label: 'Cleric',
+          side: 'party',
+          initiativeModifier: 3,
+          dexterityScore: 10,
+          armorClass: 14,
+          actions: [
+            {
+              id: 'raise-dead',
+              label: 'Raise Dead',
+              kind: 'spell',
+              cost: { action: true },
+              resolutionMode: 'effects',
+              effects: [{ kind: 'hit-points', mode: 'heal', value: 1 }],
+              targeting: { kind: 'dead-creature' },
+            },
+          ],
+        }),
+        createCombatant({
+          instanceId: 'fallen-ally',
+          label: 'Fallen Fighter',
+          side: 'party',
+          initiativeModifier: 1,
+          dexterityScore: 14,
+          armorClass: 16,
+        }),
+      ],
+      { rng: () => 0.99 },
+    )
+
+    const withDead = {
+      ...state,
+      combatantsById: {
+        ...state.combatantsById,
+        'fallen-ally': {
+          ...state.combatantsById['fallen-ally']!,
+          stats: { ...state.combatantsById['fallen-ally']!.stats, currentHitPoints: 0 },
+        },
+      },
+    }
+
+    const resolved = resolveCombatAction(
+      withDead,
+      { actorId: 'cleric', actionId: 'raise-dead' },
+      { rng: () => 0.5 },
+    )
+
+    expect(resolved.combatantsById['fallen-ally']!.stats.currentHitPoints).toBe(0)
+    expect(resolved.log.some((entry) => entry.summary.includes('no valid targets'))).toBe(true)
+  })
 })

@@ -239,6 +239,7 @@ export type StateEffect = EffectBase<'state'> & {
 export type TargetingEffect = EffectBase<'targeting'> & {
   target:
     | 'one-creature'
+    | 'one-dead-creature'
     | 'chosen-creatures'
     | 'creatures-in-area'
     | 'creatures-entered-during-move';
