@@ -138,6 +138,54 @@ Targeting validation is centralized so the resolver and UI share a single source
 - `getActionTargetCandidates(state, actor, action)` — returns all combatants that pass `isValidActionTarget`, in initiative order. Used by the UI to populate the target picker.
 - `getActionTargets(state, actor, selection, action)` — resolves the actual target(s) for a selected action. Handles selection-specific concerns (targetId lookup, `self` auto-targeting, no-target fallbacks) and delegates validation to `isValidActionTarget`.
 
+### 4.5 Condition Consequence Framework
+
+Condition consequences model the mechanical rules of each `EffectConditionId` as composable data primitives. Rather than scattering condition-specific `if` checks through action resolution code, each condition declares its consequences as a typed array, and derived query helpers combine active conditions into answers the resolution layer can consume.
+
+**Directory:** `encounter/state/condition-rules/`
+
+| Module | Responsibility |
+|--------|----------------|
+| `condition-consequences.types` | `ConditionConsequence` discriminated union and `ConditionRule` type |
+| `condition-consequence-helpers` | Primitive consequence builders (`cannotAct`, `immobile`, `autoFailStrDexSaves`, etc.) for DRY composition |
+| `condition-definitions` | `CONDITION_RULES` record mapping all 14 `EffectConditionId` values to their consequence arrays |
+| `condition-queries` | Derived query helpers consumed by the resolution layer |
+
+**Consequence kinds:**
+
+- `action_limit` — cannot take actions and/or reactions (incapacitated, paralyzed, stunned, unconscious, petrified)
+- `movement` — speed becomes zero or stand-up costs half movement (grappled, restrained, prone, paralyzed, stunned, unconscious, petrified)
+- `attack_mod` — advantage or disadvantage on incoming or outgoing attacks, optionally scoped to melee/ranged (blinded, invisible, prone, restrained, poisoned, frightened, paralyzed, stunned, unconscious, petrified)
+- `save_mod` — auto-fail, advantage, or disadvantage on specific ability saves (paralyzed, stunned, unconscious, petrified: auto-fail Str/Dex; restrained: disadvantage Dex)
+- `check_mod` — advantage or disadvantage on ability checks (poisoned, frightened)
+- `visibility` — cannot see or unseen by default (blinded, invisible)
+- `speech` — cannot speak (paralyzed, stunned, unconscious, petrified)
+- `awareness` — unaware of surroundings (unconscious, petrified)
+- `crit_window` — incoming melee hits within distance become critical (paralyzed, unconscious)
+- `source_relative` — cannot attack source, cannot move closer to source, while source in sight (charmed, frightened)
+- `damage_interaction` — resistance or vulnerability to damage types (petrified: resistance to all)
+
+**Derived queries:**
+
+- `canTakeActions(combatant)` / `canTakeReactions(combatant)` — used by `createCombatantTurnResources` in `shared.ts`
+- `getIncomingAttackModifiers(combatant, range)` / `getOutgoingAttackModifiers(combatant, range)` — used by `resolveRollModifier` in `action-resolver.ts`
+- `autoFailsSave(combatant, ability)` / `getSaveModifiersFromConditions(combatant, ability)` — used by saving-throw resolution in `action-resolver.ts`
+- `getSpeedConsequences(combatant)` — available for future movement wiring
+- `getActiveConsequences(combatant)` — foundation helper that flattens all active conditions' consequences
+
+**Integration points:**
+
+- `shared.ts` `createCombatantTurnResources` — uses `canTakeActions`/`canTakeReactions` instead of a hard-coded `incapacitated` check. Paralyzed, stunned, unconscious, and petrified now correctly disable actions.
+- `action-resolver.ts` `resolveRollModifier` — combines spell/effect `RollModifierMarker` entries with condition-derived attack modifiers. Blinded, poisoned, prone, restrained, invisible, etc. now affect attack rolls.
+- `action-resolver.ts` saving-throw resolution — checks `autoFailsSave` before rolling. Paralyzed, stunned, unconscious, and petrified combatants auto-fail Str/Dex saves. Restrained combatants roll Dex saves at disadvantage.
+
+**Not yet wired:**
+
+- `source_relative` consequences (charmed, frightened) — require source identity or line-of-sight evaluation
+- `crit_window` — requires distance between attacker and target
+- `movement` speed-becomes-zero — available via `getSpeedConsequences` but not yet consumed by movement spending
+- `check_mod` — ability checks are not part of encounter resolution
+
 ## 5. Extension Points
 
 ### Adding a new stat target
@@ -145,6 +193,13 @@ Targeting validation is centralized so the resolver and UI share a single source
 1. Add the target string to `StatTarget` in `types.ts`
 2. Add base value logic to `getBaseStat` in `base-stat-resolver.ts`
 3. Optionally add custom breakdown tokens in `stat-resolver.ts`
+
+### Adding a new condition consequence
+
+1. If the consequence kind already exists in `ConditionConsequence`, add it to the condition's entry in `CONDITION_RULES` in `condition-definitions.ts`. Use existing primitive builders from `condition-consequence-helpers.ts` where possible.
+2. If a new consequence kind is needed, add a new interface to `condition-consequences.types.ts` and add it to the `ConditionConsequence` union.
+3. Add a derived query helper in `condition-queries.ts` if the resolution layer needs to consume it (e.g., `canConcentrate(combatant)`).
+4. Wire the query into the appropriate resolution code (action-resolver, shared, or action-effects).
 
 ### Adding a new effect kind
 

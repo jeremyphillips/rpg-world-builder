@@ -24,3 +24,16 @@ export {
 export { createEncounterState, advanceEncounterTurn, formatRuntimeEffectLabel } from './runtime'
 export { triggerManualHook } from './manual-hooks'
 export { effectDurationToRuntimeDuration, formatMarkerLabel } from './shared'
+export {
+  CONDITION_RULES,
+  canTakeActions,
+  canTakeReactions,
+  getActiveConsequences,
+  getSpeedConsequences,
+  getIncomingAttackModifiers,
+  getOutgoingAttackModifiers,
+  autoFailsSave,
+  getSaveModifiersFromConditions,
+  type ConditionConsequence,
+  type ConditionRule,
+} from './condition-rules'

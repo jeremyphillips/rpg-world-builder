@@ -1,6 +1,7 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import { rollDie } from '@/features/mechanics/domain/resolution/engines/dice.engine'
+import { canTakeActions, canTakeReactions } from './condition-rules'
 
 import type {
   CombatantInstance,
@@ -191,9 +192,12 @@ export function createCombatantTurnResources(combatant: CombatantInstance): Comb
     getCombatantExtraOpportunityAttackReactions(combatant),
   )
 
-  if (hasCondition(combatant, 'incapacitated')) {
+  if (!canTakeActions(combatant)) {
     resources.actionAvailable = false
     resources.bonusActionAvailable = false
+  }
+
+  if (!canTakeReactions(combatant)) {
     resources.reactionAvailable = false
   }
 

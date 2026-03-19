@@ -5,6 +5,10 @@ import {
   getEncounterCombatantLabel,
   setConcentration,
   updateEncounterCombatant,
+  getIncomingAttackModifiers,
+  getOutgoingAttackModifiers,
+  autoFailsSave,
+  getSaveModifiersFromConditions,
   type CombatantInstance,
   type RollModifierMarker,
 } from '../../state'
@@ -28,6 +32,7 @@ function resolveRollModifier(
   attacker: CombatantInstance,
   defender: CombatantInstance,
   rollType: string,
+  attackRange: 'melee' | 'ranged' = 'melee',
 ): 'advantage' | 'disadvantage' | 'normal' {
   const attackerMods = (attacker.rollModifiers ?? []).filter((m) =>
     matchesRollContext(m, rollType),
@@ -35,9 +40,16 @@ function resolveRollModifier(
   const defenderMods = (defender.rollModifiers ?? []).filter((m) =>
     matchesRollContext(m, `attacks against`),
   )
-  const all = [...attackerMods, ...defenderMods]
-  const hasAdv = all.some((m) => m.modifier === 'advantage')
-  const hasDisadv = all.some((m) => m.modifier === 'disadvantage')
+  const markerModifiers = [...attackerMods, ...defenderMods].map((m) => m.modifier)
+
+  const conditionModifiers = [
+    ...getOutgoingAttackModifiers(attacker, attackRange),
+    ...getIncomingAttackModifiers(defender, attackRange),
+  ]
+
+  const all = [...markerModifiers, ...conditionModifiers]
+  const hasAdv = all.includes('advantage')
+  const hasDisadv = all.includes('disadvantage')
   if (hasAdv && hasDisadv) return 'normal'
   if (hasAdv) return 'advantage'
   if (hasDisadv) return 'disadvantage'
@@ -64,6 +76,20 @@ function rollD20WithModifier(
     rawRoll,
     detail: `d20 ${roll1}, ${roll2} (${rollMod}: ${rawRoll})`,
   }
+}
+
+function deriveAttackRange(action: CombatActionDefinition): 'melee' | 'ranged' {
+  if (!action.displayMeta) return 'melee'
+  if (action.displayMeta.source === 'natural') return 'melee'
+  if (action.displayMeta.source === 'spell') {
+    const range = action.displayMeta.range?.toLowerCase() ?? ''
+    return range === 'touch' || range === 'self' ? 'melee' : 'ranged'
+  }
+  if (action.displayMeta.source === 'weapon') {
+    const range = action.displayMeta.range?.toLowerCase() ?? ''
+    return range.includes('ranged') ? 'ranged' : 'melee'
+  }
+  return 'melee'
 }
 
 function getActionLabel(action: CombatActionDefinition): string {
@@ -229,7 +255,8 @@ function resolveCombatActionInternal(
     const attackBonus = action.attackProfile?.attackBonus
     if (target == null || attackBonus == null) return { state: nextState, createdMarkerIds: [] }
 
-    const rollMod = resolveRollModifier(actor, target, 'attack rolls')
+    const attackRange = deriveAttackRange(action)
+    const rollMod = resolveRollModifier(actor, target, 'attack rolls', attackRange)
     const { rawRoll, detail: rollDetail } = rollD20WithModifier(rollMod, rng)
     const totalRoll = rawRoll + attackBonus
     const hit = totalRoll >= target.stats.armorClass
@@ -311,8 +338,54 @@ function resolveCombatActionInternal(
         continue
       }
 
-      const rawRoll = rollDie(20, rng)
-      const saveModifier = getSaveModifier(saveTarget, action.saveProfile.ability)
+      const saveAbility = action.saveProfile.ability
+
+      if (autoFailsSave(saveTarget, saveAbility)) {
+        nextState = appendEncounterLogEvent(nextState, {
+          type: 'action-resolved',
+          actorId: actor.instanceId,
+          targetIds: [saveTarget.instanceId],
+          round: state.roundNumber,
+          turn: state.turnIndex + 1,
+          summary: `${saveTarget.source.label} automatically fails the ${saveAbility.toUpperCase()} save against ${actionLabel}.`,
+          details: `Auto-fail: condition prevents ${saveAbility.toUpperCase()} saving throw.`,
+        })
+
+        const saveEffectResult = applyActionEffects(
+          nextState,
+          actor,
+          saveTarget,
+          action,
+          action.onFailEffects,
+          { rng, sourceLabel: actionLabel },
+        )
+        nextState = saveEffectResult.state
+        allMarkerIds.push(...saveEffectResult.createdMarkerIds)
+
+        if (action.damage) {
+          const rolledDamage = rollDamage(action.damage, rng)
+          if (rolledDamage && rolledDamage.total > 0) {
+            nextState = applyDamageToCombatant(nextState, saveTarget.instanceId, rolledDamage.total, {
+              actorId: actor.instanceId,
+              sourceLabel: actionLabel,
+              damageType: action.damageType,
+            })
+          }
+        }
+        continue
+      }
+
+      const condSaveMods = getSaveModifiersFromConditions(saveTarget, saveAbility)
+      const saveHasAdv = condSaveMods.includes('advantage')
+      const saveHasDisadv = condSaveMods.includes('disadvantage')
+      const saveRollMod: 'advantage' | 'disadvantage' | 'normal' =
+        saveHasAdv && saveHasDisadv ? 'normal'
+          : saveHasAdv ? 'advantage'
+          : saveHasDisadv ? 'disadvantage'
+          : 'normal'
+
+      const { rawRoll, detail: saveRollDetail } = rollD20WithModifier(saveRollMod, rng)
+      const saveModifier = getSaveModifier(saveTarget, saveAbility)
       const totalRoll = rawRoll + saveModifier
       const succeeded = totalRoll >= action.saveProfile.dc
 
@@ -322,8 +395,8 @@ function resolveCombatActionInternal(
         targetIds: [saveTarget.instanceId],
         round: state.roundNumber,
         turn: state.turnIndex + 1,
-        summary: `${saveTarget.source.label} ${succeeded ? 'succeeds' : 'fails'} the ${action.saveProfile.ability.toUpperCase()} save against ${actionLabel}.`,
-        details: `Saving throw: d20 ${rawRoll} + ${saveModifier} = ${totalRoll} vs DC ${action.saveProfile.dc}.`,
+        summary: `${saveTarget.source.label} ${succeeded ? 'succeeds' : 'fails'} the ${saveAbility.toUpperCase()} save against ${actionLabel}.`,
+        details: `Saving throw: ${saveRollDetail} + ${saveModifier} = ${totalRoll} vs DC ${action.saveProfile.dc}.`,
       })
 
       if (action.damage) {

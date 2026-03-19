@@ -75,7 +75,7 @@ Update [encounter-helpers/index.ts](src/features/encounter/helpers/index.ts) bar
 [runtime.ts](src/features/mechanics/domain/encounter/state/runtime.ts) handles marker lifecycle, turn hooks, encounter creation, and turn advance. Split into:
 
 - `**marker-lifecycle.ts`** — `tickMarkers`, `tickRuntimeEffects`, `tickStatModifiers`, `processMarkerBoundary`, `processRuntimeEffectBoundary`, `processTrackedPartTurnEnd`
-- `**turn-hooks.ts**` — `executeTurnHooks` (already a self-contained unit)
+- `**turn-hooks.ts`** — `executeTurnHooks` (already a self-contained unit)
 - `**runtime.ts**` — retains `createEncounterState`, `advanceEncounterTurn`, `resetCombatantTurnState`, `processActionRecharge`, `buildAliveInitiativeParticipants`, `formatRuntimeEffectLabel`. Imports from the extracted modules.
 
 Update [state/index.ts](src/features/mechanics/domain/encounter/state/index.ts) barrel.
