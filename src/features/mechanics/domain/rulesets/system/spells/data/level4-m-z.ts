@@ -1,5 +1,12 @@
+import type { ModifierValue } from '@/features/mechanics/domain/effects/effects.types';
 import type { SpellEntry } from '../types';
 
+/**
+ * Level 4 spells M–Z — authoring status:
+ * - **Attack/save/AoE modeled:** Ice Storm, Phantasmal Killer, Wall of Fire, Stoneskin (resistance).
+ * - **Utility / sense / state:** Freedom of Movement, Greater Invisibility, Locate Creature, Tongues-adjacent buffs.
+ * - **Note-first / heavy caveats:** Guardian of Faith, Hallucinatory Terrain, Private Sanctum, Polymorph, Resilient Sphere, Secret Chest, Stone Shape, Giant Insect.
+ */
 export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
 {
     id: 'fire-shield',
@@ -11,6 +18,11 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 10, unit: 'minute' },
     components: { verbal: true, somatic: true, material: { description: 'a bit of phosphorus or a firefly' } },
+    resolution: {
+      caveats: [
+        'Warm vs chill shield choice and light radius are not toggled.',
+      ],
+    },
     effects: [
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'cold' as const },
       {
@@ -36,13 +48,20 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'timed', value: 1, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a leather strap' } },
+    resolution: {
+      caveats: [
+        'Paralyzed/Restrained immunity and escape restraints are not fully automated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
-        kind: 'note',
-        text: 'Movement unaffected by Difficult Terrain. Speed cannot be reduced. Immune to Paralyzed, Restrained. Swim Speed equals Speed. 5ft movement to escape nonmagical restraints. +1 target per slot above 4.',
+        kind: 'state',
+        stateId: 'freedom-of-movement',
+        notes: 'Ignore Difficult Terrain; Speed cannot be reduced by magic; immune to Paralyzed and Restrained; Swim Speed equals Speed; 5 ft of movement to escape nonmagical restraints.',
       },
     ],
+    scaling: [{ category: 'extra-targets', description: '+1 target per spell slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5 }],
     description: {
       full: "You touch a willing creature. For the duration, the target's movement is unaffected by Difficult Terrain, and spells and other magical effects can neither reduce the target's Speed nor cause the target to have the Paralyzed or Restrained conditions. The target also has a Swim Speed equal to its Speed. In addition, the target can spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature imposing the Grappled condition on it. Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 4.",
       summary: 'Immune to movement reduction, Paralyzed, Restrained. Swim Speed. Escape restraints. Scales with targets.',
@@ -58,10 +77,16 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Summoned insect is not represented as a full combatant in encounter.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Summon giant centipede, spider, or wasp. Uses Giant Insect stat block. Ally, shares Initiative. Use slot level for spell level in stat block.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -79,6 +104,11 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Invisibility does not end on attack or spell (unlike lesser Invisibility).',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       { kind: 'condition', conditionId: 'invisible' },
@@ -100,10 +130,16 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 8, unit: 'hour' },
     components: { verbal: true },
+    resolution: {
+      caveats: [
+        '60 damage cap, first-time-on-turn triggers, and half damage on success are not automated.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
-        text: 'Large spectral guardian. Enemy moving within 10ft or starting turn there: Dex save or 20 radiant. Vanishes after 60 total damage.',
+        text: 'Large spectral guardian. Enemy that moves within 10 ft for the first time on a turn or starts its turn there: Dex save or 20 Radiant (half on success). Vanishes after 60 total damage dealt.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -121,10 +157,16 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 300, unit: 'ft' } },
     duration: { kind: 'timed', value: 24, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a mushroom' } },
+    resolution: {
+      caveats: [
+        'Illusory terrain and interaction checks are not simulated in encounter.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
-        text: '150-foot cube natural terrain looks, sounds, smells like another. Touch unchanged. Study + Int (Investigation) vs DC to disbelieve.',
+        text: '150-foot Cube natural terrain looks, sounds, and smells like another sort. Touch unchanged. Study + Investigation vs. spell save DC to disbelieve.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -142,21 +184,26 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 300, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'a mitten' } },
+    resolution: {
+      caveats: [
+        'Difficult Terrain duration is not tracked automatically.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'cylinder', size: 20 } },
       {
         kind: 'save',
         save: { ability: 'dex' },
         onFail: [
-          { kind: 'damage', damage: '2d10', damageType: 'cold' },
+          { kind: 'damage', damage: '2d10', damageType: 'bludgeoning' },
           { kind: 'damage', damage: '4d6', damageType: 'cold' },
         ],
         onSuccess: [
-          { kind: 'damage', damage: '1d10', damageType: 'cold' },
+          { kind: 'damage', damage: '1d10', damageType: 'bludgeoning' },
           { kind: 'damage', damage: '2d6', damageType: 'cold' },
         ],
       },
-      { kind: 'note', text: 'Ground in the area becomes Difficult Terrain until end of your next turn.', category: 'flavor' as const },
+      { kind: 'note', text: 'Ground in the area becomes Difficult Terrain until the end of your next turn.', category: 'flavor' as const },
     ],
     scaling: [{ category: 'extra-damage', description: '+1d10 bludgeoning per slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5, amount: '1d10' }],
     description: {
@@ -174,6 +221,11 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'fur from a bloodhound' } },
+    resolution: {
+      caveats: [
+        'Lead blocking and alternate forms are not validated automatically.',
+      ],
+    },
     effects: [
       { kind: 'state', stateId: 'locate-creature', notes: 'Sense direction to familiar creature within 1,000 ft. Specific creature or nearest of a kind (seen within 30ft).' },
       { kind: 'note', text: 'Does not locate creature in a different form (Polymorph, Flesh to Stone). Blocked by any thickness of lead.', category: 'flavor' as const },
@@ -193,6 +245,11 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'End-of-turn repeat saves and damage-on-failed-repeat are not fully automated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       {
@@ -222,10 +279,23 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a caterpillar cocoon' } },
+    resolution: {
+      caveats: [
+        'Beast stat block, temp HP, and gear melding are not enforced automatically.',
+      ],
+    },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       {
-        kind: 'note',
-        text: 'Wis save or transform into Beast (CR ≤ target). Stats replaced. Temp HP = Beast HP. Retains alignment, personality, type, HP, HP dice. Ends if Temp HP gone.',
+        kind: 'save',
+        save: { ability: 'wis' },
+        onFail: [
+          {
+            kind: 'note',
+            text: 'Shape-shift into a Beast form: stats replaced by Beast stat block; retain alignment, personality, creature type, HP, HP Dice; gain Temp HP equal to Beast HP; spell ends early if Temp HP reaches 0.',
+            category: 'under-modeled' as const,
+          },
+        ],
       },
     ],
     description: {
@@ -243,12 +313,19 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'timed', value: 24, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a thin sheet of lead' } },
+    resolution: {
+      caveats: [
+        'Chosen ward properties and 365-day until-dispelled rule are not enforced automatically.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
-        text: 'Cube 5-100 ft per side. Choose: no sound through barrier, dark/foggy barrier, no Divination sensors, no Divination targeting, no teleport, no planar travel. Cast 365 days same spot = until dispelled. +100ft per slot.',
+        text: 'Cube 5–100 ft per side. Choose: no sound through barrier; dark/foggy barrier; no Divination sensors; no Divination targeting; no teleport; no planar travel. Cast 365 days same spot = until dispelled. +100 ft per slot.',
+        category: 'under-modeled' as const,
       },
     ],
+    scaling: [{ category: 'expanded-area', description: '+100 feet per side per spell slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5 }],
     description: {
       full: "You make an area within range magically secure. The area is a Cube that can be as small as 5 feet to as large as 100 feet on each side. When you cast the spell, you decide what sort of security the spell provides: sound can't pass through; barrier appears dark and foggy; Divination sensors can't appear or pass through; creatures can't be targeted by Divination; nothing can teleport in or out; planar travel blocked. Casting this spell on the same spot every day for 365 days makes the spell last until dispelled. Using a Higher-Level Spell Slot. You can increase the size of the Cube by 100 feet for each spell slot level above 4.",
       summary: 'Secure cube with chosen properties. 365 days = until dispelled. +100ft per slot.',
@@ -264,10 +341,16 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a glass sphere' } },
+    resolution: {
+      caveats: [
+        'Barrier interaction, rolling the sphere, and Disintegrate interaction are not fully modeled.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
-        text: 'Shimmering sphere encloses Large or smaller creature/object. Unwilling: Dex save or enclosed. Nothing passes in or out. Immune to damage. Action to push and roll at half Speed. Disintegrate destroys sphere.',
+        text: 'Shimmering sphere encloses Large or smaller creature/object. Unwilling: Dex save or enclosed. Nothing passes in or out; sphere immune to damage. Action to push and roll at half Speed. Disintegrate destroys the sphere.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -292,10 +375,16 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
         cost: { value: 5000, unit: 'gp', atLeast: true },
       },
     },
+    resolution: {
+      caveats: [
+        'Ethereal storage, daily failure chance, and replica destruction are not simulated.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Chest hidden on Ethereal Plane. Magic action + touch replica: recall chest. Magic action: send back. 12 cubic ft capacity. After 60 days, 5% cumulative daily chance to end. Recasting or destroying replica ends spell.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -313,10 +402,16 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'soft clay' } },
+    resolution: {
+      caveats: [
+        'Shaping limits and passage creation are not enforced in encounter.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
-        text: 'Touch Medium or smaller stone object or 5ft section. Form into any shape. Up to 2 hinges and latch. Can make passage through 5ft wall, seal door.',
+        text: 'Touch Medium or smaller stone object or 5 ft section. Form into any shape. Up to two hinges and a latch. Can make passage through 5 ft wall, seal door.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -334,11 +429,16 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'diamond dust worth 100+ GP', cost: { value: 100, unit: 'gp', atLeast: true }, consumed: true } },
+    resolution: {
+      caveats: [
+        'Nonmagical B/P/S only per typical reading; not split in encounter.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
-      { kind: 'modifier', target: 'resistance', mode: 'add', value: 'bludgeoning' as const },
-      { kind: 'modifier', target: 'resistance', mode: 'add', value: 'piercing' as const },
-      { kind: 'modifier', target: 'resistance', mode: 'add', value: 'slashing' as const },
+      { kind: 'modifier', target: 'resistance', mode: 'add', value: 'bludgeoning' as ModifierValue },
+      { kind: 'modifier', target: 'resistance', mode: 'add', value: 'piercing' as ModifierValue },
+      { kind: 'modifier', target: 'resistance', mode: 'add', value: 'slashing' as ModifierValue },
     ],
     description: {
       full: "Until the spell ends, one willing creature you touch has Resistance to Bludgeoning, Piercing, and Slashing damage.",
@@ -355,12 +455,26 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 150, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'a drop of bile' } },
+    resolution: {
+      caveats: [
+        'Delayed acid at end of next turn is not tracked automatically.',
+      ],
+    },
     effects: [
+      { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 20 } },
+      {
+        kind: 'save',
+        save: { ability: 'dex' },
+        onFail: [{ kind: 'damage', damage: '10d4', damageType: 'acid' }],
+        onSuccess: [{ kind: 'damage', damage: '5d4', damageType: 'acid' }],
+      },
       {
         kind: 'note',
-        text: '20-foot radius sphere: Dex save or 10d4 acid. 5d4 acid at end of next turn on failed save. +2d4 initial per slot above 4.',
+        text: 'On a failed save, the target also takes 5d4 Acid damage at the end of its next turn.',
+        category: 'under-modeled' as const,
       },
     ],
+    scaling: [{ category: 'extra-damage', description: '+2d4 initial acid per spell slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5, amount: '2d4' }],
     description: {
       full: "You point at a location within range, and a glowing, 1-foot-diameter ball of acid streaks there and explodes in a 20-foot-radius Sphere. Each creature in that area makes a Dexterity saving throw. On a failed save, a creature takes 10d4 Acid damage and another 5d4 Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage only. Using a Higher-Level Spell Slot. The initial damage increases by 2d4 for each spell slot level above 4.",
       summary: '20ft sphere: Dex save or 10d4 acid + 5d4 at end of next turn. +2d4 initial per slot.',
@@ -376,6 +490,11 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a piece of charcoal' } },
+    resolution: {
+      caveats: [
+        'Damaging side, 10 ft proximity, and enter/end-turn timing are not fully automated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature' },
       {

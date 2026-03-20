@@ -1,5 +1,11 @@
 import type { SpellEntry } from '../types';
 
+/**
+ * Level 4 spells A–L — authoring status:
+ * - **Attack/save/AoE modeled:** Banishment, Blight, Black Tentacles, Confusion, Ice Storm (in m–z), Phantasmal Killer, Wall of Fire (in m–z).
+ * - **Utility / sense / state:** Arcane Eye, Divination, Greater Invisibility (in m–z), Locate Creature (in m–z).
+ * - **Note-first / summons / heavy caveats:** Conjure Minor Elementals, Conjure Woodland Beings, Control Water, Dimension Door, Fabricate, Polymorph, etc.
+ */
 export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
 {
     id: 'arcane-eye',
@@ -11,6 +17,11 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a bit of bat fur' } },
+    resolution: {
+      caveats: [
+        'Remote vision and barrier blocking are not enforced as encounter line-of-sight.',
+      ],
+    },
     effects: [
       { kind: 'state', stateId: 'arcane-eye', notes: 'Invisible, invulnerable eye. See in every direction with 30ft Darkvision. Bonus Action to move eye up to 30ft.' },
     ],
@@ -29,6 +40,11 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true },
+    resolution: {
+      caveats: [
+        '30-foot Emanation, HP max floor, and 0 HP stabilization are not fully automated.',
+      ],
+    },
     effects: [
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'necrotic' as const },
       { kind: 'note', text: 'HP max cannot be reduced for creatures in aura.', category: 'under-modeled' as const },
@@ -49,6 +65,11 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a pentacle' } },
+    resolution: {
+      caveats: [
+        'Full-minute duration, native-plane routing, and return placement are not simulated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       {
@@ -60,7 +81,11 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
         ],
       },
       { kind: 'note', text: 'Target is transported to a harmless demiplane for the duration.', category: 'flavor' as const },
-      { kind: 'note', text: 'Aberrations, Celestials, Elementals, Fey, Fiends: permanent banishment if spell lasts full duration.', category: 'flavor' as const },
+      {
+        kind: 'note',
+        text: 'Aberration, Celestial, Elemental, Fey, or Fiend: if the spell lasts the full 1 minute, the target does not return—it is transported to a random location on an associated plane (GM).',
+        category: 'under-modeled' as const,
+      },
     ],
     scaling: [{ category: 'extra-targets', description: '+1 target per slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5 }],
     description: {
@@ -78,7 +103,32 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 90, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a tentacle' } },
-    effects: [{ kind: 'note', text: '20-foot square: Difficult Terrain. Str save or 3d6 bludgeoning and Restrained. Str (Athletics) to escape.' }],
+    resolution: {
+      caveats: [
+        'Enter/end-turn timing, Athletics escape, and repeat saves are not fully automated.',
+      ],
+    },
+    effects: [
+      { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'square', size: 20 } },
+      {
+        kind: 'save',
+        save: { ability: 'str' },
+        onFail: [
+          { kind: 'damage', damage: '3d6', damageType: 'bludgeoning' },
+          { kind: 'condition', conditionId: 'restrained' },
+        ],
+      },
+      {
+        kind: 'note',
+        text: 'For the duration, the ground in the area is Difficult Terrain.',
+        category: 'flavor' as const,
+      },
+      {
+        kind: 'note',
+        text: 'Also saves on enter or end turn in area. Restrained creature can use an action for Strength (Athletics) vs. spell save DC to end Restrained.',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "Squirming, ebony tentacles fill a 20-foot square on ground that you can see within range. For the duration, these tentacles turn the ground in that area into Difficult Terrain. Each creature in that area makes a Strength saving throw. On a failed save, it takes 3d6 Bludgeoning damage, and it has the Restrained condition until the spell ends. A creature also makes that save if it enters the area or ends its turn there. A Restrained creature can take an action to make a Strength (Athletics) check against your spell save DC, ending the condition on itself on a success.",
       summary: '20-foot square of tentacles: Str save or 3d6 bludgeoning and Restrained.',
@@ -94,6 +144,11 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Plant auto-fail and nonmagical plant object mode are not validated automatically.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       {
@@ -120,7 +175,25 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'hour' },
     components: { verbal: true, somatic: true },
-    effects: [{ kind: 'note', text: 'Creature Wis save (Advantage if fighting). Charmed, Friendly. Ends if you/allies damage. +1 target per slot above 4.' }],
+    resolution: {
+      caveats: [
+        'Advantage when fighting, damage ending the charm, and post-spell awareness are not fully enforced.',
+      ],
+    },
+    effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      {
+        kind: 'save',
+        save: { ability: 'wis' },
+        onFail: [{ kind: 'condition', conditionId: 'charmed' }],
+      },
+      {
+        kind: 'note',
+        text: 'Save is made with Advantage if you or your allies are fighting the target. Charmed is Friendly; ends if you or your allies damage the target. When the spell ends, the target knows it was Charmed.',
+        category: 'under-modeled' as const,
+      },
+    ],
+    scaling: [{ category: 'extra-targets', description: '+1 target per spell slot level above 4', mode: 'per-slot-level', startsAtSlotLevel: 5 }],
     description: {
       full: "One creature you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you. Using a Higher-Level Spell Slot. You can target one additional creature for each spell slot level above 4.",
       summary: 'Wis save or Charmed for 1 hour. Friendly. Scales with extra targets.',
@@ -136,6 +209,11 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Bonus Action direction and repeat save after movement are not automated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'chosen-creatures', targetType: 'creature', requiresSight: true },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'condition', conditionId: 'charmed' }] },
@@ -156,6 +234,11 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 90, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'three nut shells' } },
+    resolution: {
+      caveats: [
+        '1d10 behavior table and repeat saves are not fully enforced.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 10 } },
       {
@@ -179,17 +262,32 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     school: 'conjuration',
     level: 4,
     classes: ['druid', 'wizard'],
-    castingTime: { normal: { value: 1, unit: 'action' } },
-    range: { kind: 'self' },
+    castingTime: { normal: { value: 1, unit: 'minute' } },
+    range: { kind: 'distance', value: { value: 90, unit: 'ft' } },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Summoned elementals are not represented as full combatants in encounter.',
+      ],
+    },
     effects: [
-      { kind: 'state', stateId: 'conjure-minor-elementals', notes: '15ft Emanation. Attacks deal +2d8 Acid/Cold/Fire/Lightning (choice per attack). Ground is Difficult Terrain for enemies.' },
-      { kind: 'note', text: 'Extra damage type chosen per attack. Difficult Terrain for enemies only.', category: 'flavor' as const },
+      {
+        kind: 'note',
+        text: 'Summon elementals in unoccupied spaces you can see within range. Choose one: one elemental of CR 2 or lower; two of CR 1 or lower; four of CR 1/2 or lower; or eight of CR 1/4 or lower. They are friendly; roll initiative as a group; obey verbal commands (no action). Disappear at 0 HP or when the spell ends.',
+        category: 'under-modeled' as const,
+      },
+    ],
+    scaling: [
+      {
+        category: 'other',
+        description: 'Using a 6th-level slot: twice as many creatures. Using an 8th-level slot: three times as many.',
+        mode: 'threshold',
+      },
     ],
     description: {
-      full: "You conjure spirits from the Elemental Planes that flit around you in a 15-foot Emanation for the duration. Until the spell ends, any attack you make deals an extra 2d8 damage when you hit a creature in the Emanation. This damage is Acid, Cold, Fire, or Lightning (your choice when you make the attack). In addition, the ground in the Emanation is Difficult Terrain for your enemies. Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 4.",
-      summary: '15ft emanation: +2d8 elemental damage on attacks. Difficult Terrain for enemies.',
+      full: "You summon elementals that appear in unoccupied spaces that you can see within range. You choose one of the following options for what appears: one elemental of challenge rating 2 or lower, two elementals of challenge rating 1 or lower, four elementals of challenge rating 1/2 or lower, or eight elementals of challenge rating 1/4 or lower. An elemental summoned by this spell disappears when it drops to 0 Hit Points or when the spell ends. The elementals are friendly to you and your companions. Roll initiative for the elementals as a group, which has its own turns. They obey any verbal commands that you issue to them (no action required by you). If you don't issue any, they defend themselves from hostile creatures but otherwise take no actions. Using a Higher-Level Spell Slot. Choose one of the summoning options above, and more creatures appear: twice as many with a 6th-level slot and three times as many with an 8th-level slot.",
+      summary: 'Summon elementals (CR options). Group initiative; verbal commands. 6th/8th slot multiplies count.',
     },
   },
 {
@@ -199,17 +297,31 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     level: 4,
     classes: ['druid', 'ranger'],
     castingTime: { normal: { value: 1, unit: 'action' } },
-    range: { kind: 'self' },
+    range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Summoned fey are not represented as full combatants in encounter.',
+      ],
+    },
     effects: [
-      { kind: 'targeting', target: 'creatures-in-area', area: { kind: 'sphere', size: 10 } },
-      { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'damage', damage: '5d8', damageType: 'force' }], onSuccess: [{ kind: 'damage', damage: '2d8', damageType: 'force' }] },
-      { kind: 'note', text: '10ft Emanation. Save triggered when entering or ending turn in area. Can take Disengage as Bonus Action.', category: 'flavor' as const },
+      {
+        kind: 'note',
+        text: 'Summon fey in unoccupied spaces you can see within range. Choose one: one fey of CR 2 or lower; two of CR 1 or lower; four of CR 1/2 or lower; or eight of CR 1/4 or lower. They are friendly; roll initiative as a group; obey verbal commands (no action). Disappear at 0 HP or when the spell ends.',
+        category: 'under-modeled' as const,
+      },
+    ],
+    scaling: [
+      {
+        category: 'other',
+        description: 'Using a 6th-level slot: twice as many creatures. Using an 8th-level slot: three times as many.',
+        mode: 'threshold',
+      },
     ],
     description: {
-      full: "You conjure nature spirits that flit around you in a 10-foot Emanation for the duration. Whenever the Emanation enters the space of a creature you can see and whenever a creature you can see enters the Emanation or ends its turn there, you can force that creature to make a Wisdom saving throw. The creature takes 5d8 Force damage on a failed save or half as much damage on a successful one. A creature makes this save only once per turn. In addition, you can take the Disengage action as a Bonus Action for the spell’s duration. Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 4.",
-      summary: '10ft emanation of nature spirits. Creatures in area make save or suffer effect.',
+      full: "You summon fey creatures that appear in unoccupied spaces that you can see within range. You choose one of the following options for what appears: one fey creature of challenge rating 2 or lower, two fey creatures of challenge rating 1 or lower, four fey creatures of challenge rating 1/2 or lower, or eight fey creatures of challenge rating 1/4 or lower. A creature summoned by this spell disappears when it drops to 0 Hit Points or when the spell ends. The creatures are friendly to you and your companions. Roll initiative for the summoned creatures as a group, which has its own turns. They obey any verbal commands that you issue to them (no action required by you). If you don't issue any, they defend themselves from hostile creatures but otherwise take no actions. Using a Higher-Level Spell Slot. Choose one of the summoning options above, and more creatures appear: twice as many with a 6th-level slot and three times as many with an 8th-level slot.",
+      summary: 'Summon fey (CR options). Group initiative; verbal commands. 6th/8th slot multiplies count.',
     },
   },
 {
@@ -222,7 +334,18 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 300, unit: 'ft' } },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a mixture of water and dust' } },
-    effects: [{ kind: 'note', text: 'Control water in 100ft cube: Flood, Part Water, Redirect Flow, or Whirlpool. Magic action to change effect.' }],
+    resolution: {
+      caveats: [
+        'Flood, Part Water, Redirect Flow, and Whirlpool mechanics are not simulated in encounter.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'Control water in a Cube up to 100 feet on a side. Magic action to choose Flood, Part Water, Redirect Flow, or Whirlpool (see spell text).',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "Until the spell ends, you control any water inside an area that is a Cube up to 100 feet on a side. Magic action to choose: Flood (rise 20ft or create wave), Part Water (trench), Redirect Flow, or Whirlpool (50ft square, 25ft deep; Str save or 2d8 bludgeoning, pulled 10ft).",
       summary: 'Control water in 100ft cube. Flood, Part, Redirect, or Whirlpool.',
@@ -238,7 +361,18 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'timed', value: 8, unit: 'hour' },
     components: { verbal: true, somatic: true },
-    effects: [{ kind: 'note', text: 'First time target would drop to 0 HP: instead 1 HP, spell ends. Negates instant-death effects.' }],
+    resolution: {
+      caveats: [
+        '0 HP replacement and instant-death negation are not enforced automatically.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'First time the target would drop to 0 HP: instead 1 HP, spell ends. If subjected to an instant-death effect without damage, negates it and spell ends.',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 Hit Points before the spell ends, the target instead drops to 1 Hit Point, and the spell ends. If the spell is still in effect when the target is subjected to an effect that would kill it instantly without dealing damage, that effect is negated against the target, and the spell ends.",
       summary: 'Once: 0 HP becomes 1 HP. Negates instant-death effects.',
@@ -250,10 +384,30 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     school: 'conjuration',
     level: 4,
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
-    effects: [{ kind: 'note', text: '' }],
+    castingTime: { normal: { value: 1, unit: 'action' } },
+    range: { kind: 'distance', value: { value: 500, unit: 'ft' } },
+    duration: { kind: 'instantaneous' },
+    components: { verbal: true },
+    resolution: {
+      caveats: [
+        'Destination validity, carrying capacity, and mishap damage are not enforced in encounter.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'Teleport from your current location to any spot within range you know. Bring objects you can carry. Optionally bring one willing creature of your size or smaller within 5 feet of you.',
+        category: 'under-modeled' as const,
+      },
+      {
+        kind: 'note',
+        text: 'If you would arrive in a space occupied by a creature or object, you and any traveler each take 4d6 Force damage and the spell fails to teleport you.',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
-      full: '',
-      summary: '',
+      full: "You teleport yourself from your current location to any other spot within range. You must know the destination. You can bring along objects as long as their weight doesn't exceed what you can carry. You can also bring one willing creature of your size or smaller who is within 5 feet of you when you cast this spell. If you would arrive in a space already occupied by an object or a creature, you and any creature traveling with you each take 4d6 Force damage, and the spell fails to teleport you.",
+      summary: 'Teleport 500 ft to a known destination; optional willing creature within 5 ft. Mishap if occupied.',
     },
   },
 {
@@ -266,6 +420,11 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'incense worth 25+ GP', cost: { value: 25, unit: 'gp', atLeast: true }, consumed: true } },
+    resolution: {
+      caveats: [
+        'GM answer and cumulative no-answer chance are not simulated.',
+      ],
+    },
     effects: [
       { kind: 'note', text: 'Ask one question about a goal, event, or activity within 7 days. Receive a truthful reply. 25% cumulative no-answer chance per repeat cast before Long Rest.', category: 'flavor' as const },
     ],
@@ -284,7 +443,25 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
-    effects: [{ kind: 'note', text: 'Beast Wis save (Advantage if fighting). Charmed, telepathic commands. Repeat save when damaged. Longer duration at 5-7+ slot.' }],
+    resolution: {
+      caveats: [
+        'Telepathic commands, repeat saves on damage, and higher-slot durations are not fully enforced.',
+      ],
+    },
+    effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      {
+        kind: 'save',
+        save: { ability: 'wis' },
+        onFail: [{ kind: 'condition', conditionId: 'charmed' }],
+      },
+      {
+        kind: 'note',
+        text: 'Wis save with Advantage if you or allies are fighting the target. Telepathic commands (no action). Target repeats the save when it takes damage. Higher slot: longer duration per spell text.',
+        category: 'under-modeled' as const,
+      },
+    ],
+    scaling: [{ category: 'longer-duration', description: 'Duration extends at 5th–7th+ slot levels per spell text', mode: 'per-slot-level', startsAtSlotLevel: 5 }],
     description: {
       full: "One Beast you can see within range must succeed on a Wisdom saving throw or have the Charmed condition. Advantage if you or allies are fighting it. Whenever the target takes damage, it repeats the save. You have a telepathic link; issue commands (no action). Using a Higher-Level Spell Slot. Duration: 5 (10 min), 6 (1 hour), 7+ (8 hours).",
       summary: 'Beast Wis save or Charmed. Telepathic commands. Repeat save when damaged.',
@@ -300,6 +477,11 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Crafting outcomes and tool proficiency gates are not enforced.',
+      ],
+    },
     effects: [
       { kind: 'note', text: 'Convert raw materials into products of the same material. Large or smaller (10ft cube). Metal/stone: max Medium (5ft cube). Proficiency with tools required for weapons/armor.', category: 'flavor' as const },
     ],
@@ -318,7 +500,18 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 8, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a silver whistle' } },
-    effects: [{ kind: 'note', text: 'Phantom watchdog. Invisible, intangible. Barks when creature without password within 30ft. Bite: Dex save or 4d8 Force. Magic action to move 30ft.' }],
+    resolution: {
+      caveats: [
+        'Watchdog detection, bite timing, and movement are not modeled as a combatant.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'Phantom watchdog: invisible, intangible, invulnerable. Barks when a Small+ creature comes within 30 ft without the password. Truesight 30 ft. At the start of each of your turns, bite one enemy within 5 ft: Dex save or 4d8 Force. Magic action to move the hound 30 ft.',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "You conjure a phantom watchdog in an unoccupied space within range. No one but you can see it; it is intangible and invulnerable. When a Small or larger creature comes within 30 feet without speaking the password, the hound barks loudly. It has Truesight 30 feet. At the start of each of your turns, the hound attempts to bite one enemy within 5 feet: Dex save or 4d8 Force damage. Magic action to move the hound up to 30 feet.",
       summary: 'Phantom watchdog. Barks at intruders. Bite 4d8 Force.',
