@@ -15,7 +15,8 @@
     "test:run": "vitest run",
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "audit:spells-willing": "tsx scripts/audit-spell-touch-willing.ts"
   },
   "dependencies": {
     "@auth/express": "^0.12.1",

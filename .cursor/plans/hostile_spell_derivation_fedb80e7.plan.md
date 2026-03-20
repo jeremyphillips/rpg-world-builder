@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: optional-lint
     content: "Optional: spell audit script for suspicious touch+one-creature without requiresWilling/damage/save"
-    status: pending
+    status: completed
   - id: phase2-classifier
     content: "Phase 2a bridge: deriveSpellHostility + set hostileApplication (or resolution flag) on spell CombatActions; isHostileAction uses it when set, else legacy kind/requiresWilling. Then expand heuristics."
     status: completed
@@ -98,9 +98,9 @@ Goal: infer **hostile vs non-hostile** from authored `effects` (and overrides) s
 
 ## Phase 1 (still valuable): Authoring + docs + lint
 
-1. **Authoring** — Touch buffs: set **`requiresWilling: true`** where rules say “willing creature” (Mage Armor, etc.); audit catalog.
+1. **Authoring** — Touch buffs: set **`requiresWilling: true`** where rules say “willing creature” (Mage Armor, Spider Climb, Warding Bond, Protection from Energy, Mind Blank, etc.); multi-target willing spells use **`chosen-creatures`** with **`requiresWilling`** (Water Breathing/Walk, Telepathic Bond, Plane Shift, Teleport creature branch). Audit catalog over time; mixed creature/object spells (Nondetection, Sequester) stay without a single `requiresWilling` unless split later.
 2. **Documentation** — Clarify: today hostility = targeting profile; Phase 2 adds derived hostility from effects + map + override.
-3. **Optional lint** — Flag `touch` + `one-creature` + no `requiresWilling` + no damage/save → suggest `requiresWilling` or escape hatch.
+3. **Optional lint** — [`scripts/audit-spell-touch-willing.ts`](scripts/audit-spell-touch-willing.ts): `npm run audit:spells-willing` flags `touch` + `one-creature` + no `requiresWilling` where `deriveSpellHostility` is `unknown`; allowlist for reviewed edge cases (see script).
 
 ## In scope (recommended): Adapter bridge, not a big-bang rewrite
 

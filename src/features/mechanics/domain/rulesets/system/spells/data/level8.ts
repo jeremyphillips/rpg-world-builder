@@ -240,6 +240,7 @@ export const SPELLS_LEVEL_8: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 24, unit: 'hour' },
     components: { verbal: true, somatic: true },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Willing creature: Immunity to Psychic and Charmed. Unaffected by emotion/alignment sensing, thought reading, location detection. No spell can gather info, observe remotely, or control mind.',

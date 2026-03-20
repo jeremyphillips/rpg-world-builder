@@ -218,6 +218,13 @@ export const SPELLS_LEVEL_7: readonly SpellEntry[] = [
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'a forked, metal rod worth 250+ GP attuned to a plane of existence', cost: { value: 250, unit: 'gp', atLeast: true } } },
     effects: [
+      {
+        kind: 'targeting',
+        target: 'chosen-creatures',
+        targetType: 'creature',
+        count: 8,
+        requiresWilling: true,
+      },
       { kind: 'note', text: 'You and up to 8 willing creatures (linking hands) transport to a different plane of existence. Specify destination generally or use a teleportation circle sigil sequence.', category: 'flavor' as const },
     ],
     description: {
@@ -407,6 +414,14 @@ export const SPELLS_LEVEL_7: readonly SpellEntry[] = [
     duration: { kind: 'instantaneous' },
     components: { verbal: true },
     effects: [
+      {
+        kind: 'targeting',
+        target: 'chosen-creatures',
+        targetType: 'creature',
+        count: 8,
+        requiresSight: true,
+        requiresWilling: true,
+      },
       { kind: 'note', text: 'Transport self and up to 8 willing creatures or one object to a destination. Outcome determined by d100 roll based on familiarity: On Target, Off Target, Similar Area, or Mishap.', category: 'flavor' as const },
     ],
     description: {

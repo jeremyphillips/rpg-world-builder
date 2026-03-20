@@ -486,6 +486,7 @@ export const SPELLS_LEVEL_2_G_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a drop of bitumen and a spider' } },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Willing creature: move on vertical surfaces and ceilings, hands free. Climb Speed = Speed. +1 target per slot above 2.',
@@ -609,6 +610,7 @@ export const SPELLS_LEVEL_2_G_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a pair of platinum rings worth 50+ GP each, which you and the target must wear for the duration', cost: { value: 50, unit: 'gp', atLeast: true } } },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Willing creature within 60ft: +1 AC and saves, Resistance to all damage. You take same damage when target takes damage. Ends if you drop to 0 HP or >60ft apart.',

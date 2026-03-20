@@ -315,6 +315,14 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true, material: { description: 'two eggs' } },
     effects: [
       {
+        kind: 'targeting',
+        target: 'chosen-creatures',
+        targetType: 'creature',
+        count: 8,
+        requiresSight: true,
+        requiresWilling: true,
+      },
+      {
         kind: 'note',
         text: 'Up to 8 willing creatures: telepathic link among all. Communicate over any distance. Cannot extend to other planes.',
       },

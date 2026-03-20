@@ -114,7 +114,7 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
     effects: [
-      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'fire' as const },
       { kind: 'note', text: 'Caster chooses damage type at cast time: Acid, Cold, Fire, Lightning, or Thunder. Modeled as Fire by default.', category: 'flavor' as const },
     ],
@@ -403,6 +403,14 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true, material: { description: 'a short reed' } },
     effects: [
       {
+        kind: 'targeting',
+        target: 'chosen-creatures',
+        targetType: 'creature',
+        count: 10,
+        requiresSight: true,
+        requiresWilling: true,
+      },
+      {
         kind: 'note',
         text: 'Up to 10 willing creatures breathe underwater. Retain normal respiration.',
       },
@@ -423,6 +431,14 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a piece of cork' } },
     effects: [
+      {
+        kind: 'targeting',
+        target: 'chosen-creatures',
+        targetType: 'creature',
+        count: 10,
+        requiresSight: true,
+        requiresWilling: true,
+      },
       {
         kind: 'note',
         text: 'Up to 10 willing creatures walk on liquid surfaces as solid ground. Bonus action to pass into/out of liquid. Fall into liquid passes through surface.',
