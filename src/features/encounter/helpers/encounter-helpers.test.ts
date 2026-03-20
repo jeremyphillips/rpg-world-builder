@@ -822,6 +822,35 @@ describe('buildSpellCombatActions', () => {
     })
   })
 
+  it('requiresWilling on targeting enables ally touch and non-hostile derivation', () => {
+    const mageArmor = makeSpell({
+      id: 'mage-armor',
+      name: 'Mage Armor',
+      range: { kind: 'touch' },
+      effects: [
+        { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
+        { kind: 'modifier', target: 'armor_class', mode: 'set', value: 13 },
+      ],
+      description: {
+        full: "You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 plus its Dexterity modifier.",
+        summary: 'Touch unarmored willing creature: AC 13 + Dex for 8 hours.',
+      },
+    })
+
+    expect(deriveSpellHostility(mageArmor)).toBe('non-hostile')
+
+    const actions = buildSpellCombatActions({
+      ...baseArgs,
+      spellIds: ['mage-armor'],
+      spellsById: { 'mage-armor': mageArmor },
+    })
+    expect(actions[0]!.targeting).toEqual({
+      kind: 'single-target',
+      requiresWilling: true,
+    })
+    expect(isHostileAction(actions[0]!)).toBe(false)
+  })
+
   it('deriveSpellHostility: damage and save imply hostile; heal and hallowed state imply non-hostile', () => {
     const fireball = makeSpell({
       id: 'fireball',

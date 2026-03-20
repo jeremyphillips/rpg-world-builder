@@ -51,11 +51,11 @@ Spells are turned into combat actions in [`buildSpellTargeting`](src/features/en
 | `targeting.requiresWilling` | `single-target` + **`requiresWilling: true`** (non-hostile for ally touch) |
 | Default `one-creature` | `single-target` **without** `requiresWilling` → **hostile** |
 
-With default [`suppressSameSideHostileActions`](src/features/mechanics/domain/encounter/resolution/action-resolution.types.ts) (on unless explicitly `false`), hostile **`single-target`** cannot pick same-side combatants—so **Mage Armor** blocks allies until you mark it as willing.
+With default [`suppressSameSideHostileActions`](src/features/mechanics/domain/encounter/resolution/action-resolution.types.ts) (on unless explicitly `false`), hostile **`single-target`** cannot pick same-side combatants—so willing-touch buffs need **`requiresWilling: true`** on the spell’s `targeting` effect (no description-text inference).
 
-## Why Mage Armor fails
+## Mage Armor and willing-touch spells
 
-[`mage-armor`](src/features/mechanics/domain/rulesets/system/spells/data/level1-m-z.ts) has `one-creature` targeting but **no** `requiresWilling`, despite copy saying “touch a willing creature.” Default path → hostile `single-target` → ally targeting blocked.
+[`mage-armor`](src/features/mechanics/domain/rulesets/system/spells/data/level1-m-z.ts) and similar spells use `{ kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true }` where the rules require a willing target. Encounter does **not** infer this from prose.
 
 ---
 

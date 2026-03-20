@@ -134,6 +134,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Willing creature: immune to Frightened, gains temp HP equal to spellcasting mod at start of each turn. +1 target per slot above 1.',
@@ -306,6 +307,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'minute' },
     components: { verbal: true, somatic: true, material: { description: "a grasshopper's hind leg" } },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Willing creature can jump up to 30 feet by spending 10 feet of movement, once per turn. +1 target per slot above 1.',
@@ -347,12 +349,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 8, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a piece of cured leather' } },
     effects: [
-      {
-        kind: 'targeting',
-        target: 'one-creature',
-        targetType: 'creature',
-        requiresWilling: true,
-      },
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       { kind: 'modifier', target: 'armor_class', mode: 'set', value: 13 },
       { kind: 'note', text: 'Target must not be wearing armor. True AC is 13 + Dex modifier. Ends if target dons armor.', category: 'flavor' as const },
     ],

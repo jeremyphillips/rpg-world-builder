@@ -272,6 +272,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a feather' } },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Touch willing creature: Fly 60ft, hover. Target falls when spell ends if still aloft. +1 target per slot above 3.',
@@ -293,7 +294,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a bit of gauze' } },
     effects: [
-      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       { kind: 'state', stateId: 'gaseous-form', notes: 'Misty cloud. Fly 10ft, hover. Can pass through openings as small as 1 inch.' },
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'bludgeoning' as const },
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'piercing' as const },
@@ -337,7 +338,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a shaving of licorice root' } },
     effects: [
-      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       { kind: 'modifier', target: 'armor_class', mode: 'add', value: 2 },
       { kind: 'roll-modifier', appliesTo: 'dexterity-saves', modifier: 'advantage' },
       { kind: 'modifier', target: 'speed' as const, mode: 'multiply' as const, value: 2 },

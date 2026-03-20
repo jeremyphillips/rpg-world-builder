@@ -250,7 +250,7 @@ export const SPELLS_LEVEL_6_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'mushroom powder worth 25+ GP', cost: { value: 25, unit: 'gp', atLeast: true }, consumed: true } },
     effects: [
-      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       { kind: 'state', stateId: 'true-seeing', notes: 'Truesight with a range of 120 feet.' },
     ],
     description: {

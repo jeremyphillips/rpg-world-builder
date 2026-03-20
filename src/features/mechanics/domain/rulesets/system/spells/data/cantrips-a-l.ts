@@ -169,6 +169,7 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Touch willing creature, choose skill. Add 1d4 to ability checks using chosen skill until spell ends.',

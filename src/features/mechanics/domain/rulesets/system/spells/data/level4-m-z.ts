@@ -37,6 +37,7 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a leather strap' } },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Movement unaffected by Difficult Terrain. Speed cannot be reduced. Immune to Paralyzed, Restrained. Swim Speed equals Speed. 5ft movement to escape nonmagical restraints. +1 target per slot above 4.',
@@ -79,7 +80,7 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
     effects: [
-      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       { kind: 'condition', conditionId: 'invisible' },
       { kind: 'roll-modifier', appliesTo: 'attack rolls', modifier: 'advantage' },
       { kind: 'roll-modifier', appliesTo: 'attacks against', modifier: 'disadvantage' },
@@ -334,7 +335,7 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'diamond dust worth 100+ GP', cost: { value: 100, unit: 'gp', atLeast: true }, consumed: true } },
     effects: [
-      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'bludgeoning' as const },
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'piercing' as const },
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'slashing' as const },

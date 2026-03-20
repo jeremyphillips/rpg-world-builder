@@ -254,7 +254,10 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'timed', value: 8, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a dried carrot' } },
-    effects: [{ kind: 'note', text: 'Willing creature gains Darkvision 150ft for 8 hours.' }],
+    effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
+      { kind: 'note', text: 'Willing creature gains Darkvision 150ft for 8 hours.' },
+    ],
     description: {
       full: "For the duration, a willing creature you touch has Darkvision with a range of 150 feet.",
       summary: 'Grant Darkvision 150ft for 8 hours.',
@@ -289,7 +292,10 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a hot pepper' } },
-    effects: [{ kind: 'note', text: 'Touch willing creature. Choose Acid/Cold/Fire/Lightning/Poison. Magic action: 15ft cone, Dex save 3d6. +1d6 per slot.' }],
+    effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
+      { kind: 'note', text: 'Touch willing creature. Choose Acid/Cold/Fire/Lightning/Poison. Magic action: 15ft cone, Dex save 3d6. +1d6 per slot.' },
+    ],
     description: {
       full: "You touch one willing creature, and choose Acid, Cold, Fire, Lightning, or Poison. Until the spell ends, the target can take a Magic action to exhale a 15-foot Cone. Each creature in that area makes a Dexterity saving throw, taking 3d6 damage of the chosen type on a failed save or half as much on a successful one. Using a Higher-Level Spell Slot. The damage increases by 1d6 for each spell slot level above 2.",
       summary: 'Grant 15ft cone breath weapon. Dex save 3d6. Scales with slot.',

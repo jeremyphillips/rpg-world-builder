@@ -99,6 +99,7 @@ export const SPELLS_LEVEL_0_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Touch willing creature, choose damage type. When creature takes that damage type before spell ends, reduce damage by 1d4. Once per turn.',

@@ -28,6 +28,7 @@ export const SPELLS_LEVEL_9: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 8, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a hummingbird feather' } },
     effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       {
         kind: 'note',
         text: 'Willing creature: Advantage on d20 tests. Others have Disadvantage to hit. Ends if you cast again.',
