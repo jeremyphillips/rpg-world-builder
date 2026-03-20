@@ -763,7 +763,8 @@ The following spell mechanics are not yet fully resolved by the combat adapter:
 - Caster-choice mechanics (element selection, condition selection at cast time)
 - Multi-area targeting and deduplication (e.g. Meteor Swarm)
 - Moving areas and trigger-timing resolution (e.g. Flaming Sphere, Cloudkill)
-- Success/failure tracking (e.g. Flesh to Stone, Contagion)
+- ~~Contagion repeat-save outcome track (3 successes / 3 failures)~~ — **resolved (encounter)**: `repeatSave.outcomeTrack` on conditions; `RuntimeTurnHook.repeatSaveProgress`; lock adds optional `failLockStateId` state (e.g. `contagion-prolonged`)
+- Success/failure tracking for other spells (e.g. Flesh to Stone petrification stages) — not yet modeled
 
 **Spell level for scaling (until slots are modeled):** Authored spell `level` is **0** for cantrips. When a runtime formula needs a **positive** spell tier (e.g. per-level dice) and slots are not tracked, use `effectiveSpellLevelForScaling` in `src/features/mechanics/domain/rulesets/system/spells/shared.ts`, which maps **0 → 1**; levels 1–9 pass through unchanged. Do **not** use this for cantrip damage scaling by **character** level — that remains `levelScaling` thresholds / `cantripDamageScaling`.
 
@@ -781,6 +782,7 @@ Mechanics resolved since initial authoring:
 - **Sleep**: layered Wisdom saves via `repeatSave.singleAttempt` and `onFail` to `unconscious` with `sleep` classification; wake on damage; exhaustion immunity auto-success on saves.
 - **Equipment-linked buffs**: `patchCombatantEquipmentSnapshot` drops ineligible modifiers (e.g. Mage Armor when armor is equipped).
 - **Sight-required targeting**: `requiresSight` on combat actions; `canSeeForTargeting` (`visibility-seams.ts`).
+- **Repeat-save outcome tracks**: `repeatSave.outcomeTrack` for Contagion-style success/failure counting (`turn-hooks.ts`).
 - **Advanced effect logging**: `trigger`, `activation`, `check`, `grant`, `form`, and `targeting` effects log meaningful summaries instead of "unsupported".
 
 ## 11. Anti-Patterns

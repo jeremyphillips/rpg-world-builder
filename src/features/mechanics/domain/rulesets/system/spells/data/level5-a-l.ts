@@ -296,7 +296,8 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true },
     resolution: {
       caveats: [
-        'Three-strike save track and healing Con save to end Poisoned are not automated.',
+        'Disadvantage on your chosen ability’s saves while Poisoned is not automated.',
+        'Healing-triggered Con save to end Poisoned is not simulated.',
       ],
     },
     effects: [
@@ -306,10 +307,26 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
         save: { ability: 'con' },
         onFail: [
           { kind: 'damage', damage: '11d8', damageType: 'necrotic' },
-          { kind: 'condition', conditionId: 'poisoned' },
+          {
+            kind: 'condition',
+            conditionId: 'poisoned',
+            repeatSave: {
+              ability: 'con',
+              timing: 'turn-end',
+              outcomeTrack: {
+                successCountToEnd: 3,
+                failCountToLock: 3,
+                failLockStateId: 'contagion-prolonged',
+              },
+            },
+          },
         ],
       },
-      { kind: 'note', text: 'Choose one ability: target has Disadvantage on saves with it while Poisoned. Track 3 successes/failures to end or lock in 7-day duration. Healing effects require Con save to end Poisoned.', category: 'under-modeled' as const },
+      {
+        kind: 'note',
+        text: 'Choose one ability when you cast: while Poisoned, target has Disadvantage on saves with that ability. Three repeat-save successes end the spell; three failures lock the 7-day duration (see encounter state).',
+        category: 'flavor' as const,
+      },
     ],
     description: {
       full: "Your touch inflicts a magical contagion. The target must succeed on a Constitution saving throw or take 11d8 Necrotic damage and have the Poisoned condition. Also, choose one ability when you cast the spell. While Poisoned, the target has Disadvantage on saving throws made with the chosen ability. The target must repeat the saving throw at the end of each of its turns until it gets three successes or failures. Three successes: spell ends. Three failures: spell lasts 7 days. Whenever the Poisoned target receives an effect that would end the Poisoned condition, the target must succeed on a Constitution saving throw, or the Poisoned condition doesn't end.",

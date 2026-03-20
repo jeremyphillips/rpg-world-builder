@@ -56,7 +56,7 @@ Each row: *what content does today* → *what must exist in the engine* → *pri
 
 **Status (Sleep landed):** `RepeatSave` supports `singleAttempt`, `onFail.addCondition` + `markerClassification` (Sleep tags `sleep` on unconscious), and `autoSuccessIfImmuneTo` (exhaustion on initial and repeat save). `resolveRepeatSave` in [`turn-hooks.ts`](../src/features/mechanics/domain/encounter/state/turn-hooks.ts) applies fail → unconscious and clears the hook. [`damage-mutations.ts`](../src/features/mechanics/domain/encounter/state/damage-mutations.ts) strips sleep-tagged unconscious on any damage. **Not automated:** shake awake within 5 ft; creatures that don’t sleep except via exhaustion immunity (e.g. elves) — caveats on the spell. Tests: [`sleep-spell.test.ts`](../src/features/mechanics/domain/encounter/tests/sleep-spell.test.ts).
 
-**Further work:** Flesh to Stone–style counters; generic wake actions; richer auto-success predicates.
+**Further work:** Flesh to Stone–style staged saves; generic wake actions; richer auto-success predicates. **Contagion:** `outcomeTrack` on `repeatSave` (`turn-hooks.ts`); spell data in `level5-a-l.ts`; tests: `contagion-outcome-track.test.ts`.
 
 ---
 
@@ -89,14 +89,14 @@ Engine-blocked authoring still reconciles when features land. **Deliberately def
 | Charmed save advantage (allies fighting)             | Contextual save modifiers from battlefield state — still on backlog when prioritized                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Form changes                                         | Stat block swap / `form` resolution path                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Caster choice at cast time                           | Cast-time selection UI → payload on action                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Success/failure tracking (Flesh to Stone, Contagion) | Persistent counters on marker or combatant                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Success/failure tracking (Flesh to Stone, Contagion) | Contagion: **`repeatSave.outcomeTrack`** + `repeatSaveProgress` on hooks; Flesh to Stone stages still deferred                                                                                                                                                                                                                                                                                                                                                                                      |
 
 
 Prioritize by **content volume × player impact**, not list order.
 
-### Phase 5 — catalog backlog (not started here)
+### Phase 5 — catalog backlog (incremental)
 
-§2.5 items remain **deferred** until picked up per feature: slots, healing upcast, charm contextual save advantage, `form`/stat swap, cast-time UI payloads, consecutive save counters (Flesh to Stone / Contagion), monster equipment derivation. **Docs:** [effects.md §10](../docs/reference/effects.md) lists unsupported mechanics; [effects.md](../docs/reference/effects.md) “Mechanics resolved since initial authoring” is updated as seams land.
+§2.5 items ship **per feature**: slots, healing upcast, charm contextual save advantage, `form`/stat swap, cast-time UI payloads, Flesh to Stone–style staged saves, monster equipment derivation. **Landed:** Contagion-style **`repeatSave.outcomeTrack`** (3 successes end spell / 3 failures lock duration via `contagion-prolonged` state). **Docs:** [effects.md §10](../docs/reference/effects.md); “Mechanics resolved since initial authoring” in [effects.md](../docs/reference/effects.md).
 
 ---
 

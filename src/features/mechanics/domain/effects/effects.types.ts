@@ -182,6 +182,16 @@ export type RepeatSave = {
   };
   /** Same as SaveEffect.autoSuccessIfImmuneTo — auto-pass repeat save without rolling. */
   autoSuccessIfImmuneTo?: ConditionImmunityId;
+  /**
+   * Contagion-style: count consecutive outcomes from repeat saves at this hook.
+   * After `successCountToEnd` successes, remove `removeCondition` and the hook.
+   * After `failCountToLock` failures, remove the hook (condition remains) and optionally add `failLockStateId`.
+   */
+  outcomeTrack?: {
+    successCountToEnd?: number;
+    failCountToLock?: number;
+    failLockStateId?: string;
+  };
 };
 
 export type ConditionEffect = EffectBase<'condition'> & {

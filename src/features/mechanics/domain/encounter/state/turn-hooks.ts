@@ -6,7 +6,11 @@ import {
 } from '@/features/mechanics/domain/resolution/engines/dice.engine'
 import { abilityIdToKey } from '@/features/mechanics/domain/character'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
-import type { EncounterState, RuntimeTurnHook, RuntimeTurnHookRepeatSave } from './types'
+import type {
+  EncounterState,
+  RuntimeTurnHook,
+  RuntimeTurnHookRepeatSave,
+} from './types'
 import {
   effectDurationToRuntimeDuration,
   formatTurnHookNote,
@@ -225,6 +229,19 @@ function getSaveModifierForCombatant(
   )
 }
 
+function buildOutcomeTrackDetailSuffix(
+  track: NonNullable<RuntimeTurnHookRepeatSave['outcomeTrack']>,
+  prev: { successes: number; fails: number },
+  succeeded: boolean,
+): string {
+  if (succeeded) {
+    const ns = prev.successes + 1
+    return ` Outcome track: ${ns}/${track.successCountToEnd ?? '—'} successes, ${prev.fails} failures.`
+  }
+  const nf = prev.fails + 1
+  return ` Outcome track: ${prev.successes} successes, ${nf}/${track.failCountToLock ?? '—'} failures.`
+}
+
 function resolveRepeatSave(
   state: EncounterState,
   combatantId: string,
@@ -257,6 +274,13 @@ function resolveRepeatSave(
     details = `Saving throw: ${detail} + ${saveModifier} = ${total} vs DC ${repeatSave.dc}.`
   }
 
+  const track = repeatSave.outcomeTrack
+  const prevProgress = hook.repeatSaveProgress ?? { successes: 0, fails: 0 }
+  const detailsWithTrack =
+    track != null
+      ? `${details}${buildOutcomeTrackDetailSuffix(track, prevProgress, succeeded)}`
+      : details
+
   let nextState = appendLog(state, {
     type: 'note',
     actorId: combatantId,
@@ -264,8 +288,53 @@ function resolveRepeatSave(
     round: state.roundNumber,
     turn: state.turnIndex + 1,
     summary: `${getCombatantLabel(state, combatantId)} ${succeeded ? 'succeeds' : 'fails'} repeat ${repeatSave.ability.toUpperCase()} save for ${hook.label}.`,
-    details,
+    details: detailsWithTrack,
   })
+
+  if (track) {
+    if (succeeded) {
+      const successes = prevProgress.successes + 1
+      const fails = prevProgress.fails
+      if (track.successCountToEnd != null && successes >= track.successCountToEnd) {
+        if (repeatSave.removeCondition) {
+          nextState = removeConditionFromCombatant(nextState, combatantId, repeatSave.removeCondition)
+        }
+        if (repeatSave.removeState) {
+          nextState = removeStateFromCombatant(nextState, combatantId, repeatSave.removeState)
+        }
+        return updateCombatant(nextState, combatantId, (c) => ({
+          ...c,
+          turnHooks: c.turnHooks.filter((h) => h.id !== hook.id),
+        }))
+      }
+      return updateCombatant(nextState, combatantId, (c) => ({
+        ...c,
+        turnHooks: c.turnHooks.map((h) =>
+          h.id === hook.id ? { ...h, repeatSaveProgress: { successes, fails } } : h,
+        ),
+      }))
+    }
+
+    const fails = prevProgress.fails + 1
+    const successes = prevProgress.successes
+    if (track.failCountToLock != null && fails >= track.failCountToLock) {
+      if (track.failLockStateId) {
+        nextState = addStateToCombatant(nextState, combatantId, track.failLockStateId, {
+          sourceLabel: hook.label,
+        })
+      }
+      return updateCombatant(nextState, combatantId, (c) => ({
+        ...c,
+        turnHooks: c.turnHooks.filter((h) => h.id !== hook.id),
+      }))
+    }
+    return updateCombatant(nextState, combatantId, (c) => ({
+      ...c,
+      turnHooks: c.turnHooks.map((h) =>
+        h.id === hook.id ? { ...h, repeatSaveProgress: { successes, fails } } : h,
+      ),
+    }))
+  }
 
   if (succeeded) {
     if (repeatSave.removeCondition) {

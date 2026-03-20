@@ -75,6 +75,11 @@ export interface RuntimeTurnHookRepeatSave {
   autoSuccessIfImmuneTo?: string
   /** Caster combatant id — stored on conditions applied from this hook (e.g. unconscious). */
   casterInstanceId?: string
+  outcomeTrack?: {
+    successCountToEnd?: number
+    failCountToLock?: number
+    failLockStateId?: string
+  }
 }
 
 export interface RuntimeTurnHook {
@@ -88,6 +93,8 @@ export interface RuntimeTurnHook {
     duration?: RuntimeMarkerDuration
   }
   repeatSave?: RuntimeTurnHookRepeatSave
+  /** Populated when `repeatSave.outcomeTrack` is set (Contagion-style save chains). */
+  repeatSaveProgress?: { successes: number; fails: number }
 }
 
 export interface CombatantTurnContext {

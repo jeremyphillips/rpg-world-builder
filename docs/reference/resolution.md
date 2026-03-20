@@ -351,12 +351,17 @@ repeatSave?: {
   singleAttempt?: boolean;
   onFail?: { addCondition?: EffectConditionId; markerClassification?: string[] };
   autoSuccessIfImmuneTo?: ConditionImmunityId;
+  outcomeTrack?: {
+    successCountToEnd?: number;
+    failCountToLock?: number;
+    failLockStateId?: string;
+  };
 };
 ```
 
 When `applyActionEffects` applies a condition or state with `repeatSave`, it registers a `RuntimeTurnHook` of type `repeat-save` on the target combatant. At the specified turn boundary, `executeTurnHooks` rolls the save vs the source's DC. On success, the linked condition/state is automatically removed and the hook is cleared.
 
-**Default:** failed saves keep the condition and the hook fires again on later boundaries (save each turn until success). **`singleAttempt: true`:** one resolution at the next boundary; on success the interim condition is removed; on failure `onFail.addCondition` is applied (e.g. Sleep: `unconscious` with `markerClassification: ['sleep']`) and the hook is removed. **`autoSuccessIfImmuneTo`:** if the target has that condition immunity, the repeat save succeeds without rolling (mirrors `SaveEffect.autoSuccessIfImmuneTo` on the initial save).
+**Default:** failed saves keep the condition and the hook fires again on later boundaries (save each turn until success). **`singleAttempt: true`:** one resolution at the next boundary; on success the interim condition is removed; on failure `onFail.addCondition` is applied (e.g. Sleep: `unconscious` with `markerClassification: ['sleep']`) and the hook is removed. **`autoSuccessIfImmuneTo`:** if the target has that condition immunity, the repeat save succeeds without rolling (mirrors `SaveEffect.autoSuccessIfImmuneTo` on the initial save). **`outcomeTrack`:** Contagion-style counting — `successCountToEnd` / `failCountToLock` with progress on `RuntimeTurnHook.repeatSaveProgress`; reaching the success threshold removes the linked condition and the hook; reaching the failure threshold removes the hook, keeps the condition, and optionally applies `failLockStateId` as a state marker.
 
 Sleep unconscious created this way ends when the target takes damage (`applyDamageToCombatant` clears `unconscious` markers tagged with `sleep`). Shaking a creature awake within 5 feet is not automated.
 

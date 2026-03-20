@@ -128,7 +128,7 @@ Implement **See Invisibility** and **Mage Armor** encounter pieces together if y
 
 **Roadmap:** Use [engine_blocked_authoring_20260320.plan.md](engine_blocked_authoring_20260320.plan.md) for phased engine work (Phases 1–4 landed: charm-on-damage, equipment snapshot + Mage Armor-style invalidation, Sleep save chain + wake, LOS/sight seams + `requiresSight`).
 
-**Still open (non-spatial, §2.5):** spell slots / healing upcast at runtime; contextual Charm save advantage (allies fighting); form/stat-block swap; cast-time choice payload; consecutive save tracking (Flesh to Stone, Contagion); monster armor derivation from stat blocks.
+**Still open (non-spatial, §2.5):** spell slots / healing upcast at runtime; contextual Charm save advantage (allies fighting); form/stat-block swap; cast-time choice payload; Flesh to Stone–style staged saves; monster armor derivation from stat blocks. **Contagion** repeat-save track (3/3) is implemented via `outcomeTrack` — disadvantage on chosen ability and healing Con save to clear Poisoned remain caveats on the spell.
 
 **Still open (spatial / adapter):** [effects.md §3](docs/reference/effects.md) — `creatures-in-area` maps to **all-enemies**; Acid Splash and similar need honest notes or future geometry ([resolution.md §9](docs/reference/resolution.md)).
 
