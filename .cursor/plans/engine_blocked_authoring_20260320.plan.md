@@ -7,7 +7,7 @@ todos:
     status: pending
   - id: backlog-registry
     content: Keep spells plan §Engine-blocked backlog in sync as engine phases land; or migrate rows into this plan
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -93,6 +93,10 @@ Engine-blocked authoring still reconciles when features land. **Deliberately def
 
 
 Prioritize by **content volume × player impact**, not list order.
+
+### Phase 5 — catalog backlog (not started here)
+
+§2.5 items remain **deferred** until picked up per feature: slots, healing upcast, charm contextual save advantage, `form`/stat swap, cast-time UI payloads, consecutive save counters (Flesh to Stone / Contagion), monster equipment derivation. **Docs:** [effects.md §10](../docs/reference/effects.md) lists unsupported mechanics; [effects.md](../docs/reference/effects.md) “Mechanics resolved since initial authoring” is updated as seams land.
 
 ---
 

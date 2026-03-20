@@ -126,14 +126,10 @@ Implement **See Invisibility** and **Mage Armor** encounter pieces together if y
 
 ## Engine-blocked authoring (follow-up backlog)
 
-Use this section as a single checklist for rules that **cannot** be fully represented until the engine gains capabilities. After implementation, reconcile: remove bullets once the engine supports them; add new ones if audits find gaps.
+**Roadmap:** Use [engine_blocked_authoring_20260320.plan.md](engine_blocked_authoring_20260320.plan.md) for phased engine work (Phases 1–4 landed: charm-on-damage, equipment snapshot + Mage Armor-style invalidation, Sleep save chain + wake, LOS/sight seams + `requiresSight`).
 
-- **Charm Person** — *Content:* `resolution.caveats` / notes for early end when caster or allies damage the target. *Blocked by:* damage pipeline hook (damage source, ally vs charmer), removal of `charmed` marker; may need ally/instance graph.
-- **Sleep** — *Content:* `under-modeled` note for second save → unconscious, wake on damage/shake, elf / exhaustion immunity, edition-specific HP or choice rules. *Blocked by:* turn-boundary scripted saves, wake triggers, selective AoE, save immunity predicates.
-- **Acid Splash** — *Content:* optional `note` for edition-specific targeting (e.g. two creatures, objects). *Blocked by:* finer targeting than `creatures-in-area` + generic save/damage if your edition requires it.
-- **Acid Splash / Sleep (encounter)** — *Content:* same as today’s adapter limits. *Blocked by:* [effects.md §3](docs/reference/effects.md) — `creatures-in-area` maps to **all-enemies**, no geometry or mixed allegiance; needs spatial AoE + filters or new targeting kinds ([resolution.md §9](docs/reference/resolution.md)).
-- **Mage Armor** — *Content:* “ends if target dons armor” while duration lasts. *Blocked by:* equipment-change events and cleanup of linked `statModifiers`; encounter loadout is snapshotted at combatant build, not live equipment swaps.
-- **Mage Armor (monsters)** — *Content:* narrative “wearing armor” vs natural AC. *Blocked by:* `armorEquipped` (or equivalent) derived from monster equipment/narrative, not only default `null`.
-- **See Invisibility** — *Content:* full rules in spell `state` notes. *Blocked beyond this plan:* `visibility.unseenByDefault`, stealth, perception — needs `canSee` / LOS consumers ([resolution.md §4.5](docs/reference/resolution.md) “visibility — no mechanical consumer”).
+**Still open (non-spatial, §2.5):** spell slots / healing upcast at runtime; contextual Charm save advantage (allies fighting); form/stat-block swap; cast-time choice payload; consecutive save tracking (Flesh to Stone, Contagion); monster armor derivation from stat blocks.
 
-**Related docs:** [effects.md §3 Area targeting](docs/reference/effects.md), [resolution.md §9 Area spells vs `all-enemies](docs/reference/resolution.md)`, [effects.md §7 Known Unsupported Spell Mechanics](docs/reference/effects.md) (e.g. charm save advantage when allies are fighting).
+**Still open (spatial / adapter):** [effects.md §3](docs/reference/effects.md) — `creatures-in-area` maps to **all-enemies**; Acid Splash and similar need honest notes or future geometry ([resolution.md §9](docs/reference/resolution.md)).
+
+**Related docs:** [effects.md §10 Known Unsupported](docs/reference/effects.md), [resolution.md](docs/reference/resolution.md) targeting + visibility seams.

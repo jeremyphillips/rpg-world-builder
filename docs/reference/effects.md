@@ -753,6 +753,9 @@ The following spell mechanics are not yet fully resolved by the combat adapter:
 - ~~Damage type resistance~~ — **resolved**: `DamageResistanceMarker` on `CombatantInstance`; damage application halves/doubles matching damage
 - ~~HP-threshold gating~~ — **resolved**: `resolution.hpThreshold` gates effect application; used by Power Word Kill/Stun/Heal
 - ~~Charm Person early end on damage from caster or allies~~ — **resolved (encounter)**: `applyDamageToCombatant` removes `charmed` when the attacker shares the charmer’s side (`CombatantSide`), using `sourceInstanceId` on the condition marker
+- ~~Sleep interim save → unconscious, wake on damage, exhaustion auto-success~~ — **resolved (encounter)**: `RepeatSave` with `singleAttempt` / `onFail` / `markerClassification` (`sleep`); `autoSuccessIfImmuneTo: 'exhaustion'` on initial and repeat saves; damage clears sleep-tagged `unconscious` (`damage-mutations.ts`, `turn-hooks.ts`)
+- ~~Mage Armor ends when armor is worn~~ — **resolved (encounter)**: `patchCombatantEquipmentSnapshot` + unarmored eligibility + `armorClassBeforeApply` for set AC (`equipment-mutations.ts`); UI must still patch or rebuild combatants when loadout changes
+- ~~Spells requiring sight / See Invisibility vs invisible~~ — **resolved (targeting)**: `CombatActionTargetingProfile.requiresSight` from spell `targeting.requiresSight`; `canSeeForTargeting` in `visibility-seams.ts` (blinded, invisible vs See Invisibility state; LOS/LoE geometry stubs always clear). Area spells mapped to `all-enemies` still skip per-target sight checks
 - Spell slot resource management
 - Healing upcasting (`extra-healing` scaling category is authored but not yet resolved at runtime)
 - Charmed save advantage when allies are fighting the target (authored as `save.text`, not yet resolved)
@@ -775,6 +778,9 @@ Mechanics resolved since initial authoring:
 - **Auto-hit resolution**: `auto-hit` action mode skips attack rolls; multi-instance spells generate sequence steps for independent resolution.
 - **HP-threshold gating**: `CombatActionDefinition.hpThreshold` gates effect application on target current HP vs threshold.
 - **Charm ends on ally/caster damage**: condition markers with `sourceInstanceId` (charmer) are cleared when the damage source is on the same side as the charmer (`damage-mutations.ts`).
+- **Sleep**: layered Wisdom saves via `repeatSave.singleAttempt` and `onFail` to `unconscious` with `sleep` classification; wake on damage; exhaustion immunity auto-success on saves.
+- **Equipment-linked buffs**: `patchCombatantEquipmentSnapshot` drops ineligible modifiers (e.g. Mage Armor when armor is equipped).
+- **Sight-required targeting**: `requiresSight` on combat actions; `canSeeForTargeting` (`visibility-seams.ts`).
 - **Advanced effect logging**: `trigger`, `activation`, `check`, `grant`, `form`, and `targeting` effects log meaningful summaries instead of "unsupported".
 
 ## 11. Anti-Patterns
