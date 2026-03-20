@@ -1,5 +1,11 @@
 import type { SpellEntry } from '../types';
 
+/**
+ * Level 5 spells M–Z — authoring status:
+ * - **Attack/save/AoE modeled:** Hold Monster, Insect Plague, Mass Cure Wounds, Seeming (partial).
+ * - **Utility / travel / divination:** Legend Lore, Passwall, Scrying, Telepathic Bond, Teleportation Circle, Tree Stride.
+ * - **Note-first / summons / heavy caveats:** Mislead, Modify Memory, Planar Binding, Summon Dragon, Telekinesis, Wall of Force, Wall of Stone, etc.
+ */
 export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
 {
     id: 'hold-monster',
@@ -11,6 +17,11 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 90, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a straight piece of iron' } },
+    resolution: {
+      caveats: [
+        'Repeat saves at end of turn and extra targets are not fully automated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       {
@@ -35,10 +46,16 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { somatic: true },
+    resolution: {
+      caveats: [
+        'Double movement, invisibility break, and sensor perspective are not fully enforced.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Become Invisible; illusory double appears. Invisibility ends after attack, damage, or spell. Magic action: move double 2× Speed, gesture, speak. See/hear through double.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -56,10 +73,16 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Memory editing and higher-slot time windows are not simulated.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Wis save (Advantage if fighting). Charmed, Incapacitated. Alter memory of event in last 24h (≤10 min). Eliminate, recall, change, or create memory. Remove Curse/Greater Restoration restores. Slot 6-9: longer ago.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -77,13 +100,18 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 300, unit: 'ft' } },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a locust' } },
+    resolution: {
+      caveats: [
+        'Enter/end-turn timing and once-per-turn save are not fully automated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 20 } },
       {
         kind: 'save',
         save: { ability: 'con' },
-        onFail: [{ kind: 'damage', damage: '4d10', damageType: 'cold' }],
-        onSuccess: [{ kind: 'damage', damage: '2d10', damageType: 'cold' }],
+        onFail: [{ kind: 'damage', damage: '4d10', damageType: 'piercing' }],
+        onSuccess: [{ kind: 'damage', damage: '2d10', damageType: 'piercing' }],
       },
       { kind: 'state', stateId: 'lightly-obscured-difficult-terrain', notes: 'Area is Lightly Obscured and Difficult Terrain.' },
       { kind: 'note', text: 'Creature also saves when entering or ending turn in area.', category: 'under-modeled' as const },
@@ -104,6 +132,11 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Healing split across up to six targets is not tracked per creature automatically.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'chosen-creatures', targetType: 'creature', count: 6, area: { kind: 'sphere', size: 30 } },
       { kind: 'hit-points', mode: 'heal', value: '5d8', abilityModifier: true },
@@ -124,10 +157,16 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a pinch of sesame seeds' } },
+    resolution: {
+      caveats: [
+        'Passage geometry and ejection are not simulated in encounter.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Passage in wood, plaster, or stone. Up to 5 ft wide, 8 ft tall, 20 ft deep. Creatures/objects ejected when opening disappears.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -145,10 +184,23 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 24, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a jewel worth 1,000+ GP', cost: { value: 1000, unit: 'gp', atLeast: true }, consumed: true } },
+    resolution: {
+      caveats: [
+        'Binding service and extended summon duration are not enforced automatically.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Bind Celestial, Elemental, Fey, or Fiend in range for entire casting. Cha save or bound to serve. Extends summon duration. Slot 6-9: longer duration.',
+        category: 'under-modeled' as const,
+      },
+    ],
+    scaling: [
+      {
+        category: 'longer-duration',
+        description: '6th: 10 days; 7th: 30 days; 8th: 180 days; 9th: 366 days',
+        mode: 'threshold',
       },
     ],
     description: {
@@ -166,6 +218,11 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'incense worth 250+ GP, four ivory strips worth 50+ GP each', cost: { value: 250, unit: 'gp', atLeast: true }, consumed: true } },
+    resolution: {
+      caveats: [
+        'GM lore delivery and “not famous” failure are not simulated.',
+      ],
+    },
     effects: [
       { kind: 'note', text: 'Name or describe a famous person, place, or object. Receive a brief summary of significant lore. If not actually famous, the spell fails with sad trombone.', category: 'flavor' as const },
     ],
@@ -184,12 +241,18 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'a diamond worth 500+ GP', cost: { value: 500, unit: 'gp', atLeast: true }, consumed: true } },
+    resolution: {
+      caveats: [
+        'Death timing, corpse integrity, and resurrection penalty are not enforced automatically.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-dead-creature', targetType: 'creature' },
       { kind: 'hit-points', mode: 'heal', value: 1 },
       {
         kind: 'note',
         text: 'Target must have been dead no longer than 10 days and not Undead. Neutralize poisons. Close wounds but not restore missing parts. -4 d20 penalty to all d20 tests, reduced by 1 per Long Rest. Lacking vital body parts = auto fail.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -207,12 +270,18 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'rare oils worth 1,000+ GP', cost: { value: 1000, unit: 'gp', atLeast: true }, consumed: true } },
+    resolution: {
+      caveats: [
+        'Species table and new-body traits are not enforced in encounter.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-dead-creature', targetType: 'creature', creatureTypeFilter: ['humanoid'] },
       { kind: 'hit-points', mode: 'heal', value: 1 },
       {
         kind: 'note',
         text: 'Target must have been dead no longer than 10 days. New body, roll 1d10 for species (or GM chooses). Retains capabilities, loses old species traits, gains new. 1=Roll again, 2=Dragonborn, 3=Dwarf, 4=Elf, 5=Gnome, 6=Goliath, 7=Halfling, 8=Human, 9=Orc, 10=Tiefling.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -230,6 +299,11 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a focus worth 1,000+ GP (crystal ball, mirror, etc.)', cost: { value: 1000, unit: 'gp', atLeast: true } } },
+    resolution: {
+      caveats: [
+        'DC modifiers, 24h block, and location targeting are not fully automated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'state', stateId: 'scried', notes: 'Invisible sensor within 10ft. Caster sees and hears through sensor.' }] },
@@ -250,10 +324,16 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 8, unit: 'hour' },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Per-target willingness and disguise checks are not fully enforced.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Illusory appearance to chosen creatures. Unwilling: Cha save. Same or different appearances. ±1ft height, weight. Study + Int (Investigation) vs DC to discern.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -271,10 +351,16 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'object with dragon image worth 500+ GP', cost: { value: 500, unit: 'gp', atLeast: true } } },
+    resolution: {
+      caveats: [
+        'Draconic Spirit is not represented as a full combatant in encounter.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Draconic Spirit (Large Dragon). AC 14+level, HP 50+10/level. Multiattack (Rend + Breath Weapon). Choose Resistance for shared resistances. Use slot level for stat block.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -292,10 +378,16 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Creature vs object choice, Restrained, and fine control are not fully automated.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Magic action: move Huge or smaller creature (Str save or 30ft, Restrained) or object (auto 30ft if unattended). Fine control on objects.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -313,6 +405,11 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'two eggs' } },
+    resolution: {
+      caveats: [
+        'Telepathic communication and language requirement are not enforced in encounter.',
+      ],
+    },
     effects: [
       {
         kind: 'targeting',
@@ -325,6 +422,7 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
       {
         kind: 'note',
         text: 'Up to 8 willing creatures: telepathic link among all. Communicate over any distance. Cannot extend to other planes.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -342,6 +440,11 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 10, unit: 'ft' } },
     duration: { kind: 'until-turn-boundary', subject: 'self', turn: 'next', boundary: 'end' },
     components: { verbal: true, material: { description: 'rare inks worth 50+ GP', cost: { value: 50, unit: 'gp', atLeast: true }, consumed: true } },
+    resolution: {
+      caveats: [
+        'Sigil destinations, portal timing, and permanent circle creation are not simulated.',
+      ],
+    },
     effects: [
       { kind: 'note', text: 'Draw 5ft radius circle. Portal opens to known permanent circle sigil sequence. Open until end of next turn. Enter to appear at destination. Learn 2 sigils at first. Cast same spot 365 days = permanent.', category: 'flavor' as const },
     ],
@@ -360,6 +463,11 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Tree network, once-per-turn transport, and end-turn-outside rule are not fully automated.',
+      ],
+    },
     effects: [
       { kind: 'state', stateId: 'tree-stride', notes: 'Enter a tree and move to same-kind tree within 500ft. 5ft movement to enter/exit. Know location of same-kind trees. Once per turn.' },
       { kind: 'note', text: 'Must end each turn outside a tree.', category: 'flavor' as const },
@@ -375,10 +483,25 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     school: 'evocation',
     level: 5,
     classes: ['wizard'],
-    effects: [{ kind: 'note', text: '' }],
+    castingTime: { normal: { value: 1, unit: 'action' } },
+    range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
+    duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
+    components: { verbal: true, somatic: true, material: { description: 'a pinch of powder made by crushing a clear gemstone' } },
+    resolution: {
+      caveats: [
+        'Wall shape (panels, dome, sphere), Ethereal blocking, and Disintegrate interaction are not fully modeled.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'Invisible wall of force: horizontal, vertical, or angled; can be a hemisphere or sphere (radius up to 10 ft) or ten contiguous 10×10 ft panels (¼ inch thick). Nothing passes through physically; immune to damage; Dispel Magic does not end it. Disintegrate destroys it instantly. Extends into the Ethereal Plane.',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
-      full: '',
-      summary: '',
+      full: "An invisible wall of force springs into existence at a point you choose within range. The wall appears in any orientation you choose, as a horizontal or vertical barrier or at an angle. It can be free floating or resting on a solid surface. You can form it into a hemispherical dome or a sphere with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-by-10-foot panels. Each panel must be contiguous with another panel. In any form, the wall is 1/4 inch thick. It lasts for the duration. Nothing can physically pass through the wall. It is immune to all damage and can't be dispelled by dispel magic. A disintegrate spell destroys the wall instantly, however. The wall also extends into the Ethereal Plane, blocking ethereal travel.",
+      summary: 'Invisible force wall or dome. Blocks passage and ethereal travel. Disintegrate destroys.',
     },
   },
 {
@@ -391,10 +514,16 @@ export const SPELLS_LEVEL_5_M_Z: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a cube of granite' } },
+    resolution: {
+      caveats: [
+        'Panel layout, Dex save when surrounded, and permanent-on-full-concentration are not enforced.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Stone wall: ten 10×10ft panels, 6in thick (or 10×20ft, 3in). Creature in space: pushed. Surrounded: Dex save, Reaction to move. Must merge with stone. AC 15, 30 HP per inch. Full concentration = permanent.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {

@@ -1,5 +1,11 @@
 import type { SpellEntry } from '../types';
 
+/**
+ * Level 5 spells A–L — authoring status:
+ * - **Attack/save/AoE modeled:** Cloudkill, Cone of Cold, Contagion, Flame Strike.
+ * - **Utility / divination / ritual:** Commune, Commune with Nature, Contact Other Plane, Legend Lore (in m–z), Scrying (in m–z).
+ * - **Note-first / summons / heavy caveats:** Animate Objects, Arcane Hand, Conjure Elemental, Creation, Dream, Geas, Hallow, etc.
+ */
 export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
 {
     id: 'animate-objects',
@@ -11,7 +17,18 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
-    effects: [{ kind: 'note', text: 'Animate objects up to spellcasting mod count (M=1, L=2, H=3). Constructs under your control. Slam damage scales with slot.' }],
+    resolution: {
+      caveats: [
+        'Animated constructs are not represented as full combatants in encounter.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'Animate objects up to spellcasting mod count (M=1, L=2, H=3). Constructs under your control. Slam damage scales with slot.',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "Objects animate at your command. Choose a number of nonmagical objects within range that aren't being worn or carried, aren't fixed to a surface, and aren't Gargantuan. The maximum number of objects is equal to your spellcasting ability modifier; for this number, a Medium or smaller target counts as one object, a Large target counts as two, and a Huge target counts as three. Each target animates, sprouts legs, and becomes a Construct that uses the Animated Object stat block; this creature is under your control until the spell ends or until it is reduced to 0 Hit Points. Using a Higher-Level Spell Slot. The creature's Slam damage increases by 1d4 (Medium or smaller), 1d6 (Large), or 1d12 (Huge) for each spell slot level above 5.",
       summary: 'Animate objects as Constructs under your control. Count and damage scale with slot level.',
@@ -27,7 +44,18 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 1, unit: 'hour', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
-    effects: [{ kind: 'note', text: '10ft aura blocks non-Construct/Undead from passing. Can cast spells and use ranged/reach through.' }],
+    resolution: {
+      caveats: [
+        'Barrier passage and spell end on forced movement are not fully enforced.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: '10-foot Emanation blocks non-Construct/Undead from passing or reaching through. Spells and Ranged/Reach attacks pass through. Spell ends if you move and force an affected creature through the barrier.',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "An aura extends from you in a 10-foot Emanation for the duration. The aura prevents creatures other than Constructs and Undead from passing or reaching through it. An affected creature can cast spells or make attacks with Ranged or Reach weapons through the barrier. If you move so that an affected creature is forced to pass through the barrier, the spell ends.",
       summary: '10ft aura blocks living creatures from passing. Ranged attacks and spells can pass through.',
@@ -43,7 +71,18 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'an eggshell and a glove' } },
-    effects: [{ kind: 'note', text: 'Large hand: Clenched Fist (5d8 Force), Forceful Hand (push), Grasping Hand (grapple+crush), Interposing Hand (cover).' }],
+    resolution: {
+      caveats: [
+        'Hand modes, Bonus Action timing, and object HP are not fully modeled.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'Large hand: Clenched Fist (5d8 Force), Forceful Hand (push), Grasping Hand (grapple+crush), Interposing Hand (cover).',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "You create a Large hand of shimmering magical energy in an unoccupied space that you can see within range. The hand lasts for the duration, and it moves at your command, mimicking the movements of your own hand. The hand is an object that has AC 20 and Hit Points equal to your Hit Point maximum. When you cast the spell and as a Bonus Action on your later turns, you can move the hand up to 60 feet and then cause one of the following effects: Clenched Fist (5d8 Force), Forceful Hand (push), Grasping Hand (grapple and crush), Interposing Hand (half cover). Using a Higher-Level Spell Slot. The damage of the Clenched Fist increases by 2d8 and the damage of the Grasping Hand increases by 2d6 for each spell slot level above 5.",
       summary: 'Large magical hand with multiple modes: attack, push, grapple, or cover. Damage scales with slot.',
@@ -59,7 +98,18 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'an agate worth 1,000+ GP', cost: { value: 1000, unit: 'gp', atLeast: true }, consumed: true } },
-    effects: [{ kind: 'note', text: 'Beast or Plant with Int 3 or less gains Int 10, language, 30-day charmed service.' }],
+    resolution: {
+      caveats: [
+        'Awakened stats and 30-day Charmed service are not enforced in encounter.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'Beast or Plant with Int 3 or less (or natural plant): gains Int 10 and a language you know; Charmed 30 days or until you/allies damage. Awakened plant stats per GM.',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "You spend the casting time tracing magical pathways within a precious gemstone, and then touch the target. The target must be either a Beast or Plant creature with an Intelligence of 3 or less or a natural plant that isn't a creature. The target gains language you know. If the target is a natural plant, it becomes a Plant creature and gains the ability to move its limbs, roots, vines, creepers, and so forth, and it gains senses similar to a human’s. The GM chooses statistics appropriate for the awakened Plant, such as the statistics for the Awakened Shrub or Awakened Tree in 'Monsters.' The awakened target has the Charmed condition for 30 days or until you or your allies deal damage to it. When that condition ends, the awakened creature chooses its attitude toward you.",
       summary: 'Beast or Plant gains Intelligence 10, speech, and is Charmed by you for 30 days.',
@@ -75,6 +125,11 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Fog movement, enter/end-turn saves, and wind dispersal are not fully automated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 20 } },
       {
@@ -102,6 +157,11 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 1, unit: 'minute' },
     components: { verbal: true, somatic: true, material: { description: 'incense' } },
+    resolution: {
+      caveats: [
+        'Answers and repeat-cast failure chance are not simulated.',
+      ],
+    },
     effects: [
       { kind: 'note', text: 'Contact a deity or divine proxy. Ask up to 3 yes/no questions. Receive correct answers. 25% cumulative no-answer chance per repeat cast before Long Rest.', category: 'flavor' as const },
     ],
@@ -120,6 +180,11 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Lore facts and underground radius are informational only.',
+      ],
+    },
     effects: [
       { kind: 'note', text: 'Learn 3 facts about surroundings: 3 miles outdoors, 300ft underground. Choose from settlements, portals, CR 10+ creatures, prevalent flora/fauna, water bodies.', category: 'flavor' as const },
     ],
@@ -138,6 +203,11 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'a small crystal or glass cone' } },
+    resolution: {
+      caveats: [
+        'Frozen statue rider on kill is not applied automatically.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'cone', size: 60 } },
       {
@@ -164,10 +234,27 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Spirit position, element damage type, and repeat saves are not fully automated.',
+      ],
+    },
     effects: [
-      { kind: 'save', save: { ability: 'dex' }, onFail: [{ kind: 'damage', damage: '8d8' }, { kind: 'condition', conditionId: 'restrained', repeatSave: { ability: 'dex', timing: 'turn-start' } }] },
-      { kind: 'note', text: 'Large elemental spirit. Choose air (Lightning), earth (Thunder), fire (Fire), or water (Cold). Damage type matches element. Save triggered on enter or start turn within 5ft.', category: 'under-modeled' as const },
+      {
+        kind: 'save',
+        save: { ability: 'dex' },
+        onFail: [
+          { kind: 'damage', damage: '8d8', damageType: 'fire' },
+          { kind: 'condition', conditionId: 'restrained', repeatSave: { ability: 'dex', timing: 'turn-start' } },
+        ],
+      },
+      {
+        kind: 'note',
+        text: 'Large elemental spirit: choose air (Lightning), earth (Thunder), fire (Fire), or water (Cold)—replace structured damage type in play to match. Save when a creature enters the spirit’s space or starts its turn within 5 feet.',
+        category: 'under-modeled' as const,
+      },
     ],
+    scaling: [{ category: 'extra-damage', description: '+1d8 per spell slot level above 5', mode: 'per-slot-level', startsAtSlotLevel: 6, amount: '1d8' }],
     description: {
       full: "You conjure a Large, intangible spirit from the Elemental Planes. Choose the spirit's element: air (Lightning), earth (Thunder), fire (Fire), or water (Cold). Whenever a creature enters the spirit's space or starts its turn within 5 feet of the spirit, you can force a Dexterity saving throw. On failed save, the target takes 8d8 damage of the spirit's type and has the Restrained condition until the spell ends. At the start of each of its turns, the Restrained target repeats the save. Using a Higher-Level Spell Slot. The damage increases by 1d8 for each spell slot level above 5.",
       summary: 'Elemental spirit: Dex save or 8d8 and Restrained. Damage scales with slot.',
@@ -183,6 +270,11 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 1, unit: 'minute' },
     components: { verbal: true },
+    resolution: {
+      caveats: [
+        'Self-targeted Int save and GM answers are not fully modeled.',
+      ],
+    },
     effects: [
       { kind: 'save', save: { ability: 'int', dc: 15 }, onFail: [{ kind: 'damage', damage: '6d6', damageType: 'psychic' }, { kind: 'condition', conditionId: 'incapacitated' }], onSuccess: [{ kind: 'state', stateId: 'contact-other-plane', notes: 'Ask up to 5 questions. GM answers each with one word.' }] },
       { kind: 'note', text: 'Incapacitated condition lasts until Long Rest. Greater Restoration ends it. This is a self-targeted save.', category: 'flavor' as const },
@@ -202,6 +294,11 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'timed', value: 7, unit: 'day' },
     components: { verbal: true, somatic: true },
+    resolution: {
+      caveats: [
+        'Three-strike save track and healing Con save to end Poisoned are not automated.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       {
@@ -229,9 +326,15 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'special', description: 'Vegetable 24h, stone 12h, precious metal 1h, gems 10min, adamantine/mithral 1min' },
     components: { verbal: true, somatic: true, material: { description: 'a paintbrush' } },
+    resolution: {
+      caveats: [
+        'Created object duration and higher-slot cube size are not enforced in encounter.',
+      ],
+    },
     effects: [
       { kind: 'note', text: 'Create an object from Shadowfell material (vegetable or mineral, max 5ft cube). Duration varies: vegetable 24h, stone 12h, precious metal 1h, gems 10min, adamantine/mithral 1min. Cannot be used as spell component.', category: 'flavor' as const },
     ],
+    scaling: [{ category: 'expanded-area', description: '+5 feet per side of the Cube per spell slot level above 5', mode: 'per-slot-level', startsAtSlotLevel: 6 }],
     description: {
       full: "You pull wisps of shadow material from the Shadowfell to create an object within range. The object must be vegetable matter (soft goods, rope, wood) or mineral matter (stone, crystal, metal), no larger than a 5-foot Cube, and of a form and material you have seen. Duration: Vegetable 24 hours, Stone/crystal 12 hours, Precious metals 1 hour, Gems 10 minutes, Adamantine/mithral 1 minute. Using any created object as a spell's Material component causes that spell to fail. Using a Higher-Level Spell Slot. The Cube increases by 5 feet for each spell slot level above 5.",
       summary: 'Create object from shadow. Duration by material. +5ft per slot.',
@@ -247,7 +350,18 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'self' },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'powdered silver and iron' } },
-    effects: [{ kind: 'note', text: 'Celestials, Elementals, Fey, Fiends, Undead have Disadvantage vs you. Magic: Break Enchantment (touch) or Dismissal (Cha save, send home).' }],
+    resolution: {
+      caveats: [
+        'Break Enchantment and Dismissal actions are not fully simulated.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'Celestials, Elementals, Fey, Fiends, Undead have Disadvantage on attack rolls against you. Magic action: Break Enchantment (touch) or Dismissal (Cha save, send home).',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "For the duration, Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you. Break Enchantment: Magic action, touch creature possessed or Charmed/Frightened by such creatures; effect ends. Dismissal: Magic action, target within 5 feet; Cha save or sent to home plane (Undead to Shadowfell, Fey to Feywild).",
       summary: 'Disadvantage for extraplanar types. Break Enchantment or Dismissal.',
@@ -263,7 +377,25 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true },
-    effects: [{ kind: 'note', text: 'Humanoid Wis save (Advantage if fighting). Charmed, telepathic commands. Repeat save when damaged. Longer at 6-8+ slot.' }],
+    resolution: {
+      caveats: [
+        'Telepathic commands, repeat saves on damage, and higher-slot duration are not fully enforced.',
+      ],
+    },
+    effects: [
+      { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      {
+        kind: 'save',
+        save: { ability: 'wis' },
+        onFail: [{ kind: 'condition', conditionId: 'charmed' }],
+      },
+      {
+        kind: 'note',
+        text: 'Advantage on the save if you or allies are fighting the target. Telepathic commands (no action). Target repeats the save when it takes damage. Higher slot: longer duration per spell text.',
+        category: 'under-modeled' as const,
+      },
+    ],
+    scaling: [{ category: 'longer-duration', description: 'Duration extends at 6th–8th+ slot levels per spell text', mode: 'per-slot-level', startsAtSlotLevel: 6 }],
     description: {
       full: "One Humanoid you can see within range must succeed on a Wisdom saving throw or have the Charmed condition. Advantage if you or allies are fighting it. Whenever the target takes damage, it repeats the save. You have a telepathic link; issue commands (no action). Using a Higher-Level Spell Slot. Duration: 6 (10 min), 7 (1 hour), 8+ (8 hours).",
       summary: 'Humanoid Wis save or Charmed. Telepathic commands. Repeat save when damaged.',
@@ -279,7 +411,18 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'special', description: 'creature known on same plane' },
     duration: { kind: 'timed', value: 8, unit: 'hour' },
     components: { verbal: true, somatic: true, material: { description: 'a handful of sand' } },
-    effects: [{ kind: 'note', text: 'You or touched willing creature enters trance as dream messenger. If target asleep: converse in dreams. Can make terrifying: 10-word message, Wis save or no rest benefit + 3d6 psychic on waking.' }],
+    resolution: {
+      caveats: [
+        'Dream messenger, sleep state, and terrifying option are not simulated in encounter.',
+      ],
+    },
+    effects: [
+      {
+        kind: 'note',
+        text: 'You or a willing creature you touch enters a trance as dream messenger. If target asleep: converse in dreams. Terrifying: up to 10 words, Wis save or no rest benefit + 3d6 Psychic when waking.',
+        category: 'under-modeled' as const,
+      },
+    ],
     description: {
       full: "You target a creature you know on the same plane of existence. You or a willing creature you touch enters a trance state to act as a dream messenger (Incapacitated, Speed 0). If the target is asleep, the messenger appears in its dreams and can converse for the duration. The messenger can shape the dream's environment. If the target is awake, the messenger knows it and can wait for the target to sleep. You can make the messenger terrifying: deliver up to 10 words, then target makes Wis save or gains no benefit from rest and takes 3d6 Psychic damage when it wakes.",
       summary: 'Enter target dreams as messenger. Option: terrifying message, Wis save or no rest + 3d6 psychic.',
@@ -295,6 +438,11 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'a pinch of sulfur' } },
+    resolution: {
+      caveats: [
+        '40-foot height cylinder and half damage on success are represented in dice only.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'cylinder', size: 10 } },
       {
@@ -326,11 +474,22 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'timed', value: 30, unit: 'day' },
     components: { verbal: true },
+    resolution: {
+      caveats: [
+        'Command obedience and 5d10 disobedience damage (max once per day) are not enforced automatically.',
+      ],
+    },
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresSight: true },
       { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'condition', conditionId: 'charmed' }] },
-      { kind: 'damage', damage: '5d10', damageType: 'psychic' },
-      { kind: 'note', text: 'Damage max 1/day if target acts against command. Remove Curse, Greater Restoration, or Wish ends.', category: 'flavor' as const },
+      {
+        kind: 'note',
+        text: 'While Charmed, the creature takes 5d10 Psychic damage if it acts directly counter to your command (no more than once per day). Remove Curse, Greater Restoration, or Wish ends the spell.',
+        category: 'under-modeled' as const,
+      },
+    ],
+    scaling: [
+      { category: 'longer-duration', description: '7th–8th slot: 365 days; 9th slot: until ended by Remove Curse, Greater Restoration, or Wish', mode: 'threshold' },
     ],
     description: {
       full: "You give a verbal command to a creature that you can see within range, ordering it to carry out some service or refrain from an action or a course of activity as you decide. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target automatically succeeds if it can't understand your command. While Charmed, the creature takes 5d10 Psychic damage if it acts in a manner directly counter to your command. It takes this damage no more than once each day. You can issue any command you choose, short of an activity that would result in certain death. Should you issue a suicidal command, the spell ends. A Remove Curse, Greater Restoration, or Wish spell ends this spell. Using a Higher-Level Spell Slot. If you use a level 7 or 8 spell slot, the duration is 365 days. If you use a level 9 spell slot, the spell lasts until it is ended by one of the spells mentioned above.",
@@ -347,10 +506,16 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'instantaneous' },
     components: { verbal: true, somatic: true, material: { description: 'diamond dust worth 100+ GP', cost: { value: 100, unit: 'gp', atLeast: true }, consumed: true } },
+    resolution: {
+      caveats: [
+        'Which single effect is removed is not validated automatically.',
+      ],
+    },
     effects: [
       {
         kind: 'note',
         text: 'Touch: remove 1 Exhaustion, Charmed, Petrified, curse, ability score reduction, or HP max reduction.',
+        category: 'under-modeled' as const,
       },
     ],
     description: {
@@ -368,6 +533,11 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     range: { kind: 'touch' },
     duration: { kind: 'until-dispelled' },
     components: { verbal: true, somatic: true, material: { description: 'incense worth 1,000+ GP', cost: { value: 1000, unit: 'gp', atLeast: true }, consumed: true } },
+    resolution: {
+      caveats: [
+        '24-hour cast, ward types, and bound extra effects are not enforced in encounter.',
+      ],
+    },
     effects: [
       { kind: 'state', stateId: 'hallowed', notes: 'Area wards chosen creature types. Bound extra effects.' },
       { kind: 'note', text: 'Up to 60ft radius. Ward: chosen creature types cannot willingly enter. Extra effects: Courage, Darkness, Daylight, Peaceful Rest, Extradimensional Interference, Fear, Resistance, Silence, Tongues, Vulnerability.', category: 'flavor' as const },
