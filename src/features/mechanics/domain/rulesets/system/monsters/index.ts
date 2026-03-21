@@ -18,7 +18,6 @@ import type { Monster, MonsterFields } from '@/features/content/monsters/domain/
 import type { SystemRulesetId } from '../../types/ruleset.types'
 import { DEFAULT_SYSTEM_RULESET_ID } from '../../ids/systemIds'
 import { MONSTERS_CORE_DATA } from './data/monsters'
-import { MONSTERS_SYSTEM_APPEND_20260320 } from './data/monsters-append'
 
 /** Build a Monster from the system catalog data (no DB fields). */
 function toSystemMonster(systemId: SystemRulesetId, raw: MonsterFields): Monster {
@@ -32,10 +31,7 @@ function toSystemMonster(systemId: SystemRulesetId, raw: MonsterFields): Monster
   }
 }
 
-const MONSTERS_RAW: readonly MonsterFields[] = [
-  ...MONSTERS_CORE_DATA,
-  ...MONSTERS_SYSTEM_APPEND_20260320,
-]
+const MONSTERS_RAW: readonly MonsterFields[] = [...MONSTERS_CORE_DATA]
 
 const SYSTEM_MONSTERS_SRD_CC_V5_2_1: readonly Monster[] = MONSTERS_RAW.map((m) =>
   toSystemMonster(DEFAULT_SYSTEM_RULESET_ID, m),

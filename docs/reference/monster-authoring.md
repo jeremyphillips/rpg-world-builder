@@ -49,4 +49,4 @@ Follow [effects.md §5 `note`](./effects.md), [§8](./effects.md), and **Resolut
 
 ## System catalog
 
-- Factory defaults live in [`monsters/index.ts`](../../src/features/mechanics/domain/rulesets/system/monsters/index.ts), letter-range shards under [`monsters/data/`](../../src/features/mechanics/domain/rulesets/system/monsters/data/), and [`monsters-append.ts`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters-append.ts) (batched append).
+- Factory defaults live in [`monsters/index.ts`](../../src/features/mechanics/domain/rulesets/system/monsters/index.ts) and letter-range shards under [`monsters/data/`](../../src/features/mechanics/domain/rulesets/system/monsters/data/) (see [`monsters.ts`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters.ts) for the shard registry).

@@ -3,6 +3,100 @@ import type { MonsterCatalogEntry } from '../types';
 /** System catalog — ids starting with [v-z] (first character of `id`). */
 
 export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
+  {
+    id: 'water-elemental',
+    name: 'Water Elemental',
+    type: 'elemental',
+    sizeCategory: 'large',
+    languages: [{ id: 'primordial' }],
+    description: {
+      short: 'A crashing wave of animate water.',
+      long: 'Water elementals engulf foes and drag them under.',
+    },
+    mechanics: {
+      hitPoints: { count: 12, die: 10, modifier: 48 },
+      armorClass: { kind: 'natural', offset: 2 },
+      movement: { ground: 30, swim: 90 },
+      abilities: { str: 18, dex: 14, con: 18, int: 5, wis: 10, cha: 8 },
+      senses: { special: [{ type: 'darkvision', range: 60 }], passivePerception: 10 },
+      resistances: ['acid', 'fire'],
+      immunities: [
+        'poison',
+        'exhaustion',
+        'grappled',
+        'paralyzed',
+        'petrified',
+        'poisoned',
+        'prone',
+        'restrained',
+        'unconscious',
+      ],
+      proficiencyBonus: 3,
+      traits: [
+        {
+          name: 'Freeze',
+          description:
+            'If the elemental takes Cold damage, its Speed decreases by 20 feet until the end of its next turn.',
+          resolution: { caveats: ['Speed reduction from cold is not applied as a runtime modifier yet.'] },
+        },
+        {
+          name: 'Water Form',
+          description:
+            'The elemental can enter an enemy’s space and stop there. It can move through a space as narrow as 1 inch without expending extra movement to do so.',
+        },
+      ],
+      actions: [
+        {
+          kind: 'special',
+          name: 'Multiattack',
+          description: 'The elemental makes two Slam attacks.',
+          sequence: [{ actionName: 'Slam', count: 2 }],
+        },
+        {
+          kind: 'natural',
+          name: 'Slam',
+          attackType: 'slam',
+          attackBonus: 7,
+          reach: 5,
+          damage: '2d8',
+          damageBonus: 4,
+          damageType: 'bludgeoning',
+          notes: 'If the target is Medium or smaller, it has the Prone condition.',
+          onHitEffects: [
+            {
+              kind: 'condition',
+              conditionId: 'prone',
+              targetSizeMax: 'medium',
+            },
+          ],
+        },
+        {
+          kind: 'special',
+          name: 'Whelm',
+          description:
+            'Strength Saving Throw: DC 15, each creature in the elemental’s space. Failure: 22 (4d8 + 4) Bludgeoning damage; Large or smaller targets can be grappled and restrained with ongoing damage and suffocation rules.',
+          save: { ability: 'str', dc: 15 },
+          recharge: { min: 4, max: 6 },
+          damage: '4d8',
+          damageBonus: 4,
+          damageType: 'bludgeoning',
+          halfDamageOnSave: true,
+          onFail: [{ kind: 'condition', conditionId: 'restrained' }],
+          resolution: {
+            caveats: [
+              'Whelm grapple capacity, ally pull, suffocation, and multi-target space rules are not fully modeled.',
+            ],
+          },
+        },
+      ],
+    },
+    lore: {
+      alignment: 'n',
+      challengeRating: 5,
+      xpValue: 1800,
+      intelligence: 'low',
+    },
+  },
 {
     id: "wolf",
     name: "Wolf",

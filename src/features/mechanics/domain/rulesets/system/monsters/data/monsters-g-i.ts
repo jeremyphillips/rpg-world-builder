@@ -4,125 +4,6 @@ import type { MonsterCatalogEntry } from '../types';
 
 export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
 {
-    id: "goblin-warrior",
-    name: "Goblin Warrior",
-    type: "fey",
-    subtype: "goblinoid",
-    languages: [{ id: "common" }, { id: "goblin" }],
-    sizeCategory: "small",
-    description: {
-      short: "Small, malicious feys that dwell in dark underground lairs.",
-      long: "Goblins are small, black-hearted creatures that lair in despoiled dungeons and other dismal settings. Individually weak, they gather in large numbers to torment other creatures.",
-    },
-    mechanics: {
-      hitPoints: {
-        count: 3,
-        die: 6,
-      },
-      armorClass: { kind: 'equipment', armorRefs: ["leather", "shield-wood"] },
-      movement: { ground: 30 },
-      abilities: { str: 8, dex: 14, con: 10, int: 10, wis: 8, cha: 8 },
-      actions: [
-        { kind: 'weapon', weaponRef: "scimitar" },
-        { kind: 'weapon', weaponRef: "shortbow" },
-      ],
-      bonusActions: [{
-        kind: 'special',
-        name: 'Nimble Escape',
-        description: 'The goblin takes the Disengage or Hide action.',
-        effects: [
-          { kind: 'action', action: 'disengage' },
-          { kind: 'action', action: 'hide' },
-        ],
-      }],
-      senses: {
-        special: [{ type: "darkvision", range: 60 }],
-        passivePerception: 9,
-      },
-      proficiencies: {
-        skills: { stealth: { proficiencyLevel: 2 } },
-        weapons: {
-          scimitar: { proficiencyLevel: 1 },
-          shortbow: { proficiencyLevel: 1 },
-        },
-      },
-      proficiencyBonus: 2,
-      equipment: {
-        weapons: {
-          scimitar: { weaponId: "scimitar" },
-          shortbow: { weaponId: "shortbow" },
-        },
-        armor: {
-          leather: { armorId: "leather" },
-          'shield-wood': { armorId: "shield-wood" },
-        },
-      },
-    },
-    lore: {
-      alignment: "ne",
-      challengeRating: 0.25,
-      xpValue: 50,
-      intelligence: "average",
-    },
-  },
-{
-    id: "gnoll-warrior",
-    name: "Gnoll Warrior",
-    type: "fiend",
-    languages: [{ id: "gnoll" }],
-    sizeCategory: "medium",
-    description: {
-      short: "Hulking hyena-headed fiends driven by an insatiable hunger.",
-      long: "Gnolls are tall, lanky fiends with hyena-like heads. They are savage raiders who worship the demon lord Yeenoghu and leave destruction in their wake.",
-    },
-    mechanics: {
-      hitPoints: { count: 6, die: 8 },
-      armorClass: { kind: 'equipment', armorRefs: ["hide", "shield-wood"] },
-      movement: { ground: 30 },
-      actions: [
-        { kind: "natural", name: "Rend", attackType: "claw", attackBonus: 4, reach: 5, damage: "1d6", damageBonus: 2, damageType: "piercing" },
-        { kind: "weapon", weaponRef: "bone-spear" },
-      ],
-      bonusActions: [{
-        kind: "special",
-        name: "Rampage",
-        description: "Immediately after dealing damage to a creature that is already Bloodied, the gnoll moves up to half its Speed and makes one Rend attack.",
-        uses: { count: 1, period: "day" },
-        effects: [
-          {
-            kind: 'trigger',
-            trigger: 'damage-dealt',
-            condition: {
-              kind: 'state',
-              target: 'target',
-              property: 'combat.bloodied',
-              equals: true,
-            },
-            effects: [
-              {
-                kind: 'move',
-                upToSpeedFraction: 0.5,
-              },
-              {
-                kind: 'action',
-                action: 'Rend',
-              },
-            ],
-          },
-        ],
-      }],
-      proficiencies: { weapons: { longbow: { proficiencyLevel: 1 } } },
-      proficiencyBonus: 2,
-      equipment: {
-        weapons: { 'bone-bow': { weaponId: "longbow", aliasName: "Bone Bow", damageOverride: "1d10", notes: "Uses a monster-specific bow profile." } },
-        armor: { hide: { armorId: "hide" }, 'shield-wood': { armorId: "shield-wood" } },
-      },
-      senses: { special: [{ type: "darkvision", range: 60 }], passivePerception: 10 },
-      abilities: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 },
-    },
-    lore: { alignment: "ce", challengeRating: 0.5, xpValue: 100, intelligence: "low" },
-  },
-{
     id: "gelatinous-cube",
     name: "Gelatinous Cube",
     type: "ooze",
@@ -291,6 +172,435 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
       xpValue: 450,
       intelligence: "non",
     },
+  },
+  {
+    id: 'ghoul',
+    name: 'Ghoul',
+    type: 'undead',
+    sizeCategory: 'medium',
+    languages: [{ id: 'common' }],
+    description: {
+      short: 'Undead horrors that devour flesh and spread paralysis with their claws.',
+      long: 'Ghouls haunt graveyards and battlefields, driven by endless hunger for corpses and living flesh.',
+    },
+    mechanics: {
+      resolution: {
+        caveats: [
+          'Claw paralysis does not exempt elves or Undead targets in encounter resolution; validate at table.',
+        ],
+      },
+      hitPoints: { count: 5, die: 8 },
+      armorClass: { kind: 'natural' },
+      movement: { ground: 30 },
+      abilities: { str: 13, dex: 15, con: 10, int: 7, wis: 10, cha: 6 },
+      senses: {
+        special: [{ type: 'darkvision', range: 60 }],
+        passivePerception: 10,
+      },
+      proficiencyBonus: 2,
+      immunities: ['poison', 'charmed', 'exhaustion', 'poisoned'],
+      actions: [
+        {
+          kind: 'special',
+          name: 'Multiattack',
+          description: 'The ghoul makes two Bite attacks.',
+          sequence: [{ actionName: 'Bite', count: 2 }],
+        },
+        {
+          kind: 'natural',
+          name: 'Bite',
+          attackType: 'bite',
+          attackBonus: 4,
+          reach: 5,
+          damage: '1d6',
+          damageBonus: 2,
+          damageType: 'piercing',
+          onHitEffects: [{ kind: 'damage', damage: '1d6', damageType: 'necrotic' }],
+        },
+        {
+          kind: 'natural',
+          name: 'Claw',
+          attackType: 'claw',
+          attackBonus: 4,
+          reach: 5,
+          damage: '1d4',
+          damageBonus: 2,
+          damageType: 'slashing',
+          notes: 'Constitution save vs paralysis for non-elf, non-Undead targets (see resolution caveats).',
+          onHitEffects: [
+            {
+              kind: 'save',
+              save: { ability: 'con', dc: 10 },
+              onFail: [
+                {
+                  kind: 'condition',
+                  conditionId: 'paralyzed',
+                  duration: {
+                    kind: 'until-turn-boundary',
+                    subject: 'target',
+                    turn: 'next',
+                    boundary: 'end',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    lore: {
+      alignment: 'ce',
+      challengeRating: 1,
+      xpValue: 200,
+      intelligence: 'low',
+    },
+  },
+  {
+    id: 'giant-centipede',
+    name: 'Giant Centipede',
+    type: 'beast',
+    sizeCategory: 'small',
+    languages: [],
+    description: {
+      short: 'A venomous many-legged predator.',
+      long: 'Giant centipedes skitter through undergrowth and dungeon cracks, delivering debilitating poison.',
+    },
+    mechanics: {
+      hitPoints: { count: 2, die: 6, modifier: 2 },
+      armorClass: { kind: 'natural', offset: 2 },
+      movement: { ground: 30, climb: 30 },
+      abilities: { str: 5, dex: 14, con: 12, int: 1, wis: 7, cha: 3 },
+      senses: {
+        special: [{ type: 'blindsight', range: 30 }],
+        passivePerception: 8,
+      },
+      proficiencyBonus: 2,
+      actions: [
+        {
+          kind: 'natural',
+          name: 'Bite',
+          attackType: 'bite',
+          attackBonus: 4,
+          reach: 5,
+          damage: '1d4',
+          damageBonus: 2,
+          damageType: 'piercing',
+          onHitEffects: [
+            {
+              kind: 'save',
+              save: { ability: 'con', dc: 11 },
+              onFail: [
+                {
+                  kind: 'condition',
+                  conditionId: 'poisoned',
+                  duration: {
+                    kind: 'until-turn-boundary',
+                    subject: 'target',
+                    turn: 'next',
+                    boundary: 'start',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    lore: {
+      alignment: 'n',
+      challengeRating: 0.25,
+      xpValue: 50,
+      intelligence: 'non',
+    },
+  },
+  {
+    id: 'giant-spider',
+    name: 'Giant Spider',
+    type: 'beast',
+    sizeCategory: 'large',
+    languages: [],
+    description: {
+      short: 'A horse-sized hunting spider.',
+      long: 'Giant spiders weave deadly webs and ambush prey in forests and ruins.',
+    },
+    mechanics: {
+      hitPoints: { count: 4, die: 10, modifier: 4 },
+      armorClass: { kind: 'natural', offset: 1 },
+      movement: { ground: 30, climb: 30 },
+      abilities: { str: 14, dex: 16, con: 12, int: 2, wis: 11, cha: 4 },
+      senses: {
+        special: [{ type: 'darkvision', range: 60 }],
+        passivePerception: 14,
+      },
+      proficiencies: {
+        skills: { perception: { proficiencyLevel: 2 }, stealth: { proficiencyLevel: 2 } },
+      },
+      proficiencyBonus: 2,
+      traits: [
+        {
+          name: 'Spider Climb',
+          description:
+            'The spider can climb difficult surfaces, including along ceilings, without needing to make an ability check.',
+        },
+        {
+          name: 'Web Walker',
+          description:
+            'The spider ignores movement restrictions caused by webs, and it knows the location of any other creature in contact with the same web.',
+        },
+      ],
+      actions: [
+        {
+          kind: 'natural',
+          name: 'Bite',
+          attackType: 'bite',
+          attackBonus: 5,
+          reach: 5,
+          damage: '1d8',
+          damageBonus: 3,
+          damageType: 'piercing',
+          onHitEffects: [{ kind: 'damage', damage: '2d6', damageType: 'poison' }],
+        },
+        {
+          kind: 'special',
+          name: 'Web',
+          description:
+            'Dexterity Saving Throw: DC 13, one creature the spider can see within 60 feet. Failure: The target has the Restrained condition until the web is destroyed (AC 10; HP 5; Vulnerability to Fire damage; Immunity to Poison and Psychic damage).',
+          save: { ability: 'dex', dc: 13 },
+          recharge: { min: 5, max: 6 },
+          onFail: [{ kind: 'condition', conditionId: 'restrained' }],
+          resolution: {
+            caveats: ['Web object AC/HP/destruction and ranged targeting limits are not fully modeled in encounter combat.'],
+          },
+        },
+      ],
+    },
+    lore: {
+      alignment: 'n',
+      challengeRating: 1,
+      xpValue: 200,
+      intelligence: 'animal',
+    },
+  },
+  {
+    id: 'giant-wasp',
+    name: 'Giant Wasp',
+    type: 'beast',
+    sizeCategory: 'medium',
+    languages: [],
+    description: {
+      short: 'An oversized stinging insect.',
+      long: 'Giant wasps are aggressive aerial predators.',
+    },
+    mechanics: {
+      hitPoints: { count: 5, die: 8 },
+      armorClass: { kind: 'natural', offset: 1 },
+      movement: { ground: 10, fly: 50 },
+      abilities: { str: 10, dex: 14, con: 10, int: 1, wis: 10, cha: 3 },
+      senses: { passivePerception: 10 },
+      proficiencyBonus: 2,
+      traits: [
+        {
+          name: 'Flyby',
+          description:
+            "The wasp doesn't provoke an Opportunity Attack when it flies out of an enemy's reach.",
+          resolution: {
+            caveats: ['Opportunity-attack exemption when leaving reach is not automated for monsters.'],
+          },
+        },
+      ],
+      actions: [
+        {
+          kind: 'natural',
+          name: 'Sting',
+          attackType: 'bite',
+          attackBonus: 4,
+          reach: 5,
+          damage: '1d6',
+          damageBonus: 2,
+          damageType: 'piercing',
+          onHitEffects: [{ kind: 'damage', damage: '2d4', damageType: 'poison' }],
+        },
+      ],
+    },
+    lore: {
+      alignment: 'n',
+      challengeRating: 0.5,
+      xpValue: 100,
+      intelligence: 'non',
+    },
+  },
+  {
+    id: 'goblin-minion',
+    name: 'Goblin Minion',
+    type: 'fey',
+    subtype: 'goblinoid',
+    sizeCategory: 'small',
+    languages: [{ id: 'common' }, { id: 'goblin' }],
+    description: {
+      short: 'A scrappy goblin skirmisher.',
+      long: 'Goblin minions rely on numbers, stealth, and hit-and-run tactics.',
+    },
+    mechanics: {
+      hitPoints: { count: 2, die: 6 },
+      armorClass: { kind: 'natural' },
+      movement: { ground: 30 },
+      abilities: { str: 8, dex: 15, con: 10, int: 10, wis: 8, cha: 8 },
+      senses: {
+        special: [{ type: 'darkvision', range: 60 }],
+        passivePerception: 9,
+      },
+      proficiencies: {
+        skills: { stealth: { proficiencyLevel: 2 } },
+        weapons: { dagger: { proficiencyLevel: 1 } },
+      },
+      proficiencyBonus: 2,
+      actions: [{ kind: 'weapon', weaponRef: 'dagger' }],
+      bonusActions: [
+        {
+          kind: 'special',
+          name: 'Nimble Escape',
+          description: 'The goblin takes the Disengage or Hide action.',
+          effects: [
+            { kind: 'action', action: 'disengage' },
+            { kind: 'action', action: 'hide' },
+          ],
+        },
+      ],
+      equipment: {
+        weapons: {
+          dagger: {
+            weaponId: 'dagger',
+            attackBonus: 4,
+            notes: 'Gear includes three daggers; one attack profile for melee or thrown.',
+          },
+        },
+      },
+    },
+    lore: {
+      alignment: 'cn',
+      challengeRating: 0.125,
+      xpValue: 25,
+      intelligence: 'average',
+    },
+  },
+{
+    id: "goblin-warrior",
+    name: "Goblin Warrior",
+    type: "fey",
+    subtype: "goblinoid",
+    languages: [{ id: "common" }, { id: "goblin" }],
+    sizeCategory: "small",
+    description: {
+      short: "Small, malicious feys that dwell in dark underground lairs.",
+      long: "Goblins are small, black-hearted creatures that lair in despoiled dungeons and other dismal settings. Individually weak, they gather in large numbers to torment other creatures.",
+    },
+    mechanics: {
+      hitPoints: {
+        count: 3,
+        die: 6,
+      },
+      armorClass: { kind: 'equipment', armorRefs: ["leather", "shield-wood"] },
+      movement: { ground: 30 },
+      abilities: { str: 8, dex: 14, con: 10, int: 10, wis: 8, cha: 8 },
+      actions: [
+        { kind: 'weapon', weaponRef: "scimitar" },
+        { kind: 'weapon', weaponRef: "shortbow" },
+      ],
+      bonusActions: [{
+        kind: 'special',
+        name: 'Nimble Escape',
+        description: 'The goblin takes the Disengage or Hide action.',
+        effects: [
+          { kind: 'action', action: 'disengage' },
+          { kind: 'action', action: 'hide' },
+        ],
+      }],
+      senses: {
+        special: [{ type: "darkvision", range: 60 }],
+        passivePerception: 9,
+      },
+      proficiencies: {
+        skills: { stealth: { proficiencyLevel: 2 } },
+        weapons: {
+          scimitar: { proficiencyLevel: 1 },
+          shortbow: { proficiencyLevel: 1 },
+        },
+      },
+      proficiencyBonus: 2,
+      equipment: {
+        weapons: {
+          scimitar: { weaponId: "scimitar" },
+          shortbow: { weaponId: "shortbow" },
+        },
+        armor: {
+          leather: { armorId: "leather" },
+          'shield-wood': { armorId: "shield-wood" },
+        },
+      },
+    },
+    lore: {
+      alignment: "ne",
+      challengeRating: 0.25,
+      xpValue: 50,
+      intelligence: "average",
+    },
+  },
+{
+    id: "gnoll-warrior",
+    name: "Gnoll Warrior",
+    type: "fiend",
+    languages: [{ id: "gnoll" }],
+    sizeCategory: "medium",
+    description: {
+      short: "Hulking hyena-headed fiends driven by an insatiable hunger.",
+      long: "Gnolls are tall, lanky fiends with hyena-like heads. They are savage raiders who worship the demon lord Yeenoghu and leave destruction in their wake.",
+    },
+    mechanics: {
+      hitPoints: { count: 6, die: 8 },
+      armorClass: { kind: 'equipment', armorRefs: ["hide", "shield-wood"] },
+      movement: { ground: 30 },
+      actions: [
+        { kind: "natural", name: "Rend", attackType: "claw", attackBonus: 4, reach: 5, damage: "1d6", damageBonus: 2, damageType: "piercing" },
+        { kind: "weapon", weaponRef: "bone-spear" },
+      ],
+      bonusActions: [{
+        kind: "special",
+        name: "Rampage",
+        description: "Immediately after dealing damage to a creature that is already Bloodied, the gnoll moves up to half its Speed and makes one Rend attack.",
+        uses: { count: 1, period: "day" },
+        effects: [
+          {
+            kind: 'trigger',
+            trigger: 'damage-dealt',
+            condition: {
+              kind: 'state',
+              target: 'target',
+              property: 'combat.bloodied',
+              equals: true,
+            },
+            effects: [
+              {
+                kind: 'move',
+                upToSpeedFraction: 0.5,
+              },
+              {
+                kind: 'action',
+                action: 'Rend',
+              },
+            ],
+          },
+        ],
+      }],
+      proficiencies: { weapons: { longbow: { proficiencyLevel: 1 } } },
+      proficiencyBonus: 2,
+      equipment: {
+        weapons: { 'bone-bow': { weaponId: "longbow", aliasName: "Bone Bow", damageOverride: "1d10", notes: "Uses a monster-specific bow profile." } },
+        armor: { hide: { armorId: "hide" }, 'shield-wood': { armorId: "shield-wood" } },
+      },
+      senses: { special: [{ type: "darkvision", range: 60 }], passivePerception: 10 },
+      abilities: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 },
+    },
+    lore: { alignment: "ce", challengeRating: 0.5, xpValue: 100, intelligence: "low" },
   },
 {
     id: "hydra",
