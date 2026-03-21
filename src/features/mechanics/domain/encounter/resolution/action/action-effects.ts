@@ -12,6 +12,7 @@ import {
   getSaveModifiersFromConditions,
   removeStatesByClassification,
   updateEncounterCombatant,
+  mergeCombatantsIntoEncounter,
   type CombatantInstance,
 } from '../../state'
 import { getAbilityModifier } from '../../../abilities/getAbilityModifier'
@@ -22,7 +23,7 @@ import { evaluateCondition } from '../../../conditions/evaluateCondition'
 import type { Effect } from '../../../effects/effects.types'
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
-import { describeResolvedSpawn } from './spawn-resolution'
+import { describeResolvedSpawn, resolveSpawnMonsterIds } from './spawn-resolution'
 import type { EncounterState } from '../../state/types'
 import {
   resolveD20RollMode,
@@ -183,6 +184,8 @@ export type ApplyActionEffectsOptions = {
   sourceLabel: string
   /** When set, `spawn` effects can resolve monster names and random pools. */
   monstersById?: Record<string, Monster>
+  /** When set with resolvable spawn ids, creates party combatants and merges initiative. */
+  buildSummonAllyCombatant?: (args: { monster: Monster; runtimeId: string }) => CombatantInstance
 }
 
 export function applyActionEffects(
@@ -608,6 +611,32 @@ export function applyActionEffects(
     }
 
     if (effect.kind === 'spawn') {
+      const ids = resolveSpawnMonsterIds(effect, options.monstersById, options.rng)
+      const factory = options.buildSummonAllyCombatant
+      if (ids.length > 0 && factory && options.monstersById) {
+        const built: CombatantInstance[] = []
+        for (let i = 0; i < ids.length; i++) {
+          const mid = ids[i]!
+          const monster = options.monstersById[mid]
+          if (!monster) continue
+          const runtimeId = `${actor.instanceId}-spawn-${mid}-${i}-${Math.floor(options.rng() * 1e9)}`
+          built.push(factory({ monster, runtimeId }))
+        }
+        if (built.length > 0) {
+          nextState = mergeCombatantsIntoEncounter(nextState, built, {
+            rng: options.rng,
+            initiativeMode: effect.initiativeMode,
+            casterInstanceId: actor.instanceId,
+          })
+          const names = built.map((c) => c.source.label).join(', ')
+          nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Summoned ${names} — joined initiative (party).`, {
+            actorId: actor.instanceId,
+            targetIds: [target.instanceId],
+          })
+          return
+        }
+      }
+
       const detail = describeResolvedSpawn(effect, options.monstersById, options.rng)
       nextState = appendEncounterNote(nextState, `${options.sourceLabel}: ${detail}`, {
         actorId: actor.instanceId,

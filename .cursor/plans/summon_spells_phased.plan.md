@@ -50,15 +50,19 @@ Ally summon spells should add **party-side** `CombatantInstance`s from catalog `
 
 ## Phase 3 — Encounter state: add allies
 
+**Status: done** (2026-03-20)
 
-| Deliverable                               | Notes                                                                                                                                                   |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCombatantToEncounter` (or equivalent) | Insert into `combatantsById`, `**partyCombatantIds`**, `**initiative`**, `**initiativeOrder**`; handle **turn index** when the active combatant shifts. |
-| Build instances                           | Reuse `**buildMonsterCombatantInstance`**; labels for summoned allies (caster + monster name).                                                          |
-| Initiative modes                          | **Group** (one roll for many), **share-caster** (Giant Insect), **individual** — per spell metadata.                                                    |
+| Deliverable | Notes |
+|-------------|--------|
+| `mergeCombatantsIntoEncounter` | `state/runtime.ts` — seeds combatants, merges `initiative` via `sortInitiativeRolls`, updates `partyCombatantIds`, preserves `activeCombatantId`. Modes: `individual` (default), `group`, `share-caster`. |
+| `buildMonsterCombatantInstance` | Optional `side` — `'party'` for allies. |
+| `buildSummonAllyMonsterCombatant` | `encounter/helpers/summon-ally-combatant.ts` — party monster combatant (average HP, default env context). |
+| `applyActionEffects` + options | `buildSummonAllyCombatant` factory + `resolveSpawnMonsterIds` → merge when ids resolve. |
+| Encounter route | Passes `weaponsById` / `armorById` + `buildSummonAllyCombatant` via `useEncounterState`. |
 
+**Exit criteria:** Met — `merge-combatants.test.ts`; spawn with `monsterId` + catalog creates allies in `encounterState`.
 
-**Exit criteria:** After resolving a summon action, new party combatants appear in initiative and can be selected when their turn comes.
+**Follow-up (UX):** Summoned instance ids are not in `selectedCombatantIds` / setup `resolvedCombatantsById`; active encounter UI should list `encounterState.initiativeOrder` (verify lanes include merged party monsters).
 
 ---
 

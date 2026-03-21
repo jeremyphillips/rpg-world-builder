@@ -190,7 +190,12 @@ function resolveCombatActionInternal(
 
   const rng = options.rng ?? Math.random
   const actionLabel = getActionLabel(action)
-  const applyEffectsOpts = { rng, sourceLabel: actionLabel, monstersById: options.monstersById }
+  const applyEffectsOpts = {
+    rng,
+    sourceLabel: actionLabel,
+    monstersById: options.monstersById,
+    buildSummonAllyCombatant: options.buildSummonAllyCombatant,
+  }
   const targetLabel = target ? getEncounterCombatantLabel(state, target.instanceId) : 'no target'
   const casterSummary = formatCasterOptionSummary(action.casterOptions, selection.casterOptions)
   const allMarkerIds: string[] = []

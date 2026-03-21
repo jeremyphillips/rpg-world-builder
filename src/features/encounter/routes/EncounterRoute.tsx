@@ -132,6 +132,8 @@ export default function EncounterRoute() {
     selectedCombatantIds,
     opponentRoster,
     monstersById,
+    weaponsById: catalog.weaponsById,
+    armorById: catalog.armorById,
   })
 
   const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(DEFAULT_ENVIRONMENT)

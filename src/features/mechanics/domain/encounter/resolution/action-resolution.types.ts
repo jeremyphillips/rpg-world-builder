@@ -1,3 +1,6 @@
+import type { CombatantInstance } from '../state/types'
+import type { Monster } from '@/features/content/monsters/domain/types'
+
 export interface ResolveCombatActionSelection {
   actorId: string
   targetId?: string
@@ -9,7 +12,9 @@ export interface ResolveCombatActionSelection {
 export interface ResolveCombatActionOptions {
   rng?: () => number
   /** Merged ruleset monster catalog — used for `spawn` resolution (ids, random pools). */
-  monstersById?: Record<string, import('@/features/content/monsters/domain/types').Monster>
+  monstersById?: Record<string, Monster>
+  /** When set with `monstersById`, `spawn` can instantiate party-side monster combatants. */
+  buildSummonAllyCombatant?: (args: { monster: Monster; runtimeId: string }) => CombatantInstance
   /**
    * Called when a spell action is spent. Use to persist character.resources.
    * Set resources[`spell_used_${spellId}`] = 1.

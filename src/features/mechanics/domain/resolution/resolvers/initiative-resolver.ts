@@ -53,3 +53,8 @@ export function rollInitiative(
     })
     .sort(compareInitiative)
 }
+
+/** Stable sort for merging existing encounter initiative with new rolls. */
+export function sortInitiativeRolls(rolls: InitiativeRoll[]): InitiativeRoll[] {
+  return [...rolls].sort(compareInitiative)
+}

@@ -46,6 +46,7 @@ export {
   formatDice,
   toSavingThrowModifier,
 } from './combatant-builders'
+export { buildSummonAllyMonsterCombatant } from './summon-ally-combatant'
 
 export function getCharacterSpellcastingStats(
   character: CharacterDetailDto,

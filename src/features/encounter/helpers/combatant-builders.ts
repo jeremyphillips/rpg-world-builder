@@ -176,8 +176,21 @@ export function buildMonsterCombatantInstance(args: {
   currentHitPoints: number
   activeEffects: Effect[]
   turnHooks: RuntimeTurnHook[]
+  /** Default `enemies` — use `party` for summoned allies. */
+  side?: CombatantSide
 }): CombatantInstance {
-  const { runtimeId, monster, attacks, actions = [], initiativeModifier, armorClass, currentHitPoints, activeEffects, turnHooks } = args
+  const {
+    runtimeId,
+    monster,
+    attacks,
+    actions = [],
+    initiativeModifier,
+    armorClass,
+    currentHitPoints,
+    activeEffects,
+    turnHooks,
+    side = 'enemies',
+  } = args
 
   const { damageImmunities, conditionImmunities } = partitionMonsterImmunities(
     monster.mechanics.immunities ?? [],
@@ -199,7 +212,7 @@ export function buildMonsterCombatantInstance(args: {
 
   return {
     instanceId: runtimeId,
-    side: 'enemies',
+    side,
     source: {
       kind: 'monster',
       sourceId: monster.id,

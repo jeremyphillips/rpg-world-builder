@@ -1,5 +1,13 @@
 import type { CombatantInstance } from './types'
-import { rollInitiative, type InitiativeParticipant, type InitiativeResolverOptions } from '../resolution'
+import {
+  rollInitiative,
+  sortInitiativeRolls,
+  type InitiativeParticipant,
+  type InitiativeRoll,
+  type InitiativeResolverOptions,
+} from '../../resolution/resolvers/initiative-resolver'
+import { rollDie } from '../../resolution/engines/dice.engine'
+import type { SpawnSummonInitiativeMode } from '../../effects/effects.types'
 import type { EncounterState } from './types'
 import {
   createCombatantTurnResources,
@@ -114,6 +122,91 @@ function buildAliveInitiativeParticipants(state: EncounterState): InitiativePart
       initiativeModifier: c.stats.initiativeModifier,
       dexterityScore: c.stats.dexterityScore,
     }))
+}
+
+/**
+ * Inserts new combatants (e.g. summoned allies), merges initiative, preserves the current turn actor.
+ */
+export function mergeCombatantsIntoEncounter(
+  state: EncounterState,
+  newCombatants: CombatantInstance[],
+  options: InitiativeResolverOptions & {
+    initiativeMode?: SpawnSummonInitiativeMode
+    casterInstanceId?: string
+  },
+): EncounterState {
+  if (newCombatants.length === 0) return state
+
+  const rng = options.rng ?? Math.random
+  const seeded = newCombatants.map(seedRuntimeEffects)
+  const casterRoll = options.casterInstanceId
+    ? state.initiative.find((r) => r.combatantId === options.casterInstanceId)
+    : undefined
+
+  const mode = options.initiativeMode ?? 'individual'
+  let newRolls: InitiativeRoll[]
+
+  if (mode === 'share-caster' && casterRoll) {
+    newRolls = seeded.map((c) => ({
+      combatantId: c.instanceId,
+      label: c.source.label,
+      roll: casterRoll.roll,
+      modifier: casterRoll.modifier,
+      total: casterRoll.total,
+      dexterityScore: casterRoll.dexterityScore,
+    }))
+  } else if (mode === 'group' && seeded.length > 0) {
+    const groupRoll = rollDie(20, rng)
+    const groupMod = seeded[0]!.stats.initiativeModifier
+    const total = groupRoll + groupMod
+    newRolls = seeded.map((c) => ({
+      combatantId: c.instanceId,
+      label: c.source.label,
+      roll: groupRoll,
+      modifier: groupMod,
+      total,
+      dexterityScore: c.stats.dexterityScore,
+    }))
+  } else {
+    newRolls = rollInitiative(
+      seeded.map((c) => ({
+        instanceId: c.instanceId,
+        label: c.source.label,
+        initiativeModifier: c.stats.initiativeModifier,
+        dexterityScore: c.stats.dexterityScore,
+      })),
+      options,
+    )
+  }
+
+  const mergedInitiative = sortInitiativeRolls([...state.initiative, ...newRolls])
+  const initiativeOrder = mergedInitiative.map((r: InitiativeRoll) => r.combatantId)
+
+  const activeId = state.activeCombatantId
+  const turnIndex =
+    activeId != null && initiativeOrder.includes(activeId)
+      ? initiativeOrder.indexOf(activeId)
+      : state.turnIndex
+
+  const partyIds = new Set(state.partyCombatantIds)
+  for (const c of seeded) {
+    if (c.side === 'party') partyIds.add(c.instanceId)
+  }
+
+  const combatantsById = { ...state.combatantsById }
+  for (const c of seeded) {
+    combatantsById[c.instanceId] = c
+  }
+
+  return {
+    ...state,
+    combatantsById,
+    partyCombatantIds: Array.from(partyIds),
+    initiative: mergedInitiative,
+    initiativeOrder,
+    turnIndex,
+    activeCombatantId: state.activeCombatantId,
+  }
 }
 
 export function createEncounterState(
