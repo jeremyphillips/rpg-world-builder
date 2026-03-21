@@ -17,6 +17,39 @@ Author AC so it recomputes from ability scores and equipment via [`calculateMons
 
 See [`monster-equipment.types.ts`](../../src/features/content/monsters/domain/types/monster-equipment.types.ts) for the shape of `armorClass`.
 
+## Equipment: catalog stand-ins and derived flavor
+
+Stat blocks often list **gear** or **named attacks** that should drive resolution, but the ruleset only exposes a **finite weapon/armor catalog** (`weaponId` / `armorId`). When the printed name or stats **do not exactly match** a single catalog row, use **`mechanics.equipment`** ([`MonsterEquipment`](../../src/features/content/monsters/domain/types/monster-equipment.types.ts)) to anchor mechanics on the **closest** catalog item and carry **derived flavor** on the wrapper:
+
+| Field | Use |
+| --- | --- |
+| **`aliasName`** | Display name from the MM/stat block (e.g. *Necrotic Sword*) while **`weaponId`** / **`armorId`** stay a real catalog id. |
+| **`attackBonus`**, **`damageBonus`**, **`damageOverride`**, **`reach`** | When printed to-hit, dice, or reach differ from defaults for that catalog weapon. |
+| **`notes`** | Riders not modeled elsewhere: extra damage types, poison, advantage clauses, poisoned riders, etc. |
+| **`acModifier`** (armor) | Adjust effective AC when the block implies scrap, damaged, or non-standard protection but you still use one catalog armor row for the calculation. |
+
+**Reference examples**
+
+- **Armor — battered stand-in:** Skeleton [`scraps`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters-s-u.ts) uses `armorId: 'chain-shirt'` with `acModifier: -1`, `aliasName: 'Armor Scraps'`, and `notes` explaining the fiction.
+- **Weapon — same id, different printed dice/reach:** Bugbear Warrior [`light-hammer`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters-a-c.ts) keeps `weaponId: 'light-hammer'` but sets `damageOverride: '3d4'`, `reach: 10`, and `notes` for the grapple advantage clause.
+- **Weapon — MM name differs from catalog name:** Wight [`necrotic-sword` / `necrotic-bow`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters-v-z.ts) uses `weaponId` `longsword` / `longbow` with `aliasName: 'Necrotic Sword'` / `'Necrotic Bow'` and authored bonuses plus necrotic rider `notes`.
+
+When the block lists **Gear** but you model AC as **`kind: 'natural'`** (no worn armor row)—e.g. constructs—you typically **omit** `equipment.armor` and keep the flavor in **description** / traits unless you deliberately want an equipment-based AC breakdown.
+
+**Audit: A–C batch monsters (`aboleth` … `axe-beak`)**
+
+| `id` | `equipment`? | Stand-in / `aliasName` needed? |
+| --- | --- | --- |
+| `aboleth` | No | — |
+| `animated-armor` | No (natural AC) | — |
+| `animated-flying-sword` | No | — |
+| `animated-rug-of-smothering` | No | — |
+| `ankheg` | No | — |
+| `assassin` | Yes | **No** — `studded-leather`, `shortsword`, and `light-crossbow` match the **Gear** line; poison and conditions belong in **`notes`** on each `MonsterEquippedWeapon` (no `aliasName` unless the MM used a special proper name distinct from the catalog). |
+| `awakened-shrub` | No | — |
+| `awakened-tree` | No | — |
+| `axe-beak` | No | — |
+
 ## Proficiency and skills
 
 - Set `mechanics.proficiencyBonus` from the stat block.
