@@ -6,11 +6,16 @@ import type { FormulaEffect } from '../resolution/engines/formula.engine';
 import type { DiceOrFlat } from '../dice/dice.types';
 import type { AbilityKey, AbilityRef } from '../character';
 import type { EffectDuration } from './timing.types';
-import type { WeaponDamageType } from '@/features/content/equipment/weapons/domain/vocab';
+import type { DamageType, EnergyDamageType } from '../damage/damage.types';
 import type { MonsterSizeCategory, MonsterType } from '@/features/content/monsters/domain/vocab/monster.vocab';
 import type { EffectNoteCategory } from '@/features/mechanics/domain/resolution/content-resolution.types';
+import type { AreaOfEffectTemplate } from './area.types';
+import type { TargetingEffectTarget } from './targeting.types';
 
 export type { FormulaDefinition, FormulaEffect } from '../resolution/engines/formula.engine';
+export type { AreaOfEffectTemplate } from './area.types';
+export type { TargetingEffectTarget, MonsterSpecialActionTarget } from './targeting.types';
+export type { DamageType, EnergyDamageType } from '../damage/damage.types';
 
 export type ScalingRule = {};
 
@@ -41,7 +46,6 @@ export type EffectConditionId =
   | 'unconscious';
 
 export type ConditionImmunityId = EffectConditionId | 'exhaustion';
-export type EffectDamageType = WeaponDamageType | 'acid' | DamageTypeModifierValue;
 export type EffectSizeCategory = MonsterSizeCategory;
 
 /**
@@ -65,16 +69,8 @@ export type CustomEffect = EffectBase<'custom'> & {
   params?: Record<string, unknown>;
 };
 
-export type DamageTypeModifierValue =
-  | 'cold'
-  | 'fire'
-  | 'poison'
-  | 'necrotic'
-  | 'radiant'
-  | 'thunder'
-  | 'lightning'
-  | 'psychic'
-  | 'force';
+/** Energy damage ids (elemental + planar tables); used for modifier dice `type` and standalone modifier values. */
+export type DamageTypeModifierValue = EnergyDamageType;
 
 export type AbilityModifierValue = {
   ability: AbilityKey;
@@ -219,7 +215,7 @@ export type DamageLevelThreshold = {
 
 export type DamageEffect = EffectBase<'damage'> & {
   damage: DiceOrFlat;
-  damageType?: EffectDamageType;
+  damageType?: DamageType;
   levelScaling?: {
     thresholds: DamageLevelThreshold[];
   };
@@ -272,12 +268,7 @@ export type StateEffect = EffectBase<'state'> & {
 };
 
 export type TargetingEffect = EffectBase<'targeting'> & {
-  target:
-    | 'one-creature'
-    | 'one-dead-creature'
-    | 'chosen-creatures'
-    | 'creatures-in-area'
-    | 'creatures-entered-during-move';
+  target: TargetingEffectTarget;
   targetType?: 'creature';
   /**
    * Touch-style buffs ("willing creature"): combat maps to same-side targets only (caster + allies).
@@ -289,10 +280,7 @@ export type TargetingEffect = EffectBase<'targeting'> & {
   requiresSight?: boolean;
   count?: number;
   canSelectSameTargetMultipleTimes?: boolean;
-  area?: {
-    kind: 'cone' | 'sphere' | 'line' | 'square' | 'cylinder' | 'cube';
-    size: number;
-  };
+  area?: AreaOfEffectTemplate;
 };
 
 export type IntervalEffect = EffectBase<'interval'> & {
@@ -341,7 +329,7 @@ type TrackedPartDefinition = {
     trigger: 'turn-end';
     requiresLivingPart?: boolean;
     countPerPartLostSinceLastTurn: number;
-    suppressedByDamageTypes?: EffectDamageType[];
+    suppressedByDamageTypes?: DamageType[];
     healHitPoints?: number;
   };
   change?: never;
