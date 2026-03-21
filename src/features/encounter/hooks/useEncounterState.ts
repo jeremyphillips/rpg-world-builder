@@ -213,7 +213,7 @@ export function useEncounterState({
         targetId: selectedActionTargetId || undefined,
         actionId: selectedActionId,
         casterOptions: selectedCasterOptions,
-      }),
+      }, { monstersById }),
     )
   }
 

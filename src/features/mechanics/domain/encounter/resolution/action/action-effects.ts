@@ -21,6 +21,8 @@ import type { CreatureSnapshot } from '../../../conditions/evaluation-context.ty
 import { evaluateCondition } from '../../../conditions/evaluateCondition'
 import type { Effect } from '../../../effects/effects.types'
 import type { CombatActionDefinition } from '../combat-action.types'
+import type { Monster } from '@/features/content/monsters/domain/types'
+import { describeResolvedSpawn } from './spawn-resolution'
 import type { EncounterState } from '../../state/types'
 import {
   resolveD20RollMode,
@@ -176,13 +178,20 @@ export type ApplyEffectsResult = {
   createdMarkerIds: string[]
 }
 
+export type ApplyActionEffectsOptions = {
+  rng: () => number
+  sourceLabel: string
+  /** When set, `spawn` effects can resolve monster names and random pools. */
+  monstersById?: Record<string, Monster>
+}
+
 export function applyActionEffects(
   state: EncounterState,
   actor: CombatantInstance,
   target: CombatantInstance,
   action: CombatActionDefinition,
   effects: Effect[] | undefined,
-  options: { rng: () => number; sourceLabel: string },
+  options: ApplyActionEffectsOptions,
 ): ApplyEffectsResult {
   if (!effects || effects.length === 0) return { state, createdMarkerIds: [] }
 
@@ -599,11 +608,11 @@ export function applyActionEffects(
     }
 
     if (effect.kind === 'spawn') {
-      nextState = appendEncounterNote(
-        nextState,
-        `${options.sourceLabel}: Spawn ${effect.count}× ${effect.creature} (ally combatant not yet added automatically).`,
-        { actorId: actor.instanceId, targetIds: [target.instanceId] },
-      )
+      const detail = describeResolvedSpawn(effect, options.monstersById, options.rng)
+      nextState = appendEncounterNote(nextState, `${options.sourceLabel}: ${detail}`, {
+        actorId: actor.instanceId,
+        targetIds: [target.instanceId],
+      })
       return
     }
 

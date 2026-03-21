@@ -35,15 +35,16 @@ Ally summon spells should add **party-side** `CombatantInstance`s from catalog `
 
 ## Phase 2 — `SpawnEffect` + catalog wiring
 
+**Status: done** (2026-03-20)
 
-| Deliverable                  | Notes                                                                                                                                                            |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Extend `**SpawnEffect`**     | `**monsterId**` / `**monsterIds**`, optional **pool**: `{ creatureType: MonsterType, maxChallengeRating: number }`, **count**, **initiativeMode** (`'group'      |
-| `applyActionEffects`         | Branch for `**spawn`**: resolve ids or random pick from `monstersById` with `type` + `lore.challengeRating <= maxChallengeRating`, using `**rng`** from options. |
-| `ResolveCombatActionOptions` | Pass `**monstersById**` (merged catalog) into the resolution path.                                                                                               |
+| Deliverable | Notes |
+|-------------|--------|
+| `SpawnEffect` | `monsterId`, `monsterIds`, `pool` (`SpawnPoolFilter`), `initiativeMode`; legacy `creature` optional. See `effects.types.ts`. |
+| `describeResolvedSpawn` | `spawn-resolution.ts` — names from catalog, random pool with `rng`, empty-pool messages. |
+| `applyActionEffects` | Uses `describeResolvedSpawn`; `ApplyActionEffectsOptions` includes `monstersById`. |
+| `ResolveCombatActionOptions` | `monstersById` threaded; `useEncounterState` passes ruleset catalog into `resolveCombatAction`. |
 
-
-**Exit criteria:** Unit tests: fixed id spawn; random pool with seeded `rng`; CR filter respects required `challengeRating`.
+**Exit criteria:** Met — `spawn-resolution.test.ts` + existing encounter tests; `npm run build` clean.
 
 ---
 

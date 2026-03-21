@@ -8,6 +8,8 @@ export interface ResolveCombatActionSelection {
 
 export interface ResolveCombatActionOptions {
   rng?: () => number
+  /** Merged ruleset monster catalog — used for `spawn` resolution (ids, random pools). */
+  monstersById?: Record<string, import('@/features/content/monsters/domain/types').Monster>
   /**
    * Called when a spell action is spent. Use to persist character.resources.
    * Set resources[`spell_used_${spellId}`] = 1.

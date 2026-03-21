@@ -394,11 +394,27 @@ export type FormEffect = EffectBase<'form'> & {
   notes?: string;
 };
 
+/** Filter for random spawn from the merged monster catalog (e.g. Conjure Woodland Beings). */
+export type SpawnPoolFilter = {
+  creatureType: MonsterType;
+  maxChallengeRating: number;
+};
+
+export type SpawnSummonInitiativeMode = 'group' | 'share-caster' | 'individual';
+
 export type SpawnEffect = EffectBase<'spawn'> & {
-  creature: string;
   count: number;
-  location: 'self-space' | 'self-cell';
-  actsWhen: 'immediately-after-source-turn';
+  /** Legacy authored token when not using catalog ids (e.g. familiar, Troll Limb). */
+  creature?: string;
+  location?: 'self-space' | 'self-cell';
+  actsWhen?: 'immediately-after-source-turn';
+  /** Single catalog monster id; `count` copies (e.g. multiple zombies). */
+  monsterId?: string;
+  /** Explicit catalog ids (length usually matches `count`). */
+  monsterIds?: string[];
+  /** Random picks from catalog: `type` match and CR ≤ cap. */
+  pool?: SpawnPoolFilter;
+  initiativeMode?: SpawnSummonInitiativeMode;
 };
 
 export type HitPointsEffect = EffectBase<'hit-points'> & {

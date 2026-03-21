@@ -190,6 +190,7 @@ function resolveCombatActionInternal(
 
   const rng = options.rng ?? Math.random
   const actionLabel = getActionLabel(action)
+  const applyEffectsOpts = { rng, sourceLabel: actionLabel, monstersById: options.monstersById }
   const targetLabel = target ? getEncounterCombatantLabel(state, target.instanceId) : 'no target'
   const casterSummary = formatCasterOptionSummary(action.casterOptions, selection.casterOptions)
   const allMarkerIds: string[] = []
@@ -331,7 +332,7 @@ function resolveCombatActionInternal(
         nextState.combatantsById[target.instanceId] ?? target,
         action,
         action.onHitEffects,
-        { rng, sourceLabel: actionLabel },
+        applyEffectsOpts,
       )
       nextState = hitResult.state
       allMarkerIds.push(...hitResult.createdMarkerIds)
@@ -383,7 +384,7 @@ function resolveCombatActionInternal(
           saveTarget,
           action,
           action.onFailEffects,
-          { rng, sourceLabel: actionLabel },
+          applyEffectsOpts,
         )
         nextState = saveEffectResult.state
         allMarkerIds.push(...saveEffectResult.createdMarkerIds)
@@ -446,7 +447,7 @@ function resolveCombatActionInternal(
         saveTarget,
         action,
         succeeded ? action.onSuccessEffects : action.onFailEffects,
-        { rng, sourceLabel: actionLabel },
+        applyEffectsOpts,
       )
       nextState = saveEffectResult.state
       allMarkerIds.push(...saveEffectResult.createdMarkerIds)
@@ -482,7 +483,7 @@ function resolveCombatActionInternal(
           resolvedTarget,
           action,
           effectPayload,
-          { rng, sourceLabel: actionLabel },
+          applyEffectsOpts,
         )
         nextState = effectResult.state
         allMarkerIds.push(...effectResult.createdMarkerIds)

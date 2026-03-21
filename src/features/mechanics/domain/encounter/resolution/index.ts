@@ -5,6 +5,7 @@ export * from './action/action-resolver'
 export * from './action/action-cost'
 export * from './action/action-targeting'
 export * from './action/action-effects'
+export { describeResolvedSpawn } from './action/spawn-resolution'
 export {
   rollInitiative,
   type InitiativeParticipant,
