@@ -1,4 +1,15 @@
 export {
+  buildEncounterDefensePreviewChips,
+  defenseBadgesToPresentableCombatEffects,
+  deriveEncounterDefenseBadges,
+  describeConditionScopeForDefenseTooltip,
+} from './encounter-defense-badges'
+export type {
+  EncounterConditionImmunityBadge,
+  EncounterDamageDefenseBadge,
+  EncounterDefenseBadges,
+} from './encounter-defense-badges.types'
+export {
   collectPresentableEffects,
   enrichPresentableEffects,
   enrichWithPresentation,

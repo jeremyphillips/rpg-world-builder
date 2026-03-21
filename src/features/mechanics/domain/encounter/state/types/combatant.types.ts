@@ -241,6 +241,12 @@ export interface CombatantInstance {
   concentration?: ConcentrationState
   turnContext?: CombatantTurnContext
   turnResources?: CombatantTurnResources
+  /**
+   * **Unconditional** condition immunities only (stat block / species baseline).
+   * Engine paths (`includes()`, condition application, save shortcuts) treat these as always-on.
+   * Do **not** store scoped or source-limited spell grants here — that silently over-blocks conditions.
+   * Scoped grants stay on `activeEffects` and derived presentation only until Phase 3 resolution.
+   */
   conditionImmunities?: ConditionImmunityId[]
   conditions: RuntimeMarker[]
   states: RuntimeMarker[]

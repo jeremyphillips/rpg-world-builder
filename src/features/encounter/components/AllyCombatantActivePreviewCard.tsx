@@ -1,5 +1,5 @@
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
-import type { CombatantPreviewCardProps, PreviewChip, PreviewStat } from '../domain'
+import { buildEncounterDefensePreviewChips, type CombatantPreviewCardProps, type PreviewChip, type PreviewStat } from '../domain'
 import {
   CONCENTRATING_BADGE_TOOLTIP,
   formatSigned,
@@ -51,6 +51,7 @@ export function AllyCombatantActivePreviewCard({
       tooltip: tooltipForConditionMarkerLabel(c.label),
     })),
     ...combatant.states.map((s) => ({ id: s.id, label: s.label, tone: 'info' as const })),
+    ...buildEncounterDefensePreviewChips(combatant),
   ]
 
   const previewProps: CombatantPreviewCardProps = {

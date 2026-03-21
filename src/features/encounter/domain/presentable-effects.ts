@@ -12,12 +12,25 @@ import type {
   PresentableCombatEffect,
   PresentableTurnHook,
 } from './presentable-effects.types'
+import { defenseBadgesToPresentableCombatEffects } from './encounter-defense-badges'
 import {
   COMBAT_STATE_UI_MAP,
   getFallbackPresentation,
   getPriorityOrder,
   getSectionOrder,
 } from './combat-state-ui-map'
+
+const DEFENSE_BADGE_PRESENTATION_BASE: CombatStatePresentation = {
+  label: '',
+  tone: 'info',
+  priority: 'normal',
+  defaultSection: 'ongoing-effects',
+  userFacing: true,
+}
+
+function isDefenseBadgeKey(key: string): boolean {
+  return key.startsWith('defense-condition-') || key.startsWith('defense-damage-')
+}
 
 function formatDurationString(duration: { remainingTurns: number; tickOn: string }): string {
   return `${duration.remainingTurns} turn${duration.remainingTurns === 1 ? '' : 's'} ${duration.tickOn}`
@@ -163,6 +176,8 @@ export function collectPresentableEffects(combatant: CombatantInstance): Present
     effects.push(statModifierToPresentable(modifier, instanceId))
   })
 
+  effects.push(...defenseBadgesToPresentableCombatEffects(combatant))
+
   return effects
 }
 
@@ -170,6 +185,17 @@ export function enrichWithPresentation(
   effect: PresentableCombatEffect,
   map: Record<string, CombatStatePresentation> = COMBAT_STATE_UI_MAP,
 ): EnrichedPresentableEffect {
+  if (isDefenseBadgeKey(effect.key)) {
+    return {
+      ...effect,
+      presentation: {
+        ...DEFENSE_BADGE_PRESENTATION_BASE,
+        label: effect.label,
+        rulesText: effect.summary,
+      },
+    }
+  }
+
   const presentation = map[effect.key] ?? getFallbackPresentation(effect)
   const summary =
     presentation.summarize?.(effect) ?? (effect.summary ? effect.summary : undefined)
