@@ -44,6 +44,8 @@ export type {
   PreviewTone,
   PreviewChip,
   PreviewStat,
+  CombatantStatBadge,
+  CombatantTrackedPartBadge,
   CombatantPreviewAction,
   CombatantPreviewCardProps,
   CharacterCombatant,

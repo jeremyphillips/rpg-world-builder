@@ -6,13 +6,9 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { AppBadge } from '@/ui/primitives'
-import type { AppBadgeTone } from '@/ui/types'
-import type { CombatantPreviewCardProps, PreviewTone } from '../domain'
 
-function previewToneToAppBadgeTone(tone: PreviewTone | undefined): AppBadgeTone {
-  if (!tone || tone === 'neutral') return 'default'
-  return tone
-}
+import type { CombatantPreviewCardProps } from '../domain'
+import { CombatantPreviewChipRow, CombatantStatBadgeRow } from './combatant-badges'
 
 export function CombatantPreviewCard({
   id: _id,
@@ -81,32 +77,9 @@ export function CombatantPreviewCard({
         )}
       </Stack>
 
-      {stats.length > 0 && (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          {stats.map((stat) => (
-            <AppBadge
-              key={stat.label}
-              label={`${stat.label}: ${stat.value}`}
-              tone="default"
-              variant="outlined"
-              size="small"
-            />
-          ))}
-        </Stack>
-      )}
+      {stats.length > 0 && <CombatantStatBadgeRow stats={stats} size="small" />}
 
-      {chips && chips.length > 0 && (
-        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-          {chips.map((chip) => (
-            <AppBadge
-              key={chip.id}
-              label={chip.label}
-              tone={previewToneToAppBadgeTone(chip.tone)}
-              size="small"
-            />
-          ))}
-        </Stack>
-      )}
+      {chips && chips.length > 0 && <CombatantPreviewChipRow chips={chips} />}
 
       {primaryAction && (
         <Box

@@ -7,11 +7,24 @@ export type PreviewChip = {
   id: string
   label: string
   tone?: PreviewTone
+  tooltip?: string
 }
 
-export type PreviewStat = {
+/** Core stat line (AC, HP, …); shared by preview and active combatant cards. */
+export type CombatantStatBadge = {
   label: string
   value: string
+  tooltip?: string
+}
+
+export type PreviewStat = CombatantStatBadge
+
+/** Tracked resource row (e.g. heads/limbs) on the active card. */
+export type CombatantTrackedPartBadge = {
+  label: string
+  current: number
+  initial: number
+  tooltip?: string
 }
 
 export type CombatantPreviewAction = {

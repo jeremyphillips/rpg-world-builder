@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactElement } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import Box from '@mui/material/Box'
 import ButtonBase from '@mui/material/ButtonBase'
@@ -10,42 +10,19 @@ import Typography from '@mui/material/Typography'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-import { AppBadge, AppTooltip } from '@/ui/primitives'
+import { AppBadge } from '@/ui/primitives'
 import type { CombatActionDefinition, CombatActionKind } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
-import type { EnrichedPresentableEffect, CombatStateSection } from '../domain'
+import type {
+  CombatantStatBadge,
+  CombatantTrackedPartBadge,
+  EnrichedPresentableEffect,
+  CombatStateSection,
+} from '../domain'
+import { BadgeWithOptionalTooltip, CombatantCoreBadgeRow } from './combatant-badges'
 import { ActionRow } from './ActionRow'
 import { CasterOptionsFields } from './CasterOptionsFields'
 
-export type CombatantStatBadge = {
-  label: string
-  value: string
-  /** Optional glossary / rules blurb (hover). */
-  tooltip?: string
-}
-
-export type CombatantTrackedPartBadge = {
-  label: string
-  current: number
-  initial: number
-  tooltip?: string
-}
-
-function BadgeWithOptionalTooltip({
-  tooltip,
-  children,
-}: {
-  tooltip?: string
-  children: ReactElement
-}) {
-  if (!tooltip?.trim()) return children
-  return (
-    <AppTooltip title={tooltip} placement="top">
-      <Box component="span" sx={{ display: 'inline-flex' }}>
-        {children}
-      </Box>
-    </AppTooltip>
-  )
-}
+export type { CombatantStatBadge, CombatantTrackedPartBadge } from '../domain'
 
 type CombatantActiveCardProps = {
   title: string
@@ -66,7 +43,7 @@ type CombatantActiveCardProps = {
 const SECTION_LABELS: Record<CombatStateSection, string> = {
   'critical-now': 'Critical',
   'ongoing-effects': 'Ongoing Effects',
-  'restrictions': 'Restrictions',
+  restrictions: 'Restrictions',
   'turn-triggers': 'Turn Triggers',
   'system-details': 'System Details',
 }
@@ -91,8 +68,12 @@ function CollapsibleSection({
         sx={{ width: '100%', justifyContent: 'space-between', py: 1, px: 0.5, borderRadius: 1 }}
       >
         <Stack direction="row" spacing={1} alignItems="center">
-          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{title}</Typography>
-          <Typography variant="caption" color="text.secondary">({count})</Typography>
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {title}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            ({count})
+          </Typography>
         </Stack>
         {open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
       </ButtonBase>
@@ -106,7 +87,7 @@ const ACTION_KIND_ORDER: CombatActionKind[] = ['weapon-attack', 'monster-action'
 const ACTION_KIND_LABELS: Partial<Record<CombatActionKind, string>> = {
   'weapon-attack': 'Weapons',
   'monster-action': 'Natural',
-  'spell': 'Spells',
+  spell: 'Spells',
   'combat-effect': 'Effects',
 }
 
@@ -117,9 +98,11 @@ function groupActionsByKind(actions: CombatActionDefinition[]) {
     if (list) list.push(action)
     else groups.set(action.kind, [action])
   }
-  return ACTION_KIND_ORDER
-    .filter((kind) => groups.has(kind))
-    .map((kind) => ({ kind, label: ACTION_KIND_LABELS[kind] ?? kind, actions: groups.get(kind)! }))
+  return ACTION_KIND_ORDER.filter((kind) => groups.has(kind)).map((kind) => ({
+    kind,
+    label: ACTION_KIND_LABELS[kind] ?? kind,
+    actions: groups.get(kind)!,
+  }))
 }
 
 function GroupedActionList({
@@ -140,7 +123,9 @@ function GroupedActionList({
   return (
     <Stack spacing={1} sx={{ pt: 0.5 }}>
       {actions.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">No actions available.</Typography>
+        <Typography variant="body2" color="text.secondary">
+          No actions available.
+        </Typography>
       ) : (
         groups.map(({ kind, label, actions: groupActions }) => (
           <Box key={kind}>
@@ -186,8 +171,9 @@ export function CombatantActiveCard({
   combatEffects,
   trackedParts,
 }: CombatantActiveCardProps) {
-  const effectSections = (Object.entries(combatEffects) as [CombatStateSection, EnrichedPresentableEffect[]][])
-    .filter(([, effects]) => effects.length > 0)
+  const effectSections = (Object.entries(combatEffects) as [CombatStateSection, EnrichedPresentableEffect[]][]).filter(
+    ([, effects]) => effects.length > 0,
+  )
   const totalEffects = effectSections.reduce((sum, [, effects]) => sum + effects.length, 0)
 
   const selectedActionDefinition = useMemo(() => {
@@ -203,40 +189,26 @@ export function CombatantActiveCard({
   )
 
   return (
-    <Paper sx={{ 
-      p: 3,
-      border: '1px solid',
-      borderColor: 'primary.main'
-    }}
+    <Paper
+      sx={{
+        p: 3,
+        border: '1px solid',
+        borderColor: 'primary.main',
+      }}
     >
       <Stack spacing={2}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>{title}</Typography>
-          {subtitle && <Typography variant="body2" color="text.secondary">{subtitle}</Typography>}
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            {title}
+          </Typography>
+          {subtitle && (
+            <Typography variant="body2" color="text.secondary">
+              {subtitle}
+            </Typography>
+          )}
         </Box>
 
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          {stats.map((s) => (
-            <BadgeWithOptionalTooltip key={s.label} tooltip={s.tooltip}>
-              <AppBadge
-                label={`${s.label}: ${s.value}`}
-                tone="default"
-                variant="outlined"
-                size="medium"
-              />
-            </BadgeWithOptionalTooltip>
-          ))}
-          {trackedParts?.map((tp) => (
-            <BadgeWithOptionalTooltip key={tp.label} tooltip={tp.tooltip}>
-              <AppBadge
-                label={`${tp.label}: ${tp.current}/${tp.initial}`}
-                tone={tp.current < tp.initial ? 'warning' : 'default'}
-                variant="outlined"
-                size="medium"
-              />
-            </BadgeWithOptionalTooltip>
-          ))}
-        </Stack>
+        <CombatantCoreBadgeRow stats={stats} trackedParts={trackedParts} size="medium" />
 
         <Divider />
 
@@ -274,7 +246,9 @@ export function CombatantActiveCard({
         <CollapsibleSection title="Combat Effects" count={totalEffects} defaultOpen={totalEffects > 0}>
           <Stack spacing={1} sx={{ pt: 0.5 }}>
             {totalEffects === 0 ? (
-              <Typography variant="body2" color="text.secondary">No active combat effects.</Typography>
+              <Typography variant="body2" color="text.secondary">
+                No active combat effects.
+              </Typography>
             ) : (
               effectSections.map(([section, effects]) => (
                 <Box key={section}>
@@ -292,10 +266,14 @@ export function CombatantActiveCard({
                           />
                         </BadgeWithOptionalTooltip>
                         {effect.duration && (
-                          <Typography variant="caption" color="text.secondary">{effect.duration}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {effect.duration}
+                          </Typography>
                         )}
                         {effect.summary && (
-                          <Typography variant="caption" color="text.secondary">{effect.summary}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {effect.summary}
+                          </Typography>
                         )}
                       </Stack>
                     ))}

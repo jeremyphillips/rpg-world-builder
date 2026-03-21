@@ -19,7 +19,14 @@ export { AllyCombatantActivePreviewCard } from './AllyCombatantActivePreviewCard
 export { OpponentCombatantActivePreviewCard } from './OpponentCombatantActivePreviewCard'
 export { AllyCombatantActiveCard } from './AllyCombatantActiveCard'
 export { OpponentCombatantActiveCard } from './OpponentCombatantActiveCard'
-export type { CombatantStatBadge, CombatantTrackedPartBadge } from './CombatantActiveCard'
+export type { CombatantStatBadge, CombatantTrackedPartBadge } from './combatant-badges'
+export {
+  BadgeWithOptionalTooltip,
+  CombatantCoreBadgeRow,
+  CombatantPreviewChipRow,
+  CombatantStatBadgeRow,
+  CombatantTrackedPartBadgeRow,
+} from './combatant-badges'
 export { CombatActionPreviewCard } from './CombatActionPreviewCard'
 export { CombatTargetPreviewCard } from './CombatTargetPreviewCard'
 export { CombatLogPanel } from './CombatLogPanel'
