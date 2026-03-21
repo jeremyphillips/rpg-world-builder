@@ -3,6 +3,115 @@ import type { MonsterCatalogEntry } from '../types';
 /** System catalog — ids starting with [m-o] (first character of `id`). */
 
 export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
+  {
+    id: 'magmin',
+    name: 'Magmin',
+    type: 'elemental',
+    sizeCategory: 'small',
+    languages: [{ id: 'primordial' }],
+    description: {
+      short: 'A capering elemental of magma that explodes when slain.',
+      long: 'Magmins are minor fire elementals that caper through volcanic vents and forge halls, leaving scorch marks and dangerous bursts when destroyed.',
+    },
+    mechanics: {
+      hitPoints: { count: 3, die: 6, modifier: 3 },
+      armorClass: { kind: 'natural', offset: 2 },
+      movement: { ground: 30 },
+      abilities: { str: 7, dex: 15, con: 12, int: 8, wis: 11, cha: 10 },
+      senses: {
+        special: [{ type: 'darkvision', range: 60 }],
+        passivePerception: 10,
+      },
+      proficiencyBonus: 2,
+      immunities: ['fire'],
+      traits: [
+        {
+          name: 'Death Burst',
+          description:
+            'The magmin explodes when it dies. Dexterity Saving Throw: DC 11, each creature in a 10-foot Emanation originating from the magmin. Failure: 7 (2d6) Fire damage. Success: Half damage.',
+          trigger: { kind: 'reduced-to-0-hp' },
+          effects: [
+            {
+              kind: 'note',
+              text: 'Resolve 10-ft emanation Dex save DC 11 vs 2d6 fire (half on success) at table.',
+              category: 'under-modeled',
+            },
+          ],
+        },
+      ],
+      actions: [
+        {
+          kind: 'natural',
+          name: 'Touch',
+          attackType: 'touch',
+          attackBonus: 4,
+          reach: 5,
+          damage: '2d4',
+          damageBonus: 2,
+          damageType: 'fire',
+          notes:
+            'If the target is a creature or a flammable object that isn’t being worn or carried, it starts burning.',
+        },
+      ],
+    },
+    lore: {
+      alignment: 'cn',
+      challengeRating: 0.5,
+      xpValue: 100,
+      intelligence: 'low',
+    },
+  },
+  {
+    id: 'merfolk-skirmisher',
+    name: 'Merfolk Skirmisher',
+    type: 'elemental',
+    sizeCategory: 'medium',
+    languages: [{ id: 'common' }, { id: 'primordial' }],
+    description: {
+      short: 'A swift coastal raider with a tide-touched spear.',
+      long: 'Merfolk skirmishers strike from the surf with spears that carry the chill of the deep, harrying foes who underestimate the shallows.',
+    },
+    mechanics: {
+      hitPoints: { count: 2, die: 8, modifier: 2 },
+      armorClass: { kind: 'natural' },
+      movement: { ground: 10, swim: 40 },
+      abilities: { str: 10, dex: 13, con: 12, int: 11, wis: 14, cha: 12 },
+      senses: { passivePerception: 12 },
+      proficiencyBonus: 2,
+      actions: [
+        {
+          kind: 'natural',
+          name: 'Ocean Spear',
+          attackType: 'slam',
+          attackBonus: 2,
+          reach: 5,
+          damage: '1d6',
+          damageType: 'piercing',
+          notes: 'Melee or ranged 20/60 ft.; returning spear returns after a ranged attack.',
+          onHitEffects: [
+            { kind: 'damage', damage: '1d4', damageType: 'cold' },
+            {
+              kind: 'note',
+              text: 'If the target is a creature, its Speed decreases by 10 feet until the end of its next turn.',
+              category: 'under-modeled',
+            },
+          ],
+        },
+      ],
+      traits: [
+        {
+          name: 'Amphibious',
+          description: 'The merfolk can breathe air and water.',
+        },
+      ],
+    },
+    lore: {
+      alignment: 'n',
+      challengeRating: 0.125,
+      xpValue: 25,
+      intelligence: 'average',
+    },
+  },
 {
     id: "orc",
     name: "Orc",

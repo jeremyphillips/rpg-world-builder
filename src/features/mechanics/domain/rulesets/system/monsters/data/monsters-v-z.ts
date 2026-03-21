@@ -166,7 +166,103 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
       intelligence: "semi",
     },
   },
-{
+  {
+    id: 'xorn',
+    name: 'Xorn',
+    type: 'elemental',
+    sizeCategory: 'medium',
+    languages: [{ id: 'primordial' }],
+    description: {
+      short: 'A tripartite earth elemental that swims through stone and hungers for gems.',
+      long: 'Xorns are bizarre natives of the Elemental Plane of Earth. They glide through unworked rock, sense treasure, and overwhelm foes with bites and a flurry of claws.',
+    },
+    mechanics: {
+      hitPoints: { count: 8, die: 8, modifier: 48 },
+      armorClass: { kind: 'natural', offset: 9 },
+      movement: { ground: 20, burrow: 20 },
+      abilities: { str: 17, dex: 10, con: 22, int: 11, wis: 10, cha: 11 },
+      senses: {
+        special: [
+          { type: 'darkvision', range: 60 },
+          { type: 'tremorsense', range: 60 },
+        ],
+        passivePerception: 16,
+      },
+      proficiencies: {
+        skills: { perception: { proficiencyLevel: 2 }, stealth: { proficiencyLevel: 2 } },
+      },
+      proficiencyBonus: 3,
+      immunities: ['poison', 'paralyzed', 'petrified', 'poisoned'],
+      traits: [
+        {
+          name: 'Earth Glide',
+          description:
+            'The xorn can burrow through nonmagical, unworked earth and stone. While doing so, the xorn doesn’t disturb the material it moves through.',
+        },
+        {
+          name: 'Treasure Sense',
+          description:
+            'The xorn can pinpoint the location of precious metals and stones within 60 feet of itself.',
+          resolution: {
+            caveats: ['Treasure sense does not reveal exact items or quantities in automation.'],
+          },
+        },
+      ],
+      actions: [
+        {
+          kind: 'special',
+          name: 'Multiattack',
+          description: 'The xorn makes one Bite attack and three Claw attacks.',
+          sequence: [
+            { actionName: 'Bite', count: 1 },
+            { actionName: 'Claw', count: 3 },
+          ],
+        },
+        {
+          kind: 'natural',
+          name: 'Bite',
+          attackType: 'bite',
+          attackBonus: 6,
+          reach: 5,
+          damage: '4d6',
+          damageBonus: 3,
+          damageType: 'piercing',
+        },
+        {
+          kind: 'natural',
+          name: 'Claw',
+          attackType: 'claw',
+          attackBonus: 6,
+          reach: 5,
+          damage: '1d10',
+          damageBonus: 3,
+          damageType: 'slashing',
+        },
+      ],
+      bonusActions: [
+        {
+          kind: 'special',
+          name: 'Charge',
+          description:
+            'The xorn moves up to its Speed or Burrow Speed straight toward an enemy it can sense.',
+          movement: {
+            upToSpeed: true,
+            straightTowardVisibleEnemy: true,
+          },
+          resolution: {
+            caveats: ['Burrow path and tremorsense targeting are not fully simulated.'],
+          },
+        },
+      ],
+    },
+    lore: {
+      alignment: 'n',
+      challengeRating: 5,
+      xpValue: 1800,
+      intelligence: 'low',
+    },
+  },
+  {
     id: "zombie",
     name: "Zombie",
     type: "undead",
@@ -226,7 +322,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
       intelligence: "non",
     },
   },
-{
+  {
     id: "young-red-dragon",
     name: "Young Red Dragon",
     type: "dragon",

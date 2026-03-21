@@ -82,6 +82,67 @@ export const MONSTERS_A_C: readonly MonsterCatalogEntry[] = [
       intelligence: 'low',
     },
   },
+  {
+    id: 'azer-sentinel',
+    name: 'Azer Sentinel',
+    type: 'elemental',
+    sizeCategory: 'medium',
+    languages: [{ id: 'primordial' }],
+    description: {
+      short: 'A dwarf-like brass-skinned elemental wreathed in forge heat.',
+      long: 'Azers are disciplined elementals of flame and metal. Azer sentinels guard planar forges and blazing halls, hammering intruders with superheated weapons.',
+    },
+    mechanics: {
+      hitPoints: { count: 6, die: 8, modifier: 12 },
+      armorClass: { kind: 'natural', offset: 6 },
+      movement: { ground: 30 },
+      abilities: { str: 17, dex: 12, con: 15, int: 12, wis: 13, cha: 10 },
+      savingThrows: {
+        con: { proficiencyLevel: 1 },
+      },
+      senses: { passivePerception: 11 },
+      proficiencyBonus: 2,
+      immunities: ['fire', 'poison', 'poisoned'],
+      traits: [
+        {
+          name: 'Fire Aura',
+          description:
+            'At the end of each of the azer’s turns, each creature of the azer’s choice in a 5-foot Emanation originating from the azer takes 5 (1d10) Fire damage unless the azer has the Incapacitated condition.',
+          effects: [
+            {
+              kind: 'note',
+              text: 'End-of-turn aura damage and chosen targets in 5 ft. are not auto-resolved in encounter.',
+              category: 'under-modeled',
+            },
+          ],
+        },
+        {
+          name: 'Illumination',
+          description:
+            'The azer sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.',
+        },
+      ],
+      actions: [
+        {
+          kind: 'natural',
+          name: 'Burning Hammer',
+          attackType: 'slam',
+          attackBonus: 5,
+          reach: 5,
+          damage: '1d10',
+          damageBonus: 3,
+          damageType: 'bludgeoning',
+          onHitEffects: [{ kind: 'damage', damage: '1d6', damageType: 'fire' }],
+        },
+      ],
+    },
+    lore: {
+      alignment: 'ln',
+      challengeRating: 2,
+      xpValue: 450,
+      intelligence: 'average',
+    },
+  },
 {
     id: "bugbear-warrior",
     name: "Bugbear Warrior",

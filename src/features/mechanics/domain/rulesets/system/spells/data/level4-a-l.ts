@@ -337,7 +337,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
       summary: 'Summon fey (CR options). Group initiative; verbal commands. 6th/8th slot multiplies count.',
     },
   },
-{
+  {
     id: 'control-water',
     name: 'Control Water',
     school: 'transmutation',

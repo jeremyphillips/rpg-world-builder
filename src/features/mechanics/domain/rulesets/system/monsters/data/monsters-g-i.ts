@@ -3,6 +3,66 @@ import type { MonsterCatalogEntry } from '../types';
 /** System catalog — ids starting with [g-i] (first character of `id`). */
 
 export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
+  {
+    id: 'gargoyle',
+    name: 'Gargoyle',
+    type: 'elemental',
+    sizeCategory: 'medium',
+    languages: [{ id: 'primordial' }],
+    description: {
+      short: 'Grotesque stone-winged predators that perch atop ruins and strike from above.',
+      long: 'Gargoyles resemble animated stone statues with leathery wings. They lurk on battlements and desecrated shrines, dropping on prey with cruel claws.',
+    },
+    mechanics: {
+      hitPoints: { count: 9, die: 8, modifier: 27 },
+      armorClass: { kind: 'natural', offset: 5 },
+      movement: { ground: 30, fly: 60 },
+      abilities: { str: 15, dex: 11, con: 16, int: 6, wis: 11, cha: 7 },
+      senses: {
+        special: [{ type: 'darkvision', range: 60 }],
+        passivePerception: 10,
+      },
+      proficiencies: {
+        skills: { stealth: { proficiencyLevel: 2 } },
+      },
+      proficiencyBonus: 2,
+      immunities: ['poison', 'exhaustion', 'petrified', 'poisoned'],
+      traits: [
+        {
+          name: 'Flyby',
+          description:
+            "The gargoyle doesn't provoke an Opportunity Attack when it flies out of an enemy's reach.",
+          resolution: {
+            caveats: ['Opportunity-attack exemption when leaving reach is not automated for monsters.'],
+          },
+        },
+      ],
+      actions: [
+        {
+          kind: 'special',
+          name: 'Multiattack',
+          description: 'The gargoyle makes two Claw attacks.',
+          sequence: [{ actionName: 'Claw', count: 2 }],
+        },
+        {
+          kind: 'natural',
+          name: 'Claw',
+          attackType: 'claw',
+          attackBonus: 4,
+          reach: 5,
+          damage: '2d4',
+          damageBonus: 2,
+          damageType: 'slashing',
+        },
+      ],
+    },
+    lore: {
+      alignment: 'ce',
+      challengeRating: 2,
+      xpValue: 450,
+      intelligence: 'low',
+    },
+  },
 {
     id: "gelatinous-cube",
     name: "Gelatinous Cube",
@@ -430,6 +490,97 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
     },
   },
   {
+    id: 'goblin-boss',
+    name: 'Goblin Boss',
+    type: 'fey',
+    subtype: 'goblinoid',
+    sizeCategory: 'small',
+    languages: [{ id: 'common' }, { id: 'goblin' }],
+    description: {
+      short: 'A tougher goblin leader in chain mail, directing allies and slipping away with tricks.',
+      long: 'Goblin bosses wear better armor and coordinate their warbands. Some learn to throw lesser kin into harm’s way when blades come too close.',
+    },
+    mechanics: {
+      hitPoints: { count: 6, die: 6 },
+      armorClass: { kind: 'equipment', armorRefs: ['chain-shirt', 'shield-wood'] },
+      movement: { ground: 30 },
+      abilities: { str: 10, dex: 15, con: 10, int: 10, wis: 8, cha: 10 },
+      senses: {
+        special: [{ type: 'darkvision', range: 60 }],
+        passivePerception: 9,
+      },
+      proficiencies: {
+        skills: { stealth: { proficiencyLevel: 2 } },
+        weapons: {
+          scimitar: { proficiencyLevel: 1 },
+          shortbow: { proficiencyLevel: 1 },
+        },
+      },
+      proficiencyBonus: 2,
+      traits: [
+        {
+          name: 'Redirect Attack',
+          description:
+            'Trigger: A creature the goblin can see makes an attack roll against it. Response: The goblin chooses a Small or Medium ally within 5 feet of itself. The goblin and that ally swap places, and the ally becomes the target of the attack instead.',
+          resolution: {
+            caveats: [
+              'Reaction, swap positions, and retargeting the attack are not enforced in encounter resolution; resolve at table.',
+            ],
+          },
+        },
+      ],
+      actions: [
+        {
+          kind: 'special',
+          name: 'Multiattack',
+          description:
+            'The goblin makes two attacks, using Scimitar or Shortbow in any combination.',
+          sequence: [{ actionName: 'Scimitar', count: 2 }],
+          notes: 'Each attack may use Shortbow instead.',
+        },
+        { kind: 'weapon', weaponRef: 'scimitar' },
+        { kind: 'weapon', weaponRef: 'shortbow' },
+      ],
+      bonusActions: [
+        {
+          kind: 'special',
+          name: 'Nimble Escape',
+          description: 'The goblin takes the Disengage or Hide action.',
+          effects: [
+            { kind: 'action', action: 'disengage' },
+            { kind: 'action', action: 'hide' },
+          ],
+        },
+      ],
+      equipment: {
+        weapons: {
+          scimitar: {
+            weaponId: 'scimitar',
+            attackBonus: 4,
+            damageBonus: 2,
+            notes: '+ 2 (1d4) Slashing damage if the attack roll had Advantage.',
+          },
+          shortbow: {
+            weaponId: 'shortbow',
+            attackBonus: 4,
+            damageBonus: 2,
+            notes: '+ 2 (1d4) Piercing damage if the attack roll had Advantage.',
+          },
+        },
+        armor: {
+          'chain-shirt': { armorId: 'chain-shirt' },
+          'shield-wood': { armorId: 'shield-wood' },
+        },
+      },
+    },
+    lore: {
+      alignment: 'cn',
+      challengeRating: 1,
+      xpValue: 200,
+      intelligence: 'average',
+    },
+  },
+  {
     id: 'goblin-minion',
     name: 'Goblin Minion',
     type: 'fey',
@@ -601,6 +752,163 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
       abilities: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 },
     },
     lore: { alignment: "ce", challengeRating: 0.5, xpValue: 100, intelligence: "low" },
+  },
+  {
+    id: 'hobgoblin-captain',
+    name: 'Hobgoblin Captain',
+    type: 'fey',
+    subtype: 'goblinoid',
+    sizeCategory: 'medium',
+    languages: [{ id: 'common' }, { id: 'goblin' }],
+    description: {
+      short: 'Disciplined hobgoblin officers whose mere presence steels allies.',
+      long: 'Hobgoblin captains wear half plate and lead from the front, greatsword in hand, while their aura of authority rallies lesser troops.',
+    },
+    mechanics: {
+      hitPoints: { count: 9, die: 8, modifier: 18 },
+      armorClass: { kind: 'equipment', armorRefs: ['half-plate'] },
+      movement: { ground: 30 },
+      abilities: { str: 15, dex: 14, con: 14, int: 12, wis: 10, cha: 13 },
+      senses: {
+        special: [{ type: 'darkvision', range: 60 }],
+        passivePerception: 10,
+      },
+      proficiencies: {
+        weapons: {
+          greatsword: { proficiencyLevel: 1 },
+          longbow: { proficiencyLevel: 1 },
+        },
+      },
+      proficiencyBonus: 2,
+      traits: [
+        {
+          name: 'Aura of Authority',
+          description:
+            'While in a 10-foot Emanation originating from the hobgoblin, the hobgoblin and its allies have Advantage on attack rolls and saving throws, provided the hobgoblin doesn’t have the Incapacitated condition.',
+          resolution: {
+            caveats: [
+              '10-ft emanation granting advantage on attacks and saves for allies is not automated in encounter resolution.',
+            ],
+          },
+        },
+      ],
+      actions: [
+        {
+          kind: 'special',
+          name: 'Multiattack',
+          description:
+            'The hobgoblin makes two attacks, using Greatsword or Longbow in any combination.',
+          sequence: [{ actionName: 'Greatsword', count: 2 }],
+          notes: 'Each attack may use Longbow instead.',
+        },
+        { kind: 'weapon', weaponRef: 'greatsword' },
+        { kind: 'weapon', weaponRef: 'longbow' },
+      ],
+      equipment: {
+        weapons: {
+          greatsword: {
+            weaponId: 'greatsword',
+            attackBonus: 4,
+            damageBonus: 2,
+            notes: '+ 3 (1d6) Poison damage on hit.',
+          },
+          longbow: {
+            weaponId: 'longbow',
+            attackBonus: 4,
+            damageBonus: 2,
+            notes: '+ 5 (2d4) Poison damage on hit.',
+          },
+        },
+        armor: {
+          'half-plate': { armorId: 'half-plate' },
+        },
+      },
+    },
+    lore: {
+      alignment: 'le',
+      challengeRating: 3,
+      xpValue: 700,
+      intelligence: 'average',
+    },
+  },
+  {
+    id: 'hobgoblin-warrior',
+    name: 'Hobgoblin Warrior',
+    type: 'fey',
+    subtype: 'goblinoid',
+    sizeCategory: 'medium',
+    languages: [{ id: 'common' }, { id: 'goblin' }],
+    description: {
+      short: 'Armored hobgoblin soldiers with poisoned arrows and martial discipline.',
+      long: 'Hobgoblin warriors fight in formation, favoring half plate, shield, and longsword while supporting allies with envenomed longbow shots.',
+    },
+    mechanics: {
+      hitPoints: { count: 2, die: 8, modifier: 2 },
+      armorClass: { kind: 'equipment', armorRefs: ['half-plate', 'shield-wood'] },
+      movement: { ground: 30 },
+      abilities: { str: 13, dex: 12, con: 12, int: 10, wis: 10, cha: 9 },
+      senses: {
+        special: [{ type: 'darkvision', range: 60 }],
+        passivePerception: 10,
+      },
+      proficiencies: {
+        weapons: {
+          longsword: { proficiencyLevel: 1 },
+          longbow: { proficiencyLevel: 1 },
+        },
+      },
+      proficiencyBonus: 2,
+      traits: [
+        {
+          name: 'Pack Tactics',
+          description:
+            'The hobgoblin has Advantage on an attack roll against a creature if at least one of the hobgoblin’s allies is within 5 feet of the creature and the ally doesn’t have the Incapacitated condition.',
+          trigger: {
+            kind: 'ally-near-target',
+            withinFeet: 5,
+            allyConditionNot: 'incapacitated',
+          },
+          effects: [
+            {
+              kind: 'roll-modifier',
+              appliesTo: 'attack-rolls',
+              modifier: 'advantage',
+            },
+          ],
+        },
+      ],
+      actions: [
+        { kind: 'weapon', weaponRef: 'longsword' },
+        { kind: 'weapon', weaponRef: 'longbow' },
+      ],
+      equipment: {
+        weapons: {
+          longsword: {
+            weaponId: 'longsword',
+            attackBonus: 3,
+            damageOverride: '2d10',
+            damageBonus: 1,
+            notes: 'Two-handed profile (2d10 + 1).',
+          },
+          longbow: {
+            weaponId: 'longbow',
+            attackBonus: 3,
+            damageBonus: 1,
+            notes: 'On hit: + 7 (3d4) Poison damage.',
+          },
+        },
+        armor: {
+          'half-plate': { armorId: 'half-plate' },
+          'shield-wood': { armorId: 'shield-wood' },
+        },
+      },
+    },
+    lore: {
+      alignment: 'le',
+      challengeRating: 0.5,
+      xpValue: 100,
+      intelligence: 'average',
+    },
   },
 {
     id: "hydra",

@@ -3,7 +3,7 @@ import type { MonsterCatalogEntry } from '../types';
 /** System catalog — ids starting with [s-u] (first character of `id`). */
 
 export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
-{
+  {
     id: "skeleton",
     name: "Skeleton",
     type: "undead",
@@ -59,6 +59,93 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
       challengeRating: 0.25,
       xpValue: 50,
       intelligence: "low",
+    },
+  },
+  {
+    id: 'steam-mephit',
+    name: 'Steam Mephit',
+    type: 'elemental',
+    sizeCategory: 'small',
+    languages: [{ id: 'primordial' }],
+    description: {
+      short: 'A hissing elemental of scalding vapor and hot mist.',
+      long: 'Steam mephits blur the air around themselves and exhale cones of burning steam that cling even underwater.',
+    },
+    mechanics: {
+      hitPoints: { count: 5, die: 6 },
+      armorClass: { kind: 'natural' },
+      movement: { ground: 30, fly: 30 },
+      abilities: { str: 5, dex: 11, con: 10, int: 11, wis: 10, cha: 12 },
+      senses: {
+        special: [{ type: 'darkvision', range: 60 }],
+        passivePerception: 10,
+      },
+      proficiencies: {
+        skills: { stealth: { proficiencyLevel: 1 } },
+      },
+      proficiencyBonus: 2,
+      immunities: ['fire', 'poison', 'exhaustion', 'poisoned'],
+      traits: [
+        {
+          name: 'Blurred Form',
+          description:
+            'Attack rolls against the mephit are made with Disadvantage unless the mephit has the Incapacitated condition.',
+          effects: [
+            {
+              kind: 'note',
+              text: 'Treat as disadvantage on attacks vs this creature unless incapacitated; not automated as a defender modifier.',
+              category: 'under-modeled',
+            },
+          ],
+        },
+        {
+          name: 'Death Burst',
+          description:
+            'The mephit explodes when it dies. Dexterity Saving Throw: DC 10, each creature in a 5-foot Emanation originating from the mephit. Failure: 5 (2d4) Fire damage. Success: Half damage.',
+          trigger: { kind: 'reduced-to-0-hp' },
+          effects: [
+            {
+              kind: 'note',
+              text: 'Resolve 5-ft emanation Dex save DC 10 vs 2d4 fire (half on success) at table.',
+              category: 'under-modeled',
+            },
+          ],
+        },
+      ],
+      actions: [
+        {
+          kind: 'natural',
+          name: 'Claw',
+          attackType: 'claw',
+          attackBonus: 2,
+          reach: 5,
+          damage: '1d4',
+          damageType: 'slashing',
+          onHitEffects: [{ kind: 'damage', damage: '1d4', damageType: 'fire' }],
+        },
+        {
+          kind: 'special',
+          name: 'Steam Breath',
+          description:
+            'Constitution Saving Throw: DC 10, each creature in a 15-foot Cone. Failure: 5 (2d4) Fire damage, and the target’s Speed decreases by 10 feet until the end of the mephit’s next turn. Success: Half damage only. Failure or Success: Being underwater doesn’t grant Resistance to this Fire damage.',
+          save: { ability: 'con', dc: 10 },
+          area: { kind: 'cone', size: 15 },
+          target: 'creatures-in-area',
+          damage: '2d4',
+          damageType: 'fire',
+          halfDamageOnSave: true,
+          recharge: { min: 6, max: 6 },
+          resolution: {
+            caveats: ['Speed reduction and underwater resistance override are not fully automated.'],
+          },
+        },
+      ],
+    },
+    lore: {
+      alignment: 'ne',
+      challengeRating: 0.25,
+      xpValue: 50,
+      intelligence: 'low',
     },
   },
 {
