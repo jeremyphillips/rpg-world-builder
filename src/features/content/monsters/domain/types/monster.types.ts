@@ -19,7 +19,11 @@ import type { MonsterTrait } from "./monster-traits.types";
 import type { MonsterAction } from "./monster-actions.types";
 import type { MonsterLegendaryActions } from "./monster-legendary.types";
 import type { ContentResolutionMeta } from '@/features/mechanics/domain/resolution/content-resolution.types';
-import type { ImmunityType, MonsterResistanceType, VulnerabilityType } from "./monster-combat.types";
+import type {
+  CreatureResistanceDamageType,
+  CreatureVulnerabilityDamageType,
+  ImmunityType,
+} from '@/features/mechanics/domain/creatures/immunities.types';
 import type { Movement } from "@/features/mechanics/domain/movement";
 
 // TODO: create dynamic type
@@ -89,8 +93,8 @@ export interface MonsterFields {
     proficiencyBonus: number;
     equipment?: MonsterEquipment;
     immunities?: ImmunityType[];
-    resistances?: MonsterResistanceType[];
-    vulnerabilities?: VulnerabilityType[];
+    resistances?: CreatureResistanceDamageType[];
+    vulnerabilities?: CreatureVulnerabilityDamageType[];
     /** Optional whole-stat-block resolution metadata; prefer per-trait/action `resolution` when possible. */
     resolution?: ContentResolutionMeta;
   };

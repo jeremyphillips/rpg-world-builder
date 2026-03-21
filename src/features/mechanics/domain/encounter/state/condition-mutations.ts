@@ -1,3 +1,4 @@
+import type { ConditionImmunityId } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import type { EncounterState, RuntimeMarkerDuration } from './types'
 import { buildRuntimeMarker, markerMatches, updateCombatant } from './shared'
@@ -23,7 +24,7 @@ export function addConditionToCombatant(
     return state
   }
 
-  if (target.conditionImmunities?.includes(trimmedCondition)) {
+  if (target.conditionImmunities?.includes(trimmedCondition as ConditionImmunityId)) {
     return appendLog(state, {
       type: 'note',
       actorId: state.activeCombatantId ?? undefined,

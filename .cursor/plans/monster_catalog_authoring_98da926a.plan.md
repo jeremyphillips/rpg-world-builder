@@ -6,7 +6,10 @@ todos:
     content: Add src/features/mechanics/domain/resolution/content-resolution.types.ts with EffectNoteCategory, ContentResolutionMeta (caveats + optional subtype); document escape-hatch-only fields; refactor SpellResolutionMeta and NoteEffect; add resolution to monster action/trait types; optional getMonster*ResolutionStatus helpers
     status: completed
   - id: extend-types
-    content: Add mechanics.resistances; extend ImmunityType/VulnerabilityType for elementals; update combatant-builders to emit resistance markers
+    content: Add mechanics.resistances; use shared creature immunity types (immunities.types.ts) for elementals; update combatant-builders to emit resistance markers
+    status: completed
+  - id: creature-immunities-module
+    content: Add mechanics/domain/creatures/immunities.types.ts (ImmunityType, CreatureResistanceDamageType, CreatureVulnerabilityDamageType); strip immunity re-exports from monster-combat.types.ts; tighten CombatantInstance.conditionImmunities to ConditionImmunityId[]
     status: completed
   - id: initiative-dex
     content: Fix monster DEX read for initiative (dex | dexterity) via shared helper and update preview card
@@ -85,9 +88,13 @@ Document escape-hatch policy in [`docs/reference/monster-authoring.md`](docs/ref
 - For cross-cutting adapter limits, add `resolution.caveats` (and optional `resolution.subtype` only when it helps classification).
 - Migrate legacy `// Engine caveat` comments in [`monsters.ts`](src/features/mechanics/domain/rulesets/system/monsters.ts) toward this model over time.
 
-## Gap: resistances and damage/condition types
+## Resistances and damage/condition types (shared creature model)
 
-Extend `MonsterFields.mechanics` with `resistances`, extend `ImmunityType` / `VulnerabilityType` as needed (e.g. thunder vulnerability for Earth elemental), and wire [`buildMonsterCombatantInstance`](src/features/encounter/helpers/combatant-builders.ts) to emit resistance markers (mirror vulnerability mapping).
+**Canonical types** live in [`src/features/mechanics/domain/creatures/immunities.types.ts`](src/features/mechanics/domain/creatures/immunities.types.ts): **`ImmunityType`** (mixed damage + condition immunities for stat blocks), **`CreatureResistanceDamageType`**, **`CreatureVulnerabilityDamageType`**. There is no separate monster-only vs character-only immunity type — monsters and future PC/NPC authoring share the same vocabulary.
+
+**`MonsterFields.mechanics`** uses `resistances` / `immunities` / `vulnerabilities` with those types; [`buildMonsterCombatantInstance`](src/features/encounter/helpers/combatant-builders.ts) emits resistance/vulnerability/immunity markers and partitions condition immunities onto **`CombatantInstance.conditionImmunities: ConditionImmunityId[]`** (see [`combatant.types.ts`](src/features/mechanics/domain/encounter/state/types/combatant.types.ts)).
+
+**`monster-combat.types.ts`** holds only monster presentation/combat shapes (e.g. attack kinds, trait roll targets), not shared immunity unions.
 
 ## AC authoring rule
 

@@ -1,6 +1,11 @@
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import type { CombatantPreviewCardProps, PreviewChip, PreviewStat } from '../domain'
-import { formatSigned } from '../helpers'
+import {
+  CONCENTRATING_BADGE_TOOLTIP,
+  formatSigned,
+  getPreviewStatTooltip,
+  tooltipForConditionMarkerLabel,
+} from '../helpers'
 import { CombatantPreviewCard } from './CombatantPreviewCard'
 
 type AllyCombatantActivePreviewCardProps = {
@@ -19,16 +24,32 @@ export function AllyCombatantActivePreviewCard({
   const isDefeated = combatant.stats.currentHitPoints <= 0
 
   const stats: PreviewStat[] = [
-    { label: 'AC', value: String(combatant.stats.armorClass) },
-    { label: 'HP', value: `${combatant.stats.currentHitPoints}/${combatant.stats.maxHitPoints}` },
-    { label: 'Init', value: formatSigned(combatant.stats.initiativeModifier) },
+    { label: 'AC', value: String(combatant.stats.armorClass), tooltip: getPreviewStatTooltip('AC') },
+    {
+      label: 'HP',
+      value: `${combatant.stats.currentHitPoints}/${combatant.stats.maxHitPoints}`,
+      tooltip: getPreviewStatTooltip('HP'),
+    },
+    { label: 'Init', value: formatSigned(combatant.stats.initiativeModifier), tooltip: getPreviewStatTooltip('Init') },
   ]
 
   const chips: PreviewChip[] = [
     ...(combatant.concentration
-      ? [{ id: 'concentrating', label: 'Concentrating', tone: 'info' as const }]
+      ? [
+          {
+            id: 'concentrating',
+            label: 'Concentrating',
+            tone: 'info' as const,
+            tooltip: CONCENTRATING_BADGE_TOOLTIP,
+          },
+        ]
       : []),
-    ...combatant.conditions.map((c) => ({ id: c.id, label: c.label, tone: 'warning' as const })),
+    ...combatant.conditions.map((c) => ({
+      id: c.id,
+      label: c.label,
+      tone: 'warning' as const,
+      tooltip: tooltipForConditionMarkerLabel(c.label),
+    })),
     ...combatant.states.map((s) => ({ id: s.id, label: s.label, tone: 'info' as const })),
   ]
 

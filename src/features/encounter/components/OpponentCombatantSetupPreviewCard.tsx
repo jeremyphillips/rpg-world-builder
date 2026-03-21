@@ -20,6 +20,7 @@ import {
   buildMonsterExecutableActions,
   formatMonsterOptionSubtitle,
   formatSigned,
+  getPreviewStatTooltip,
 } from '../helpers'
 import { CombatantPreviewCard } from './CombatantPreviewCard'
 
@@ -96,9 +97,9 @@ export function OpponentCombatantSetupPreviewCard({
   }, [combatant])
 
   const stats: PreviewStat[] = [
-    { label: 'AC', value: String(armorClass) },
-    { label: 'HP', value: String(averageHitPoints) },
-    { label: 'Init', value: formatSigned(initiativeModifier) },
+    { label: 'AC', value: String(armorClass), tooltip: getPreviewStatTooltip('AC') },
+    { label: 'HP', value: String(averageHitPoints), tooltip: getPreviewStatTooltip('HP') },
+    { label: 'Init', value: formatSigned(initiativeModifier), tooltip: getPreviewStatTooltip('Init') },
   ]
 
   const previewProps: CombatantPreviewCardProps = {

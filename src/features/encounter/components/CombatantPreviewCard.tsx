@@ -1,5 +1,6 @@
+import type { KeyboardEvent } from 'react'
+
 import Box from '@mui/material/Box'
-import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
@@ -30,6 +31,14 @@ export function CombatantPreviewCard({
     : isSelected
       ? 'info.main'
       : 'divider'
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!onClick) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onClick()
+    }
+  }
 
   const content = (
     <Stack spacing={1} sx={{ width: '100%' }}>
@@ -111,17 +120,22 @@ export function CombatantPreviewCard({
       }}
     >
       {onClick ? (
-        <ButtonBase
+        <Box
+          aria-label={`Select ${title}`}
+          component="div"
           onClick={onClick}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
           sx={{
             display: 'block',
             width: '100%',
             textAlign: 'left',
             p: 1.5,
+            cursor: 'pointer',
           }}
         >
           {content}
-        </ButtonBase>
+        </Box>
       ) : (
         <Box sx={{ p: 1.5 }}>{content}</Box>
       )}

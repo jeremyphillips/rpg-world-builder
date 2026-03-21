@@ -1,3 +1,4 @@
+import type { ConditionImmunityId } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import type { AbilityKey, AbilityRef } from '@/features/mechanics/domain/character'
@@ -72,7 +73,7 @@ export interface RuntimeTurnHookRepeatSave {
     addCondition?: string
     markerClassification?: string[]
   }
-  autoSuccessIfImmuneTo?: string
+  autoSuccessIfImmuneTo?: ConditionImmunityId
   /** Caster combatant id — stored on conditions applied from this hook (e.g. unconscious). */
   casterInstanceId?: string
   outcomeTrack?: {
@@ -240,7 +241,7 @@ export interface CombatantInstance {
   concentration?: ConcentrationState
   turnContext?: CombatantTurnContext
   turnResources?: CombatantTurnResources
-  conditionImmunities?: string[]
+  conditionImmunities?: ConditionImmunityId[]
   conditions: RuntimeMarker[]
   states: RuntimeMarker[]
 }
