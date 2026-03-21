@@ -7,6 +7,9 @@ export {
 } from './presentable-effects'
 export {
   COMBAT_STATE_UI_MAP,
+  COMBAT_STATE_MARKER_UI_MAP,
+  EFFECT_CONDITION_PRESENTATION_MAP,
+  getCombatStatePresentation,
   getFallbackPresentation,
   getPriorityOrder,
   getSectionOrder,

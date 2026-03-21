@@ -7,6 +7,10 @@ import type { DiceOrFlat } from '../dice/dice.types';
 import type { AbilityKey, AbilityRef } from '../character';
 import type { EffectDuration } from './timing.types';
 import type { DamageType, EnergyDamageType } from '../damage/damage.types';
+import type {
+  ConditionImmunityId,
+  EffectConditionId,
+} from '../conditions/effect-condition-definitions';
 import type { MonsterSizeCategory, MonsterType } from '@/features/content/monsters/domain/vocab/monster.vocab';
 import type { EffectNoteCategory } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { AreaOfEffectTemplate } from './area.types';
@@ -16,6 +20,13 @@ export type { FormulaDefinition, FormulaEffect } from '../resolution/engines/for
 export type { AreaOfEffectTemplate } from './area.types';
 export type { TargetingEffectTarget, MonsterSpecialActionTarget } from './targeting.types';
 export type { DamageType, EnergyDamageType } from '../damage/damage.types';
+export type { EffectConditionId, ConditionImmunityId, ConditionImmunityOnlyId } from '../conditions/effect-condition-definitions';
+export {
+  EFFECT_CONDITION_DEFINITIONS,
+  CONDITION_IMMUNITY_ONLY_DEFINITIONS,
+  EFFECT_CONDITION_IDS,
+  CONDITION_IMMUNITY_ONLY_IDS,
+} from '../conditions/effect-condition-definitions';
 
 export type ScalingRule = {};
 
@@ -29,23 +40,6 @@ export type SaveDcSpec = number | { kind: '5-plus-damage-taken' };
 
 export type EffectMode = 'add' | 'set' | 'multiply';
 
-export type EffectConditionId =
-  | 'blinded'
-  | 'charmed'
-  | 'deafened'
-  | 'frightened'
-  | 'grappled'
-  | 'incapacitated'
-  | 'invisible'
-  | 'paralyzed'
-  | 'petrified'
-  | 'poisoned'
-  | 'prone'
-  | 'restrained'
-  | 'stunned'
-  | 'unconscious';
-
-export type ConditionImmunityId = EffectConditionId | 'exhaustion';
 export type EffectSizeCategory = MonsterSizeCategory;
 
 /**
