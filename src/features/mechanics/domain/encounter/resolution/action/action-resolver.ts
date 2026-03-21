@@ -452,7 +452,14 @@ function resolveCombatActionInternal(
       allMarkerIds.push(...saveEffectResult.createdMarkerIds)
     }
   } else if (action.resolutionMode === 'effects') {
-    if (targets.length === 0 && action.effects?.length) {
+    const effectTargets =
+      targets.length > 0
+        ? targets
+        : action.targeting?.kind === 'none'
+          ? [actor]
+          : []
+
+    if (effectTargets.length === 0 && action.effects?.length) {
       nextState = appendEncounterLogEvent(nextState, {
         type: 'action-resolved',
         actorId: actor.instanceId,
@@ -461,7 +468,7 @@ function resolveCombatActionInternal(
         summary: `${actionLabel} resolves with no valid targets.`,
       })
     } else {
-      for (const effectTarget of targets) {
+      for (const effectTarget of effectTargets) {
         const resolvedTarget = nextState.combatantsById[effectTarget.instanceId] ?? effectTarget
         const effectPayload =
           action.hpThreshold != null
@@ -484,7 +491,7 @@ function resolveCombatActionInternal(
       nextState = appendEncounterLogEvent(nextState, {
         type: 'action-resolved',
         actorId: actor.instanceId,
-        targetIds: targets.map((t) => t.instanceId),
+        targetIds: effectTargets.map((t) => t.instanceId),
         round: state.roundNumber,
         turn: state.turnIndex + 1,
         summary: `${actionLabel} resolves its effects.`,

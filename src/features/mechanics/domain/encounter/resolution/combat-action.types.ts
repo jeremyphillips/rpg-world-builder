@@ -39,7 +39,15 @@ export interface CombatActionSaveProfile {
 }
 
 export interface CombatActionTargetingProfile {
-  kind: 'single-target' | 'all-enemies' | 'entered-during-move' | 'self' | 'single-creature' | 'dead-creature'
+  kind:
+    | 'single-target'
+    | 'all-enemies'
+    | 'entered-during-move'
+    | 'self'
+    | 'single-creature'
+    | 'dead-creature'
+    /** No creature target (e.g. ally summon); resolver applies effects without a selected target. */
+    | 'none'
   creatureTypeFilter?: string[]
   /**
    * "Willing creature" touch buffs: valid targets are same-side only (caster + allies). For now this is the ally approximation.

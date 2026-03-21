@@ -128,6 +128,7 @@ The encounter action system resolves combat actions against encounter state:
 - `single-target` — one living combatant (HP > 0) subject to policy below; weapon attacks and most offensive spells use this kind
 - `all-enemies` — all living enemy combatants
 - `self` — the acting combatant
+- `none` — no creature target; used when the action does not select another combatant (e.g. **ally summon**). The resolver still runs the `effects` pipeline once, passing the **actor** into `applyActionEffects` for API compatibility; **`spawn`** should treat the actor as source only. Target picker has **no** candidates. Prefer over **`self`** for summons (caster is not the subject of the effect bundle like a self-buff).
 - `single-creature` — any living combatant regardless of side (used by healing spells and other creature-targeting effects)
 - `dead-creature` — any combatant at 0 HP regardless of side (used by resurrection spells)
 - `entered-during-move` — creatures entered during movement
@@ -135,7 +136,7 @@ The encounter action system resolves combat actions against encounter state:
 **Targeting profile fields:**
 
 - `requiresWilling` — when `true` on `single-target`, valid targets are same-side only (caster + allies); “willing” is approximated as allies until explicit consent exists. Such actions are **non-hostile** for charm / hostile-action rules. Authored on spells via `targeting.requiresWilling` in spell effects.
-- `requiresSight` — when `true` (spell `targeting.requiresSight` → `buildSpellCombatActions`), valid targets must pass `canSeeForTargeting` in `encounter/state/visibility-seams.ts`: not blinded (via `canSee`), invisible targets blocked unless the observer has the See Invisibility state, and LOS/LoE geometry stubs (currently always `true`). Not applied to `self` or `all-enemies` (area mapping does not validate per-creature sight).
+- `requiresSight` — when `true` (spell `targeting.requiresSight` → `buildSpellCombatActions`), valid targets must pass `canSeeForTargeting` in `encounter/state/visibility-seams.ts`: not blinded (via `canSee`), invisible targets blocked unless the observer has the See Invisibility state, and LOS/LoE geometry stubs (currently always `true`). Not applied to `self`, `none`, or `all-enemies` (area mapping does not validate per-creature sight).
 - `suppressSameSideHostileActions` — passed through `ResolveCombatActionOptions` (default **true** when omitted: legacy “no friendly fire”). When **true**, hostile `single-target` actions cannot target same-side combatants. When **false**, core resolution allows same-side targets (e.g. PC vs PC). Campaign/app code can drive this from `mechanics.combat.encounter.suppressSameSideHostile` on the ruleset.
 
 **Targeting query layer** (`action-targeting.ts`):
@@ -536,7 +537,7 @@ How each effect kind is resolved at runtime by `action-effects.ts`:
 
 ### Summon spells and spawn
 
-This subsection documents **intent and architecture** for ally summon spells. Implementation may lag; the [effects.md §13 `spawn`](./effects.md#spawn) entry stays aligned with runtime truth.
+This subsection documents **intent and architecture** for ally summon spells. Implementation may lag; the [effects.md §13 `spawn`](./effects.md#spawn) entry stays aligned with runtime truth. Phased delivery: [`summon_spells_phased.plan.md`](../../.cursor/plans/summon_spells_phased.plan.md).
 
 **Problem today**
 
@@ -549,7 +550,7 @@ This subsection documents **intent and architecture** for ally summon spells. Im
 - **Source of truth:** authored references to **`Monster.id`** values from the merged catalog (`monstersById`), not opaque strings like `familiar` long term.
 - **Side:** creatures that fight **with** the party should be added to the same allegiance as PCs (**`party`** / ally combatants), not the enemy pool.
 - **`casterOptions`:** drive skeleton vs zombie, giant insect morph, or “one vs two vs four vs eight” CR ceilings for conjuration spells; resolver maps option values to **max CR**, **count**, and/or **explicit monster ids**.
-- **Random pools:** for “a fey creature of CR 2 or lower” style text, filter `Object.values(monstersById)` by `type === 'fey'` (or `elemental`) and `lore.challengeRating <= cap`, then choose with the encounter **`rng`** from `ResolveCombatActionOptions` so tests can be deterministic.
+- **Random pools:** for “a fey creature of CR 2 or lower” style text, filter `Object.values(monstersById)` by `type === 'fey'` (or `elemental`) and `lore.challengeRating <= cap`. **`lore.challengeRating`** is **required** on [`Monster`](../../src/features/content/monsters/domain/types/monster.types.ts) so pool filters never omit CR. Choose with the encounter **`rng`** from `ResolveCombatActionOptions` so tests can be deterministic.
 - **Initiative:** spell text varies (group initiative, share caster’s initiative, or separate rolls). This should be an explicit field on the spawn/summon payload or spell resolution meta when implemented—not a one-off in each spell.
 
 **Engine pieces to add**
@@ -557,7 +558,7 @@ This subsection documents **intent and architecture** for ally summon spells. Im
 - Extend **`SpawnEffect`** (or spell `resolution`) to carry **monster id(s)**, **pool filters**, **count**, and **initiative mode**.
 - **`addCombatantToEncounter`** (or equivalent): mutate `combatantsById`, `partyCombatantIds`, **`initiative`** / **`initiativeOrder`**, and turn index rules safely.
 - Thread **`monstersById`** (and build helpers such as `buildMonsterCombatantInstance`) into **`ResolveCombatActionOptions`** or the summon resolution path.
-- Register **`spawn`** in **`classifySpellResolutionMode`** when the effect is resolvable so **`buildSpellCombatActions`** emits an **`effects`** action (often with **`self`** targeting for “no enemy target” summons).
+- Register **`spawn`** in **`classifySpellResolutionMode`** when the effect is resolvable so **`buildSpellCombatActions`** emits an **`effects`** action with **`targeting: { kind: 'none' }`** — not **`self`**, since the caster is not the subject of the spell’s effect bundle in the same way as a self-buff.
 
 **Authoring examples (directional)**
 
@@ -576,6 +577,7 @@ This subsection documents **intent and architecture** for ally summon spells. Im
 Current targeting covers creature-selectable cases only. Future work will likely require separate handling for at least three targeting families:
 
 - **Creature-selectable** — the current model. Actor picks one or more creatures from a candidate pool (single-target, all-enemies, single-creature, dead-creature, self).
+- **Non-targeted** — **`none`**: no creature selected; used for summons and similar. Distinct from **`self`** (caster is not modeled as the “target” of the effect loop for UI semantics).
 - **Event-driven** — targeting determined by a game event rather than player choice. `entered-during-move` is the current example. This should not be treated as a template for general creature-targeting abstraction.
 - **Spatial/area** — point-and-shape selection (cone, sphere, line, cube) with inclusion/exclusion, friend/foe filtering, line-of-effect, and range. This is a qualitatively different problem from creature selection and should be designed as its own subsystem.
 

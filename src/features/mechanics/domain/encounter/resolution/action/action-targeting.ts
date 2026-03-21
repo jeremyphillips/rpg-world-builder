@@ -47,6 +47,7 @@ export function isHostileAction(action: CombatActionDefinition): boolean {
     return action.hostileApplication
   }
   const kind = action.targeting?.kind
+  if (kind === 'none') return false
   if (action.targeting?.requiresWilling) return false
   return !kind || kind === 'single-target' || kind === 'all-enemies' || kind === 'entered-during-move'
 }
@@ -82,11 +83,13 @@ export function isValidActionTarget(
     action.targeting?.requiresSight &&
     kind !== 'self' &&
     kind !== 'all-enemies' &&
+    kind !== 'none' &&
     !canSeeForTargeting(state, actor.instanceId, combatant.instanceId)
   ) {
     return false
   }
 
+  if (kind === 'none') return false
   if (kind === 'dead-creature') return combatant.stats.currentHitPoints === 0
   if (combatant.stats.currentHitPoints <= 0) return false
   if (kind === 'single-creature') return true
@@ -124,6 +127,8 @@ export function getActionTargets(
   action: CombatActionDefinition,
   options?: ActionTargetingResolveOptions,
 ): CombatantInstance[] {
+  if (action.targeting?.kind === 'none') return []
+
   if (action.targeting?.kind === 'self') return [actor]
 
   if (action.targeting?.kind === 'all-enemies') {
