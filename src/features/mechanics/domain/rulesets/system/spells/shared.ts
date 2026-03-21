@@ -1,12 +1,12 @@
 import type { DiceOrFlat, dY } from '@/features/mechanics/domain/dice';
-import type { CreatureTypeCondition } from '@/features/mechanics/domain/conditions/condition.types';
+import { ABILITIES } from '@/features/mechanics/domain/character/abilities/abilities';
 
-/** Use on effect `condition` where the **source** (e.g. attacker) must be one of these types — not for spell target selection. */
-export const EXTRAPLANAR_CREATURE_TYPES: CreatureTypeCondition = {
-  kind: 'creature-type',
-  target: 'source',
-  creatureTypes: ['aberration', 'celestial', 'elemental', 'fey', 'fiend', 'undead'],
-};
+/** Enhance Ability, Contagion (disadvantage on saves), etc. — excludes Constitution where spell text says so. */
+export const SPELL_CASTER_ABILITY_OPTIONS_NO_CON: { value: string; label: string }[] = ABILITIES.filter(
+  (a) => a.id !== 'con',
+).map((a) => ({ value: a.id, label: a.name }));
+
+export { RESISTANCE_SPELL_DAMAGE_TYPE_OPTIONS } from '@/features/mechanics/domain/damage/damageTypeUi';
 
 /** Standard cantrip damage upgrade thresholds (levels 5, 11, 17). */
 export function cantripDamageScaling(die: dY) {
@@ -27,39 +27,3 @@ export function cantripDamageScaling(die: dY) {
 export function effectiveSpellLevelForScaling(spellLevel: number): number {
   return spellLevel <= 0 ? 1 : spellLevel;
 }
-
-// ---------------------------------------------------------------------------
-// Legacy ID → canonical kebab-case ID mapping (for migration scripts)
-// ---------------------------------------------------------------------------
-
-export const LEGACY_SPELL_ID_MAP: Record<string, string> = {
-  fireBolt: 'fire-bolt',
-  eldritchBlast: 'eldritch-blast',
-  sacredFlame: 'sacred-flame',
-  mageHand: 'mage-hand',
-  magicMissile: 'magic-missile',
-  cureWounds: 'cure-wounds',
-  healingWord: 'healing-word',
-  detectMagic: 'detect-magic',
-  guidingBolt: 'guiding-bolt',
-  charmPerson: 'charm-person',
-  protectionFromEvil: 'protection-from-evil',
-  featherFall: 'feather-fall',
-  mistyStep: 'misty-step',
-  spiritualWeapon: 'spiritual-weapon',
-  holdPerson: 'hold-person',
-  scorchingRay: 'scorching-ray',
-  lesserRestoration: 'lesser-restoration',
-  spiritGuardians: 'spirit-guardians',
-  lightningBolt: 'lightning-bolt',
-  dispelMagic: 'dispel-magic',
-  removeCurse: 'remove-curse',
-  dimensionDoor: 'dimension-door',
-  iceStorm: 'ice-storm',
-  wallOfForce: 'wall-of-force',
-  greaterRestoration: 'greater-restoration',
-  raiseDead: 'raise-dead',
-  chainLightning: 'chain-lightning',
-  powerWordStun: 'power-word-stun',
-  powerWordKill: 'power-word-kill',
-};

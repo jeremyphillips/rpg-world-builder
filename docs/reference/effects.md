@@ -52,6 +52,7 @@ Boundaries:
 - `description.summary` is short UI copy.
 - **Catalog audit:** run `npm run test:run -- src/features/encounter/helpers/spell-catalog-audit.test.ts` for merged-system-spell metrics (stranded counts, ambiguous delivery, explicit `save.dc`, etc.). Counts are for reporting, not CI gates; see `spell-resolution-audit.ts` and [resolution.md](./resolution.md) §7 “Spell combat adapter”.
 - **`resolution.hpThreshold`** — optional HP-gated branches: main `effects` when target current HP ≤ `maxHp`, `aboveMaxHpEffects` when above (combat adapter maps to `CombatActionDefinition`). Use for spells like Power Word Kill; keep rules text in `description.full`.
+- **`resolution.casterOptions`** — optional encounter choices (e.g. Hex disadvantage ability, Symbol glyph effect, Antipathy vs Sympathy). Shape: `CasterOptionField` in [`caster-options.ts`](../../src/features/mechanics/domain/spells/caster-options.ts) (`kind: 'ability'` with `id`/`label`, or `kind: 'enum'` with `options: { value, label }[]`). The spell combat adapter copies these to `CombatActionDefinition.casterOptions`; encounter UI renders selects and passes values into `ResolveCombatActionSelection.casterOptions` (keyed by field `id`). Resolution appends them to combat log summaries (`formatCasterOptionSummary`). Antipathy/Sympathy keeps authored values `antipathy` / `sympathy`; map to `frightened` / `charmed` via `ANTIPATHY_SYMPATHY_MODE_TO_CONDITION` / `getConditionFromAntipathySympathyMode` when applying conditions.
 
 ### Delivery Method
 

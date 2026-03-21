@@ -21,7 +21,6 @@ import { SPELLS_LEVEL_6 } from './data/level6';
 import { SPELLS_LEVEL_7 } from './data/level7';
 import { SPELLS_LEVEL_8 } from './data/level8';
 import { SPELLS_LEVEL_9 } from './data/level9';
-import { LEGACY_SPELL_ID_MAP } from './shared';
 
 const SPELLS_RAW: readonly SpellEntry[] = [
   ...SPELLS_LEVEL_0,
@@ -67,5 +66,3 @@ export function getSystemSpells(systemId: SystemRulesetId): readonly Spell[] {
 export function getSystemSpell(systemId: SystemRulesetId, id: string): Spell | undefined {
   return getSystemSpells(systemId).find((s) => s.id === id);
 }
-
-export { LEGACY_SPELL_ID_MAP };

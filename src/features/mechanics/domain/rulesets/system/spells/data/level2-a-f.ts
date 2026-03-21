@@ -1,4 +1,5 @@
 import type { SpellEntry } from '../types';
+import { SPELL_CASTER_ABILITY_OPTIONS_NO_CON } from '../shared';
 
 /**
  * Level 2 spells A–F — authoring status:
@@ -414,7 +415,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
       summary: 'Sense or read thoughts within 30ft. Probe deeper with Wis save.',
     },
   },
-{
+  {
     id: 'dragons-breath',
     name: "Dragon's Breath",
     school: 'transmutation',
@@ -427,6 +428,20 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Damage type choice and Magic action cone breath are not enforced in encounter.',
+      ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'dragons-breath-damage-type',
+          label: 'Breath damage type',
+          options: [
+            { value: 'acid', label: 'Acid' },
+            { value: 'cold', label: 'Cold' },
+            { value: 'fire', label: 'Fire' },
+            { value: 'lightning', label: 'Lightning' },
+            { value: 'poison', label: 'Poison' },
+          ],
+        },
       ],
     },
     effects: [
@@ -448,7 +463,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
       summary: 'Grant 15ft cone breath weapon. Dex save 3d6. Scales with slot.',
     },
   },
-{
+  {
     id: 'enhance-ability',
     name: 'Enhance Ability',
     school: 'transmutation',
@@ -461,6 +476,14 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Chosen ability, Advantage on those checks, and per-target ability choice are not enforced in encounter.',
+      ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'enhance-ability-choice',
+          label: 'Enhanced ability',
+          options: SPELL_CASTER_ABILITY_OPTIONS_NO_CON,
+        },
       ],
     },
     effects: [
@@ -476,7 +499,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
       summary: 'Advantage on ability checks with chosen ability. Scales with targets.',
     },
   },
-{
+  {
     id: 'enlarge-reduce',
     name: 'Enlarge/Reduce',
     school: 'transmutation',

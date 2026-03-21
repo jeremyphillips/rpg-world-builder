@@ -113,6 +113,8 @@ The encounter action system resolves combat actions against encounter state:
 | `action-targeting` | Shared targeting query layer: `isValidActionTarget` (predicate), `getActionTargetCandidates` (candidate list for UI), `getActionTargets` (resolved targets for action resolution); sequence step counts |
 | `action-effects` | Applies effects to encounter state: damage, healing, conditions (with repeat-save hooks), states, saves, modifiers (AC add/set, speed add/set/multiply, resistance add), roll-modifiers (advantage/disadvantage), immunities, intervals (registered as turn hooks), damage resistance markers, movement, and advanced effect logging (trigger, activation, check, grant, form) |
 
+**Caster options:** `ResolveCombatActionSelection` may include `casterOptions` (`Record<string, string>` keyed by authored field ids). Spell `resolution.casterOptions` is copied onto `CombatActionDefinition` by `buildSpellCombatActions`; encounter UI collects values before `resolveCombatAction` runs. `action-resolver` includes a formatted fragment in `action-declared` and spell `log-only` summaries (`formatCasterOptionSummary` in `mechanics/domain/spells/caster-options.ts`).
+
 **Action resolution modes:**
 
 - `attack-roll` — roll d20 + attack bonus vs AC, apply damage and on-hit effects

@@ -1,4 +1,5 @@
 import type { SpellEntry } from '../types';
+import { FORBIDDANCE_CREATURE_TYPE_CASTER_OPTIONS } from '../../monsters';
 
 /**
  * Level 6 spells A–L — authoring status:
@@ -297,7 +298,7 @@ export const SPELLS_LEVEL_6_A_L: readonly SpellEntry[] = [
       summary: 'Con save or Restrained. Best of 3: Petrified on 3 failures. Full concentration: Petrified until Greater Restoration.',
     },
   },
-{
+  {
     id: 'forbiddance',
     name: 'Forbiddance',
     school: 'abjuration',
@@ -310,6 +311,24 @@ export const SPELLS_LEVEL_6_A_L: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Areas cannot overlap another Forbiddance; 30-day renewal for permanent ward is narrative.',
+        'SRD allows choosing one or more creature types; encounter UI records one selection (or “all”). Password is not a caster option here.',
+      ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'forbiddance-damage-type',
+          label: 'Damage type',
+          options: [
+            { value: 'radiant', label: 'Radiant' },
+            { value: 'necrotic', label: 'Necrotic' },
+          ],
+        },
+        {
+          kind: 'enum',
+          id: 'forbiddance-creature-types',
+          label: 'Creature types damaged',
+          options: FORBIDDANCE_CREATURE_TYPE_CASTER_OPTIONS,
+        },
       ],
     },
     effects: [

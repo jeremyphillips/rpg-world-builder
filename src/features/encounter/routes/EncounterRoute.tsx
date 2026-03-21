@@ -84,6 +84,8 @@ export default function EncounterRoute() {
     availableActionTargets,
     selectedActionId,
     setSelectedActionId,
+    selectedCasterOptions,
+    setSelectedCasterOptions,
     selectedActionTargetId,
     setSelectedActionTargetId,
     unresolvedCombatantCount,
@@ -303,6 +305,8 @@ export default function EncounterRoute() {
                   availableActions={availableActions}
                   selectedActionId={selectedActionId}
                   onSelectAction={setSelectedActionId}
+                  selectedCasterOptions={selectedCasterOptions}
+                  onCasterOptionsChange={setSelectedCasterOptions}
                 />
               ) : (
                 <OpponentCombatantActiveCard
@@ -310,6 +314,8 @@ export default function EncounterRoute() {
                   availableActions={availableActions}
                   selectedActionId={selectedActionId}
                   onSelectAction={setSelectedActionId}
+                  selectedCasterOptions={selectedCasterOptions}
+                  onCasterOptionsChange={setSelectedCasterOptions}
                 />
               )
             ) : null

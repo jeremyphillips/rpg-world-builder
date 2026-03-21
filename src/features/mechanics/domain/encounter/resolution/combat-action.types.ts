@@ -1,6 +1,7 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { AbilityId } from '@/features/mechanics/domain/character'
 import type { BreakdownToken } from '../../resolution/resolvers/stat-resolver'
+import type { CasterOptionField } from '../../spells/caster-options'
 
 export type CombatActionKind =
   | 'weapon-attack'
@@ -114,4 +115,6 @@ export interface CombatActionDefinition {
    * When set (spell actions from `buildSpellCombatActions`), `isHostileAction` uses this; otherwise legacy `targeting` kind rules apply.
    */
   hostileApplication?: boolean
+  /** From spell `resolution.casterOptions`; encounter UI collects values before resolve. */
+  casterOptions?: CasterOptionField[]
 }

@@ -7,7 +7,7 @@ import type { SpellEntry } from '../types';
  * - **Note-first / heavy caveats:** Alarm (ward), False Life (temp HP), Floating Disk; Create or Destroy Water uses caveats + under-modeled note.
  */
 export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
-{
+  {
     id: 'alarm',
     name: 'Alarm',
     school: 'abjuration',
@@ -20,6 +20,27 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Ward triggers, exclusions, and audible vs mental alarm are not enforced in encounter.',
+      ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'alarm-ward-shape',
+          label: 'Ward',
+          options: [
+            { value: 'door', label: 'A door' },
+            { value: 'window', label: 'A window' },
+            { value: 'area', label: 'An area (max 20-foot Cube)' },
+          ],
+        },
+        {
+          kind: 'enum',
+          id: 'alarm-kind',
+          label: 'Alarm',
+          options: [
+            { value: 'audible', label: 'Audible (handbell sound, 60 ft)' },
+            { value: 'mental', label: 'Mental (ping within 1 mile)' },
+          ],
+        },
       ],
     },
     effects: [
@@ -34,7 +55,7 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
       summary: 'Wards an area; alerts when creatures touch or enter. Audible or mental alarm.',
     },
   },
-{
+  {
     id: 'animal-friendship',
     name: 'Animal Friendship',
     school: 'enchantment',

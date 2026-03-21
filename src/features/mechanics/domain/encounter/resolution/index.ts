@@ -1,4 +1,5 @@
 export * from './combat-action.types'
+export * from '../../spells/caster-options'
 export * from './action-resolution.types'
 export * from './action/action-resolver'
 export * from './action/action-cost'

@@ -1,5 +1,5 @@
 import type { SpellEntry } from '../types';
-import { EXTRAPLANAR_CREATURE_TYPES } from '../shared';
+import { EXTRAPLANAR_CREATURE_TYPES } from '../../monsters';
 
 /**
  * Level 1 spells M–Z — authoring status:
@@ -186,7 +186,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
       summary: 'Touch: immune to Frightened, temp HP each turn. Scales with targets.',
     },
   },
-{
+  {
     id: 'hex',
     name: 'Hex',
     school: 'enchantment',
@@ -199,6 +199,9 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Bonus damage on hit, chosen-ability check Disadvantage, and moving the curse after a kill are not enforced in encounter.',
+      ],
+      casterOptions: [
+        { kind: 'ability', id: 'hex-disadvantage-ability', label: 'Ability checks (Disadvantage)' },
       ],
     },
     effects: [
@@ -219,7 +222,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
       summary: 'Curse: +1d6 necrotic on hit, Disadvantage on chosen ability. Move curse on kill. Duration scales.',
     },
   },
-{
+  {
     id: 'hideous-laughter',
     name: 'Hideous Laughter',
     school: 'enchantment',

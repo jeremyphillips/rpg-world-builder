@@ -1,5 +1,7 @@
 import type { AbilityId } from '@/features/mechanics/domain/character';
-export type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
+import type { CreatureDamageImmunityType } from '@/features/mechanics/domain/damage/damage.types';
+
+export type { DamageType, CreatureDamageImmunityType } from '@/features/mechanics/domain/damage/damage.types';
 
 export type AttackAbility = AbilityId;
 
@@ -24,19 +26,7 @@ export type TraitRollTarget =
   | 'saving-throws';
 
 export type ImmunityType =
-  | 'fire'
-  | 'acid'
-  | 'cold'
-  | 'lightning'
-  | 'thunder'
-  | 'poison'
-  | 'necrotic'
-  | 'radiant'
-  | 'psychic'
-  | 'force'
-  | 'bludgeoning'
-  | 'piercing'
-  | 'slashing'
+  | CreatureDamageImmunityType
   | 'charmed'
   | 'exhaustion'
   | 'blinded'
@@ -51,23 +41,7 @@ export type ImmunityType =
   | 'stunned'
   | 'unconscious';
 
-export type VulnerabilityType =
-  | 'bludgeoning'
-  | 'fire'
-  | 'thunder';
+export type VulnerabilityType = CreatureDamageImmunityType;
 
 /** Damage types used for `mechanics.resistances` (half damage). */
-export type MonsterResistanceType =
-  | 'bludgeoning'
-  | 'piercing'
-  | 'slashing'
-  | 'fire'
-  | 'cold'
-  | 'acid'
-  | 'lightning'
-  | 'thunder'
-  | 'poison'
-  | 'necrotic'
-  | 'radiant'
-  | 'psychic'
-  | 'force';
+export type MonsterResistanceType = CreatureDamageImmunityType;

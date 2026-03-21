@@ -22,6 +22,7 @@ import {
   type ManualMonsterTriggerContext,
   type MonsterFormContext,
 } from '@/features/mechanics/domain/encounter'
+import { buildDefaultCasterOptions } from '@/features/mechanics/domain/spells/caster-options'
 import type { Monster } from '@/features/content/monsters/domain/types'
 
 import type { OpponentRosterEntry } from '../types'
@@ -55,6 +56,7 @@ export function useEncounterState({
   const [reducedToZeroSaveOutcome, setReducedToZeroSaveOutcome] = useState<'success' | 'fail'>('success')
   const [selectedActionId, setSelectedActionId] = useState('')
   const [selectedActionTargetId, setSelectedActionTargetId] = useState('')
+  const [selectedCasterOptions, setSelectedCasterOptions] = useState<Record<string, string>>({})
 
   const selectedCombatants = useMemo(
     () =>
@@ -171,6 +173,12 @@ export function useEncounterState({
     }
   }, [availableActionTargets, selectedActionTargetId])
 
+  useEffect(() => {
+    const action = availableActions.find((a) => a.id === selectedActionId) ?? null
+    setSelectedCasterOptions(buildDefaultCasterOptions(action?.casterOptions))
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when selectedActionId changes; availableActions is read fresh
+  }, [selectedActionId])
+
   const handleResolvedCombatant = useCallback((runtimeId: string, combatant: CombatantInstance | null) => {
     setResolvedCombatantsById((prev) => {
       if (combatant == null) {
@@ -204,6 +212,7 @@ export function useEncounterState({
         actorId: activeCombatantId,
         targetId: selectedActionTargetId || undefined,
         actionId: selectedActionId,
+        casterOptions: selectedCasterOptions,
       }),
     )
   }
@@ -318,6 +327,8 @@ export function useEncounterState({
     availableActionTargets,
     selectedActionId,
     setSelectedActionId,
+    selectedCasterOptions,
+    setSelectedCasterOptions,
     selectedActionTargetId,
     setSelectedActionTargetId,
     unresolvedCombatantCount,

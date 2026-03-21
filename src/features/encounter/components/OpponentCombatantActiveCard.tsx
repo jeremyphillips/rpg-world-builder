@@ -16,6 +16,8 @@ type OpponentCombatantActiveCardProps = {
   availableActions: CombatActionDefinition[]
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
+  selectedCasterOptions?: Record<string, string>
+  onCasterOptionsChange?: (values: Record<string, string>) => void
 }
 
 export function OpponentCombatantActiveCard({
@@ -23,6 +25,8 @@ export function OpponentCombatantActiveCard({
   availableActions,
   selectedActionId,
   onSelectAction,
+  selectedCasterOptions,
+  onCasterOptionsChange,
 }: OpponentCombatantActiveCardProps) {
   const availableActionIds = useMemo(
     () => new Set(availableActions.map((a) => a.id)),
@@ -72,6 +76,8 @@ export function OpponentCombatantActiveCard({
       availableActionIds={availableActionIds}
       selectedActionId={selectedActionId}
       onSelectAction={onSelectAction}
+      selectedCasterOptions={selectedCasterOptions}
+      onCasterOptionsChange={onCasterOptionsChange}
       combatEffects={combatEffects}
       trackedParts={trackedParts}
     />

@@ -21,6 +21,7 @@ import {
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection, ResolveCombatActionOptions } from '../action-resolution.types'
+import { formatCasterOptionSummary } from '../../../spells/caster-options'
 import {
   rollDamage,
   resolveD20RollMode,
@@ -190,6 +191,7 @@ function resolveCombatActionInternal(
   const rng = options.rng ?? Math.random
   const actionLabel = getActionLabel(action)
   const targetLabel = target ? getEncounterCombatantLabel(state, target.instanceId) : 'no target'
+  const casterSummary = formatCasterOptionSummary(action.casterOptions, selection.casterOptions)
   const allMarkerIds: string[] = []
 
   let nextState = appendEncounterLogEvent(state, {
@@ -198,7 +200,7 @@ function resolveCombatActionInternal(
     targetIds: target ? [target.instanceId] : undefined,
     round: state.roundNumber,
     turn: state.turnIndex + 1,
-    summary: `${actor.source.label} uses ${actionLabel}${target ? ` against ${targetLabel}` : ''}.`,
+    summary: `${actor.source.label} uses ${actionLabel}${casterSummary}${target ? ` against ${targetLabel}` : ''}.`,
   })
 
   if (action.movement) {
@@ -231,6 +233,7 @@ function resolveCombatActionInternal(
             actorId: actor.instanceId,
             targetId: selection.targetId,
             actionId: childAction.id,
+            casterOptions: selection.casterOptions,
           },
           options,
           { skipCost: true },
@@ -497,7 +500,7 @@ function resolveCombatActionInternal(
       turn: state.turnIndex + 1,
       summary:
         action.kind === 'spell'
-          ? `${actor.source.label} logs spell effect: ${actionLabel}.`
+          ? `${actor.source.label} logs spell effect: ${actionLabel}${casterSummary}.`
           : `${actionLabel} resolves as a log-only action.`,
       details: action.logText,
     })

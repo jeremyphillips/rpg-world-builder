@@ -1,4 +1,5 @@
 import type { SpellEntry } from '../types';
+import { SPELL_CASTER_ABILITY_OPTIONS_NO_CON } from '../shared';
 
 /**
  * Level 5 spells A–L — authoring status:
@@ -224,7 +225,7 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
       summary: '60-foot cone: Con save or 8d8 cold. Killed become frozen. Damage scales with slot.',
     },
   },
-{
+  {
     id: 'conjure-elemental',
     name: 'Conjure Elemental',
     school: 'conjuration',
@@ -237,6 +238,20 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Spirit position, element damage type, and repeat saves are not fully automated.',
+        'Structured damage uses fire as placeholder; match element to Lightning, Thunder, Fire, or Cold in play.',
+      ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'conjure-elemental-spirit',
+          label: 'Spirit element',
+          options: [
+            { value: 'air', label: 'Air (Lightning damage)' },
+            { value: 'earth', label: 'Earth (Thunder damage)' },
+            { value: 'fire', label: 'Fire (Fire damage)' },
+            { value: 'water', label: 'Water (Cold damage)' },
+          ],
+        },
       ],
     },
     effects: [
@@ -260,7 +275,7 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
       summary: 'Elemental spirit: Dex save or 8d8 and Restrained. Damage scales with slot.',
     },
   },
-{
+  {
     id: 'contact-other-plane',
     name: 'Contact Other Plane',
     school: 'divination',
@@ -284,7 +299,7 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
       summary: 'Contact entity. Int save: 5 questions or 6d6 psychic and Incapacitated.',
     },
   },
-{
+  {
     id: 'contagion',
     name: 'Contagion',
     school: 'necromancy',
@@ -298,6 +313,14 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
       caveats: [
         'Disadvantage on your chosen ability’s saves while Poisoned is not automated.',
         'Healing-triggered Con save to end Poisoned is not simulated.',
+      ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'contagion-disadvantage-ability',
+          label: 'Disadvantage on saves (chosen ability)',
+          options: SPELL_CASTER_ABILITY_OPTIONS_NO_CON,
+        },
       ],
     },
     effects: [
@@ -333,7 +356,7 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
       summary: 'Touch: Con save or 11d8 necrotic and Poisoned. Best of 3 saves/fails.',
     },
   },
-{
+  {
     id: 'creation',
     name: 'Creation',
     school: 'illusion',

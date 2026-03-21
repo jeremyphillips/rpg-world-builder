@@ -1,5 +1,5 @@
 import type { SpellEntry } from '../types';
-import { cantripDamageScaling } from '../shared';
+import { cantripDamageScaling, RESISTANCE_SPELL_DAMAGE_TYPE_OPTIONS } from '../shared';
 
 /**
  * Cantrips M–Z — authoring status:
@@ -105,7 +105,7 @@ export const SPELLS_LEVEL_0_M_Z: readonly SpellEntry[] = [
       summary: 'Ranged spell attack: 1d8 cold, -10ft Speed. Scales at 5/11/17.',
     },
   },
-{
+  {
     id: 'resistance',
     name: 'Resistance',
     school: 'abjuration',
@@ -118,6 +118,14 @@ export const SPELLS_LEVEL_0_M_Z: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Damage-type choice, 1d4 reduction trigger, and once-per-turn limit are not enforced in encounter.',
+      ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'resistance-damage-type',
+          label: 'Damage type',
+          options: RESISTANCE_SPELL_DAMAGE_TYPE_OPTIONS,
+        },
       ],
     },
     effects: [

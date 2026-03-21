@@ -240,6 +240,21 @@ export const SPELLS_LEVEL_7_M_Z: readonly SpellEntry[] = [
       caveats: [
         'Glyph trigger, effect choice, and 60-foot sphere after activation need setup tracking.',
       ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'symbol-effect',
+          label: 'Glyph effect',
+          options: [
+            { value: 'death', label: 'Death (10d10 necrotic)' },
+            { value: 'discord', label: 'Discord (argue 1 min)' },
+            { value: 'fear', label: 'Fear (Frightened 1 min)' },
+            { value: 'pain', label: 'Pain (Incapacitated 1 min)' },
+            { value: 'sleep', label: 'Sleep (Unconscious 10 min)' },
+            { value: 'stunning', label: 'Stunning (Stunned 1 min)' },
+          ],
+        },
+      ],
     },
     effects: [
       {

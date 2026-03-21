@@ -1,3 +1,10 @@
+export {
+  EXTRAPLANAR_CREATURE_TYPE_IDS,
+  EXTRAPLANAR_CREATURE_TYPES,
+  FORBIDDANCE_CREATURE_TYPE_CASTER_OPTIONS,
+  type ExtraplanarCreatureTypeId,
+} from './extraplanar-creature-types'
+
 /**
  * System monster catalog — code-defined monster entries per system ruleset.
  *

@@ -1,1 +1,5 @@
 export * from './damage.types'
+export * from './elementalDamageTypes'
+export * from './planarDamageTypes'
+export * from './energyDamageTypes'
+export * from './damageTypeUi'

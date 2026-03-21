@@ -16,6 +16,8 @@ type AllyCombatantActiveCardProps = {
   availableActions: CombatActionDefinition[]
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
+  selectedCasterOptions?: Record<string, string>
+  onCasterOptionsChange?: (values: Record<string, string>) => void
 }
 
 export function AllyCombatantActiveCard({
@@ -23,6 +25,8 @@ export function AllyCombatantActiveCard({
   availableActions,
   selectedActionId,
   onSelectAction,
+  selectedCasterOptions,
+  onCasterOptionsChange,
 }: AllyCombatantActiveCardProps) {
   const availableActionIds = useMemo(
     () => new Set(availableActions.map((a) => a.id)),
@@ -72,6 +76,8 @@ export function AllyCombatantActiveCard({
       availableActionIds={availableActionIds}
       selectedActionId={selectedActionId}
       onSelectAction={onSelectAction}
+      selectedCasterOptions={selectedCasterOptions}
+      onCasterOptionsChange={onCasterOptionsChange}
       combatEffects={combatEffects}
     />
   )

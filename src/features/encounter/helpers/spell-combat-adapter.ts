@@ -15,6 +15,12 @@ function applySpellHostileBridge(spell: Spell, action: CombatActionDefinition): 
   return { ...action, hostileApplication: ha }
 }
 
+function applySpellCasterOptions(spell: Spell, action: CombatActionDefinition): CombatActionDefinition {
+  const co = spell.resolution?.casterOptions
+  if (!co?.length) return action
+  return { ...action, casterOptions: co }
+}
+
 export function formatSpellRange(range: SpellRange): string {
   switch (range.kind) {
     case 'self': return 'Self'
@@ -445,6 +451,6 @@ export function buildSpellCombatActions(args: {
       ]
     }
 
-    return actions.map((a) => applySpellHostileBridge(spell, a))
+    return actions.map((a) => applySpellHostileBridge(spell, applySpellCasterOptions(spell, a)))
   })
 }

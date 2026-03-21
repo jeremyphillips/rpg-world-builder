@@ -67,7 +67,7 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
       summary: 'Immune to movement reduction, Paralyzed, Restrained. Swim Speed. Escape restraints. Scales with targets.',
     },
   },
-{
+  {
     id: 'giant-insect',
     name: 'Giant Insect',
     school: 'conjuration',
@@ -80,6 +80,18 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Summoned insect is not represented as a full combatant in encounter.',
+      ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'giant-insect-form',
+          label: 'Form',
+          options: [
+            { value: 'centipede', label: 'Giant centipede' },
+            { value: 'spider', label: 'Giant spider' },
+            { value: 'wasp', label: 'Giant wasp' },
+          ],
+        },
       ],
     },
     effects: [

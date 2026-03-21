@@ -2,6 +2,8 @@ export interface ResolveCombatActionSelection {
   actorId: string
   targetId?: string
   actionId: string
+  /** Values for {@link CombatActionDefinition.casterOptions}, keyed by field `id`. */
+  casterOptions?: Record<string, string>
 }
 
 export interface ResolveCombatActionOptions {

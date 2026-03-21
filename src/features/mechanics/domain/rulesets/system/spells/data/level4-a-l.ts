@@ -256,7 +256,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
       summary: '10ft sphere: Wis save or random behavior each turn. Radius scales with slot.',
     },
   },
-{
+  {
     id: 'conjure-minor-elementals',
     name: 'Conjure Minor Elementals',
     school: 'conjuration',
@@ -269,6 +269,19 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Summoned elementals are not represented as full combatants in encounter.',
+      ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'conjure-minor-elementals-option',
+          label: 'Summoning option',
+          options: [
+            { value: 'cr2-one', label: 'One elemental (CR 2 or lower)' },
+            { value: 'cr1-two', label: 'Two elementals (CR 1 or lower)' },
+            { value: 'cr-half-four', label: 'Four elementals (CR 1/2 or lower)' },
+            { value: 'cr-quarter-eight', label: 'Eight elementals (CR 1/4 or lower)' },
+          ],
+        },
       ],
     },
     effects: [
@@ -290,7 +303,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
       summary: 'Summon elementals (CR options). Group initiative; verbal commands. 6th/8th slot multiplies count.',
     },
   },
-{
+  {
     id: 'conjure-woodland-beings',
     name: 'Conjure Woodland Beings',
     school: 'conjuration',

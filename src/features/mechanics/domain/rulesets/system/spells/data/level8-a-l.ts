@@ -75,6 +75,17 @@ export const SPELLS_LEVEL_8_A_L: readonly SpellEntry[] = [
       caveats: [
         '120ft proximity, flee/approach behavior, and repeat saves are not fully automated.',
       ],
+      casterOptions: [
+        {
+          kind: 'enum',
+          id: 'antipathy-sympathy-mode',
+          label: 'Aura',
+          options: [
+            { value: 'antipathy', label: 'Antipathy (Frightened, must flee)' },
+            { value: 'sympathy', label: 'Sympathy (Charmed, must approach)' },
+          ],
+        },
+      ],
     },
     effects: [
       {

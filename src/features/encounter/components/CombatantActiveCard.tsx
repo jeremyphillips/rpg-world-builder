@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import Box from '@mui/material/Box'
 import ButtonBase from '@mui/material/ButtonBase'
@@ -14,6 +14,7 @@ import { AppBadge } from '@/ui/primitives'
 import type { CombatActionDefinition, CombatActionKind } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import type { EnrichedPresentableEffect, CombatStateSection } from '../domain'
 import { ActionRow } from './ActionRow'
+import { CasterOptionsFields } from './CasterOptionsFields'
 
 type StatEntry = { label: string; value: string }
 
@@ -26,6 +27,9 @@ type CombatantActiveCardProps = {
   availableActionIds?: Set<string>
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
+  /** Values for the selected action’s `casterOptions` (spell choices), keyed by field id. */
+  selectedCasterOptions?: Record<string, string>
+  onCasterOptionsChange?: (values: Record<string, string>) => void
   combatEffects: Record<CombatStateSection, EnrichedPresentableEffect[]>
   trackedParts?: Array<{ label: string; current: number; initial: number }>
 }
@@ -148,12 +152,26 @@ export function CombatantActiveCard({
   availableActionIds,
   selectedActionId,
   onSelectAction,
+  selectedCasterOptions,
+  onCasterOptionsChange,
   combatEffects,
   trackedParts,
 }: CombatantActiveCardProps) {
   const effectSections = (Object.entries(combatEffects) as [CombatStateSection, EnrichedPresentableEffect[]][])
     .filter(([, effects]) => effects.length > 0)
   const totalEffects = effectSections.reduce((sum, [, effects]) => sum + effects.length, 0)
+
+  const selectedActionDefinition = useMemo(() => {
+    if (!selectedActionId) return undefined
+    return [...actions, ...bonusActions].find((a) => a.id === selectedActionId)
+  }, [actions, bonusActions, selectedActionId])
+  const casterFields = selectedActionDefinition?.casterOptions
+  const stableOnCasterOptions = useCallback(
+    (next: Record<string, string>) => {
+      onCasterOptionsChange?.(next)
+    },
+    [onCasterOptionsChange],
+  )
 
   return (
     <Paper sx={{ 
@@ -202,6 +220,19 @@ export function CombatantActiveCard({
             onSelectAction={onSelectAction}
           />
         </CollapsibleSection>
+
+        {casterFields &&
+          casterFields.length > 0 &&
+          selectedActionId &&
+          selectedCasterOptions &&
+          onCasterOptionsChange && (
+            <CasterOptionsFields
+              formKey={selectedActionId}
+              fields={casterFields}
+              value={selectedCasterOptions}
+              onChange={stableOnCasterOptions}
+            />
+          )}
 
         <CollapsibleSection title="Combat Effects" count={totalEffects} defaultOpen={totalEffects > 0}>
           <Stack spacing={1} sx={{ pt: 0.5 }}>
