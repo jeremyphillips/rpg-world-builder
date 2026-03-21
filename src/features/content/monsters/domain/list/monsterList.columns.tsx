@@ -8,6 +8,7 @@ import {
 } from '@/features/content/monsters/utils/formatters';
 import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
+import { MONSTER_TYPE_OPTIONS } from '@/features/content/monsters/domain/vocab/monster.vocab';
 import { AppTooltip } from '@/ui/primitives';
 
 function getActionsDisplay(actions?: MonsterAction[]): string {
@@ -38,10 +39,23 @@ function getEquipmentDisplay(row: MonsterListRow): string {
   return keys.length > 0 ? keys.join(', ') : '—';
 }
 
+function getMonsterTypeDisplay(row: MonsterListRow): string {
+  const id = row.type;
+  if (!id) return '—';
+  const opt = MONSTER_TYPE_OPTIONS.find((o) => o.id === id);
+  return opt?.name ?? id;
+}
+
 export function buildMonsterCustomColumns(
   armorById: Record<string, CreatureArmorCatalogEntry>,
 ): AppDataGridColumn<MonsterListRow>[] {
   return [
+    {
+      field: 'monsterType',
+      headerName: 'Type',
+      width: 120,
+      accessor: getMonsterTypeDisplay,
+    },
     {
       field: 'hitPoints',
       headerName: 'Hit Points',

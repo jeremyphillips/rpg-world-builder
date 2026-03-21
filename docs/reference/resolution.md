@@ -144,7 +144,7 @@ The encounter action system resolves combat actions against encounter state:
 Targeting validation is centralized so the resolver and UI share a single source of truth:
 
 - `isValidActionTarget(state, combatant, actor, action, options?)` — predicate. Checks banished state, creature type filter, charmed exclusion, `requiresSight` (when set), HP alive/dead, `requiresWilling` (same-side), and optional same-side suppression for hostile `single-target` actions.
-- `getActionTargetCandidates(state, actor, action, options?)` — returns all combatants that pass `isValidActionTarget`, in initiative order. Used by the UI to populate the target picker.
+- `getActionTargetCandidates(state, actor, action, options?)` — returns all combatants that pass `isValidActionTarget`. **Initiative order** for most kinds; for **`dead-creature`**, also includes combatants in `combatantsById` that are **missing from `initiativeOrder`** (e.g. corpses dropped when a new round re-rolls initiative from living participants only in `advanceEncounterTurn`). Used by the UI to populate the target picker.
 - `getActionTargets(state, actor, selection, action, options?)` — resolves the actual target(s) for a selected action. Handles selection-specific concerns (targetId lookup, `self` auto-targeting, no-target fallbacks) and delegates validation to `isValidActionTarget`.
 
 **LOS / visibility seams** (`visibility-seams.ts`): `lineOfSightClear` and `lineOfEffectClear` are compatibility stubs returning `true` until grid or terrain exists. `canSeeForTargeting` is the single entry point for “can I select this target for a sight-required action?”; replace the stubs later without changing call sites.

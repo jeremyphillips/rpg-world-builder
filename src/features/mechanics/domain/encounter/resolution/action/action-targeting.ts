@@ -1,4 +1,8 @@
-import type { CombatActionDefinition, CombatActionSequenceStep } from '../combat-action.types'
+import type {
+  CombatActionDefinition,
+  CombatActionSequenceStep,
+  CombatActionTargetingProfile,
+} from '../combat-action.types'
 import type { CombatantInstance } from '../../state'
 import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection } from '../action-resolution.types'
@@ -62,6 +66,37 @@ function shouldSuppressSameSideHostile(options?: ActionTargetingResolveOptions):
   return options?.suppressSameSideHostileActions !== false
 }
 
+/**
+ * When a new round starts, `advanceEncounterTurn` re-rolls initiative from living combatants only,
+ * so dead bodies drop out of `initiativeOrder` while remaining in `combatantsById`. Dead-creature
+ * spells must still see those corpses as candidates.
+ */
+function getCombatantsToScanForTargeting(
+  state: EncounterState,
+  targetingKind: CombatActionTargetingProfile['kind'] | undefined,
+): CombatantInstance[] {
+  if (targetingKind !== 'dead-creature') {
+    return state.initiativeOrder
+      .map((id) => state.combatantsById[id])
+      .filter((c): c is CombatantInstance => Boolean(c))
+  }
+
+  const byId = state.combatantsById
+  const seen = new Set<string>()
+  const ordered: CombatantInstance[] = []
+  for (const id of state.initiativeOrder) {
+    const c = byId[id]
+    if (c) {
+      seen.add(id)
+      ordered.push(c)
+    }
+  }
+  const rest = Object.values(byId)
+    .filter((c) => !seen.has(c.instanceId))
+    .sort((a, b) => a.instanceId.localeCompare(b.instanceId))
+  return [...ordered, ...rest]
+}
+
 export function isValidActionTarget(
   state: EncounterState,
   combatant: CombatantInstance,
@@ -118,11 +153,9 @@ export function getActionTargetCandidates(
   action: CombatActionDefinition,
   options?: ActionTargetingResolveOptions,
 ): CombatantInstance[] {
-  return state.initiativeOrder
-    .map((id) => state.combatantsById[id])
-    .filter(
-      (c): c is CombatantInstance => Boolean(c) && isValidActionTarget(state, c, actor, action, options),
-    )
+  return getCombatantsToScanForTargeting(state, action.targeting?.kind).filter((c) =>
+    isValidActionTarget(state, c, actor, action, options),
+  )
 }
 
 export function getActionTargets(

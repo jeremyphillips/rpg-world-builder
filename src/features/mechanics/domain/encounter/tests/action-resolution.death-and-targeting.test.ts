@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { CombatActionDefinition } from '../resolution'
-import { resolveCombatAction } from '../resolution'
+import { getActionTargetCandidates, resolveCombatAction } from '../resolution'
 import { createEncounterState } from '../state'
 
 import { createCombatant } from './action-resolution.test-helpers'
@@ -491,5 +491,49 @@ describe('resolveCombatAction — death, resurrection, spawns, and targeting fla
     )
 
     expect(resolved.combatantsById['b']?.stats.currentHitPoints).toBe(12)
+  })
+
+  it('dead-creature spell candidates include corpses not in initiativeOrder (after round re-roll drops dead)', () => {
+    const animateDead: CombatActionDefinition = {
+      id: 'animate-dead',
+      label: 'Animate Dead',
+      kind: 'spell',
+      cost: { action: true },
+      resolutionMode: 'effects',
+      effects: [],
+      targeting: { kind: 'dead-creature', creatureTypeFilter: ['humanoid'] },
+    }
+
+    const wizard = createCombatant({
+      instanceId: 'wizard',
+      label: 'Wizard',
+      side: 'party',
+      initiativeModifier: 2,
+      dexterityScore: 14,
+      armorClass: 12,
+      creatureType: 'humanoid',
+      actions: [animateDead],
+    })
+    const orc = createCombatant({
+      instanceId: 'orc',
+      label: 'Orc',
+      side: 'enemies',
+      initiativeModifier: 1,
+      dexterityScore: 12,
+      armorClass: 13,
+      creatureType: 'humanoid',
+      currentHitPoints: 0,
+    })
+
+    const base = createEncounterState([wizard, orc], { rng: () => 0.5 })
+    const stateDroppedDeadFromInitiative = {
+      ...base,
+      combatantsById: base.combatantsById,
+      initiativeOrder: ['wizard'],
+      initiative: base.initiative.filter((r) => r.combatantId === 'wizard'),
+    }
+
+    const candidates = getActionTargetCandidates(stateDroppedDeadFromInitiative, wizard, animateDead)
+    expect(candidates.map((c) => c.instanceId)).toContain('orc')
   })
 })

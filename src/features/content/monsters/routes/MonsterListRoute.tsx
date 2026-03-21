@@ -181,6 +181,7 @@ export default function MonsterListRoute() {
           ) : undefined
         }
         searchPlaceholder="Search monsters…"
+        searchColumns={['name', 'monsterType']}
         emptyMessage="No monsters found."
         density="compact"
         height={560}
