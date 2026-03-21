@@ -31,7 +31,7 @@ Stat blocks often list **gear** or **named attacks** that should drive resolutio
 **Reference examples**
 
 - **Armor — battered stand-in:** Skeleton [`scraps`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters-s-u.ts) uses `armorId: 'chain-shirt'` with `acModifier: -1`, `aliasName: 'Armor Scraps'`, and `notes` explaining the fiction.
-- **Weapon — same id, different printed dice/reach:** Bugbear Warrior [`light-hammer`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters-a-c.ts) keeps `weaponId: 'light-hammer'` but sets `damageOverride: '3d4'`, `reach: 10`, and `notes` for the grapple advantage clause.
+- **Weapon — same id, different printed dice/reach:** Bugbear Warrior [`light-hammer`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters-b.ts) keeps `weaponId: 'light-hammer'` but sets `damageOverride: '3d4'`, `reach: 10`, and `notes` for the grapple advantage clause.
 - **Weapon — MM name differs from catalog name:** Wight [`necrotic-sword` / `necrotic-bow`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters-v-z.ts) uses `weaponId` `longsword` / `longbow` with `aliasName: 'Necrotic Sword'` / `'Necrotic Bow'` and authored bonuses plus necrotic rider `notes`.
 
 When the block lists **Gear** but you model AC as **`kind: 'natural'`** (no worn armor row)—e.g. constructs—you typically **omit** `equipment.armor` and keep the flavor in **description** / traits unless you deliberately want an equipment-based AC breakdown.
@@ -80,6 +80,10 @@ Follow [effects.md §5 `note`](./effects.md), [§8](./effects.md), and **Resolut
 - Use `resolution.caveats` when the gap is not a single note (e.g. adapter limits, geometry).
 - Do not rely on comment-only “engine caveat” lines as the canonical record.
 
+## Monster types (vocabulary)
+
+Before assigning a new **`type`** on a stat block, add its **id** and display **name** to [`MONSTER_TYPE_OPTIONS`](../../src/features/content/monsters/domain/vocab/monster.vocab.ts) in [`monster.vocab.ts`](../../src/features/content/monsters/domain/vocab/monster.vocab.ts). `MonsterType` is derived from that list, so catalog entries and UI options stay aligned.
+
 ## System catalog
 
-- Factory defaults live in [`monsters/index.ts`](../../src/features/mechanics/domain/rulesets/system/monsters/index.ts) and letter-range shards under [`monsters/data/`](../../src/features/mechanics/domain/rulesets/system/monsters/data/) (see [`monsters.ts`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters.ts) for the shard registry).
+- Factory defaults live in [`monsters/index.ts`](../../src/features/mechanics/domain/rulesets/system/monsters/index.ts) and single-letter / letter-range shards under [`monsters/data/`](../../src/features/mechanics/domain/rulesets/system/monsters/data/) (see [`monsters.ts`](../../src/features/mechanics/domain/rulesets/system/monsters/data/monsters.ts) for the shard registry).
