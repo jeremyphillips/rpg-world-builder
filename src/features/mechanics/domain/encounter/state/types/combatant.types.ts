@@ -1,3 +1,4 @@
+import type { Condition } from '@/features/mechanics/domain/conditions/condition.types'
 import type { ConditionImmunityId } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
@@ -158,6 +159,12 @@ export interface RollModifierMarker {
   modifier: 'advantage' | 'disadvantage'
   duration?: RuntimeMarkerDuration
   sourceInstanceId?: string
+  /**
+   * When set, the marker only applies when {@link evaluateCondition} is true at roll time.
+   * Context: `self` = combatant holding the marker; `source` = the other combatant in the roll pair
+   * (e.g. attacker when the marker is on the defender for incoming attacks).
+   */
+  condition?: Condition
 }
 
 export interface StatModifierMarker {

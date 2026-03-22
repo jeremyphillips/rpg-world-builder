@@ -283,7 +283,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true },
     effects: [
-      { kind: 'roll-modifier', appliesTo: 'attacks against', modifier: 'disadvantage' },
+      { kind: 'roll-modifier', appliesTo: 'incoming-attacks', modifier: 'disadvantage' },
       { kind: 'note', text: 'Creatures with Blindsight or Truesight are not affected.', category: 'flavor' as const },
     ],
     description: {

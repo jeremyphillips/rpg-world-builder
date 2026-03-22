@@ -274,6 +274,8 @@ export function applyActionEffects(
           sourceLabel: options.sourceLabel,
           damageType: effect.damageType,
           remainsOnKill: damageRemainsOnKill(action),
+          rng: options.rng,
+          monstersById: options.monstersById,
         })
       }
       return
@@ -499,6 +501,7 @@ export function applyActionEffects(
     if (effect.kind === 'roll-modifier') {
       const runtimeDuration = effectDurationToRuntimeDuration(effect) ?? undefined
       const markerId = `roll-mod-${action.id}-${target.instanceId}`
+      const cond = 'condition' in effect ? effect.condition : undefined
       nextState = addRollModifierToCombatant(
         nextState,
         target.instanceId,
@@ -509,6 +512,7 @@ export function applyActionEffects(
           modifier: effect.modifier,
           duration: runtimeDuration,
           sourceInstanceId: actor.instanceId,
+          ...(cond ? { condition: cond } : {}),
         },
         { sourceLabel: options.sourceLabel },
       )
@@ -660,11 +664,8 @@ export function applyActionEffects(
         return
       }
 
-      nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Grants ${effect.grantType}.`, {
-        actorId: actor.instanceId,
-        targetIds: [target.instanceId],
-      })
-      return
+      const _exhaustiveGrant: never = effect
+      return _exhaustiveGrant
     }
 
     if (effect.kind === 'form') {

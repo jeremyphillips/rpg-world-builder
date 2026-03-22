@@ -133,6 +133,8 @@ The encounter action system resolves combat actions against encounter state:
 - `dead-creature` — combatant at 0 HP with a **valid body** (`remains` not `dust` or `disintegrated`; see `CombatantInstance` in encounter state). Used by resurrection and **Animate Dead** (often with `creatureTypeFilter`, e.g. humanoid). `creatureTypeFilter` is applied the same as for living targets.
 - `entered-during-move` — creatures entered during movement
 
+**Remains / revival (encounter):** On first transition to 0 HP, `applyDamageToCombatant` records `diedAtRound` and sets `remains` (default **`corpse`**; lethal damage from the **Disintegrate** spell action sets **`disintegrated`**; **`death-outcome` / `turns-to-dust`** on a killing hit sets **`dust`**). Healing on a dead target via **`hit-points`** / **`heal`** checks `reviveBlockedReason` in `action-effects.ts` (**dust** / **disintegrated**, and **Revivify** after more than **10** rounds since `diedAtRound` at **6 s/round**).
+
 **Targeting profile fields:**
 
 - `requiresWilling` — when `true` on `single-target`, valid targets are same-side only (caster + allies); “willing” is approximated as allies until explicit consent exists. Such actions are **non-hostile** for charm / hostile-action rules. Authored on spells via `targeting.requiresWilling` in spell effects.
@@ -244,7 +246,7 @@ Pure formatting functions that take raw resolution data and return `string[]` fo
 |--------|-------------|-------|
 | `formatAttackRollDebug` | attack-hit / attack-missed events | Roll mode, contributing roll-modifier markers, condition-derived attack modifiers with range |
 | `formatAutoFailDebug` | save auto-fail events | Which conditions caused auto-fail and which abilities they cover |
-| `formatSaveDebug` | save-roll events | Save roll mode and contributing condition modifiers |
+| `formatSaveDebug` | save-roll events | Save roll mode (always, including `normal`) and contributing condition modifiers when non-trivial |
 | `formatDamageResistanceDebug` | damage-resistance notes | Which conditions provide resistance/vulnerability |
 | `formatTurnResourceDebug` | noOp resource-blocked notes | Which conditions disabled the required turn resource |
 | `formatConditionConsequencesDebug` | condition-applied events | Full consequence breakdown for the applied condition (action limits, movement, attack mods, save mods, speech, visibility, etc.) |
@@ -254,7 +256,7 @@ Pure formatting functions that take raw resolution data and return `string[]` fo
 **Integration points:**
 
 - `action-resolver.ts` — attack-roll, save auto-fail, save-roll, and resource-blocked noOp events include `debugDetails`.
-- `damage-mutations.ts` — condition-based resistance notes include `debugDetails`.
+- `damage-mutations.ts` — condition-based resistance notes include `debugDetails`. Monster **`reduced-to-0-hp`** traits (e.g. Undead Fortitude on zombies) resolve inside `applyDamageToCombatant` when `monstersById` is provided; pass `criticalHit` for attack crits and `rng` for the CON save. `hook-triggered` entries include `debugDetails` (trigger, DC, roll, outcome).
 - `condition-mutations.ts` — condition-applied events include a consequence breakdown when the condition is a known `EffectConditionId`.
 - `logging.ts` `createTurnStartedLog` — includes a combatant status snapshot (HP, conditions, states, concentration, disabled resources).
 - `logging.ts` `createTurnEndedLog` — includes the concentration timer when the active combatant is concentrating.
@@ -516,7 +518,7 @@ How each effect kind is resolved at runtime by `action-effects.ts`:
 | `note` | **Full** | Logs text; `category` distinguishes `under-modeled` from `flavor` |
 | `targeting` | **Handled** | Consumed by the action resolver for target selection, not by `applyActionEffects` |
 | `modifier` | **Partial** | `armor_class` (add/set), `speed` (add/set/multiply), and `resistance` (add) fully resolved; other targets log gracefully |
-| `roll-modifier` | **Full** | Registers `RollModifierMarker` on target; applied during attack-roll and saving throw resolution |
+| `roll-modifier` | **Full** (attack) | Registers `RollModifierMarker` on target. Hyphenated `appliesTo` tokens (e.g. `attack-rolls`, `incoming-attacks`); optional `effect.condition` is evaluated at attack-roll time. Spell markers on saving throws are not merged into save resolution yet. |
 | `interval` | **Full** | Registers `RuntimeTurnHook` for per-turn effect application |
 | `immunity` | **Partial** | `spell` and `source-action` scopes resolved; other scopes log |
 | `move` | **Log** | Logs structured summary (direction, distance); no position tracking |

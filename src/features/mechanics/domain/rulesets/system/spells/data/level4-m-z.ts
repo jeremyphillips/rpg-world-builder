@@ -134,8 +134,8 @@ export const SPELLS_LEVEL_4_M_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
       { kind: 'condition', conditionId: 'invisible' },
-      { kind: 'roll-modifier', appliesTo: 'attack rolls', modifier: 'advantage' },
-      { kind: 'roll-modifier', appliesTo: 'attacks against', modifier: 'disadvantage' },
+      { kind: 'roll-modifier', appliesTo: 'attack-rolls', modifier: 'advantage' },
+      { kind: 'roll-modifier', appliesTo: 'incoming-attacks', modifier: 'disadvantage' },
     ],
     description: {
       full: "A creature you touch has the Invisible condition until the spell ends.",

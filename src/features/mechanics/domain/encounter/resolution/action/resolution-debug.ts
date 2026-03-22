@@ -70,8 +70,6 @@ export function formatSaveDebug(
   ability: AbilityRef,
   saveRollMod: D20RollMode,
 ): string[] {
-  if (saveRollMod === 'normal') return []
-
   const lines: string[] = [`save roll mode: ${saveRollMod}`]
 
   for (const { conditionId, consequence: c } of getActiveConsequencesWithOrigin(combatant)) {

@@ -87,7 +87,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
     effects: [
       { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
       { kind: 'damage', damage: '4d6', damageType: 'radiant' },
-      { kind: 'roll-modifier', appliesTo: 'attacks against', modifier: 'advantage', duration: { kind: 'until-turn-boundary', subject: 'source', turn: 'next', boundary: 'end' } },
+      { kind: 'roll-modifier', appliesTo: 'incoming-attacks', modifier: 'advantage', duration: { kind: 'until-turn-boundary', subject: 'source', turn: 'next', boundary: 'end' } },
     ],
     scaling: [{ category: 'extra-damage', description: '+1d6 radiant per slot level above 1', mode: 'per-slot-level', startsAtSlotLevel: 2, amount: '1d6' }],
     description: {
@@ -552,7 +552,7 @@ export const SPELLS_LEVEL_1_M_Z: readonly SpellEntry[] = [
       },
       {
         kind: 'roll-modifier',
-        appliesTo: 'attack-rolls',
+        appliesTo: 'incoming-attacks',
         modifier: 'disadvantage',
         condition: EXTRAPLANAR_CREATURE_TYPES,
       },

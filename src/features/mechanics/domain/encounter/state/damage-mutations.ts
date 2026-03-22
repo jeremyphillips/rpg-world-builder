@@ -1,3 +1,4 @@
+import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantRemainsKind } from './types/combatant.types'
 import type { EncounterState } from './types'
 import {
@@ -8,12 +9,14 @@ import {
   syncCombatantTurnResources,
   updateCombatant,
 } from './shared'
+import type { CombatLogEvent } from './types'
 import { appendLog, getCombatantLabel } from './logging'
 import type { RuntimeMarker } from './types'
 import { dropConcentration } from './concentration-mutations'
 import { getDamageAfterResistance } from './resistance-mutations'
 import { getDamageResistanceFromConditions } from './condition-rules'
 import { formatDamageResistanceDebug } from '../resolution/action/resolution-debug'
+import { resolveReducedToZeroHpTrait } from './reduced-to-zero-hp'
 
 export function applyDamageToCombatant(
   state: EncounterState,
@@ -25,6 +28,12 @@ export function applyDamageToCombatant(
     damageType?: string
     /** When this damage reduces the creature to 0 HP, set remains (e.g. disintegrate). */
     remainsOnKill?: CombatantRemainsKind
+    /** When true (e.g. natural 20 on attack), Undead Fortitude–style saves are bypassed where authored. */
+    criticalHit?: boolean
+    /** RNG for Undead Fortitude CON save and similar; defaults to `Math.random` when omitted. */
+    rng?: () => number
+    /** Monster catalog — required for automatic `reduced-to-0-hp` traits (e.g. Undead Fortitude). */
+    monstersById?: Record<string, Monster>
   },
 ): EncounterState {
   const target = state.combatantsById[targetId]
@@ -67,8 +76,13 @@ export function applyDamageToCombatant(
 
   const effectiveAmount = adjusted
   const turnKey = getTurnKey(resistanceLogState)
+  const rng = options?.rng ?? Math.random
+  const round = resistanceLogState.roundNumber
+  const turn = resistanceLogState.turnIndex + 1
 
-  const nextState = updateCombatant(resistanceLogState, targetId, (combatant) => {
+  let reducedToZeroLogEvents: Array<Omit<CombatLogEvent, 'id' | 'timestamp'>> = []
+
+  let nextState = updateCombatant(resistanceLogState, targetId, (combatant) => {
     const normalizedDamageType = normalizeDamageType(options?.damageType)
     const currentTurnContext = combatant.turnContext ?? createEmptyTurnContext()
     const existingSuppressedHooks = combatant.suppressedHooks ?? []
@@ -137,19 +151,58 @@ export function applyDamageToCombatant(
         trackedPart.deathWhenCountReaches != null &&
         trackedPart.currentCount <= trackedPart.deathWhenCountReaches,
     )
+    const isFatalTrackedPart = Boolean(fatalTrackedPart)
 
     const prevHp = combatant.stats.currentHitPoints
-    const newHp = fatalTrackedPart
-      ? 0
-      : Math.max(0, combatant.stats.currentHitPoints - effectiveAmount)
-    const justDied = prevHp > 0 && newHp === 0
-    const deathFields =
-      justDied
-        ? {
-            remains: (options?.remainsOnKill ?? combatant.remains ?? 'corpse') as CombatantRemainsKind,
-            diedAtRound: combatant.diedAtRound ?? resistanceLogState.roundNumber,
-          }
-        : undefined
+    const rawNewHp = fatalTrackedPart ? 0 : Math.max(0, combatant.stats.currentHitPoints - effectiveAmount)
+
+    let newHp = rawNewHp
+    let deathFields:
+      | {
+          remains: CombatantRemainsKind
+          diedAtRound: number
+        }
+      | undefined
+
+    if (!isFatalTrackedPart && prevHp > 0 && rawNewHp === 0) {
+      const reduced = resolveReducedToZeroHpTrait(
+        combatant,
+        prevHp,
+        effectiveAmount,
+        isFatalTrackedPart,
+        round,
+        turn,
+        {
+          damageType: options?.damageType,
+          criticalHit: options?.criticalHit,
+          monstersById: options?.monstersById,
+          rng,
+          remainsOnKill: options?.remainsOnKill,
+        },
+      )
+      if (reduced) {
+        newHp = reduced.newHp
+        deathFields = reduced.deathFields
+        reducedToZeroLogEvents = reduced.logEvents
+      } else {
+        deathFields =
+          prevHp > 0 && rawNewHp === 0
+            ? {
+                remains: (options?.remainsOnKill ?? combatant.remains ?? 'corpse') as CombatantRemainsKind,
+                diedAtRound: combatant.diedAtRound ?? resistanceLogState.roundNumber,
+              }
+            : undefined
+      }
+    } else {
+      newHp = rawNewHp
+      deathFields =
+        prevHp > 0 && rawNewHp === 0
+          ? {
+              remains: (options?.remainsOnKill ?? combatant.remains ?? 'corpse') as CombatantRemainsKind,
+              diedAtRound: combatant.diedAtRound ?? resistanceLogState.roundNumber,
+            }
+          : undefined
+    }
 
     return {
       ...combatant,
@@ -206,6 +259,10 @@ export function applyDamageToCombatant(
       .filter(Boolean)
       .join(' ') || undefined,
   })
+
+  for (const ev of reducedToZeroLogEvents) {
+    loggedState = appendLog(loggedState, ev)
+  }
 
   const previousTrackedParts = target.trackedParts ?? []
   const nextTrackedParts = stateAfterCharm.combatantsById[targetId]?.trackedParts ?? []

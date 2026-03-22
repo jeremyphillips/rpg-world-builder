@@ -35,6 +35,8 @@ import {
   canUseCombatAction,
   spendCombatActionUsage,
 } from './action-cost'
+import { evaluateCondition } from '../../../conditions/evaluateCondition'
+import { combatantToCreatureSnapshot } from '../../state/combatant-evaluation-snapshot'
 import { getActionTargets, getSequenceStepCount, type ActionTargetingResolveOptions } from './action-targeting'
 import { applyActionEffects, formatMovementSummary, getImmunityStateLabel, getSaveModifier } from './action-effects'
 
@@ -46,18 +48,53 @@ type RollModifierResult = {
   defenderMarkers: RollModifierMarker[]
 }
 
-function resolveRollModifier(
+/** Canonical tokens for `RollModifierMarker.appliesTo` (hyphenated). */
+const ROLL_CONTEXT_ATTACK_ROLLS = 'attack-rolls'
+const ROLL_CONTEXT_INCOMING_ATTACKS = 'incoming-attacks'
+
+function normalizeRollAppliesToken(t: string): string {
+  return t.trim().toLowerCase().replace(/\s+/g, '-')
+}
+
+function rollModifierConditionApplies(
+  marker: RollModifierMarker,
+  holder: 'attacker' | 'defender',
   attacker: CombatantInstance,
   defender: CombatantInstance,
-  rollType: string,
+): boolean {
+  if (!marker.condition) return true
+  if (holder === 'attacker') {
+    return evaluateCondition(marker.condition, {
+      self: combatantToCreatureSnapshot(attacker),
+      source: combatantToCreatureSnapshot(defender),
+    })
+  }
+  return evaluateCondition(marker.condition, {
+    self: combatantToCreatureSnapshot(defender),
+    source: combatantToCreatureSnapshot(attacker),
+  })
+}
+
+/** Exported for tests — combines spell `RollModifierMarker`s with condition-based attack mods. */
+export function resolveRollModifier(
+  attacker: CombatantInstance,
+  defender: CombatantInstance,
   attackRange: 'melee' | 'ranged' = 'melee',
 ): RollModifierResult {
-  const attackerMarkers = (attacker.rollModifiers ?? []).filter((m) =>
-    matchesRollContext(m, rollType),
+  const rawAttacker = (attacker.rollModifiers ?? []).filter((m) =>
+    matchesRollContext(m, ROLL_CONTEXT_ATTACK_ROLLS),
   )
-  const defenderMarkers = (defender.rollModifiers ?? []).filter((m) =>
-    matchesRollContext(m, `attacks against`),
+  const rawDefender = (defender.rollModifiers ?? []).filter((m) =>
+    matchesRollContext(m, ROLL_CONTEXT_INCOMING_ATTACKS),
   )
+
+  const attackerMarkers = rawAttacker.filter((m) =>
+    rollModifierConditionApplies(m, 'attacker', attacker, defender),
+  )
+  const defenderMarkers = rawDefender.filter((m) =>
+    rollModifierConditionApplies(m, 'defender', attacker, defender),
+  )
+
   const markerModifiers = [...attackerMarkers, ...defenderMarkers].map((m) => m.modifier)
 
   const conditionModifiers = [
@@ -72,7 +109,11 @@ function resolveRollModifier(
 
 function matchesRollContext(marker: RollModifierMarker, context: string): boolean {
   const targets = Array.isArray(marker.appliesTo) ? marker.appliesTo : [marker.appliesTo]
-  return targets.some((t) => t === context || t === 'all' || context.includes(t))
+  const ctx = normalizeRollAppliesToken(context)
+  return targets.some((t) => {
+    const tt = normalizeRollAppliesToken(t)
+    return tt === 'all' || tt === ctx
+  })
 }
 
 function deriveAttackRange(action: CombatActionDefinition): 'melee' | 'ranged' {
@@ -280,7 +321,7 @@ function resolveCombatActionInternal(
     if (target == null || attackBonus == null) return { state: nextState, createdMarkerIds: [] }
 
     const attackRange = deriveAttackRange(action)
-    const { rollMod, attackerMarkers, defenderMarkers } = resolveRollModifier(actor, target, 'attack rolls', attackRange)
+    const { rollMod, attackerMarkers, defenderMarkers } = resolveRollModifier(actor, target, attackRange)
     const { rawRoll, detail: rollDetail } = rollD20WithRollMode(rollMod, rng)
     const totalRoll = rawRoll + attackBonus
     const isNaturalTwenty = rawRoll === 20
@@ -301,7 +342,7 @@ function resolveCombatActionInternal(
         ? `${actor.source.label} hits ${targetLabel} with ${actionLabel}${hitSuffix}.`
         : `${actor.source.label} misses ${targetLabel} with ${actionLabel}${missSuffix}.`,
       details: `Attack roll: ${rollDetail} + ${attackBonus} = ${totalRoll} vs AC ${target.stats.armorClass}.`,
-      debugDetails: attackDebug.length > 1 ? attackDebug : undefined,
+      debugDetails: attackDebug.length > 0 ? attackDebug : undefined,
     })
 
     if (hit) {
@@ -311,6 +352,9 @@ function resolveCombatActionInternal(
           actorId: actor.instanceId,
           sourceLabel: actionLabel,
           damageType: action.attackProfile?.damageType,
+          criticalHit: isCritical,
+          rng,
+          monstersById: options.monstersById,
         })
         nextState = appendEncounterLogEvent(nextState, {
           type: 'action-resolved',
@@ -402,6 +446,8 @@ function resolveCombatActionInternal(
               actorId: actor.instanceId,
               sourceLabel: actionLabel,
               damageType: action.damageType,
+              rng,
+              monstersById: options.monstersById,
             })
           }
         }
@@ -424,7 +470,7 @@ function resolveCombatActionInternal(
         turn: state.turnIndex + 1,
         summary: `${saveTarget.source.label} ${succeeded ? 'succeeds' : 'fails'} the ${saveAbility.toUpperCase()} save against ${actionLabel}.`,
         details: `Saving throw: ${saveRollDetail} + ${saveModifier} = ${totalRoll} vs DC ${action.saveProfile.dc}.`,
-        debugDetails: saveDebug.length > 0 ? saveDebug : undefined,
+        debugDetails: saveDebug,
       })
 
       if (action.damage) {
@@ -442,6 +488,8 @@ function resolveCombatActionInternal(
               actorId: actor.instanceId,
               sourceLabel: actionLabel,
               damageType: action.damageType,
+              rng,
+              monstersById: options.monstersById,
             })
           }
         }

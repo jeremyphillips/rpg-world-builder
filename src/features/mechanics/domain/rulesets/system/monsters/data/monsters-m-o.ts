@@ -245,7 +245,6 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
               ],
             },
             {
-              // Engine caveat: death outcome is currently modeled as a descriptive rider, not a full outcome pipeline.
               kind: "death-outcome",
               trigger: "reduced-to-0-hit-points-by-this-action",
               targetType: "creature",

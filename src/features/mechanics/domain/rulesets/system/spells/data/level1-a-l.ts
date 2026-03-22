@@ -654,7 +654,7 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
         kind: 'save',
         save: { ability: 'dex' },
         onFail: [
-          { kind: 'roll-modifier', appliesTo: 'attacks against', modifier: 'advantage' },
+          { kind: 'roll-modifier', appliesTo: 'incoming-attacks', modifier: 'advantage' },
           { kind: 'note', text: 'Target outlined in light; sheds Dim Light 10ft. Cannot benefit from being Invisible.', category: 'flavor' as const },
         ],
       },

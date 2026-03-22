@@ -19,5 +19,6 @@ export type MonsterAttackType =
 
 export type TraitRollTarget =
   | 'attack-rolls'
+  | 'incoming-attacks'
   | 'ability-checks'
   | 'saving-throws';
