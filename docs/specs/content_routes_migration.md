@@ -340,7 +340,7 @@ Phase 3 (Cleanup):
 ## Phase 4 Report Back (Locations & Monsters Migration)
 
 1. **Locations** — Moved to `src/features/content/locations/routes/`:
-   - `LocationsRoute.tsx` — list view using `@/data/locations`, `FilterableCardGroup`, `LocationHorizontalCard`, `getLegacyType`/`sortLocations`/`getIndentLevel` from `@/features/location/locationLegacy`
+   - `LocationsRoute.tsx` — list view using `@/data/locations`, `FilterableCardGroup`, `LocationHorizontalCard`, `getLegacyType`/`sortLocations`/`getIndentLevel` from `@/features/location/location.helpers`
    - `LocationRoute.tsx` — detail view using `@/data/locations` for lookup, `resolveImageUrl` for images, `getLegacyType` for type display, editable fields with `apiUpdateLocation` (setting-data API)
 
 2. **Monsters** — Moved to `src/features/content/monsters/routes/`:

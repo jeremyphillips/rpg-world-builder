@@ -1,4 +1,4 @@
-import type { Location } from '@/data/locations'
+import type { Location } from './types'
 
 /**
  * Maps the new `scale` field back to legacy location type strings
