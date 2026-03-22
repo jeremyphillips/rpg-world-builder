@@ -53,8 +53,8 @@ export type CombatStatePresentation = {
   tone: CombatStateTone
   priority: CombatStatePriority
   defaultSection: CombatStateSection
-  showAsChip?: boolean
-  showInHeader?: boolean
+  /** Condensed SRD-style reference for tooltips (conditions from definitions; optional on markers). */
+  rulesText?: string
   userFacing?: boolean
   summarize?: (effect: PresentableCombatEffect) => string
 }

@@ -86,6 +86,11 @@ export function formatEffectLabel(effect: Effect): string {
       return effect.notes ?? 'Immunity effect'
     case 'hold-breath':
       return 'Hold Breath'
+    case 'grant':
+      if (effect.grantType === 'condition-immunity') {
+        return `Immunity: ${effect.value}`
+      }
+      return effect.text ?? 'Grant'
     default:
       return effect.text ?? effect.kind.replaceAll('_', ' ')
   }
@@ -114,6 +119,10 @@ export function effectDurationToRuntimeDuration(effect: Effect): RuntimeMarkerDu
 
 export function deriveRuntimeEffects(combatant: CombatantInstance): RuntimeEffectInstance[] {
   return combatant.activeEffects.flatMap((effect, index) => {
+    /** Shown via encounter defense badges; avoid duplicating in generic runtime effect rows. */
+    if (effect.kind === 'grant' && effect.grantType === 'condition-immunity') {
+      return []
+    }
     const duration = effectDurationToRuntimeDuration(effect)
     if (!duration || duration.remainingTurns <= 0) return []
 

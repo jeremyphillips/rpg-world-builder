@@ -15,10 +15,11 @@ import {
   mergeCombatantsIntoEncounter,
   type CombatantInstance,
 } from '../../state'
+import type { EffectDuration } from '../../../effects/timing.types'
+import type { ConditionImmunityGrantEffect } from '../../../effects/effects.types'
 import { getAbilityModifier } from '../../../abilities/getAbilityModifier'
 import { abilityIdToKey, type AbilityRef } from '../../../character'
 import type { Condition } from '../../../conditions/condition.types'
-import type { CreatureSnapshot } from '../../../conditions/evaluation-context.types'
 import { evaluateCondition } from '../../../conditions/evaluateCondition'
 import type { Effect } from '../../../effects/effects.types'
 import type { CombatActionDefinition } from '../combat-action.types'
@@ -33,7 +34,8 @@ import {
   rollHealing,
 } from '../../../resolution/engines/dice.engine'
 import { inferStatModifierEligibilityFromEffect } from '../../state/equipment-eligibility'
-import type { AbilityScoreMapResolved } from '../../../character/abilities/abilities.types'
+import { combatantToCreatureSnapshot } from '../../state/combatant-evaluation-snapshot'
+import { isImmuneToConditionIncludingScopedGrants } from '../../state/condition-immunity-resolution'
 
 function reviveBlockedReason(
   target: CombatantInstance,
@@ -58,35 +60,6 @@ function damageRemainsOnKill(action: CombatActionDefinition): CombatantRemainsKi
     return 'disintegrated'
   }
   return undefined
-}
-
-const DEFAULT_ABILITIES: AbilityScoreMapResolved = {
-  strength: 10,
-  dexterity: 10,
-  constitution: 10,
-  intelligence: 10,
-  wisdom: 10,
-  charisma: 10,
-}
-
-function combatantToCreatureSnapshot(c: CombatantInstance): CreatureSnapshot {
-  const scores = c.stats.abilityScores
-  return {
-    id: c.instanceId,
-    level: 1,
-    hp: c.stats.currentHitPoints,
-    hpMax: c.stats.maxHitPoints,
-    abilities: scores
-      ? ({ ...DEFAULT_ABILITIES, ...scores } as AbilityScoreMapResolved)
-      : DEFAULT_ABILITIES,
-    conditions: c.conditions.map((m) => m.label),
-    resources: {},
-    equipment: {
-      armorEquipped: c.equipment?.armorEquipped ?? null,
-      shieldEquipped: c.equipment?.shieldId != null && c.equipment.shieldId.length > 0,
-    },
-    flags: {},
-  }
 }
 
 function modifierEffectAppliesToTarget(
@@ -216,6 +189,15 @@ export type ApplyActionEffectsOptions = {
   casterOptions?: Record<string, string>
 }
 
+/** Spell duration as turn-count fixed duration for `activeEffects` (from `concentrationDurationTurns`). */
+function spellTurnDurationFromAction(action: CombatActionDefinition): EffectDuration | undefined {
+  const meta = action.displayMeta
+  if (meta?.source !== 'spell') return undefined
+  const turns = meta.concentrationDurationTurns
+  if (turns == null || turns <= 0) return undefined
+  return { kind: 'fixed', value: turns, unit: 'turn' }
+}
+
 export function applyActionEffects(
   state: EncounterState,
   actor: CombatantInstance,
@@ -248,7 +230,7 @@ export function applyActionEffects(
         saveDetail = `Auto-fail ${ability.toUpperCase()} save (condition).`
       } else if (
         effect.autoSuccessIfImmuneTo &&
-        target.conditionImmunities?.includes(effect.autoSuccessIfImmuneTo)
+        isImmuneToConditionIncludingScopedGrants(target, effect.autoSuccessIfImmuneTo, actor)
       ) {
         succeeded = true
         saveDetail = `Auto-success (immune to ${effect.autoSuccessIfImmuneTo}).`
@@ -643,6 +625,41 @@ export function applyActionEffects(
     }
 
     if (effect.kind === 'grant') {
+      if (effect.grantType === 'proficiency') {
+        nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Grants ${effect.grantType}.`, {
+          actorId: actor.instanceId,
+          targetIds: [target.instanceId],
+        })
+        return
+      }
+
+      if (effect.grantType === 'condition-immunity') {
+        const duration = effect.duration ?? spellTurnDurationFromAction(action)
+        const meta = action.displayMeta
+        const isConcentrationSpell = meta?.source === 'spell' && meta.concentration === true
+        const concentrationLinkId = isConcentrationSpell
+          ? `grant-ci-${action.id}-${target.instanceId}-${effect.value}`
+          : undefined
+        const grantPayload: ConditionImmunityGrantEffect = {
+          ...effect,
+          ...(duration ? { duration } : {}),
+          source: effect.source ?? options.sourceLabel,
+          ...(concentrationLinkId ? { concentrationLinkId } : {}),
+        }
+        nextState = updateEncounterCombatant(nextState, target.instanceId, (c) => ({
+          ...c,
+          activeEffects: [...c.activeEffects, grantPayload],
+        }))
+        if (concentrationLinkId) {
+          markerIds.push(concentrationLinkId)
+        }
+        nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Grants immunity (${effect.value}) on target — tracked for encounter UI.`, {
+          actorId: actor.instanceId,
+          targetIds: [target.instanceId],
+        })
+        return
+      }
+
       nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Grants ${effect.grantType}.`, {
         actorId: actor.instanceId,
         targetIds: [target.instanceId],

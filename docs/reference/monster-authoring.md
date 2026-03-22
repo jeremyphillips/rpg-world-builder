@@ -61,16 +61,32 @@ When the block lists **Gear** but you model AC as **`kind: 'natural'`** (no worn
 
 ## Damage: resistances, immunities, vulnerabilities
 
-Shared elemental/weapon damage labels include **`DamageType`** in [`damage.types.ts`](../../src/features/mechanics/domain/damage/damage.types.ts) (re-exported from [`monster-combat.types.ts`](../../src/features/content/monsters/domain/types/monster-combat.types.ts) for convenience).
+Shared elemental/weapon damage labels include **`DamageType`** in [`damage.types.ts`](../../src/features/mechanics/domain/damage/damage.types.ts).
 
-- **`mechanics.resistances`** — `MonsterResistanceType[]`; combat builds **resistance** markers (half damage).
-- **`mechanics.immunities`** / **`mechanics.vulnerabilities`** — see [`monster-combat.types.ts`](../../src/features/content/monsters/domain/types/monster-combat.types.ts); [`buildMonsterCombatantInstance`](../../src/features/encounter/helpers/combatant-builders.ts) maps them to combat markers. Condition-like entries are partitioned vs damage types consistently with spells.
+- **`mechanics.resistances`** — [`CreatureResistanceDamageType[]`](../../src/features/mechanics/domain/creatures/immunities.types.ts); combat builds **resistance** markers (half damage).
+- **`mechanics.immunities`** / **`mechanics.vulnerabilities`** — mixed damage + condition immunities use [`ImmunityType`](../../src/features/mechanics/domain/creatures/immunities.types.ts) (vulnerabilities use [`CreatureVulnerabilityDamageType`](../../src/features/mechanics/domain/creatures/immunities.types.ts)); [`buildMonsterCombatantInstance`](../../src/features/encounter/helpers/combatant-builders.ts) maps them to combat markers. Condition-like entries are partitioned vs damage types consistently with spells.
 
 ## Actions and traits
 
 - **Natural** attacks: `MonsterNaturalAttackAction` — optional `onHitEffects` for riders (saves, extra damage, conditions).
 - **Special** actions: `MonsterSpecialAction` — saves, recharge, `sequence` for Multiattack, etc.
 - **`resolution?: ContentResolutionMeta`** on special actions and traits (and optional `mechanics.resolution` for the whole stat block) for **caveats** and optional **subtype** — same shared type as spells ([`content-resolution.types.ts`](../../src/features/mechanics/domain/resolution/content-resolution.types.ts)).
+
+### Action ids and Multiattack
+
+- Add optional **`id`** (kebab-case, stable) on **`MonsterNaturalAttackAction`** and **`MonsterSpecialAction`** for any action referenced by **Multiattack** or **legendary** entries.
+- **`sequence`** steps use **`{ actionId, count }`**. The encounter adapter resolves **`actionId`** to a display label from the matching action (`id` on natural/special, or **`weaponRef`** for `kind: 'weapon'`).
+
+### Legendary actions
+
+Structured data lives in **`mechanics.legendaryActions`** ([`monster-legendary.types.ts`](../../src/features/content/monsters/domain/types/monster-legendary.types.ts)). Do **not** duplicate the full legendary list in a **`Legendary Actions`** trait when this block is present.
+
+- **`uses`** / **`usesInLair`**: per stat block (e.g. 3 / 4 in lair).
+- **`timing`**: use **`OffTurnTiming`** — typically **`'end-of-other-creatures-turn'`** (immediately after another creature’s turn). Shared with other encounter concepts in [`turn-hooks.types.ts`](../../src/features/mechanics/domain/triggers/turn-hooks.types.ts).
+- **`refresh`**: use **`TurnHookKind`** when uses are regained at **start or end of this creature’s turn** (usually **`'turn-start'`** for legendary uses).
+- **`actions`**: each entry is **`kind: 'reference'`** ( **`name`**, **`actionId`** pointing at a normal action, optional **`cost`** defaulting to 1, optional **`heal`**, **`notes`**, **`additionalEffects`**, **`resolution`**) or **`kind: 'inline'`** ( **`name`**, full **`MonsterAction`** for legendary-only lines such as spell sub-actions).
+
+Rule text should follow your project’s **SRD 5.2.1** (CC BY 4.0) source, not third-party stat blocks.
 
 ## Resolution and under-modeling
 

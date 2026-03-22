@@ -8,7 +8,11 @@ import {
   sortByPriority,
   groupBySection,
 } from '../domain'
-import { formatSigned } from '../helpers'
+import {
+  COMBATANT_CORE_STAT_TOOLTIP_BY_LABEL,
+  TRACKED_PARTS_BADGE_TOOLTIP,
+  formatSigned,
+} from '../helpers'
 import { CombatantActiveCard } from './CombatantActiveCard'
 
 type OpponentCombatantActiveCardProps = {
@@ -49,14 +53,29 @@ export function OpponentCombatantActiveCard({
   }, [combatant])
 
   const stats = [
-    { label: 'AC', value: String(combatant.stats.armorClass) },
+    {
+      label: 'AC',
+      value: String(combatant.stats.armorClass),
+      tooltip: COMBATANT_CORE_STAT_TOOLTIP_BY_LABEL.AC,
+    },
     {
       label: 'HP',
       value: `${combatant.stats.currentHitPoints}/${combatant.stats.maxHitPoints}`,
+      tooltip: COMBATANT_CORE_STAT_TOOLTIP_BY_LABEL.HP,
     },
-    { label: 'Init', value: formatSigned(combatant.stats.initiativeModifier) },
+    {
+      label: 'Init',
+      value: formatSigned(combatant.stats.initiativeModifier),
+      tooltip: COMBATANT_CORE_STAT_TOOLTIP_BY_LABEL.Init,
+    },
     ...(combatant.stats.speeds?.ground != null
-      ? [{ label: 'Move', value: `${combatant.stats.speeds.ground} ft` }]
+      ? [
+          {
+            label: 'Move',
+            value: `${combatant.stats.speeds.ground} ft`,
+            tooltip: COMBATANT_CORE_STAT_TOOLTIP_BY_LABEL.Move,
+          },
+        ]
       : []),
   ]
 
@@ -64,6 +83,7 @@ export function OpponentCombatantActiveCard({
     label: tp.part === 'head' ? 'Heads' : 'Limbs',
     current: tp.currentCount,
     initial: tp.initialCount,
+    tooltip: TRACKED_PARTS_BADGE_TOOLTIP,
   }))
 
   return (

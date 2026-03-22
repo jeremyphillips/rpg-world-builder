@@ -1,3 +1,4 @@
+import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { ConcentrationState, EncounterState } from './types'
 import { updateCombatant } from './shared'
 import { appendLog, getCombatantLabel } from './logging'
@@ -74,17 +75,27 @@ export function dropConcentration(
     rollModifiers: (combatant.rollModifiers ?? []).filter((m) => !linkedIds.has(m.id)),
     turnHooks: combatant.turnHooks.filter((h) => !h.id || !linkedIds.has(h.id)),
     damageResistanceMarkers: (combatant.damageResistanceMarkers ?? []).filter((m) => !linkedIds.has(m.id)),
+    activeEffects: combatant.activeEffects.filter((e: Effect) => {
+      const link = e.concentrationLinkId
+      return link == null || !linkedIds.has(link)
+    }),
   }))
 
   for (const [id, instance] of Object.entries(nextState.combatantsById)) {
     if (id === casterId) continue
+    const activeEffectLinked = instance.activeEffects.some((e: Effect) => {
+      const link = e.concentrationLinkId
+      return link != null && linkedIds.has(link)
+    })
+
     const hasLinked =
       instance.conditions.some((m) => linkedIds.has(m.id)) ||
       instance.states.some((m) => linkedIds.has(m.id)) ||
       (instance.statModifiers ?? []).some((m) => linkedIds.has(m.id)) ||
       (instance.rollModifiers ?? []).some((m) => linkedIds.has(m.id)) ||
       instance.turnHooks.some((h) => h.id != null && linkedIds.has(h.id)) ||
-      (instance.damageResistanceMarkers ?? []).some((m) => linkedIds.has(m.id))
+      (instance.damageResistanceMarkers ?? []).some((m) => linkedIds.has(m.id)) ||
+      activeEffectLinked
 
     if (hasLinked) {
       nextState = updateCombatant(nextState, id, (combatant) => ({
@@ -95,6 +106,10 @@ export function dropConcentration(
         rollModifiers: (combatant.rollModifiers ?? []).filter((m) => !linkedIds.has(m.id)),
         turnHooks: combatant.turnHooks.filter((h) => !h.id || !linkedIds.has(h.id)),
         damageResistanceMarkers: (combatant.damageResistanceMarkers ?? []).filter((m) => !linkedIds.has(m.id)),
+        activeEffects: combatant.activeEffects.filter((e: Effect) => {
+          const link = e.concentrationLinkId
+          return link == null || !linkedIds.has(link)
+        }),
       }))
     }
   }

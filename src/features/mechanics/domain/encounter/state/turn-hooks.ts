@@ -28,6 +28,7 @@ import {
   removeStateFromCombatant,
 } from './mutations'
 import { autoFailsSave, getSaveModifiersFromConditions } from './condition-rules/condition-queries'
+import { isImmuneToConditionIncludingScopedGrants } from './condition-immunity-resolution'
 
 export function executeTurnHooks(
   state: EncounterState,
@@ -260,7 +261,11 @@ function resolveRepeatSave(
   } else if (
     combatant &&
     repeatSave.autoSuccessIfImmuneTo &&
-    combatant.conditionImmunities?.includes(repeatSave.autoSuccessIfImmuneTo)
+    isImmuneToConditionIncludingScopedGrants(
+      combatant,
+      repeatSave.autoSuccessIfImmuneTo,
+      repeatSave.casterInstanceId ? state.combatantsById[repeatSave.casterInstanceId] : undefined,
+    )
   ) {
     succeeded = true
     details = `Auto-success (immune to ${repeatSave.autoSuccessIfImmuneTo}).`

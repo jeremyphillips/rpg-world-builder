@@ -7,9 +7,19 @@ import type { DamageType } from '@/features/mechanics/domain/damage/damage.types
 import type { MonsterAttackType, AttackAbility } from "./monster-combat.types";
 import type { EffectUses, RechargeSpec } from "@/features/mechanics/domain/effects/timing.types";
 import type { ContentResolutionMeta } from '@/features/mechanics/domain/resolution/content-resolution.types';
+import type { AreaOfEffectTemplate } from '@/features/mechanics/domain/effects/area.types';
+import type { MonsterSpecialActionTarget } from '@/features/mechanics/domain/effects/targeting.types';
+
+/** One step of Multiattack; `actionId` matches `id` on natural/special actions or `weaponRef` on weapon actions. */
+export type MonsterMultiattackSequenceStep = {
+  actionId: string;
+  count: number;
+};
 
 export type MonsterNaturalAttackAction = {
   kind: 'natural';
+  /** Stable id for Multiattack / legendary references (kebab-case). */
+  id?: string;
   name?: string;
   attackType: MonsterAttackType;
   damageBonus?: number;
@@ -25,6 +35,8 @@ export type MonsterNaturalAttackAction = {
 
 export type MonsterSpecialAction = {
   kind: 'special';
+  /** Stable id for Multiattack / legendary references (kebab-case). */
+  id?: string;
   name: string;
   description: string;
   attackBonus?: number;
@@ -36,11 +48,8 @@ export type MonsterSpecialAction = {
     ability: AbilityId;
     dc: number;
   };
-  area?: {
-    kind: "cone" | "sphere" | "line" | "square" | "cylinder" | "cube";
-    size: number
-  }
-  target?: "creatures-in-area" | 'creatures-entered-during-move'
+  area?: AreaOfEffectTemplate;
+  target?: MonsterSpecialActionTarget;
   movement?: {
     upToSpeed?: boolean;
     upToSpeedFraction?: 0.5 | 1;
@@ -55,10 +64,7 @@ export type MonsterSpecialAction = {
   onFail?: Effect[];
   onSuccess?: Effect[];
   effects?: Effect[];
-  sequence?: {
-    actionName: string,
-    count: number
-  }[]
+  sequence?: MonsterMultiattackSequenceStep[]
   notes?: string;
   resolution?: ContentResolutionMeta;
 };

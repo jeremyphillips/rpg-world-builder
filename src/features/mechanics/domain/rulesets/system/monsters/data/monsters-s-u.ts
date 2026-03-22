@@ -175,11 +175,12 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
           name: "Multiattack",
           description: "The troll makes three Rend attacks.",
           sequence: [
-            { actionName: "Rend", count: 3 }
+            { actionId: 'rend', count: 3 }
           ]
         },
         {
           kind: "natural",
+          id: 'rend',
           name: "Rend",
           attackType: "claw",
           attackBonus: 7,

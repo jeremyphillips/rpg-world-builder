@@ -67,11 +67,12 @@ export const MONSTERS_D: readonly MonsterCatalogEntry[] = [
           name: 'Multiattack',
           description:
             'The djinni makes three attacks, using Storm Blade or Storm Bolt in any combination.',
-          sequence: [{ actionName: 'Storm Blade', count: 3 }],
+          sequence: [{ actionId: 'storm-blade', count: 3 }],
           notes: 'At table, substitute Storm Bolt for any Storm Blade step.',
         },
         {
           kind: 'natural',
+          id: 'storm-blade',
           name: 'Storm Blade',
           attackType: 'claw',
           attackBonus: 9,

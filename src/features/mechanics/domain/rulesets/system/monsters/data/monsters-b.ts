@@ -42,26 +42,20 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           description:
             'Legendary Resistance (3/Day, or 4/Day in Lair). If the dragon fails a saving throw, it can choose to succeed instead.',
         },
-        {
-          name: 'Legendary Actions',
-          description:
-            'Legendary Action Uses: 3 (4 in Lair). Cloaked Flight: Spellcasting Invisibility on itself and fly up to half Fly Speed (cannot repeat until start of next turn). Sonic Boom: Spellcasting Shatter (cannot repeat until start of next turn). Tail Swipe: one Rend attack.',
-          resolution: {
-            caveats: ['Legendary action economy and spell sub-actions are not automated.'],
-          },
-        },
       ],
       actions: [
         {
           kind: 'special',
+          id: 'multiattack',
           name: 'Multiattack',
           description:
             'The dragon makes three Rend attacks. It can replace one attack with a use of Spellcasting to cast Shatter.',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
           notes: 'One attack may be replaced with Shatter via Spellcasting.',
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 12,
@@ -85,12 +79,52 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'special',
+          id: 'spellcasting',
           name: 'Spellcasting',
           description:
             'Charisma spell save DC 18. At Will: Detect Magic, Invisibility, Mage Hand, Shatter. 1/Day Each: Scrying, Sending. No Material components.',
           resolution: { caveats: ['Innate spell list not executed as combat actions.'] },
         },
       ],
+      legendaryActions: {
+        uses: 3,
+        usesInLair: 4,
+        timing: 'end-of-other-creatures-turn',
+        refresh: 'turn-start',
+        resolution: {
+          caveats: ['Legendary action economy and spell sub-actions are not automated.'],
+        },
+        actions: [
+          {
+            kind: 'inline',
+            name: 'Cloaked Flight',
+            resolution: { caveats: ['Spell sub-actions not automated.'] },
+            action: {
+              kind: 'special',
+              name: 'Cloaked Flight',
+              description:
+                'The dragon uses Spellcasting to cast Invisibility on itself and can fly up to half its Fly Speed; it cannot take this action again until the start of its next turn.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Sonic Boom',
+            resolution: { caveats: ['Spell sub-actions not automated.'] },
+            action: {
+              kind: 'special',
+              name: 'Sonic Boom',
+              description:
+                'The dragon uses Spellcasting to cast Shatter; it cannot take this action again until the start of its next turn.',
+            },
+          },
+          {
+            kind: 'reference',
+            name: 'Tail Swipe',
+            actionId: 'rend',
+            notes: 'The dragon makes one Rend attack.',
+          },
+        ],
+      },
       resolution: {
         caveats: ['Lair XP 18,000 vs wandering 15,000 is flavor-only in lore.'],
       },
@@ -146,23 +180,19 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           description:
             'Legendary Resistance (3/Day, or 4/Day in Lair). If the dragon fails a saving throw, it can choose to succeed instead.',
         },
-        {
-          name: 'Legendary Actions',
-          description:
-            'Legendary Action Uses: 3 (4 in Lair). Blazing Light: Scorching Ray. Pounce: move half Speed + one Rend. Scorching Sands: Dex save DC 16 one target 120 ft., 6d8 Fire + half Speed (once per round cycle).',
-          resolution: { caveats: ['Legendary actions not automated.'] },
-        },
       ],
       actions: [
         {
           kind: 'special',
+          id: 'multiattack',
           name: 'Multiattack',
           description:
             'The dragon makes three Rend attacks. It can replace one attack with (A) Sleep Breath or (B) Spellcasting to cast Scorching Ray.',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 11,
@@ -193,12 +223,52 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'special',
+          id: 'spellcasting',
           name: 'Spellcasting',
           description:
             'Charisma spell save DC 16. At Will: Detect Magic, Minor Illusion, Scorching Ray, Shapechange (Beast or Humanoid only; no temp HP from spell; no concentration/temp HP to maintain), Speak with Animals. 1/Day Each: Detect Thoughts, Control Weather.',
           resolution: { caveats: ['Shapechange and spell list not executed in encounter.'] },
         },
       ],
+      legendaryActions: {
+        uses: 3,
+        usesInLair: 4,
+        timing: 'end-of-other-creatures-turn',
+        refresh: 'turn-start',
+        resolution: { caveats: ['Legendary actions not automated.'] },
+        actions: [
+          {
+            kind: 'inline',
+            name: 'Blazing Light',
+            action: {
+              kind: 'special',
+              name: 'Blazing Light',
+              description: 'The dragon uses Spellcasting to cast Scorching Ray.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Pounce',
+            action: {
+              kind: 'special',
+              name: 'Pounce',
+              description:
+                'The dragon moves up to half its Speed, and it makes one Rend attack.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Scorching Sands',
+            resolution: { caveats: ['Area and speed rider not fully modeled.'] },
+            action: {
+              kind: 'special',
+              name: 'Scorching Sands',
+              description:
+                'Dexterity Saving Throw: DC 16, one creature the dragon can see within 120 feet. Failure: 27 (6d8) Fire damage, and the target’s Speed is halved until the end of its next turn. Failure or Success: The dragon can’t take this action again until the start of its next turn.',
+            },
+          },
+        ],
+      },
       resolution: { caveats: ['Lair XP 11,500 vs wandering 10,000 is flavor-only.'] },
     },
     lore: {
@@ -251,23 +321,19 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           description:
             'Legendary Resistance (3/Day, or 4/Day in Lair). If the dragon fails a saving throw, it can choose to succeed instead.',
         },
-        {
-          name: 'Legendary Actions',
-          description:
-            'Legendary Action Uses: 3 (4 in Lair). Guiding Light: Guiding Bolt (level 2). Pounce: half Speed + Rend. Thunderclap: Con save DC 17, 20-ft sphere 90 ft., 3d6 Thunder + Deafened to end of next turn.',
-          resolution: { caveats: ['Legendary actions not automated.'] },
-        },
       ],
       actions: [
         {
           kind: 'special',
+          id: 'multiattack',
           name: 'Multiattack',
           description:
             'The dragon makes three Rend attacks. It can replace one attack with (A) Repulsion Breath or (B) Spellcasting to cast Guiding Bolt (level 2 version).',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 12,
@@ -299,12 +365,53 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'special',
+          id: 'spellcasting',
           name: 'Spellcasting',
           description:
             'Charisma spell save DC 17, +10 spell attacks. At Will: Detect Magic, Guiding Bolt (level 2), Shapechange (Beast or Humanoid only; no temp HP; no concentration/temp HP to maintain), Speak with Animals, Thaumaturgy. 1/Day Each: Detect Thoughts, Water Breathing.',
           resolution: { caveats: ['Spell list not executed in encounter.'] },
         },
       ],
+      legendaryActions: {
+        uses: 3,
+        usesInLair: 4,
+        timing: 'end-of-other-creatures-turn',
+        refresh: 'turn-start',
+        resolution: { caveats: ['Legendary actions not automated.'] },
+        actions: [
+          {
+            kind: 'inline',
+            name: 'Guiding Light',
+            action: {
+              kind: 'special',
+              name: 'Guiding Light',
+              description:
+                'The dragon uses Spellcasting to cast Guiding Bolt using a level 2 spell slot.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Pounce',
+            action: {
+              kind: 'special',
+              name: 'Pounce',
+              description:
+                'The dragon moves up to half its Speed and makes one Rend attack.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Thunderclap',
+            resolution: { caveats: ['Sphere geometry not fully modeled.'] },
+            action: {
+              kind: 'special',
+              name: 'Thunderclap',
+              description:
+                'Constitution Saving Throw: DC 17, each creature in a 20-foot-radius Sphere centered on a point the dragon can see within 90 feet. Failure: 10 (3d6) Thunder damage, and the target has the Deafened condition until the end of its next turn. Success: Half damage only.',
+            },
+          },
+        ],
+      },
       resolution: { caveats: ['Lair XP 15,000 vs wandering 13,000 is flavor-only.'] },
     },
     lore: {
@@ -353,23 +460,19 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           description:
             'Legendary Resistance (4/Day, or 5/Day in Lair). If the dragon fails a saving throw, it can choose to succeed instead.',
         },
-        {
-          name: 'Legendary Actions',
-          description:
-            'Legendary Action Uses: 3 (4 in Lair). Cloaked Flight (Invisibility + half fly). Sonic Boom: Shatter (level 3 version). Tail Swipe: one Rend.',
-          resolution: { caveats: ['Legendary actions not automated.'] },
-        },
       ],
       actions: [
         {
           kind: 'special',
+          id: 'multiattack',
           name: 'Multiattack',
           description:
             'The dragon makes three Rend attacks. It can replace one attack with Spellcasting to cast Shatter (level 3 version).',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 16,
@@ -392,12 +495,50 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'special',
+          id: 'spellcasting',
           name: 'Spellcasting',
           description:
             'Charisma spell save DC 22. At Will: Detect Magic, Invisibility, Mage Hand, Shatter (level 3). 1/Day Each: Scrying, Sending.',
           resolution: { caveats: ['Spell list not executed in encounter.'] },
         },
       ],
+      legendaryActions: {
+        uses: 3,
+        usesInLair: 4,
+        timing: 'end-of-other-creatures-turn',
+        refresh: 'turn-start',
+        resolution: { caveats: ['Legendary actions not automated.'] },
+        actions: [
+          {
+            kind: 'inline',
+            name: 'Cloaked Flight',
+            resolution: { caveats: ['Spell sub-actions not automated.'] },
+            action: {
+              kind: 'special',
+              name: 'Cloaked Flight',
+              description:
+                'The dragon uses Spellcasting to cast Invisibility on itself and can fly up to half its Fly Speed; it cannot take this action again until the start of its next turn.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Sonic Boom',
+            resolution: { caveats: ['Spell sub-actions not automated.'] },
+            action: {
+              kind: 'special',
+              name: 'Sonic Boom',
+              description:
+                'The dragon uses Spellcasting to cast Shatter using a level 3 spell slot; it cannot take this action again until the start of its next turn.',
+            },
+          },
+          {
+            kind: 'reference',
+            name: 'Tail Swipe',
+            actionId: 'rend',
+            notes: 'The dragon makes one Rend attack.',
+          },
+        ],
+      },
       resolution: { caveats: ['Lair XP 62,000 vs wandering 50,000 is flavor-only.'] },
     },
     lore: {
@@ -451,23 +592,19 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           description:
             'Legendary Resistance (4/Day, or 5/Day in Lair). If the dragon fails a saving throw, it can choose to succeed instead.',
         },
-        {
-          name: 'Legendary Actions',
-          description:
-            'Legendary Action Uses: 3 (4 in Lair). Blazing Light: Scorching Ray (level 3). Pounce. Scorching Sands: Dex DC 20, 8d8 Fire + half Speed.',
-          resolution: { caveats: ['Legendary actions not automated.'] },
-        },
       ],
       actions: [
         {
           kind: 'special',
+          id: 'multiattack',
           name: 'Multiattack',
           description:
             'The dragon makes three Rend attacks. It can replace one attack with (A) Sleep Breath or (B) Spellcasting to cast Scorching Ray (level 3 version).',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 14,
@@ -498,12 +635,53 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'special',
+          id: 'spellcasting',
           name: 'Spellcasting',
           description:
             'Charisma spell save DC 20. At Will: Detect Magic, Minor Illusion, Scorching Ray (level 3), Shapechange (Beast or Humanoid only; no temp HP; no concentration/temp HP to maintain), Speak with Animals. 1/Day Each: Control Weather, Detect Thoughts.',
           resolution: { caveats: ['Spell list not executed.'] },
         },
       ],
+      legendaryActions: {
+        uses: 3,
+        usesInLair: 4,
+        timing: 'end-of-other-creatures-turn',
+        refresh: 'turn-start',
+        resolution: { caveats: ['Legendary actions not automated.'] },
+        actions: [
+          {
+            kind: 'inline',
+            name: 'Blazing Light',
+            action: {
+              kind: 'special',
+              name: 'Blazing Light',
+              description:
+                'The dragon uses Spellcasting to cast Scorching Ray using a level 3 spell slot.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Pounce',
+            action: {
+              kind: 'special',
+              name: 'Pounce',
+              description:
+                'The dragon moves up to half its Speed and makes one Rend attack.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Scorching Sands',
+            resolution: { caveats: ['Area and speed rider not fully modeled.'] },
+            action: {
+              kind: 'special',
+              name: 'Scorching Sands',
+              description:
+                'Dexterity Saving Throw: DC 20, one creature the dragon can see within 120 feet. Failure: 36 (8d8) Fire damage, and the target’s Speed is halved until the end of its next turn. Success: Half damage only. Once per round cycle.',
+            },
+          },
+        ],
+      },
       resolution: { caveats: ['Lair XP 33,000 vs wandering 25,000 is flavor-only.'] },
     },
     lore: {
@@ -556,23 +734,19 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           description:
             'Legendary Resistance (4/Day, or 5/Day in Lair). If the dragon fails a saving throw, it can choose to succeed instead.',
         },
-        {
-          name: 'Legendary Actions',
-          description:
-            'Legendary Action Uses: 3 (4 in Lair). Guiding Light: Guiding Bolt (level 2). Pounce. Thunderclap: Con DC 22, sphere 120 ft., 3d8 Thunder + Deafened.',
-          resolution: { caveats: ['Legendary actions not automated.'] },
-        },
       ],
       actions: [
         {
           kind: 'special',
+          id: 'multiattack',
           name: 'Multiattack',
           description:
             'The dragon makes three Rend attacks. It can replace one attack with (A) Repulsion Breath or (B) Spellcasting to cast Guiding Bolt (level 2 version).',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 16,
@@ -604,12 +778,53 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'special',
+          id: 'spellcasting',
           name: 'Spellcasting',
           description:
             'Charisma spell save DC 22, +14 spell attacks. At Will: Detect Magic, Guiding Bolt (level 2), Shapechange (Beast or Humanoid only; no temp HP; no concentration/temp HP to maintain), Speak with Animals, Thaumaturgy. 1/Day Each: Detect Thoughts, Control Water, Scrying, Water Breathing.',
           resolution: { caveats: ['Spell list not executed.'] },
         },
       ],
+      legendaryActions: {
+        uses: 3,
+        usesInLair: 4,
+        timing: 'end-of-other-creatures-turn',
+        refresh: 'turn-start',
+        resolution: { caveats: ['Legendary actions not automated.'] },
+        actions: [
+          {
+            kind: 'inline',
+            name: 'Guiding Light',
+            action: {
+              kind: 'special',
+              name: 'Guiding Light',
+              description:
+                'The dragon uses Spellcasting to cast Guiding Bolt using a level 2 spell slot.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Pounce',
+            action: {
+              kind: 'special',
+              name: 'Pounce',
+              description:
+                'The dragon moves up to half its Speed and makes one Rend attack.',
+            },
+          },
+          {
+            kind: 'inline',
+            name: 'Thunderclap',
+            resolution: { caveats: ['Sphere geometry not fully modeled.'] },
+            action: {
+              kind: 'special',
+              name: 'Thunderclap',
+              description:
+                'Constitution Saving Throw: DC 22, each creature in a 20-foot-radius Sphere centered on a point the dragon can see within 120 feet. Failure: 13 (3d8) Thunder damage, and the target has the Deafened condition until the end of its next turn. Success: Half damage only.',
+            },
+          },
+        ],
+      },
       resolution: { caveats: ['Lair XP 50,000 vs wandering 41,000 is flavor-only.'] },
     },
     lore: {
@@ -709,10 +924,11 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           kind: 'special',
           name: 'Multiattack',
           description: 'The dragon makes two Rend attacks.',
-          sequence: [{ actionName: 'Rend', count: 2 }],
+          sequence: [{ actionId: 'rend', count: 2 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 5,
@@ -798,12 +1014,13 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           name: 'Multiattack',
           description: 'The devil makes two Claw attacks and one Infernal Sting attack.',
           sequence: [
-            { actionName: 'Claw', count: 2 },
-            { actionName: 'Infernal Sting', count: 1 },
+            { actionId: 'claw', count: 2 },
+            { actionId: 'infernal-sting', count: 1 },
           ],
         },
         {
           kind: 'natural',
+          id: 'claw',
           name: 'Claw',
           attackType: 'claw',
           attackBonus: 8,
@@ -814,6 +1031,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'natural',
+          id: 'infernal-sting',
           name: 'Infernal Sting',
           attackType: 'tail',
           attackBonus: 8,
@@ -938,10 +1156,11 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           kind: 'special',
           name: 'Multiattack',
           description: 'The dragon makes two Rend attacks.',
-          sequence: [{ actionName: 'Rend', count: 2 }],
+          sequence: [{ actionId: 'rend', count: 2 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 5,
@@ -1018,7 +1237,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           kind: 'special',
           name: 'Multiattack',
           description: 'The bugbear makes two Javelin or Morningstar attacks.',
-          sequence: [{ actionName: 'Javelin', count: 2 }],
+          sequence: [{ actionId: 'javelin', count: 2 }],
           notes: 'Each attack may be a Morningstar instead.',
         },
         { kind: 'weapon', weaponRef: 'javelin' },
@@ -1184,10 +1403,11 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           kind: 'special',
           name: 'Multiattack',
           description: 'The dragon makes three Rend attacks.',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 9,
@@ -1260,11 +1480,12 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           name: 'Multiattack',
           description:
             'The dragon makes three Rend attacks. It can replace two attacks with a use of Sleep Breath.',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
           notes: 'Two attacks may be replaced by one Sleep Breath use.',
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 7,
@@ -1346,10 +1567,11 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
           name: 'Multiattack',
           description:
             'The dragon makes three Rend attacks. It can replace one attack with a use of Repulsion Breath.',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 8,

@@ -50,10 +50,11 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
           kind: 'special',
           name: 'Multiattack',
           description: 'The elemental makes two Slam attacks.',
-          sequence: [{ actionName: 'Slam', count: 2 }],
+          sequence: [{ actionId: 'slam', count: 2 }],
         },
         {
           kind: 'natural',
+          id: 'slam',
           name: 'Slam',
           attackType: 'slam',
           attackBonus: 7,
@@ -153,7 +154,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
           name: 'Multiattack',
           description:
             'The wight makes two attacks, using Necrotic Sword or Necrotic Bow in any combination. It can replace one attack with a use of Life Drain.',
-          sequence: [{ actionName: 'Necrotic Sword', count: 2 }],
+          sequence: [{ actionId: 'necrotic-sword', count: 2 }],
           notes: 'Each attack may use Necrotic Bow instead; one attack may be replaced with Life Drain.',
         },
         { kind: 'weapon', weaponRef: 'necrotic-sword' },
@@ -329,12 +330,13 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
           name: 'Multiattack',
           description: 'The xorn makes one Bite attack and three Claw attacks.',
           sequence: [
-            { actionName: 'Bite', count: 1 },
-            { actionName: 'Claw', count: 3 },
+            { actionId: 'bite', count: 1 },
+            { actionId: 'claw', count: 3 },
           ],
         },
         {
           kind: 'natural',
+          id: 'bite',
           name: 'Bite',
           attackType: 'bite',
           attackBonus: 6,
@@ -345,6 +347,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'natural',
+          id: 'claw',
           name: 'Claw',
           attackType: 'claw',
           attackBonus: 6,
@@ -481,10 +484,11 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
           kind: 'special',
           name: 'Multiattack',
           description: 'The dragon makes three Rend attacks.',
-          sequence: [{ actionName: 'Rend', count: 3 }],
+          sequence: [{ actionId: 'rend', count: 3 }],
         },
         {
           kind: 'natural',
+          id: 'rend',
           name: 'Rend',
           attackType: 'claw',
           attackBonus: 7,
@@ -545,13 +549,14 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
           description: "The dragon makes three Rend attacks.",
           sequence: [
             {
-              actionName: "Rend",
+              actionId: 'rend',
               count: 3
             }
           ]
         },
         {
           kind: "natural",
+          id: 'rend',
           name: "Rend",
           attackType: "claw",
           attackBonus: 10,

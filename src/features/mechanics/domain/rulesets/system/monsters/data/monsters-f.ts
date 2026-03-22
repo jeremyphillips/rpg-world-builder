@@ -70,10 +70,11 @@ export const MONSTERS_F: readonly MonsterCatalogEntry[] = [
           kind: 'special',
           name: 'Multiattack',
           description: 'The elemental makes two Burn attacks.',
-          sequence: [{ actionName: 'Burn', count: 2 }],
+          sequence: [{ actionId: 'burn', count: 2 }],
         },
         {
           kind: 'natural',
+          id: 'burn',
           name: 'Burn',
           attackType: 'touch',
           attackBonus: 6,

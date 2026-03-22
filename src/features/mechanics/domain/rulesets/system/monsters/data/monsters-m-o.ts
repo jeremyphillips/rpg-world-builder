@@ -193,12 +193,13 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
           name: "Multiattack",
           description: "The mummy makes two Rotting Fist attacks and uses Dreadful Glare.",
           sequence: [
-            { actionName: "Rotting Fist", count: 2 },
-            { actionName: "Dreadful Glare", count: 1 },
+            { actionId: 'rotting-fist', count: 2 },
+            { actionId: 'dreadful-glare', count: 1 },
           ],
         },
         {
           kind: "natural",
+          id: 'rotting-fist',
           name: "Rotting Fist",
           attackType: "slam",
           attackBonus: 5,
@@ -256,6 +257,7 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: "special",
+          id: 'dreadful-glare',
           name: "Dreadful Glare",
           description:
             "Wisdom Saving Throw: DC 11, one creature the mummy can see within 60 feet. Failure: The target has the Frightened condition until the end of the mummy's next turn. Success: The target is immune to this mummy's Dreadful Glare for 24 hours.",
@@ -391,11 +393,12 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
           name: "Multiattack",
           description: "The owlbear makes two Rend attacks.",
           sequence: [
-            { actionName: "Rend", count: 2 }
+            { actionId: 'rend', count: 2 }
           ]
         },
         {
           kind: "natural",
+          id: 'rend',
           name: "Rend",
           attackType: "claw",
           attackBonus: 7,

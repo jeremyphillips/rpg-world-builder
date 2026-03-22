@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
-import { AppBadge } from '@/ui/primitives'
+import { AppBadge, AppTooltip } from '@/ui/primitives'
 import type { AppBadgeTone } from '@/ui/types'
 
 import {
@@ -10,6 +10,7 @@ import {
   enrichPresentableEffects,
   getSectionOrder,
   groupBySection,
+  shouldShowPresentationInHeader,
   sortByPriority,
 } from '../domain'
 import type { CombatStateSection, EnrichedPresentableEffect } from '../domain'
@@ -38,13 +39,23 @@ function EffectChip({ effect }: { effect: EnrichedPresentableEffect }) {
   const displayLabel = effect.summary ?? effect.label
   const withBoundary = `${boundaryPrefix}${displayLabel}`
   const withDuration = effect.duration ? `${withBoundary} (${effect.duration})` : withBoundary
-  return (
+  const tooltip = effect.presentation.rulesText
+  const badge = (
     <AppBadge
       label={withDuration}
       tone={toneToAppBadgeTone(effect.presentation.tone)}
       variant="outlined"
       size="small"
     />
+  )
+  return tooltip ? (
+    <AppTooltip title={tooltip} placement="top">
+      <Box component="span" sx={{ display: 'inline-flex' }}>
+        {badge}
+      </Box>
+    </AppTooltip>
+  ) : (
+    badge
   )
 }
 
@@ -116,14 +127,14 @@ type PresentableEffectsHeaderChipsProps = {
   combatant: CombatantInstance
 }
 
-/** Chips for showInHeader effects to display in the card header. */
+/** Chips for critical-now, user-facing effects (header row next to core stats). */
 export function PresentableEffectsHeaderChips({
   combatant,
 }: PresentableEffectsHeaderChipsProps) {
   const presentable = collectPresentableEffects(combatant)
   const enriched = enrichPresentableEffects(presentable)
   const headerEffects = enriched.filter(
-    (e) => e.presentation.showInHeader && e.presentation.userFacing !== false,
+    (e) => shouldShowPresentationInHeader(e.presentation),
   )
 
   if (headerEffects.length === 0) return null

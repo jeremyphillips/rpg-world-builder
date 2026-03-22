@@ -18,6 +18,7 @@ import {
   formatCharacterSubtitle,
   formatSigned,
   getCharacterSpellcastingStats,
+  getPreviewStatTooltip,
 } from '../helpers'
 import { CombatantPreviewCard } from './CombatantPreviewCard'
 
@@ -161,9 +162,13 @@ function LoadedAllyCombatantSetupPreviewCard({
   if (!combatant) return null
 
   const stats: PreviewStat[] = [
-    { label: 'AC', value: String(combatant.stats.armorClass) },
-    { label: 'HP', value: `${combatant.stats.currentHitPoints}/${combatant.stats.maxHitPoints}` },
-    { label: 'Init', value: formatSigned(combatant.stats.initiativeModifier) },
+    { label: 'AC', value: String(combatant.stats.armorClass), tooltip: getPreviewStatTooltip('AC') },
+    {
+      label: 'HP',
+      value: `${combatant.stats.currentHitPoints}/${combatant.stats.maxHitPoints}`,
+      tooltip: getPreviewStatTooltip('HP'),
+    },
+    { label: 'Init', value: formatSigned(combatant.stats.initiativeModifier), tooltip: getPreviewStatTooltip('Init') },
   ]
 
   const previewProps: CombatantPreviewCardProps = {

@@ -72,26 +72,20 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
           description:
             'If a creature the aboleth can see communicates telepathically with the aboleth, the aboleth learns the creature’s greatest desires.',
         },
-        {
-          name: 'Legendary Actions',
-          description:
-            'Legendary Action Uses: 3 (4 in Lair). Immediately after another creature’s turn, the aboleth can expend a use to take one of the following actions. The aboleth regains all expended uses at the start of each of its turns. Lash: The aboleth makes one Tentacle attack. Psychic Drain: If the aboleth has at least one creature Charmed or Grappled, it uses Consume Memories and regains 5 (1d10) Hit Points.',
-          resolution: {
-            caveats: ['Legendary action economy and Psychic Drain healing are not automated.'],
-          },
-        },
       ],
       actions: [
         {
           kind: 'special',
+          id: 'multiattack',
           name: 'Multiattack',
           description:
             'The aboleth makes two Tentacle attacks and uses either Consume Memories or Dominate Mind if available.',
-          sequence: [{ actionName: 'Tentacle', count: 2 }],
+          sequence: [{ actionId: 'tentacle', count: 2 }],
           notes: 'May also resolve Consume Memories or Dominate Mind when available.',
         },
         {
           kind: 'natural',
+          id: 'tentacle',
           name: 'Tentacle',
           attackType: 'pseudopod',
           attackBonus: 9,
@@ -104,6 +98,7 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'special',
+          id: 'consume-memories',
           name: 'Consume Memories',
           description:
             'Intelligence Saving Throw: DC 16, one creature within 30 feet that is Charmed or Grappled by the aboleth. Failure: 10 (3d6) Psychic damage. Success: Half damage. Failure or Success: The aboleth gains the target’s memories if the target is a Humanoid and is reduced to 0 Hit Points by this action.',
@@ -117,6 +112,7 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
         },
         {
           kind: 'special',
+          id: 'dominate-mind',
           name: 'Dominate Mind',
           description:
             'Wisdom Saving Throw: DC 16, one creature the aboleth can see within 30 feet. Failure: The target has the Charmed condition until the aboleth dies or is on a different plane of existence from the target. While Charmed, the target acts as an ally to the aboleth and is under its control while within 60 feet of it. In addition, the aboleth and the target can communicate telepathically with each other over any distance. The target repeats the save whenever it takes damage as well as after every 24 hours it spends at least 1 mile away from the aboleth, ending the effect on itself on a success.',
@@ -127,6 +123,30 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
           },
         },
       ],
+      legendaryActions: {
+        uses: 3,
+        usesInLair: 4,
+        timing: 'end-of-other-creatures-turn',
+        refresh: 'turn-start',
+        resolution: {
+          caveats: ['Legendary action economy and Psychic Drain healing are not automated.'],
+        },
+        actions: [
+          {
+            kind: 'reference',
+            name: 'Lash',
+            actionId: 'tentacle',
+          },
+          {
+            kind: 'reference',
+            name: 'Psychic Drain',
+            actionId: 'consume-memories',
+            heal: '1d10',
+            notes:
+              'If the aboleth has at least one creature Charmed or Grappled, it uses Consume Memories and regains 5 (1d10) Hit Points.',
+          },
+        ],
+      },
     },
     lore: {
       alignment: 'le',
@@ -177,10 +197,11 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
           kind: 'special',
           name: 'Multiattack',
           description: 'The elemental makes two Thunderous Slam attacks.',
-          sequence: [{ actionName: 'Thunderous Slam', count: 2 }],
+          sequence: [{ actionId: 'thunderous-slam', count: 2 }],
         },
         {
           kind: 'natural',
+          id: 'thunderous-slam',
           name: 'Thunderous Slam',
           attackType: 'slam',
           attackBonus: 8,
@@ -250,10 +271,11 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
           kind: 'special',
           name: 'Multiattack',
           description: 'The armor makes two Slam attacks.',
-          sequence: [{ actionName: 'Slam', count: 2 }],
+          sequence: [{ actionId: 'slam', count: 2 }],
         },
         {
           kind: 'natural',
+          id: 'slam',
           name: 'Slam',
           attackType: 'slam',
           attackBonus: 4,
@@ -494,7 +516,7 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
           name: 'Multiattack',
           description:
             'The assassin makes three attacks, using Shortsword or Light Crossbow in any combination.',
-          sequence: [{ actionName: 'Shortsword', count: 3 }],
+          sequence: [{ actionId: 'shortsword', count: 3 }],
           notes: 'Attacks may use Light Crossbow instead of Shortsword.',
         },
         { kind: 'weapon', weaponRef: 'shortsword' },

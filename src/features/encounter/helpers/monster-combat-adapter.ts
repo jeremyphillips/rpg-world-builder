@@ -134,18 +134,45 @@ function buildMonsterActionLogText(action: MonsterAction): string | undefined {
   return undefined
 }
 
-function buildMonsterActionSequence(action: MonsterAction): CombatActionDefinition['sequence'] {
+function findMonsterCatalogActionById(monster: Monster, actionId: string): MonsterAction | undefined {
+  const pool = [...(monster.mechanics.actions ?? []), ...(monster.mechanics.bonusActions ?? [])]
+  for (const a of pool) {
+    if (a.kind === 'weapon' && a.weaponRef === actionId) return a
+    if (a.kind !== 'weapon' && a.id === actionId) return a
+  }
+  return undefined
+}
+
+function resolveMonsterActionDisplayLabel(monster: Monster, action: MonsterAction): string {
+  if (action.kind === 'weapon') {
+    const equipped = monster.mechanics.equipment?.weapons?.[action.weaponRef]
+    return equipped?.aliasName ?? equipped?.weaponId ?? action.weaponRef
+  }
+  if (action.kind === 'natural') {
+    return action.name ?? action.attackType
+  }
+  return action.name
+}
+
+function buildMonsterActionSequence(
+  monster: Monster,
+  action: MonsterAction,
+): CombatActionDefinition['sequence'] {
   if (action.kind !== 'special' || !action.sequence) return undefined
 
   const usesCurrentHeadCount =
     action.notes?.toLowerCase().includes('current number of heads') ||
     action.description.toLowerCase().includes('as many')
 
-  return action.sequence.map((step) => ({
-    actionLabel: step.actionName,
-    count: step.count,
-    countFromTrackedPart: usesCurrentHeadCount ? 'head' : undefined,
-  }))
+  return action.sequence.map((step) => {
+    const found = findMonsterCatalogActionById(monster, step.actionId)
+    const actionLabel = found ? resolveMonsterActionDisplayLabel(monster, found) : step.actionId
+    return {
+      actionLabel,
+      count: step.count,
+      countFromTrackedPart: usesCurrentHeadCount ? 'head' : undefined,
+    }
+  })
 }
 
 function buildMonsterActionUsage(action: MonsterAction): CombatActionDefinition['usage'] {
@@ -292,7 +319,7 @@ function buildMonsterActionDefinition(
     onHitEffects: action.attackBonus != null ? action.onSuccess : undefined,
     onFailEffects: action.onFail,
     onSuccessEffects: action.onSuccess,
-    sequence: buildMonsterActionSequence(action),
+    sequence: buildMonsterActionSequence(monster, action),
     logText: buildMonsterActionLogText(action),
     displayMeta: {
       source: 'natural' as const,

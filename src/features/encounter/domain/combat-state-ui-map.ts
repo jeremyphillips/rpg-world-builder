@@ -1,8 +1,15 @@
+import {
+  EFFECT_CONDITION_DEFINITIONS,
+  type EffectConditionId,
+} from '@/features/mechanics/domain/conditions/effect-condition-definitions'
 import type {
   CombatStatePresentation,
   CombatStateSection,
   PresentableCombatEffect,
 } from './presentable-effects.types'
+import { COMBAT_STATE_MARKER_UI_MAP } from './combat-state-markers'
+
+export { COMBAT_STATE_MARKER_UI_MAP } from './combat-state-markers'
 
 const SECTION_ORDER: CombatStateSection[] = [
   'critical-now',
@@ -21,217 +28,49 @@ function toTitleCase(s: string): string {
     .join(' ')
 }
 
-export const COMBAT_STATE_UI_MAP: Record<string, CombatStatePresentation> = {
-  // Conditions (EffectConditionId)
-  blinded: {
-    label: 'Blinded',
-    tone: 'warning',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  charmed: {
-    label: 'Charmed',
-    tone: 'warning',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  deafened: {
-    label: 'Deafened',
-    tone: 'warning',
-    priority: 'normal',
-    defaultSection: 'restrictions',
-    showAsChip: true,
-    userFacing: true,
-  },
-  frightened: {
-    label: 'Frightened',
-    tone: 'warning',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  grappled: {
-    label: 'Grappled',
-    tone: 'warning',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  incapacitated: {
-    label: 'Incapacitated',
-    tone: 'danger',
-    priority: 'critical',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  banished: {
-    label: 'Banished',
-    tone: 'danger',
-    priority: 'critical',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  invisible: {
-    label: 'Invisible',
-    tone: 'info',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  paralyzed: {
-    label: 'Paralyzed',
-    tone: 'danger',
-    priority: 'critical',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  petrified: {
-    label: 'Petrified',
-    tone: 'danger',
-    priority: 'critical',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  poisoned: {
-    label: 'Poisoned',
-    tone: 'danger',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  prone: {
-    label: 'Prone',
-    tone: 'warning',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  restrained: {
-    label: 'Restrained',
-    tone: 'warning',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  stunned: {
-    label: 'Stunned',
-    tone: 'danger',
-    priority: 'critical',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  unconscious: {
-    label: 'Unconscious',
-    tone: 'danger',
-    priority: 'critical',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
+/**
+ * Presentation rows derived from `EFFECT_CONDITION_DEFINITIONS` (PHB conditions only).
+ */
+function effectConditionDefinitionRowToPresentation(
+  row: (typeof EFFECT_CONDITION_DEFINITIONS)[number],
+): CombatStatePresentation {
+  return {
+    label: row.name,
+    tone: row.tone,
+    priority: row.priority,
+    defaultSection: row.defaultSection,
+    userFacing: row.userFacing ?? true,
+    ...(row.rulesText ? { rulesText: row.rulesText } : {}),
+  }
+}
 
-  // States
-  bloodied: {
-    label: 'Bloodied',
-    tone: 'danger',
-    priority: 'critical',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  concentrating: {
-    label: 'Concentrating',
-    tone: 'info',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  'mummy-rot': {
-    label: 'Mummy Rot',
-    tone: 'danger',
-    priority: 'high',
-    defaultSection: 'turn-triggers',
-    showAsChip: true,
-    userFacing: true,
-  },
-  engulfed: {
-    label: 'Engulfed',
-    tone: 'danger',
-    priority: 'high',
-    defaultSection: 'critical-now',
-    showAsChip: true,
-    showInHeader: true,
-    userFacing: true,
-  },
-  'limb-severed': {
-    label: 'Limb Severed',
-    tone: 'danger',
-    priority: 'high',
-    defaultSection: 'restrictions',
-    showAsChip: true,
-    userFacing: true,
-  },
-  'battle-focus': {
-    label: 'Battle Focus',
-    tone: 'info',
-    priority: 'normal',
-    defaultSection: 'ongoing-effects',
-    showAsChip: true,
-    userFacing: true,
-  },
-  'speed_halved': {
-    label: 'Speed Halved',
-    tone: 'warning',
-    priority: 'normal',
-    defaultSection: 'restrictions',
-    userFacing: true,
-  },
-  'on_turn_start_bleed': {
-    label: 'Bleed',
-    tone: 'danger',
-    priority: 'high',
-    defaultSection: 'turn-triggers',
-    userFacing: true,
-    summarize: () => 'Start of turn: take bleed damage',
-  },
-  'suppression_shield_bonus': {
-    label: 'Shield Bonus Suppressed',
-    tone: 'neutral',
-    priority: 'low',
-    defaultSection: 'system-details',
-    userFacing: false,
-  },
+export const EFFECT_CONDITION_PRESENTATION_MAP = Object.fromEntries(
+  EFFECT_CONDITION_DEFINITIONS.map((row) => [
+    row.id,
+    effectConditionDefinitionRowToPresentation(row),
+  ]),
+) as Record<EffectConditionId, CombatStatePresentation>
+
+/**
+ * Header chips: effects in the critical band that are user-facing (matches prior `showInHeader` behavior).
+ */
+export function shouldShowPresentationInHeader(p: CombatStatePresentation): boolean {
+  return p.defaultSection === 'critical-now' && p.userFacing !== false
+}
+
+/**
+ * Merged lookup: PHB conditions from definitions + bespoke engine markers (see `combat-state-markers.ts`).
+ */
+export const COMBAT_STATE_UI_MAP: Record<string, CombatStatePresentation> = {
+  ...EFFECT_CONDITION_PRESENTATION_MAP,
+  ...COMBAT_STATE_MARKER_UI_MAP,
+}
+
+export function getCombatStatePresentation(
+  key: string,
+  map: Record<string, CombatStatePresentation> = COMBAT_STATE_UI_MAP,
+): CombatStatePresentation | undefined {
+  return map[key]
 }
 
 export function getFallbackPresentation(effect: PresentableCombatEffect): CombatStatePresentation {
@@ -240,7 +79,6 @@ export function getFallbackPresentation(effect: PresentableCombatEffect): Combat
     tone: effect.isNegative ? 'warning' : 'neutral',
     priority: 'normal',
     defaultSection: 'restrictions',
-    showAsChip: true,
     userFacing: true,
   }
 }

@@ -1,4 +1,15 @@
 export {
+  buildEncounterDefensePreviewChips,
+  defenseBadgesToPresentableCombatEffects,
+  deriveEncounterDefenseBadges,
+  describeConditionScopeForDefenseTooltip,
+} from './encounter-defense-badges'
+export type {
+  EncounterConditionImmunityBadge,
+  EncounterDamageDefenseBadge,
+  EncounterDefenseBadges,
+} from './encounter-defense-badges.types'
+export {
   collectPresentableEffects,
   enrichPresentableEffects,
   enrichWithPresentation,
@@ -7,9 +18,13 @@ export {
 } from './presentable-effects'
 export {
   COMBAT_STATE_UI_MAP,
+  COMBAT_STATE_MARKER_UI_MAP,
+  EFFECT_CONDITION_PRESENTATION_MAP,
+  getCombatStatePresentation,
   getFallbackPresentation,
   getPriorityOrder,
   getSectionOrder,
+  shouldShowPresentationInHeader,
 } from './combat-state-ui-map'
 export type {
   CombatStatePresentation,
@@ -40,6 +55,8 @@ export type {
   PreviewTone,
   PreviewChip,
   PreviewStat,
+  CombatantStatBadge,
+  CombatantTrackedPartBadge,
   CombatantPreviewAction,
   CombatantPreviewCardProps,
   CharacterCombatant,

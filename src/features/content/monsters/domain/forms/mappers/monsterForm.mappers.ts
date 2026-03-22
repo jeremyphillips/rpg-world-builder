@@ -54,6 +54,7 @@ export const monsterToFormValues = (monster: Monster): MonsterFormValues => {
     movement: formatJson(m?.movement),
     actions: formatJson(m?.actions),
     bonusActions: formatJson(m?.bonusActions),
+    legendaryActions: formatJson(m?.legendaryActions),
     traits: formatJson(m?.traits),
     abilities: formatJson(m?.abilities),
     senses: formatJson(m?.senses),
@@ -86,6 +87,8 @@ export const toMonsterInput = (values: MonsterFormValues): MonsterInput => {
   if (acts !== undefined) mechanics.actions = acts;
   const bonusActs = parseJson(values.bonusActions);
   if (bonusActs !== undefined) mechanics.bonusActions = bonusActs;
+  const leg = parseJson(values.legendaryActions);
+  if (leg !== undefined) mechanics.legendaryActions = leg;
   const tr = parseJson(values.traits);
   if (tr !== undefined) mechanics.traits = tr;
   const ab = parseJson(values.abilities);

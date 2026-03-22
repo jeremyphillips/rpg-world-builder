@@ -1,15 +1,34 @@
 import type { Condition } from '../conditions/condition.types';
 import type { TriggerType } from '../triggers/trigger.types';
+import type { TurnHookKind, TurnHookSelfTrigger } from '../triggers/turn-hooks.types';
 import type { StatTarget } from '../resolution/resolvers/stat-resolver';
 import type { FormulaEffect } from '../resolution/engines/formula.engine';
 import type { DiceOrFlat } from '../dice/dice.types';
 import type { AbilityKey, AbilityRef } from '../character';
 import type { EffectDuration } from './timing.types';
-import type { WeaponDamageType } from '@/features/content/equipment/weapons/domain/vocab';
+import type { DamageType, EnergyDamageType } from '../damage/damage.types';
+import type {
+  ConditionImmunityId,
+  EffectConditionId,
+} from '../conditions/effect-condition-definitions';
 import type { MonsterSizeCategory, MonsterType } from '@/features/content/monsters/domain/vocab/monster.vocab';
 import type { EffectNoteCategory } from '@/features/mechanics/domain/resolution/content-resolution.types';
+import type { AreaOfEffectTemplate } from './area.types';
+import type { TargetingEffectTarget } from './targeting.types';
 
 export type { FormulaDefinition, FormulaEffect } from '../resolution/engines/formula.engine';
+export type { AreaOfEffectTemplate } from './area.types';
+export type { TargetingEffectTarget, MonsterSpecialActionTarget } from './targeting.types';
+export type { DamageType, EnergyDamageType } from '../damage/damage.types';
+export type { EffectConditionId, ConditionImmunityId, ConditionImmunityOnlyId } from '../conditions/effect-condition-definitions';
+export {
+  EFFECT_CONDITION_DEFINITIONS,
+  CONDITION_IMMUNITY_ONLY_DEFINITIONS,
+  EFFECT_CONDITION_IDS,
+  CONDITION_IMMUNITY_ONLY_IDS,
+  getEffectConditionRulesText,
+  getEffectConditionRulesTextForKey,
+} from '../conditions/effect-condition-definitions';
 
 export type ScalingRule = {};
 
@@ -23,24 +42,6 @@ export type SaveDcSpec = number | { kind: '5-plus-damage-taken' };
 
 export type EffectMode = 'add' | 'set' | 'multiply';
 
-export type EffectConditionId =
-  | 'blinded'
-  | 'charmed'
-  | 'deafened'
-  | 'frightened'
-  | 'grappled'
-  | 'incapacitated'
-  | 'invisible'
-  | 'paralyzed'
-  | 'petrified'
-  | 'poisoned'
-  | 'prone'
-  | 'restrained'
-  | 'stunned'
-  | 'unconscious';
-
-export type ConditionImmunityId = EffectConditionId | 'exhaustion';
-export type EffectDamageType = WeaponDamageType | 'acid' | DamageTypeModifierValue;
 export type EffectSizeCategory = MonsterSizeCategory;
 
 /**
@@ -54,6 +55,11 @@ export type EffectMeta = {
   condition?: Condition;
   duration?: EffectDuration;
   priority?: number;
+  /**
+   * When applying a concentration spell, set to the same id pushed to `ConcentrationState.linkedMarkerIds`
+   * so {@link dropConcentration} can remove this row from `activeEffects` when concentration ends.
+   */
+  concentrationLinkId?: string;
 };
 
 export type EffectBase<K extends string> = EffectMeta & { kind: K };
@@ -64,16 +70,8 @@ export type CustomEffect = EffectBase<'custom'> & {
   params?: Record<string, unknown>;
 };
 
-export type DamageTypeModifierValue =
-  | 'cold'
-  | 'fire'
-  | 'poison'
-  | 'necrotic'
-  | 'radiant'
-  | 'thunder'
-  | 'lightning'
-  | 'psychic'
-  | 'force';
+/** Energy damage ids (elemental + planar tables); used for modifier dice `type` and standalone modifier values. */
+export type DamageTypeModifierValue = EnergyDamageType;
 
 export type AbilityModifierValue = {
   ability: AbilityKey;
@@ -170,7 +168,7 @@ export type CheckEffect = EffectBase<'check'> & {
 
 export type RepeatSave = {
   ability: AbilityRef;
-  timing: 'turn-start' | 'turn-end';
+  timing: TurnHookKind;
   /**
    * When true, the hook is removed after the first save attempt (success or fail).
    * Use for Sleep-style “one repeat at end of next turn” vs default repeat-until-success.
@@ -218,7 +216,7 @@ export type DamageLevelThreshold = {
 
 export type DamageEffect = EffectBase<'damage'> & {
   damage: DiceOrFlat;
-  damageType?: EffectDamageType;
+  damageType?: DamageType;
   levelScaling?: {
     thresholds: DamageLevelThreshold[];
   };
@@ -271,12 +269,7 @@ export type StateEffect = EffectBase<'state'> & {
 };
 
 export type TargetingEffect = EffectBase<'targeting'> & {
-  target:
-    | 'one-creature'
-    | 'one-dead-creature'
-    | 'chosen-creatures'
-    | 'creatures-in-area'
-    | 'creatures-entered-during-move';
+  target: TargetingEffectTarget;
   targetType?: 'creature';
   /**
    * Touch-style buffs ("willing creature"): combat maps to same-side targets only (caster + allies).
@@ -288,10 +281,7 @@ export type TargetingEffect = EffectBase<'targeting'> & {
   requiresSight?: boolean;
   count?: number;
   canSelectSameTargetMultipleTimes?: boolean;
-  area?: {
-    kind: 'cone' | 'sphere' | 'line' | 'square' | 'cylinder' | 'cube';
-    size: number;
-  };
+  area?: AreaOfEffectTemplate;
 };
 
 export type IntervalEffect = EffectBase<'interval'> & {
@@ -340,7 +330,7 @@ type TrackedPartDefinition = {
     trigger: 'turn-end';
     requiresLivingPart?: boolean;
     countPerPartLostSinceLastTurn: number;
-    suppressedByDamageTypes?: EffectDamageType[];
+    suppressedByDamageTypes?: DamageType[];
     healHitPoints?: number;
   };
   change?: never;
@@ -471,10 +461,7 @@ export type RemoveClassificationEffect = EffectBase<'remove-classification'> & {
 
 export type RegenerationEffect = EffectBase<'regeneration'> & {
   amount: number | DiceOrFlat;
-  trigger: {
-    kind: 'turn-start' | 'turn-end';
-    subject: 'self';
-  };
+  trigger: TurnHookSelfTrigger;
   suppressedByDamageTypes?: string[];
   suppressionDuration?: EffectDuration;
   disabledAtZeroHp?: boolean;

@@ -1,18 +1,15 @@
+import type { KeyboardEvent } from 'react'
+
 import Box from '@mui/material/Box'
-import ButtonBase from '@mui/material/ButtonBase'
 import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { AppBadge } from '@/ui/primitives'
-import type { AppBadgeTone } from '@/ui/types'
-import type { CombatantPreviewCardProps, PreviewTone } from '../domain'
 
-function previewToneToAppBadgeTone(tone: PreviewTone | undefined): AppBadgeTone {
-  if (!tone || tone === 'neutral') return 'default'
-  return tone
-}
+import type { CombatantPreviewCardProps } from '../domain'
+import { CombatantPreviewChipRow, CombatantStatBadgeRow } from './combatant-badges'
 
 export function CombatantPreviewCard({
   id: _id,
@@ -34,6 +31,14 @@ export function CombatantPreviewCard({
     : isSelected
       ? 'info.main'
       : 'divider'
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!onClick) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onClick()
+    }
+  }
 
   const content = (
     <Stack spacing={1} sx={{ width: '100%' }}>
@@ -81,32 +86,9 @@ export function CombatantPreviewCard({
         )}
       </Stack>
 
-      {stats.length > 0 && (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-          {stats.map((stat) => (
-            <AppBadge
-              key={stat.label}
-              label={`${stat.label}: ${stat.value}`}
-              tone="default"
-              variant="outlined"
-              size="small"
-            />
-          ))}
-        </Stack>
-      )}
+      {stats.length > 0 && <CombatantStatBadgeRow stats={stats} size="small" />}
 
-      {chips && chips.length > 0 && (
-        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-          {chips.map((chip) => (
-            <AppBadge
-              key={chip.id}
-              label={chip.label}
-              tone={previewToneToAppBadgeTone(chip.tone)}
-              size="small"
-            />
-          ))}
-        </Stack>
-      )}
+      {chips && chips.length > 0 && <CombatantPreviewChipRow chips={chips} />}
 
       {primaryAction && (
         <Box
@@ -138,17 +120,22 @@ export function CombatantPreviewCard({
       }}
     >
       {onClick ? (
-        <ButtonBase
+        <Box
+          aria-label={`Select ${title}`}
+          component="div"
           onClick={onClick}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
           sx={{
             display: 'block',
             width: '100%',
             textAlign: 'left',
             p: 1.5,
+            cursor: 'pointer',
           }}
         >
           {content}
-        </ButtonBase>
+        </Box>
       ) : (
         <Box sx={{ p: 1.5 }}>{content}</Box>
       )}

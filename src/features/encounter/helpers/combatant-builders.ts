@@ -1,8 +1,13 @@
 import type { useCombatStats } from '@/features/character/hooks'
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { Monster } from '@/features/content/monsters/domain/types'
-import type { ImmunityType, MonsterResistanceType } from '@/features/content/monsters/domain/types/monster-combat.types'
+import type { ImmunityType, CreatureResistanceDamageType } from '@/features/mechanics/domain/creatures/immunities.types'
 import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
+import {
+  CONDITION_IMMUNITY_ONLY_IDS,
+  EFFECT_CONDITION_IDS,
+  type ConditionImmunityId,
+} from '@/features/mechanics/domain/conditions/effect-condition-definitions'
 import type { Effect, EffectConditionId } from '@/features/mechanics/domain/effects/effects.types'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
 import { resolveProficiencyContribution } from '@/features/mechanics/domain/progression'
@@ -16,24 +21,20 @@ import {
   type RuntimeTurnHook,
 } from '@/features/mechanics/domain/encounter'
 
-const CONDITION_IDS: ReadonlySet<string> = new Set<EffectConditionId>([
-  'blinded', 'charmed', 'deafened', 'frightened', 'grappled',
-  'incapacitated', 'invisible', 'paralyzed', 'petrified', 'poisoned',
-  'prone', 'restrained', 'stunned', 'unconscious',
-])
+const CONDITION_IDS: ReadonlySet<string> = new Set<EffectConditionId>(EFFECT_CONDITION_IDS)
 
-const CONDITION_ADJACENT_IMMUNITIES: ReadonlySet<string> = new Set(['exhaustion'])
+const CONDITION_ADJACENT_IMMUNITIES: ReadonlySet<string> = new Set(CONDITION_IMMUNITY_ONLY_IDS)
 
 function partitionMonsterImmunities(immunities: ImmunityType[]): {
   damageImmunities: DamageResistanceMarker[]
-  conditionImmunities: string[]
+  conditionImmunities: ConditionImmunityId[]
 } {
   const damageImmunities: DamageResistanceMarker[] = []
-  const conditionImmunities: string[] = []
+  const conditionImmunities: ConditionImmunityId[] = []
 
   for (const entry of immunities) {
     if (CONDITION_IDS.has(entry) || CONDITION_ADJACENT_IMMUNITIES.has(entry)) {
-      conditionImmunities.push(entry)
+      conditionImmunities.push(entry as ConditionImmunityId)
     } else {
       damageImmunities.push({
         id: `monster-immunity-${entry}`,
@@ -48,7 +49,7 @@ function partitionMonsterImmunities(immunities: ImmunityType[]): {
   return { damageImmunities, conditionImmunities }
 }
 
-function mapMonsterResistances(resistances: MonsterResistanceType[]): DamageResistanceMarker[] {
+function mapMonsterResistances(resistances: CreatureResistanceDamageType[]): DamageResistanceMarker[] {
   return resistances.map((r) => ({
     id: `monster-resistance-${r}`,
     damageType: r,

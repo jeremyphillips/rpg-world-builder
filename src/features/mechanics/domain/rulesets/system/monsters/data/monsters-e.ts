@@ -46,11 +46,12 @@ export const MONSTERS_E: readonly MonsterCatalogEntry[] = [
           name: 'Multiattack',
           description:
             'The elemental makes two attacks, using Slam or Rock Launch in any combination.',
-          sequence: [{ actionName: 'Slam', count: 2 }],
+          sequence: [{ actionId: 'slam', count: 2 }],
           notes: 'At table, substitute Rock Launch for any Slam step.',
         },
         {
           kind: 'natural',
+          id: 'slam',
           name: 'Slam',
           attackType: 'slam',
           attackBonus: 8,

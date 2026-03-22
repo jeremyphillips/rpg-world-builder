@@ -88,6 +88,12 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     render: (m) => <StructuredValue value={m.mechanics?.bonusActions} />,
   },
   {
+    key: 'legendaryActions',
+    label: 'Legendary Actions',
+    order: 125,
+    render: (m) => <StructuredValue value={m.mechanics?.legendaryActions} />,
+  },
+  {
     key: 'traits',
     label: 'Traits',
     order: 130,

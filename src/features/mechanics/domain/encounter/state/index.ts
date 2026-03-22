@@ -32,6 +32,8 @@ export {
 export { createEncounterState, advanceEncounterTurn, formatRuntimeEffectLabel, mergeCombatantsIntoEncounter } from './runtime'
 export { triggerManualHook } from './manual-hooks'
 export { effectDurationToRuntimeDuration, formatMarkerLabel } from './shared'
+export { combatantToCreatureSnapshot } from './combatant-evaluation-snapshot'
+export { isImmuneToConditionIncludingScopedGrants } from './condition-immunity-resolution'
 export {
   CONDITION_RULES,
   canTakeActions,

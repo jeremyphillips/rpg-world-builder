@@ -2,6 +2,7 @@ import type { Effect, EffectConditionId } from "@/features/mechanics/domain/effe
 import type { ContentResolutionMeta } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
 import type { EffectDuration, EffectUses } from "@/features/mechanics/domain/effects/timing.types";
+import type { TurnHookKind } from '@/features/mechanics/domain/triggers/turn-hooks.types';
 
 export type MonsterTraitRequirement =
   | { kind: 'self-state'; state: 'bloodied' }
@@ -9,8 +10,7 @@ export type MonsterTraitRequirement =
   | { kind: 'hit-points-equals'; value: number };
 
 export type MonsterTraitTrigger =
-  | { kind: 'turn-start' }
-  | { kind: 'turn-end' }
+  | { kind: TurnHookKind }
   | {
       kind: 'ally-near-target';
       withinFeet: number;

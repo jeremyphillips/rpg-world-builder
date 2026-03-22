@@ -1,11 +1,12 @@
+import type { TurnHookKind } from './turn-hooks.types';
+
 export type TriggerType =
   | 'attack'
   | 'weapon-hit'
   | 'hit'
   | 'damage-dealt'
   | 'damage-taken'
-  | 'turn-start'
-  | 'turn-end'
+  | TurnHookKind
   | 'spell-cast'
 
 export type TriggerInput =

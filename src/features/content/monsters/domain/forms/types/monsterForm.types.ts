@@ -15,6 +15,7 @@ export type MonsterFormValues = ContentFormValues & {
   movement: string;
   actions: string;
   bonusActions: string;
+  legendaryActions: string;
   traits: string;
   abilities: string;
   senses: string;
