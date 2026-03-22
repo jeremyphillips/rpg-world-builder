@@ -133,6 +133,8 @@ The encounter action system resolves combat actions against encounter state:
 - `dead-creature` — combatant at 0 HP with a **valid body** (`remains` not `dust` or `disintegrated`; see `CombatantInstance` in encounter state). Used by resurrection and **Animate Dead** (often with `creatureTypeFilter`, e.g. humanoid). `creatureTypeFilter` is applied the same as for living targets.
 - `entered-during-move` — creatures entered during movement
 
+**Remains / revival (encounter):** On first transition to 0 HP, `applyDamageToCombatant` records `diedAtRound` and sets `remains` (default **`corpse`**; lethal damage from the **Disintegrate** spell action sets **`disintegrated`**; **`death-outcome` / `turns-to-dust`** on a killing hit sets **`dust`**). Healing on a dead target via **`hit-points`** / **`heal`** checks `reviveBlockedReason` in `action-effects.ts` (**dust** / **disintegrated**, and **Revivify** after more than **10** rounds since `diedAtRound` at **6 s/round**).
+
 **Targeting profile fields:**
 
 - `requiresWilling` — when `true` on `single-target`, valid targets are same-side only (caster + allies); “willing” is approximated as allies until explicit consent exists. Such actions are **non-hostile** for charm / hostile-action rules. Authored on spells via `targeting.requiresWilling` in spell effects.

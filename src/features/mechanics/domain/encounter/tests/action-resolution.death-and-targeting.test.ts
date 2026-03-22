@@ -261,6 +261,126 @@ describe('resolveCombatAction — death, resurrection, spawns, and targeting fla
     expect(resolved.log.some((e) => e.summary.includes('dead too long'))).toBe(true)
   })
 
+  it('Disintegrate lethal damage sets remains to disintegrated', () => {
+    const disintegrateAction: CombatActionDefinition = {
+      id: 'disintegrate',
+      label: 'Disintegrate',
+      kind: 'spell',
+      cost: { action: true },
+      resolutionMode: 'effects',
+      effects: [
+        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+        {
+          kind: 'save',
+          save: { ability: 'dex', dc: 15 },
+          onFail: [{ kind: 'damage', damage: '10', damageType: 'force' }],
+          onSuccess: [],
+        },
+      ],
+      targeting: { kind: 'single-target' },
+      displayMeta: {
+        source: 'spell',
+        spellId: 'disintegrate',
+        level: 6,
+        concentration: false,
+        range: '60 ft',
+      },
+    }
+
+    const state = createEncounterState(
+      [
+        createCombatant({
+          instanceId: 'wiz',
+          label: 'Wizard',
+          side: 'party',
+          initiativeModifier: 20,
+          dexterityScore: 10,
+          armorClass: 12,
+          actions: [disintegrateAction],
+        }),
+        createCombatant({
+          instanceId: 'victim',
+          label: 'Victim',
+          side: 'enemies',
+          initiativeModifier: 0,
+          dexterityScore: 10,
+          armorClass: 10,
+          currentHitPoints: 5,
+        }),
+      ],
+      { rng: () => 0.5 },
+    )
+
+    const resolved = resolveCombatAction(
+      state,
+      { actorId: 'wiz', actionId: 'disintegrate', targetId: 'victim' },
+      { rng: () => 0 },
+    )
+
+    const victim = resolved.combatantsById['victim']!
+    expect(victim.stats.currentHitPoints).toBe(0)
+    expect(victim.remains).toBe('disintegrated')
+  })
+
+  it('death-outcome turns-to-dust sets remains to dust after lethal hit', () => {
+    const rottingFist: CombatActionDefinition = {
+      id: 'dust-fist',
+      label: 'Dust Fist',
+      kind: 'weapon-attack',
+      cost: { action: true },
+      resolutionMode: 'attack-roll',
+      targeting: { kind: 'single-target' },
+      attackProfile: {
+        attackBonus: 50,
+        damage: '1',
+        damageType: 'bludgeoning',
+      },
+      onHitEffects: [
+        {
+          kind: 'death-outcome',
+          trigger: 'reduced-to-0-hit-points-by-this-action',
+          targetType: 'creature',
+          outcome: 'turns-to-dust',
+        },
+      ],
+    }
+
+    const state = createEncounterState(
+      [
+        createCombatant({
+          instanceId: 'mummy',
+          label: 'Mummy',
+          side: 'enemies',
+          initiativeModifier: 20,
+          dexterityScore: 10,
+          armorClass: 11,
+          actions: [rottingFist],
+        }),
+        createCombatant({
+          instanceId: 'victim',
+          label: 'Victim',
+          side: 'party',
+          initiativeModifier: 0,
+          dexterityScore: 10,
+          armorClass: 10,
+          currentHitPoints: 1,
+        }),
+      ],
+      { rng: () => 0.5 },
+    )
+
+    const resolved = resolveCombatAction(
+      state,
+      { actorId: 'mummy', actionId: 'dust-fist', targetId: 'victim' },
+      // d20 must not be 1 (natural 1 auto-misses); 0.5 → roll 11.
+      { rng: () => 0.5 },
+    )
+
+    const victim = resolved.combatantsById['victim']!
+    expect(victim.stats.currentHitPoints).toBe(0)
+    expect(victim.remains).toBe('dust')
+  })
+
   it('effects mode branches by hpThreshold when defined on the action', () => {
     const hpThresholdAction = (id: string): CombatActionDefinition => ({
       id,

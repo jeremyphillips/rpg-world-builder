@@ -196,7 +196,7 @@ export const SPELLS_LEVEL_6_A_L: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true, material: { description: 'a lodestone and pinch of dust' } },
     resolution: {
       caveats: [
-        'Objects, magical-force creations, and Huge+ partial destruction use different rules than the creature save modeled here.',
+        'Non-creature targets (objects, magical-force creations, Huge or larger partial destruction) are not fully modeled; creature line uses Dex save and damage only.',
       ],
     },
     effects: [

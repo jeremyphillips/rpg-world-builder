@@ -4,28 +4,28 @@ overview: Persist remains/body state on dead combatants, gate resurrection spell
 todos:
   - id: schema-remains
     content: Add CombatantInstance.remains union (e.g. corpse, bones, dust, disintegrated) + optional death time for time-gated spells
-    status: pending
+    status: completed
   - id: default-corpse
     content: On first transition to 0 HP in damage pipeline, set remains to corpse if unset; record death round/timestamp for Revivify
-    status: pending
+    status: completed
   - id: dust-death-outcome
     content: applyActionEffects death-outcome persists remains dust (mummy Rotting Fist)
-    status: pending
+    status: completed
   - id: disintegrate-authoring
     content: Wire Disintegrate (level6-a-l) so lethal spell damage sets remains disintegrated (fine dust); extend DeathOutcomeEffect outcome union or spell-specific post-damage hook
-    status: pending
+    status: completed
   - id: target-heal-guards
     content: Exclude dust/disintegrated from dead-creature where appropriate; guard hit-points heal on Raise Dead / Revivify
-    status: pending
+    status: completed
   - id: revivify-one-minute
     content: Enforce Revivify 1-minute rule using encounter time (e.g. round died vs current round at 6s/round, or explicit death clock)
-    status: pending
+    status: completed
   - id: animate-dead-simplify
     content: Remove mapMonsterIdFromCasterOption and skeleton/zombie enum; one-dead-creature + humanoid filter + spawn from target.remains (corpse→zombie, bones→skeleton); reject dust/disintegrated
-    status: pending
+    status: completed
   - id: tests-docs
     content: Tests for dust, disintegrate kill, Revivify window, Raise Dead; update resolution/effects docs
-    status: pending
+    status: completed
 isProject: false
 ---
 

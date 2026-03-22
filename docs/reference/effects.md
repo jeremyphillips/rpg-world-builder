@@ -825,6 +825,7 @@ Medium engine work, now landed.
 - `roll-modifier`: advantage/disadvantage tracked as runtime state on `CombatantInstance.rollModifiers`; wired into attack-roll and saving throw resolution.
 - `interval`: per-turn effect application via turn hooks. Registered by `applyActionEffects` when an interval effect is applied.
 - `move`: forced movement logged with structured summary. Actual position tracking deferred.
+- `death-outcome` (`turns-to-dust`): when the target is at 0 HP after the attack’s weapon damage, `applyActionEffects` can set `remains: 'dust'` (e.g. Mummy Rotting Fist).
 
 ### Tier 4 — Deferred / Under-Model
 
@@ -876,9 +877,15 @@ Status of monster-specific and cross-cutting effect kinds, using the standard ma
 ### `spawn`
 
 - Status: `under-modeled` (summon-spell support **in progress** — see [resolution.md — Summon spells and spawn](./resolution.md#summon-spells-and-spawn))
-- **Today:** Spell adapter classifies **`spawn`** as **`effects`** with **`targeting: none`**. When the encounter supplies **`monstersById`** and **`buildSummonAllyCombatant`**, **`applyActionEffects`** creates **`CombatantInstance`**s and merges them; otherwise it logs via **`describeResolvedSpawn`**. **`ApplyActionEffectsOptions.casterOptions`** is used for **`mapMonsterIdFromCasterOption`** (enum → catalog id) and **`poolFromCasterOption`** (enum → count + type + CR cap + random picks).
-- **Authoring:** **`monsterId`** (× **`count`**), **`monsterIds`**, **`pool`**: `{ creatureType, maxChallengeRating }`, **`mapMonsterIdFromCasterOption`**, **`poolFromCasterOption`**, legacy **`creature`**, optional **`initiativeMode`**. Pair with **`resolution.casterOptions`** where the rules offer a choice. See [`spawn-resolution.ts`](../../src/features/mechanics/domain/encounter/resolution/action/spawn-resolution.ts). Spell combat actions use **`targeting.kind: 'none'`** — [resolution.md — Action targeting kinds](./resolution.md#action-targeting-kinds).
+- **Today:** Spell adapter classifies **`spawn`** as **`effects`** with **`targeting: none`**. When the encounter supplies **`monstersById`** and **`buildSummonAllyCombatant`**, **`applyActionEffects`** creates **`CombatantInstance`**s and merges them; otherwise it logs via **`describeResolvedSpawn`**. **`ApplyActionEffectsOptions.casterOptions`** is used for **`mapMonsterIdFromCasterOption`** (enum → catalog id) and **`poolFromCasterOption`** (enum → count + type + CR cap + random picks). When the spell targets a **dead creature** (e.g. Animate Dead), **`mapMonsterIdFromTargetRemains`** maps **`corpse` / `bones`** (unset remains → **`corpse`**) to catalog ids; **`dust`** / **`disintegrated`** yields no spawn.
+- **Authoring:** **`monsterId`** (× **`count`**), **`monsterIds`**, **`pool`**: `{ creatureType, maxChallengeRating }`, **`mapMonsterIdFromTargetRemains`** (dead-target → id), **`mapMonsterIdFromCasterOption`**, **`poolFromCasterOption`**, legacy **`creature`**, optional **`initiativeMode`**. Pair **`mapMonsterIdFromCasterOption`** / **`poolFromCasterOption`** with **`resolution.casterOptions`** where the rules offer a choice. See [`spawn-resolution.ts`](../../src/features/mechanics/domain/encounter/resolution/action/spawn-resolution.ts). Spell combat actions use **`targeting.kind: 'none'`** — [resolution.md — Action targeting kinds](./resolution.md#action-targeting-kinds).
 - **Used by:** Find Familiar (legacy `creature` token), Troll Loathsome Limbs, Animate Dead, Conjure Minor Elementals, Conjure Woodland Beings, Giant Insect, and similar.
+
+### `death-outcome`
+
+- Status: `provisional` (resolved for **`turns-to-dust`** on **attack-roll** on-hit chains)
+- **Today:** For **`outcome: 'turns-to-dust'`**, when the target is at **0 HP** after the preceding damage in the same **`onHitEffects`** pass (weapon damage is applied before **`onHitEffects`**), **`applyActionEffects`** sets **`CombatantInstance.remains`** to **`dust`** and **`diedAtRound`** if unset, and appends a short log line.
+- **Used by:** Mummy Rotting Fist (**`trigger: 'reduced-to-0-hit-points-by-this-action'`**).
 
 ### `hold-breath`
 
