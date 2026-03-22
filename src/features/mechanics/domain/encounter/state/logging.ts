@@ -132,6 +132,7 @@ export function appendHookTriggeredLog(
   combatantId: string,
   hookLabel: string,
   details?: string,
+  debugDetails?: string[],
 ): EncounterState {
   return appendLog(state, {
     type: 'hook-triggered',
@@ -141,5 +142,6 @@ export function appendHookTriggeredLog(
     turn: state.turnIndex + 1,
     summary: `${getCombatantLabel(state, combatantId)} hook fires: ${hookLabel}.`,
     details,
+    debugDetails,
   })
 }

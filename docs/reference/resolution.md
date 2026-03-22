@@ -254,7 +254,7 @@ Pure formatting functions that take raw resolution data and return `string[]` fo
 **Integration points:**
 
 - `action-resolver.ts` — attack-roll, save auto-fail, save-roll, and resource-blocked noOp events include `debugDetails`.
-- `damage-mutations.ts` — condition-based resistance notes include `debugDetails`.
+- `damage-mutations.ts` — condition-based resistance notes include `debugDetails`. Monster **`reduced-to-0-hp`** traits (e.g. Undead Fortitude on zombies) resolve inside `applyDamageToCombatant` when `monstersById` is provided; pass `criticalHit` for attack crits and `rng` for the CON save. `hook-triggered` entries include `debugDetails` (trigger, DC, roll, outcome).
 - `condition-mutations.ts` — condition-applied events include a consequence breakdown when the condition is a known `EffectConditionId`.
 - `logging.ts` `createTurnStartedLog` — includes a combatant status snapshot (HP, conditions, states, concentration, disabled resources).
 - `logging.ts` `createTurnEndedLog` — includes the concentration timer when the active combatant is concentrating.

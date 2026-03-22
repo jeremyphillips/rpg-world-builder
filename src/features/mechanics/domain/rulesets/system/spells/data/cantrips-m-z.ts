@@ -8,7 +8,7 @@ import { cantripDamageScaling, RESISTANCE_SPELL_DAMAGE_TYPE_OPTIONS } from '../s
  * - **Note-first (utility / multi-mode):** Prestidigitation, Produce Flame, Shillelagh, Thaumaturgy, True Strike — not worth faking as full `effects` until weapon/light/submode engines exist.
  */
 export const SPELLS_LEVEL_0_M_Z: readonly SpellEntry[] = [
-{
+  {
     id: 'poison-spray',
     name: 'Poison Spray',
     school: 'necromancy',
@@ -33,7 +33,7 @@ export const SPELLS_LEVEL_0_M_Z: readonly SpellEntry[] = [
       summary: 'Ranged spell attack: 1d12 poison. Scales at 5/11/17.',
     },
   },
-{
+  {
     id: 'prestidigitation',
     name: 'Prestidigitation',
     school: 'transmutation',

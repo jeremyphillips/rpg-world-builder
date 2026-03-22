@@ -352,6 +352,9 @@ function resolveCombatActionInternal(
           actorId: actor.instanceId,
           sourceLabel: actionLabel,
           damageType: action.attackProfile?.damageType,
+          criticalHit: isCritical,
+          rng,
+          monstersById: options.monstersById,
         })
         nextState = appendEncounterLogEvent(nextState, {
           type: 'action-resolved',
@@ -443,6 +446,8 @@ function resolveCombatActionInternal(
               actorId: actor.instanceId,
               sourceLabel: actionLabel,
               damageType: action.damageType,
+              rng,
+              monstersById: options.monstersById,
             })
           }
         }
@@ -483,6 +488,8 @@ function resolveCombatActionInternal(
               actorId: actor.instanceId,
               sourceLabel: actionLabel,
               damageType: action.damageType,
+              rng,
+              monstersById: options.monstersById,
             })
           }
         }

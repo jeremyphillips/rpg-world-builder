@@ -43,7 +43,7 @@ isProject: false
 ### 1. Disintegrate — author death outcome (`[level6-a-l.ts](src/features/mechanics/domain/rulesets/system/spells/data/level6-a-l.ts)` ~187–217)
 
 - **Rules:** If the Dex-save damage from this spell leaves a **creature** at 0 HP, it is **disintegrated** (fine gray dust); revival is limited (True Resurrection / Wish per SRD text in description).
-- **Engine:** Introduce a persisted remains value distinct from generic `**dust`** if you need different revival tiers later, e.g. `**remains: 'disintegrated'`** (or alias `**fine-dust**`) vs mummy `**dust**`. Alternatively a single `**dust**` plus `**dustKind: 'disintegrate' | 'other'**`—pick one representation and document it.
+- **Engine:** Introduce a persisted remains value distinct from generic `**dust`** if you need different revival tiers later, e.g. `**remains: 'disintegrated'`** (or alias `**fine-dust`**) vs mummy `**dust`**. Alternatively a single `**dust**` plus `**dustKind: 'disintegrate' | 'other'**`—pick one representation and document it.
 - **Wiring:** Disintegrate resolves as **save → damage** (not a single weapon `onHitEffects` chain). Implementation options:
   - **A.** After `applyDamageToCombatant` in the spell/effects pipeline for this action, if target HP === 0 and source is Disintegrate, set `remains` to disintegrated.
   - **B.** Generalize “lethal damage from this spell” metadata on `CombatActionDefinition` / damage options so the damage layer sets remains without hard-coding spell id in one place.
@@ -52,7 +52,7 @@ isProject: false
 ### 2. Animate Dead — remove redundant caster enum
 
 - **Remove** `[mapMonsterIdFromCasterOption](src/features/mechanics/domain/rulesets/system/spells/data/level3-a-l.ts)` and the **skeleton/zombie** `resolution.casterOptions` enum.
-- **Replace with:** `one-dead-creature` targeting with `**creatureTypeFilter: ['humanoid']`** (SRD: Medium or Small Humanoid corpse/bones) + spawn mapping from `**target.remains`**: `corpse` → zombie, `bones` → skeleton; **invalid** if `dust` / `disintegrated` (nothing left to animate). Legacy dead targets with unset `remains` treat as `**corpse`** for mapping.
+- **Replace with:** `one-dead-creature` targeting with `**creatureTypeFilter: ['humanoid']`** (SRD: Medium or Small Humanoid corpse/bones) + spawn mapping from `**target.remains`**: `corpse` → zombie, `bones` → skeleton; invalid if `dust` / `disintegrated` (nothing left to animate). Legacy dead targets with unset `remains` treat as `**corpse`** for mapping.
 
 ### 3. Revivify — enforce “died within the last minute” (`[level3-m-z.ts](src/features/mechanics/domain/rulesets/system/spells/data/level3-m-z.ts)` ~193–216)
 
@@ -105,7 +105,7 @@ flowchart TB
 | Revivify       | `[level3-m-z.ts](src/features/mechanics/domain/rulesets/system/spells/data/level3-m-z.ts)` + validation in `applyActionEffects` or resolver                                                                                       |
 | Animate Dead   | `[level3-a-l.ts](src/features/mechanics/domain/rulesets/system/spells/data/level3-a-l.ts)`, `[spawn-resolution.ts](src/features/mechanics/domain/encounter/resolution/action/spawn-resolution.ts)` / spawn + target               |
 | Types          | `[effects.types.ts](src/features/mechanics/domain/effects/effects.types.ts)` — extend `DeathOutcomeEffect.outcome` if new literal for disintegrate vs dust                                                                        |
-| Tests          | `[action-resolution.death-and-targeting.test.ts](src/features/mechanics/domain/encounter/tests/action-resolution.death-and-targeting.test.ts)` (and related `action-resolution.*.test.ts` in the same folder)                                                                                                                            |
+| Tests          | `[action-resolution.death-and-targeting.test.ts](src/features/mechanics/domain/encounter/tests/action-resolution.death-and-targeting.test.ts)` (and related `action-resolution.*.test.ts` in the same folder)                     |
 | Docs           | `[resolution.md](docs/reference/resolution.md)`, `[effects.md](docs/reference/effects.md)`                                                                                                                                        |
 
 

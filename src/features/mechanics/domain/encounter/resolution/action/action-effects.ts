@@ -274,6 +274,8 @@ export function applyActionEffects(
           sourceLabel: options.sourceLabel,
           damageType: effect.damageType,
           remainsOnKill: damageRemainsOnKill(action),
+          rng: options.rng,
+          monstersById: options.monstersById,
         })
       }
       return
@@ -662,11 +664,8 @@ export function applyActionEffects(
         return
       }
 
-      nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Grants ${effect.grantType}.`, {
-        actorId: actor.instanceId,
-        targetIds: [target.instanceId],
-      })
-      return
+      const _exhaustiveGrant: never = effect
+      return _exhaustiveGrant
     }
 
     if (effect.kind === 'form') {
