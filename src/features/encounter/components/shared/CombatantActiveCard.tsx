@@ -144,7 +144,12 @@ function GroupedActionList({
                     isSelected={action.id === selectedActionId}
                     isAvailable={isAvailable}
                     onSelect={
-                      onSelectAction && isAvailable ? () => onSelectAction(action.id) : undefined
+                      onSelectAction
+                        ? () => {
+                            if (!isAvailable) return
+                            onSelectAction(action.id)
+                          }
+                        : undefined
                     }
                   />
                 )

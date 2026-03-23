@@ -10,6 +10,11 @@ import type { SxProps, Theme } from '@mui/material/styles'
 
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 
+import {
+  COMPACT_ACTION_DISABLED_OPACITY,
+  COMPACT_ACTION_OPACITY_TRANSITION,
+} from './horizontalCompactCard.constants'
+
 export type HorizontalCompactTitleVariant = 'subtitle1' | 'body2'
 
 export interface HorizontalCompactCardProps {
@@ -32,6 +37,8 @@ export interface HorizontalCompactCardProps {
   footerStart?: React.ReactNode
   isEditable?: boolean
   onEdit?: () => void
+  /** Non-interactive dimming (footer links remain usable). */
+  disabled?: boolean
   cardSx?: SxProps<Theme>
 }
 
@@ -50,6 +57,7 @@ const HorizontalCompactCard = ({
   footerStart,
   isEditable,
   onEdit,
+  disabled = false,
   cardSx,
 }: HorizontalCompactCardProps) => {
   const mediaSrc = image ?? imageFallback
@@ -78,6 +86,13 @@ const HorizontalCompactCard = ({
         flex: 1,
         minWidth: 0,
         borderColor: selected ? 'primary.main' : 'divider',
+        ...(disabled
+          ? {
+              opacity: COMPACT_ACTION_DISABLED_OPACITY,
+              transition: COMPACT_ACTION_OPACITY_TRANSITION,
+              cursor: 'not-allowed',
+            }
+          : {}),
         ...cardSx,
       }}
     >

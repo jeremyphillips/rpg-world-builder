@@ -1,4 +1,3 @@
-import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
@@ -88,23 +87,17 @@ const SpellHorizontalCard = ({
 
   if (onToggle != null) {
     return (
-      <Box sx={{ opacity: disabled ? 0.4 : 1, transition: 'opacity 0.15s ease' }}>
-        <HorizontalCompactActionCard
-          {...shared}
-          isSelected={selected}
-          isAvailable={!disabled}
-          onSelect={disabled ? undefined : onToggle}
-          alwaysShowCheckmark
-        />
-      </Box>
+      <HorizontalCompactActionCard
+        {...shared}
+        isSelected={selected}
+        disabled={disabled}
+        onSelect={disabled ? undefined : onToggle}
+        alwaysShowCheckmark
+      />
     )
   }
 
-  return (
-    <Box sx={{ opacity: disabled ? 0.4 : 1, transition: 'opacity 0.15s ease' }}>
-      <HorizontalCompactCard {...shared} />
-    </Box>
-  )
+  return <HorizontalCompactCard {...shared} disabled={disabled} />
 }
 
 export default SpellHorizontalCard

@@ -33,6 +33,11 @@ export { default as HorizontalCompactCard } from './cards/HorizontalCompactCard'
 export type { HorizontalCompactCardProps, HorizontalCompactTitleVariant } from './cards/HorizontalCompactCard'
 export { HorizontalCompactActionCard } from './cards/HorizontalCompactActionCard'
 export type { HorizontalCompactActionCardProps } from './cards/HorizontalCompactActionCard'
+export {
+  COMPACT_ACTION_DISABLED_OPACITY,
+  COMPACT_ACTION_OPACITY_TRANSITION,
+  COMPACT_ACTION_UNAVAILABLE_OPACITY,
+} from './cards/horizontalCompactCard.constants'
 
 export { EntitySummaryCard, InlineStatLine } from './cards/EntitySummaryCard'
 export type { EntitySummaryCardProps, InlineStatItem } from './cards/EntitySummaryCard'
