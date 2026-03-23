@@ -30,7 +30,9 @@ export type { StatusBadgeProps } from './status/StatusBadge'
 export { default as VisibilityBadge } from './status/VisibilityBadge'
 
 export { default as HorizontalCompactCard } from './cards/HorizontalCompactCard'
-export type { HorizontalCompactCardProps } from './cards/HorizontalCompactCard'
+export type { HorizontalCompactCardProps, HorizontalCompactTitleVariant } from './cards/HorizontalCompactCard'
+export { HorizontalCompactActionCard } from './cards/HorizontalCompactActionCard'
+export type { HorizontalCompactActionCardProps } from './cards/HorizontalCompactActionCard'
 
 export { EntitySummaryCard, InlineStatLine } from './cards/EntitySummaryCard'
 export type { EntitySummaryCardProps, InlineStatItem } from './cards/EntitySummaryCard'

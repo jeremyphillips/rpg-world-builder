@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
-import Typography from '@mui/material/Typography'
+
 import { HorizontalCompactCard } from '@/ui/patterns'
+import { CardBadge } from '@/ui/primitives'
 import type { CardBadgeProps } from '@/ui/primitives'
 
 interface CampaignHorizontalCardProps {
@@ -14,7 +15,7 @@ interface CampaignHorizontalCardProps {
   memberCount?: number
   /** Character's in-campaign status ('active' | 'inactive' | 'deceased') */
   characterStatus?: string
-  /** Custom actions rendered in the card's action area (replaces default "View details") */
+  /** Custom actions rendered in the footer leading area (replaces default "View details" link). */
   actions?: ReactNode
 }
 
@@ -33,18 +34,25 @@ const CampaignHorizontalCard = ({
   characterStatus,
   actions: customActions,
 }: CampaignHorizontalCardProps) => {
-
   const memberLabel = memberCount != null
     ? `${memberCount} member${memberCount !== 1 ? 's' : ''}`
     : undefined
 
   const subheadline = [memberLabel].filter(Boolean).join(' · ')
 
-  const badges: CardBadgeProps[] = []
-  if (dmName) badges.push({ type: 'role', value: `DM: ${dmName}` })
+  const badgeItems: CardBadgeProps[] = []
+  if (dmName) badgeItems.push({ type: 'role', value: `DM: ${dmName}` })
   if (characterStatus && STATUS_BADGE_MAP[characterStatus]) {
-    badges.push(STATUS_BADGE_MAP[characterStatus])
+    badgeItems.push(STATUS_BADGE_MAP[characterStatus])
   }
+
+  const titleBadges = (
+    <>
+      {badgeItems.map((b, i) => (
+        <CardBadge key={i} type={b.type} value={b.value} />
+      ))}
+    </>
+  )
 
   return (
     <HorizontalCompactCard
@@ -52,15 +60,11 @@ const CampaignHorizontalCard = ({
       headline={name}
       subheadline={subheadline || undefined}
       description={description}
-      badges={badges}
-      link={`/campaigns/${campaignId}`}
-      actions={
-        customActions ?? (
-          <Typography variant="body2" color="primary" sx={{ fontSize: '0.8125rem' }}>
-            View details
-          </Typography>
-        )
-      }
+      titleBadges={titleBadges}
+      footerActionTo={customActions ? undefined : `/campaigns/${campaignId}`}
+      footerActionLabel="View details"
+      footerActionOpenInNewTab={false}
+      footerStart={customActions}
     />
   )
 }

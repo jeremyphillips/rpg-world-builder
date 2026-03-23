@@ -1,5 +1,8 @@
 export { default as MediaTopCard } from './MediaTopCard'
 export { default as HorizontalCompactCard } from './HorizontalCompactCard'
+export type { HorizontalCompactCardProps, HorizontalCompactTitleVariant } from './HorizontalCompactCard'
+export { HorizontalCompactActionCard } from './HorizontalCompactActionCard'
+export type { HorizontalCompactActionCardProps } from './HorizontalCompactActionCard'
 export { default as TimelineCard } from './TimelineCard'
 export { EntitySummaryCard, InlineStatLine } from './EntitySummaryCard'
 export type { EntitySummaryCardProps, InlineStatItem } from './EntitySummaryCard'

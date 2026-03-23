@@ -1,5 +1,7 @@
+import { useParams } from 'react-router-dom'
 import Typography from '@mui/material/Typography'
 
+import { ROUTES } from '@/app/routes'
 import { AppBadge } from '@/ui/primitives'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import { ActionRowBase } from './ActionRowBase'
@@ -12,11 +14,17 @@ type SpellActionRowProps = {
 }
 
 export function SpellActionRow({ action, isSelected, isAvailable = true, onSelect }: SpellActionRowProps) {
+  const { id: campaignId } = useParams<{ id: string }>()
   const meta = action.displayMeta?.source === 'spell' ? action.displayMeta : undefined
 
   const nameLabel = meta != null
     ? `${action.label} \u00B7 Lvl ${meta.level}`
     : action.label
+
+  const footerActionTo =
+    campaignId && meta?.spellId
+      ? ROUTES.WORLD_SPELL.replace(':id', campaignId).replace(':spellId', meta.spellId)
+      : undefined
 
   return (
     <ActionRowBase
@@ -24,6 +32,9 @@ export function SpellActionRow({ action, isSelected, isAvailable = true, onSelec
       isAvailable={isAvailable}
       onSelect={onSelect}
       name={nameLabel}
+      footerActionTo={footerActionTo}
+      footerActionLabel="View details"
+      footerActionOpenInNewTab
       secondLine={
         meta?.summary ? (
           <Typography variant="caption" color="text.secondary">

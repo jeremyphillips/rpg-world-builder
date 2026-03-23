@@ -1,8 +1,9 @@
 import { HorizontalCompactCard } from '@/ui/patterns'
+import { CardBadge } from '@/ui/primitives'
 import type { CardBadgeProps } from '@/ui/primitives'
 
 export interface LocationHorizontalCardProps {
-  /** Link to the location detail route */
+  /** Location detail route (footer “View details”). */
   link: string
   name: string
   type: string
@@ -21,14 +22,22 @@ const LocationHorizontalCard = ({
   description,
   imageUrl,
   isCustom,
-  parentName
+  parentName,
 }: LocationHorizontalCardProps) => {
-  const badges: CardBadgeProps[] = [
+  const badgeItems: CardBadgeProps[] = [
     { type: 'tag', value: type },
   ]
   if (isCustom) {
-    badges.push({ type: 'tag', value: 'Custom' })
+    badgeItems.push({ type: 'tag', value: 'Custom' })
   }
+
+  const titleBadges = (
+    <>
+      {badgeItems.map((b, i) => (
+        <CardBadge key={i} type={b.type} value={b.value} />
+      ))}
+    </>
+  )
 
   const subheadline = parentName ? `Inside: ${parentName}` : undefined
 
@@ -38,8 +47,10 @@ const LocationHorizontalCard = ({
       headline={name}
       subheadline={subheadline}
       description={description}
-      badges={badges}
-      link={link}
+      titleBadges={titleBadges}
+      footerActionTo={link}
+      footerActionLabel="View details"
+      footerActionOpenInNewTab={false}
     />
   )
 }

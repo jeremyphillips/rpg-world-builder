@@ -51,7 +51,7 @@ export function NaturalActionRow({ action, isSelected, isAvailable = true, onSel
           {action.sequence?.map((step) => (
             <AppBadge
               key={step.actionLabel}
-              label={`Sequence: ${step.actionLabel}x${step.count}`}
+              label={`Sequence: ${step.actionLabel} x ${step.count}`}
               tone="default"
               variant="outlined"
               size="small"

@@ -9,6 +9,9 @@ export { default as StatShield } from './StatShield/StatShield'
 export { default as CardBadge } from './CardBadge'
 export type { CardBadgeProps } from './CardBadge'
 
+export { SelectionCheckmark } from './SelectionCheckmark'
+export type { SelectionCheckmarkProps } from './SelectionCheckmark'
+
 export { default as AppAlert } from './AppAlert/AppAlert'
 export type { AppAlertProps, AppAlertTone } from './AppAlert/AppAlert'
 

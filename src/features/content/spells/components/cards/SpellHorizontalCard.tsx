@@ -1,4 +1,10 @@
-import { HorizontalCompactCard } from '@/ui/patterns'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+
+import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
+import { ROUTES } from '@/app/routes'
+import { HorizontalCompactActionCard, HorizontalCompactCard } from '@/ui/patterns'
+import { CardBadge } from '@/ui/primitives'
 import type { CardBadgeProps } from '@/ui/primitives'
 import type { Spell } from '@/features/content/spells/domain/types'
 
@@ -36,57 +42,68 @@ const SpellHorizontalCard = ({
   disabled = false,
   onToggle,
 }: SpellHorizontalCardProps) => {
-  const badges: CardBadgeProps[] = [
+  const { campaignId } = useActiveCampaign()
+
+  const spellDetailPath =
+    campaignId != null
+      ? ROUTES.WORLD_SPELL.replace(':id', campaignId).replace(':spellId', spell.id)
+      : undefined
+
+  const badgeItems: CardBadgeProps[] = [
     { type: 'tag', value: levelLabel(spell.level) },
     { type: 'tag', value: schoolLabel(spell.school) },
   ]
 
-  // if (spell.ritual) badges.push({ type: 'tag', value: 'Ritual' })
-  // if (spell.concentration) badges.push({ type: 'tag', value: 'Concentration' })
+  const titleBadges = (
+    <>
+      {badgeItems.map((b, i) => (
+        <CardBadge key={i} type={b.type} value={b.value} />
+      ))}
+    </>
+  )
 
-  const classNames = spell.classes
-    .map(c => c.charAt(0).toUpperCase() + c.slice(1))
-    .join(', ')
-
-  return (
-    <div
-      onClick={disabled ? undefined : onToggle}
-      style={{
-        cursor: disabled ? 'default' : onToggle ? 'pointer' : undefined,
-        opacity: disabled ? 0.4 : 1,
-        transition: 'opacity 0.15s ease',
+  const subheadline = (
+    <Typography
+      variant="body2"
+      color="text.secondary"
+      sx={{
+        display: '-webkit-box',
+        WebkitLineClamp: 2,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
       }}
     >
-      <HorizontalCompactCard
-        headline={spell.name}
-        subheadline={classNames}
-        badges={badges}
-        description={spell.source ? `Source: ${spell.source}` : undefined}
-        actions={
-          onToggle ? (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                border: '2px solid',
-                borderColor: selected ? 'var(--mui-palette-primary-main)' : 'var(--mui-palette-divider)',
-                backgroundColor: selected ? 'var(--mui-palette-primary-main)' : 'transparent',
-                color: selected ? '#fff' : 'transparent',
-                fontSize: 14,
-                fontWeight: 700,
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {selected ? '✓' : ''}
-            </span>
-          ) : undefined
-        }
-      />
-    </div>
+      {spell.description.summary}
+    </Typography>
+  )
+
+  const shared = {
+    headline: `${spell.name} \u00B7 Lvl ${spell.level}`,
+    subheadline,
+    titleBadges,
+    footerActionTo: spellDetailPath,
+    footerActionLabel: 'View details',
+    footerActionOpenInNewTab: true,
+  }
+
+  if (onToggle != null) {
+    return (
+      <Box sx={{ opacity: disabled ? 0.4 : 1, transition: 'opacity 0.15s ease' }}>
+        <HorizontalCompactActionCard
+          {...shared}
+          isSelected={selected}
+          isAvailable={!disabled}
+          onSelect={disabled ? undefined : onToggle}
+          alwaysShowCheckmark
+        />
+      </Box>
+    )
+  }
+
+  return (
+    <Box sx={{ opacity: disabled ? 0.4 : 1, transition: 'opacity 0.15s ease' }}>
+      <HorizontalCompactCard {...shared} />
+    </Box>
   )
 }
 

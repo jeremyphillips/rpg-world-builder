@@ -1,7 +1,4 @@
-import Paper from '@mui/material/Paper'
-import Stack from '@mui/material/Stack'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
+import { HorizontalCompactActionCard } from '@/ui/patterns'
 
 export type ActionRowBaseProps = {
   isSelected: boolean
@@ -10,32 +7,34 @@ export type ActionRowBaseProps = {
   name: React.ReactNode
   secondLine?: React.ReactNode
   badges: React.ReactNode
+  footerActionTo?: string
+  footerActionLabel?: string
+  footerActionOpenInNewTab?: boolean
 }
 
-export function ActionRowBase({ isSelected, isAvailable = true, onSelect, name, secondLine, badges }: ActionRowBaseProps) {
+export function ActionRowBase({
+  isSelected,
+  isAvailable = true,
+  onSelect,
+  name,
+  secondLine,
+  badges,
+  footerActionTo,
+  footerActionLabel,
+  footerActionOpenInNewTab,
+}: ActionRowBaseProps) {
   return (
-    <Paper
-      variant="outlined"
-      sx={{
-        p: 1.5,
-        opacity: isAvailable ? 1 : 0.5,
-        cursor: onSelect ? 'pointer' : 'default',
-        borderColor: isSelected ? 'primary.main' : 'divider',
-        '&:hover': onSelect ? { bgcolor: 'action.hover' } : undefined,
-      }}
-      onClick={onSelect}
-    >
-      <Stack spacing={0.5}>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>{name}</Typography>
-          </Box>
-          <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }} alignItems="center">
-            {badges}
-          </Stack>
-        </Stack>
-        {secondLine}
-      </Stack>
-    </Paper>
+    <HorizontalCompactActionCard
+      isSelected={isSelected}
+      isAvailable={isAvailable}
+      onSelect={onSelect}
+      headline={name}
+      titleVariant="body2"
+      subheadline={secondLine}
+      titleBadges={badges}
+      footerActionTo={footerActionTo}
+      footerActionLabel={footerActionLabel}
+      footerActionOpenInNewTab={footerActionOpenInNewTab}
+    />
   )
 }
