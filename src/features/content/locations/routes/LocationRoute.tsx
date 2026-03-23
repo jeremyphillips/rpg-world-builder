@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { useParams, Link as RouterLink } from 'react-router-dom'
 
 import type { Visibility } from '@/shared/types/visibility'
-import type { Location } from '@/data/locations'
+import type { Location } from '../types'
 import { locations as locationData } from '@/data/locations'
 import { resolveImageUrl } from '@/shared/lib/media'
 import { useAuth } from '@/app/providers/AuthProvider'
@@ -11,7 +11,6 @@ import { apiFetch } from '@/app/api'
 import { useBreadcrumbs } from '@/app/navigation'
 import { useCampaignMembers } from '@/features/campaign/hooks/useCampaignMembers'
 import { useCampaigns } from '@/features/campaign/hooks/useCampaigns'
-import { getLegacyType } from '@/features/content/locations/locationLegacy'
 import {
   AppHero,
   Breadcrumbs,
@@ -37,8 +36,9 @@ const LOCATION_TYPE_OPTIONS: { id: string; label: string }[] = [
   { id: 'region', label: 'Region' },
   { id: 'city', label: 'City' },
   { id: 'town', label: 'Town' },
-  { id: 'dungeon', label: 'Dungeon' },
-  { id: 'landmark', label: 'Landmark' },
+  { id: 'site', label: 'Site' },
+  { id: 'building', label: 'Building' },
+  { id: 'room', label: 'Room' },
   { id: 'other', label: 'Other' },
 ]
 
@@ -46,8 +46,10 @@ const TYPE_COLORS: Record<string, 'primary' | 'secondary' | 'success' | 'warning
   region: 'primary',
   city: 'secondary',
   town: 'success',
-  dungeon: 'error',
-  landmark: 'warning',
+  building: 'warning',
+  room: 'warning',
+  // dungeon: 'error',
+  site: 'warning',
   other: 'info',
 }
 
@@ -125,7 +127,7 @@ const LocationRoute = () => {
     )
   }
 
-  const locationType = getLegacyType(location)
+  // const locationType = getLegacyType(location)
   const locationVisibility: Visibility = location.visibility ?? { scope: 'public' }
 
   return (
@@ -135,16 +137,16 @@ const LocationRoute = () => {
       {/* Hero — location image */}
       <AppHero
         headline={location.name}
-        subheadline={locationType.charAt(0).toUpperCase() + locationType.slice(1)}
+        subheadline={location.kind.charAt(0).toUpperCase() + location.kind.slice(1)}
         image={resolveImageUrl(location.imageKey ?? undefined)}
       />
 
       {/* Badges */}
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 2, mb: 3 }}>
         <Chip
-          label={locationType}
+          label={location.kind}
           size="small"
-          color={TYPE_COLORS[locationType] ?? 'primary'}
+          color={TYPE_COLORS[location.kind] ?? 'primary'}
           variant="outlined"
           sx={{ textTransform: 'capitalize' }}
         />
@@ -166,7 +168,7 @@ const LocationRoute = () => {
 
         <EditableSelect
           label="Type"
-          value={locationType}
+          value={location.kind}
           options={LOCATION_TYPE_OPTIONS}
           onSave={(v) => saveField('type', v)}
           disabled={!canEdit}

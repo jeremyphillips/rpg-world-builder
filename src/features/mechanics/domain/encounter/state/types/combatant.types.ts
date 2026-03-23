@@ -16,6 +16,10 @@ export interface CombatantSourceRef {
   label: string
 }
 
+export type CombatantAttackRange =
+  | { kind: 'melee'; rangeFt: number }
+  | { kind: 'ranged'; normalFt: number; longFt?: number }
+
 export interface CombatantAttackEntry {
   id: string
   name: string
@@ -25,6 +29,7 @@ export interface CombatantAttackEntry {
   damageType?: string
   damageBreakdown?: BreakdownToken[]
   notes?: string
+  range?: CombatantAttackRange
 }
 
 export interface CombatantStatBlock {

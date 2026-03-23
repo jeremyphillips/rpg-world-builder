@@ -3,19 +3,19 @@ export {
   defenseBadgesToPresentableCombatEffects,
   deriveEncounterDefenseBadges,
   describeConditionScopeForDefenseTooltip,
-} from './encounter-defense-badges'
+} from './badges/defense/encounter-defense-badges'
 export type {
   EncounterConditionImmunityBadge,
   EncounterDamageDefenseBadge,
   EncounterDefenseBadges,
-} from './encounter-defense-badges.types'
+} from './badges/defense/encounter-defense-badges.types'
 export {
   collectPresentableEffects,
   enrichPresentableEffects,
   enrichWithPresentation,
   groupBySection,
   sortByPriority,
-} from './presentable-effects'
+} from './effects/presentable-effects'
 export {
   COMBAT_STATE_UI_MAP,
   COMBAT_STATE_MARKER_UI_MAP,
@@ -25,7 +25,7 @@ export {
   getPriorityOrder,
   getSectionOrder,
   shouldShowPresentationInHeader,
-} from './combat-state-ui-map'
+} from './effects/combat-state-ui-map'
 export type {
   CombatStatePresentation,
   CombatStateSection,
@@ -35,20 +35,20 @@ export type {
   PresentableCombatEffect,
   PresentableCombatEffectKind,
   PresentableTurnHook,
-} from './presentable-effects.types'
+} from './effects/presentable-effects.types'
 
 export {
   filterLogByMode,
   groupLogEntries,
   formatLogGroupHeader,
   formatLogEntryDetail,
-} from './combat-log'
-export type { GroupedLogEntry } from './combat-log'
+} from './combat-log/combat-log'
+export type { GroupedLogEntry } from './combat-log/combat-log'
 export type {
   CombatLogEntry,
   CombatLogEntryImportance,
   CombatLogPresentationMode,
-} from './combat-log.types'
+} from './combat-log/combat-log.types'
 export type {
   CombatantPreviewMode,
   CombatantPreviewKind,
@@ -64,4 +64,4 @@ export type {
   SetupPreviewWrapperProps,
   ActivePreviewWrapperProps,
   TurnOrderStatus,
-} from './encounter-view.types'
+} from './view/encounter-view.types'

@@ -9,6 +9,8 @@ import {
 import { rollDie } from '../../resolution/engines/dice.engine'
 import type { SpawnSummonInitiativeMode } from '../../effects/effects.types'
 import type { EncounterState } from './types'
+import type { EncounterSpace, InitialPlacementOptions } from '@/features/encounter/space'
+import { generateInitialPlacements } from '@/features/encounter/space'
 import {
   createCombatantTurnResources,
   indexCombatants,
@@ -211,7 +213,10 @@ export function mergeCombatantsIntoEncounter(
 
 export function createEncounterState(
   combatants: CombatantInstance[],
-  options: InitiativeResolverOptions = {},
+  options: InitiativeResolverOptions & {
+    space?: EncounterSpace
+    placementOptions?: InitialPlacementOptions
+  } = {},
 ): EncounterState {
   const seededCombatants = combatants.map(seedRuntimeEffects)
   const initiative = rollInitiative(
@@ -232,6 +237,10 @@ export function createEncounterState(
     .filter((combatant) => combatant.side === 'enemies')
     .map((combatant) => combatant.instanceId)
 
+  const placements = options.space
+    ? generateInitialPlacements(options.space, seededCombatants, options.placementOptions)
+    : undefined
+
   const state: EncounterState = {
     combatantsById: indexCombatants(seededCombatants),
     partyCombatantIds,
@@ -243,6 +252,8 @@ export function createEncounterState(
     roundNumber: 1,
     started: true,
     log: [],
+    space: options.space,
+    placements,
   }
 
   state.log = [createEncounterStartedLog(state)]

@@ -90,6 +90,11 @@ export function formatRuntimeLabel(name: string, runtimeId: string, sourceId: st
   return runtimeId === sourceId ? name : `${name} (${runtimeId})`
 }
 
+function deriveTargetingRangeFt(attack: CombatantAttackEntry): number | undefined {
+  if (!attack.range) return undefined
+  return attack.range.kind === 'ranged' ? attack.range.normalFt : attack.range.rangeFt
+}
+
 function buildAttackActions(
   attacks: CombatantAttackEntry[],
   kind: 'weapon-attack' | 'monster-action',
@@ -99,7 +104,7 @@ function buildAttackActions(
     label: attack.name,
     kind,
     cost: { action: true },
-    targeting: { kind: 'single-target' as const },
+    targeting: { kind: 'single-target' as const, rangeFt: deriveTargetingRangeFt(attack) },
     resolutionMode: attack.attackBonus != null ? 'attack-roll' : 'log-only',
     attackProfile:
       attack.attackBonus != null
@@ -150,6 +155,7 @@ export function buildCharacterCombatantInstance(args: {
       initiativeModifier: combatStats.initiative,
       dexterityScore: character.abilityScores.dexterity,
       abilityScores: character.abilityScores,
+      speeds: { ground: 30 },
     },
     attacks,
     actions: [...buildAttackActions(attacks, 'weapon-attack'), ...extraActions],
@@ -161,7 +167,7 @@ export function buildCharacterCombatantInstance(args: {
       totalDamageTaken: 0,
       damageTakenByType: {},
     },
-    turnResources: createCombatTurnResources(),
+    turnResources: createCombatTurnResources(30),
     conditions: [],
     states: [],
   }

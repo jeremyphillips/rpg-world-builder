@@ -5,7 +5,7 @@ import { applyActionEffects } from './action-effects'
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import { deriveRuntimeEffects } from '../../state/shared'
-import { collectPresentableEffects } from '@/features/encounter/domain/presentable-effects'
+import { collectPresentableEffects } from '@/features/encounter/domain'
 
 function minimalEncounter(actor: EncounterState['combatantsById'][string], target: EncounterState['combatantsById'][string]): EncounterState {
   return {

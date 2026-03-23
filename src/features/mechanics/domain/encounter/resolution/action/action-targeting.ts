@@ -8,6 +8,7 @@ import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection } from '../action-resolution.types'
 import { cannotTargetWithHostileAction } from '../../state/condition-rules'
 import { canSeeForTargeting } from '../../state/visibility-seams'
+import { isWithinRange } from '@/features/encounter/space'
 
 /** Options for who counts as a valid target; mirrors {@link import('../action-resolution.types').ResolveCombatActionOptions} targeting fields. */
 export type ActionTargetingResolveOptions = {
@@ -120,6 +121,17 @@ export function isValidActionTarget(
     kind !== 'all-enemies' &&
     kind !== 'none' &&
     !canSeeForTargeting(state, actor.instanceId, combatant.instanceId)
+  ) {
+    return false
+  }
+
+  if (
+    action.targeting?.rangeFt != null &&
+    kind !== 'self' &&
+    kind !== 'none' &&
+    state.space &&
+    state.placements &&
+    !isWithinRange(state.space, state.placements, actor.instanceId, combatant.instanceId, action.targeting.rangeFt)
   ) {
     return false
   }

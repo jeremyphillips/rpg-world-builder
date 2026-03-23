@@ -1,14 +1,14 @@
 import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { locations as locationData } from '@/data/locations'
-import type { Location } from '@/data/locations'
+import type { Location } from '../types'
 import { ROUTES } from '@/app/routes'
 import { AppPageHeader } from '@/ui/patterns'
 import { FilterableCardGroup } from '@/ui/patterns'
 import type { FilterOption } from '@/ui/patterns'
 import { LocationHorizontalCard } from '@/features/content/locations/components'
 import { useBreadcrumbs } from '@/app/navigation'
-import { getLegacyType, sortLocations, getIndentLevel } from '@/features/content/locations/locationLegacy'
+import { sortLocations, getIndentLevel } from '@/features/content/locations/location.helpers'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
@@ -58,7 +58,7 @@ const LocationsRoute = () => {
       <FilterableCardGroup<Location>
         items={sortedLocations}
         getSearchValue={(loc) => loc.name}
-        getFilterValue={(loc) => getLegacyType(loc)}
+        getFilterValue={(loc) => loc.kind}
         filterOptions={FILTER_OPTIONS as FilterOption[]}
         searchPlaceholder="Search locations…"
         emptyMessage="No locations found."
@@ -69,14 +69,13 @@ const LocationsRoute = () => {
           const locationLink = ROUTES.WORLD_LOCATION
             .replace(':id', campaignId!)
             .replace(':locationId', loc.id)
-          const legacyType = getLegacyType(loc)
           return (
             <Box sx={{ pl: `${getIndentLevel(loc) * 12}px` }}>
               <LocationHorizontalCard
                 key={loc.id}
                 link={locationLink}
                 name={loc.name}
-                type={legacyType}
+                type={loc.kind}
                 description={loc.description}
                 parentName={parentName}
               />

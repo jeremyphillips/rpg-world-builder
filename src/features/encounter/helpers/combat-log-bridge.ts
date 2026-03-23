@@ -1,5 +1,5 @@
 import type { CombatLogEvent, CombatLogEventType } from '@/features/mechanics/domain/encounter'
-import type { CombatLogEntry, CombatLogEntryImportance } from '../domain/combat-log.types'
+import type { CombatLogEntry, CombatLogEntryImportance } from '../domain'
 
 const TYPE_TO_CATEGORY: Record<CombatLogEventType, CombatLogEntry['category']> = {
   'encounter-started': 'encounter',

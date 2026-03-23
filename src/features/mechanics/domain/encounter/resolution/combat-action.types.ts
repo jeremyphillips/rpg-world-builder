@@ -50,6 +50,12 @@ export interface CombatActionTargetingProfile {
     | 'none'
   creatureTypeFilter?: string[]
   /**
+   * Maximum range in feet for spatial targeting validation.
+   * When set and the encounter has spatial data, targets beyond this distance are excluded.
+   * Undefined = no range limit (backwards-compatible with non-spatial encounters).
+   */
+  rangeFt?: number
+  /**
    * "Willing creature" touch buffs: valid targets are same-side only (caster + allies). For now this is the ally approximation.
    * Non-hostile for charm/hostile-action rules.
    */

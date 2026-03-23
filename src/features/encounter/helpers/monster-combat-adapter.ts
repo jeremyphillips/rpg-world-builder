@@ -227,7 +227,7 @@ function buildMonsterActionDefinition(
       label: equippedWeapon?.aliasName ?? weapon?.name ?? action.weaponRef,
       kind: 'monster-action',
       cost,
-      targeting: { kind: 'single-target' },
+      targeting: { kind: 'single-target', rangeFt: weapon?.range?.normal ?? 5 },
       resolutionMode:
         equippedWeapon?.attackBonus != null || resolvedWeaponAttack?.attackBonus != null
           ? 'attack-roll'
@@ -256,7 +256,7 @@ function buildMonsterActionDefinition(
       label: action.name ?? action.attackType,
       kind: 'monster-action',
       cost,
-      targeting: { kind: 'single-target' },
+      targeting: { kind: 'single-target', rangeFt: action.reach ?? 5 },
       resolutionMode: action.attackBonus != null ? 'attack-roll' : 'log-only',
       attackProfile:
         action.attackBonus != null
@@ -310,10 +310,10 @@ function buildMonsterActionDefinition(
         : undefined,
     targeting:
       action.target === 'creatures-in-area'
-        ? { kind: 'all-enemies' }
+        ? { kind: 'all-enemies', ...(action.reach != null ? { rangeFt: action.reach } : {}) }
         : action.target === 'creatures-entered-during-move'
           ? { kind: 'entered-during-move' }
-          : { kind: 'single-target' },
+          : { kind: 'single-target', rangeFt: action.reach ?? 5 },
     movement: action.movement,
     usage: buildMonsterActionUsage(action),
     onHitEffects: action.attackBonus != null ? action.onSuccess : undefined,
