@@ -35,8 +35,6 @@ export default function EncounterActiveRoute() {
     selectedActionTargetId,
     setSelectedActionTargetId,
     gridViewModel,
-    interactionMode,
-    setInteractionMode,
     handleMoveCombatant,
     handleResolveAction,
     handleNextTurn,
@@ -92,21 +90,15 @@ export default function EncounterActiveRoute() {
     (cellId: string) => {
       if (!encounterState) return
 
-      if (interactionMode === 'move') {
-        handleMoveCombatant(cellId)
-        const remaining = activeCombatant?.turnResources?.movementRemaining ?? 0
-        const cellFeet = gridViewModel?.cellFeet ?? 5
-        if (remaining <= cellFeet) setInteractionMode('select-target')
-        return
-      }
-
       const occupant = encounterState.placements?.find((p) => p.cellId === cellId)
       if (occupant) {
         setSelectedActionTargetId(occupant.combatantId)
         setActionDrawerOpen(true)
+      } else {
+        handleMoveCombatant(cellId)
       }
     },
-    [encounterState, interactionMode, handleMoveCombatant, activeCombatant, gridViewModel, setInteractionMode, setSelectedActionTargetId],
+    [encounterState, handleMoveCombatant, setSelectedActionTargetId],
   )
 
   if (!encounterState) {

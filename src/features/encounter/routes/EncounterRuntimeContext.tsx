@@ -212,9 +212,9 @@ function useEncounterRuntimeValue() {
     return selectGridViewModel(encounterState, {
       selectedTargetId: selectedActionTargetId || null,
       selectedActionRangeFt,
-      showReachable: interactionMode === 'move',
+      showReachable: (activeCombatant?.turnResources?.movementRemaining ?? 0) > 0,
     })
-  }, [encounterState, selectedActionTargetId, selectedActionRangeFt, interactionMode])
+  }, [encounterState, selectedActionTargetId, selectedActionRangeFt, activeCombatant])
 
   // turnResources was consumed by the now-commented-out footer.
   // activeCombatant.turnResources is still accessible directly via the context.

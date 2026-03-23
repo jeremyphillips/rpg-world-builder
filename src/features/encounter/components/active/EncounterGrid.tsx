@@ -65,8 +65,9 @@ export function EncounterGrid({
   const handleTokenMouseEnter = useCallback(
     (e: React.MouseEvent<HTMLElement>, occupantId: string) => {
       if (!renderTokenPopover) return
+      const anchor = e.currentTarget
       hoverTimer.current = setTimeout(() => {
-        setPopoverAnchor(e.currentTarget)
+        setPopoverAnchor(anchor)
         setHoveredOccupantId(occupantId)
       }, HOVER_DELAY_MS)
     },
@@ -89,7 +90,6 @@ export function EncounterGrid({
       dragState.current = { startX: e.clientX, startY: e.clientY, startPanX: pan.x, startPanY: pan.y }
       dragMoved.current = false
       setIsDragging(true)
-      ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
     },
     [pan.x, pan.y, handleTokenMouseLeave],
   )
