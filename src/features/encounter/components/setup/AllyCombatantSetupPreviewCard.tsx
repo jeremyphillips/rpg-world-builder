@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography'
 
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import CharacterAvatar from '@/features/character/components/CharacterAvatar'
-import { formatCharacterClassLine } from '@/features/character/formatters'
+import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
 import { useCharacter, useCombatStats } from '@/features/character/hooks'
 import { toCharacterForEngine } from '@/features/character/read-model'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
@@ -186,7 +186,7 @@ function LoadedAllyCombatantSetupPreviewCard({
     kind: 'character',
     mode: 'setup',
     title: character.name,
-    subtitle: formatCharacterClassLine(character.classes),
+    subtitle: formatCharacterDetailSubtitle(character),
     avatar: (
       <CharacterAvatar
         imageUrl={character.imageUrl ?? undefined}

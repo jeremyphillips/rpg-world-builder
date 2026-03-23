@@ -17,7 +17,7 @@ import { CampaignHorizontalCard }from '@/features/campaign/components'
 import { EditableTextField } from '@/ui/patterns'
 import { ImageUploadField } from '@/ui/patterns'
 import { resolveXpTable } from '@/features/mechanics/domain/progression'
-import { formatCharacterClassLine } from '@/features/character/helpers'
+import { formatCharacterIdentityLine } from '@/features/character/formatters'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -73,7 +73,7 @@ export default function IdentityBanner({
   const alignmentName = alignmentOptions.find(a => a.id === character.alignment)?.label ?? character.alignment ?? '—'
   const currentLevel = character.totalLevel ?? character.level ?? 1
   const maxLevel = xpTable?.length ? Math.max(...xpTable.map(e => e.level)) : 20
-  const classSummary = formatCharacterClassLine(filledClasses)
+  const classSummary = formatCharacterIdentityLine(filledClasses)
 
   const isPendingLevelUp = character.levelUpPending && character.pendingLevel
   let xpDescription: string | undefined

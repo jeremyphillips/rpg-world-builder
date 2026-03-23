@@ -205,9 +205,9 @@ Refactor `[CombatantPreviewCard](src/features/encounter/components/shared/Combat
 **Recommendation:** Prefer **not** renaming to plain `isActive` on a generic card.
 
 - In UI copy, **“active”** often collides with **selected**, **focused**, **pressed**, or MUI’s `active` state — easy to confuse with `isSelected` on combatant rows.
-- **`isCurrentTurn`** is explicit for encounter/tactical use. For a **generic** `EntitySummaryCard`, better options are:
-  - Keep **`isCurrentTurn`** only in encounter wrappers and pass a **`statusSlot` / `endAdornment` / `badge`** ReactNode from the parent, **or**
-  - Use a neutral name like **`showEmphasisBadge`**, **`leadingStatus`**, or **`highlight: 'none' | 'turn'`** if you want one boolean without combat-specific vocabulary.
+- `**isCurrentTurn`** is explicit for encounter/tactical use. For a **generic** `EntitySummaryCard`, better options are:
+  - Keep `**isCurrentTurn`** only in encounter wrappers and pass a `**statusSlot` / `endAdornment` / `badge**` ReactNode from the parent, **or**
+  - Use a neutral name like `**showEmphasisBadge`**, `**leadingStatus**`, or `**highlight: 'none' | 'turn'**` if you want one boolean without combat-specific vocabulary.
 
 If you rename to `isActive`, document that it means **turn highlight**, not selection.
 
@@ -217,14 +217,13 @@ If you rename to `isActive`, document that it means **turn highlight**, not sele
 
 **Current behavior:**
 
-- **Ally picker options** ([`useEncounterOptions`](src/features/encounter/hooks/useEncounterOptions.ts) `formatAllyOptionSubtitle`): `race · class line · owner`.
-- **Setup preview card** ([`AllyCombatantSetupPreviewCard`](src/features/encounter/components/setup/AllyCombatantSetupPreviewCard.tsx)): **class line only** — race and owner are omitted (inconsistent with modal).
-- **Active preview card** ([`AllyCombatantActivePreviewCard`](src/features/encounter/components/active/AllyCombatantActivePreviewCard.tsx)): **class line only** when `useCharacter` resolves — race omitted.
+- **Ally picker options** (`[useEncounterOptions](src/features/encounter/hooks/useEncounterOptions.ts)` `formatAllyOptionSubtitle`): `race · class line · owner`.
+- **Setup preview card** (`[AllyCombatantSetupPreviewCard](src/features/encounter/components/setup/AllyCombatantSetupPreviewCard.tsx)`): **class line only** — race and owner are omitted (inconsistent with modal).
+- **Active preview card** (`[AllyCombatantActivePreviewCard](src/features/encounter/components/active/AllyCombatantActivePreviewCard.tsx)`): **class line only** when `useCharacter` resolves — race omitted.
 
 **Do you need race on the combatant model?**
 
-- **Usually no.** `CharacterDetailDto` already includes `race`; [`useCharacter`](src/features/character/hooks/useCharacter.ts) in the active lane can build the same subtitle string as setup/options: e.g. `[character.race?.name, formatCharacterClassLine(character.classes)].filter(Boolean).join(' · ')` (and optionally append `ownerName` if you ever show it in-lane).
-- **Add to `CombatantInstance` / `CombatantSourceRef` only if** you need the subtitle **without** loading the character (offline, perf, or pure engine-only views). In that case a small optional snapshot like `source.displaySubtitle?: string` or `source.raceName?: string` set in [`buildCharacterCombatantInstance`](src/features/encounter/helpers/combatant-builders.ts) avoids duplicating race rules in the UI.
+- **Usually no.** `CharacterDetailDto` already includes `race`; `[useCharacter](src/features/character/hooks/useCharacter.ts)` in the active lane can build the same subtitle string as setup/options: e.g. `[character.race?.name, formatCharacterClassLine(character.classes)].filter(Boolean).join(' · ')` (and optionally append `ownerName` if you ever show it in-lane).
+- **Add to `CombatantInstance` / `CombatantSourceRef` only if** you need the subtitle **without** loading the character (offline, perf, or pure engine-only views). In that case a small optional snapshot like `source.displaySubtitle?: string` or `source.raceName?: string` set in `[buildCharacterCombatantInstance](src/features/encounter/helpers/combatant-builders.ts)` avoids duplicating race rules in the UI.
 
 **Implementation note:** Extract one helper (e.g. `formatCharacterSubtitleLine(character)` in `character/formatters`) that encodes **race · class line** (and optional owner) so setup, active, and modals stay aligned.
-

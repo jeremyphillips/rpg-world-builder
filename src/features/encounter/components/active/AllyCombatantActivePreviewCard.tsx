@@ -1,6 +1,6 @@
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import CharacterAvatar from '@/features/character/components/CharacterAvatar'
-import { formatCharacterClassLine } from '@/features/character/formatters'
+import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
 import { useCharacter } from '@/features/character/hooks'
 import { AppAvatar } from '@/ui/primitives'
 
@@ -74,7 +74,7 @@ export function AllyCombatantActivePreviewCard({
     ...buildEncounterDefensePreviewChips(combatant),
   ]
 
-  const subtitle = character ? formatCharacterClassLine(character.classes) : undefined
+  const subtitle = character ? formatCharacterDetailSubtitle(character) : undefined
 
   const avatar = character ? (
     <CharacterAvatar imageUrl={character.imageUrl ?? undefined} name={character.name} size="sm" />

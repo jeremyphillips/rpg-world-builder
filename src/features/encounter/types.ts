@@ -1,3 +1,4 @@
+import type { CharacterClassSummary } from '@/features/character/read-model/character-read.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 
 export type AllyOption = {
@@ -22,11 +23,12 @@ export type OpponentRosterEntry = {
   label: string
 }
 
+/** Subset of party roster (`CharacterRosterSummary`) used for ally pickers — full class summaries for subtitles. */
 export type EncounterAllyMember = {
   id: string
   name: string
-  race: { name: string } | null
-  classes: { className: string; level: number }[]
+  race: { id: string; name: string } | null
+  classes: CharacterClassSummary[]
   ownerName?: string
 }
 

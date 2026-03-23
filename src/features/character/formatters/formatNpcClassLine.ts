@@ -1,6 +1,6 @@
 import type { CharacterClassSummary } from '@/features/character/read-model/character-read.types'
 
-import { formatCharacterClassLine } from './formatCharacterClassLine'
+import { formatCharacterIdentityLine } from './formatCharacterIdentityLine'
 
 export type NpcClassEntry = { classId?: string; level: number }
 
@@ -16,5 +16,5 @@ function npcClassesToSummaries(classes: NpcClassEntry[]): CharacterClassSummary[
 export function formatNpcClassLine(npc: { classes?: NpcClassEntry[] }): string {
   const raw = npc.classes
   if (!raw || raw.length === 0) return ''
-  return formatCharacterClassLine(npcClassesToSummaries(raw))
+  return formatCharacterIdentityLine(npcClassesToSummaries(raw))
 }

@@ -1,6 +1,10 @@
 import type { CharacterClassSummary } from '@/features/character/read-model/character-read.types'
 
-export function formatCharacterClassLine(classes: CharacterClassSummary[]): string {
+/**
+ * Class levels, multiclass joins (` / `), and subclass labels. Does **not** include race or owner.
+ * For full list/card subtitles (race · class · owner), use {@link formatCharacterSubtitleLine}.
+ */
+export function formatCharacterIdentityLine(classes: CharacterClassSummary[]): string {
   return Array.isArray(classes) && classes.length > 0
     ? classes
         .filter((c) => c && (c.className || c.classId))

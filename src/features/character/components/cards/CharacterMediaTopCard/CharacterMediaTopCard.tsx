@@ -2,7 +2,7 @@ import { MediaTopCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
 import Box from '@mui/material/Box'
 import PersonIcon from '@mui/icons-material/Person'
-import { formatCharacterClassLine } from '@/features/character/formatters'
+import { formatCharacterIdentityLine } from '@/features/character/formatters'
 import type { CharacterClassSummary } from '@/features/character/read-model'
 
 interface CharacterMediaTopCardProps {
@@ -34,7 +34,7 @@ const CharacterMediaTopCard = ({
   onEdit,
   actions,
 }: CharacterMediaTopCardProps) => {
-  const classLine = formatCharacterClassLine(classes)
+  const classLine = formatCharacterIdentityLine(classes)
   const subheadline = [race, classLine]
     .filter(Boolean)
     .join(' · ')

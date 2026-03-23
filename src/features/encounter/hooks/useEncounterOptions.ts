@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 
-import { formatCharacterClassLine, formatNpcClassLine } from '@/features/character/formatters'
-import type { CharacterClassSummary } from '@/features/character/read-model/character-read.types'
+import { formatCharacterSubtitleLine, formatNpcClassLine } from '@/features/character/formatters'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import type {
   EncounterMonstersById,
@@ -10,17 +9,6 @@ import type {
   OpponentOption,
   AllyOption,
 } from '../types'
-
-function formatAllyOptionSubtitle(member: EncounterAllyMember): string {
-  const summaries: CharacterClassSummary[] = member.classes.map((c) => ({
-    classId: c.className,
-    className: c.className,
-    level: c.level,
-  }))
-  const classLine = formatCharacterClassLine(summaries)
-  const parts = [member.race?.name, classLine || undefined, member.ownerName].filter(Boolean) as string[]
-  return parts.join(' · ')
-}
 
 export function useEncounterOptions(args: {
   allies: EncounterAllyMember[]
@@ -34,7 +22,11 @@ export function useEncounterOptions(args: {
       allies.map((member) => ({
         id: member.id,
         label: member.name,
-        subtitle: formatAllyOptionSubtitle(member),
+        subtitle: formatCharacterSubtitleLine({
+          raceName: member.race?.name,
+          classes: member.classes,
+          ownerName: member.ownerName,
+        }),
       })),
     [allies],
   )

@@ -1,7 +1,7 @@
 import { HorizontalCompactCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
 import type { CharacterClassSummary } from '@/features/character/read-model'
-import { formatCharacterClassLine } from '@/features/character/formatters'
+import { formatCharacterIdentityLine } from '@/features/character/formatters'
 
 interface CharacterHorizontalCardProps {
   characterId: string
@@ -30,7 +30,7 @@ const CharacterHorizontalCard = ({
   onEdit,
   actions,
 }: CharacterHorizontalCardProps) => {
-  const classLine = formatCharacterClassLine(classes ?? [])
+  const classLine = formatCharacterIdentityLine(classes ?? [])
   const raceName = race?.name ?? undefined
   const subheadline = [raceName, classLine]
     .filter(Boolean)
