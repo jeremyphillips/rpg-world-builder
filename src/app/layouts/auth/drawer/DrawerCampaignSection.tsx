@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
-import { NavLink } from 'react-router-dom'
+import { matchPath, NavLink } from 'react-router-dom'
 import { alpha } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import Badge from '@mui/material/Badge'
@@ -242,7 +242,11 @@ export function DrawerCampaignSection({
               <ListItemButton
                 component={NavLink}
                 to={activeCampaignId ? ROUTES.CAMPAIGN_ENCOUNTER.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
-                selected={activeCampaignId ? pathname === ROUTES.CAMPAIGN_ENCOUNTER.replace(':id', activeCampaignId) : false}
+                selected={
+                  activeCampaignId
+                    ? matchPath({ path: ROUTES.CAMPAIGN_ENCOUNTER, end: false }, pathname) != null
+                    : false
+                }
                 sx={{ pl: 0 }}
               >
                 <ListItemIcon sx={{ minWidth: 36 }}>

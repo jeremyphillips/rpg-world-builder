@@ -16,8 +16,10 @@ export {
   CampaignRulesetEditorRoute,
   ContentManageGuard,
 } from '@/features/campaign/routes'
-export { default as EncounterRoute } from '@/features/encounter/routes/EncounterRoute'
-export { default as EncounterGuard } from '@/features/encounter/routes/EncounterGuard'
+export { default as EncounterLayout } from '@/features/encounter/routes/EncounterLayout'
+export { default as EncounterIndexRedirect } from '@/features/encounter/routes/EncounterIndexRedirect'
+export { default as EncounterSetupRoute } from '@/features/encounter/routes/EncounterSetupRoute'
+export { default as EncounterActiveRoute } from '@/features/encounter/routes/EncounterActiveRoute'
 export { LocationsRoute, LocationRoute } from '@/features/content/locations/routes'
 export {
   MonsterListRoute,

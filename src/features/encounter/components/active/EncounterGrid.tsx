@@ -4,6 +4,7 @@ import Box from '@mui/material/Box'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import { alpha, useTheme } from '@mui/material/styles'
+import type { Theme } from '@mui/material/styles'
 import type { GridViewModel, GridCellViewModel } from '../../space/space.selectors'
 
 type EncounterGridProps = {
@@ -11,7 +12,7 @@ type EncounterGridProps = {
   onCellClick?: (cellId: string) => void
 }
 
-function cellColor(cell: GridCellViewModel, palette: ReturnType<typeof useTheme>['palette']) {
+function cellColor(cell: GridCellViewModel, palette: Theme['palette']) {
   if (cell.kind === 'wall' || cell.kind === 'blocking') return palette.action.disabledBackground
   if (cell.isActive) return alpha(palette.secondary.main, 0.35)
   if (cell.isSelectedTarget) return alpha(palette.primary.main, 0.30)
@@ -20,7 +21,7 @@ function cellColor(cell: GridCellViewModel, palette: ReturnType<typeof useTheme>
   return palette.background.paper
 }
 
-function tokenColor(cell: GridCellViewModel, palette: ReturnType<typeof useTheme>['palette']) {
+function tokenColor(cell: GridCellViewModel, palette: Theme['palette']) {
   if (cell.occupantSide === 'party') return palette.primary.main
   if (cell.occupantSide === 'enemies') return palette.error?.main ?? '#d32f2f'
   return palette.grey[500]

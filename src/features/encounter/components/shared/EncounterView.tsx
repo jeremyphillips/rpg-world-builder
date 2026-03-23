@@ -2,7 +2,8 @@ import Box from '@mui/material/Box'
 
 type EncounterViewProps = {
   mode: 'setup' | 'active'
-  setupHeader: React.ReactNode
+  /** Required when `mode="setup"`; omit or pass null for `mode="active"`. */
+  setupHeader?: React.ReactNode
   activeHeader?: React.ReactNode
   activeFooter?: React.ReactNode
   children: React.ReactNode

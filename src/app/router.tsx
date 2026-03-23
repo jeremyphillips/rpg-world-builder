@@ -18,7 +18,10 @@ import {
   CampaignsRoute,
   CampaignRoute,
   InviteRoute,
-  EncounterRoute,
+  EncounterLayout,
+  EncounterIndexRedirect,
+  EncounterSetupRoute,
+  EncounterActiveRoute,
   RulesRoute,
   PartyRoute,
   SessionsRoute,
@@ -51,7 +54,6 @@ import {
   GearCreateRoute,
   MagicItemCreateRoute,
   AdminGuard,
-  EncounterGuard,
   ContentManageGuard,
   CampaignAdminInvitesRoute,
   CampaignAdminSettingsRoute,
@@ -169,8 +171,18 @@ export const router = createBrowserRouter([
               { path: 'party', element: <PartyRoute /> },
               { path: 'rules', element: <RulesRoute /> },
               {
-                element: <EncounterGuard />,
-                children: [{ path: 'encounter', element: <EncounterRoute /> }],
+                element: <AdminGuard />,
+                children: [
+                  {
+                    path: 'encounter',
+                    element: <EncounterLayout />,
+                    children: [
+                      { index: true, element: <EncounterIndexRedirect /> },
+                      { path: 'setup', element: <EncounterSetupRoute /> },
+                      { path: 'active', element: <EncounterActiveRoute /> },
+                    ],
+                  },
+                ],
               },
               {
                 path: 'admin',

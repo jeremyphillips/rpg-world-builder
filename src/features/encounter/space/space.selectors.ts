@@ -1,5 +1,5 @@
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
-import type { EncounterCell, CombatantPosition, EncounterSpace } from './space.types'
+import type { EncounterCell } from './space.types'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from './space.helpers'
 import type { CombatantSide } from '@/features/mechanics/domain/encounter/state/types/combatant.types'
 
@@ -175,8 +175,6 @@ export function selectCellsWithinDistance(
 
   const currentCellId = getCellForCombatant(placements, combatantId)
   if (!currentCellId) return result
-
-  const cellFeet = space.scale.kind === 'grid' ? space.scale.cellFeet : 5
 
   for (const cell of space.cells) {
     if (cell.id === currentCellId) continue

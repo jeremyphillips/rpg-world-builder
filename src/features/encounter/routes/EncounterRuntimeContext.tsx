@@ -1,7 +1,13 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
-
-import Stack from '@mui/material/Stack'
-import Typography from '@mui/material/Typography'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
@@ -9,30 +15,15 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
 import {
-  CombatLogPanel,
   OpponentRosterLane,
   AllyRosterLane,
-  EncounterView,
   EncounterSetupHeader,
   EncounterActiveHeader,
   EncounterActiveFooter,
-  EncounterSetupView,
-  EncounterActiveView,
-  EncounterEnvironmentSetup,
-  EncounterEnvironmentSummary,
-  AllyCombatantActiveCard,
-  OpponentCombatantActiveCard,
-  AllyCombatantActivePreviewCard,
-  OpponentCombatantActivePreviewCard,
-  CombatActionPreviewCard,
-  CombatTargetPreviewCard,
-  CombatLane,
   SelectEncounterAllyModal,
   SelectEncounterOpponentModal,
   EncounterEditModal,
   CombatTurnOrderModal,
-  EncounterGrid,
-  EncounterGridSetup,
   GRID_SIZE_PRESETS,
   type EnvironmentSetupValues,
   type GridSizePreset,
@@ -41,6 +32,8 @@ import {
 import { selectGridViewModel } from '../space/space.selectors'
 import { createSquareGridSpace } from '../space/createSquareGridSpace'
 
+import { campaignEncounterActivePath, campaignEncounterSetupPath } from './encounterPaths'
+
 const DEFAULT_ENVIRONMENT: EnvironmentSetupValues = {
   setting: 'outdoors',
   lightingLevel: 'bright',
@@ -48,8 +41,10 @@ const DEFAULT_ENVIRONMENT: EnvironmentSetupValues = {
   visibilityObscured: 'none',
 }
 
-export default function EncounterRoute() {
+function useEncounterRuntimeValue() {
   useActiveCampaign()
+  const navigate = useNavigate()
+  const { id: campaignId } = useParams<{ id: string }>()
   const { catalog } = useCampaignRules()
   const { party } = useCampaignParty('approved')
   const { characters: npcs } = useCharacters({ type: 'npc' })
@@ -83,6 +78,7 @@ export default function EncounterRoute() {
     opponentOptionsByKey,
     nextRuntimeId,
   })
+
   const {
     encounterState,
     activeCombatantId,
@@ -122,10 +118,10 @@ export default function EncounterRoute() {
     controlTargetHasReducedToZeroSave: _controlTargetHasReducedToZeroSave,
     canTriggerReducedToZeroHook: _canTriggerReducedToZeroHook,
     handleResolvedCombatant,
-    handleStartEncounter,
+    handleStartEncounter: handleStartEncounterBase,
     handleNextTurn,
     handleResolveAction,
-    handleResetEncounter,
+    handleResetEncounter: handleResetEncounterBase,
     handleApplyDamage: _handleApplyDamage,
     handleApplyHealing: _handleApplyHealing,
     handleAddCondition: _handleAddCondition,
@@ -143,6 +139,19 @@ export default function EncounterRoute() {
     weaponsById: catalog.weaponsById,
     armorById: catalog.armorById,
   })
+
+  const handleStartEncounter = useCallback(
+    (opts?: Parameters<typeof handleStartEncounterBase>[0]) => {
+      handleStartEncounterBase(opts)
+      if (campaignId) navigate(campaignEncounterActivePath(campaignId), { replace: true })
+    },
+    [handleStartEncounterBase, navigate, campaignId],
+  )
+
+  const handleResetEncounter = useCallback(() => {
+    handleResetEncounterBase()
+    if (campaignId) navigate(campaignEncounterSetupPath(campaignId), { replace: true })
+  }, [handleResetEncounterBase, navigate, campaignId])
 
   const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(DEFAULT_ENVIRONMENT)
   const [gridSizePreset, setGridSizePreset] = useState<GridSizePreset>('medium')
@@ -194,14 +203,12 @@ export default function EncounterRoute() {
     [opponentOptions, handleOpponentSelectionChange],
   )
 
-  // Reset interaction mode when the active combatant changes (turn advance, encounter reset)
   const prevActiveCombatantId = useRef(activeCombatantId)
   if (prevActiveCombatantId.current !== activeCombatantId) {
     prevActiveCombatantId.current = activeCombatantId
     if (interactionMode !== 'select-target') setInteractionMode('select-target')
   }
 
-  const mode = encounterState ? 'active' : 'setup'
   const canStartEncounter = selectedCombatants.length > 0 && unresolvedCombatantCount === 0
 
   const selectedActionLabel = useMemo(
@@ -300,231 +307,193 @@ export default function EncounterRoute() {
       }
       interactionMode={interactionMode}
       onToggleInteractionMode={() =>
-        setInteractionMode((prev) => prev === 'move' ? 'select-target' : 'move')
+        setInteractionMode((prev) => (prev === 'move' ? 'select-target' : 'move'))
       }
       onResolveAction={handleResolveAction}
       onEndTurn={handleNextTurn}
     />
   ) : undefined
 
+  return {
+    campaignId,
+    monstersById,
+    allyOptions,
+    opponentOptions,
+    selectedAllyIds,
+    setSelectedAllyIds,
+    opponentRoster,
+    selectedOpponentOptions,
+    opponentSourceCounts,
+    selectedCombatantIds,
+    handleOpponentSelectionChange,
+    removeAllyCombatant,
+    removeOpponentCombatant,
+    addOpponentCopy,
+    encounterState,
+    activeCombatantId,
+    activeCombatant,
+    availableActions,
+    availableActionTargets,
+    selectedActionId,
+    setSelectedActionId,
+    selectedCasterOptions,
+    setSelectedCasterOptions,
+    selectedActionTargetId,
+    setSelectedActionTargetId,
+    unresolvedCombatantCount,
+    selectedCombatants,
+    environmentContext,
+    monsterFormsById,
+    monsterManualTriggersById,
+    handleResolvedCombatant,
+    handleNextTurn,
+    handleResolveAction,
+    handleMoveCombatant,
+    environmentSetup,
+    setEnvironmentSetup,
+    gridSizePreset,
+    setGridSizePreset,
+    interactionMode,
+    setInteractionMode,
+    allyModalOpen,
+    setAllyModalOpen,
+    opponentModalOpen,
+    setOpponentModalOpen,
+    editModalOpen,
+    setEditModalOpen,
+    turnOrderModalOpen,
+    setTurnOrderModalOpen,
+    allyModalOptions,
+    monsterModalOptions,
+    npcModalOptions,
+    selectedOpponentKeys,
+    handleAllyModalApply,
+    handleOpponentModalApply,
+    canStartEncounter,
+    gridViewModel,
+    setupHeader,
+    activeHeader,
+    activeFooter,
+    handleStartEncounter,
+    handleResetEncounter,
+  }
+}
+
+export type EncounterRuntimeContextValue = ReturnType<typeof useEncounterRuntimeValue>
+
+const EncounterRuntimeContext = createContext<EncounterRuntimeContextValue | null>(null)
+
+export function EncounterRuntimeProvider({ children }: { children: ReactNode }) {
+  const value = useEncounterRuntimeValue()
+  return (
+    <EncounterRuntimeContext.Provider value={value}>
+      {children}
+      <EncounterRuntimeModals />
+    </EncounterRuntimeContext.Provider>
+  )
+}
+
+function EncounterRuntimeModals() {
+  const {
+    allyModalOpen,
+    setAllyModalOpen,
+    opponentModalOpen,
+    setOpponentModalOpen,
+    editModalOpen,
+    setEditModalOpen,
+    turnOrderModalOpen,
+    setTurnOrderModalOpen,
+    allyModalOptions,
+    monsterModalOptions,
+    npcModalOptions,
+    selectedOpponentKeys,
+    selectedAllyIds,
+    handleAllyModalApply,
+    handleOpponentModalApply,
+    environmentSetup,
+    setEnvironmentSetup,
+    opponentRoster,
+    monstersById,
+    environmentContext,
+    monsterFormsById,
+    monsterManualTriggersById,
+    opponentSourceCounts,
+    selectedOpponentOptions,
+    handleResolvedCombatant,
+    removeAllyCombatant,
+    removeOpponentCombatant,
+    addOpponentCopy,
+    encounterState,
+  } = useEncounterRuntime()
+
   return (
     <>
-    <EncounterView
-      mode={mode}
-      setupHeader={setupHeader}
-      activeHeader={activeHeader}
-      activeFooter={activeFooter}
-    >
-      {mode === 'setup' && (
-        <EncounterSetupView
-          environmentSetup={
-            <EncounterEnvironmentSetup
-              values={environmentSetup}
-              onChange={setEnvironmentSetup}
-            />
-          }
-          gridSetup={
-            <EncounterGridSetup
-              value={gridSizePreset}
-              onChange={setGridSizePreset}
-            />
-          }
-          allyLane={
-            <AllyRosterLane
-              selectedAllyIds={selectedAllyIds}
-              onOpenModal={() => setAllyModalOpen(true)}
-              onResolvedCombatant={handleResolvedCombatant}
-              onRemoveAllyCombatant={removeAllyCombatant}
-            />
-          }
-          opponentLane={
-            <OpponentRosterLane
-              opponentRoster={opponentRoster}
-              monstersById={monstersById}
-              environmentContext={environmentContext}
-              monsterFormsById={monsterFormsById}
-              monsterManualTriggersById={monsterManualTriggersById}
-              opponentSourceCounts={opponentSourceCounts}
-              selectedOpponentOptions={selectedOpponentOptions}
-              onOpenModal={() => setOpponentModalOpen(true)}
-              onResolvedCombatant={handleResolvedCombatant}
-              onRemoveOpponentCombatant={removeOpponentCombatant}
-              onAddOpponentCopy={addOpponentCopy}
-            />
-          }
-        />
-      )}
-
-      {mode === 'active' && encounterState && (
-        <EncounterActiveView
-          focusedCard={
-            activeCombatant ? (
-              activeCombatant.side === 'party' ? (
-                <AllyCombatantActiveCard
-                  combatant={activeCombatant}
-                  availableActions={availableActions}
-                  selectedActionId={selectedActionId}
-                  onSelectAction={setSelectedActionId}
-                  selectedCasterOptions={selectedCasterOptions}
-                  onCasterOptionsChange={setSelectedCasterOptions}
-                />
-              ) : (
-                <OpponentCombatantActiveCard
-                  combatant={activeCombatant}
-                  availableActions={availableActions}
-                  selectedActionId={selectedActionId}
-                  onSelectAction={setSelectedActionId}
-                  selectedCasterOptions={selectedCasterOptions}
-                  onCasterOptionsChange={setSelectedCasterOptions}
-                />
-              )
-            ) : null
-          }
-          actionPreview={
-            <>
-              <Typography variant="subtitle2" color="text.secondary">Action</Typography>
-              <CombatActionPreviewCard
-                action={availableActions.find((a) => a.id === selectedActionId) ?? null}
-              />
-            </>
-          }
-          targetPreview={
-            <>
-              <Typography variant="subtitle2" color="text.secondary">Target</Typography>  
-              <CombatTargetPreviewCard
-                target={
-                  selectedActionTargetId
-                    ? encounterState.combatantsById[selectedActionTargetId] ?? null
-                    : null
-                }
-              />
-            </>
-          }
-          environmentSummary={<EncounterEnvironmentSummary values={environmentSetup} />}
-          grid={
-            gridViewModel ? (
-              <EncounterGrid
-                grid={gridViewModel}
-                onCellClick={(cellId) => {
-                  if (interactionMode === 'move') {
-                    handleMoveCombatant(cellId)
-                    const combatant = activeCombatant
-                    const remaining = combatant?.turnResources?.movementRemaining ?? 0
-                    const cellFeet = gridViewModel.cellFeet
-                    if (remaining <= cellFeet) setInteractionMode('select-target')
-                    return
-                  }
-                  const occupant = encounterState.placements?.find((p) => p.cellId === cellId)
-                  if (occupant) setSelectedActionTargetId(occupant.combatantId)
-                }}
-              />
-            ) : undefined
-          }
-          allyLane={
-            <CombatLane title="Allies" description="Party members in this encounter.">
-              <Stack spacing={1.5}>
-                {encounterState.partyCombatantIds.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">No ally combatants.</Typography>
-                ) : (
-                  encounterState.partyCombatantIds.map((id) => {
-                    const combatant = encounterState.combatantsById[id]
-                    if (!combatant) return null
-                    return (
-                      <AllyCombatantActivePreviewCard
-                        key={id}
-                        combatant={combatant}
-                        isCurrentTurn={id === activeCombatantId}
-                        isSelected={id === selectedActionTargetId}
-                        onClick={() => setSelectedActionTargetId(id)}
-                      />
-                    )
-                  })
-                )}
-              </Stack>
-            </CombatLane>
-          }
-          opponentLane={
-            <CombatLane title="Opponents" description="Enemy combatants in this encounter.">
-              <Stack spacing={1.5}>
-                {encounterState.enemyCombatantIds.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">No opponent combatants.</Typography>
-                ) : (
-                  encounterState.enemyCombatantIds.map((id) => {
-                    const combatant = encounterState.combatantsById[id]
-                    if (!combatant) return null
-                    return (
-                      <OpponentCombatantActivePreviewCard
-                        key={id}
-                        combatant={combatant}
-                        isCurrentTurn={id === activeCombatantId}
-                        isSelected={id === selectedActionTargetId}
-                        onClick={() => setSelectedActionTargetId(id)}
-                      />
-                    )
-                  })
-                )}
-              </Stack>
-            </CombatLane>
-          }
-          combatLog={<CombatLogPanel log={encounterState.log} />}
-        />
-      )}
-    </EncounterView>
-
-    <SelectEncounterAllyModal
-      open={allyModalOpen}
-      onClose={() => setAllyModalOpen(false)}
-      allies={allyModalOptions}
-      selectedAllyIds={selectedAllyIds}
-      onApply={handleAllyModalApply}
-    />
-
-    <SelectEncounterOpponentModal
-      open={opponentModalOpen}
-      onClose={() => setOpponentModalOpen(false)}
-      monsters={monsterModalOptions}
-      npcs={npcModalOptions}
-      selectedOpponentKeys={selectedOpponentKeys}
-      onApply={handleOpponentModalApply}
-    />
-
-    <EncounterEditModal
-      open={editModalOpen}
-      onClose={() => setEditModalOpen(false)}
-      environmentValues={environmentSetup}
-      onSave={setEnvironmentSetup}
-      allyLane={
-        <AllyRosterLane
-          selectedAllyIds={selectedAllyIds}
-          onOpenModal={() => { setEditModalOpen(false); setAllyModalOpen(true) }}
-          onResolvedCombatant={handleResolvedCombatant}
-          onRemoveAllyCombatant={removeAllyCombatant}
-        />
-      }
-      opponentLane={
-        <OpponentRosterLane
-          opponentRoster={opponentRoster}
-          monstersById={monstersById}
-          environmentContext={environmentContext}
-          monsterFormsById={monsterFormsById}
-          monsterManualTriggersById={monsterManualTriggersById}
-          opponentSourceCounts={opponentSourceCounts}
-          selectedOpponentOptions={selectedOpponentOptions}
-          onOpenModal={() => { setEditModalOpen(false); setOpponentModalOpen(true) }}
-          onResolvedCombatant={handleResolvedCombatant}
-          onRemoveOpponentCombatant={removeOpponentCombatant}
-          onAddOpponentCopy={addOpponentCopy}
-        />
-      }
-    />
-
-    {encounterState && (
-      <CombatTurnOrderModal
-        open={turnOrderModalOpen}
-        onClose={() => setTurnOrderModalOpen(false)}
-        encounterState={encounterState}
+      <SelectEncounterAllyModal
+        open={allyModalOpen}
+        onClose={() => setAllyModalOpen(false)}
+        allies={allyModalOptions}
+        selectedAllyIds={selectedAllyIds}
+        onApply={handleAllyModalApply}
       />
-    )}
-  </>
+
+      <SelectEncounterOpponentModal
+        open={opponentModalOpen}
+        onClose={() => setOpponentModalOpen(false)}
+        monsters={monsterModalOptions}
+        npcs={npcModalOptions}
+        selectedOpponentKeys={selectedOpponentKeys}
+        onApply={handleOpponentModalApply}
+      />
+
+      <EncounterEditModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        environmentValues={environmentSetup}
+        onSave={setEnvironmentSetup}
+        allyLane={
+          <AllyRosterLane
+            selectedAllyIds={selectedAllyIds}
+            onOpenModal={() => {
+              setEditModalOpen(false)
+              setAllyModalOpen(true)
+            }}
+            onResolvedCombatant={handleResolvedCombatant}
+            onRemoveAllyCombatant={removeAllyCombatant}
+          />
+        }
+        opponentLane={
+          <OpponentRosterLane
+            opponentRoster={opponentRoster}
+            monstersById={monstersById}
+            environmentContext={environmentContext}
+            monsterFormsById={monsterFormsById}
+            monsterManualTriggersById={monsterManualTriggersById}
+            opponentSourceCounts={opponentSourceCounts}
+            selectedOpponentOptions={selectedOpponentOptions}
+            onOpenModal={() => {
+              setEditModalOpen(false)
+              setOpponentModalOpen(true)
+            }}
+            onResolvedCombatant={handleResolvedCombatant}
+            onRemoveOpponentCombatant={removeOpponentCombatant}
+            onAddOpponentCopy={addOpponentCopy}
+          />
+        }
+      />
+
+      {encounterState && (
+        <CombatTurnOrderModal
+          open={turnOrderModalOpen}
+          onClose={() => setTurnOrderModalOpen(false)}
+          encounterState={encounterState}
+        />
+      )}
+    </>
   )
+}
+
+export function useEncounterRuntime() {
+  const ctx = useContext(EncounterRuntimeContext)
+  if (!ctx) throw new Error('useEncounterRuntime must be used within EncounterRuntimeProvider')
+  return ctx
 }
