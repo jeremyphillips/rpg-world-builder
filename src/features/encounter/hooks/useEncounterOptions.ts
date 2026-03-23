@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 
-import { formatMonsterOptionSubtitle, formatNpcOptionSubtitle, formatAllyOptionSubtitle } from '../helpers'
+import { formatCharacterClassLine, formatNpcClassLine } from '@/features/character/formatters'
+import type { CharacterClassSummary } from '@/features/character/read-model/character-read.types'
+import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import type {
   EncounterMonstersById,
   EncounterNpc,
@@ -8,6 +10,17 @@ import type {
   OpponentOption,
   AllyOption,
 } from '../types'
+
+function formatAllyOptionSubtitle(member: EncounterAllyMember): string {
+  const summaries: CharacterClassSummary[] = member.classes.map((c) => ({
+    classId: c.className,
+    className: c.className,
+    level: c.level,
+  }))
+  const classLine = formatCharacterClassLine(summaries)
+  const parts = [member.race?.name, classLine || undefined, member.ownerName].filter(Boolean) as string[]
+  return parts.join(' · ')
+}
 
 export function useEncounterOptions(args: {
   allies: EncounterAllyMember[]
@@ -35,7 +48,7 @@ export function useEncounterOptions(args: {
           sourceId: monster.id,
           kind: 'monster' as const,
           label: monster.name,
-          subtitle: formatMonsterOptionSubtitle(monster),
+          subtitle: formatMonsterIdentityLine(monster),
         })),
     [monstersById],
   )
@@ -45,19 +58,18 @@ export function useEncounterOptions(args: {
       npcs
         .slice()
         .sort((a, b) => a.name.localeCompare(b.name))
-        .map((npc) => ({
-          key: `npc:${npc._id}`,
-          sourceId: npc._id,
-          kind: 'npc' as const,
-          label: npc.name,
-          subtitle: formatNpcOptionSubtitle({
-            race: typeof npc.race === 'string' ? npc.race : null,
-            classes: npc.classes?.map((cls) => ({
-              className: cls.classId,
-              level: cls.level,
-            })),
-          }),
-        })),
+        .map((npc) => {
+          const classLine = formatNpcClassLine(npc)
+          const raceStr = typeof npc.race === 'string' ? npc.race : null
+          const subtitle = [raceStr, classLine].filter(Boolean).join(' · ')
+          return {
+            key: `npc:${npc._id}`,
+            sourceId: npc._id,
+            kind: 'npc' as const,
+            label: npc.name,
+            subtitle,
+          }
+        }),
     [npcs],
   )
 

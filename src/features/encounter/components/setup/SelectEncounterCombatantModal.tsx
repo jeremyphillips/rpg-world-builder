@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
@@ -6,13 +6,16 @@ import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 
-import { AppModal } from '@/ui/patterns'
+import { AppAvatar } from '@/ui/primitives'
+import { AppModal, EntitySummaryCard } from '@/ui/patterns'
 import type { ModalSize } from '@/ui/patterns'
 
 export type CombatantOption = {
   id: string
   label: string
   subtitle?: string
+  imageUrl?: string
+  stats?: Array<{ label: string; value: string; tooltip?: string }>
 }
 
 type SelectEncounterCombatantModalProps = {
@@ -42,6 +45,10 @@ export function SelectEncounterCombatantModal({
 }: SelectEncounterCombatantModalProps) {
   const [filter, setFilter] = useState('')
   const [localSelected, setLocalSelected] = useState<string[]>(selectedIds)
+
+  useEffect(() => {
+    if (open) setLocalSelected(selectedIds)
+  }, [open, selectedIds])
 
   const filtered = useMemo(() => {
     if (!filter.trim()) return options
@@ -88,7 +95,9 @@ export function SelectEncounterCombatantModal({
         <Box sx={{ maxHeight: '50vh', overflowY: 'auto' }}>
           <Stack spacing={1}>
             {filtered.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">No results found.</Typography>
+              <Typography variant="body2" color="text.secondary">
+                No results found.
+              </Typography>
             ) : (
               filtered.map((option) => {
                 const isSelected = localSelected.includes(option.id)
@@ -105,10 +114,13 @@ export function SelectEncounterCombatantModal({
                       '&:hover': { bgcolor: 'action.hover' },
                     }}
                   >
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{option.label}</Typography>
-                    {option.subtitle && (
-                      <Typography variant="caption" color="text.secondary">{option.subtitle}</Typography>
-                    )}
+                    <EntitySummaryCard
+                      avatar={<AppAvatar src={option.imageUrl} name={option.label} size="sm" />}
+                      title={option.label}
+                      subtitle={option.subtitle}
+                      stats={option.stats}
+                      titleVariant="body2"
+                    />
                   </Paper>
                 )
               })

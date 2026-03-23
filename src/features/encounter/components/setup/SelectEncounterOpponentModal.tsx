@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
@@ -6,25 +6,11 @@ import Tabs from '@mui/material/Tabs'
 import { SelectEncounterCombatantModal } from './SelectEncounterCombatantModal'
 import type { CombatantOption } from './SelectEncounterCombatantModal'
 
-type MonsterOptionSource = {
-  id: string
-  name: string
-  challengeRating: string
-  creatureType: string
-}
-
-type NpcOptionSource = {
-  id: string
-  name: string
-  race?: string
-  className?: string
-}
-
 type SelectEncounterOpponentModalProps = {
   open: boolean
   onClose: () => void
-  monsters: MonsterOptionSource[]
-  npcs: NpcOptionSource[]
+  monsterOptions: CombatantOption[]
+  npcOptions: CombatantOption[]
   selectedOpponentKeys: string[]
   onApply: (selectedKeys: string[]) => void
 }
@@ -32,34 +18,12 @@ type SelectEncounterOpponentModalProps = {
 export function SelectEncounterOpponentModal({
   open,
   onClose,
-  monsters,
-  npcs,
+  monsterOptions,
+  npcOptions,
   selectedOpponentKeys,
   onApply,
 }: SelectEncounterOpponentModalProps) {
   const [tab, setTab] = useState<'monsters' | 'npcs'>('monsters')
-
-  const monsterOptions: CombatantOption[] = useMemo(
-    () =>
-      monsters.map((m) => ({
-        id: `monster:${m.id}`,
-        label: m.name,
-        subtitle: [m.creatureType, m.challengeRating != null ? `CR ${m.challengeRating}` : null]
-          .filter(Boolean)
-          .join(' · ') || undefined,
-      })),
-    [monsters],
-  )
-
-  const npcOptions: CombatantOption[] = useMemo(
-    () =>
-      npcs.map((n) => ({
-        id: `npc:${n.id}`,
-        label: n.name,
-        subtitle: [n.race, n.className].filter(Boolean).join(' · ') || undefined,
-      })),
-    [npcs],
-  )
 
   const activeOptions = tab === 'monsters' ? monsterOptions : npcOptions
 

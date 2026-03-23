@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 export type CombatantPreviewMode = 'setup' | 'active'
 export type CombatantPreviewKind = 'character' | 'monster'
 
@@ -40,6 +42,8 @@ export type CombatantPreviewCardProps = {
   mode: CombatantPreviewMode
   title: string
   subtitle?: string
+  /** Leading avatar; when omitted, a neutral placeholder is shown. */
+  avatar?: ReactNode
   stats: PreviewStat[]
   chips?: PreviewChip[]
   isCurrentTurn?: boolean

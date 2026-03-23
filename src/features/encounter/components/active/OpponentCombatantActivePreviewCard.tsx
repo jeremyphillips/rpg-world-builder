@@ -1,4 +1,10 @@
+import { useMemo } from 'react'
+
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import MonsterAvatar from '@/features/content/monsters/components/MonsterAvatar/MonsterAvatar'
+import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+
 import { buildEncounterDefensePreviewChips, type CombatantPreviewCardProps, type PreviewChip, type PreviewStat } from '../../domain'
 import {
   CONCENTRATING_BADGE_TOOLTIP,
@@ -21,7 +27,15 @@ export function OpponentCombatantActivePreviewCard({
   isSelected = false,
   onClick,
 }: OpponentCombatantActivePreviewCardProps) {
+  const { catalog } = useCampaignRules()
   const isDefeated = combatant.stats.currentHitPoints <= 0
+
+  const monster = catalog.monstersById[combatant.source.sourceId]
+
+  const subtitle = useMemo(() => {
+    if (monster) return formatMonsterIdentityLine(monster)
+    return combatant.creatureType ?? undefined
+  }, [combatant.creatureType, monster])
 
   const stats: PreviewStat[] = [
     { label: 'AC', value: String(combatant.stats.armorClass), tooltip: getPreviewStatTooltip('AC') },
@@ -32,6 +46,15 @@ export function OpponentCombatantActivePreviewCard({
     },
     { label: 'Init', value: formatSigned(combatant.stats.initiativeModifier), tooltip: getPreviewStatTooltip('Init') },
   ]
+
+  const groundSpeed = combatant.stats.speeds?.ground
+  if (groundSpeed != null) {
+    stats.push({
+      label: 'Move',
+      value: `${groundSpeed} ft`,
+      tooltip: getPreviewStatTooltip('Move'),
+    })
+  }
 
   if (combatant.trackedParts && combatant.trackedParts.length > 0) {
     for (const part of combatant.trackedParts) {
@@ -70,6 +93,8 @@ export function OpponentCombatantActivePreviewCard({
     kind: 'monster',
     mode: 'active',
     title: combatant.source.label,
+    subtitle,
+    avatar: <MonsterAvatar name={combatant.source.label} size="sm" />,
     stats,
     chips: chips.length > 0 ? chips : undefined,
     isCurrentTurn,

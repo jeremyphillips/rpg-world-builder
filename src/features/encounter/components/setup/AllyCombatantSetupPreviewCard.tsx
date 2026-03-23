@@ -6,6 +6,8 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import CharacterAvatar from '@/features/character/components/CharacterAvatar'
+import { formatCharacterClassLine } from '@/features/character/formatters'
 import { useCharacter, useCombatStats } from '@/features/character/hooks'
 import { toCharacterForEngine } from '@/features/character/read-model'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
@@ -15,7 +17,6 @@ import {
   buildCharacterCombatantInstance,
   buildSpellCombatActions,
   buildTurnHooksFromEffects,
-  formatCharacterSubtitle,
   formatSigned,
   getCharacterSpellcastingStats,
   getPreviewStatTooltip,
@@ -171,13 +172,28 @@ function LoadedAllyCombatantSetupPreviewCard({
     },
     { label: 'Init', value: formatSigned(combatant.stats.initiativeModifier), tooltip: getPreviewStatTooltip('Init') },
   ]
+  const groundSpeed = combatant.stats.speeds?.ground
+  if (groundSpeed != null) {
+    stats.push({
+      label: 'Move',
+      value: `${groundSpeed} ft`,
+      tooltip: getPreviewStatTooltip('Move'),
+    })
+  }
 
   const previewProps: CombatantPreviewCardProps = {
     id: runtimeId,
     kind: 'character',
     mode: 'setup',
     title: character.name,
-    subtitle: formatCharacterSubtitle(character),
+    subtitle: formatCharacterClassLine(character.classes),
+    avatar: (
+      <CharacterAvatar
+        imageUrl={character.imageUrl ?? undefined}
+        name={character.name}
+        size="sm"
+      />
+    ),
     stats,
     secondaryActions: [{ id: 'remove', label: 'Remove', onClick: onRemove }],
   }

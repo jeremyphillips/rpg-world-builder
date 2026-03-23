@@ -1,2 +1,2 @@
 export * from './getCharacterOptionLabel'
-export * from './formatCharacterClassLine'
+export * from '../formatters'

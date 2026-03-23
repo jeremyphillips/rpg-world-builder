@@ -1,4 +1,9 @@
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import CharacterAvatar from '@/features/character/components/CharacterAvatar'
+import { formatCharacterClassLine } from '@/features/character/formatters'
+import { useCharacter } from '@/features/character/hooks'
+import { AppAvatar } from '@/ui/primitives'
+
 import { buildEncounterDefensePreviewChips, type CombatantPreviewCardProps, type PreviewChip, type PreviewStat } from '../../domain'
 import {
   CONCENTRATING_BADGE_TOOLTIP,
@@ -23,6 +28,12 @@ export function AllyCombatantActivePreviewCard({
 }: AllyCombatantActivePreviewCardProps) {
   const isDefeated = combatant.stats.currentHitPoints <= 0
 
+  const characterId =
+    combatant.source.kind === 'pc' || combatant.source.kind === 'npc'
+      ? combatant.source.sourceId
+      : undefined
+  const { character } = useCharacter(characterId)
+
   const stats: PreviewStat[] = [
     { label: 'AC', value: String(combatant.stats.armorClass), tooltip: getPreviewStatTooltip('AC') },
     {
@@ -32,6 +43,15 @@ export function AllyCombatantActivePreviewCard({
     },
     { label: 'Init', value: formatSigned(combatant.stats.initiativeModifier), tooltip: getPreviewStatTooltip('Init') },
   ]
+
+  const groundSpeed = combatant.stats.speeds?.ground
+  if (groundSpeed != null) {
+    stats.push({
+      label: 'Move',
+      value: `${groundSpeed} ft`,
+      tooltip: getPreviewStatTooltip('Move'),
+    })
+  }
 
   const chips: PreviewChip[] = [
     ...(combatant.concentration
@@ -54,12 +74,21 @@ export function AllyCombatantActivePreviewCard({
     ...buildEncounterDefensePreviewChips(combatant),
   ]
 
+  const subtitle = character ? formatCharacterClassLine(character.classes) : undefined
+
+  const avatar = character ? (
+    <CharacterAvatar imageUrl={character.imageUrl ?? undefined} name={character.name} size="sm" />
+  ) : (
+    <AppAvatar name={combatant.source.label} size="sm" />
+  )
+
   const previewProps: CombatantPreviewCardProps = {
     id: combatant.instanceId,
     kind: 'character',
     mode: 'active',
     title: combatant.source.label,
-    subtitle: combatant.source.kind === 'npc' ? 'NPC' : undefined,
+    subtitle,
+    avatar,
     stats,
     chips: chips.length > 0 ? chips : undefined,
     isCurrentTurn,

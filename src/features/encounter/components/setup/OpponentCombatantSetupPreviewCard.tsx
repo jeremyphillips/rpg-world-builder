@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react'
 
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import MonsterAvatar from '@/features/content/monsters/components/MonsterAvatar/MonsterAvatar'
+import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { calculateMonsterArmorClass } from '@/features/content/monsters/domain/mechanics/calculateMonsterArmorClass'
 import { getAbilityScoreValue } from '@/features/mechanics/domain/character/abilities/abilityScoreMap'
 import type { Monster } from '@/features/content/monsters/domain/types'
@@ -18,7 +20,6 @@ import {
   buildMonsterAttackEntries,
   buildMonsterCombatantInstance,
   buildMonsterExecutableActions,
-  formatMonsterOptionSubtitle,
   formatSigned,
   getPreviewStatTooltip,
 } from '../../helpers'
@@ -101,13 +102,22 @@ export function OpponentCombatantSetupPreviewCard({
     { label: 'HP', value: String(averageHitPoints), tooltip: getPreviewStatTooltip('HP') },
     { label: 'Init', value: formatSigned(initiativeModifier), tooltip: getPreviewStatTooltip('Init') },
   ]
+  const groundSpeed = monster.mechanics.movement?.ground
+  if (groundSpeed != null) {
+    stats.push({
+      label: 'Move',
+      value: `${groundSpeed} ft`,
+      tooltip: getPreviewStatTooltip('Move'),
+    })
+  }
 
   const previewProps: CombatantPreviewCardProps = {
     id: runtimeId,
     kind: 'monster',
     mode: 'setup',
     title: monster.name,
-    subtitle: formatMonsterOptionSubtitle(monster),
+    subtitle: formatMonsterIdentityLine(monster),
+    avatar: <MonsterAvatar name={monster.name} size="sm" />,
     stats,
     secondaryActions: [
       { id: 'duplicate', label: 'Copy', onClick: onDuplicate },

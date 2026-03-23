@@ -2,7 +2,7 @@ import { MediaTopCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
 import Box from '@mui/material/Box'
 import PersonIcon from '@mui/icons-material/Person'
-import { formatCharacterClassLine } from '@/features/character/helpers/formatCharacterClassLine'
+import { formatCharacterClassLine } from '@/features/character/formatters'
 import type { CharacterClassSummary } from '@/features/character/read-model'
 
 interface CharacterMediaTopCardProps {

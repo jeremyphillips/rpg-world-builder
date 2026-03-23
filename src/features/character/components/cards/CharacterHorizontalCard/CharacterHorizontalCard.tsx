@@ -1,7 +1,7 @@
 import { HorizontalCompactCard } from '@/ui/patterns'
 import type { CardBadgeProps } from '@/ui/primitives'
 import type { CharacterClassSummary } from '@/features/character/read-model'
-import { formatCharacterClassLine } from '@/features/character/helpers/formatCharacterClassLine'
+import { formatCharacterClassLine } from '@/features/character/formatters'
 
 interface CharacterHorizontalCardProps {
   characterId: string

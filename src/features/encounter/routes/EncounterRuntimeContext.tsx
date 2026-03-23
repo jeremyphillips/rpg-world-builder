@@ -13,6 +13,8 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
+import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
+import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
 import {
   OpponentRosterLane,
@@ -132,7 +134,12 @@ function useEncounterRuntimeValue() {
   const [turnOrderModalOpen, setTurnOrderModalOpen] = useState(false)
 
   const allyModalOptions = useMemo(
-    () => allyOptions.map((a) => ({ id: a.id, name: a.label })),
+    () =>
+      allyOptions.map((a) => ({
+        id: a.id,
+        label: a.label,
+        subtitle: a.subtitle,
+      })),
     [allyOptions],
   )
 
@@ -141,18 +148,29 @@ function useEncounterRuntimeValue() {
       .filter((o) => o.kind === 'monster')
       .map((o) => {
         const block = monstersById[o.sourceId]
+        if (!block) {
+          return {
+            id: o.key,
+            label: o.label,
+            subtitle: o.subtitle,
+          }
+        }
         return {
-          id: o.sourceId,
-          name: o.label,
-          challengeRating: block?.lore?.challengeRating != null ? String(block.lore.challengeRating) : '—',
-          creatureType: block?.type ?? '—',
+          id: o.key,
+          label: o.label,
+          subtitle: formatMonsterIdentityLine(block),
+          stats: buildMonsterModalStats(block, catalog.armorById),
         }
       })
     const npcList = opponentOptions
       .filter((o) => o.kind === 'npc')
-      .map((o) => ({ id: o.sourceId, name: o.label }))
+      .map((o) => ({
+        id: o.key,
+        label: o.label,
+        subtitle: o.subtitle,
+      }))
     return { monsterModalOptions: monsters, npcModalOptions: npcList }
-  }, [opponentOptions, monstersById])
+  }, [opponentOptions, monstersById, catalog.armorById])
 
   const selectedOpponentKeys = useMemo(
     () => selectedOpponentOptions.map((o) => o.key),
@@ -401,7 +419,7 @@ function EncounterRuntimeModals() {
       <SelectEncounterAllyModal
         open={allyModalOpen}
         onClose={() => setAllyModalOpen(false)}
-        allies={allyModalOptions}
+        options={allyModalOptions}
         selectedAllyIds={selectedAllyIds}
         onApply={handleAllyModalApply}
       />
@@ -409,8 +427,8 @@ function EncounterRuntimeModals() {
       <SelectEncounterOpponentModal
         open={opponentModalOpen}
         onClose={() => setOpponentModalOpen(false)}
-        monsters={monsterModalOptions}
-        npcs={npcModalOptions}
+        monsterOptions={monsterModalOptions}
+        npcOptions={npcModalOptions}
         selectedOpponentKeys={selectedOpponentKeys}
         onApply={handleOpponentModalApply}
       />
