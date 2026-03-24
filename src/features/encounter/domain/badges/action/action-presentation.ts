@@ -1,5 +1,5 @@
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
-import type { ActionPresentationViewModel, ActionSemanticCategory } from './action-presentation.types'
+import type { ActionPresentationViewModel, ActionSemanticCategory, ActionSourceTag } from './action-presentation.types'
 import { deriveCombatActionBadges } from './combat-action-badges'
 
 function deriveDisplayName(action: CombatActionDefinition): string {
@@ -24,17 +24,19 @@ function deriveCategory(action: CombatActionDefinition): ActionSemanticCategory 
     if (action.effects?.some((e) => e.kind === 'hit-points' && 'mode' in e && e.mode === 'heal')) {
       return 'heal'
     }
-    const isHostile =
+    const isOffensive =
       action.attackProfile != null ||
       action.saveProfile != null ||
       action.hostileApplication === true
-    if (!isHostile && action.effects?.some((e) => e.kind === 'modifier' || e.kind === 'grant' || e.kind === 'state')) {
+    if (isOffensive) return 'attack'
+    if (action.effects?.some((e) => e.kind === 'modifier' || e.kind === 'grant' || e.kind === 'state')) {
       return 'buff'
     }
-    return 'spell'
+    return 'utility'
   }
 
   if (action.kind === 'weapon-attack' || action.kind === 'monster-action') {
+    if (action.sequence && action.sequence.length > 0) return 'attack'
     if (action.resolutionMode === 'log-only' && !action.attackProfile && !action.damage) {
       return 'utility'
     }
@@ -42,6 +44,18 @@ function deriveCategory(action: CombatActionDefinition): ActionSemanticCategory 
   }
 
   return 'utility'
+}
+
+function deriveSourceTag(action: CombatActionDefinition): ActionSourceTag {
+  if (action.displayMeta) {
+    switch (action.displayMeta.source) {
+      case 'weapon': return 'weapon'
+      case 'spell': return 'spell'
+      case 'natural': return 'natural'
+    }
+  }
+  if (action.kind === 'combat-effect') return 'feature'
+  return 'feature'
 }
 
 function deriveFooterLink(action: CombatActionDefinition): ActionPresentationViewModel['footerLink'] {
@@ -54,7 +68,7 @@ function deriveFooterLink(action: CombatActionDefinition): ActionPresentationVie
 /**
  * Derives a complete presentation view model for a combat action.
  * Pure function — no React, no hooks, no encounter state.
- * Wraps {@link deriveCombatActionBadges} and adds name, secondLine, category, and footer link derivation.
+ * Wraps {@link deriveCombatActionBadges} and adds name, secondLine, category, sourceTag, and footer link derivation.
  */
 export function deriveActionPresentation(action: CombatActionDefinition): ActionPresentationViewModel {
   return {
@@ -63,6 +77,7 @@ export function deriveActionPresentation(action: CombatActionDefinition): Action
     secondLine: deriveSecondLine(action),
     badges: deriveCombatActionBadges(action),
     category: deriveCategory(action),
+    sourceTag: deriveSourceTag(action),
     footerLink: deriveFooterLink(action),
   }
 }

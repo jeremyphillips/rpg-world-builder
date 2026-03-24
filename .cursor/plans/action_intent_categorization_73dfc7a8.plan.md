@@ -4,19 +4,19 @@ overview: Refine action semantic category derivation to group by user intent (At
 todos:
   - id: type-model
     content: Remove 'spell' from ActionSemanticCategory, add ActionSourceTag type, add sourceTag to ActionPresentationViewModel
-    status: pending
+    status: completed
   - id: category-derivation
     content: Refine deriveCategory for offensive spells -> attack, multiattack -> attack; add deriveSourceTag; wire into deriveActionPresentation
-    status: pending
+    status: completed
   - id: recommended-actions
     content: "Improve deriveRecommendedActions: multiattack threshold bypass, child suppression, category-aware sorting"
-    status: pending
+    status: completed
   - id: drawer-grouping
     content: Remove spell from CATEGORY_ORDER/CATEGORY_LABELS in CombatantActionDrawer
-    status: pending
+    status: completed
   - id: tests-verify
     content: Update action-presentation tests for new category/sourceTag expectations, run tsc and vitest
-    status: pending
+    status: completed
 isProject: false
 ---
 

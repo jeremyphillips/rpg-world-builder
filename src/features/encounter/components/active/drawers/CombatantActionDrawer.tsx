@@ -90,11 +90,10 @@ function CollapsibleSection({
 // Category grouping
 // ---------------------------------------------------------------------------
 
-const CATEGORY_ORDER: ActionSemanticCategory[] = ['attack', 'spell', 'heal', 'buff', 'utility', 'item']
+const CATEGORY_ORDER: ActionSemanticCategory[] = ['attack', 'heal', 'buff', 'utility', 'item']
 
 const CATEGORY_LABELS: Record<ActionSemanticCategory, string> = {
   attack: 'Attacks',
-  spell: 'Spells',
   heal: 'Healing',
   buff: 'Buffs',
   utility: 'Utility',
@@ -127,13 +126,16 @@ function groupActionsByCategory(actions: CombatActionDefinition[]): CategoryGrou
 const MAX_RECOMMENDED = 3
 const MIN_ACTIONS_FOR_RECOMMENDED = 4
 
+function hasSequence(action: CombatActionDefinition): boolean {
+  return action.sequence != null && action.sequence.length > 0
+}
+
 function deriveRecommendedActions(
   actions: CombatActionDefinition[],
   availableActionIds: Set<string> | undefined,
   validActionIdsForTarget: Set<string> | undefined,
 ): CombatActionDefinition[] {
   if (validActionIdsForTarget == null) return []
-  if (actions.length < MIN_ACTIONS_FOR_RECOMMENDED) return []
 
   const allTreatAsAvailable = availableActionIds == null
 
@@ -145,14 +147,35 @@ function deriveRecommendedActions(
 
   if (candidates.length === 0) return []
 
-  candidates.sort((a, b) => {
-    const aOffensive = a.attackProfile != null ? 0 : 1
-    const bOffensive = b.attackProfile != null ? 0 : 1
-    if (aOffensive !== bOffensive) return aOffensive - bOffensive
+  const hasHighValue = candidates.some(hasSequence)
+  if (actions.length < MIN_ACTIONS_FOR_RECOMMENDED && !hasHighValue) return []
+
+  const multiattackChildLabels = new Set<string>()
+  for (const c of candidates) {
+    if (hasSequence(c)) {
+      for (const step of c.sequence!) {
+        multiattackChildLabels.add(step.actionLabel)
+      }
+    }
+  }
+
+  const filtered = hasHighValue
+    ? candidates.filter((c) => hasSequence(c) || !multiattackChildLabels.has(c.label))
+    : candidates
+
+  filtered.sort((a, b) => {
+    const aSeq = hasSequence(a) ? 0 : 1
+    const bSeq = hasSequence(b) ? 0 : 1
+    if (aSeq !== bSeq) return aSeq - bSeq
+
+    const aAttack = deriveActionPresentation(a).category === 'attack' ? 0 : 1
+    const bAttack = deriveActionPresentation(b).category === 'attack' ? 0 : 1
+    if (aAttack !== bAttack) return aAttack - bAttack
+
     return a.label.localeCompare(b.label)
   })
 
-  return candidates.slice(0, MAX_RECOMMENDED)
+  return filtered.slice(0, MAX_RECOMMENDED)
 }
 
 // ---------------------------------------------------------------------------

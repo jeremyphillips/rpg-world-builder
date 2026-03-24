@@ -18,6 +18,7 @@ export { deriveActionPresentation } from './badges/action/action-presentation'
 export type {
   ActionPresentationViewModel,
   ActionSemanticCategory,
+  ActionSourceTag,
   ActionFooterLink,
 } from './badges/action/action-presentation.types'
 export {

@@ -6,6 +6,8 @@ import Box from '@mui/material/Box'
 import { AppToast, type AppAlertTone } from '@/ui/primitives'
 import { ZoomControl } from '@/ui/patterns'
 
+import { isValidActionTarget } from '@/features/mechanics/domain/encounter'
+
 import { buildEncounterActionToastPayload } from '../helpers/encounter-action-toast'
 import {
   AllyCombatantActivePreviewCard,
@@ -78,6 +80,17 @@ export default function EncounterActiveRoute() {
     if (!encounterState || !selectedActionTargetId) return null
     return encounterState.combatantsById[selectedActionTargetId] ?? null
   }, [encounterState, selectedActionTargetId])
+
+  const validActionIdsForTarget = useMemo(() => {
+    if (!encounterState || !activeCombatant || !targetCombatant) return undefined
+    const ids = new Set<string>()
+    for (const action of availableActions) {
+      if (isValidActionTarget(encounterState, targetCombatant, activeCombatant, action)) {
+        ids.add(action.id)
+      }
+    }
+    return ids
+  }, [encounterState, activeCombatant, targetCombatant, availableActions])
 
   const canResolveAction = Boolean(
     selectedActionId &&
@@ -185,6 +198,7 @@ export default function EncounterActiveRoute() {
             onClose={() => setActionDrawerOpen(false)}
             combatant={actionDrawerCombatant}
             availableActions={availableActions}
+            validActionIdsForTarget={validActionIdsForTarget}
             selectedActionId={selectedActionId}
             onSelectAction={setSelectedActionId}
             selectedCasterOptions={selectedCasterOptions}
@@ -200,6 +214,7 @@ export default function EncounterActiveRoute() {
             onClose={() => setActionDrawerOpen(false)}
             combatant={actionDrawerCombatant}
             availableActions={availableActions}
+            validActionIdsForTarget={validActionIdsForTarget}
             selectedActionId={selectedActionId}
             onSelectAction={setSelectedActionId}
             selectedCasterOptions={selectedCasterOptions}

@@ -105,7 +105,7 @@ describe('deriveActionPresentation', () => {
       expect(vm.category).toBe('utility')
     })
 
-    it('categorizes offensive spell as spell', () => {
+    it('categorizes offensive spell with attackProfile as attack', () => {
       const vm = deriveActionPresentation(
         minimalAction({
           kind: 'spell',
@@ -114,7 +114,42 @@ describe('deriveActionPresentation', () => {
           displayMeta: { source: 'spell', spellId: 'fireball', level: 3, concentration: false, range: '150ft' },
         }),
       )
-      expect(vm.category).toBe('spell')
+      expect(vm.category).toBe('attack')
+    })
+
+    it('categorizes spell with saveProfile as attack', () => {
+      const vm = deriveActionPresentation(
+        minimalAction({
+          kind: 'spell',
+          resolutionMode: 'saving-throw',
+          saveProfile: { ability: 'dexterity', dc: 15 },
+          displayMeta: { source: 'spell', spellId: 'sacred-flame', level: 0, concentration: false, range: '60ft' },
+        }),
+      )
+      expect(vm.category).toBe('attack')
+    })
+
+    it('categorizes spell with hostileApplication as attack', () => {
+      const vm = deriveActionPresentation(
+        minimalAction({
+          kind: 'spell',
+          resolutionMode: 'effects',
+          hostileApplication: true,
+          displayMeta: { source: 'spell', spellId: 'hold-person', level: 2, concentration: true, range: '60ft' },
+        }),
+      )
+      expect(vm.category).toBe('attack')
+    })
+
+    it('categorizes non-offensive spell without buff effects as utility', () => {
+      const vm = deriveActionPresentation(
+        minimalAction({
+          kind: 'spell',
+          resolutionMode: 'log-only',
+          displayMeta: { source: 'spell', spellId: 'mage-hand', level: 0, concentration: false, range: '30ft' },
+        }),
+      )
+      expect(vm.category).toBe('utility')
     })
 
     it('categorizes healing spell as heal', () => {
@@ -146,6 +181,74 @@ describe('deriveActionPresentation', () => {
         minimalAction({ kind: 'combat-effect', resolutionMode: 'effects' }),
       )
       expect(vm.category).toBe('utility')
+    })
+
+    it('categorizes multiattack (monster-action with sequence) as attack', () => {
+      const vm = deriveActionPresentation(
+        minimalAction({
+          kind: 'monster-action',
+          resolutionMode: 'log-only',
+          sequence: [{ actionLabel: 'Rend', count: 3 }],
+          displayMeta: { source: 'natural', attackType: 'special', description: 'The dragon makes three Rend attacks.' },
+        }),
+      )
+      expect(vm.category).toBe('attack')
+    })
+
+    it('categorizes multiattack with multiple sequence steps as attack', () => {
+      const vm = deriveActionPresentation(
+        minimalAction({
+          kind: 'monster-action',
+          resolutionMode: 'log-only',
+          sequence: [
+            { actionLabel: 'Claw', count: 2 },
+            { actionLabel: 'Infernal Sting', count: 1 },
+          ],
+          displayMeta: { source: 'natural', attackType: 'special' },
+        }),
+      )
+      expect(vm.category).toBe('attack')
+    })
+  })
+
+  describe('sourceTag', () => {
+    it('returns weapon for weapon displayMeta', () => {
+      const vm = deriveActionPresentation(
+        minimalAction({ displayMeta: { source: 'weapon', range: '5ft' } }),
+      )
+      expect(vm.sourceTag).toBe('weapon')
+    })
+
+    it('returns spell for spell displayMeta', () => {
+      const vm = deriveActionPresentation(
+        minimalAction({
+          kind: 'spell',
+          displayMeta: { source: 'spell', spellId: 'fireball', level: 3, concentration: false, range: '150ft' },
+        }),
+      )
+      expect(vm.sourceTag).toBe('spell')
+    })
+
+    it('returns natural for natural displayMeta', () => {
+      const vm = deriveActionPresentation(
+        minimalAction({
+          kind: 'monster-action',
+          displayMeta: { source: 'natural', attackType: 'bite', reach: 5 },
+        }),
+      )
+      expect(vm.sourceTag).toBe('natural')
+    })
+
+    it('returns feature for combat-effect kind', () => {
+      const vm = deriveActionPresentation(
+        minimalAction({ kind: 'combat-effect', resolutionMode: 'effects' }),
+      )
+      expect(vm.sourceTag).toBe('feature')
+    })
+
+    it('falls back to feature when no displayMeta', () => {
+      const vm = deriveActionPresentation(minimalAction())
+      expect(vm.sourceTag).toBe('feature')
     })
   })
 

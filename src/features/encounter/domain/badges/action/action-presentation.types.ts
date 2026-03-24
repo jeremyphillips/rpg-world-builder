@@ -1,16 +1,26 @@
 import type { ActionBadgeDescriptor } from './combat-action-badges.types'
 
 /**
- * Semantic purpose-category for an action.
- * Distinct from CombatActionKind (which is source-based: weapon-attack, monster-action, spell, combat-effect).
- * Used for grouping, filtering, and display in action lists.
+ * Primary user-intent category for an action.
+ * Drives grouping in action lists. Distinct from {@link ActionSourceTag} (origin metadata)
+ * and from `CombatActionKind` (raw mechanical kind).
  */
 export type ActionSemanticCategory =
   | 'attack'
-  | 'spell'
   | 'utility'
   | 'heal'
   | 'buff'
+  | 'item'
+
+/**
+ * Origin/source of an action. Separate axis from {@link ActionSemanticCategory}.
+ * Not used for primary grouping; reserved for future source-filter chips/tabs.
+ */
+export type ActionSourceTag =
+  | 'weapon'
+  | 'spell'
+  | 'natural'
+  | 'feature'
   | 'item'
 
 export type ActionFooterLink = {
@@ -30,5 +40,6 @@ export type ActionPresentationViewModel = {
   secondLine?: string
   badges: ActionBadgeDescriptor[]
   category: ActionSemanticCategory
+  sourceTag: ActionSourceTag
   footerLink?: ActionFooterLink
 }
