@@ -35,6 +35,7 @@
       "@/features/auth/*": ["features/auth/*"],
       "@/features/account/*": ["features/account/*"],
       "@/features/encounter": ["features/encounter/index.ts"],
+      "@/features/encounter/components": ["features/encounter/components/index.ts"],
       "@/features/encounter/*": ["features/encounter/*"],
       "@/features/character/*": ["features/character/*"],
       "@/features/campaign/*": ["features/campaign/*"],

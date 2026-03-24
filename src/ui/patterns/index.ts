@@ -33,6 +33,11 @@ export { default as HorizontalCompactCard } from './cards/HorizontalCompactCard'
 export type { HorizontalCompactCardProps, HorizontalCompactTitleVariant } from './cards/HorizontalCompactCard'
 export { HorizontalCompactActionCard } from './cards/HorizontalCompactActionCard'
 export type { HorizontalCompactActionCardProps } from './cards/HorizontalCompactActionCard'
+export {
+  COMPACT_ACTION_DISABLED_OPACITY,
+  COMPACT_ACTION_OPACITY_TRANSITION,
+  COMPACT_ACTION_UNAVAILABLE_OPACITY,
+} from './cards/horizontalCompactCard.constants'
 
 export { EntitySummaryCard, InlineStatLine } from './cards/EntitySummaryCard'
 export type { EntitySummaryCardProps, InlineStatItem } from './cards/EntitySummaryCard'
@@ -94,3 +99,11 @@ export { DEFAULT_VISIBILITY_PUBLIC } from './form/VisibilityField'
 export { default as ImageUploadField } from './form/ImageUploadField'
 
 export { default as FormActions } from './form/FormActions'
+
+export { ZoomControl } from './ZoomControl/ZoomControl'
+export type { ZoomControlProps } from './ZoomControl/ZoomControl'
+
+export { AppDrawer } from './AppDrawer/AppDrawer'
+export type { AppDrawerProps } from './AppDrawer/AppDrawer'
+
+export { AppTabs, AppTab } from './AppTabs/AppTabs'

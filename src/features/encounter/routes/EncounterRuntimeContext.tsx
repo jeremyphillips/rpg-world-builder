@@ -15,13 +15,14 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
+import { deriveEncounterCapabilities, type EncounterViewerContext } from '../domain'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
+import type { GridInteractionMode } from '../domain'
 import {
   OpponentRosterLane,
   AllyRosterLane,
   EncounterSetupHeader,
   EncounterActiveHeader,
-  EncounterActiveFooter,
   SelectEncounterAllyModal,
   SelectEncounterOpponentModal,
   EncounterEditModal,
@@ -29,7 +30,6 @@ import {
   GRID_SIZE_PRESETS,
   type EnvironmentSetupValues,
   type GridSizePreset,
-  type InteractionMode,
 } from '../components'
 import { selectGridViewModel } from '../space/space.selectors'
 import { createSquareGridSpace } from '../space/createSquareGridSpace'
@@ -104,6 +104,7 @@ function useEncounterRuntimeValue() {
     handleResolveAction,
     handleResetEncounter: handleResetEncounterBase,
     handleMoveCombatant,
+    registerCombatLogAppended,
   } = useEncounterState({
     selectedCombatantIds,
     opponentRoster,
@@ -127,7 +128,7 @@ function useEncounterRuntimeValue() {
 
   const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(DEFAULT_ENVIRONMENT)
   const [gridSizePreset, setGridSizePreset] = useState<GridSizePreset>('medium')
-  const [interactionMode, setInteractionMode] = useState<InteractionMode>('select-target')
+  const [interactionMode, setInteractionMode] = useState<GridInteractionMode>('select-target')
   const [allyModalOpen, setAllyModalOpen] = useState(false)
   const [opponentModalOpen, setOpponentModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -199,14 +200,8 @@ function useEncounterRuntimeValue() {
 
   const canStartEncounter = selectedCombatants.length > 0 && unresolvedCombatantCount === 0
 
-  const selectedActionLabel = useMemo(
-    () => availableActions.find((a) => a.id === selectedActionId)?.label ?? null,
-    [availableActions, selectedActionId],
-  )
-  const selectedTargetLabel = useMemo(
-    () => availableActionTargets.find((t) => t.id === selectedActionTargetId)?.label ?? null,
-    [availableActionTargets, selectedActionTargetId],
-  )
+  // selectedActionLabel / selectedTargetLabel were consumed by the now-commented-out footer.
+  // The route derives these directly when needed (e.g. CombatantActionDrawer).
 
   const selectedActionRangeFt = useMemo(() => {
     const action = availableActions.find((a) => a.id === selectedActionId)
@@ -218,18 +213,12 @@ function useEncounterRuntimeValue() {
     return selectGridViewModel(encounterState, {
       selectedTargetId: selectedActionTargetId || null,
       selectedActionRangeFt,
-      showReachable: interactionMode === 'move',
+      showReachable: (activeCombatant?.turnResources?.movementRemaining ?? 0) > 0,
     })
-  }, [encounterState, selectedActionTargetId, selectedActionRangeFt, interactionMode])
+  }, [encounterState, selectedActionTargetId, selectedActionRangeFt, activeCombatant])
 
-  const turnResources = activeCombatant?.turnResources
-    ? {
-        actionAvailable: activeCombatant.turnResources.actionAvailable,
-        bonusActionAvailable: activeCombatant.turnResources.bonusActionAvailable,
-        reactionAvailable: activeCombatant.turnResources.reactionAvailable,
-        movementRemaining: activeCombatant.turnResources.movementRemaining ?? 0,
-      }
-    : null
+  // turnResources was consumed by the now-commented-out footer.
+  // activeCombatant.turnResources is still accessible directly via the context.
 
   const environmentSummaryParts = [
     environmentSetup.setting,
@@ -277,32 +266,25 @@ function useEncounterRuntimeValue() {
       nextCombatantLabel={nextCombatantLabel}
       onEditEncounter={() => setEditModalOpen(true)}
       onResetEncounter={handleResetEncounter}
-      onViewTurnOrder={() => setTurnOrderModalOpen(true)}
     />
   ) : undefined
 
-  const activeFooter = encounterState ? (
-    <EncounterActiveFooter
-      turnResources={turnResources}
-      selectedActionLabel={selectedActionLabel}
-      selectedTargetLabel={selectedTargetLabel}
-      canResolveAction={
-        Boolean(
-          selectedActionId &&
-          selectedActionTargetId &&
-          availableActions.some((a) => a.id === selectedActionId),
-        )
-      }
-      interactionMode={interactionMode}
-      onToggleInteractionMode={() =>
-        setInteractionMode((prev) => (prev === 'move' ? 'select-target' : 'move'))
-      }
-      onResolveAction={handleResolveAction}
-      onEndTurn={handleNextTurn}
-    />
-  ) : undefined
+  // activeFooter commented out -- action resolution now handled by CombatantActionDrawer
+  const activeFooter = undefined
+
+  const viewerContext: EncounterViewerContext = useMemo(
+    () => ({ viewerRole: 'dm' as const, controlledCombatantIds: [] }),
+    [],
+  )
+
+  const capabilities = useMemo(
+    () => (encounterState ? deriveEncounterCapabilities(encounterState, viewerContext) : null),
+    [encounterState, viewerContext],
+  )
 
   return {
+    viewerContext,
+    capabilities,
     campaignId,
     monstersById,
     allyOptions,
@@ -364,6 +346,7 @@ function useEncounterRuntimeValue() {
     activeFooter,
     handleStartEncounter,
     handleResetEncounter,
+    registerCombatLogAppended,
   }
 }
 

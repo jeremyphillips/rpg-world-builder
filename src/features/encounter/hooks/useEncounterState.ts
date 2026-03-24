@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import {
@@ -17,6 +17,7 @@ import {
   removeStateFromCombatant,
   triggerManualHook,
   type CombatantInstance,
+  type CombatLogEvent,
   type EncounterState,
   type ManualEnvironmentContext,
   type ManualMonsterTriggerContext,
@@ -66,6 +67,14 @@ export function useEncounterState({
   const [selectedActionId, setSelectedActionId] = useState('')
   const [selectedActionTargetId, setSelectedActionTargetId] = useState('')
   const [selectedCasterOptions, setSelectedCasterOptions] = useState<Record<string, string>>({})
+
+  const combatLogAppendedRef = useRef<((events: CombatLogEvent[]) => void) | undefined>(undefined)
+  const registerCombatLogAppended = useCallback(
+    (fn: ((events: CombatLogEvent[]) => void) | undefined) => {
+      combatLogAppendedRef.current = fn
+    },
+    [],
+  )
 
   const selectedCombatants = useMemo(
     () =>
@@ -169,18 +178,20 @@ export function useEncounterState({
   }, [controlTargetId, encounterState])
 
   useEffect(() => {
-    const nextActionId = availableActions[0]?.id ?? ''
-    if (!selectedActionId || !availableActions.some((action) => action.id === selectedActionId)) {
-      setSelectedActionId(nextActionId)
+    if (selectedActionId && !availableActions.some((action) => action.id === selectedActionId)) {
+      setSelectedActionId('')
     }
   }, [availableActions, selectedActionId])
 
   useEffect(() => {
+    if (!selectedActionTargetId) return
+    // Allow choosing a target before an action; validate against the action once selected.
+    if (!selectedAction) return
     const validTargetIds = new Set(availableActionTargets.map((target) => target.id))
-    if (!selectedActionTargetId || !validTargetIds.has(selectedActionTargetId)) {
-      setSelectedActionTargetId(availableActionTargets[0]?.id ?? '')
+    if (!validTargetIds.has(selectedActionTargetId)) {
+      setSelectedActionTargetId('')
     }
-  }, [availableActionTargets, selectedActionTargetId])
+  }, [availableActionTargets, selectedAction, selectedActionTargetId])
 
   useEffect(() => {
     const action = availableActions.find((a) => a.id === selectedActionId) ?? null
@@ -232,18 +243,27 @@ export function useEncounterState({
     setEncounterState((prev) => (prev ? advanceEncounterTurn(prev) : prev))
   }
 
-  function handleResolveAction() {
-    if (!encounterState || !activeCombatantId || !selectedActionId) return
-
-    setEncounterState(
-      resolveCombatAction(encounterState, {
-        actorId: activeCombatantId,
-        targetId: selectedActionTargetId || undefined,
-        actionId: selectedActionId,
-        casterOptions: selectedCasterOptions,
-      }, { monstersById, buildSummonAllyCombatant }),
-    )
-  }
+  const handleResolveAction = useCallback(() => {
+    setEncounterState((prev) => {
+      if (!prev || !prev.activeCombatantId || !selectedActionId) return prev
+      const startLen = prev.log.length
+      const next = resolveCombatAction(
+        prev,
+        {
+          actorId: prev.activeCombatantId,
+          targetId: selectedActionTargetId || undefined,
+          actionId: selectedActionId,
+          casterOptions: selectedCasterOptions,
+        },
+        { monstersById, buildSummonAllyCombatant },
+      )
+      const appended = next.log.slice(startLen)
+      if (appended.length > 0) {
+        queueMicrotask(() => combatLogAppendedRef.current?.(appended))
+      }
+      return next
+    })
+  }, [selectedActionId, selectedActionTargetId, selectedCasterOptions, monstersById, buildSummonAllyCombatant])
 
   function handleResetEncounter() {
     setEncounterState(null)
@@ -405,5 +425,6 @@ export function useEncounterState({
     handleMoveCombatant,
     handleMonsterFormChange,
     handleMonsterManualTriggerChange,
+    registerCombatLogAppended,
   }
 }

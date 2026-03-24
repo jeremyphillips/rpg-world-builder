@@ -1,33 +1,35 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
-import Stack from '@mui/material/Stack'
-import Typography from '@mui/material/Typography'
+import Box from '@mui/material/Box'
 
+import { AppToast, type AppAlertTone } from '@/ui/primitives'
+import { ZoomControl } from '@/ui/patterns'
+
+import { buildEncounterActionToastPayload } from '../helpers/encounter-action-toast'
 import {
-  AllyCombatantActiveCard,
   AllyCombatantActivePreviewCard,
-  CombatActionPreviewCard,
-  CombatLane,
-  CombatLogPanel,
-  CombatTargetPreviewCard,
-  EncounterActiveView,
-  EncounterEnvironmentSummary,
+  AllyActionDrawer,
+  EncounterActiveSidebar,
   EncounterGrid,
-  EncounterView,
-  OpponentCombatantActiveCard,
   OpponentCombatantActivePreviewCard,
+  OpponentActionDrawer,
 } from '../components'
 import { campaignEncounterSetupPath } from './encounterPaths'
 import { useEncounterRuntime } from './EncounterRuntimeContext'
+
+const DEFAULT_ZOOM = 1
+const MIN_ZOOM = 0.25
+const MAX_ZOOM = 3
+const ZOOM_STEP = 0.25
 
 export default function EncounterActiveRoute() {
   const {
     encounterState,
     campaignId,
     activeHeader,
-    activeFooter,
-    activeCombatantId,
     activeCombatant,
+    activeCombatantId,
     availableActions,
     selectedActionId,
     setSelectedActionId,
@@ -35,140 +37,180 @@ export default function EncounterActiveRoute() {
     setSelectedCasterOptions,
     selectedActionTargetId,
     setSelectedActionTargetId,
-    environmentSetup,
     gridViewModel,
-    interactionMode,
-    setInteractionMode,
     handleMoveCombatant,
+    handleResolveAction,
+    handleNextTurn,
+    registerCombatLogAppended,
   } = useEncounterRuntime()
+
+  const [toastPayload, setToastPayload] = useState<{
+    title: string
+    tone: AppAlertTone
+    narrative: string
+    mechanics: string
+  } | null>(null)
+  const [toastOpen, setToastOpen] = useState(false)
+
+  useEffect(() => {
+    registerCombatLogAppended((events) => {
+      const payload = buildEncounterActionToastPayload(events)
+      if (payload) {
+        setToastPayload(payload)
+        setToastOpen(true)
+      }
+    })
+    return () => registerCombatLogAppended(undefined)
+  }, [registerCombatLogAppended])
+
+  const [zoom, setZoom] = useState(DEFAULT_ZOOM)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [actionDrawerOpen, setActionDrawerOpen] = useState(false)
+
+  const handleZoomIn = useCallback(() => setZoom((z) => Math.min(z + ZOOM_STEP, MAX_ZOOM)), [])
+  const handleZoomOut = useCallback(() => setZoom((z) => Math.max(z - ZOOM_STEP, MIN_ZOOM)), [])
+  const handleZoomReset = useCallback(() => {
+    setZoom(DEFAULT_ZOOM)
+    setPan({ x: 0, y: 0 })
+  }, [])
+
+  const targetCombatant = useMemo(() => {
+    if (!encounterState || !selectedActionTargetId) return null
+    return encounterState.combatantsById[selectedActionTargetId] ?? null
+  }, [encounterState, selectedActionTargetId])
+
+  const canResolveAction = Boolean(
+    selectedActionId &&
+    selectedActionTargetId &&
+    availableActions.some((a) => a.id === selectedActionId),
+  )
+
+  const renderTokenPopover = useCallback(
+    (occupantId: string) => {
+      if (!encounterState) return null
+      const combatant = encounterState.combatantsById[occupantId]
+      if (!combatant) return null
+
+      if (combatant.side === 'party') {
+        return (
+          <AllyCombatantActivePreviewCard
+            combatant={combatant}
+            isCurrentTurn={occupantId === activeCombatantId}
+          />
+        )
+      }
+      return (
+        <OpponentCombatantActivePreviewCard
+          combatant={combatant}
+          isCurrentTurn={occupantId === activeCombatantId}
+        />
+      )
+    },
+    [encounterState, activeCombatantId],
+  )
+
+  const handleCellClick = useCallback(
+    (cellId: string) => {
+      if (!encounterState) return
+
+      const occupant = encounterState.placements?.find((p) => p.cellId === cellId)
+      if (occupant) {
+        setSelectedActionTargetId(occupant.combatantId)
+        setActionDrawerOpen(true)
+      } else {
+        handleMoveCombatant(cellId)
+      }
+    },
+    [encounterState, handleMoveCombatant, setSelectedActionTargetId],
+  )
 
   if (!encounterState) {
     if (campaignId) return <Navigate to={campaignEncounterSetupPath(campaignId)} replace />
     return null
   }
 
+  const actionDrawerCombatant = activeCombatant
+
   return (
-    <EncounterView mode="active" activeHeader={activeHeader} activeFooter={activeFooter}>
-      <EncounterActiveView
-        focusedCard={
-          activeCombatant ? (
-            activeCombatant.side === 'party' ? (
-              <AllyCombatantActiveCard
-                combatant={activeCombatant}
-                availableActions={availableActions}
-                selectedActionId={selectedActionId}
-                onSelectAction={setSelectedActionId}
-                selectedCasterOptions={selectedCasterOptions}
-                onCasterOptionsChange={setSelectedCasterOptions}
-              />
-            ) : (
-              <OpponentCombatantActiveCard
-                combatant={activeCombatant}
-                availableActions={availableActions}
-                selectedActionId={selectedActionId}
-                onSelectAction={setSelectedActionId}
-                selectedCasterOptions={selectedCasterOptions}
-                onCasterOptionsChange={setSelectedCasterOptions}
-              />
-            )
-          ) : null
-        }
-        actionPreview={
-          <>
-            <Typography variant="subtitle2" color="text.secondary">
-              Action
-            </Typography>
-            <CombatActionPreviewCard
-              action={availableActions.find((a) => a.id === selectedActionId) ?? null}
-            />
-          </>
-        }
-        targetPreview={
-          <>
-            <Typography variant="subtitle2" color="text.secondary">
-              Target
-            </Typography>
-            <CombatTargetPreviewCard
-              target={
-                selectedActionTargetId
-                  ? encounterState.combatantsById[selectedActionTargetId] ?? null
-                  : null
-              }
-            />
-          </>
-        }
-        environmentSummary={<EncounterEnvironmentSummary values={environmentSetup} />}
-        grid={
-          gridViewModel ? (
-            <EncounterGrid
-              grid={gridViewModel}
-              onCellClick={(cellId) => {
-                if (interactionMode === 'move') {
-                  handleMoveCombatant(cellId)
-                  const combatant = activeCombatant
-                  const remaining = combatant?.turnResources?.movementRemaining ?? 0
-                  const cellFeet = gridViewModel.cellFeet
-                  if (remaining <= cellFeet) setInteractionMode('select-target')
-                  return
-                }
-                const occupant = encounterState.placements?.find((p) => p.cellId === cellId)
-                if (occupant) setSelectedActionTargetId(occupant.combatantId)
-              }}
-            />
-          ) : undefined
-        }
-        allyLane={
-          <CombatLane title="Allies" description="Party members in this encounter.">
-            <Stack spacing={1.5}>
-              {encounterState.partyCombatantIds.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
-                  No ally combatants.
-                </Typography>
-              ) : (
-                encounterState.partyCombatantIds.map((id) => {
-                  const combatant = encounterState.combatantsById[id]
-                  if (!combatant) return null
-                  return (
-                    <AllyCombatantActivePreviewCard
-                      key={id}
-                      combatant={combatant}
-                      isCurrentTurn={id === activeCombatantId}
-                      isSelected={id === selectedActionTargetId}
-                      onClick={() => setSelectedActionTargetId(id)}
-                    />
-                  )
-                })
-              )}
-            </Stack>
-          </CombatLane>
-        }
-        opponentLane={
-          <CombatLane title="Opponents" description="Enemy combatants in this encounter.">
-            <Stack spacing={1.5}>
-              {encounterState.enemyCombatantIds.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
-                  No opponent combatants.
-                </Typography>
-              ) : (
-                encounterState.enemyCombatantIds.map((id) => {
-                  const combatant = encounterState.combatantsById[id]
-                  if (!combatant) return null
-                  return (
-                    <OpponentCombatantActivePreviewCard
-                      key={id}
-                      combatant={combatant}
-                      isCurrentTurn={id === activeCombatantId}
-                      isSelected={id === selectedActionTargetId}
-                      onClick={() => setSelectedActionTargetId(id)}
-                    />
-                  )
-                })
-              )}
-            </Stack>
-          </CombatLane>
-        }
-        combatLog={<CombatLogPanel log={encounterState.log} />}
-      />
-    </EncounterView>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {activeHeader}
+
+      <AppToast
+        open={toastOpen && toastPayload != null}
+        onClose={() => setToastOpen(false)}
+        title={toastPayload?.title ?? ''}
+        tone={toastPayload?.tone ?? 'info'}
+        mechanics={toastPayload?.mechanics || undefined}
+      >
+        {toastPayload?.narrative || undefined}
+      </AppToast>
+
+      <Box sx={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        {gridViewModel && (
+          <EncounterGrid
+            grid={gridViewModel}
+            zoom={zoom}
+            pan={pan}
+            onPanChange={setPan}
+            renderTokenPopover={renderTokenPopover}
+            onCellClick={handleCellClick}
+          />
+        )}
+
+        <ZoomControl
+          zoom={zoom}
+          min={MIN_ZOOM}
+          max={MAX_ZOOM}
+          step={ZOOM_STEP}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onReset={handleZoomReset}
+        />
+
+        <EncounterActiveSidebar
+          encounterState={encounterState}
+          activeCombatantId={activeCombatantId}
+          selectedTargetId={selectedActionTargetId}
+          onSelectTarget={(combatantId) => {
+            setSelectedActionTargetId(combatantId)
+            setActionDrawerOpen(true)
+          }}
+        />
+      </Box>
+
+      {actionDrawerCombatant && (
+        actionDrawerCombatant.side === 'party' ? (
+          <AllyActionDrawer
+            open={actionDrawerOpen}
+            onClose={() => setActionDrawerOpen(false)}
+            combatant={actionDrawerCombatant}
+            availableActions={availableActions}
+            selectedActionId={selectedActionId}
+            onSelectAction={setSelectedActionId}
+            selectedCasterOptions={selectedCasterOptions}
+            onCasterOptionsChange={setSelectedCasterOptions}
+            targetLabel={targetCombatant?.source.label}
+            canResolveAction={canResolveAction}
+            onResolveAction={handleResolveAction}
+            onEndTurn={handleNextTurn}
+          />
+        ) : (
+          <OpponentActionDrawer
+            open={actionDrawerOpen}
+            onClose={() => setActionDrawerOpen(false)}
+            combatant={actionDrawerCombatant}
+            availableActions={availableActions}
+            selectedActionId={selectedActionId}
+            onSelectAction={setSelectedActionId}
+            selectedCasterOptions={selectedCasterOptions}
+            onCasterOptionsChange={setSelectedCasterOptions}
+            targetLabel={targetCombatant?.source.label}
+            canResolveAction={canResolveAction}
+            onResolveAction={handleResolveAction}
+            onEndTurn={handleNextTurn}
+          />
+        )
+      )}
+    </Box>
   )
 }

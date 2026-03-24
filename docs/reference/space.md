@@ -50,7 +50,7 @@ src/features/encounter/space/
 
 ### Grid view model
 
-`selectGridViewModel` flattens `EncounterSpace` + `CombatantPosition[]` into a flat `GridCellViewModel[]` for UI rendering. Each cell carries `isActive`, `isSelectedTarget`, `isInRange`, and `isReachable` flags.
+`selectGridViewModel` flattens `EncounterSpace` + `CombatantPosition[]` into a flat `GridCellViewModel[]` for UI rendering. Each cell carries `isActive`, `isSelectedTarget`, `isInRange`, and `isReachable` flags. The `showReachable` option is driven by movement budget (`movementRemaining > 0`) so reachable cells highlight automatically at the start of each turn without requiring an explicit mode toggle.
 
 ### Movement
 
@@ -103,4 +103,4 @@ Current naming intentionally distinguishes *in-range by metric* (`selectCellsWit
 | `CombatantAttackRange` | `combatant.types.ts` | Discriminated union: melee (rangeFt) or ranged (normalFt, longFt) |
 | `GridCellViewModel` | `space.selectors.ts` | UI-ready cell with highlight flags |
 | `GridViewModel` | `space.selectors.ts` | Complete grid for rendering |
-| `InteractionMode` | `EncounterActiveFooter.tsx` | `'select-target' \| 'move'` UI mode |
+| `GridInteractionMode` | `encounter-interaction.types.ts` | `'select-target' \| 'move'` UI mode |

@@ -2,12 +2,9 @@ import React from 'react';
 import Alert, { type AlertProps } from '@mui/material/Alert';
 import type { SxProps, Theme } from '@mui/material/styles';
 
-export type AppAlertTone =
-  | 'default'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger';
+import { mapAppAlertToneToMuiSeverity, type AppAlertTone } from '../appTone';
+
+export type { AppAlertTone };
 
 export interface AppAlertProps {
   children: React.ReactNode;
@@ -18,14 +15,6 @@ export interface AppAlertProps {
   sx?: SxProps<Theme>;
   onClose?: () => void;
 }
-
-const toneToSeverity: Record<AppAlertTone, AlertProps['severity']> = {
-  default: 'info',
-  info: 'info',
-  success: 'success',
-  warning: 'warning',
-  danger: 'error',
-};
 
 export const AppAlert = ({
   children,
@@ -38,7 +27,7 @@ export const AppAlert = ({
 }: AppAlertProps) => {
   return (
     <Alert
-      severity={toneToSeverity[tone]}
+      severity={mapAppAlertToneToMuiSeverity(tone)}
       variant={variant}
       icon={icon}
       action={action}

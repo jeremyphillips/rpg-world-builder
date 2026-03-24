@@ -15,6 +15,13 @@ export type { SelectionCheckmarkProps } from './SelectionCheckmark'
 export { default as AppAlert } from './AppAlert/AppAlert'
 export type { AppAlertProps, AppAlertTone } from './AppAlert/AppAlert'
 
+export { mapAppAlertToneToMuiSeverity } from './appTone'
+
+export { default as AppToast } from './AppToast/AppToast'
+export type { AppToastProps } from './AppToast/AppToast'
+
+export { encounterActiveBarSx } from './encounterActiveBarLayout'
+
 export { default as AppTooltip } from './AppTooltip'
 export type { AppTooltipProps } from './AppTooltip'
 export { AppTooltipWrap } from './AppTooltipWrap'
