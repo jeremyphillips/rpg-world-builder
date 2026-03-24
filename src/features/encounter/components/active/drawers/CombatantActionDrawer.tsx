@@ -124,10 +124,17 @@ function groupActionsByCategory(actions: CombatActionDefinition[]): CategoryGrou
 // ---------------------------------------------------------------------------
 
 const MAX_RECOMMENDED = 3
-const MIN_ACTIONS_FOR_RECOMMENDED = 4
 
 function hasSequence(action: CombatActionDefinition): boolean {
   return action.sequence != null && action.sequence.length > 0
+}
+
+const CATEGORY_SORT_PRIORITY: Record<string, number> = {
+  attack: 0,
+  heal: 1,
+  buff: 2,
+  utility: 3,
+  item: 4,
 }
 
 function deriveRecommendedActions(
@@ -147,9 +154,6 @@ function deriveRecommendedActions(
 
   if (candidates.length === 0) return []
 
-  const hasHighValue = candidates.some(hasSequence)
-  if (actions.length < MIN_ACTIONS_FOR_RECOMMENDED && !hasHighValue) return []
-
   const multiattackChildLabels = new Set<string>()
   for (const c of candidates) {
     if (hasSequence(c)) {
@@ -159,7 +163,8 @@ function deriveRecommendedActions(
     }
   }
 
-  const filtered = hasHighValue
+  const hasMultiattack = multiattackChildLabels.size > 0
+  const filtered = hasMultiattack
     ? candidates.filter((c) => hasSequence(c) || !multiattackChildLabels.has(c.label))
     : candidates
 
@@ -168,9 +173,9 @@ function deriveRecommendedActions(
     const bSeq = hasSequence(b) ? 0 : 1
     if (aSeq !== bSeq) return aSeq - bSeq
 
-    const aAttack = deriveActionPresentation(a).category === 'attack' ? 0 : 1
-    const bAttack = deriveActionPresentation(b).category === 'attack' ? 0 : 1
-    if (aAttack !== bAttack) return aAttack - bAttack
+    const aCat = CATEGORY_SORT_PRIORITY[deriveActionPresentation(a).category] ?? 99
+    const bCat = CATEGORY_SORT_PRIORITY[deriveActionPresentation(b).category] ?? 99
+    if (aCat !== bCat) return aCat - bCat
 
     return a.label.localeCompare(b.label)
   })
