@@ -1,4 +1,13 @@
+import { AppBadge } from '@/ui/primitives'
+import type { AppBadgeTone } from '@/ui/types'
 import { HorizontalCompactActionCard } from '@/ui/patterns'
+import type { ActionBadgeDescriptor } from '../../../domain/badges/action/combat-action-badges.types'
+import type { CombatStateTone } from '../../../domain/effects/presentable-effects.types'
+
+function badgeToneToAppBadgeTone(tone: CombatStateTone): AppBadgeTone {
+  if (tone === 'neutral') return 'default'
+  return tone
+}
 
 export type ActionRowBaseProps = {
   isSelected: boolean
@@ -6,7 +15,7 @@ export type ActionRowBaseProps = {
   onSelect?: () => void
   name: React.ReactNode
   secondLine?: React.ReactNode
-  badges: React.ReactNode
+  badges: ActionBadgeDescriptor[]
   footerActionTo?: string
   footerActionLabel?: string
   footerActionOpenInNewTab?: boolean
@@ -31,7 +40,19 @@ export function ActionRowBase({
       headline={name}
       titleVariant="body2"
       subheadline={secondLine}
-      titleBadges={badges}
+      titleBadges={
+        badges.length > 0
+          ? badges.map((b) => (
+              <AppBadge
+                key={`${b.kind}-${b.label}`}
+                label={b.label}
+                tone={badgeToneToAppBadgeTone(b.tone)}
+                variant="outlined"
+                size="small"
+              />
+            ))
+          : undefined
+      }
       footerActionTo={footerActionTo}
       footerActionLabel={footerActionLabel}
       footerActionOpenInNewTab={footerActionOpenInNewTab}

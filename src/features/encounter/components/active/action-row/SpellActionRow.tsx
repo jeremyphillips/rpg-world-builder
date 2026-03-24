@@ -2,18 +2,19 @@ import { useParams } from 'react-router-dom'
 import Typography from '@mui/material/Typography'
 
 import { ROUTES } from '@/app/routes'
-import { AppBadge } from '@/ui/primitives'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
+import type { ActionBadgeDescriptor } from '../../../domain/badges/action/combat-action-badges.types'
 import { ActionRowBase } from './ActionRowBase'
 
 type SpellActionRowProps = {
   action: CombatActionDefinition
+  badges: ActionBadgeDescriptor[]
   isSelected: boolean
   isAvailable?: boolean
   onSelect?: () => void
 }
 
-export function SpellActionRow({ action, isSelected, isAvailable = true, onSelect }: SpellActionRowProps) {
+export function SpellActionRow({ action, badges, isSelected, isAvailable = true, onSelect }: SpellActionRowProps) {
   const { id: campaignId } = useParams<{ id: string }>()
   const meta = action.displayMeta?.source === 'spell' ? action.displayMeta : undefined
 
@@ -42,25 +43,7 @@ export function SpellActionRow({ action, isSelected, isAvailable = true, onSelec
           </Typography>
         ) : undefined
       }
-      badges={
-        <>
-          <AppBadge label={action.resolutionMode} tone="default" variant="outlined" size="small" />
-          {action.saveProfile && (
-            <AppBadge
-              label={`${action.saveProfile.ability.toUpperCase()} DC ${action.saveProfile.dc}`}
-              tone="default"
-              variant="outlined"
-              size="small"
-            />
-          )}
-          {meta?.range && (
-            <AppBadge label={meta.range} tone="default" variant="outlined" size="small" />
-          )}
-          {meta?.concentration && (
-            <AppBadge label="concentration" tone="default" variant="outlined" size="small" />
-          )}
-        </>
-      }
+      badges={badges}
     />
   )
 }

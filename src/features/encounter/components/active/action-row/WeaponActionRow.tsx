@@ -1,43 +1,23 @@
-import { AppBadge } from '@/ui/primitives'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
-import { formatSigned } from '../../../helpers'
+import type { ActionBadgeDescriptor } from '../../../domain/badges/action/combat-action-badges.types'
 import { ActionRowBase } from './ActionRowBase'
 
 type WeaponActionRowProps = {
   action: CombatActionDefinition
+  badges: ActionBadgeDescriptor[]
   isSelected: boolean
   isAvailable?: boolean
   onSelect?: () => void
 }
 
-export function WeaponActionRow({ action, isSelected, isAvailable = true, onSelect }: WeaponActionRowProps) {
-  const meta = action.displayMeta?.source === 'weapon' ? action.displayMeta : undefined
-  const ap = action.attackProfile
-
+export function WeaponActionRow({ action, badges, isSelected, isAvailable = true, onSelect }: WeaponActionRowProps) {
   return (
     <ActionRowBase
       isSelected={isSelected}
       isAvailable={isAvailable}
       onSelect={onSelect}
       name={action.label}
-      badges={
-        <>
-          {ap && (
-            <AppBadge label={`${formatSigned(ap.attackBonus)} to hit`} tone="default" variant="outlined" size="small" />
-          )}
-          {meta?.range && (
-            <AppBadge label={meta.range} tone="default" variant="outlined" size="small" />
-          )}
-          {ap?.damage && (
-            <AppBadge
-              label={ap.damageType ? `${ap.damage} ${ap.damageType}` : ap.damage}
-              tone="default"
-              variant="outlined"
-              size="small"
-            />
-          )}
-        </>
-      }
+      badges={badges}
     />
   )
 }

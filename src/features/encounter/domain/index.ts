@@ -9,6 +9,11 @@ export type {
   EncounterDamageDefenseBadge,
   EncounterDefenseBadges,
 } from './badges/defense/encounter-defense-badges.types'
+export { deriveCombatActionBadges } from './badges/action/combat-action-badges'
+export type {
+  ActionBadgeDescriptor,
+  ActionBadgeKind,
+} from './badges/action/combat-action-badges.types'
 export {
   collectPresentableEffects,
   enrichPresentableEffects,
