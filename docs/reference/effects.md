@@ -76,6 +76,8 @@ Authored `targeting` with `creatures-in-area` and `area` (cone, sphere, line, et
 **What the spell combat adapter does**
 
 - Area-style spells are mapped to **`all-enemies`** action targeting (`buildSpellTargeting` in `spell-combat-adapter.ts`).
+- **`CombatActionTargetingProfile.rangeFt`** is set from spell range (distance/touch) for ranged/touch AoE, or — for **`range: self`** spells with an authored **`area`** — coarsely from **`area.size`** (maximum reach from the caster; not template intersection).
+- When the encounter has **`EncounterState.space`** and **`placements`**, **`isValidActionTarget`** enforces caster-to-target distance against **`rangeFt`** (Chebyshev grid distance). This does **not** replace full area geometry; it is a distance band only.
 - Resolution uses **`getActionTargetCandidates`**: every **living enemy** combatant that passes `isValidActionTarget` can receive the spell’s effects — there is **no** check that a creature lies inside the authored `area` or origin point.
 
 **What is not modeled**

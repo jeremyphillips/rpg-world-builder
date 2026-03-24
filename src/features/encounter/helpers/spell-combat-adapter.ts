@@ -150,14 +150,26 @@ function buildSpellTargeting(spell: Spell): CombatActionTargetingProfile {
   if (hasHealing) return { kind: 'single-creature', ...sight, ...rangeField }
   const hasSpawn = effects.some((e) => e.kind === 'spawn')
   if (hasSpawn) return { kind: 'none', ...sight }
+
+  const primaryTargeting = getSpellTargetingEffect(spell)
+  if (
+    primaryTargeting?.kind === 'targeting' &&
+    (primaryTargeting.area != null || primaryTargeting.target === 'creatures-in-area')
+  ) {
+    const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
+    const areaRangeField =
+      spell.range?.kind === 'self' && primaryTargeting.area != null
+        ? { rangeFt: primaryTargeting.area.size }
+        : rangeField
+    return { kind: 'all-enemies', creatureTypeFilter, ...sight, ...areaRangeField }
+  }
+
   if (spell.range?.kind === 'self') return { kind: 'self' }
   const targeting = effects.find((e) => e.kind === 'targeting')
   const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
   if (targeting?.kind === 'targeting' && targeting.requiresWilling) {
     return { kind: 'single-target', creatureTypeFilter, requiresWilling: true, ...sight, ...rangeField }
   }
-  if (targeting?.kind === 'targeting' && targeting.area) return { kind: 'all-enemies', creatureTypeFilter, ...rangeField }
-  if (targeting?.kind === 'targeting' && targeting.target === 'creatures-in-area') return { kind: 'all-enemies', creatureTypeFilter, ...rangeField }
   return { kind: 'single-target', creatureTypeFilter, ...sight, ...rangeField }
 }
 
