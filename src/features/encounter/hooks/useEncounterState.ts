@@ -185,11 +185,13 @@ export function useEncounterState({
 
   useEffect(() => {
     if (!selectedActionTargetId) return
+    // Allow choosing a target before an action; validate against the action once selected.
+    if (!selectedAction) return
     const validTargetIds = new Set(availableActionTargets.map((target) => target.id))
     if (!validTargetIds.has(selectedActionTargetId)) {
       setSelectedActionTargetId('')
     }
-  }, [availableActionTargets, selectedActionTargetId])
+  }, [availableActionTargets, selectedAction, selectedActionTargetId])
 
   useEffect(() => {
     const action = availableActions.find((a) => a.id === selectedActionId) ?? null
