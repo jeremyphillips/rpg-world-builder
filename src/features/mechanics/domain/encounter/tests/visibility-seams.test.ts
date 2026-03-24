@@ -61,7 +61,7 @@ function enemy(id: string, label: string, hp: number, extra?: Partial<CombatantI
 }
 
 describe('visibility seams', () => {
-  it('lineOfSightClear and lineOfEffectClear are true stubs', () => {
+  it('lineOfSightClear and lineOfEffectClear are clear when no grid (no space/placements)', () => {
     const a = pc('a', 'A', 10)
     const b = enemy('b', 'B', 10)
     const state = createEncounterState([a, b], { rng: () => 0.5 })

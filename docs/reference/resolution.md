@@ -138,7 +138,7 @@ The encounter action system resolves combat actions against encounter state:
 **Targeting profile fields:**
 
 - `requiresWilling` — when `true` on `single-target`, valid targets are same-side only (caster + allies); “willing” is approximated as allies until explicit consent exists. Such actions are **non-hostile** for charm / hostile-action rules. Authored on spells via `targeting.requiresWilling` in spell effects.
-- `requiresSight` — when `true` (spell `targeting.requiresSight` → `buildSpellCombatActions`), valid targets must pass `canSeeForTargeting` in `encounter/state/visibility-seams.ts`: not blinded (via `canSee`), invisible targets blocked unless the observer has the See Invisibility state, and LOS/LoE geometry stubs (currently always `true`). Not applied to `self`, `none`, or `all-enemies` (area mapping does not validate per-creature sight).
+- `requiresSight` — when `true` (spell `targeting.requiresSight` → `buildSpellCombatActions`), valid targets must pass `canSeeForTargeting` in `encounter/state/visibility-seams.ts`: not blinded (via `canSee`), invisible targets blocked unless the observer has the See Invisibility state, and grid **line of sight** when `EncounterSpace` and placements exist (`hasLineOfSight` in `encounter/space/space.sight.ts` via `lineOfSightClear`). When there is no tactical grid, geometry defaults to clear. Not applied to `self`, `none`, or `all-enemies` (area mapping does not validate per-creature sight).
 - `suppressSameSideHostileActions` — passed through `ResolveCombatActionOptions` (default **true** when omitted: legacy “no friendly fire”). When **true**, hostile `single-target` actions cannot target same-side combatants. When **false**, core resolution allows same-side targets (e.g. PC vs PC). Campaign/app code can drive this from `mechanics.combat.encounter.suppressSameSideHostile` on the ruleset.
 
 **Targeting query layer** (`action-targeting.ts`):
@@ -149,7 +149,7 @@ Targeting validation is centralized so the resolver and UI share a single source
 - `getActionTargetCandidates(state, actor, action, options?)` — returns all combatants that pass `isValidActionTarget`. **Initiative order** for most kinds; for **`dead-creature`**, also includes combatants in `combatantsById` that are **missing from `initiativeOrder`** (e.g. corpses dropped when a new round re-rolls initiative from living participants only in `advanceEncounterTurn`). Used by the UI to populate the target picker.
 - `getActionTargets(state, actor, selection, action, options?)` — resolves the actual target(s) for a selected action. Handles selection-specific concerns (targetId lookup, `self` auto-targeting, no-target fallbacks) and delegates validation to `isValidActionTarget`.
 
-**LOS / visibility seams** (`visibility-seams.ts`): `lineOfSightClear` and `lineOfEffectClear` are compatibility stubs returning `true` until grid or terrain exists. `canSeeForTargeting` is the single entry point for “can I select this target for a sight-required action?”; replace the stubs later without changing call sites.
+**LOS / visibility seams** (`visibility-seams.ts`): `lineOfSightClear` / `lineOfEffectClear` delegate to `hasLineOfSight` when `EncounterSpace` and placements exist; otherwise they stay **clear** for backwards compatibility. `canSeeForTargeting` is the single entry point for “can I select this target for a sight-required action?” Geometry is **binary** LoS only (see `docs/reference/space.md`).
 
 ### 4.5 Condition Consequence Framework
 

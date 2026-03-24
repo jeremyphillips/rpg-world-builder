@@ -21,7 +21,8 @@ src/features/encounter/space/
 ├── createSquareGridSpace.ts        # Factory: square-grid EncounterSpace
 ├── createZoneGridSpace.ts          # Factory: zone-grid EncounterSpace
 ├── generateInitialPlacements.ts    # Side-based initial combatant placement
-└── placeRandomGridObstacle.ts      # Optional single random obstruction from environment
+├── placeRandomGridObstacle.ts      # Optional single random obstruction from environment
+└── space.sight.ts                  # Line of sight: supercover line + hasLineOfSight / cellBlocksSight
 ```
 
 ## 3. Current Functionality
@@ -63,6 +64,15 @@ When an encounter is started from setup, the app may call **`placeRandomGridObst
 
 `selectGridViewModel` flattens `EncounterSpace` + `CombatantPosition[]` into a flat `GridCellViewModel[]` for UI rendering. Each cell carries `isActive`, `isSelectedTarget`, `isInRange`, and `isReachable` flags, plus **`obstacleKind` / `obstacleLabel`** when the cell has an entry in `space.obstacles`. The active grid shows a small corner marker and a **hover tooltip** with the obstruction name (`Tree` or `Pillar`). The `showReachable` option is driven by movement budget (`movementRemaining > 0`) so reachable cells highlight automatically at the start of each turn without requiring an explicit mode toggle.
 
+### Line of sight (binary, first pass)
+
+`space.sight.ts` implements **binary** line of sight on the square grid for shared use by spells, ranged/thrown attacks, and any feature that needs “can I draw a line?” — not spell-specific.
+
+- **Line geometry:** The segment runs between **cell centers** of the source and target cells `(x+0.5, y+0.5)`. The set of cells visited is a **grid supercover** using an **Amanatides & Woo–style DDA** (each unit cell the segment intersects). When a ray hits a **corner** between two cells, the tie branch steps **diagonally** so both grid steps are included.
+- **Blocking:** `cellBlocksSight(space, cellId)` is the **only** resolver for opaque sight blockers; it reads `EncounterCell.blocksSight`. **Intermediate** cells on the path may block; **source and target cells do not** block their own endpoints (occupants on those squares do not apply blocking in this first pass).
+- **API:** `hasLineOfSight(space, fromCellId, toCellId)`; `traceLineOfSightCells` is mainly for tests and debugging.
+- **Targeting:** `canSeeForTargeting` in `visibility-seams.ts` composes condition-based sight (e.g. blinded, invisible) with `lineOfSightClear`, which calls `hasLineOfSight` when `EncounterSpace` and placements exist. **Cover** and **obscurement** are out of scope here; future `deriveCoverLevel` would sit beside LoS, not inside it.
+
 ### Movement
 
 `moveCombatant` validates distance and movement budget, deducts from `turnResources.movementRemaining`, and updates placements. 5e split movement (move-attack-move) works naturally since `movementRemaining` is persistent per-turn state.
@@ -82,7 +92,7 @@ These are intentional simplifications for the current milestone, not bugs:
 - **Character speed is hardcoded 30ft.** No race/species-based speeds. Refined when race modeling is added.
 - **No opportunity attacks.** Movement does not trigger reactions. The seam exists via `turnHooks` and `reactionAvailable`.
 - **No Disengage or Dash actions.** Dash would double `movementRemaining`; Disengage would suppress opportunity attacks. `CombatActionCost.movementFeet` exists for future action costs.
-- **No pathfinding or ray-based LOS yet.** `EncounterSpace.obstacles` and per-cell blocking flags are a data seam for future LOS; there is no line-of-sight or cover calculation. **Cover** as a combat bonus remains deferred.
+- **Pathfinding** is still geometric / not path-aware for movement highlights. **Ray-based LOS** exists for targeting (`hasLineOfSight`); **cover bonuses** and **obscurement** are still deferred.
 - **No large creature footprints.** `CombatantPosition.size` exists as a seam but is not consumed by placement, movement, or range validation.
 - **`EncounterCell.movementCost` is not consumed.** The field exists for future difficult terrain but `moveCombatant` does not read it.
 
@@ -115,4 +125,5 @@ Current naming intentionally distinguishes *in-range by metric* (`selectCellsWit
 | `CombatantAttackRange` | `combatant.types.ts` | Discriminated union: melee (rangeFt) or ranged (normalFt, longFt) |
 | `GridCellViewModel` | `space.selectors.ts` | UI-ready cell with highlight flags |
 | `GridViewModel` | `space.selectors.ts` | Complete grid for rendering |
+| `hasLineOfSight` | `space.sight.ts` | Binary LoS along supercover segment between cell centers |
 | `GridInteractionMode` | `encounter-interaction.types.ts` | `'select-target' \| 'move'` UI mode |
