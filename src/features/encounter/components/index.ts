@@ -20,7 +20,6 @@ export { AllyCombatantSetupPreviewCard } from './setup/AllyCombatantSetupPreview
 export { OpponentCombatantSetupPreviewCard } from './setup/OpponentCombatantSetupPreviewCard'
 export { AllyCombatantActivePreviewCard } from './active/AllyCombatantActivePreviewCard'
 export { OpponentCombatantActivePreviewCard } from './active/OpponentCombatantActivePreviewCard'
-// AllyCombatantActiveCard and OpponentCombatantActiveCard superseded by AllyActionDrawer / OpponentActionDrawer
 export { AllyActionDrawer } from './active/AllyActionDrawer'
 export { OpponentActionDrawer } from './active/OpponentActionDrawer'
 export { CombatantActionDrawer } from './shared/CombatantActionDrawer'
