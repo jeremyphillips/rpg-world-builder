@@ -92,6 +92,21 @@ export default function EncounterActiveRoute() {
     return ids
   }, [encounterState, activeCombatant, targetCombatant, availableActions])
 
+  const handleSelectTarget = useCallback(
+    (nextTargetId: string) => {
+      setSelectedActionTargetId(nextTargetId)
+
+      if (selectedActionId && encounterState && activeCombatant) {
+        const nextTarget = encounterState.combatantsById[nextTargetId]
+        const action = availableActions.find((a) => a.id === selectedActionId)
+        if (!nextTarget || !action || !isValidActionTarget(encounterState, nextTarget, activeCombatant, action)) {
+          setSelectedActionId('')
+        }
+      }
+    },
+    [encounterState, activeCombatant, availableActions, selectedActionId, setSelectedActionTargetId, setSelectedActionId],
+  )
+
   const canResolveAction = Boolean(
     selectedActionId &&
     selectedActionTargetId &&
@@ -128,13 +143,13 @@ export default function EncounterActiveRoute() {
 
       const occupant = encounterState.placements?.find((p) => p.cellId === cellId)
       if (occupant) {
-        setSelectedActionTargetId(occupant.combatantId)
+        handleSelectTarget(occupant.combatantId)
         setActionDrawerOpen(true)
       } else {
         handleMoveCombatant(cellId)
       }
     },
-    [encounterState, handleMoveCombatant, setSelectedActionTargetId],
+    [encounterState, handleMoveCombatant, handleSelectTarget],
   )
 
   if (!encounterState) {
@@ -185,7 +200,7 @@ export default function EncounterActiveRoute() {
           activeCombatantId={activeCombatantId}
           selectedTargetId={selectedActionTargetId}
           onSelectTarget={(combatantId) => {
-            setSelectedActionTargetId(combatantId)
+            handleSelectTarget(combatantId)
             setActionDrawerOpen(true)
           }}
         />
