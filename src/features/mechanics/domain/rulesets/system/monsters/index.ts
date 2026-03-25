@@ -24,7 +24,6 @@ function toSystemMonster(systemId: SystemRulesetId, raw: MonsterFields): Monster
   return {
     ...raw,
     source: 'system',
-    imageKey: null,
     accessPolicy: undefined,
     patched: false,
     systemId,

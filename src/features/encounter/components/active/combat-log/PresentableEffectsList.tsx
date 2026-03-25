@@ -3,18 +3,19 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { AppBadge, AppTooltip } from '@/ui/primitives'
-import type { AppBadgeTone } from '@/ui/types'
 
 import {
   collectPresentableEffects,
   enrichPresentableEffects,
   getSectionOrder,
+  getUserFacingEffectLabel,
   groupBySection,
   shouldShowPresentationInHeader,
   sortByPriority,
 } from '../../../domain'
 import type { CombatStateSection, EnrichedPresentableEffect } from '../../../domain'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import { combatToneToAppBadgeTone } from '../../shared/cards/combatant-badges'
 
 const SECTION_LABELS: Record<CombatStateSection, string> = {
   'critical-now': 'Critical Now',
@@ -24,26 +25,19 @@ const SECTION_LABELS: Record<CombatStateSection, string> = {
   'system-details': 'System Details',
 }
 
-function toneToAppBadgeTone(
-  tone: EnrichedPresentableEffect['presentation']['tone'],
-): AppBadgeTone {
-  if (tone === 'neutral') return 'default'
-  return tone
-}
-
 function EffectChip({ effect }: { effect: EnrichedPresentableEffect }) {
   const boundaryPrefix =
     effect.kind === 'trigger' && 'boundary' in effect
       ? `${effect.boundary === 'start' ? 'Start' : 'End'}: `
       : ''
-  const displayLabel = effect.summary ?? effect.label
+  const displayLabel = getUserFacingEffectLabel(effect)
   const withBoundary = `${boundaryPrefix}${displayLabel}`
   const withDuration = effect.duration ? `${withBoundary} (${effect.duration})` : withBoundary
   const tooltip = effect.presentation.rulesText
   const badge = (
     <AppBadge
       label={withDuration}
-      tone={toneToAppBadgeTone(effect.presentation.tone)}
+      tone={combatToneToAppBadgeTone(effect.presentation.tone)}
       variant="outlined"
       size="small"
     />

@@ -39,7 +39,6 @@ export {
 export {
   buildCharacterCombatantInstance,
   buildMonsterCombatantInstance,
-  formatRuntimeLabel,
   formatSigned,
   formatAuthoredDamage,
   formatDice,

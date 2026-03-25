@@ -101,6 +101,11 @@ export type CombatActionDisplayMeta =
   | { source: 'spell'; spellId: string; level: number; concentration: boolean; concentrationDurationTurns?: number; range: string; summary?: string }
   | { source: 'natural'; attackType: string; reach?: number; description?: string }
 
+/** First-pass AoE: grid placement uses Chebyshev distance as a sphere approximation. */
+export type CombatActionAreaTemplate =
+  | { kind: 'sphere'; radiusFt: number }
+  | { kind: 'cube'; edgeFt: number }
+
 export interface CombatActionDefinition {
   id: string
   label: string
@@ -131,4 +136,11 @@ export interface CombatActionDefinition {
   hostileApplication?: boolean
   /** From spell `resolution.casterOptions`; encounter UI collects values before resolve. */
   casterOptions?: CasterOptionField[]
+  /**
+   * When set, `all-enemies` resolution filters to creatures in this area on the grid (requires `aoeOriginCellId` in selection).
+   * Omit for legacy “all enemies in spell range” without geometry.
+   */
+  areaTemplate?: CombatActionAreaTemplate
+  /** Remote grid point vs centered on caster (self-range emanation). */
+  areaPlacement?: 'remote' | 'self'
 }

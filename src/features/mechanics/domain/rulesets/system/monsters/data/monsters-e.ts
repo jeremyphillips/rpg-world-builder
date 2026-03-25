@@ -26,7 +26,7 @@ export const MONSTERS_E: readonly MonsterCatalogEntry[] = [
         passivePerception: 10,
       },
       vulnerabilities: ['thunder'],
-      immunities: ['poison', 'exhaustion', 'paralyzed', 'petrified', 'poisoned', 'unconscious'],
+      immunities: ['poison', 'exhaustion', 'paralyzed', 'petrified', 'unconscious'],
       proficiencyBonus: 3,
       traits: [
         {

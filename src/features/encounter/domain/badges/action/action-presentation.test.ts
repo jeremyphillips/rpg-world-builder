@@ -122,7 +122,7 @@ describe('deriveActionPresentation', () => {
         minimalAction({
           kind: 'spell',
           resolutionMode: 'saving-throw',
-          saveProfile: { ability: 'dexterity', dc: 15 },
+          saveProfile: { ability: 'dex', dc: 15 },
           displayMeta: { source: 'spell', spellId: 'sacred-flame', level: 0, concentration: false, range: '60ft' },
         }),
       )

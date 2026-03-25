@@ -2,6 +2,7 @@ export { CombatLane } from './setup/roster/CombatLane'
 export { AllyRosterLane } from './setup/roster/AllyRosterLane'
 export { OpponentRosterLane } from './setup/roster/OpponentRosterLane'
 export { CombatantPreviewCard } from './shared/cards/CombatantPreviewCard'
+export { CombatantAvatar } from './shared/CombatantAvatar'
 export { CombatLogEntryGroup } from './active/combat-log/CombatLogEntry'
 export { TurnOrderList } from './active/modals/TurnOrderList'
 export type { TurnOrderEntry } from './active/modals/TurnOrderList'
@@ -21,7 +22,10 @@ export { AllyCombatantActivePreviewCard } from './active/cards/AllyCombatantActi
 export { OpponentCombatantActivePreviewCard } from './active/cards/OpponentCombatantActivePreviewCard'
 export { AllyActionDrawer } from './active/drawers/AllyActionDrawer'
 export { OpponentActionDrawer } from './active/drawers/OpponentActionDrawer'
-export { CombatantActionDrawer } from './active/drawers/CombatantActionDrawer'
+export {
+  CombatantActionDrawer,
+  useCloseCombatantActionDrawerOnActiveCombatantChange,
+} from './active/drawers/CombatantActionDrawer'
 export type { CombatantStatBadge, CombatantTrackedPartBadge } from './shared/cards/combatant-badges'
 export {
   CombatantCoreBadgeRow,

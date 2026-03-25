@@ -23,11 +23,13 @@ import {
   type ManualMonsterTriggerContext,
   type MonsterFormContext,
 } from '@/features/mechanics/domain/encounter'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import { buildDefaultCasterOptions } from '@/features/mechanics/domain/spells/caster-options'
 import type { Armor } from '@/features/content/equipment/armor/domain/types/armor.types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types/weapon.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import { buildSummonAllyMonsterCombatant } from '../helpers/encounter-helpers'
+import type { AoeStep } from '../helpers/area-grid-action'
 
 import type { OpponentRosterEntry } from '../types'
 import type { EncounterSpace, InitialPlacementOptions } from '../space'
@@ -67,6 +69,15 @@ export function useEncounterState({
   const [selectedActionId, setSelectedActionId] = useState('')
   const [selectedActionTargetId, setSelectedActionTargetId] = useState('')
   const [selectedCasterOptions, setSelectedCasterOptions] = useState<Record<string, string>>({})
+  const [aoeStep, setAoeStep] = useState<AoeStep>('none')
+  const [aoeOriginCellId, setAoeOriginCellId] = useState<string | null>(null)
+  const [aoeHoverCellId, setAoeHoverCellId] = useState<string | null>(null)
+
+  const resetAoePlacement = useCallback(() => {
+    setAoeStep('none')
+    setAoeOriginCellId(null)
+    setAoeHoverCellId(null)
+  }, [])
 
   const combatLogAppendedRef = useRef<((events: CombatLogEvent[]) => void) | undefined>(undefined)
   const registerCombatLogAppended = useCallback(
@@ -100,11 +111,11 @@ export function useEncounterState({
   )
   const availableActionTargets = useMemo(() => {
     if (!encounterState || !activeCombatant || !selectedAction) return []
-    return getActionTargetCandidates(encounterState, activeCombatant, selectedAction)
-      .map((combatant) => ({
-        id: combatant.instanceId,
-        label: combatant.source.label,
-      }))
+    const roster = Object.values(encounterState.combatantsById)
+    return getActionTargetCandidates(encounterState, activeCombatant, selectedAction).map((combatant) => ({
+      id: combatant.instanceId,
+      label: getCombatantDisplayLabel(combatant, roster),
+    }))
   }, [activeCombatant, encounterState, selectedAction])
   const controlTargetCombatant =
     encounterState && controlTargetId ? encounterState.combatantsById[controlTargetId] : null
@@ -164,10 +175,15 @@ export function useEncounterState({
   }, [environmentContext, monsterFormsById, monsterManualTriggersById])
 
   useEffect(() => {
+    resetAoePlacement()
+  }, [activeCombatantId, resetAoePlacement])
+
+  useEffect(() => {
     if (!encounterState) {
       setControlTargetId('')
       setSelectedActionId('')
       setSelectedActionTargetId('')
+      resetAoePlacement()
       return
     }
 
@@ -175,7 +191,7 @@ export function useEncounterState({
     if (!controlTargetId || !validIds.has(controlTargetId)) {
       setControlTargetId(encounterState.activeCombatantId ?? encounterState.initiativeOrder[0] ?? '')
     }
-  }, [controlTargetId, encounterState])
+  }, [controlTargetId, encounterState, resetAoePlacement])
 
   useEffect(() => {
     if (selectedActionId && !availableActions.some((action) => action.id === selectedActionId)) {
@@ -254,6 +270,7 @@ export function useEncounterState({
           targetId: selectedActionTargetId || undefined,
           actionId: selectedActionId,
           casterOptions: selectedCasterOptions,
+          aoeOriginCellId: aoeOriginCellId || undefined,
         },
         { monstersById, buildSummonAllyCombatant },
       )
@@ -263,7 +280,18 @@ export function useEncounterState({
       }
       return next
     })
-  }, [selectedActionId, selectedActionTargetId, selectedCasterOptions, monstersById, buildSummonAllyCombatant])
+    resetAoePlacement()
+    setSelectedActionId('')
+    setSelectedActionTargetId('')
+  }, [
+    selectedActionId,
+    selectedActionTargetId,
+    selectedCasterOptions,
+    aoeOriginCellId,
+    monstersById,
+    buildSummonAllyCombatant,
+    resetAoePlacement,
+  ])
 
   function handleResetEncounter() {
     setEncounterState(null)
@@ -384,6 +412,13 @@ export function useEncounterState({
     setSelectedCasterOptions,
     selectedActionTargetId,
     setSelectedActionTargetId,
+    aoeStep,
+    setAoeStep,
+    aoeOriginCellId,
+    setAoeOriginCellId,
+    aoeHoverCellId,
+    setAoeHoverCellId,
+    resetAoePlacement,
     unresolvedCombatantCount,
     selectedCombatants,
     controlTargetId,

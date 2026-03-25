@@ -8,6 +8,17 @@ export type EncounterSpaceScale =
   | { kind: 'zone' }
   | { kind: 'grid'; cellFeet: 5 | 10 };
 
+/** Tactical props for future LoS / movement; first pass uses tree vs pillar for visuals only. */
+export type GridObstacleKind = 'tree' | 'pillar';
+
+export type GridObstacle = {
+  id: string;
+  kind: GridObstacleKind;
+  cellId: string;
+  blocksLineOfSight: boolean;
+  blocksMovement: boolean;
+};
+
 export type EncounterSpace = {
   id: string;
   locationId?: string | null;
@@ -23,6 +34,8 @@ export type EncounterSpace = {
   cells: EncounterCell[];
   edges?: EncounterEdge[];
   features?: EncounterFeature[];
+  /** Static grid obstructions (first pass: optional single random obstacle on encounter start). */
+  obstacles?: GridObstacle[];
   scale: EncounterSpaceScale;
 
   render?: EncounterSpaceRenderMeta;

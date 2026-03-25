@@ -1,7 +1,11 @@
 import type { Spell, SpellDuration, SpellRange } from '@/features/content/spells/domain/types/spell.types'
 import type { EffectDuration } from '@/features/mechanics/domain/effects/timing.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
-import type { CombatActionDefinition, CombatActionTargetingProfile } from '@/features/mechanics/domain/encounter'
+import type {
+  CombatActionAreaTemplate,
+  CombatActionDefinition,
+  CombatActionTargetingProfile,
+} from '@/features/mechanics/domain/encounter'
 import { classifySpellResolutionMode } from './spell-resolution-classifier'
 import { deriveSpellHostility, spellHostilityToHostileApplication } from './spell-hostility'
 
@@ -117,6 +121,21 @@ function getSpellTargetingEffect(spell: Spell): Extract<Effect, { kind: 'targeti
   return spell.effects?.find((e): e is Extract<Effect, { kind: 'targeting' }> => e.kind === 'targeting')
 }
 
+/** Maps spell AoE metadata to grid placement; cone/line/cylinder omit template until modeled. */
+function deriveCombatAreaTemplate(spell: Spell): CombatActionAreaTemplate | undefined {
+  const t = getSpellTargetingEffect(spell)
+  if (t?.kind !== 'targeting' || !t.area) return undefined
+  if (t.target !== 'creatures-in-area') return undefined
+  if (t.area.kind === 'sphere') return { kind: 'sphere', radiusFt: t.area.size }
+  if (t.area.kind === 'cube') return { kind: 'cube', edgeFt: t.area.size }
+  return undefined
+}
+
+function deriveAreaPlacement(spell: Spell, hasAreaTemplate: boolean): 'remote' | 'self' | undefined {
+  if (!hasAreaTemplate) return undefined
+  return spell.range?.kind === 'self' ? 'self' : 'remote'
+}
+
 function getSpellRequiresSight(spell: Spell): boolean {
   return getSpellTargetingEffect(spell)?.requiresSight === true
 }
@@ -150,14 +169,26 @@ function buildSpellTargeting(spell: Spell): CombatActionTargetingProfile {
   if (hasHealing) return { kind: 'single-creature', ...sight, ...rangeField }
   const hasSpawn = effects.some((e) => e.kind === 'spawn')
   if (hasSpawn) return { kind: 'none', ...sight }
+
+  const primaryTargeting = getSpellTargetingEffect(spell)
+  if (
+    primaryTargeting?.kind === 'targeting' &&
+    (primaryTargeting.area != null || primaryTargeting.target === 'creatures-in-area')
+  ) {
+    const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
+    const areaRangeField =
+      spell.range?.kind === 'self' && primaryTargeting.area != null
+        ? { rangeFt: primaryTargeting.area.size }
+        : rangeField
+    return { kind: 'all-enemies', creatureTypeFilter, ...sight, ...areaRangeField }
+  }
+
   if (spell.range?.kind === 'self') return { kind: 'self' }
   const targeting = effects.find((e) => e.kind === 'targeting')
   const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
   if (targeting?.kind === 'targeting' && targeting.requiresWilling) {
     return { kind: 'single-target', creatureTypeFilter, requiresWilling: true, ...sight, ...rangeField }
   }
-  if (targeting?.kind === 'targeting' && targeting.area) return { kind: 'all-enemies', creatureTypeFilter, ...rangeField }
-  if (targeting?.kind === 'targeting' && targeting.target === 'creatures-in-area') return { kind: 'all-enemies', creatureTypeFilter, ...rangeField }
   return { kind: 'single-target', creatureTypeFilter, ...sight, ...rangeField }
 }
 
@@ -358,6 +389,9 @@ function buildSpellEffectsAction(
       )
     : undefined
 
+  const areaTemplate = deriveCombatAreaTemplate(spell)
+  const areaPlacement = deriveAreaPlacement(spell, Boolean(areaTemplate))
+
   return {
     id: `${runtimeId}-spell-${spell.id}`,
     label: spell.name,
@@ -371,6 +405,7 @@ function buildSpellEffectsAction(
     logText: buildSpellLogText(spell),
     displayMeta: buildSpellDisplayMeta(spell),
     usage,
+    ...(areaTemplate ? { areaTemplate, ...(areaPlacement ? { areaPlacement } : {}) } : {}),
   }
 }
 

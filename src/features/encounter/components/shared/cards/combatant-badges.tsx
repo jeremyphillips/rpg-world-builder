@@ -1,4 +1,5 @@
 import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
 
 import { AppBadge, AppTooltipWrap } from '@/ui/primitives'
 import type { AppBadgeTone } from '@/ui/types'
@@ -8,10 +9,14 @@ import type {
   PreviewChip,
   PreviewTone,
 } from '../../../domain'
+import type { CombatStateTone } from '../../../domain/effects/presentable-effects.types'
 
 export type { CombatantStatBadge, CombatantTrackedPartBadge } from '../../../domain'
 
-function previewToneToAppBadgeTone(tone: PreviewTone | undefined): AppBadgeTone {
+/** Shared tone mapper: CombatStateTone / PreviewTone → AppBadgeTone. */
+export function combatToneToAppBadgeTone(
+  tone: PreviewTone | CombatStateTone | undefined,
+): AppBadgeTone {
   if (!tone || tone === 'neutral') return 'default'
   return tone
 }
@@ -109,20 +114,42 @@ export function CombatantCoreBadgeRow({
   )
 }
 
-/** Preview card condition / state chips (roster lane). */
-export function CombatantPreviewChipRow({ chips }: { chips: PreviewChip[] }) {
+function chipDisplayLabel(chip: PreviewChip): string {
+  return chip.timeLabel ? `${chip.label} ${chip.timeLabel}` : chip.label
+}
+
+/** Preview card condition / state chips with optional +N overflow. */
+export function CombatantPreviewChipRow({
+  chips,
+  maxVisible,
+}: {
+  chips: PreviewChip[]
+  maxVisible?: number
+}) {
   if (!chips.length) return null
+  const visible = maxVisible != null ? chips.slice(0, maxVisible) : chips
+  const overflow = maxVisible != null ? Math.max(0, chips.length - maxVisible) : 0
+  const overflowTooltip =
+    overflow > 0 ? chips.slice(maxVisible).map((c) => c.label).join(', ') : undefined
+
   return (
-    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-      {chips.map((chip) => (
+    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap alignItems="center">
+      {visible.map((chip) => (
         <AppTooltipWrap key={chip.id} tooltip={chip.tooltip}>
           <AppBadge
-            label={chip.label}
-            tone={previewToneToAppBadgeTone(chip.tone)}
+            label={chipDisplayLabel(chip)}
+            tone={combatToneToAppBadgeTone(chip.tone)}
             size="small"
           />
         </AppTooltipWrap>
       ))}
+      {overflow > 0 && (
+        <AppTooltipWrap tooltip={overflowTooltip}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+            +{overflow}
+          </Typography>
+        </AppTooltipWrap>
+      )}
     </Stack>
   )
 }

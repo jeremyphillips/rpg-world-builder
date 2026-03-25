@@ -1,36 +1,48 @@
 import { useMemo } from 'react'
 
-import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import MonsterAvatar from '@/features/content/monsters/components/MonsterAvatar/MonsterAvatar'
+import type { Monster } from '@/features/content/monsters/domain/types'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 
-import { buildEncounterDefensePreviewChips, type CombatantPreviewCardProps, type PreviewChip, type PreviewStat } from '../../../domain'
-import {
-  CONCENTRATING_BADGE_TOOLTIP,
-  formatSigned,
-  getPreviewStatTooltip,
-  tooltipForConditionMarkerLabel,
-} from '../../../helpers'
+import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
+import { buildCombatantPreviewChips, formatSigned, getPreviewStatTooltip } from '../../../helpers'
 import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
+import { CombatantAvatar } from '../../shared/CombatantAvatar'
 
 type OpponentCombatantActivePreviewCardProps = {
   combatant: CombatantInstance
+  monstersById: Record<string, Monster>
+  characterPortraitById: Record<string, CombatantPortraitEntry>
+  allCombatants?: readonly CombatantInstance[]
   isCurrentTurn?: boolean
   isSelected?: boolean
+  showChips?: boolean
   onClick?: () => void
 }
 
 export function OpponentCombatantActivePreviewCard({
   combatant,
+  monstersById,
+  characterPortraitById,
+  allCombatants,
   isCurrentTurn = false,
   isSelected = false,
+  showChips = true,
   onClick,
 }: OpponentCombatantActivePreviewCardProps) {
-  const { catalog } = useCampaignRules()
   const isDefeated = combatant.stats.currentHitPoints <= 0
 
-  const monster = catalog.monstersById[combatant.source.sourceId]
+  const title = useMemo(
+    () =>
+      allCombatants && allCombatants.length > 0
+        ? getCombatantDisplayLabel(combatant, allCombatants)
+        : combatant.source.label,
+    [allCombatants, combatant],
+  )
+
+  const monster = monstersById[combatant.source.sourceId]
 
   const subtitle = useMemo(() => {
     if (monster) return formatMonsterIdentityLine(monster)
@@ -67,36 +79,25 @@ export function OpponentCombatantActivePreviewCard({
     }
   }
 
-  const chips: PreviewChip[] = [
-    ...(combatant.concentration
-      ? [
-          {
-            id: 'concentrating',
-            label: 'Concentrating',
-            tone: 'info' as const,
-            tooltip: CONCENTRATING_BADGE_TOOLTIP,
-          },
-        ]
-      : []),
-    ...combatant.conditions.map((c) => ({
-      id: c.id,
-      label: c.label,
-      tone: 'warning' as const,
-      tooltip: tooltipForConditionMarkerLabel(c.label),
-    })),
-    ...combatant.states.map((s) => ({ id: s.id, label: s.label, tone: 'info' as const })),
-    ...buildEncounterDefensePreviewChips(combatant),
-  ]
+  const chips = buildCombatantPreviewChips(combatant)
 
   const previewProps: CombatantPreviewCardProps = {
     id: combatant.instanceId,
     kind: 'monster',
     mode: 'active',
-    title: combatant.source.label,
+    title,
     subtitle,
-    avatar: <MonsterAvatar name={combatant.source.label} size="sm" />,
+    avatar: (
+      <CombatantAvatar
+        combatant={combatant}
+        monstersById={monstersById}
+        characterPortraitById={characterPortraitById}
+        displayName={title}
+        size="sm"
+      />
+    ),
     stats,
-    chips: chips.length > 0 ? chips : undefined,
+    chips: showChips && chips.length > 0 ? chips : undefined,
     isCurrentTurn,
     isSelected,
     isDefeated,

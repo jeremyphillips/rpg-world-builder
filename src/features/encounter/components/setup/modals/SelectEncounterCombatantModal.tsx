@@ -9,12 +9,14 @@ import Typography from '@mui/material/Typography'
 import { AppAvatar } from '@/ui/primitives'
 import { AppModal, EntitySummaryCard } from '@/ui/patterns'
 import type { ModalSize } from '@/ui/patterns'
+import { resolveImageUrl } from '@/shared/lib/media'
 
 export type CombatantOption = {
   id: string
   label: string
   subtitle?: string
-  imageUrl?: string
+  imageUrl?: string | null
+  imageKey?: string | null
   stats?: Array<{ label: string; value: string; tooltip?: string }>
 }
 
@@ -115,7 +117,13 @@ export function SelectEncounterCombatantModal({
                     }}
                   >
                     <EntitySummaryCard
-                      avatar={<AppAvatar src={option.imageUrl} name={option.label} size="sm" />}
+                      avatar={
+                        <AppAvatar
+                          src={resolveImageUrl(option.imageKey ?? option.imageUrl)}
+                          name={option.label}
+                          size="sm"
+                        />
+                      }
                       title={option.label}
                       subtitle={option.subtitle}
                       stats={option.stats}

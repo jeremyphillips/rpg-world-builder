@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography'
 import { AppModal } from '@/ui/patterns'
 import { AppBadge } from '@/ui/primitives'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 
 type TargetOption = {
   combatantId: string
@@ -151,12 +152,13 @@ export function buildTargetOptions(
   combatantsById: Record<string, CombatantInstance>,
   initiativeOrder: string[],
 ): TargetOption[] {
+  const roster = Object.values(combatantsById)
   return initiativeOrder
     .map((id) => combatantsById[id])
     .filter(Boolean)
     .map((c) => ({
       combatantId: c.instanceId,
-      label: c.source.label,
+      label: getCombatantDisplayLabel(c, roster),
       side: c.side,
       armorClass: c.stats.armorClass,
       currentHitPoints: c.stats.currentHitPoints,

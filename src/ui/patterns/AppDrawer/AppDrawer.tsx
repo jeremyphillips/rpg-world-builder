@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useEffect } from 'react'
 
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
@@ -14,6 +15,11 @@ export type AppDrawerProps = {
   title?: string
   width?: number
   children: ReactNode
+  /**
+   * Side panel mode: no backdrop, battlefield stays clickable, no outside-click close.
+   * Escape and the header close button still dismiss. (Used for combat action UI.)
+   */
+  nonModal?: boolean
 }
 
 export function AppDrawer({
@@ -23,18 +29,42 @@ export function AppDrawer({
   title,
   width = 400,
   children,
+  nonModal = false,
 }: AppDrawerProps) {
+  // When nonModal, focus may be on the grid; MUI Modal's key handler on the portal root
+  // would not run. Listen on document so Escape always closes intentionally.
+  useEffect(() => {
+    if (!open || !nonModal) return
+    const onDocKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      onClose()
+    }
+    document.addEventListener('keydown', onDocKeyDown)
+    return () => document.removeEventListener('keydown', onDocKeyDown)
+  }, [open, nonModal, onClose])
+
   return (
     <Drawer
       variant="temporary"
       anchor={anchor}
       open={open}
-      onClose={onClose}
+      onClose={nonModal ? (_event, reason) => reason !== 'backdropClick' && onClose() : onClose}
+      hideBackdrop={nonModal}
+      disableEscapeKeyDown={nonModal}
+      disableScrollLock={nonModal}
+      disableEnforceFocus={nonModal}
+      disableAutoFocus={nonModal}
       slotProps={{
+        root: nonModal
+          ? {
+              sx: { pointerEvents: 'none' },
+            }
+          : undefined,
         paper: {
           sx: {
             width,
             maxWidth: '100vw',
+            ...(nonModal ? { pointerEvents: 'auto' } : {}),
           },
         },
       }}

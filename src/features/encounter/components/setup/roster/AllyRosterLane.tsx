@@ -3,12 +3,17 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import AddIcon from '@mui/icons-material/Add'
 
+import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
+
 import { CombatLane } from './CombatLane'
 import { AllyCombatantSetupPreviewCard } from './AllyCombatantSetupPreviewCard'
 
 type AllyRosterLaneProps = {
   selectedAllyIds: string[]
+  monstersById: Record<string, Monster>
+  characterPortraitById: Record<string, CombatantPortraitEntry>
   onOpenModal: () => void
   onResolvedCombatant: (runtimeId: string, combatant: CombatantInstance | null) => void
   onRemoveAllyCombatant: (characterId: string) => void
@@ -16,6 +21,8 @@ type AllyRosterLaneProps = {
 
 export function AllyRosterLane({
   selectedAllyIds,
+  monstersById,
+  characterPortraitById,
   onOpenModal,
   onResolvedCombatant,
   onRemoveAllyCombatant,
@@ -47,6 +54,8 @@ export function AllyRosterLane({
               runtimeId={characterId}
               side="party"
               sourceKind="pc"
+              monstersById={monstersById}
+              characterPortraitById={characterPortraitById}
               onResolved={(combatant) => onResolvedCombatant(characterId, combatant)}
               onRemove={() => onRemoveAllyCombatant(characterId)}
             />

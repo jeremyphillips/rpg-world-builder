@@ -76,6 +76,8 @@ Authored `targeting` with `creatures-in-area` and `area` (cone, sphere, line, et
 **What the spell combat adapter does**
 
 - Area-style spells are mapped to **`all-enemies`** action targeting (`buildSpellTargeting` in `spell-combat-adapter.ts`).
+- **`CombatActionTargetingProfile.rangeFt`** is set from spell range (distance/touch) for ranged/touch AoE, or — for **`range: self`** spells with an authored **`area`** — coarsely from **`area.size`** (maximum reach from the caster; not template intersection).
+- When the encounter has **`EncounterState.space`** and **`placements`**, **`isValidActionTarget`** enforces caster-to-target distance against **`rangeFt`** (Chebyshev grid distance). This does **not** replace full area geometry; it is a distance band only.
 - Resolution uses **`getActionTargetCandidates`**: every **living enemy** combatant that passes `isValidActionTarget` can receive the spell’s effects — there is **no** check that a creature lies inside the authored `area` or origin point.
 
 **What is not modeled**
@@ -318,6 +320,13 @@ Status meanings:
 ```ts
 { kind: 'grant', grantType: 'condition-immunity', value: 'poisoned' }
 ```
+
+**Monster stat-block immunities and `DAMAGE_IMPLIES_CONDITION`:**
+When authoring a monster's `immunities` array, use the **damage-type id** alone
+(e.g. `'poison'`) for entries that have a condition counterpart. The
+`DAMAGE_IMPLIES_CONDITION` map in `effect-condition-definitions.ts` automatically
+infers the matching condition immunity (`'poisoned'`) at partition time. Do not
+list both `'poison'` and `'poisoned'` — this produces duplicate badges.
 
 ### `resource`
 
@@ -798,6 +807,7 @@ Mechanics resolved since initial authoring:
 - mixing naming styles for equivalent discriminants
 - using `note` as a substitute for already-supported structure
 - overfitting authored content to current combat or runtime limits
+- listing both a damage-type id and its condition counterpart in monster `immunities` (e.g. `'poison'` + `'poisoned'`) — use the damage-type id only; `DAMAGE_IMPLIES_CONDITION` infers the condition automatically
 - letting runtime adapter needs dictate content schema
 - repeating full rules text inside effects when an owning description field already exists
 

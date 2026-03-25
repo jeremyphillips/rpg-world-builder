@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -15,7 +16,15 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
-import { deriveEncounterCapabilities, type EncounterViewerContext } from '../domain'
+import { getCombatantBaseMovement } from '@/features/mechanics/domain/encounter/state/shared'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
+
+import {
+  canResolveCombatActionSelection,
+  deriveEncounterCapabilities,
+  deriveEncounterHeaderModel,
+  type EncounterViewerContext,
+} from '../domain'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
 import type { GridInteractionMode } from '../domain'
 import {
@@ -31,8 +40,14 @@ import {
   type EnvironmentSetupValues,
   type GridSizePreset,
 } from '../components'
+import { areaTemplateRadiusFt } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
+import { isAreaGridAction } from '../helpers/area-grid-action'
+import { getCellForCombatant } from '../space/space.helpers'
 import { selectGridViewModel } from '../space/space.selectors'
 import { createSquareGridSpace } from '../space/createSquareGridSpace'
+import { placeRandomGridObstacle } from '../space/placeRandomGridObstacle'
+
+import type { CombatantPortraitEntry } from '../helpers/resolveCombatantAvatarSrc'
 
 import { campaignEncounterActivePath, campaignEncounterSetupPath } from './encounterPaths'
 
@@ -50,6 +65,21 @@ function useEncounterRuntimeValue() {
   const { catalog } = useCampaignRules()
   const { party } = useCampaignParty('approved')
   const { characters: npcs } = useCharacters({ type: 'npc' })
+
+  const characterPortraitById = useMemo(() => {
+    const out: Record<string, CombatantPortraitEntry> = {}
+    for (const m of party) {
+      out[m.id] = { imageKey: m.imageKey ?? null, imageUrl: m.imageUrl }
+    }
+    for (const n of npcs) {
+      const doc = n as { _id: string; imageKey?: string | null; imageUrl?: string | null }
+      out[doc._id] = {
+        imageKey: doc.imageKey ?? null,
+        imageUrl: doc.imageUrl ?? null,
+      }
+    }
+    return out
+  }, [party, npcs])
 
   const runtimeIdCounter = useRef(0)
   const nextRuntimeId = (prefix: string) => {
@@ -105,6 +135,13 @@ function useEncounterRuntimeValue() {
     handleResetEncounter: handleResetEncounterBase,
     handleMoveCombatant,
     registerCombatLogAppended,
+    aoeStep,
+    setAoeStep,
+    aoeOriginCellId,
+    setAoeOriginCellId,
+    aoeHoverCellId,
+    setAoeHoverCellId,
+    resetAoePlacement,
   } = useEncounterState({
     selectedCombatantIds,
     opponentRoster,
@@ -133,6 +170,7 @@ function useEncounterRuntimeValue() {
   const [opponentModalOpen, setOpponentModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [turnOrderModalOpen, setTurnOrderModalOpen] = useState(false)
+  const [actionDrawerOpen, setActionDrawerOpen] = useState(false)
 
   const allyModalOptions = useMemo(
     () =>
@@ -140,6 +178,8 @@ function useEncounterRuntimeValue() {
         id: a.id,
         label: a.label,
         subtitle: a.subtitle,
+        imageKey: a.imageKey,
+        imageUrl: a.imageUrl,
       })),
     [allyOptions],
   )
@@ -154,6 +194,8 @@ function useEncounterRuntimeValue() {
             id: o.key,
             label: o.label,
             subtitle: o.subtitle,
+            imageKey: o.imageKey,
+            imageUrl: o.imageUrl,
           }
         }
         return {
@@ -161,6 +203,7 @@ function useEncounterRuntimeValue() {
           label: o.label,
           subtitle: formatMonsterIdentityLine(block),
           stats: buildMonsterModalStats(block, catalog.armorById),
+          imageKey: block.imageKey,
         }
       })
     const npcList = opponentOptions
@@ -169,6 +212,8 @@ function useEncounterRuntimeValue() {
         id: o.key,
         label: o.label,
         subtitle: o.subtitle,
+        imageKey: o.imageKey,
+        imageUrl: o.imageUrl,
       }))
     return { monsterModalOptions: monsters, npcModalOptions: npcList }
   }, [opponentOptions, monstersById, catalog.armorById])
@@ -198,24 +243,74 @@ function useEncounterRuntimeValue() {
     if (interactionMode !== 'select-target') setInteractionMode('select-target')
   }
 
+  useEffect(() => {
+    if (aoeStep !== 'none') {
+      setInteractionMode('aoe-place')
+    }
+  }, [aoeStep])
+
+  useEffect(() => {
+    if (aoeStep === 'none' && interactionMode === 'aoe-place') {
+      setInteractionMode('select-target')
+    }
+  }, [aoeStep, interactionMode])
+
   const canStartEncounter = selectedCombatants.length > 0 && unresolvedCombatantCount === 0
 
   // selectedActionLabel / selectedTargetLabel were consumed by the now-commented-out footer.
   // The route derives these directly when needed (e.g. CombatantActionDrawer).
 
+  const selectedAction = useMemo(
+    () => availableActions.find((a) => a.id === selectedActionId) ?? null,
+    [availableActions, selectedActionId],
+  )
+
   const selectedActionRangeFt = useMemo(() => {
-    const action = availableActions.find((a) => a.id === selectedActionId)
-    return action?.targeting?.rangeFt ?? null
-  }, [availableActions, selectedActionId])
+    return selectedAction?.targeting?.rangeFt ?? null
+  }, [selectedAction])
+
+  const aoeGridOverlay = useMemo(() => {
+    if (!encounterState?.space || !encounterState.placements || !activeCombatantId) return null
+    if (!selectedAction || !isAreaGridAction(selectedAction) || aoeStep === 'none') return null
+    const casterCellId = getCellForCombatant(encounterState.placements, activeCombatantId)
+    if (!casterCellId || !selectedAction.areaTemplate) return null
+    const castRangeFt = selectedAction.targeting?.rangeFt ?? 0
+    const areaRadiusFt = areaTemplateRadiusFt(selectedAction.areaTemplate)
+    return {
+      castRangeFt,
+      areaRadiusFt,
+      casterCellId,
+      hoverCellId: aoeHoverCellId,
+      originCellId: aoeOriginCellId,
+      step: aoeStep === 'confirm' ? 'confirm' as const : 'placing' as const,
+    }
+  }, [
+    encounterState,
+    activeCombatantId,
+    selectedAction,
+    aoeStep,
+    aoeHoverCellId,
+    aoeOriginCellId,
+  ])
 
   const gridViewModel = useMemo(() => {
     if (!encounterState) return undefined
+    const rangeForRing = aoeGridOverlay ? null : selectedActionRangeFt
     return selectGridViewModel(encounterState, {
       selectedTargetId: selectedActionTargetId || null,
-      selectedActionRangeFt,
-      showReachable: (activeCombatant?.turnResources?.movementRemaining ?? 0) > 0,
+      selectedActionRangeFt: rangeForRing,
+      showReachable:
+        (activeCombatant?.turnResources?.movementRemaining ?? 0) > 0 && interactionMode !== 'aoe-place',
+      aoe: aoeGridOverlay,
     })
-  }, [encounterState, selectedActionTargetId, selectedActionRangeFt, activeCombatant])
+  }, [
+    encounterState,
+    selectedActionTargetId,
+    selectedActionRangeFt,
+    activeCombatant,
+    aoeGridOverlay,
+    interactionMode,
+  ])
 
   // turnResources was consumed by the now-commented-out footer.
   // activeCombatant.turnResources is still accessible directly via the context.
@@ -236,15 +331,21 @@ function useEncounterRuntimeValue() {
       canStartEncounter={canStartEncounter}
       onStartEncounter={() => {
         const preset = GRID_SIZE_PRESETS[gridSizePreset]
-        const space = createSquareGridSpace({
+        const base = createSquareGridSpace({
           id: `grid-${Date.now()}`,
           name: 'Combat Grid',
           columns: preset.columns,
           rows: preset.rows,
         })
+        const space = placeRandomGridObstacle(base, environmentSetup.setting)
         handleStartEncounter({ space })
       }}
     />
+  )
+
+  const encounterCombatantRoster = useMemo(
+    () => (encounterState ? Object.values(encounterState.combatantsById) : []),
+    [encounterState],
   )
 
   const nextCombatantLabel = useMemo(() => {
@@ -254,23 +355,10 @@ function useEncounterRuntimeValue() {
       ? encounterState.initiativeOrder[nextIdx]
       : encounterState.initiativeOrder[0] ?? null
     if (!nextId) return null
-    return encounterState.combatantsById[nextId]?.source.label ?? null
-  }, [encounterState])
-
-  const activeHeader = encounterState ? (
-    <EncounterActiveHeader
-      roundNumber={encounterState.roundNumber}
-      turnIndex={encounterState.turnIndex}
-      turnCount={encounterState.initiativeOrder.length}
-      activeCombatantLabel={activeCombatant?.source.label ?? null}
-      nextCombatantLabel={nextCombatantLabel}
-      onEditEncounter={() => setEditModalOpen(true)}
-      onResetEncounter={handleResetEncounter}
-    />
-  ) : undefined
-
-  // activeFooter commented out -- action resolution now handled by CombatantActionDrawer
-  const activeFooter = undefined
+    const nextCombatant = encounterState.combatantsById[nextId]
+    if (!nextCombatant) return null
+    return getCombatantDisplayLabel(nextCombatant, encounterCombatantRoster)
+  }, [encounterState, encounterCombatantRoster])
 
   const viewerContext: EncounterViewerContext = useMemo(
     () => ({ viewerRole: 'dm' as const, controlledCombatantIds: [] }),
@@ -282,11 +370,115 @@ function useEncounterRuntimeValue() {
     [encounterState, viewerContext],
   )
 
+  const targetCombatantForHeader = useMemo(() => {
+    if (!encounterState || !selectedActionTargetId) return null
+    return encounterState.combatantsById[selectedActionTargetId] ?? null
+  }, [encounterState, selectedActionTargetId])
+
+  const canResolveActionForHeader = useMemo(
+    () =>
+      canResolveCombatActionSelection({
+        selectedActionId,
+        selectedAction,
+        availableActions,
+        aoeStep,
+        aoeOriginCellId,
+        selectedActionTargetId,
+      }),
+    [
+      selectedActionId,
+      selectedAction,
+      availableActions,
+      aoeStep,
+      aoeOriginCellId,
+      selectedActionTargetId,
+    ],
+  )
+
+  const availableActionIdsForHeader = useMemo(
+    () => availableActions.map((a) => a.id),
+    [availableActions],
+  )
+
+  const baseMovementFt = useMemo(
+    () => (activeCombatant ? getCombatantBaseMovement(activeCombatant) : 0),
+    [activeCombatant],
+  )
+
+  const encounterHeaderModel = useMemo(() => {
+    if (!activeCombatant) {
+      return { directive: '—', endTurnEmphasis: 'subtle' as const }
+    }
+    return deriveEncounterHeaderModel({
+      turn: {
+        combatantActions: activeCombatant.actions,
+        availableActionIds: availableActionIdsForHeader,
+        turnResources: activeCombatant.turnResources ?? null,
+      },
+      interaction: {
+        interactionMode,
+        selectedActionId,
+        selectedAction,
+        aoeStep,
+        canResolveAction: canResolveActionForHeader,
+      },
+      display: {
+        selectedActionLabel: selectedAction?.label ?? null,
+        selectedTargetLabel:
+          targetCombatantForHeader && encounterState
+            ? getCombatantDisplayLabel(targetCombatantForHeader, encounterCombatantRoster)
+            : null,
+      },
+    })
+  }, [
+    activeCombatant,
+    interactionMode,
+    availableActionIdsForHeader,
+    selectedActionId,
+    selectedAction,
+    aoeStep,
+    targetCombatantForHeader,
+    canResolveActionForHeader,
+    encounterState,
+    encounterCombatantRoster,
+  ])
+
+  /** Matches {@link getCombatantAvailableActions}: empty means no action/bonus costs left to spend on real options (bonus slot can read “available” while bonus list is empty). */
+  const canOpenActionsDrawer =
+    Boolean(capabilities?.canSelectAction) && availableActions.length > 0
+
+  const activeHeader =
+    encounterState && activeCombatant ? (
+      <EncounterActiveHeader
+        roundNumber={encounterState.roundNumber}
+        turnIndex={encounterState.turnIndex}
+        turnCount={encounterState.initiativeOrder.length}
+        nextCombatantLabel={nextCombatantLabel}
+        activeCombatant={activeCombatant}
+        activeCombatantDisplayLabel={getCombatantDisplayLabel(activeCombatant, encounterCombatantRoster)}
+        monstersById={monstersById}
+        turnResources={activeCombatant.turnResources ?? null}
+        baseMovementFt={baseMovementFt}
+        directive={encounterHeaderModel.directive}
+        endTurnEmphasis={encounterHeaderModel.endTurnEmphasis}
+        canOpenActions={canOpenActionsDrawer}
+        onOpenActions={() => setActionDrawerOpen(true)}
+        canEndTurn={capabilities?.canEndTurn ?? false}
+        onEndTurn={handleNextTurn}
+        onEditEncounter={() => setEditModalOpen(true)}
+        onResetEncounter={handleResetEncounter}
+      />
+    ) : undefined
+
+  // activeFooter commented out -- action resolution now handled by CombatantActionDrawer
+  const activeFooter = undefined
+
   return {
     viewerContext,
     capabilities,
     campaignId,
     monstersById,
+    characterPortraitById,
     allyOptions,
     opponentOptions,
     selectedAllyIds,
@@ -310,6 +502,14 @@ function useEncounterRuntimeValue() {
     setSelectedCasterOptions,
     selectedActionTargetId,
     setSelectedActionTargetId,
+    selectedAction,
+    aoeStep,
+    setAoeStep,
+    aoeOriginCellId,
+    setAoeOriginCellId,
+    aoeHoverCellId,
+    setAoeHoverCellId,
+    resetAoePlacement,
     unresolvedCombatantCount,
     selectedCombatants,
     environmentContext,
@@ -344,6 +544,8 @@ function useEncounterRuntimeValue() {
     setupHeader,
     activeHeader,
     activeFooter,
+    actionDrawerOpen,
+    setActionDrawerOpen,
     handleStartEncounter,
     handleResetEncounter,
     registerCombatLogAppended,
@@ -385,6 +587,7 @@ function EncounterRuntimeModals() {
     setEnvironmentSetup,
     opponentRoster,
     monstersById,
+    characterPortraitById,
     environmentContext,
     monsterFormsById,
     monsterManualTriggersById,
@@ -424,6 +627,8 @@ function EncounterRuntimeModals() {
         allyLane={
           <AllyRosterLane
             selectedAllyIds={selectedAllyIds}
+            characterPortraitById={characterPortraitById}
+            monstersById={monstersById}
             onOpenModal={() => {
               setEditModalOpen(false)
               setAllyModalOpen(true)
@@ -436,6 +641,7 @@ function EncounterRuntimeModals() {
           <OpponentRosterLane
             opponentRoster={opponentRoster}
             monstersById={monstersById}
+            characterPortraitById={characterPortraitById}
             environmentContext={environmentContext}
             monsterFormsById={monsterFormsById}
             monsterManualTriggersById={monsterManualTriggersById}

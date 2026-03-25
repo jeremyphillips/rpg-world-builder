@@ -5,6 +5,8 @@ export type AllyOption = {
   id: string
   label: string
   subtitle: string
+  imageUrl?: string | null
+  imageKey?: string | null
 }
 
 export type OpponentOption = {
@@ -13,6 +15,8 @@ export type OpponentOption = {
   kind: 'npc' | 'monster'
   label: string
   subtitle: string
+  imageUrl?: string | null
+  imageKey?: string | null
 }
 
 export type OpponentRosterEntry = {
@@ -30,6 +34,9 @@ export type EncounterAllyMember = {
   race: { id: string; name: string } | null
   classes: CharacterClassSummary[]
   ownerName?: string
+  /** From roster/card APIs (`getPublicUrl`); optional for tests/mocks. */
+  imageUrl?: string | null
+  imageKey?: string | null
 }
 
 export type EncounterNpc = {
@@ -37,6 +44,8 @@ export type EncounterNpc = {
   name: string
   race?: unknown
   classes?: { classId?: string; level: number }[]
+  imageKey?: string | null
+  imageUrl?: string | null
 }
 
 export type EncounterMonstersById = Record<string, Monster>

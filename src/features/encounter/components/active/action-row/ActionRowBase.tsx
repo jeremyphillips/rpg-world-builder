@@ -1,13 +1,7 @@
 import { AppBadge } from '@/ui/primitives'
-import type { AppBadgeTone } from '@/ui/types'
 import { HorizontalCompactActionCard } from '@/ui/patterns'
 import type { ActionBadgeDescriptor } from '../../../domain/badges/action/combat-action-badges.types'
-import type { CombatStateTone } from '../../../domain/effects/presentable-effects.types'
-
-function badgeToneToAppBadgeTone(tone: CombatStateTone): AppBadgeTone {
-  if (tone === 'neutral') return 'default'
-  return tone
-}
+import { combatToneToAppBadgeTone } from '../../shared/cards/combatant-badges'
 
 export type ActionRowBaseProps = {
   isSelected: boolean
@@ -46,7 +40,7 @@ export function ActionRowBase({
               <AppBadge
                 key={`${b.kind}-${b.label}`}
                 label={b.label}
-                tone={badgeToneToAppBadgeTone(b.tone)}
+                tone={combatToneToAppBadgeTone(b.tone)}
                 variant="outlined"
                 size="small"
               />

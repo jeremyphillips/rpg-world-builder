@@ -1,4 +1,46 @@
+import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
+
 export type TurnOptionBucketState = 'empty' | 'spent' | 'available'
+
+/**
+ * Same buckets as the action drawer: standard actions vs bonus actions.
+ * (An entry with both action + bonus cost is counted only in the bonus bucket.)
+ */
+export function partitionCombatantActionBuckets(
+  actions: readonly CombatActionDefinition[] | undefined,
+): { actionDefs: CombatActionDefinition[]; bonusDefs: CombatActionDefinition[] } {
+  const list = actions ?? []
+  return {
+    actionDefs: list.filter((a) => Boolean(a.cost.action && !a.cost.bonusAction)),
+    bonusDefs: list.filter((a) => Boolean(a.cost.bonusAction)),
+  }
+}
+
+/**
+ * Header / compact UI: bucket state from authored defs + whether the **turn resource slot**
+ * for that cost type is still unused. If there are no defs in the bucket, the slot is meaningless
+ * (matches {@link deriveBucketChrome} “none” for empty buckets).
+ */
+export function deriveTurnResourceBucketState(
+  defs: readonly { id: string }[],
+  slotStillAvailable: boolean,
+): TurnOptionBucketState {
+  if (defs.length === 0) return 'empty'
+  return slotStillAvailable ? 'available' : 'spent'
+}
+
+export type TurnResourceBucketHeaderBadge = { label: string; tone: 'success' | 'default' }
+
+/** Compact ●/○/— chip for encounter header; aligns with drawer bucket semantics. */
+export function turnResourceBucketHeaderBadge(
+  bucketState: TurnOptionBucketState,
+  kind: 'action' | 'bonus',
+): TurnResourceBucketHeaderBadge {
+  const prefix = kind === 'action' ? 'Action' : 'Bonus'
+  if (bucketState === 'empty') return { label: `${prefix} —`, tone: 'default' }
+  if (bucketState === 'spent') return { label: `${prefix} ○`, tone: 'default' }
+  return { label: `${prefix} ●`, tone: 'success' }
+}
 
 export function deriveBucketState(
   defs: readonly { id: string }[],
@@ -40,7 +82,6 @@ export function deriveTurnExhaustion(input: {
   actionState: TurnOptionBucketState
   bonusActionState: TurnOptionBucketState
   movementRemaining?: number | null
-  reactionState?: TurnOptionBucketState
 }): {
   isFullySpent: boolean
   hasAnyPrimaryOptionRemaining: boolean
@@ -48,13 +89,10 @@ export function deriveTurnExhaustion(input: {
   const hasMovement =
     input.movementRemaining != null && input.movementRemaining > 0
 
-  const hasReaction =
-    input.reactionState !== undefined && input.reactionState === 'available'
 
   const hasAnyPrimaryOptionRemaining =
     input.actionState === 'available' ||
     input.bonusActionState === 'available' ||
-    hasReaction ||
     hasMovement
 
   return {

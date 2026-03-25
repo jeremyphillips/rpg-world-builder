@@ -7,6 +7,8 @@ export interface ResolveCombatActionSelection {
   actionId: string
   /** Values for {@link CombatActionDefinition.casterOptions}, keyed by field `id`. */
   casterOptions?: Record<string, string>
+  /** Grid cell id for the center of an AoE when {@link CombatActionDefinition.areaTemplate} is set. */
+  aoeOriginCellId?: string
 }
 
 export interface ResolveCombatActionOptions {

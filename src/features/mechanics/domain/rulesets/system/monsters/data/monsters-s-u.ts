@@ -6,6 +6,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
   {
     id: "skeleton",
     name: "Skeleton",
+    imageKey: '/assets/system/monsters/skeleton.png',
     type: "undead",
     sizeCategory: "medium",
     languages: [{ id: "common", speaks: false }],
@@ -84,7 +85,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
         skills: { stealth: { proficiencyLevel: 1 } },
       },
       proficiencyBonus: 2,
-      immunities: ['fire', 'poison', 'exhaustion', 'poisoned'],
+      immunities: ['fire', 'poison', 'exhaustion'],
       traits: [
         {
           name: 'Blurred Form',

@@ -1,5 +1,7 @@
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
-import type { EncounterCell } from './space.types'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
+import type { EncounterCell, GridObstacleKind } from './space.types'
+import { gridObstacleDisplayName } from './placeRandomGridObstacle'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from './space.helpers'
 import type { CombatantSide } from '@/features/mechanics/domain/encounter/state/types/combatant.types'
 
@@ -40,6 +42,21 @@ export function selectIsTargetInRange(
   return dist <= rangeFt
 }
 
+/** Combatants whose occupied cell is within Chebyshev `areaRadiusFt` of `originCellId`. */
+export function selectCombatantIdsInAoeFootprint(
+  state: EncounterState,
+  originCellId: string,
+  areaRadiusFt: number,
+): string[] {
+  if (!state.space || !state.placements) return []
+  const out: string[] = []
+  for (const p of state.placements) {
+    const d = gridDistanceFt(state.space, originCellId, p.cellId)
+    if (d !== undefined && d <= areaRadiusFt) out.push(p.combatantId)
+  }
+  return out
+}
+
 // ---------------------------------------------------------------------------
 // Grid view model
 // ---------------------------------------------------------------------------
@@ -52,10 +69,23 @@ export type GridCellViewModel = {
   occupantId: string | null
   occupantLabel: string | null
   occupantSide: CombatantSide | null
+  /** From `CombatantInstance.portraitImageKey` — resolve URLs in UI only. */
+  occupantPortraitImageKey: string | null
+  /** Obstruction on this cell (from `EncounterSpace.obstacles`), for labels / tooltips. */
+  obstacleKind: GridObstacleKind | null
+  obstacleLabel: string | null
   isActive: boolean
   isSelectedTarget: boolean
   isInRange: boolean
   isReachable: boolean
+  /** AoE: within spell cast range from caster (valid origin band). */
+  aoeCastRange?: boolean
+  /** AoE: inside preview or confirmed template from origin/hover center. */
+  aoeInTemplate?: boolean
+  /** AoE: hovered cell is not a valid origin (out of range or blocked). */
+  aoeInvalidOriginHover?: boolean
+  /** AoE: confirmed origin cell. */
+  aoeOriginLocked?: boolean
 }
 
 export type GridViewModel = {
@@ -65,12 +95,33 @@ export type GridViewModel = {
   cells: GridCellViewModel[]
 }
 
+export function isValidAoeOriginCell(
+  space: EncounterState['space'],
+  casterCellId: string,
+  originCellId: string,
+  castRangeFt: number,
+): boolean {
+  if (!space) return false
+  const cell = getCellById(space, originCellId)
+  if (!cell || cell.kind === 'wall' || cell.kind === 'blocking') return false
+  const d = gridDistanceFt(space, casterCellId, originCellId)
+  return d !== undefined && d <= castRangeFt
+}
+
 export function selectGridViewModel(
   state: EncounterState,
   opts?: {
     selectedTargetId?: string | null
     selectedActionRangeFt?: number | null
     showReachable?: boolean
+    aoe?: {
+      castRangeFt: number
+      areaRadiusFt: number
+      casterCellId: string
+      hoverCellId: string | null
+      originCellId: string | null
+      step: 'placing' | 'confirm'
+    } | null
   },
 ): GridViewModel | undefined {
   const { space, placements } = state
@@ -87,14 +138,66 @@ export function selectGridViewModel(
     ? selectCellsWithinDistance(state, activeId)
     : undefined
 
+  const aoe = opts?.aoe
+  const hoverValid =
+    Boolean(
+      aoe &&
+        aoe.hoverCellId &&
+        isValidAoeOriginCell(space, aoe.casterCellId, aoe.hoverCellId, aoe.castRangeFt),
+    )
+  const invalidHover = Boolean(aoe && aoe.hoverCellId && !hoverValid)
+
+  /** Valid hover previews first (including while origin is locked); else locked origin; else none. */
+  const previewCenterId = !aoe
+    ? null
+    : invalidHover
+      ? aoe.originCellId ?? null
+      : hoverValid
+        ? aoe.hoverCellId!
+        : aoe.originCellId ?? null
+
+  const obstacleByCellId = new Map<string, GridObstacleKind>()
+  for (const o of space.obstacles ?? []) {
+    obstacleByCellId.set(o.cellId, o.kind)
+  }
+
+  const combatantRoster = Object.values(state.combatantsById)
+
   const cells: GridCellViewModel[] = space.cells.map((cell) => {
     const occupantId = getOccupant(placements, cell.id) ?? null
     const combatant = occupantId ? state.combatantsById[occupantId] ?? null : null
+    const obstacleKind = obstacleByCellId.get(cell.id) ?? null
+    const obstacleLabel = obstacleKind != null ? gridObstacleDisplayName(obstacleKind) : null
 
     let inRange = false
     if (rangeFt != null && activeCellId) {
       const dist = gridDistanceFt(space, activeCellId, cell.id)
       inRange = dist !== undefined && dist <= rangeFt
+    }
+
+    let aoeCastRange: boolean | undefined
+    let aoeInTemplate: boolean | undefined
+    let aoeInvalidOriginHover: boolean | undefined
+    let aoeOriginLocked: boolean | undefined
+
+    if (aoe && activeCellId) {
+      const dist = gridDistanceFt(space, aoe.casterCellId, cell.id)
+      aoeCastRange = dist !== undefined && dist <= aoe.castRangeFt
+      if (previewCenterId) {
+        const dArea = gridDistanceFt(space, previewCenterId, cell.id)
+        aoeInTemplate = dArea !== undefined && dArea <= aoe.areaRadiusFt
+      }
+      if (invalidHover && cell.id === aoe.hoverCellId) {
+        aoeInvalidOriginHover = true
+      }
+      if (
+        aoe.step === 'confirm' &&
+        aoe.originCellId &&
+        cell.id === aoe.originCellId &&
+        !(hoverValid && aoe.hoverCellId !== aoe.originCellId)
+      ) {
+        aoeOriginLocked = true
+      }
     }
 
     return {
@@ -103,12 +206,23 @@ export function selectGridViewModel(
       y: cell.y,
       kind: cell.kind ?? 'open',
       occupantId,
-      occupantLabel: combatant?.source.label ?? null,
+      occupantLabel: combatant ? getCombatantDisplayLabel(combatant, combatantRoster) : null,
       occupantSide: combatant?.side ?? null,
+      occupantPortraitImageKey: combatant?.portraitImageKey ?? null,
+      obstacleKind,
+      obstacleLabel,
       isActive: occupantId !== null && occupantId === activeId,
       isSelectedTarget: occupantId !== null && occupantId === selectedTargetId,
       isInRange: inRange,
       isReachable: reachableSet?.has(cell.id) ?? false,
+      ...(aoe
+        ? {
+            aoeCastRange,
+            aoeInTemplate,
+            aoeInvalidOriginHover,
+            aoeOriginLocked,
+          }
+        : {}),
     }
   })
 

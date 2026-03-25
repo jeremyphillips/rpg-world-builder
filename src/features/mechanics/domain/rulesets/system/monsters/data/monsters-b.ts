@@ -281,6 +281,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
   {
     id: 'adult-bronze-dragon',
     name: 'Adult Bronze Dragon',
+    imageKey: '/assets/system/monsters/adult-bronze-dragon.png',
     type: 'dragon',
     sizeCategory: 'huge',
     languages: [{ id: 'common' }, { id: 'draconic' }],
@@ -990,7 +991,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       },
       proficiencyBonus: 4,
       resistances: ['cold'],
-      immunities: ['fire', 'poison', 'poisoned'],
+      immunities: ['fire', 'poison'],
       resolution: {
         caveats: ['Telepathy 120 ft. not a separate language row.'],
       },

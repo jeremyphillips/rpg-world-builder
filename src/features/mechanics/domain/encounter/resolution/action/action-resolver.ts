@@ -248,7 +248,7 @@ function resolveCombatActionInternal(
     targetIds: target ? [target.instanceId] : undefined,
     round: state.roundNumber,
     turn: state.turnIndex + 1,
-    summary: `${actor.source.label} uses ${actionLabel}${casterSummary}${target ? ` against ${targetLabel}` : ''}.`,
+    summary: `${getEncounterCombatantLabel(state, actor.instanceId)} uses ${actionLabel}${casterSummary}${target ? ` against ${targetLabel}` : ''}.`,
   })
 
   if (action.movement) {
@@ -339,8 +339,8 @@ function resolveCombatActionInternal(
       round: state.roundNumber,
       turn: state.turnIndex + 1,
       summary: hit
-        ? `${actor.source.label} hits ${targetLabel} with ${actionLabel}${hitSuffix}.`
-        : `${actor.source.label} misses ${targetLabel} with ${actionLabel}${missSuffix}.`,
+        ? `${getEncounterCombatantLabel(state, actor.instanceId)} hits ${targetLabel} with ${actionLabel}${hitSuffix}.`
+        : `${getEncounterCombatantLabel(state, actor.instanceId)} misses ${targetLabel} with ${actionLabel}${missSuffix}.`,
       details: `Attack roll: ${rollDetail} + ${attackBonus} = ${totalRoll} vs AC ${target.stats.armorClass}.`,
       debugDetails: attackDebug.length > 0 ? attackDebug : undefined,
     })
@@ -403,7 +403,7 @@ function resolveCombatActionInternal(
       if (saveTarget.states.some((stateMarker) => stateMarker.label === getImmunityStateLabel(action.label))) {
         nextState = appendEncounterNote(
           nextState,
-          `${saveTarget.source.label} ignores ${actionLabel}.`,
+          `${getEncounterCombatantLabel(nextState, saveTarget.instanceId)} ignores ${actionLabel}.`,
           {
             actorId: actor.instanceId,
             targetIds: [saveTarget.instanceId],
@@ -423,7 +423,7 @@ function resolveCombatActionInternal(
           targetIds: [saveTarget.instanceId],
           round: state.roundNumber,
           turn: state.turnIndex + 1,
-          summary: `${saveTarget.source.label} automatically fails the ${saveAbility.toUpperCase()} save against ${actionLabel}.`,
+          summary: `${getEncounterCombatantLabel(nextState, saveTarget.instanceId)} automatically fails the ${saveAbility.toUpperCase()} save against ${actionLabel}.`,
           details: `Auto-fail: condition prevents ${saveAbility.toUpperCase()} saving throw.`,
           debugDetails: autoFailDebug.length > 0 ? autoFailDebug : undefined,
         })
@@ -468,7 +468,7 @@ function resolveCombatActionInternal(
         targetIds: [saveTarget.instanceId],
         round: state.roundNumber,
         turn: state.turnIndex + 1,
-        summary: `${saveTarget.source.label} ${succeeded ? 'succeeds' : 'fails'} the ${saveAbility.toUpperCase()} save against ${actionLabel}.`,
+        summary: `${getEncounterCombatantLabel(nextState, saveTarget.instanceId)} ${succeeded ? 'succeeds' : 'fails'} the ${saveAbility.toUpperCase()} save against ${actionLabel}.`,
         details: `Saving throw: ${saveRollDetail} + ${saveModifier} = ${totalRoll} vs DC ${action.saveProfile.dc}.`,
         debugDetails: saveDebug,
       })
@@ -562,7 +562,7 @@ function resolveCombatActionInternal(
       turn: state.turnIndex + 1,
       summary:
         action.kind === 'spell'
-          ? `${actor.source.label} logs spell effect: ${actionLabel}${casterSummary}.`
+          ? `${getEncounterCombatantLabel(state, actor.instanceId)} logs spell effect: ${actionLabel}${casterSummary}.`
           : `${actionLabel} resolves as a log-only action.`,
       details: action.logText,
     })

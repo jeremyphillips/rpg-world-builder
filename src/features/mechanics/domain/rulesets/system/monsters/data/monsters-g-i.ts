@@ -26,7 +26,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         skills: { stealth: { proficiencyLevel: 2 } },
       },
       proficiencyBonus: 2,
-      immunities: ['poison', 'exhaustion', 'petrified', 'poisoned'],
+      immunities: ['poison', 'exhaustion', 'petrified'],
       traits: [
         {
           name: 'Flyby',
@@ -259,7 +259,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         passivePerception: 10,
       },
       proficiencyBonus: 2,
-      immunities: ['poison', 'charmed', 'exhaustion', 'poisoned'],
+      immunities: ['poison', 'charmed', 'exhaustion'],
       actions: [
         {
           kind: 'special',
@@ -639,6 +639,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
 {
     id: "goblin-warrior",
     name: "Goblin Warrior",
+    imageKey: '/assets/system/monsters/goblin-warrior.png',
     type: "fey",
     subtype: "goblinoid",
     languages: [{ id: "common" }, { id: "goblin" }],
@@ -915,6 +916,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
 {
     id: "hydra",
     name: "Hydra",
+    imageKey: '/assets/system/monsters/hydra.png',
     type: "monstrosity",
     sizeCategory: "huge",
     languages: [],

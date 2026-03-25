@@ -1,3 +1,5 @@
+import { getCellForCombatant, hasLineOfSight } from '@/features/encounter/space'
+
 import type { EncounterState } from './types'
 import type { CombatantInstance } from './types'
 import { canSee } from './condition-rules/condition-queries'
@@ -14,26 +16,31 @@ function hasSeeInvisibilityState(c: CombatantInstance): boolean {
 }
 
 /**
- * Line-of-sight geometry stub: no grid, terrain, or positions. Always `true` until a real
- * implementation replaces this without changing call sites.
+ * Grid line-of-sight: segment between observer and target cell centers; **intermediate** cells
+ * with `blocksSight` block. Endpoints do not block. When space/placements are missing, returns
+ * `true` (backwards-compatible with non-tactical state).
  */
 export function lineOfSightClear(
-  _observerId: string,
-  _targetId: string,
-  _state: EncounterState,
+  observerId: string,
+  targetId: string,
+  state: EncounterState,
 ): boolean {
-  return true
+  if (!state.space || !state.placements) return true
+  const from = getCellForCombatant(state.placements, observerId)
+  const to = getCellForCombatant(state.placements, targetId)
+  if (!from || !to) return true
+  return hasLineOfSight(state.space, from, to)
 }
 
 /**
- * Line-of-effect geometry stub (cover, walls, etc.). Same contract as {@link lineOfSightClear}.
+ * First pass: same geometry as {@link lineOfSightClear}. Cover / partial LoE can diverge later.
  */
 export function lineOfEffectClear(
-  _observerId: string,
-  _targetId: string,
-  _state: EncounterState,
+  observerId: string,
+  targetId: string,
+  state: EncounterState,
 ): boolean {
-  return true
+  return lineOfSightClear(observerId, targetId, state)
 }
 
 /**

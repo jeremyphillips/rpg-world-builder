@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   collectPresentableEffects,
   enrichPresentableEffects,
+  getUserFacingEffectLabel,
   groupBySection,
   sortByPriority,
 } from './presentable-effects'
@@ -119,7 +120,7 @@ describe('collectPresentableEffects', () => {
 })
 
 describe('enrichPresentableEffects', () => {
-  it('adds presentation from map', () => {
+  it('adds presentation from map and canonical label (raw marker label ignored)', () => {
     const combatant = minimalCombatant({
       conditions: [{ id: 'prone', label: 'prone' }],
     })
@@ -130,6 +131,31 @@ describe('enrichPresentableEffects', () => {
       tone: 'warning',
       defaultSection: 'critical-now',
     })
+    expect(enriched[0].label).toBe('Prone')
+    expect(enriched[0].usedFallbackPresentation).toBe(false)
+    expect(enriched[0].presentationTier).toBe('core')
+    expect(getUserFacingEffectLabel(enriched[0])).toBe('Prone')
+  })
+
+  it('maps exhaustion as core (immunity-only condition id)', () => {
+    const combatant = minimalCombatant({
+      conditions: [{ id: 'exhaustion', label: 'exhaustion' }],
+    })
+    const enriched = enrichPresentableEffects(collectPresentableEffects(combatant))[0]!
+    expect(enriched.label).toBe('Exhaustion')
+    expect(enriched.presentationTier).toBe('core')
+    expect(enriched.usedFallbackPresentation).toBe(false)
+  })
+
+  it('canonicalizes label when raw marker text is stale but id matches map', () => {
+    const combatant = minimalCombatant({
+      conditions: [{ id: 'incapacitated', label: 'INCORRECT_RAW' }],
+    })
+    const presentable = collectPresentableEffects(combatant)
+    const enriched = enrichPresentableEffects(presentable)
+    expect(enriched[0].label).toBe('Incapacitated')
+    expect(enriched[0].usedFallbackPresentation).toBe(false)
+    expect(enriched[0].presentationTier).toBe('core')
   })
 
   it('uses fallback for unknown keys', () => {
@@ -143,6 +169,8 @@ describe('enrichPresentableEffects', () => {
       tone: 'neutral',
       defaultSection: 'restrictions',
     })
+    expect(enriched[0].usedFallbackPresentation).toBe(true)
+    expect(enriched[0].presentationTier).toBe('fallback')
   })
 })
 

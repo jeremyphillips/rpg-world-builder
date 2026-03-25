@@ -1,32 +1,48 @@
+import { useMemo } from 'react'
+
+import type { Monster } from '@/features/content/monsters/domain/types'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
-import CharacterAvatar from '@/features/character/components/CharacterAvatar'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
 import { useCharacter } from '@/features/character/hooks'
-import { AppAvatar } from '@/ui/primitives'
 
-import { buildEncounterDefensePreviewChips, type CombatantPreviewCardProps, type PreviewChip, type PreviewStat } from '../../../domain'
-import {
-  CONCENTRATING_BADGE_TOOLTIP,
-  formatSigned,
-  getPreviewStatTooltip,
-  tooltipForConditionMarkerLabel,
-} from '../../../helpers'
+import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
+import { buildCombatantPreviewChips, formatSigned, getPreviewStatTooltip } from '../../../helpers'
 import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
+import { CombatantAvatar } from '../../shared/CombatantAvatar'
 
 type AllyCombatantActivePreviewCardProps = {
   combatant: CombatantInstance
+  monstersById: Record<string, Monster>
+  characterPortraitById: Record<string, CombatantPortraitEntry>
+  /** When set, title and fallback avatar use duplicate-aware labels. */
+  allCombatants?: readonly CombatantInstance[]
   isCurrentTurn?: boolean
   isSelected?: boolean
+  showChips?: boolean
   onClick?: () => void
 }
 
 export function AllyCombatantActivePreviewCard({
   combatant,
+  monstersById,
+  characterPortraitById,
+  allCombatants,
   isCurrentTurn = false,
   isSelected = false,
+  showChips = true,
   onClick,
 }: AllyCombatantActivePreviewCardProps) {
   const isDefeated = combatant.stats.currentHitPoints <= 0
+
+  const title = useMemo(
+    () =>
+      allCombatants && allCombatants.length > 0
+        ? getCombatantDisplayLabel(combatant, allCombatants)
+        : combatant.source.label,
+    [allCombatants, combatant],
+  )
 
   const characterId =
     combatant.source.kind === 'pc' || combatant.source.kind === 'npc'
@@ -53,44 +69,34 @@ export function AllyCombatantActivePreviewCard({
     })
   }
 
-  const chips: PreviewChip[] = [
-    ...(combatant.concentration
-      ? [
-          {
-            id: 'concentrating',
-            label: 'Concentrating',
-            tone: 'info' as const,
-            tooltip: CONCENTRATING_BADGE_TOOLTIP,
-          },
-        ]
-      : []),
-    ...combatant.conditions.map((c) => ({
-      id: c.id,
-      label: c.label,
-      tone: 'warning' as const,
-      tooltip: tooltipForConditionMarkerLabel(c.label),
-    })),
-    ...combatant.states.map((s) => ({ id: s.id, label: s.label, tone: 'info' as const })),
-    ...buildEncounterDefensePreviewChips(combatant),
-  ]
+  const chips = buildCombatantPreviewChips(combatant)
 
   const subtitle = character ? formatCharacterDetailSubtitle(character) : undefined
 
-  const avatar = character ? (
-    <CharacterAvatar imageUrl={character.imageUrl ?? undefined} name={character.name} size="sm" />
-  ) : (
-    <AppAvatar name={combatant.source.label} size="sm" />
+  const portraitOverride = character
+    ? { imageKey: character.imageKey, imageUrl: character.imageUrl }
+    : undefined
+
+  const avatar = (
+    <CombatantAvatar
+      combatant={combatant}
+      monstersById={monstersById}
+      characterPortraitById={characterPortraitById}
+      portraitOverride={portraitOverride}
+      displayName={title}
+      size="sm"
+    />
   )
 
   const previewProps: CombatantPreviewCardProps = {
     id: combatant.instanceId,
     kind: 'character',
     mode: 'active',
-    title: combatant.source.label,
+    title,
     subtitle,
     avatar,
     stats,
-    chips: chips.length > 0 ? chips : undefined,
+    chips: showChips && chips.length > 0 ? chips : undefined,
     isCurrentTurn,
     isSelected,
     isDefeated,

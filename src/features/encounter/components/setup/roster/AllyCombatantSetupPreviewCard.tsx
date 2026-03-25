@@ -6,8 +6,9 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import CharacterAvatar from '@/features/character/components/CharacterAvatar'
+import type { Monster } from '@/features/content/monsters/domain/types'
 import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import { useCharacter, useCombatStats } from '@/features/character/hooks'
 import { toCharacterForEngine } from '@/features/character/read-model'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
@@ -22,12 +23,15 @@ import {
   getPreviewStatTooltip,
 } from '../../../helpers'
 import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
+import { CombatantAvatar } from '../../shared/CombatantAvatar'
 
 type AllyCombatantSetupPreviewCardProps = {
   characterId: string
   runtimeId: string
   side: CombatantSide
   sourceKind: 'pc' | 'npc'
+  monstersById: Record<string, Monster>
+  characterPortraitById: Record<string, CombatantPortraitEntry>
   onResolved: (combatant: CombatantInstance | null) => void
   onRemove: () => void
 }
@@ -37,6 +41,8 @@ export function AllyCombatantSetupPreviewCard({
   runtimeId,
   side,
   sourceKind,
+  monstersById,
+  characterPortraitById,
   onResolved,
   onRemove,
 }: AllyCombatantSetupPreviewCardProps) {
@@ -80,6 +86,8 @@ export function AllyCombatantSetupPreviewCard({
       runtimeId={runtimeId}
       side={side}
       sourceKind={sourceKind}
+      monstersById={monstersById}
+      characterPortraitById={characterPortraitById}
       onResolved={onResolved}
       onRemove={onRemove}
     />
@@ -96,6 +104,8 @@ function LoadedAllyCombatantSetupPreviewCard({
   runtimeId,
   side,
   sourceKind,
+  monstersById,
+  characterPortraitById,
   onResolved,
   onRemove,
 }: LoadedProps) {
@@ -188,9 +198,12 @@ function LoadedAllyCombatantSetupPreviewCard({
     title: character.name,
     subtitle: formatCharacterDetailSubtitle(character),
     avatar: (
-      <CharacterAvatar
-        imageUrl={character.imageUrl ?? undefined}
-        name={character.name}
+      <CombatantAvatar
+        combatant={combatant}
+        monstersById={monstersById}
+        characterPortraitById={characterPortraitById}
+        portraitOverride={{ imageKey: character.imageKey, imageUrl: character.imageUrl }}
+        displayName={character.name}
         size="sm"
       />
     ),

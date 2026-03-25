@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import type { CombatStatePriority } from '../effects/presentable-effects.types'
+
 export type CombatantPreviewMode = 'setup' | 'active'
 export type CombatantPreviewKind = 'character' | 'monster'
 
@@ -10,6 +12,9 @@ export type PreviewChip = {
   label: string
   tone?: PreviewTone
   tooltip?: string
+  priority?: CombatStatePriority
+  /** Compact duration display, e.g. `"6s/60s"` or `"18s left"`. */
+  timeLabel?: string
 }
 
 /** Core stat line (AC, HP, …); shared by preview and active combatant cards. */

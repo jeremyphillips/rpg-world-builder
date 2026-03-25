@@ -27,7 +27,6 @@ export const MONSTERS_F: readonly MonsterCatalogEntry[] = [
         'grappled',
         'paralyzed',
         'petrified',
-        'poisoned',
         'prone',
         'restrained',
         'unconscious',

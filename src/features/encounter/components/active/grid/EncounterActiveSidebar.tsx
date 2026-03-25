@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
@@ -6,6 +6,12 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { AppTabs, AppTab } from '@/ui/patterns'
+import {
+  ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR,
+  ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX,
+} from '@/ui/primitives'
+import type { Monster } from '@/features/content/monsters/domain/types'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import type { CombatantInstance, EncounterState } from '@/features/mechanics/domain/encounter'
 
 import { AllyCombatantActivePreviewCard } from '../cards/AllyCombatantActivePreviewCard'
@@ -14,6 +20,8 @@ import { CombatLogPanel } from '../combat-log/CombatLogPanel'
 
 type EncounterActiveSidebarProps = {
   encounterState: EncounterState
+  monstersById: Record<string, Monster>
+  characterPortraitById: Record<string, CombatantPortraitEntry>
   activeCombatantId: string | null
   selectedTargetId: string | null
   onSelectTarget: (combatantId: string) => void
@@ -23,6 +31,8 @@ const SIDEBAR_WIDTH = 320
 
 export function EncounterActiveSidebar({
   encounterState,
+  monstersById,
+  characterPortraitById,
   activeCombatantId,
   selectedTargetId,
   onSelectTarget,
@@ -37,14 +47,15 @@ export function EncounterActiveSidebar({
       elevation={6}
       sx={{
         position: 'fixed',
-        right: 16,
-        top: '50%',
-        transform: 'translateY(-50%)',
+        right: (theme) => theme.spacing(2),
+        top: (theme) =>
+          `calc(var(${ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR}, ${ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX}px) + ${theme.spacing(2)})`,
         width: SIDEBAR_WIDTH,
-        maxHeight: 'calc(100vh - 120px)',
+        maxHeight: (theme) =>
+          `calc(100vh - var(${ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR}, ${ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX}px) - ${theme.spacing(2)} - ${theme.spacing(2)})`,
         display: 'flex',
         flexDirection: 'column',
-        zIndex: 'appBar',
+        zIndex: (theme) => theme.zIndex.appBar,
         borderRadius: 2,
         overflow: 'hidden',
       }}
@@ -65,6 +76,8 @@ export function EncounterActiveSidebar({
           <InitiativeOrderTab
             initiativeOrder={initiativeOrder}
             combatantsById={combatantsById}
+            monstersById={monstersById}
+            characterPortraitById={characterPortraitById}
             activeCombatantId={activeCombatantId}
             selectedTargetId={selectedTargetId}
             onSelectTarget={onSelectTarget}
@@ -79,16 +92,22 @@ export function EncounterActiveSidebar({
 function InitiativeOrderTab({
   initiativeOrder,
   combatantsById,
+  monstersById,
+  characterPortraitById,
   activeCombatantId,
   selectedTargetId,
   onSelectTarget,
 }: {
   initiativeOrder: string[]
   combatantsById: Record<string, CombatantInstance>
+  monstersById: Record<string, Monster>
+  characterPortraitById: Record<string, CombatantPortraitEntry>
   activeCombatantId: string | null
   selectedTargetId: string | null
   onSelectTarget: (combatantId: string) => void
 }) {
+  const allCombatants = useMemo(() => Object.values(combatantsById), [combatantsById])
+
   if (initiativeOrder.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -111,6 +130,9 @@ function InitiativeOrderTab({
             <AllyCombatantActivePreviewCard
               key={id}
               combatant={combatant}
+              monstersById={monstersById}
+              characterPortraitById={characterPortraitById}
+              allCombatants={allCombatants}
               isCurrentTurn={isCurrentTurn}
               isSelected={isSelected}
               onClick={() => onSelectTarget(id)}
@@ -122,6 +144,9 @@ function InitiativeOrderTab({
           <OpponentCombatantActivePreviewCard
             key={id}
             combatant={combatant}
+            monstersById={monstersById}
+            characterPortraitById={characterPortraitById}
+            allCombatants={allCombatants}
             isCurrentTurn={isCurrentTurn}
             isSelected={isSelected}
             onClick={() => onSelectTarget(id)}

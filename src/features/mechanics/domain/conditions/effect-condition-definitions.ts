@@ -212,3 +212,12 @@ export type ConditionImmunityId = EffectConditionId | ConditionImmunityOnlyId
 
 export const CONDITION_IMMUNITY_ONLY_IDS: readonly ConditionImmunityOnlyId[] =
   CONDITION_IMMUNITY_ONLY_DEFINITIONS.map((r) => r.id)
+
+/**
+ * Damage-type ids that imply a matching condition immunity. When a monster
+ * lists `'poison'` in its immunities array, the partition automatically
+ * infers `'poisoned'` as a condition immunity — authors no longer need both.
+ */
+export const DAMAGE_IMPLIES_CONDITION: Readonly<Record<string, ConditionImmunityId>> = {
+  poison: 'poisoned',
+}

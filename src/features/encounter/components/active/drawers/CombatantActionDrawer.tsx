@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { type ReactNode, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -13,9 +13,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { AppBadge, AppTooltipWrap } from '@/ui/primitives'
 import { AppDrawer } from '@/ui/patterns'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
+import { isAreaGridAction, type AoeStep } from '../../../helpers/area-grid-action'
+import { AoePlacementPanel } from './drawer-modes/AoePlacementPanel'
 import {
   deriveBucketChrome,
   deriveBucketState,
+  getUserFacingEffectLabel,
   type CombatStateSection,
   type EnrichedPresentableEffect,
 } from '../../../domain'
@@ -23,6 +26,7 @@ import type { ActionSemanticCategory } from '../../../domain/badges/action/actio
 import { deriveActionPresentation } from '../../../domain/badges/action/action-presentation'
 import { ActionRow } from '../action-row/ActionRow'
 import { CasterOptionsFields } from '../action-row/CasterOptionsFields'
+import { deriveActionUnavailableHint } from './helpers/derive-action-unavailable-hint'
 
 type CombatantActionDrawerProps = {
   open: boolean
@@ -33,15 +37,43 @@ type CombatantActionDrawerProps = {
   availableActionIds?: Set<string>
   /** Actions that are valid against the currently selected target. */
   validActionIdsForTarget?: Set<string>
+  /** Authoritative reason string for each action that failed target validation. */
+  invalidActionReasons?: Map<string, string>
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
   selectedCasterOptions?: Record<string, string>
   onCasterOptionsChange?: (values: Record<string, string>) => void
   combatEffects: Record<CombatStateSection, EnrichedPresentableEffect[]>
+  targetPreview?: ReactNode
   targetLabel?: string | null
   canResolveAction?: boolean
   onResolveAction?: () => void
   onEndTurn?: () => void
+  aoeStep?: AoeStep
+  aoePlacementError?: string | null
+  onDismissAoeError?: () => void
+  aoeAffectedNames?: string[]
+  aoeAffectedTotal?: number
+  aoeAffectedOverflow?: number
+  onCancelAoe?: () => void
+  onUndoAoeSelection?: () => void
+}
+
+/**
+ * Closes the combatant action drawer when `activeCombatantId` changes (turn advance / end).
+ * Use from the active encounter route with the same `onClose` that clears action selection and AoE state.
+ */
+export function useCloseCombatantActionDrawerOnActiveCombatantChange(
+  activeCombatantId: string | null | undefined,
+  onClose: () => void,
+) {
+  const prevIdRef = useRef<string | null | undefined>(undefined)
+  useLayoutEffect(() => {
+    if (prevIdRef.current !== undefined && prevIdRef.current !== activeCombatantId) {
+      onClose()
+    }
+    prevIdRef.current = activeCombatantId ?? null
+  }, [activeCombatantId, onClose])
 }
 
 const SECTION_LABELS: Record<CombatStateSection, string> = {
@@ -187,31 +219,40 @@ function deriveRecommendedActions(
 // Action list rendering
 // ---------------------------------------------------------------------------
 
-function ActionItem({
+function ActionItemWithHint({
   action,
   isAvailable,
   isSelected,
+  hint,
   onSelectAction,
 }: {
   action: CombatActionDefinition
   isAvailable: boolean
   isSelected: boolean
+  hint: string | null
   onSelectAction?: (actionId: string) => void
 }) {
   return (
-    <ActionRow
-      action={action}
-      isSelected={isSelected}
-      isAvailable={isAvailable}
-      onSelect={
-        onSelectAction
-          ? () => {
-              if (!isAvailable) return
-              onSelectAction(action.id)
-            }
-          : undefined
-      }
-    />
+    <Box>
+      <ActionRow
+        action={action}
+        isSelected={isSelected}
+        isAvailable={isAvailable}
+        onSelect={
+          onSelectAction
+            ? () => {
+                if (!isAvailable) return
+                onSelectAction(action.id)
+              }
+            : undefined
+        }
+      />
+      {hint && (
+        <Typography variant="caption" color="text.secondary" sx={{ pl: 1, pt: 0.25, display: 'block' }}>
+          {hint}
+        </Typography>
+      )}
+    </Box>
   )
 }
 
@@ -219,12 +260,14 @@ function GroupedActionList({
   actions,
   availableActionIds,
   validActionIdsForTarget,
+  invalidActionReasons,
   selectedActionId,
   onSelectAction,
 }: {
   actions: CombatActionDefinition[]
   availableActionIds?: Set<string>
   validActionIdsForTarget?: Set<string>
+  invalidActionReasons?: Map<string, string>
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
 }) {
@@ -262,11 +305,12 @@ function GroupedActionList({
             </Typography>
             <Stack spacing={0.75}>
               {recommended.map((action) => (
-                <ActionItem
+                <ActionItemWithHint
                   key={`rec-${action.id}`}
                   action={action}
                   isAvailable={isActionAvailable(action)}
                   isSelected={action.id === selectedActionId}
+                  hint={deriveActionUnavailableHint(action, availableActionIds, invalidActionReasons)}
                   onSelectAction={onSelectAction}
                 />
               ))}
@@ -285,11 +329,12 @@ function GroupedActionList({
           )}
           <Stack spacing={1}>
             {groupActions.map((action) => (
-              <ActionItem
+              <ActionItemWithHint
                 key={action.id}
                 action={action}
                 isAvailable={isActionAvailable(action)}
                 isSelected={action.id === selectedActionId}
+                hint={deriveActionUnavailableHint(action, availableActionIds, invalidActionReasons)}
                 onSelectAction={onSelectAction}
               />
             ))}
@@ -304,6 +349,23 @@ function GroupedActionList({
 // Drawer
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// CTA label helper
+// ---------------------------------------------------------------------------
+
+function deriveCtaLabel(
+  targetLabel: string | null | undefined,
+  selectedActionLabel: string | undefined,
+  canResolveAction: boolean | undefined,
+  inAoeFlow: boolean,
+): string {
+  if (inAoeFlow) return 'Place Area'
+  if (!targetLabel) return 'Select a Target'
+  if (!selectedActionLabel) return 'Choose an Action'
+  if (canResolveAction) return `Resolve ${selectedActionLabel}`
+  return `Resolve ${selectedActionLabel}`
+}
+
 export function CombatantActionDrawer({
   open,
   onClose,
@@ -312,15 +374,25 @@ export function CombatantActionDrawer({
   bonusActions,
   availableActionIds,
   validActionIdsForTarget,
+  invalidActionReasons,
   selectedActionId,
   onSelectAction,
   selectedCasterOptions,
   onCasterOptionsChange,
   combatEffects,
+  targetPreview,
   targetLabel,
   canResolveAction,
   onResolveAction,
-  onEndTurn,
+  onEndTurn: _onEndTurn,
+  aoeStep = 'none',
+  aoePlacementError,
+  onDismissAoeError,
+  aoeAffectedNames = [],
+  aoeAffectedTotal = 0,
+  aoeAffectedOverflow = 0,
+  onCancelAoe,
+  onUndoAoeSelection,
 }: CombatantActionDrawerProps) {
   const effectSections = (Object.entries(combatEffects) as [CombatStateSection, EnrichedPresentableEffect[]][]).filter(
     ([, effects]) => effects.length > 0,
@@ -359,11 +431,66 @@ export function CombatantActionDrawer({
     [onCasterOptionsChange],
   )
 
+  const inAoeFlow = aoeStep !== 'none'
+  const aoeAction =
+    selectedActionDefinition && isAreaGridAction(selectedActionDefinition) ? selectedActionDefinition : null
+
+  const bothBucketsSpent = actionsSection.title.includes('spent') && bonusSection.title.includes('spent')
+  const ctaLabel = deriveCtaLabel(targetLabel, selectedActionDefinition?.label, canResolveAction, inAoeFlow)
+
   return (
-    <AppDrawer open={open} onClose={onClose} anchor="right" title={title} width={420}>
+    <AppDrawer open={open} onClose={onClose} anchor="right" title={title} width={420} nonModal>
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Box sx={{ flex: 1, overflow: 'auto', px: 2, py: 2 }}>
           <Stack spacing={2}>
+            {/* --- Target context (top of drawer) --- */}
+            {!inAoeFlow && (
+              <Box>
+                <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem', letterSpacing: '0.08em' }}>
+                  Target
+                </Typography>
+                {targetPreview ? (
+                  <Box sx={{ mt: 0.5 }}>{targetPreview}</Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    Select a target on the map or sidebar
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {/* --- Workflow status --- */}
+            {!inAoeFlow && targetLabel && !selectedActionId && (
+              <Typography variant="body2" color="text.secondary">
+                Choose an action below
+              </Typography>
+            )}
+            {!inAoeFlow && bothBucketsSpent && (
+              <Typography variant="body2" color="warning.main" sx={{ fontWeight: 500 }}>
+                All actions spent this turn
+
+                <Button variant="contained" color="primary" fullWidth onClick={_onEndTurn}>
+                  End Turn
+                </Button>
+              </Typography>
+            )}
+
+            {inAoeFlow && aoeAction?.areaTemplate && (
+              <AoePlacementPanel
+                action={aoeAction}
+                aoeStep={aoeStep}
+                aoePlacementError={aoePlacementError}
+                onDismissAoeError={onDismissAoeError}
+                aoeAffectedNames={aoeAffectedNames}
+                aoeAffectedTotal={aoeAffectedTotal}
+                aoeAffectedOverflow={aoeAffectedOverflow}
+                onCancelAoe={onCancelAoe}
+                onUndoAoeSelection={onUndoAoeSelection}
+              />
+            )}
+
+            <Collapse in={!inAoeFlow} timeout="auto" unmountOnExit>
+              <Stack spacing={2}>
             <CollapsibleSection
               key={`${open}-actions-${actionsSection.title}`}
               title={actionsSection.title}
@@ -374,6 +501,7 @@ export function CombatantActionDrawer({
                 actions={actions}
                 availableActionIds={availableActionIds}
                 validActionIdsForTarget={validActionIdsForTarget}
+                invalidActionReasons={invalidActionReasons}
                 selectedActionId={selectedActionId}
                 onSelectAction={onSelectAction}
               />
@@ -389,6 +517,7 @@ export function CombatantActionDrawer({
                 actions={bonusActions}
                 availableActionIds={availableActionIds}
                 validActionIdsForTarget={validActionIdsForTarget}
+                invalidActionReasons={invalidActionReasons}
                 selectedActionId={selectedActionId}
                 onSelectAction={onSelectAction}
               />
@@ -429,7 +558,7 @@ export function CombatantActionDrawer({
                           <Stack key={effect.id} direction="row" spacing={1} alignItems="center">
                             <AppTooltipWrap tooltip={effect.presentation.rulesText}>
                               <AppBadge
-                                label={effect.label}
+                                label={getUserFacingEffectLabel(effect)}
                                 tone={effect.presentation.tone === 'neutral' ? 'default' : effect.presentation.tone}
                                 size="small"
                               />
@@ -452,6 +581,8 @@ export function CombatantActionDrawer({
                 )}
               </Stack>
             </CollapsibleSection>
+              </Stack>
+            </Collapse>
           </Stack>
         </Box>
 
@@ -466,24 +597,21 @@ export function CombatantActionDrawer({
             py: 2,
           }}
         >
-          <Stack spacing={1.5}>
-            <Typography variant="body2" color="text.secondary" noWrap>
-              Target: {targetLabel || 'None selected'}
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <Button
-                variant="contained"
-                fullWidth
-                disabled={!canResolveAction}
-                onClick={onResolveAction}
-              >
-                Resolve Action
-              </Button>
-              <Button variant="outlined" fullWidth onClick={onEndTurn}>
-                End Turn
-              </Button>
-            </Stack>
-          </Stack>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={!canResolveAction}
+            onClick={onResolveAction}
+          >
+            {ctaLabel}
+          </Button>
+          {/* Phase-one: End Turn temporarily removed from drawer to reduce footer competition.
+              Reintroduce when header / End Turn flow is redesigned.
+          <Button variant="outlined" fullWidth onClick={_onEndTurn}>
+            End Turn
+          </Button>
+          */}
         </Box>
       </Box>
     </AppDrawer>

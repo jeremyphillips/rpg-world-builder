@@ -8,7 +8,27 @@ import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection } from '../action-resolution.types'
 import { cannotTargetWithHostileAction } from '../../state/condition-rules'
 import { canSeeForTargeting } from '../../state/visibility-seams'
-import { isWithinRange } from '@/features/encounter/space'
+import { gridDistanceFt, getCellForCombatant, isWithinRange } from '@/features/encounter/space'
+import type { CombatActionAreaTemplate } from '../combat-action.types'
+
+/** Chebyshev distance from origin cell to combatant cell; used as first-pass sphere/cube approximation. */
+export function areaTemplateRadiusFt(template: CombatActionAreaTemplate): number {
+  if (template.kind === 'sphere') return template.radiusFt
+  return template.edgeFt / 2
+}
+
+function combatantCellWithinAoeRadius(
+  state: EncounterState,
+  combatantId: string,
+  originCellId: string,
+  radiusFt: number,
+): boolean {
+  if (!state.space || !state.placements) return false
+  const cellId = getCellForCombatant(state.placements, combatantId)
+  if (!cellId) return false
+  const d = gridDistanceFt(state.space, originCellId, cellId)
+  return d !== undefined && d <= radiusFt
+}
 
 /** Options for who counts as a valid target; mirrors {@link import('../action-resolution.types').ResolveCombatActionOptions} targeting fields. */
 export type ActionTargetingResolveOptions = {
@@ -159,6 +179,74 @@ export function isValidActionTarget(
   return combatant.side !== actor.side
 }
 
+/**
+ * Mirrors {@link isValidActionTarget} but returns a short user-facing reason
+ * string for the first failing check, or `null` when the target is valid.
+ */
+export function getActionTargetInvalidReason(
+  state: EncounterState,
+  combatant: CombatantInstance,
+  actor: CombatantInstance,
+  action: CombatActionDefinition,
+  options?: ActionTargetingResolveOptions,
+): string | null {
+  const kind = action.targeting?.kind
+  const suppressSameSideHostile = shouldSuppressSameSideHostile(options)
+
+  if (combatant.states.some((s) => s.label === 'banished')) return 'Target is banished'
+
+  if (kind === 'dead-creature') {
+    if (combatant.stats.currentHitPoints !== 0) return 'Requires dead creature'
+    const r = combatant.remains
+    if (r === 'dust' || r === 'disintegrated') return 'Remains destroyed'
+    return null
+  }
+  
+  if (!passesCreatureTypeFilter(combatant, action.targeting?.creatureTypeFilter)) return 'Invalid creature type'
+
+  if (isHostileAction(action) && cannotTargetWithHostileAction(actor, combatant.instanceId)) {
+    return 'Cannot target (charmed)'
+  }
+
+  if (
+    action.targeting?.requiresSight &&
+    kind !== 'self' &&
+    kind !== 'all-enemies' &&
+    kind !== 'none' &&
+    !canSeeForTargeting(state, actor.instanceId, combatant.instanceId)
+  ) {
+    return 'Target not visible'
+  }
+
+  if (kind === 'none') return 'No target required'
+
+  if (combatant.stats.currentHitPoints <= 0) return 'Target is defeated'
+  if (kind === 'single-creature') return null
+
+  if (kind === 'single-target') {
+    if (action.targeting?.requiresWilling) {
+      return combatant.side === actor.side ? null : 'Requires willing ally'
+    }
+    if (suppressSameSideHostile && isHostileAction(action)) {
+      return combatant.side !== actor.side ? null : 'Requires enemy target'
+    }
+    return null
+  }
+
+  if (
+    action.targeting?.rangeFt != null &&
+    kind !== 'self' &&
+    kind !== 'none' &&
+    state.space &&
+    state.placements &&
+    !isWithinRange(state.space, state.placements, actor.instanceId, combatant.instanceId, action.targeting.rangeFt)
+  ) {
+    return 'Out of range'
+  }
+  
+  return combatant.side !== actor.side ? null : 'Requires enemy target'
+}
+
 export function getActionTargetCandidates(
   state: EncounterState,
   actor: CombatantInstance,
@@ -182,7 +270,15 @@ export function getActionTargets(
   if (action.targeting?.kind === 'self') return [actor]
 
   if (action.targeting?.kind === 'all-enemies') {
-    return getActionTargetCandidates(state, actor, action, options)
+    const candidates = getActionTargetCandidates(state, actor, action, options)
+    const template = action.areaTemplate
+    if (!template) return candidates
+
+    const originCellId = selection.aoeOriginCellId
+    if (!originCellId) return []
+
+    const radiusFt = areaTemplateRadiusFt(template)
+    return candidates.filter((c) => combatantCellWithinAoeRadius(state, c.instanceId, originCellId, radiusFt))
   }
 
   if (action.targeting?.kind === 'single-creature') {

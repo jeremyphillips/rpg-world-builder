@@ -5,6 +5,7 @@ import type { ImmunityType, CreatureResistanceDamageType } from '@/features/mech
 import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
 import {
   CONDITION_IMMUNITY_ONLY_IDS,
+  DAMAGE_IMPLIES_CONDITION,
   EFFECT_CONDITION_IDS,
   type ConditionImmunityId,
 } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
@@ -21,6 +22,8 @@ import {
   type RuntimeTurnHook,
 } from '@/features/mechanics/domain/encounter'
 
+import { getCombatantPortraitImageKey } from './getCombatantPortraitImageKey'
+
 const CONDITION_IDS: ReadonlySet<string> = new Set<EffectConditionId>(EFFECT_CONDITION_IDS)
 
 const CONDITION_ADJACENT_IMMUNITIES: ReadonlySet<string> = new Set(CONDITION_IMMUNITY_ONLY_IDS)
@@ -30,11 +33,11 @@ function partitionMonsterImmunities(immunities: ImmunityType[]): {
   conditionImmunities: ConditionImmunityId[]
 } {
   const damageImmunities: DamageResistanceMarker[] = []
-  const conditionImmunities: ConditionImmunityId[] = []
+  const conditionSeen = new Set<ConditionImmunityId>()
 
   for (const entry of immunities) {
     if (CONDITION_IDS.has(entry) || CONDITION_ADJACENT_IMMUNITIES.has(entry)) {
-      conditionImmunities.push(entry as ConditionImmunityId)
+      conditionSeen.add(entry as ConditionImmunityId)
     } else {
       damageImmunities.push({
         id: `monster-immunity-${entry}`,
@@ -43,10 +46,12 @@ function partitionMonsterImmunities(immunities: ImmunityType[]): {
         sourceId: 'monster-innate',
         label: `immunity to ${entry}`,
       })
+      const implied = DAMAGE_IMPLIES_CONDITION[entry]
+      if (implied) conditionSeen.add(implied)
     }
   }
 
-  return { damageImmunities, conditionImmunities }
+  return { damageImmunities, conditionImmunities: [...conditionSeen] }
 }
 
 function mapMonsterResistances(resistances: CreatureResistanceDamageType[]): DamageResistanceMarker[] {
@@ -84,10 +89,6 @@ export function formatAuthoredDamage(
   }
 
   return `${baseDamage} ${damageBonus > 0 ? '+' : '-'} ${Math.abs(damageBonus)}`
-}
-
-export function formatRuntimeLabel(name: string, runtimeId: string, sourceId: string): string {
-  return runtimeId === sourceId ? name : `${name} (${runtimeId})`
 }
 
 function deriveTargetingRangeFt(attack: CombatantAttackEntry): number | undefined {
@@ -139,8 +140,9 @@ export function buildCharacterCombatantInstance(args: {
     source: {
       kind: sourceKind,
       sourceId: character.id,
-      label: formatRuntimeLabel(character.name, runtimeId, character.id),
+      label: character.name,
     },
+    portraitImageKey: getCombatantPortraitImageKey({ character: { imageKey: character.imageKey } }),
     creatureType: 'humanoid',
     equipment: {
       armorEquipped: character.combat?.loadout?.armorId ?? null,
@@ -223,8 +225,9 @@ export function buildMonsterCombatantInstance(args: {
     source: {
       kind: 'monster',
       sourceId: monster.id,
-      label: formatRuntimeLabel(monster.name, runtimeId, monster.id),
+      label: monster.name,
     },
+    portraitImageKey: getCombatantPortraitImageKey({ monster: { imageKey: monster.imageKey } }),
     creatureType: monster.type,
     equipment: {
       armorEquipped: null,

@@ -14,6 +14,8 @@ import {
   type ManualMonsterTriggerContext,
   type MonsterFormContext,
 } from '@/features/mechanics/domain/encounter'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
+
 import type { OpponentOption, OpponentRosterEntry } from '../../../types'
 import { CombatLane } from './CombatLane'
 import { AllyCombatantSetupPreviewCard } from './AllyCombatantSetupPreviewCard'
@@ -22,6 +24,7 @@ import { OpponentCombatantSetupPreviewCard } from './OpponentCombatantSetupPrevi
 type OpponentRosterLaneProps = {
   opponentRoster: OpponentRosterEntry[]
   monstersById: Record<string, Monster>
+  characterPortraitById: Record<string, CombatantPortraitEntry>
   environmentContext: ManualEnvironmentContext
   monsterFormsById: Record<string, MonsterFormContext>
   monsterManualTriggersById: Record<string, ManualMonsterTriggerContext>
@@ -36,6 +39,7 @@ type OpponentRosterLaneProps = {
 export function OpponentRosterLane({
   opponentRoster,
   monstersById,
+  characterPortraitById,
   environmentContext,
   monsterFormsById,
   monsterManualTriggersById,
@@ -75,6 +79,8 @@ export function OpponentRosterLane({
                   runtimeId={entry.runtimeId}
                   side="enemies"
                   sourceKind="npc"
+                  monstersById={monstersById}
+                  characterPortraitById={characterPortraitById}
                   onResolved={(combatant) => onResolvedCombatant(entry.runtimeId, combatant)}
                   onRemove={() => onRemoveOpponentCombatant(entry.runtimeId)}
                 />
@@ -105,6 +111,8 @@ export function OpponentRosterLane({
               <OpponentCombatantSetupPreviewCard
                 key={entry.runtimeId}
                 monster={monster}
+                monstersById={monstersById}
+                characterPortraitById={characterPortraitById}
                 runtimeId={entry.runtimeId}
                 environmentContext={environmentContext}
                 currentForm={monsterFormsById[entry.runtimeId] ?? 'true-form'}

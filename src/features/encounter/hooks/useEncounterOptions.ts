@@ -27,6 +27,8 @@ export function useEncounterOptions(args: {
           classes: member.classes,
           ownerName: member.ownerName,
         }),
+        imageUrl: member.imageUrl,
+        imageKey: member.imageKey,
       })),
     [allies],
   )
@@ -41,6 +43,7 @@ export function useEncounterOptions(args: {
           kind: 'monster' as const,
           label: monster.name,
           subtitle: formatMonsterIdentityLine(monster),
+          imageKey: monster.imageKey,
         })),
     [monstersById],
   )
@@ -60,6 +63,8 @@ export function useEncounterOptions(args: {
             kind: 'npc' as const,
             label: npc.name,
             subtitle,
+            imageKey: npc.imageKey,
+            imageUrl: npc.imageUrl,
           }
         }),
     [npcs],

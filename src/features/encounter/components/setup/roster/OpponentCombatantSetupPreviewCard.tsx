@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react'
 
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
-import MonsterAvatar from '@/features/content/monsters/components/MonsterAvatar/MonsterAvatar'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import { calculateMonsterArmorClass } from '@/features/content/monsters/domain/mechanics/calculateMonsterArmorClass'
 import { getAbilityScoreValue } from '@/features/mechanics/domain/character/abilities/abilityScoreMap'
 import type { Monster } from '@/features/content/monsters/domain/types'
@@ -24,9 +24,12 @@ import {
   getPreviewStatTooltip,
 } from '../../../helpers'
 import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
+import { CombatantAvatar } from '../../shared/CombatantAvatar'
 
 type OpponentCombatantSetupPreviewCardProps = {
   monster: Monster
+  monstersById: Record<string, Monster>
+  characterPortraitById: Record<string, CombatantPortraitEntry>
   runtimeId: string
   environmentContext: ManualEnvironmentContext
   currentForm: MonsterFormContext
@@ -38,6 +41,8 @@ type OpponentCombatantSetupPreviewCardProps = {
 
 export function OpponentCombatantSetupPreviewCard({
   monster,
+  monstersById,
+  characterPortraitById,
   runtimeId,
   environmentContext,
   currentForm,
@@ -117,7 +122,15 @@ export function OpponentCombatantSetupPreviewCard({
     mode: 'setup',
     title: monster.name,
     subtitle: formatMonsterIdentityLine(monster),
-    avatar: <MonsterAvatar name={monster.name} size="sm" />,
+    avatar: (
+      <CombatantAvatar
+        combatant={combatant}
+        monstersById={monstersById}
+        characterPortraitById={characterPortraitById}
+        displayName={monster.name}
+        size="sm"
+      />
+    ),
     stats,
     secondaryActions: [
       { id: 'duplicate', label: 'Copy', onClick: onDuplicate },

@@ -13,6 +13,7 @@ import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { monsterRepo, MONSTER_DETAIL_SPECS, type MonsterDetailCtx } from '@/features/content/monsters/domain';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { resolveImageUrl } from '@/shared/lib/media';
 
 export default function MonsterDetailRoute() {
   const { campaignId, campaign } = useActiveCampaign();
@@ -61,6 +62,12 @@ export default function MonsterDetailRoute() {
       {monster.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
+        </Box>
+      )}
+
+      {monster?.imageKey && (
+        <Box sx={{ mb: 2 }}>
+          <img src={resolveImageUrl(monster.imageKey)} alt={monster.name} style={{ maxHeight: 500 }} />
         </Box>
       )}
 

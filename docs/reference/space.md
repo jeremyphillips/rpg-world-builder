@@ -15,19 +15,31 @@ The system is intentionally separate from narrative `Location` content. Location
 ```
 src/features/encounter/space/
 ├── index.ts                        # Public barrel
-├── space.types.ts                  # EncounterSpace, EncounterCell, CombatantPosition
+├── space.types.ts                  # EncounterSpace, EncounterCell, GridObstacle, CombatantPosition
 ├── space.helpers.ts                # Pure cell/distance/occupancy queries
 ├── space.selectors.ts              # State-level selectors, GridViewModel, movement
 ├── createSquareGridSpace.ts        # Factory: square-grid EncounterSpace
 ├── createZoneGridSpace.ts          # Factory: zone-grid EncounterSpace
-└── generateInitialPlacements.ts    # Side-based initial combatant placement
+├── generateInitialPlacements.ts    # Side-based initial combatant placement
+├── placeRandomGridObstacle.ts      # Optional single random obstruction from environment
+└── space.sight.ts                  # Line of sight: supercover line + hasLineOfSight / cellBlocksSight
 ```
 
 ## 3. Current Functionality
 
 ### Grid creation
 
-`createSquareGridSpace` generates a rectangular `EncounterSpace` with mode `'square-grid'`, a configurable `cellFeet` scale (default 5ft), and `width * height` cells. Each cell has an `(x, y)` coordinate and a string `id` of the form `cell-{x}-{y}`.
+`createSquareGridSpace` generates a rectangular `EncounterSpace` with mode `'square-grid'`, a configurable `cellFeet` scale (default 5ft), and `width * height` cells. Each cell has an `(x, y)` coordinate and a string `id` of the form `c-{x}-{y}`.
+
+When an encounter is started from setup, the app may call **`placeRandomGridObstacle`** immediately after `createSquareGridSpace`. That inserts **exactly one** random obstruction on an **open** cell, records it in **`EncounterSpace.obstacles`** (`GridObstacle`: `kind` `tree` | `pillar`, `cellId`, and stub booleans `blocksLineOfSight` / `blocksMovement` for future rules), and sets the chosen cell’s **`kind`** to **`blocking`** with blocking flags so placement and AoE origin checks stay aligned.
+
+**Environment → obstacle kind (first pass):**
+
+- `indoors` → pillar  
+- `outdoors` → tree  
+- `mixed` and `other` → pillar (neutral default until richer mapping exists)
+
+**Timing note:** Obstacles are chosen **before** `generateInitialPlacements` runs (combatants are not on the grid yet). The implementation only avoids cells already listed in `obstacles`; it does not reserve cells against future token positions beyond marking the cell as impassable.
 
 ### Distance
 
@@ -50,7 +62,16 @@ src/features/encounter/space/
 
 ### Grid view model
 
-`selectGridViewModel` flattens `EncounterSpace` + `CombatantPosition[]` into a flat `GridCellViewModel[]` for UI rendering. Each cell carries `isActive`, `isSelectedTarget`, `isInRange`, and `isReachable` flags. The `showReachable` option is driven by movement budget (`movementRemaining > 0`) so reachable cells highlight automatically at the start of each turn without requiring an explicit mode toggle.
+`selectGridViewModel` flattens `EncounterSpace` + `CombatantPosition[]` into a flat `GridCellViewModel[]` for UI rendering. Each cell carries `isActive`, `isSelectedTarget`, `isInRange`, and `isReachable` flags, plus **`obstacleKind` / `obstacleLabel`** when the cell has an entry in `space.obstacles`. The active grid shows a small corner marker and a **hover tooltip** with the obstruction name (`Tree` or `Pillar`). The `showReachable` option is driven by movement budget (`movementRemaining > 0`) so reachable cells highlight automatically at the start of each turn without requiring an explicit mode toggle.
+
+### Line of sight (binary, first pass)
+
+`space.sight.ts` implements **binary** line of sight on the square grid for shared use by spells, ranged/thrown attacks, and any feature that needs “can I draw a line?” — not spell-specific.
+
+- **Line geometry:** The segment runs between **cell centers** of the source and target cells `(x+0.5, y+0.5)`. The set of cells visited is a **grid supercover** using an **Amanatides & Woo–style DDA** (each unit cell the segment intersects). When a ray hits a **corner** between two cells, the tie branch steps **diagonally** so both grid steps are included.
+- **Blocking:** `cellBlocksSight(space, cellId)` is the **only** resolver for opaque sight blockers; it reads `EncounterCell.blocksSight`. **Intermediate** cells on the path may block; **source and target cells do not** block their own endpoints (occupants on those squares do not apply blocking in this first pass).
+- **API:** `hasLineOfSight(space, fromCellId, toCellId)`; `traceLineOfSightCells` is mainly for tests and debugging.
+- **Targeting:** `canSeeForTargeting` in `visibility-seams.ts` composes condition-based sight (e.g. blinded, invisible) with `lineOfSightClear`, which calls `hasLineOfSight` when `EncounterSpace` and placements exist. **Cover** and **obscurement** are out of scope here; future `deriveCoverLevel` would sit beside LoS, not inside it.
 
 ### Movement
 
@@ -71,7 +92,7 @@ These are intentional simplifications for the current milestone, not bugs:
 - **Character speed is hardcoded 30ft.** No race/species-based speeds. Refined when race modeling is added.
 - **No opportunity attacks.** Movement does not trigger reactions. The seam exists via `turnHooks` and `reactionAvailable`.
 - **No Disengage or Dash actions.** Dash would double `movementRemaining`; Disengage would suppress opportunity attacks. `CombatActionCost.movementFeet` exists for future action costs.
-- **No pathfinding, LOS, or cover.** These are three distinct concerns (path-aware reachability, line-of-sight, cover bonuses) that should remain separate. All are deferred.
+- **Pathfinding** is still geometric / not path-aware for movement highlights. **Ray-based LOS** exists for targeting (`hasLineOfSight`); **cover bonuses** and **obscurement** are still deferred.
 - **No large creature footprints.** `CombatantPosition.size` exists as a seam but is not consumed by placement, movement, or range validation.
 - **`EncounterCell.movementCost` is not consumed.** The field exists for future difficult terrain but `moveCombatant` does not read it.
 
@@ -97,10 +118,12 @@ Current naming intentionally distinguishes *in-range by metric* (`selectCellsWit
 
 | Type | Location | Purpose |
 |------|----------|---------|
-| `EncounterSpace` | `space.types.ts` | Grid definition: cells, scale, dimensions |
+| `EncounterSpace` | `space.types.ts` | Grid definition: cells, optional `obstacles`, scale, dimensions |
+| `GridObstacle` | `space.types.ts` | Obstruction record: kind, cellId, future blocking flags |
 | `EncounterCell` | `space.types.ts` | Single cell: position, kind, terrain tags |
 | `CombatantPosition` | `space.types.ts` | Links combatant to cell |
 | `CombatantAttackRange` | `combatant.types.ts` | Discriminated union: melee (rangeFt) or ranged (normalFt, longFt) |
 | `GridCellViewModel` | `space.selectors.ts` | UI-ready cell with highlight flags |
 | `GridViewModel` | `space.selectors.ts` | Complete grid for rendering |
+| `hasLineOfSight` | `space.sight.ts` | Binary LoS along supercover segment between cell centers |
 | `GridInteractionMode` | `encounter-interaction.types.ts` | `'select-target' \| 'move'` UI mode |

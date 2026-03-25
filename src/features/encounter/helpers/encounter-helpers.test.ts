@@ -798,7 +798,37 @@ describe('buildSpellCombatActions', () => {
       spellsById: { 'fireball': spell },
     })
 
-    expect(actions[0]!.targeting).toEqual({ kind: 'all-enemies' })
+    expect(actions[0]!.targeting).toEqual({ kind: 'all-enemies', rangeFt: 120 })
+    expect(actions[0]!.areaTemplate).toEqual({ kind: 'sphere', radiusFt: 20 })
+    expect(actions[0]!.areaPlacement).toBe('remote')
+  })
+
+  it('maps self-range area targeting to all-enemies with reach from area.size', () => {
+    const spell = makeSpell({
+      id: 'thunderwave',
+      name: 'Thunderwave',
+      level: 1,
+      range: { kind: 'self' },
+      effects: [
+        { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'cube', size: 15 } },
+        {
+          kind: 'save',
+          save: { ability: 'con' },
+          onFail: [{ kind: 'damage', damage: '2d8', damageType: 'thunder' }],
+          onSuccess: [{ kind: 'damage', damage: '1d8', damageType: 'thunder' }],
+        },
+      ],
+    })
+
+    const actions = buildSpellCombatActions({
+      ...baseArgs,
+      spellIds: ['thunderwave'],
+      spellsById: { thunderwave: spell },
+    })
+
+    expect(actions[0]!.targeting).toEqual({ kind: 'all-enemies', rangeFt: 15 })
+    expect(actions[0]!.areaTemplate).toEqual({ kind: 'cube', edgeFt: 15 })
+    expect(actions[0]!.areaPlacement).toBe('self')
   })
 
   it('strips targeting effects from resolved effects list', () => {
@@ -905,6 +935,7 @@ describe('buildSpellCombatActions', () => {
     expect(actions[0]!.targeting).toEqual({
       kind: 'single-target',
       requiresWilling: true,
+      rangeFt: 5,
     })
     expect(isHostileAction(actions[0]!)).toBe(false)
   })

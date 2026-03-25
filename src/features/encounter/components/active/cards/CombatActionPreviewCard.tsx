@@ -4,15 +4,9 @@ import Typography from '@mui/material/Typography'
 import { alpha } from '@mui/material/styles'
 
 import { AppBadge } from '@/ui/primitives'
-import type { AppBadgeTone } from '@/ui/types'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
-import type { CombatStateTone } from '../../../domain/effects/presentable-effects.types'
 import { deriveCombatActionBadges } from '../../../domain/badges/action/combat-action-badges'
-
-function badgeToneToAppBadgeTone(tone: CombatStateTone): AppBadgeTone {
-  if (tone === 'neutral') return 'default'
-  return tone
-}
+import { combatToneToAppBadgeTone } from '../../shared/cards/combatant-badges'
 
 const TARGETING_LABELS: Record<string, string> = {
   'single-target': 'Single Target',
@@ -74,7 +68,7 @@ export function CombatActionPreviewCard({
               <AppBadge
                 key={`${b.kind}-${b.label}`}
                 label={b.label}
-                tone={badgeToneToAppBadgeTone(b.tone)}
+                tone={combatToneToAppBadgeTone(b.tone)}
                 variant="outlined"
                 size="small"
               />

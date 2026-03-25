@@ -9,6 +9,8 @@ import {
   appendEncounterNote,
   autoFailsSave,
   effectDurationToRuntimeDuration,
+  getCombatantDisplayLabel,
+  getEncounterCombatantLabel,
   getSaveModifiersFromConditions,
   removeStatesByClassification,
   updateEncounterCombatant,
@@ -245,7 +247,7 @@ export function applyActionEffects(
 
       nextState = appendEncounterNote(
         nextState,
-        `${options.sourceLabel}: ${target.source.label} ${succeeded ? 'succeeds' : 'fails'} the ${ability.toUpperCase()} save.`,
+        `${options.sourceLabel}: ${getEncounterCombatantLabel(nextState, target.instanceId)} ${succeeded ? 'succeeds' : 'fails'} the ${ability.toUpperCase()} save.`,
         {
           actorId: actor.instanceId,
           targetIds: [target.instanceId],
@@ -460,7 +462,7 @@ export function applyActionEffects(
       if (!modifierEffectAppliesToTarget(effect, actor, target)) {
         nextState = appendEncounterNote(
           nextState,
-          `${options.sourceLabel}: Modifier not applied (spell conditions not met for ${target.source.label}).`,
+          `${options.sourceLabel}: Modifier not applied (spell conditions not met for ${getEncounterCombatantLabel(nextState, target.instanceId)}).`,
           {
             actorId: actor.instanceId,
             targetIds: [target.instanceId],
@@ -549,7 +551,7 @@ export function applyActionEffects(
             diedAtRound: c.diedAtRound ?? nextState.roundNumber,
           }))
         }
-        nextState = appendEncounterNote(nextState, `${options.sourceLabel}: ${target.source.label} ${effect.outcome.replaceAll('-', ' ')}.`, {
+        nextState = appendEncounterNote(nextState, `${options.sourceLabel}: ${getEncounterCombatantLabel(nextState, target.instanceId)} ${effect.outcome.replaceAll('-', ' ')}.`, {
           actorId: actor.instanceId,
           targetIds: [target.instanceId],
         })
@@ -701,7 +703,8 @@ export function applyActionEffects(
             initiativeMode: effect.initiativeMode,
             casterInstanceId: actor.instanceId,
           })
-          const names = built.map((c) => c.source.label).join(', ')
+          const roster = Object.values(nextState.combatantsById)
+          const names = built.map((c) => getCombatantDisplayLabel(c, roster)).join(', ')
           nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Summoned ${names} — joined initiative (party).`, {
             actorId: actor.instanceId,
             targetIds: [target.instanceId],

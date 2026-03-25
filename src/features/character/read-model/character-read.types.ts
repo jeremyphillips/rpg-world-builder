@@ -50,6 +50,8 @@ export type CharacterCardSummary = {
   name: string
   type?: string
   imageUrl: string | null
+  /** Raw storage key when present; prefer resolving with `resolveImageUrl`. */
+  imageKey?: string | null
   race: { id: string; name: string } | null
   classes: CharacterClassSummary[]
   campaign: { id: string; name: string } | null

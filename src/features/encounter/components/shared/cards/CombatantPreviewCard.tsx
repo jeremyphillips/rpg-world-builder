@@ -47,7 +47,7 @@ export function CombatantPreviewCard({
       title={title}
       subtitle={subtitle}
       stats={stats}
-      chips={chips && chips.length > 0 ? <CombatantPreviewChipRow chips={chips} /> : undefined}
+      chips={chips && chips.length > 0 ? <CombatantPreviewChipRow chips={chips} maxVisible={4} /> : undefined}
       isCurrentTurn={isCurrentTurn}
       secondaryActions={secondaryActions}
       primaryAction={primaryAction}

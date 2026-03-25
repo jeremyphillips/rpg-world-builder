@@ -64,7 +64,7 @@ export default function RaceDetailRoute() {
 
       {race.imageKey && (
         <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(race.imageKey)} alt={race.name} style={{ maxHeight: 200 }} />
+          <img src={resolveImageUrl(race.imageKey)} alt={race.name} style={{ maxHeight: 500 }} />
         </Box>
       )}
 

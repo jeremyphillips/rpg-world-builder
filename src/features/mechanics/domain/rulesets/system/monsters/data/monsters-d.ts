@@ -151,7 +151,7 @@ export const MONSTERS_D: readonly MonsterCatalogEntry[] = [
       },
       proficiencyBonus: 2,
       vulnerabilities: ['fire'],
-      immunities: ['poison', 'exhaustion', 'poisoned'],
+      immunities: ['poison', 'exhaustion'],
       traits: [
         {
           name: 'Death Burst',

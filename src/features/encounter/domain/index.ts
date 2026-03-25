@@ -3,6 +3,7 @@ export {
   defenseBadgesToPresentableCombatEffects,
   deriveEncounterDefenseBadges,
   describeConditionScopeForDefenseTooltip,
+  formatDamageDefenseLabel,
 } from './badges/defense/encounter-defense-badges'
 export type {
   EncounterConditionImmunityBadge,
@@ -25,18 +26,27 @@ export {
   collectPresentableEffects,
   enrichPresentableEffects,
   enrichWithPresentation,
+  getUserFacingEffectLabel,
   groupBySection,
   sortByPriority,
 } from './effects/presentable-effects'
 export {
   COMBAT_STATE_UI_MAP,
   COMBAT_STATE_MARKER_UI_MAP,
+  CONDITION_IMMUNITY_ONLY_PRESENTATION_MAP,
+  CORE_COMBAT_STATE_KEYS,
+  CORE_COMBAT_STATE_MAP,
+  CORE_ENGINE_MARKER_PRESENTATION_MAP,
   EFFECT_CONDITION_PRESENTATION_MAP,
   getCombatStatePresentation,
   getFallbackPresentation,
   getPriorityOrder,
   getSectionOrder,
+  resolveEffectPresentation,
+  resolvePresentationForSemanticKey,
   shouldShowPresentationInHeader,
+  SPECIALIZED_EFFECT_KEYS,
+  SPECIALIZED_EFFECT_PRESENTATION_MAP,
 } from './effects/combat-state-ui-map'
 export type {
   CombatStatePresentation,
@@ -44,6 +54,7 @@ export type {
   CombatStateTone,
   CombatStatePriority,
   EnrichedPresentableEffect,
+  PresentationTier,
   PresentableCombatEffect,
   PresentableCombatEffectKind,
   PresentableTurnHook,
@@ -65,9 +76,30 @@ export type { GridInteractionMode } from './encounter-interaction.types'
 export {
   deriveBucketChrome,
   deriveBucketState,
+  deriveTurnResourceBucketState,
   deriveTurnExhaustion,
+  partitionCombatantActionBuckets,
+  turnResourceBucketHeaderBadge,
 } from './turn-options'
-export type { TurnOptionBucketState } from './turn-options'
+export {
+  canResolveCombatActionSelection,
+  selectValidActionIdsForTarget,
+} from './encounter-resolve-selection'
+export type { CanResolveCombatActionSelectionArgs } from './encounter-resolve-selection'
+export { deriveCombatantTurnExhaustion } from './combatant-turn-exhaustion'
+export type { CombatantTurnExhaustionInput } from './combatant-turn-exhaustion'
+export {
+  deriveEncounterHeaderModel,
+} from './encounter-header-model'
+export type {
+  DeriveEncounterHeaderModelArgs,
+  EncounterHeaderDisplayArgs,
+  EncounterHeaderInteractionArgs,
+  EncounterHeaderModel,
+  EncounterHeaderTurnArgs,
+  EndTurnEmphasis,
+} from './encounter-header-model'
+export type { TurnOptionBucketState, TurnResourceBucketHeaderBadge } from './turn-options'
 export {
   deriveEncounterCapabilities,
 } from './capabilities/encounter-capabilities.types'

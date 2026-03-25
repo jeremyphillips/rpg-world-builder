@@ -26,6 +26,7 @@ export default function EncounterSetupRoute() {
     removeAllyCombatant,
     opponentRoster,
     monstersById,
+    characterPortraitById,
     environmentContext,
     monsterFormsById,
     monsterManualTriggersById,
@@ -50,6 +51,8 @@ export default function EncounterSetupRoute() {
         allyLane={
           <AllyRosterLane
             selectedAllyIds={selectedAllyIds}
+            monstersById={monstersById}
+            characterPortraitById={characterPortraitById}
             onOpenModal={() => setAllyModalOpen(true)}
             onResolvedCombatant={handleResolvedCombatant}
             onRemoveAllyCombatant={removeAllyCombatant}
@@ -59,6 +62,7 @@ export default function EncounterSetupRoute() {
           <OpponentRosterLane
             opponentRoster={opponentRoster}
             monstersById={monstersById}
+            characterPortraitById={characterPortraitById}
             environmentContext={environmentContext}
             monsterFormsById={monsterFormsById}
             monsterManualTriggersById={monsterManualTriggersById}

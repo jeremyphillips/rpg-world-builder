@@ -113,6 +113,7 @@ export function toCharacterCardSummary(
     name: char.name ?? '',
     type: char.type,
     imageUrl: imageKey ? (getPublicUrl(imageKey) ?? null) : null,
+    imageKey,
     race: raceId ? { id: raceId, name: refs.raceById.get(raceId)?.name ?? raceId } : null,
     classes,
     campaign,

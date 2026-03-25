@@ -14,11 +14,11 @@ import type {
 } from './presentable-effects.types'
 import { defenseBadgesToPresentableCombatEffects } from '../badges/defense/encounter-defense-badges'
 import {
-  COMBAT_STATE_UI_MAP,
-  getFallbackPresentation,
   getPriorityOrder,
   getSectionOrder,
+  resolveEffectPresentation,
 } from './combat-state-ui-map'
+import { formatTurnDuration } from '../../helpers/format-turn-duration'
 
 const DEFENSE_BADGE_PRESENTATION_BASE: CombatStatePresentation = {
   label: '',
@@ -40,12 +40,18 @@ function normalizeKey(s: string): string {
   return s.trim().toLowerCase().replace(/\s+/g, '_')
 }
 
+/** Semantic key for presentation lookup: prefer stable `marker.id` over raw `label`. */
+function semanticKeyFromRuntimeMarker(marker: RuntimeMarker): string {
+  const raw = marker.id?.trim() ? marker.id : marker.label
+  return normalizeKey(raw)
+}
+
 function markerToPresentable(
   marker: RuntimeMarker,
   kind: 'condition' | 'effect' | 'suppression',
   prefix: string,
 ): PresentableCombatEffect {
-  const key = normalizeKey(marker.label)
+  const key = semanticKeyFromRuntimeMarker(marker)
   return {
     id: `${prefix}-${marker.id}`,
     kind,
@@ -119,11 +125,10 @@ export function collectPresentableEffects(combatant: CombatantInstance): Present
 
   // Derived: concentrating
   if (combatant.concentration) {
-    const SECONDS_PER_TURN = 6
     const { remainingTurns, totalTurns } = combatant.concentration
     const timeLabel =
       remainingTurns != null && totalTurns != null
-        ? ` (${(totalTurns - remainingTurns) * SECONDS_PER_TURN}s/${totalTurns * SECONDS_PER_TURN}s)`
+        ? ` (${formatTurnDuration({ remainingTurns, totalTurns })})`
         : ''
     effects.push({
       id: `${instanceId}-concentrating`,
@@ -181,10 +186,32 @@ export function collectPresentableEffects(combatant: CombatantInstance): Present
   return effects
 }
 
-export function enrichWithPresentation(
+function isDerivedConcentratingComposite(effect: PresentableCombatEffect): boolean {
+  return effect.key === 'concentrating' && effect.label.includes('Concentrating:')
+}
+
+function resolveUserFacingLabelAfterEnrich(
   effect: PresentableCombatEffect,
-  map: Record<string, CombatStatePresentation> = COMBAT_STATE_UI_MAP,
-): EnrichedPresentableEffect {
+  presentation: CombatStatePresentation,
+): string {
+  if (isDefenseBadgeKey(effect.key)) {
+    return effect.label
+  }
+  if (isDerivedConcentratingComposite(effect)) {
+    return effect.label
+  }
+  return presentation.label
+}
+
+/**
+ * User-facing badge text for an enriched effect. Prefer this over raw `PresentableCombatEffect.label`
+ * before enrichment; after `enrichWithPresentation`, `effect.label` matches this value.
+ */
+export function getUserFacingEffectLabel(effect: EnrichedPresentableEffect): string {
+  return effect.label
+}
+
+export function enrichWithPresentation(effect: PresentableCombatEffect): EnrichedPresentableEffect {
   if (isDefenseBadgeKey(effect.key)) {
     return {
       ...effect,
@@ -193,24 +220,28 @@ export function enrichWithPresentation(
         label: effect.label,
         rulesText: effect.summary,
       },
+      presentationTier: 'defense',
+      usedFallbackPresentation: false,
     }
   }
 
-  const presentation = map[effect.key] ?? getFallbackPresentation(effect)
+  const { presentation, presentationTier, usedFallbackPresentation } = resolveEffectPresentation(effect)
   const summary =
     presentation.summarize?.(effect) ?? (effect.summary ? effect.summary : undefined)
+  const label = resolveUserFacingLabelAfterEnrich(effect, presentation)
+
   return {
     ...effect,
+    label,
     summary: summary ?? effect.summary,
     presentation,
+    presentationTier,
+    usedFallbackPresentation,
   }
 }
 
-export function enrichPresentableEffects(
-  effects: PresentableCombatEffect[],
-  map: Record<string, CombatStatePresentation> = COMBAT_STATE_UI_MAP,
-): EnrichedPresentableEffect[] {
-  return effects.map((effect) => enrichWithPresentation(effect, map))
+export function enrichPresentableEffects(effects: PresentableCombatEffect[]): EnrichedPresentableEffect[] {
+  return effects.map((effect) => enrichWithPresentation(effect))
 }
 
 const SECTION_ORDER = getSectionOrder()

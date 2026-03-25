@@ -26,7 +26,6 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
         'grappled',
         'paralyzed',
         'petrified',
-        'poisoned',
         'prone',
         'restrained',
         'unconscious',
@@ -129,7 +128,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
       },
       proficiencyBonus: 2,
       resistances: ['necrotic'],
-      immunities: ['poison', 'exhaustion', 'poisoned'],
+      immunities: ['poison', 'exhaustion'],
       traits: [
         {
           name: 'Sunlight Sensitivity',
@@ -308,7 +307,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
         skills: { perception: { proficiencyLevel: 2 }, stealth: { proficiencyLevel: 2 } },
       },
       proficiencyBonus: 3,
-      immunities: ['poison', 'paralyzed', 'petrified', 'poisoned'],
+      immunities: ['poison', 'paralyzed', 'petrified'],
       traits: [
         {
           name: 'Earth Glide',

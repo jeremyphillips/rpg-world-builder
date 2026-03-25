@@ -158,6 +158,7 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
   {
     id: 'air-elemental',
     name: 'Air Elemental',
+    imageKey: '/assets/system/monsters/air-elemental.png',
     type: 'elemental',
     sizeCategory: 'large',
     languages: [{ id: 'primordial' }],
@@ -179,7 +180,6 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
         'grappled',
         'paralyzed',
         'petrified',
-        'poisoned',
         'prone',
         'restrained',
         'unconscious',
@@ -264,7 +264,6 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
         'frightened',
         'paralyzed',
         'petrified',
-        'poisoned',
       ],
       actions: [
         {
@@ -322,7 +321,6 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
         'frightened',
         'paralyzed',
         'petrified',
-        'poisoned',
       ],
       actions: [
         {
@@ -373,7 +371,6 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
         'frightened',
         'paralyzed',
         'petrified',
-        'poisoned',
       ],
       actions: [
         {
@@ -698,7 +695,7 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
       },
       senses: { passivePerception: 11 },
       proficiencyBonus: 2,
-      immunities: ['fire', 'poison', 'poisoned'],
+      immunities: ['fire', 'poison'],
       traits: [
         {
           name: 'Fire Aura',

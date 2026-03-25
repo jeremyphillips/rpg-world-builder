@@ -64,6 +64,7 @@ export type MonsterProficiencies = CharacterProficiencies & {
 
 export interface MonsterFields {
   id: string;
+  imageKey?: string;
   name: string;
   type?: MonsterType;
   subtype?: MonsterSubtype;

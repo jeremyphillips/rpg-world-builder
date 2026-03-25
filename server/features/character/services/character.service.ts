@@ -172,7 +172,6 @@ export async function createCharacter(userId: string, data: CharacterDoc) {
     wealth: data.wealth ?? { gp: 0, sp: 0, cp: 0 },
     abilityScores: data.abilityScores ?? {},
     hitPoints: data.hitPoints ?? {},
-    armorClass: data.armorClass ?? {},
     proficiencies: data.proficiencies ?? [],
     narrative: data.narrative ?? {},
     ai: data.ai ?? {},

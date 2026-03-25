@@ -49,7 +49,9 @@ export interface RuntimeMarkerDuration {
 }
 
 export interface RuntimeMarker {
+  /** Semantic condition/state id (matches mechanics vocabulary); prefer for presentation lookup. */
   id: string
+  /** Not canonical user-facing copy; encounter UI resolves via `resolveEffectPresentation` / `enrichWithPresentation`. */
   label: string
   duration?: RuntimeMarkerDuration
   sourceInstanceId?: string
@@ -197,6 +199,10 @@ export interface DamageResistanceMarker {
   damageType: string
   level: DamageResistanceLevel
   sourceId: string
+  /**
+   * Human-readable hint for logs, authoring, or debug — not authoritative for encounter UI.
+   * Encounter badge surfaces derive display text from `level` + `damageType` (see encounter defense badges).
+   */
   label: string
   duration?: RuntimeMarkerDuration
 }
@@ -229,6 +235,11 @@ export interface CombatantInstance {
   instanceId: string
   side: CombatantSide
   source: CombatantSourceRef
+  /**
+   * Portrait media key at roster/build time (storage key or `/…` path). Not a resolved CDN URL.
+   * Presentation uses `resolveImageUrl`; keeps encounter state stable across URL strategy changes.
+   */
+  portraitImageKey?: string | null
   creatureType?: string
   /**
    * Set when the combatant is dead (0 HP): what is left to target for spells.
