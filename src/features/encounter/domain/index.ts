@@ -65,7 +65,10 @@ export type { GridInteractionMode } from './encounter-interaction.types'
 export {
   deriveBucketChrome,
   deriveBucketState,
+  deriveTurnResourceBucketState,
   deriveTurnExhaustion,
+  partitionCombatantActionBuckets,
+  turnResourceBucketHeaderBadge,
 } from './turn-options'
 export {
   canResolveCombatActionSelection,
@@ -85,7 +88,7 @@ export type {
   EncounterHeaderTurnArgs,
   EndTurnEmphasis,
 } from './encounter-header-model'
-export type { TurnOptionBucketState } from './turn-options'
+export type { TurnOptionBucketState, TurnResourceBucketHeaderBadge } from './turn-options'
 export {
   deriveEncounterCapabilities,
 } from './capabilities/encounter-capabilities.types'

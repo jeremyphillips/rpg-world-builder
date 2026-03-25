@@ -1,6 +1,6 @@
 // import EditIcon from '@mui/icons-material/Edit'
 // import RestartAltIcon from '@mui/icons-material/RestartAlt'
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -20,6 +20,11 @@ import {
 } from '@/ui/primitives'
 
 import type { EndTurnEmphasis } from '../../../domain'
+import {
+  deriveTurnResourceBucketState,
+  partitionCombatantActionBuckets,
+  turnResourceBucketHeaderBadge,
+} from '../../../domain'
 import { EncounterActiveCombatantIdentity } from './EncounterActiveCombatantIdentity'
 
 export type EncounterActiveHeaderProps = {
@@ -65,6 +70,17 @@ export function EncounterActiveHeader({
 }: EncounterActiveHeaderProps) {
   const move = turnResources?.movementRemaining ?? 0
   const headerRootRef = useRef<HTMLDivElement>(null)
+
+  const actionBonusBadges = useMemo(() => {
+    if (!turnResources || !activeCombatant) return null
+    const { actionDefs, bonusDefs } = partitionCombatantActionBuckets(activeCombatant.actions)
+    const actionState = deriveTurnResourceBucketState(actionDefs, turnResources.actionAvailable)
+    const bonusState = deriveTurnResourceBucketState(bonusDefs, turnResources.bonusActionAvailable)
+    return {
+      action: turnResourceBucketHeaderBadge(actionState, 'action'),
+      bonus: turnResourceBucketHeaderBadge(bonusState, 'bonus'),
+    }
+  }, [activeCombatant, turnResources])
 
   useLayoutEffect(() => {
     const el = headerRootRef.current
@@ -144,18 +160,22 @@ export function EncounterActiveHeader({
               useFlexGap
               justifyContent={{ md: 'center' }}
             >
-              <AppBadge
-                label={`Action ${turnResources.actionAvailable ? '●' : '○'}`}
-                tone={turnResources.actionAvailable ? 'success' : 'default'}
-                variant="outlined"
-                size="small"
-              />
-              <AppBadge
-                label={`Bonus ${turnResources.bonusActionAvailable ? '●' : '○'}`}
-                tone={turnResources.bonusActionAvailable ? 'success' : 'default'}
-                variant="outlined"
-                size="small"
-              />
+              {actionBonusBadges && (
+                <>
+                  <AppBadge
+                    label={actionBonusBadges.action.label}
+                    tone={actionBonusBadges.action.tone}
+                    variant="outlined"
+                    size="small"
+                  />
+                  <AppBadge
+                    label={actionBonusBadges.bonus.label}
+                    tone={actionBonusBadges.bonus.tone}
+                    variant="outlined"
+                    size="small"
+                  />
+                </>
+              )}
               <AppBadge
                 label={`Move ${move}/${baseMovementFt} ft`}
                 tone="default"

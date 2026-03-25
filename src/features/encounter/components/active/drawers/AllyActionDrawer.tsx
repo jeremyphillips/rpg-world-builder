@@ -6,8 +6,9 @@ import type { AoeStep } from '../../../helpers/area-grid-action'
 import {
   collectPresentableEffects,
   enrichPresentableEffects,
-  sortByPriority,
   groupBySection,
+  partitionCombatantActionBuckets,
+  sortByPriority,
 } from '../../../domain'
 import { CombatantActionDrawer } from './CombatantActionDrawer'
 
@@ -65,12 +66,8 @@ export function AllyActionDrawer({
     () => new Set(availableActions.map((a) => a.id)),
     [availableActions],
   )
-  const actions = useMemo(
-    () => (combatant.actions ?? []).filter((a) => a.cost.action && !a.cost.bonusAction),
-    [combatant.actions],
-  )
-  const bonusActions = useMemo(
-    () => (combatant.actions ?? []).filter((a) => a.cost.bonusAction),
+  const { actionDefs: actions, bonusDefs: bonusActions } = useMemo(
+    () => partitionCombatantActionBuckets(combatant.actions),
     [combatant.actions],
   )
 

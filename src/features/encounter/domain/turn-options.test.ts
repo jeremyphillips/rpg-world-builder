@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
+import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
+
 import {
   deriveBucketChrome,
   deriveBucketState,
   deriveTurnExhaustion,
+  deriveTurnResourceBucketState,
+  partitionCombatantActionBuckets,
+  turnResourceBucketHeaderBadge,
 } from './turn-options'
 
 describe('deriveBucketState', () => {
@@ -41,6 +46,40 @@ describe('deriveBucketChrome', () => {
       title: 'Actions',
       defaultOpen: true,
     })
+  })
+})
+
+describe('partitionCombatantActionBuckets', () => {
+  it('splits standard vs bonus like the action drawer', () => {
+    const std = { id: 'a', cost: { action: true }, label: 'a', kind: 'weapon-attack' } as CombatActionDefinition
+    const bon = { id: 'b', cost: { bonusAction: true }, label: 'b', kind: 'weapon-attack' } as CombatActionDefinition
+    const both = { id: 'c', cost: { action: true, bonusAction: true }, label: 'c', kind: 'spell' } as CombatActionDefinition
+    const { actionDefs, bonusDefs } = partitionCombatantActionBuckets([std, bon, both])
+    expect(actionDefs.map((a) => a.id)).toEqual(['a'])
+    expect(bonusDefs.map((a) => a.id)).toEqual(['b', 'c'])
+  })
+})
+
+describe('deriveTurnResourceBucketState', () => {
+  const one = [{ id: 'x' }]
+
+  it('is empty when no defs regardless of slot', () => {
+    expect(deriveTurnResourceBucketState([], true)).toBe('empty')
+    expect(deriveTurnResourceBucketState([], false)).toBe('empty')
+  })
+
+  it('follows slot when defs exist', () => {
+    expect(deriveTurnResourceBucketState(one, true)).toBe('available')
+    expect(deriveTurnResourceBucketState(one, false)).toBe('spent')
+  })
+})
+
+describe('turnResourceBucketHeaderBadge', () => {
+  it('maps bucket state to compact labels', () => {
+    expect(turnResourceBucketHeaderBadge('empty', 'action')).toEqual({ label: 'Action —', tone: 'default' })
+    expect(turnResourceBucketHeaderBadge('spent', 'action')).toEqual({ label: 'Action ○', tone: 'default' })
+    expect(turnResourceBucketHeaderBadge('available', 'action')).toEqual({ label: 'Action ●', tone: 'success' })
+    expect(turnResourceBucketHeaderBadge('empty', 'bonus')).toEqual({ label: 'Bonus —', tone: 'default' })
   })
 })
 
