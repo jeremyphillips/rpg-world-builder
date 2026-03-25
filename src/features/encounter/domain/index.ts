@@ -67,6 +67,24 @@ export {
   deriveBucketState,
   deriveTurnExhaustion,
 } from './turn-options'
+export {
+  canResolveCombatActionSelection,
+  selectValidActionIdsForTarget,
+} from './encounter-resolve-selection'
+export type { CanResolveCombatActionSelectionArgs } from './encounter-resolve-selection'
+export { deriveCombatantTurnExhaustion } from './combatant-turn-exhaustion'
+export type { CombatantTurnExhaustionInput } from './combatant-turn-exhaustion'
+export {
+  deriveEncounterHeaderModel,
+} from './encounter-header-model'
+export type {
+  DeriveEncounterHeaderModelArgs,
+  EncounterHeaderDisplayArgs,
+  EncounterHeaderInteractionArgs,
+  EncounterHeaderModel,
+  EncounterHeaderTurnArgs,
+  EndTurnEmphasis,
+} from './encounter-header-model'
 export type { TurnOptionBucketState } from './turn-options'
 export {
   deriveEncounterCapabilities,

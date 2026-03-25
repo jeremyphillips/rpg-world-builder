@@ -16,7 +16,14 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
-import { deriveEncounterCapabilities, type EncounterViewerContext } from '../domain'
+import { getCombatantBaseMovement } from '@/features/mechanics/domain/encounter/state/shared'
+
+import {
+  canResolveCombatActionSelection,
+  deriveEncounterCapabilities,
+  deriveEncounterHeaderModel,
+  type EncounterViewerContext,
+} from '../domain'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
 import type { GridInteractionMode } from '../domain'
 import {
@@ -320,21 +327,6 @@ function useEncounterRuntimeValue() {
     return encounterState.combatantsById[nextId]?.source.label ?? null
   }, [encounterState])
 
-  const activeHeader = encounterState ? (
-    <EncounterActiveHeader
-      roundNumber={encounterState.roundNumber}
-      turnIndex={encounterState.turnIndex}
-      turnCount={encounterState.initiativeOrder.length}
-      activeCombatantLabel={activeCombatant?.source.label ?? null}
-      nextCombatantLabel={nextCombatantLabel}
-      onEditEncounter={() => setEditModalOpen(true)}
-      onResetEncounter={handleResetEncounter}
-    />
-  ) : undefined
-
-  // activeFooter commented out -- action resolution now handled by CombatantActionDrawer
-  const activeFooter = undefined
-
   const viewerContext: EncounterViewerContext = useMemo(
     () => ({ viewerRole: 'dm' as const, controlledCombatantIds: [] }),
     [],
@@ -344,6 +336,97 @@ function useEncounterRuntimeValue() {
     () => (encounterState ? deriveEncounterCapabilities(encounterState, viewerContext) : null),
     [encounterState, viewerContext],
   )
+
+  const targetCombatantForHeader = useMemo(() => {
+    if (!encounterState || !selectedActionTargetId) return null
+    return encounterState.combatantsById[selectedActionTargetId] ?? null
+  }, [encounterState, selectedActionTargetId])
+
+  const canResolveActionForHeader = useMemo(
+    () =>
+      canResolveCombatActionSelection({
+        selectedActionId,
+        selectedAction,
+        availableActions,
+        aoeStep,
+        aoeOriginCellId,
+        selectedActionTargetId,
+      }),
+    [
+      selectedActionId,
+      selectedAction,
+      availableActions,
+      aoeStep,
+      aoeOriginCellId,
+      selectedActionTargetId,
+    ],
+  )
+
+  const availableActionIdsForHeader = useMemo(
+    () => availableActions.map((a) => a.id),
+    [availableActions],
+  )
+
+  const baseMovementFt = useMemo(
+    () => (activeCombatant ? getCombatantBaseMovement(activeCombatant) : 0),
+    [activeCombatant],
+  )
+
+  const encounterHeaderModel = useMemo(() => {
+    if (!activeCombatant) {
+      return { directive: '—', endTurnEmphasis: 'subtle' as const }
+    }
+    return deriveEncounterHeaderModel({
+      turn: {
+        combatantActions: activeCombatant.actions,
+        availableActionIds: availableActionIdsForHeader,
+        turnResources: activeCombatant.turnResources ?? null,
+      },
+      interaction: {
+        interactionMode,
+        selectedActionId,
+        selectedAction,
+        aoeStep,
+        canResolveAction: canResolveActionForHeader,
+      },
+      display: {
+        selectedActionLabel: selectedAction?.label ?? null,
+        selectedTargetLabel: targetCombatantForHeader?.source.label ?? null,
+      },
+    })
+  }, [
+    activeCombatant,
+    interactionMode,
+    availableActionIdsForHeader,
+    selectedActionId,
+    selectedAction,
+    aoeStep,
+    targetCombatantForHeader,
+    canResolveActionForHeader,
+  ])
+
+  const activeHeader =
+    encounterState && activeCombatant ? (
+      <EncounterActiveHeader
+        roundNumber={encounterState.roundNumber}
+        turnIndex={encounterState.turnIndex}
+        turnCount={encounterState.initiativeOrder.length}
+        nextCombatantLabel={nextCombatantLabel}
+        activeCombatant={activeCombatant}
+        monstersById={monstersById}
+        turnResources={activeCombatant.turnResources ?? null}
+        baseMovementFt={baseMovementFt}
+        directive={encounterHeaderModel.directive}
+        endTurnEmphasis={encounterHeaderModel.endTurnEmphasis}
+        canEndTurn={capabilities?.canEndTurn ?? false}
+        onEndTurn={handleNextTurn}
+        onEditEncounter={() => setEditModalOpen(true)}
+        onResetEncounter={handleResetEncounter}
+      />
+    ) : undefined
+
+  // activeFooter commented out -- action resolution now handled by CombatantActionDrawer
+  const activeFooter = undefined
 
   return {
     viewerContext,

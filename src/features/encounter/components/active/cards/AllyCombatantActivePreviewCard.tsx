@@ -4,13 +4,8 @@ import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
 import { useCharacter } from '@/features/character/hooks'
 import { AppAvatar } from '@/ui/primitives'
 
-import { buildEncounterDefensePreviewChips, type CombatantPreviewCardProps, type PreviewChip, type PreviewStat } from '../../../domain'
-import {
-  CONCENTRATING_BADGE_TOOLTIP,
-  formatSigned,
-  getPreviewStatTooltip,
-  tooltipForConditionMarkerLabel,
-} from '../../../helpers'
+import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
+import { buildCombatantPreviewChips, formatSigned, getPreviewStatTooltip } from '../../../helpers'
 import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
 
 type AllyCombatantActivePreviewCardProps = {
@@ -53,26 +48,7 @@ export function AllyCombatantActivePreviewCard({
     })
   }
 
-  const chips: PreviewChip[] = [
-    ...(combatant.concentration
-      ? [
-          {
-            id: 'concentrating',
-            label: 'Concentrating',
-            tone: 'info' as const,
-            tooltip: CONCENTRATING_BADGE_TOOLTIP,
-          },
-        ]
-      : []),
-    ...combatant.conditions.map((c) => ({
-      id: c.id,
-      label: c.label,
-      tone: 'warning' as const,
-      tooltip: tooltipForConditionMarkerLabel(c.label),
-    })),
-    ...combatant.states.map((s) => ({ id: s.id, label: s.label, tone: 'info' as const })),
-    ...buildEncounterDefensePreviewChips(combatant),
-  ]
+  const chips = buildCombatantPreviewChips(combatant)
 
   const subtitle = character ? formatCharacterDetailSubtitle(character) : undefined
 

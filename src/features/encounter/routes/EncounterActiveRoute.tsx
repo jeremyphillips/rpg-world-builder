@@ -10,6 +10,7 @@ import { areaTemplateRadiusFt } from '@/features/mechanics/domain/encounter/reso
 import { isValidActionTarget } from '@/features/mechanics/domain/encounter'
 
 import { buildEncounterActionToastPayload } from '../helpers/encounter-action-toast'
+import { canResolveCombatActionSelection, selectValidActionIdsForTarget } from '../domain'
 import {
   isAreaGridAction,
   isSelfCenteredAreaAction,
@@ -102,13 +103,7 @@ export default function EncounterActiveRoute() {
 
   const validActionIdsForTarget = useMemo(() => {
     if (!encounterState || !activeCombatant || !targetCombatant) return undefined
-    const ids = new Set<string>()
-    for (const action of availableActions) {
-      if (isValidActionTarget(encounterState, targetCombatant, activeCombatant, action)) {
-        ids.add(action.id)
-      }
-    }
-    return ids
+    return selectValidActionIdsForTarget(encounterState, activeCombatant, targetCombatant, availableActions)
   }, [encounterState, activeCombatant, targetCombatant, availableActions])
 
   const handleSelectTarget = useCallback(
@@ -202,24 +197,25 @@ export default function EncounterActiveRoute() {
     return { names: shown, total, overflow }
   }, [encounterState, selectedAction, aoeOriginCellId, aoeHoverCellId, aoeStep, activeCombatantId])
 
-  const canResolveAction = useMemo(() => {
-    if (!selectedActionId || !availableActions.some((a) => a.id === selectedActionId)) return false
-    if (selectedAction && isAreaGridAction(selectedAction)) {
-      return (
-        aoeStep === 'confirm' &&
-        Boolean(aoeOriginCellId) &&
-        Boolean(selectedAction.areaTemplate)
-      )
-    }
-    return Boolean(selectedActionTargetId)
-  }, [
-    selectedActionId,
-    selectedAction,
-    availableActions,
-    aoeStep,
-    aoeOriginCellId,
-    selectedActionTargetId,
-  ])
+  const canResolveAction = useMemo(
+    () =>
+      canResolveCombatActionSelection({
+        selectedActionId,
+        selectedAction,
+        availableActions,
+        aoeStep,
+        aoeOriginCellId,
+        selectedActionTargetId,
+      }),
+    [
+      selectedActionId,
+      selectedAction,
+      availableActions,
+      aoeStep,
+      aoeOriginCellId,
+      selectedActionTargetId,
+    ],
+  )
 
   const handleCloseDrawer = useCallback(() => {
     resetAoePlacement()

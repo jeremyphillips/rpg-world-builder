@@ -4,5 +4,5 @@ import type { SxProps, Theme } from '@mui/material/styles'
 export const encounterActiveBarSx: SxProps<Theme> = {
   px: 4,
   py: 2,
-  minHeight: 88,
+  minHeight: 104,
 }
