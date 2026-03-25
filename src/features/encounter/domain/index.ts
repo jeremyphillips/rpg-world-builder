@@ -26,6 +26,7 @@ export {
   collectPresentableEffects,
   enrichPresentableEffects,
   enrichWithPresentation,
+  getUserFacingEffectLabel,
   groupBySection,
   sortByPriority,
 } from './effects/presentable-effects'
@@ -37,6 +38,7 @@ export {
   getFallbackPresentation,
   getPriorityOrder,
   getSectionOrder,
+  resolvePresentationForSemanticKey,
   shouldShowPresentationInHeader,
 } from './effects/combat-state-ui-map'
 export type {

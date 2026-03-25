@@ -1,7 +1,11 @@
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import type { CombatStatePriority } from '../domain/effects/presentable-effects.types'
 
-import { buildEncounterDefensePreviewChips, getCombatStatePresentation, type PreviewChip } from '../domain'
+import {
+  buildEncounterDefensePreviewChips,
+  resolvePresentationForSemanticKey,
+  type PreviewChip,
+} from '../domain'
 import { CONCENTRATING_BADGE_TOOLTIP, tooltipForConditionMarkerLabel } from './combatant-card-tooltips'
 import { formatTurnDuration } from './format-turn-duration'
 
@@ -26,6 +30,7 @@ const PRIORITY_RANK: Record<CombatStatePriority, number> = {
   hidden: 4,
 }
 
+/** Normalizes a semantic id or label for map lookup. Prefer `marker.id` when available. */
 function normalizeMarkerKey(label: string): string {
   return label.trim().toLowerCase().replace(/\s+/g, '_')
 }
@@ -58,11 +63,12 @@ export function buildCombatantPreviewChips(
     combatant.stats.currentHitPoints > 0 &&
     combatant.stats.currentHitPoints <= combatant.stats.maxHitPoints / 2
   if (isBloodied) {
+    const bloodiedPres = resolvePresentationForSemanticKey('bloodied')
     candidates.push({
       id: 'bloodied',
-      label: 'Bloodied',
-      tone: 'danger',
-      priority: 'critical',
+      label: bloodiedPres.label,
+      tone: bloodiedPres.tone,
+      priority: bloodiedPres.priority,
       tooltip: `HP at or below 50% (${combatant.stats.currentHitPoints}/${combatant.stats.maxHitPoints})`,
     })
   }
@@ -74,11 +80,12 @@ export function buildCombatantPreviewChips(
       remainingTurns != null && totalTurns != null
         ? formatTurnDuration({ remainingTurns, totalTurns })
         : undefined
+    const concPres = resolvePresentationForSemanticKey('concentrating')
     candidates.push({
       id: 'concentrating',
-      label: 'Concentrating',
-      tone: 'info',
-      priority: 'high',
+      label: concPres.label,
+      tone: concPres.tone,
+      priority: concPres.priority,
       tooltip: CONCENTRATING_BADGE_TOOLTIP,
       timeLabel,
     })
@@ -88,16 +95,17 @@ export function buildCombatantPreviewChips(
   const conditionSource =
     maxConditions != null ? combatant.conditions.slice(0, maxConditions) : combatant.conditions
   for (const c of conditionSource) {
-    const presentation = getCombatStatePresentation(normalizeMarkerKey(c.label))
+    const semanticKey = normalizeMarkerKey(c.id)
+    const presentation = resolvePresentationForSemanticKey(semanticKey, { rawLabel: c.label })
     const timeLabel = c.duration
       ? formatTurnDuration({ remainingTurns: c.duration.remainingTurns })
       : undefined
     candidates.push({
       id: c.id,
-      label: c.label,
-      tone: presentation?.tone ?? 'warning',
-      priority: presentation?.priority ?? 'normal',
-      tooltip: tooltipForConditionMarkerLabel(c.label),
+      label: presentation.label,
+      tone: presentation.tone,
+      priority: presentation.priority,
+      tooltip: tooltipForConditionMarkerLabel(semanticKey),
       timeLabel,
     })
   }
@@ -105,15 +113,16 @@ export function buildCombatantPreviewChips(
   // States
   if (includeStates) {
     for (const s of combatant.states) {
-      const presentation = getCombatStatePresentation(normalizeMarkerKey(s.label))
+      const semanticKey = normalizeMarkerKey(s.id)
+      const presentation = resolvePresentationForSemanticKey(semanticKey, { rawLabel: s.label })
       const timeLabel = s.duration
         ? formatTurnDuration({ remainingTurns: s.duration.remainingTurns })
         : undefined
       candidates.push({
         id: s.id,
-        label: s.label,
-        tone: presentation?.tone ?? 'info',
-        priority: presentation?.priority ?? 'normal',
+        label: presentation.label,
+        tone: presentation.tone,
+        priority: presentation.priority,
         timeLabel,
       })
     }

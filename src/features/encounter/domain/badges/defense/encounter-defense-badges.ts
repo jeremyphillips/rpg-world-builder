@@ -230,6 +230,10 @@ export function defenseBadgesToPresentableCombatEffects(
 const PREVIEW_TOOLTIP_PHASE1 =
   'Presentation only: scoped immunity rules are not enforced in encounter resolution yet (Phase 3).'
 
+/**
+ * Preview chips for defense rows. Uses `deriveEncounterDefenseBadges` only — damage rows reuse
+ * `EncounterDamageDefenseBadge.label` (already formatted); do not call `formatDamageDefenseLabel` here.
+ */
 export function buildEncounterDefensePreviewChips(
   combatant: CombatantInstance,
   options?: DefensePreviewChipOptions,

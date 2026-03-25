@@ -276,7 +276,15 @@ This prevents duplicate badges at the source rather than patching display logic.
 - **`DamageResistanceMarker.label`** (on `CombatantInstance.damageResistanceMarkers`) — runtime / authoring / debug text (e.g. `immunity to fire` when the marker is built). It is **not** the source of truth for what the encounter UI shows on badges.
 - **Derived badge label** — canonical presentational copy produced only by **`formatDamageDefenseLabel(level, damageType)`** in `encounter-defense-badges.ts` (`Immune:`, `Resistance:`, `Vulnerability:` plus the mapped damage-type display name). `deriveEncounterDefenseBadges` attaches this to `EncounterDamageDefenseBadge.label`; preview chips and presentable effects both consume that derived string.
 
-Do not use `marker.label` for badge UI — it can contain legacy phrasing and drift from on-screen copy.
+Do not use `DamageResistanceMarker.label` for damage-defense badge UI — it can contain legacy phrasing.
+
+### Condition and state labels (presentation pipeline)
+
+- **`RuntimeMarker.label`** identifies the marker for logs and mechanics; it is **not** canonical user-facing copy. Prefer **`marker.id`** (semantic condition/state id) for presentation lookup when present.
+- **Canonical display text** comes from **`COMBAT_STATE_UI_MAP`** (PHB conditions from `EFFECT_CONDITION_DEFINITIONS` plus [`COMBAT_STATE_MARKER_UI_MAP`](../../src/features/encounter/domain/effects/combat-state-markers.ts)). Use **`resolvePresentationForSemanticKey`** / **`enrichWithPresentation`**: enriched rows set **`label`** to the canonical string and expose **`usedFallbackPresentation`** when no map row exists.
+- **`getUserFacingEffectLabel`** returns post-enrichment badge text (same as `effect.label` after enrich). List and drawer surfaces should use this (or `effect.label` after enrich), not raw strings from `collectPresentableEffects` alone.
+- **Preview chips** ([`build-combatant-preview-chips.ts`](../../src/features/encounter/helpers/build-combatant-preview-chips.ts)) resolve labels from the same maps; bloodied and concentrating use marker-map presentation instead of ad hoc literals.
+- **Fallback** (`getFallbackPresentation`) title-cases unknown keys for resilience. **Presentation map coverage** is enforced in tests (`presentation-map-coverage.test.ts`): every `EffectConditionId` and every `COMBAT_STATE_MARKER_UI_MAP` key must have a direct map entry; unexpected fallback is visible via **`usedFallbackPresentation`**. An explicit **`FALLBACK_ONLY_PRESENTATION_KEYS`** allowlist in that test file marks keys that intentionally rely on fallback only (keep small).
 
 ### Barrel exports
 
@@ -284,7 +292,7 @@ Do not use `marker.label` for badge UI — it can contain legacy phrasing and dr
 - `deriveCombatActionBadges`, `ActionBadgeDescriptor`, `ActionBadgeKind`
 - `deriveActionPresentation`, `ActionPresentationViewModel`, `ActionSemanticCategory`, `ActionSourceTag`, `ActionFooterLink`
 - `CombatStateTone`, `CombatStatePriority`, `CombatStateSection`, `CombatStatePresentation`, `EnrichedPresentableEffect`
-- All condition enrichment and grouping functions
+- `getUserFacingEffectLabel`, `resolvePresentationForSemanticKey`, condition enrichment and grouping functions
 
 ---
 

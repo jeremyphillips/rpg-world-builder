@@ -61,4 +61,6 @@ export type CombatStatePresentation = {
 
 export type EnrichedPresentableEffect = PresentableCombatEffect & {
   presentation: CombatStatePresentation
+  /** True when `presentation` came from `getFallbackPresentation` (no row in `COMBAT_STATE_UI_MAP`). */
+  usedFallbackPresentation: boolean
 }

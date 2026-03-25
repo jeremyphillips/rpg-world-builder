@@ -83,6 +83,25 @@ export function getFallbackPresentation(effect: PresentableCombatEffect): Combat
   }
 }
 
+/**
+ * Resolve presentation for a semantic key (condition id, marker map key, etc.).
+ * Prefer `marker.id` / `effect.key` — do not pass raw free-form `marker.label` unless no id exists.
+ */
+export function resolvePresentationForSemanticKey(
+  key: string,
+  options?: { rawLabel?: string; isNegative?: boolean },
+): CombatStatePresentation {
+  const hit = COMBAT_STATE_UI_MAP[key]
+  if (hit) return hit
+  return getFallbackPresentation({
+    id: '',
+    kind: 'effect',
+    key,
+    label: options?.rawLabel ?? key,
+    isNegative: options?.isNegative,
+  })
+}
+
 export function getSectionOrder(): readonly CombatStateSection[] {
   return SECTION_ORDER
 }

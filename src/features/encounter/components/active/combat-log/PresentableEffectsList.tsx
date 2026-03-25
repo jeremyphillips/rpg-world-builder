@@ -8,6 +8,7 @@ import {
   collectPresentableEffects,
   enrichPresentableEffects,
   getSectionOrder,
+  getUserFacingEffectLabel,
   groupBySection,
   shouldShowPresentationInHeader,
   sortByPriority,
@@ -29,7 +30,7 @@ function EffectChip({ effect }: { effect: EnrichedPresentableEffect }) {
     effect.kind === 'trigger' && 'boundary' in effect
       ? `${effect.boundary === 'start' ? 'Start' : 'End'}: `
       : ''
-  const displayLabel = effect.summary ?? effect.label
+  const displayLabel = getUserFacingEffectLabel(effect)
   const withBoundary = `${boundaryPrefix}${displayLabel}`
   const withDuration = effect.duration ? `${withBoundary} (${effect.duration})` : withBoundary
   const tooltip = effect.presentation.rulesText

@@ -18,6 +18,7 @@ import { AoePlacementPanel } from './drawer-modes/AoePlacementPanel'
 import {
   deriveBucketChrome,
   deriveBucketState,
+  getUserFacingEffectLabel,
   type CombatStateSection,
   type EnrichedPresentableEffect,
 } from '../../../domain'
@@ -557,7 +558,7 @@ export function CombatantActionDrawer({
                           <Stack key={effect.id} direction="row" spacing={1} alignItems="center">
                             <AppTooltipWrap tooltip={effect.presentation.rulesText}>
                               <AppBadge
-                                label={effect.label}
+                                label={getUserFacingEffectLabel(effect)}
                                 tone={effect.presentation.tone === 'neutral' ? 'default' : effect.presentation.tone}
                                 size="small"
                               />
