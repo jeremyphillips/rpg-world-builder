@@ -35,15 +35,19 @@ function damageTypeDisplayName(damageType: string): string {
   return DAMAGE_TYPE_DISPLAY_NAME.get(damageType) ?? damageType
 }
 
-function formatDamageDefenseLabel(level: string, damageType: string): string {
+/**
+ * Single formatter for damage-type defense badge copy (immunity / resistance / vulnerability).
+ * Call sites must not hand-roll equivalent strings — use this so preview chips and presentable lists stay aligned.
+ */
+export function formatDamageDefenseLabel(level: string, damageType: string): string {
   const name = damageTypeDisplayName(damageType)
   switch (level) {
     case 'immunity':
       return `Immune: ${name}`
     case 'vulnerability':
-      return `Vulnerable: ${name}`
+      return `Vulnerability: ${name}`
     case 'resistance':
-      return `Resist: ${name}`
+      return `Resistance: ${name}`
     default:
       return `${level}: ${name}`
   }
@@ -151,11 +155,14 @@ function damageDefenseBadges(combatant: CombatantInstance): EncounterDamageDefen
         : m.level === 'vulnerability'
           ? 'damage-vulnerability'
           : 'damage-resistance'
+    // Damage badge labels are derived from semantic fields (level, damageType) rather than trusted from
+    // DamageResistanceMarker.label, which may contain legacy or non-UI phrasing.
+    const label = formatDamageDefenseLabel(m.level, m.damageType)
     return {
       kind,
       markerId: m.id,
       damageType: m.damageType,
-      label: m.label,
+      label,
       sourceLabel: m.sourceId !== 'monster-innate' ? m.sourceId : undefined,
       conditional,
     }
@@ -249,7 +256,7 @@ export function buildEncounterDefensePreviewChips(
     if (excludeGranted && !d.conditional) continue
     chips.push({
       id: `defense-${d.markerId}`,
-      label: formatDamageDefenseLabel(d.kind.replace('damage-', ''), d.damageType),
+      label: d.label,
       tone: 'neutral',
       tooltip: d.conditional ? 'Temporary or sourced defense (see combat log / resolution).' : undefined,
     })

@@ -197,6 +197,10 @@ export interface DamageResistanceMarker {
   damageType: string
   level: DamageResistanceLevel
   sourceId: string
+  /**
+   * Human-readable hint for logs, authoring, or debug — not authoritative for encounter UI.
+   * Encounter badge surfaces derive display text from `level` + `damageType` (see encounter defense badges).
+   */
   label: string
   duration?: RuntimeMarkerDuration
 }

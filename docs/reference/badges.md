@@ -271,6 +271,13 @@ automatically infers the condition immunity. Monster authors only need the
 damage-type id (e.g. `'poison'`); the condition id (`'poisoned'`) is derived.
 This prevents duplicate badges at the source rather than patching display logic.
 
+### Damage defense badge labels (two `label` concepts)
+
+- **`DamageResistanceMarker.label`** (on `CombatantInstance.damageResistanceMarkers`) — runtime / authoring / debug text (e.g. `immunity to fire` when the marker is built). It is **not** the source of truth for what the encounter UI shows on badges.
+- **Derived badge label** — canonical presentational copy produced only by **`formatDamageDefenseLabel(level, damageType)`** in `encounter-defense-badges.ts` (`Immune:`, `Resistance:`, `Vulnerability:` plus the mapped damage-type display name). `deriveEncounterDefenseBadges` attaches this to `EncounterDamageDefenseBadge.label`; preview chips and presentable effects both consume that derived string.
+
+Do not use `marker.label` for badge UI — it can contain legacy phrasing and drift from on-screen copy.
+
 ### Barrel exports
 
 `src/features/encounter/domain/index.ts` re-exports:

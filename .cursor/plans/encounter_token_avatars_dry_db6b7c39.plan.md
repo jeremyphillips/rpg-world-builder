@@ -21,7 +21,7 @@ todos:
     content: Refactor opponent/ally preview cards to use CombatantAvatar
     status: completed
   - id: portrait-key-domain
-    content: "Add portraitImageKey on CombatantInstance + getCombatantPortraitImageKey; selectors expose key only"
+    content: Add portraitImageKey on CombatantInstance + getCombatantPortraitImageKey; selectors expose key only
     status: completed
 isProject: false
 ---
@@ -135,7 +135,7 @@ Preview cards that do not have access to context today receive `monstersById` / 
 
 ### Store the key, not the URL
 
-- Add `portraitImageKey?: string | null` to [`CombatantInstance`](src/features/mechanics/domain/encounter/state/types/combatant.types.ts).
+- Add `portraitImageKey?: string | null` to `[CombatantInstance](src/features/mechanics/domain/encounter/state/types/combatant.types.ts)`.
 - **Do not** store resolved URLs on encounter state. Keys are persistence-friendly; URLs are presentation/runtime (CDN, signed URLs, transforms) and belong in `resolveImageUrl` / UI.
 
 ### Single extraction helper (builders + clones)
@@ -151,18 +151,18 @@ function getCombatantPortraitImageKey(input: {
 }
 ```
 
-- Call it from [`buildCharacterCombatantInstance`](src/features/encounter/helpers/combatant-builders.ts) / [`buildMonsterCombatantInstance`](src/features/encounter/helpers/combatant-builders.ts) (and any summon/clone path) so the field is not “one more thing” every ad-hoc constructor must remember.
+- Call it from `[buildCharacterCombatantInstance](src/features/encounter/helpers/combatant-builders.ts)` / `[buildMonsterCombatantInstance](src/features/encounter/helpers/combatant-builders.ts)` (and any summon/clone path) so the field is not “one more thing” every ad-hoc constructor must remember.
 - Any path that copies/transforms into an encounter combatant should go through these builders or a shared helper that sets `portraitImageKey`.
 
 ### Selectors: key only, no `resolveImageUrl`
 
-- Extend [`GridCellViewModel`](src/features/encounter/space/space.selectors.ts) with e.g. `occupantPortraitImageKey: string | null` (or per-occupant field), sourced from `combatant.portraitImageKey` when `selectGridViewModel` already has the `CombatantInstance`.
+- Extend `[GridCellViewModel](src/features/encounter/space/space.selectors.ts)` with e.g. `occupantPortraitImageKey: string | null` (or per-occupant field), sourced from `combatant.portraitImageKey` when `selectGridViewModel` already has the `CombatantInstance`.
 - **Do not** import or call `resolveImageUrl` inside `space.selectors.ts` — selectors stay domain/view-model; resolution stays at the edge (grid / avatar components).
 
 ### Presentation layer
 
-- [`EncounterGrid`](src/features/encounter/components/active/grid/EncounterGrid.tsx) (or a thin wrapper) calls `resolveImageUrl(cell.occupantPortraitImageKey)` (or equivalent) when rendering the token — **after** reading the key from the grid view model.
-- Optionally simplify [`resolveCombatantAvatarSrc`](src/features/encounter/helpers/resolveCombatantAvatarSrc.ts) / [`CombatantAvatar`](src/features/encounter/components/shared/CombatantAvatar.tsx) to prefer `combatant.portraitImageKey` first, then fall back to catalog/roster for older state or edge cases.
+- `[EncounterGrid](src/features/encounter/components/active/grid/EncounterGrid.tsx)` (or a thin wrapper) calls `resolveImageUrl(cell.occupantPortraitImageKey)` (or equivalent) when rendering the token — **after** reading the key from the grid view model.
+- Optionally simplify `[resolveCombatantAvatarSrc](src/features/encounter/helpers/resolveCombatantAvatarSrc.ts)` / `[CombatantAvatar](src/features/encounter/components/shared/CombatantAvatar.tsx)` to prefer `combatant.portraitImageKey` first, then fall back to catalog/roster for older state or edge cases.
 
 ### Optional later
 

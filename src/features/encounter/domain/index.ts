@@ -3,6 +3,7 @@ export {
   defenseBadgesToPresentableCombatEffects,
   deriveEncounterDefenseBadges,
   describeConditionScopeForDefenseTooltip,
+  formatDamageDefenseLabel,
 } from './badges/defense/encounter-defense-badges'
 export type {
   EncounterConditionImmunityBadge,

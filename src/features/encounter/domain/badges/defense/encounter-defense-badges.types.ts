@@ -7,6 +7,7 @@ import type { ConditionImmunityId } from '@/features/mechanics/domain/conditions
 export type EncounterConditionImmunityBadge = {
   kind: 'condition-immunity'
   condition: ConditionImmunityId
+  /** Presentational text (`Immune:` + condition display name from condition definitions). */
   label: string
   scopeLabel?: string
   sourceLabel?: string
@@ -18,6 +19,10 @@ export type EncounterDamageDefenseBadge = {
   /** Stable id from `DamageResistanceMarker.id` (unique per marker row). */
   markerId: string
   damageType: string
+  /**
+   * Canonical presentational text for badges (from `formatDamageDefenseLabel` in encounter-defense-badges).
+   * Not copied from `DamageResistanceMarker.label`.
+   */
   label: string
   sourceLabel?: string
   conditional: boolean

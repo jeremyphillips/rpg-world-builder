@@ -5,6 +5,7 @@ import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import {
   deriveEncounterDefenseBadges,
   describeConditionScopeForDefenseTooltip,
+  formatDamageDefenseLabel,
 } from './encounter-defense-badges'
 import { collectPresentableEffects, enrichPresentableEffects } from '../../effects/presentable-effects'
 
@@ -62,6 +63,31 @@ describe('deriveEncounterDefenseBadges', () => {
     const { damage } = deriveEncounterDefenseBadges(c)
     expect(damage.map((d) => d.markerId).sort()).toEqual(['m1', 'm2'])
     expect(damage[0].conditional).toBe(false)
+    expect(damage.find((d) => d.markerId === 'm1')?.label).toBe('Immune: Fire')
+    expect(damage.find((d) => d.markerId === 'm2')?.label).toBe('Resistance: Cold')
+  })
+
+  it('derives damage badge labels from level and damageType, ignoring stale marker.label', () => {
+    const c = minimalCombatant({
+      damageResistanceMarkers: [
+        {
+          id: 'stale',
+          damageType: 'necrotic',
+          level: 'immunity',
+          sourceId: 'monster-innate',
+          label: 'immunity to necrotic',
+        },
+        {
+          id: 'vuln',
+          damageType: 'fire',
+          level: 'vulnerability',
+          sourceId: 'monster-innate',
+          label: 'vulnerability to fire',
+        },
+      ],
+    })
+    const { damage } = deriveEncounterDefenseBadges(c)
+    expect(damage.map((d) => d.label)).toEqual(['Immune: Necrotic', 'Vulnerability: Fire'])
   })
 
   it('parses activeEffects condition-immunity grants as conditional', () => {
@@ -81,6 +107,14 @@ describe('deriveEncounterDefenseBadges', () => {
     expect(condition[0].condition).toBe('charmed')
     expect(condition[0].conditional).toBe(true)
     expect(condition[0].scopeLabel).toMatch(/Only when the source is:/)
+  })
+})
+
+describe('formatDamageDefenseLabel', () => {
+  it('uses the shared vocabulary for damage defense levels', () => {
+    expect(formatDamageDefenseLabel('immunity', 'cold')).toBe('Immune: Cold')
+    expect(formatDamageDefenseLabel('resistance', 'slashing')).toBe('Resistance: Slashing')
+    expect(formatDamageDefenseLabel('vulnerability', 'acid')).toBe('Vulnerability: Acid')
   })
 })
 
@@ -114,5 +148,7 @@ describe('collectPresentableEffects + defenses', () => {
     expect(defenseRows.length).toBe(2)
     expect(defenseRows.every((e) => e.presentation.defaultSection === 'ongoing-effects')).toBe(true)
     expect(defenseRows.every((e) => e.presentation.tone === 'info')).toBe(true)
+    const fireRow = defenseRows.find((e) => e.key.includes('fire'))
+    expect(fireRow?.label).toBe('Immune: Fire')
   })
 })
