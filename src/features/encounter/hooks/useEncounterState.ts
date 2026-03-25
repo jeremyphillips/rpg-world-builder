@@ -23,6 +23,7 @@ import {
   type ManualMonsterTriggerContext,
   type MonsterFormContext,
 } from '@/features/mechanics/domain/encounter'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import { buildDefaultCasterOptions } from '@/features/mechanics/domain/spells/caster-options'
 import type { Armor } from '@/features/content/equipment/armor/domain/types/armor.types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types/weapon.types'
@@ -110,11 +111,11 @@ export function useEncounterState({
   )
   const availableActionTargets = useMemo(() => {
     if (!encounterState || !activeCombatant || !selectedAction) return []
-    return getActionTargetCandidates(encounterState, activeCombatant, selectedAction)
-      .map((combatant) => ({
-        id: combatant.instanceId,
-        label: combatant.source.label,
-      }))
+    const roster = Object.values(encounterState.combatantsById)
+    return getActionTargetCandidates(encounterState, activeCombatant, selectedAction).map((combatant) => ({
+      id: combatant.instanceId,
+      label: getCombatantDisplayLabel(combatant, roster),
+    }))
   }, [activeCombatant, encounterState, selectedAction])
   const controlTargetCombatant =
     encounterState && controlTargetId ? encounterState.combatantsById[controlTargetId] : null

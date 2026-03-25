@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 
 import { AppModal } from '@/ui/patterns'
 import type { EncounterState } from '@/features/mechanics/domain/encounter'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import type { TurnOrderStatus } from '../../../domain'
 import { TurnOrderList } from './TurnOrderList'
 import type { TurnOrderEntry } from './TurnOrderList'
@@ -31,12 +32,16 @@ export function CombatTurnOrderModal({
   encounterState,
 }: CombatTurnOrderModalProps) {
   const entries: TurnOrderEntry[] = useMemo(() => {
-    return encounterState.initiative.map((roll, index) => ({
-      combatantId: roll.combatantId,
-      label: roll.label,
-      initiativeTotal: roll.total,
-      status: resolveTurnStatus(roll.combatantId, encounterState, index),
-    }))
+    const roster = Object.values(encounterState.combatantsById)
+    return encounterState.initiative.map((roll, index) => {
+      const c = encounterState.combatantsById[roll.combatantId]
+      return {
+        combatantId: roll.combatantId,
+        label: c ? getCombatantDisplayLabel(c, roster) : roll.label,
+        initiativeTotal: roll.total,
+        status: resolveTurnStatus(roll.combatantId, encounterState, index),
+      }
+    })
   }, [encounterState])
 
   return (

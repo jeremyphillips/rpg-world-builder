@@ -32,11 +32,13 @@ function mapPreviewTone(t: PreviewTone | undefined): AppBadgeTone {
 
 type EncounterActiveCombatantIdentityProps = {
   combatant: CombatantInstance
+  displayLabel: string
   monstersById: Record<string, Monster | undefined>
 }
 
 export function EncounterActiveCombatantIdentity({
   combatant,
+  displayLabel,
   monstersById,
 }: EncounterActiveCombatantIdentityProps) {
   const characterId =
@@ -69,7 +71,7 @@ export function EncounterActiveCombatantIdentity({
   return (
     <Stack spacing={0.5} sx={{ minWidth: 0 }}>
       <Typography variant="h3" sx={{ fontWeight: 700, lineHeight: 1.3 }} noWrap>
-        {combatant.source.label}
+        {displayLabel}
       </Typography>
       {subtitle && (
         <Typography variant="caption" color="text.secondary" noWrap>

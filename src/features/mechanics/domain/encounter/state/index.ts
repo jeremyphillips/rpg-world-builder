@@ -1,3 +1,4 @@
+export { getCombatantDisplayLabel } from './combatant-display-label'
 export {
   appendEncounterLogEvent,
   appendEncounterNote,

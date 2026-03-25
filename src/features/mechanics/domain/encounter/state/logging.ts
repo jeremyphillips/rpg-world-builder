@@ -1,5 +1,6 @@
 import type { EncounterState, CombatLogEvent } from './types'
 import { formatCombatantStatusSnapshot, formatConcentrationTimer } from '../resolution/action/resolution-debug'
+import { getCombatantDisplayLabel } from './combatant-display-label'
 
 /** Maximum combat log entries to prevent unbounded memory growth during long encounters. */
 const MAX_LOG_ENTRIES = 500
@@ -10,7 +11,21 @@ function createLogId(prefix: string, count: number): string {
 
 export function getCombatantLabel(state: EncounterState, combatantId: string | null): string {
   if (!combatantId) return 'Unknown combatant'
-  return state.combatantsById[combatantId]?.source.label ?? combatantId
+  const c = state.combatantsById[combatantId]
+  if (!c) return combatantId
+  return getCombatantDisplayLabel(c, Object.values(state.combatantsById))
+}
+
+function formatInitiativeOrderDetails(state: EncounterState): string {
+  if (state.initiative.length === 0) return 'No combatants added.'
+  const roster = Object.values(state.combatantsById)
+  return `Initiative order: ${state.initiative
+    .map((entry) => {
+      const c = state.combatantsById[entry.combatantId]
+      const label = c ? getCombatantDisplayLabel(c, roster) : entry.label
+      return `${label} (${entry.total})`
+    })
+    .join(', ')}`
 }
 
 export function createEncounterStartedLog(state: EncounterState): CombatLogEvent {
@@ -21,12 +36,7 @@ export function createEncounterStartedLog(state: EncounterState): CombatLogEvent
     round: 1,
     turn: 1,
     summary: 'Encounter started.',
-    details:
-      state.initiative.length > 0
-        ? `Initiative order: ${state.initiative
-            .map((entry) => `${entry.label} (${entry.total})`)
-            .join(', ')}`
-        : 'No combatants added.',
+    details: state.initiative.length > 0 ? formatInitiativeOrderDetails(state) : 'No combatants added.',
   }
 }
 
@@ -68,12 +78,7 @@ export function createRoundStartedLog(state: EncounterState): CombatLogEvent {
     round: state.roundNumber,
     turn: 1,
     summary: `Round ${state.roundNumber} starts.`,
-    details:
-      state.initiative.length > 0
-        ? `Initiative order: ${state.initiative
-            .map((entry) => `${entry.label} (${entry.total})`)
-            .join(', ')}`
-        : undefined,
+    details: state.initiative.length > 0 ? formatInitiativeOrderDetails(state) : undefined,
   }
 }
 

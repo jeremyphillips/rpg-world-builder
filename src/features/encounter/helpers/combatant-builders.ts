@@ -86,10 +86,6 @@ export function formatAuthoredDamage(
   return `${baseDamage} ${damageBonus > 0 ? '+' : '-'} ${Math.abs(damageBonus)}`
 }
 
-export function formatRuntimeLabel(name: string, runtimeId: string, sourceId: string): string {
-  return runtimeId === sourceId ? name : `${name} (${runtimeId})`
-}
-
 function deriveTargetingRangeFt(attack: CombatantAttackEntry): number | undefined {
   if (!attack.range) return undefined
   return attack.range.kind === 'ranged' ? attack.range.normalFt : attack.range.rangeFt
@@ -139,7 +135,7 @@ export function buildCharacterCombatantInstance(args: {
     source: {
       kind: sourceKind,
       sourceId: character.id,
-      label: formatRuntimeLabel(character.name, runtimeId, character.id),
+      label: character.name,
     },
     creatureType: 'humanoid',
     equipment: {
@@ -223,7 +219,7 @@ export function buildMonsterCombatantInstance(args: {
     source: {
       kind: 'monster',
       sourceId: monster.id,
-      label: formatRuntimeLabel(monster.name, runtimeId, monster.id),
+      label: monster.name,
     },
     creatureType: monster.type,
     equipment: {

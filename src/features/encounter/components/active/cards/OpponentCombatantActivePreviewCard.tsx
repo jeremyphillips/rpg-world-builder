@@ -4,6 +4,7 @@ import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import MonsterAvatar from '@/features/content/monsters/components/MonsterAvatar/MonsterAvatar'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 
 import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
 import { buildCombatantPreviewChips, formatSigned, getPreviewStatTooltip } from '../../../helpers'
@@ -11,6 +12,7 @@ import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
 
 type OpponentCombatantActivePreviewCardProps = {
   combatant: CombatantInstance
+  allCombatants?: readonly CombatantInstance[]
   isCurrentTurn?: boolean
   isSelected?: boolean
   onClick?: () => void
@@ -18,12 +20,21 @@ type OpponentCombatantActivePreviewCardProps = {
 
 export function OpponentCombatantActivePreviewCard({
   combatant,
+  allCombatants,
   isCurrentTurn = false,
   isSelected = false,
   onClick,
 }: OpponentCombatantActivePreviewCardProps) {
   const { catalog } = useCampaignRules()
   const isDefeated = combatant.stats.currentHitPoints <= 0
+
+  const title = useMemo(
+    () =>
+      allCombatants && allCombatants.length > 0
+        ? getCombatantDisplayLabel(combatant, allCombatants)
+        : combatant.source.label,
+    [allCombatants, combatant],
+  )
 
   const monster = catalog.monstersById[combatant.source.sourceId]
 
@@ -68,9 +79,9 @@ export function OpponentCombatantActivePreviewCard({
     id: combatant.instanceId,
     kind: 'monster',
     mode: 'active',
-    title: combatant.source.label,
+    title,
     subtitle,
-    avatar: <MonsterAvatar name={combatant.source.label} size="sm" />,
+    avatar: <MonsterAvatar name={title} size="sm" />,
     stats,
     chips: chips.length > 0 ? chips : undefined,
     isCurrentTurn,

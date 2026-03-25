@@ -1,4 +1,5 @@
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import type { EncounterCell, GridObstacleKind } from './space.types'
 import { gridObstacleDisplayName } from './placeRandomGridObstacle'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from './space.helpers'
@@ -158,6 +159,8 @@ export function selectGridViewModel(
     obstacleByCellId.set(o.cellId, o.kind)
   }
 
+  const combatantRoster = Object.values(state.combatantsById)
+
   const cells: GridCellViewModel[] = space.cells.map((cell) => {
     const occupantId = getOccupant(placements, cell.id) ?? null
     const combatant = occupantId ? state.combatantsById[occupantId] ?? null : null
@@ -201,7 +204,7 @@ export function selectGridViewModel(
       y: cell.y,
       kind: cell.kind ?? 'open',
       occupantId,
-      occupantLabel: combatant?.source.label ?? null,
+      occupantLabel: combatant ? getCombatantDisplayLabel(combatant, combatantRoster) : null,
       occupantSide: combatant?.side ?? null,
       obstacleKind,
       obstacleLabel,

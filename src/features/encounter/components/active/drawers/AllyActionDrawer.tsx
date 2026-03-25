@@ -15,6 +15,8 @@ type AllyActionDrawerProps = {
   open: boolean
   onClose: () => void
   combatant: CombatantInstance
+  /** Drawer title; defaults to `combatant.source.label`. */
+  drawerTitle?: string
   availableActions: CombatActionDefinition[]
   validActionIdsForTarget?: Set<string>
   selectedActionId?: string
@@ -39,6 +41,7 @@ export function AllyActionDrawer({
   open,
   onClose,
   combatant,
+  drawerTitle,
   availableActions,
   validActionIdsForTarget,
   selectedActionId,
@@ -82,7 +85,7 @@ export function AllyActionDrawer({
     <CombatantActionDrawer
       open={open}
       onClose={onClose}
-      title={combatant.source.label}
+      title={drawerTitle ?? combatant.source.label}
       actions={actions}
       bonusActions={bonusActions}
       availableActionIds={availableActionIds}

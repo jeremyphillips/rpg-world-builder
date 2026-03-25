@@ -17,6 +17,7 @@ import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
 import { getCombatantBaseMovement } from '@/features/mechanics/domain/encounter/state/shared'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 
 import {
   canResolveCombatActionSelection,
@@ -318,6 +319,11 @@ function useEncounterRuntimeValue() {
     />
   )
 
+  const encounterCombatantRoster = useMemo(
+    () => (encounterState ? Object.values(encounterState.combatantsById) : []),
+    [encounterState],
+  )
+
   const nextCombatantLabel = useMemo(() => {
     if (!encounterState) return null
     const nextIdx = encounterState.turnIndex + 1
@@ -325,8 +331,10 @@ function useEncounterRuntimeValue() {
       ? encounterState.initiativeOrder[nextIdx]
       : encounterState.initiativeOrder[0] ?? null
     if (!nextId) return null
-    return encounterState.combatantsById[nextId]?.source.label ?? null
-  }, [encounterState])
+    const nextCombatant = encounterState.combatantsById[nextId]
+    if (!nextCombatant) return null
+    return getCombatantDisplayLabel(nextCombatant, encounterCombatantRoster)
+  }, [encounterState, encounterCombatantRoster])
 
   const viewerContext: EncounterViewerContext = useMemo(
     () => ({ viewerRole: 'dm' as const, controlledCombatantIds: [] }),
@@ -392,7 +400,10 @@ function useEncounterRuntimeValue() {
       },
       display: {
         selectedActionLabel: selectedAction?.label ?? null,
-        selectedTargetLabel: targetCombatantForHeader?.source.label ?? null,
+        selectedTargetLabel:
+          targetCombatantForHeader && encounterState
+            ? getCombatantDisplayLabel(targetCombatantForHeader, encounterCombatantRoster)
+            : null,
       },
     })
   }, [
@@ -404,6 +415,8 @@ function useEncounterRuntimeValue() {
     aoeStep,
     targetCombatantForHeader,
     canResolveActionForHeader,
+    encounterState,
+    encounterCombatantRoster,
   ])
 
   /** Matches {@link getCombatantAvailableActions}: empty means no action/bonus costs left to spend on real options (bonus slot can read “available” while bonus list is empty). */
@@ -418,6 +431,7 @@ function useEncounterRuntimeValue() {
         turnCount={encounterState.initiativeOrder.length}
         nextCombatantLabel={nextCombatantLabel}
         activeCombatant={activeCombatant}
+        activeCombatantDisplayLabel={getCombatantDisplayLabel(activeCombatant, encounterCombatantRoster)}
         monstersById={monstersById}
         turnResources={activeCombatant.turnResources ?? null}
         baseMovementFt={baseMovementFt}

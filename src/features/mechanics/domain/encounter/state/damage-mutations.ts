@@ -178,6 +178,7 @@ export function applyDamageToCombatant(
           monstersById: options?.monstersById,
           rng,
           remainsOnKill: options?.remainsOnKill,
+          allCombatants: Object.values(resistanceLogState.combatantsById),
         },
       )
       if (reduced) {

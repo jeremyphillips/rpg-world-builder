@@ -15,6 +15,7 @@ type OpponentActionDrawerProps = {
   open: boolean
   onClose: () => void
   combatant: CombatantInstance
+  drawerTitle?: string
   availableActions: CombatActionDefinition[]
   validActionIdsForTarget?: Set<string>
   selectedActionId?: string
@@ -39,6 +40,7 @@ export function OpponentActionDrawer({
   open,
   onClose,
   combatant,
+  drawerTitle,
   availableActions,
   validActionIdsForTarget,
   selectedActionId,
@@ -82,7 +84,7 @@ export function OpponentActionDrawer({
     <CombatantActionDrawer
       open={open}
       onClose={onClose}
-      title={combatant.source.label}
+      title={drawerTitle ?? combatant.source.label}
       actions={actions}
       bonusActions={bonusActions}
       availableActionIds={availableActionIds}

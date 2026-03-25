@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
@@ -94,6 +94,8 @@ function InitiativeOrderTab({
   selectedTargetId: string | null
   onSelectTarget: (combatantId: string) => void
 }) {
+  const allCombatants = useMemo(() => Object.values(combatantsById), [combatantsById])
+
   if (initiativeOrder.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -116,6 +118,7 @@ function InitiativeOrderTab({
             <AllyCombatantActivePreviewCard
               key={id}
               combatant={combatant}
+              allCombatants={allCombatants}
               isCurrentTurn={isCurrentTurn}
               isSelected={isSelected}
               onClick={() => onSelectTarget(id)}
@@ -127,6 +130,7 @@ function InitiativeOrderTab({
           <OpponentCombatantActivePreviewCard
             key={id}
             combatant={combatant}
+            allCombatants={allCombatants}
             isCurrentTurn={isCurrentTurn}
             isSelected={isSelected}
             onClick={() => onSelectTarget(id)}

@@ -7,7 +7,18 @@ import { buildReducedToZeroTraits } from '../runtime/monster-runtime'
 import type { CombatLogEvent } from './types'
 import type { CombatantInstance } from './types/combatant.types'
 import type { CombatantRemainsKind } from './types/combatant.types'
+import { getCombatantDisplayLabel } from './combatant-display-label'
 import { normalizeDamageType } from './shared'
+
+function displayNameForCombatant(
+  combatant: CombatantInstance,
+  options: { allCombatants?: readonly CombatantInstance[] },
+): string {
+  if (options.allCombatants && options.allCombatants.length > 0) {
+    return getCombatantDisplayLabel(combatant, options.allCombatants)
+  }
+  return combatant.source.label
+}
 
 function saveModifierForAbility(combatant: CombatantInstance, ability: AbilityRef): number {
   const abilityKey = abilityIdToKey(ability)
@@ -68,6 +79,8 @@ export function resolveReducedToZeroHpTrait(
     monstersById?: Record<string, Monster>
     rng: () => number
     remainsOnKill?: CombatantRemainsKind
+    /** When set, log lines use duplicate-aware display names (same rules as encounter UI). */
+    allCombatants?: readonly CombatantInstance[]
   },
 ): ReducedToZeroHpResult | null {
   if (fatalTrackedPart) return null
@@ -103,7 +116,7 @@ export function resolveReducedToZeroHpTrait(
           targetIds: [combatant.instanceId],
           round,
           turn,
-          summary: `${combatant.source.label} hook fires: ${trait.name}.`,
+          summary: `${displayNameForCombatant(combatant, options)} hook fires: ${trait.name}.`,
           details: skip.reason,
           debugDetails,
         },
@@ -142,7 +155,7 @@ export function resolveReducedToZeroHpTrait(
     targetIds: [combatant.instanceId],
     round,
     turn,
-    summary: `${combatant.source.label} hook fires: ${trait.name}.`,
+    summary: `${displayNameForCombatant(combatant, options)} hook fires: ${trait.name}.`,
     details: `${ability.toUpperCase()} save ${success ? 'succeeds' : 'fails'} (DC ${dc}).`,
     debugDetails,
   }
@@ -159,7 +172,7 @@ export function resolveReducedToZeroHpTrait(
           targetIds: [combatant.instanceId],
           round,
           turn,
-          summary: `${combatant.source.label} drops to 1 hit point instead (Undead Fortitude).`,
+          summary: `${displayNameForCombatant(combatant, options)} drops to 1 hit point instead (Undead Fortitude).`,
         },
       ],
     }

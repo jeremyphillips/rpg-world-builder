@@ -8,6 +8,7 @@ import { ZoomControl } from '@/ui/patterns'
 
 import { areaTemplateRadiusFt } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
 import { isValidActionTarget } from '@/features/mechanics/domain/encounter'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 
 import { buildEncounterActionToastPayload } from '../helpers/encounter-action-toast'
 import { canResolveCombatActionSelection, selectValidActionIdsForTarget } from '../domain'
@@ -96,6 +97,11 @@ export default function EncounterActiveRoute() {
     setZoom(DEFAULT_ZOOM)
     setPan({ x: 0, y: 0 })
   }, [])
+
+  const combatantRoster = useMemo(
+    () => (encounterState ? Object.values(encounterState.combatantsById) : []),
+    [encounterState],
+  )
 
   const targetCombatant = useMemo(() => {
     if (!encounterState || !selectedActionTargetId) return null
@@ -189,8 +195,12 @@ export default function EncounterActiveRoute() {
       return { names: [] as string[], total: 0, overflow: 0 }
     }
     const ids = selectCombatantIdsInAoeFootprint(encounterState, previewOrigin, r)
+    const roster = Object.values(encounterState.combatantsById)
     const names = ids
-      .map((id) => encounterState.combatantsById[id]?.source.label)
+      .map((id) => {
+        const c = encounterState.combatantsById[id]
+        return c ? getCombatantDisplayLabel(c, roster) : undefined
+      })
       .filter((n): n is string => Boolean(n))
     const total = names.length
     const shown = names.slice(0, AFFECTED_NAME_MAX)
@@ -247,11 +257,13 @@ export default function EncounterActiveRoute() {
       if (!encounterState) return null
       const combatant = encounterState.combatantsById[occupantId]
       if (!combatant) return null
+      const roster = Object.values(encounterState.combatantsById)
 
       if (combatant.side === 'party') {
         return (
           <AllyCombatantActivePreviewCard
             combatant={combatant}
+            allCombatants={roster}
             isCurrentTurn={occupantId === activeCombatantId}
           />
         )
@@ -259,6 +271,7 @@ export default function EncounterActiveRoute() {
       return (
         <OpponentCombatantActivePreviewCard
           combatant={combatant}
+          allCombatants={roster}
           isCurrentTurn={occupantId === activeCombatantId}
         />
       )
@@ -330,13 +343,14 @@ export default function EncounterActiveRoute() {
     open: actionDrawerOpen,
     onClose: handleCloseDrawer,
     combatant: actionDrawerCombatant!,
+    drawerTitle: getCombatantDisplayLabel(actionDrawerCombatant!, combatantRoster),
     availableActions,
     validActionIdsForTarget: validActionIdsForTarget,
     selectedActionId,
     onSelectAction: handleSelectAction,
     selectedCasterOptions,
     onCasterOptionsChange: setSelectedCasterOptions,
-    targetLabel: targetCombatant?.source.label,
+    targetLabel: targetCombatant ? getCombatantDisplayLabel(targetCombatant, combatantRoster) : undefined,
     canResolveAction,
     onResolveAction: handleResolveAction,
     onEndTurn: handleNextTurn,

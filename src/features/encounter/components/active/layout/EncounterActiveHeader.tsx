@@ -28,6 +28,8 @@ export type EncounterActiveHeaderProps = {
   turnCount: number
   nextCombatantLabel: string | null
   activeCombatant: CombatantInstance | null
+  /** Duplicate-aware title for the active combatant. */
+  activeCombatantDisplayLabel: string
   monstersById: Record<string, Monster | undefined>
   turnResources: CombatantTurnResources | null
   baseMovementFt: number
@@ -48,6 +50,7 @@ export function EncounterActiveHeader({
   turnCount,
   nextCombatantLabel,
   activeCombatant,
+  activeCombatantDisplayLabel,
   monstersById,
   turnResources,
   baseMovementFt,
@@ -103,7 +106,11 @@ export function EncounterActiveHeader({
       >
         <Box sx={{ flex: { md: '1 1 0' }, minWidth: 0, maxWidth: { md: '34%' } }}>
           {activeCombatant ? (
-            <EncounterActiveCombatantIdentity combatant={activeCombatant} monstersById={monstersById} />
+            <EncounterActiveCombatantIdentity
+              combatant={activeCombatant}
+              displayLabel={activeCombatantDisplayLabel}
+              monstersById={monstersById}
+            />
           ) : (
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               No active combatant
