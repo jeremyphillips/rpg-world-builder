@@ -916,6 +916,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
 {
     id: "hydra",
     name: "Hydra",
+    imageKey: '/assets/system/monsters/hydra.png',
     type: "monstrosity",
     sizeCategory: "huge",
     languages: [],

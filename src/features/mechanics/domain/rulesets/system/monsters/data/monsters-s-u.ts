@@ -6,6 +6,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
   {
     id: "skeleton",
     name: "Skeleton",
+    imageKey: '/assets/system/monsters/skeleton.png',
     type: "undead",
     sizeCategory: "medium",
     languages: [{ id: "common", speaks: false }],
