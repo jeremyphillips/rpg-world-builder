@@ -51,7 +51,7 @@ export interface RuntimeMarkerDuration {
 export interface RuntimeMarker {
   /** Semantic condition/state id (matches mechanics vocabulary); prefer for presentation lookup. */
   id: string
-  /** Not canonical user-facing copy; encounter UI uses `COMBAT_STATE_UI_MAP` / `enrichWithPresentation`. */
+  /** Not canonical user-facing copy; encounter UI resolves via `resolveEffectPresentation` / `enrichWithPresentation`. */
   label: string
   duration?: RuntimeMarkerDuration
   sourceInstanceId?: string

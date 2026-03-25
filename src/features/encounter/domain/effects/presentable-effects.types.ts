@@ -59,8 +59,13 @@ export type CombatStatePresentation = {
   summarize?: (effect: PresentableCombatEffect) => string
 }
 
+/** `defense` = damage/condition defense badges (separate derivation from `formatDamageDefenseLabel`). */
+export type PresentationTier = 'core' | 'specialized' | 'fallback' | 'defense'
+
 export type EnrichedPresentableEffect = PresentableCombatEffect & {
   presentation: CombatStatePresentation
-  /** True when `presentation` came from `getFallbackPresentation` (no row in `COMBAT_STATE_UI_MAP`). */
+  /** Where the row was resolved: PHB/core map, specialized map, or generic fallback. */
+  presentationTier: PresentationTier
+  /** True when `presentation` came from `getFallbackPresentation` (tier `fallback`). */
   usedFallbackPresentation: boolean
 }

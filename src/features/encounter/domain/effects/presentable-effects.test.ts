@@ -133,7 +133,18 @@ describe('enrichPresentableEffects', () => {
     })
     expect(enriched[0].label).toBe('Prone')
     expect(enriched[0].usedFallbackPresentation).toBe(false)
+    expect(enriched[0].presentationTier).toBe('core')
     expect(getUserFacingEffectLabel(enriched[0])).toBe('Prone')
+  })
+
+  it('maps exhaustion as core (immunity-only condition id)', () => {
+    const combatant = minimalCombatant({
+      conditions: [{ id: 'exhaustion', label: 'exhaustion' }],
+    })
+    const enriched = enrichPresentableEffects(collectPresentableEffects(combatant))[0]!
+    expect(enriched.label).toBe('Exhaustion')
+    expect(enriched.presentationTier).toBe('core')
+    expect(enriched.usedFallbackPresentation).toBe(false)
   })
 
   it('canonicalizes label when raw marker text is stale but id matches map', () => {
@@ -144,6 +155,7 @@ describe('enrichPresentableEffects', () => {
     const enriched = enrichPresentableEffects(presentable)
     expect(enriched[0].label).toBe('Incapacitated')
     expect(enriched[0].usedFallbackPresentation).toBe(false)
+    expect(enriched[0].presentationTier).toBe('core')
   })
 
   it('uses fallback for unknown keys', () => {
@@ -158,6 +170,7 @@ describe('enrichPresentableEffects', () => {
       defaultSection: 'restrictions',
     })
     expect(enriched[0].usedFallbackPresentation).toBe(true)
+    expect(enriched[0].presentationTier).toBe('fallback')
   })
 })
 

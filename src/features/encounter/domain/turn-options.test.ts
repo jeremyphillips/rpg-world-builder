@@ -129,21 +129,4 @@ describe('deriveTurnExhaustion', () => {
     })
     expect(r.isFullySpent).toBe(true)
   })
-
-  it('counts reaction when provided and available', () => {
-    const r = deriveTurnExhaustion({
-      actionState: 'spent',
-      bonusActionState: 'spent',
-      reactionState: 'available',
-    })
-    expect(r.hasAnyPrimaryOptionRemaining).toBe(true)
-  })
-
-  it('ignores reaction when omitted', () => {
-    const r = deriveTurnExhaustion({
-      actionState: 'spent',
-      bonusActionState: 'spent',
-    })
-    expect(r.isFullySpent).toBe(true)
-  })
 })

@@ -281,10 +281,24 @@ Do not use `DamageResistanceMarker.label` for damage-defense badge UI — it can
 ### Condition and state labels (presentation pipeline)
 
 - **`RuntimeMarker.label`** identifies the marker for logs and mechanics; it is **not** canonical user-facing copy. Prefer **`marker.id`** (semantic condition/state id) for presentation lookup when present.
-- **Canonical display text** comes from **`COMBAT_STATE_UI_MAP`** (PHB conditions from `EFFECT_CONDITION_DEFINITIONS` plus [`COMBAT_STATE_MARKER_UI_MAP`](../../src/features/encounter/domain/effects/combat-state-markers.ts)). Use **`resolvePresentationForSemanticKey`** / **`enrichWithPresentation`**: enriched rows set **`label`** to the canonical string and expose **`usedFallbackPresentation`** when no map row exists.
-- **`getUserFacingEffectLabel`** returns post-enrichment badge text (same as `effect.label` after enrich). List and drawer surfaces should use this (or `effect.label` after enrich), not raw strings from `collectPresentableEffects` alone.
-- **Preview chips** ([`build-combatant-preview-chips.ts`](../../src/features/encounter/helpers/build-combatant-preview-chips.ts)) resolve labels from the same maps; bloodied and concentrating use marker-map presentation instead of ad hoc literals.
-- **Fallback** (`getFallbackPresentation`) title-cases unknown keys for resilience. **Presentation map coverage** is enforced in tests (`presentation-map-coverage.test.ts`): every `EffectConditionId` and every `COMBAT_STATE_MARKER_UI_MAP` key must have a direct map entry; unexpected fallback is visible via **`usedFallbackPresentation`**. An explicit **`FALLBACK_ONLY_PRESENTATION_KEYS`** allowlist in that test file marks keys that intentionally rely on fallback only (keep small).
+
+#### Two-tier taxonomy
+
+Presentation resolves in order: **core** → **specialized** → **fallback** (`resolveEffectPresentation` in [`combat-state-ui-map.ts`](../../src/features/encounter/domain/effects/combat-state-ui-map.ts)).
+
+| Tier | Source | Examples |
+|------|--------|----------|
+| **Core** | [`core-combat-state-presentation.ts`](../../src/features/encounter/domain/effects/core-combat-state-presentation.ts) | PHB `EffectConditionId` rows, immunity-only condition ids (e.g. `exhaustion`), universal engine markers (`bloodied`, `concentrating`, `banished`) |
+| **Specialized** | [`specialized-effect-presentation.ts`](../../src/features/encounter/domain/effects/specialized-effect-presentation.ts) | Named monster/affliction/system-detail markers (`mummy-rot`, `engulfed`, `limb-severed`, …) — not universal PHB statuses |
+| **Fallback** | `getFallbackPresentation` | Unknown spell/state ids, dynamic hook keys, etc. Title-cased for resilience; **not** a substitute for adding core/specialized rows when a key is stable |
+
+**Defense badges** use a separate path (`presentationTier: 'defense'`): [`formatDamageDefenseLabel`](../../src/features/encounter/domain/badges/defense/encounter-defense-badges.ts) from semantic `level` + `damageType`, not raw `DamageResistanceMarker.label`.
+
+- **Merged lookup** [`COMBAT_STATE_UI_MAP`](../../src/features/encounter/domain/effects/combat-state-ui-map.ts) = core ∪ specialized (backward-compatible `getCombatStatePresentation`).
+- **`enrichWithPresentation`** sets canonical **`label`**, **`presentationTier`**, and **`usedFallbackPresentation`** (true only for generic fallback tier).
+- **`getUserFacingEffectLabel`** returns post-enrichment badge text. List and drawer surfaces should use this or **`effect.label`** after enrich.
+- **Preview chips** use **`resolvePresentationForSemanticKey`** (same tier order).
+- **Tests** ([`presentation-map-coverage.test.ts`](../../src/features/encounter/domain/effects/presentation-map-coverage.test.ts)): core keys and specialized keys must not hit generic fallback; unknown keys may; **`FALLBACK_ONLY_PRESENTATION_KEYS`** allowlists keys that never get rows (e.g. dynamic ids).
 
 ### Barrel exports
 
@@ -292,7 +306,7 @@ Do not use `DamageResistanceMarker.label` for damage-defense badge UI — it can
 - `deriveCombatActionBadges`, `ActionBadgeDescriptor`, `ActionBadgeKind`
 - `deriveActionPresentation`, `ActionPresentationViewModel`, `ActionSemanticCategory`, `ActionSourceTag`, `ActionFooterLink`
 - `CombatStateTone`, `CombatStatePriority`, `CombatStateSection`, `CombatStatePresentation`, `EnrichedPresentableEffect`
-- `getUserFacingEffectLabel`, `resolvePresentationForSemanticKey`, condition enrichment and grouping functions
+- `getUserFacingEffectLabel`, `resolvePresentationForSemanticKey`, `resolveEffectPresentation`, `CORE_COMBAT_STATE_MAP`, `SPECIALIZED_EFFECT_PRESENTATION_MAP`, `PresentationTier`, condition enrichment and grouping functions
 
 ---
 
