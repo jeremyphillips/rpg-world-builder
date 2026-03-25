@@ -108,10 +108,13 @@ export default function EncounterActiveRoute() {
     return encounterState.combatantsById[selectedActionTargetId] ?? null
   }, [encounterState, selectedActionTargetId])
 
-  const validActionIdsForTarget = useMemo(() => {
+  const targetValidation = useMemo(() => {
     if (!encounterState || !activeCombatant || !targetCombatant) return undefined
     return selectValidActionIdsForTarget(encounterState, activeCombatant, targetCombatant, availableActions)
   }, [encounterState, activeCombatant, targetCombatant, availableActions])
+
+  const validActionIdsForTarget = targetValidation?.validIds
+  const invalidActionReasons = targetValidation?.invalidReasons
 
   const handleSelectTarget = useCallback(
     (nextTargetId: string) => {
@@ -350,7 +353,8 @@ export default function EncounterActiveRoute() {
     combatant: actionDrawerCombatant!,
     drawerTitle: getCombatantDisplayLabel(actionDrawerCombatant!, combatantRoster),
     availableActions,
-    validActionIdsForTarget: validActionIdsForTarget,
+    validActionIdsForTarget,
+    invalidActionReasons,
     selectedActionId,
     onSelectAction: handleSelectAction,
     selectedCasterOptions,

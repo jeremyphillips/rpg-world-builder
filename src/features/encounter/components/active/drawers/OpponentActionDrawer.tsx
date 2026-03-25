@@ -21,6 +21,7 @@ type OpponentActionDrawerProps = {
   drawerTitle?: string
   availableActions: CombatActionDefinition[]
   validActionIdsForTarget?: Set<string>
+  invalidActionReasons?: Map<string, string>
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
   selectedCasterOptions?: Record<string, string>
@@ -48,6 +49,7 @@ export function OpponentActionDrawer({
   drawerTitle,
   availableActions,
   validActionIdsForTarget,
+  invalidActionReasons,
   selectedActionId,
   onSelectAction,
   selectedCasterOptions,
@@ -108,6 +110,7 @@ export function OpponentActionDrawer({
       bonusActions={bonusActions}
       availableActionIds={availableActionIds}
       validActionIdsForTarget={validActionIdsForTarget}
+      invalidActionReasons={invalidActionReasons}
       selectedActionId={selectedActionId}
       onSelectAction={onSelectAction}
       selectedCasterOptions={selectedCasterOptions}

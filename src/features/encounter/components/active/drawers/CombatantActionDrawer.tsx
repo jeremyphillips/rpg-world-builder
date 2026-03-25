@@ -36,6 +36,8 @@ type CombatantActionDrawerProps = {
   availableActionIds?: Set<string>
   /** Actions that are valid against the currently selected target. */
   validActionIdsForTarget?: Set<string>
+  /** Authoritative reason string for each action that failed target validation. */
+  invalidActionReasons?: Map<string, string>
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
   selectedCasterOptions?: Record<string, string>
@@ -257,12 +259,14 @@ function GroupedActionList({
   actions,
   availableActionIds,
   validActionIdsForTarget,
+  invalidActionReasons,
   selectedActionId,
   onSelectAction,
 }: {
   actions: CombatActionDefinition[]
   availableActionIds?: Set<string>
   validActionIdsForTarget?: Set<string>
+  invalidActionReasons?: Map<string, string>
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
 }) {
@@ -305,7 +309,7 @@ function GroupedActionList({
                   action={action}
                   isAvailable={isActionAvailable(action)}
                   isSelected={action.id === selectedActionId}
-                  hint={deriveActionUnavailableHint(action, availableActionIds, validActionIdsForTarget)}
+                  hint={deriveActionUnavailableHint(action, availableActionIds, invalidActionReasons)}
                   onSelectAction={onSelectAction}
                 />
               ))}
@@ -329,7 +333,7 @@ function GroupedActionList({
                 action={action}
                 isAvailable={isActionAvailable(action)}
                 isSelected={action.id === selectedActionId}
-                hint={deriveActionUnavailableHint(action, availableActionIds, validActionIdsForTarget)}
+                hint={deriveActionUnavailableHint(action, availableActionIds, invalidActionReasons)}
                 onSelectAction={onSelectAction}
               />
             ))}
@@ -369,6 +373,7 @@ export function CombatantActionDrawer({
   bonusActions,
   availableActionIds,
   validActionIdsForTarget,
+  invalidActionReasons,
   selectedActionId,
   onSelectAction,
   selectedCasterOptions,
@@ -491,6 +496,7 @@ export function CombatantActionDrawer({
                 actions={actions}
                 availableActionIds={availableActionIds}
                 validActionIdsForTarget={validActionIdsForTarget}
+                invalidActionReasons={invalidActionReasons}
                 selectedActionId={selectedActionId}
                 onSelectAction={onSelectAction}
               />
@@ -506,6 +512,7 @@ export function CombatantActionDrawer({
                 actions={bonusActions}
                 availableActionIds={availableActionIds}
                 validActionIdsForTarget={validActionIdsForTarget}
+                invalidActionReasons={invalidActionReasons}
                 selectedActionId={selectedActionId}
                 onSelectAction={onSelectAction}
               />

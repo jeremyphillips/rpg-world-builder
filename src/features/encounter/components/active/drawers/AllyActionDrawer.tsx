@@ -22,6 +22,7 @@ type AllyActionDrawerProps = {
   drawerTitle?: string
   availableActions: CombatActionDefinition[]
   validActionIdsForTarget?: Set<string>
+  invalidActionReasons?: Map<string, string>
   selectedActionId?: string
   onSelectAction?: (actionId: string) => void
   selectedCasterOptions?: Record<string, string>
@@ -49,6 +50,7 @@ export function AllyActionDrawer({
   drawerTitle,
   availableActions,
   validActionIdsForTarget,
+  invalidActionReasons,
   selectedActionId,
   onSelectAction,
   selectedCasterOptions,
@@ -109,6 +111,7 @@ export function AllyActionDrawer({
       bonusActions={bonusActions}
       availableActionIds={availableActionIds}
       validActionIdsForTarget={validActionIdsForTarget}
+      invalidActionReasons={invalidActionReasons}
       selectedActionId={selectedActionId}
       onSelectAction={onSelectAction}
       selectedCasterOptions={selectedCasterOptions}

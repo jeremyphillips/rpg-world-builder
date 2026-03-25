@@ -179,6 +179,71 @@ export function isValidActionTarget(
   return combatant.side !== actor.side
 }
 
+/**
+ * Mirrors {@link isValidActionTarget} but returns a short user-facing reason
+ * string for the first failing check, or `null` when the target is valid.
+ */
+export function getActionTargetInvalidReason(
+  state: EncounterState,
+  combatant: CombatantInstance,
+  actor: CombatantInstance,
+  action: CombatActionDefinition,
+  options?: ActionTargetingResolveOptions,
+): string | null {
+  const kind = action.targeting?.kind
+  const suppressSameSideHostile = shouldSuppressSameSideHostile(options)
+
+  if (combatant.states.some((s) => s.label === 'banished')) return 'Target is banished'
+  if (!passesCreatureTypeFilter(combatant, action.targeting?.creatureTypeFilter)) return 'Invalid creature type'
+
+  if (isHostileAction(action) && cannotTargetWithHostileAction(actor, combatant.instanceId)) {
+    return 'Cannot target (charmed)'
+  }
+
+  if (
+    action.targeting?.requiresSight &&
+    kind !== 'self' &&
+    kind !== 'all-enemies' &&
+    kind !== 'none' &&
+    !canSeeForTargeting(state, actor.instanceId, combatant.instanceId)
+  ) {
+    return 'Target not visible'
+  }
+
+  if (
+    action.targeting?.rangeFt != null &&
+    kind !== 'self' &&
+    kind !== 'none' &&
+    state.space &&
+    state.placements &&
+    !isWithinRange(state.space, state.placements, actor.instanceId, combatant.instanceId, action.targeting.rangeFt)
+  ) {
+    return 'Out of range'
+  }
+
+  if (kind === 'none') return 'No target required'
+  if (kind === 'dead-creature') {
+    if (combatant.stats.currentHitPoints !== 0) return 'Requires dead creature'
+    const r = combatant.remains
+    if (r === 'dust' || r === 'disintegrated') return 'Remains destroyed'
+    return null
+  }
+  if (combatant.stats.currentHitPoints <= 0) return 'Target is defeated'
+  if (kind === 'single-creature') return null
+
+  if (kind === 'single-target') {
+    if (action.targeting?.requiresWilling) {
+      return combatant.side === actor.side ? null : 'Requires willing ally'
+    }
+    if (suppressSameSideHostile && isHostileAction(action)) {
+      return combatant.side !== actor.side ? null : 'Requires enemy target'
+    }
+    return null
+  }
+
+  return combatant.side !== actor.side ? null : 'Requires enemy target'
+}
+
 export function getActionTargetCandidates(
   state: EncounterState,
   actor: CombatantInstance,

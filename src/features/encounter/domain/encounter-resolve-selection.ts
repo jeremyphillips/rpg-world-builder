@@ -1,9 +1,15 @@
-import { isValidActionTarget } from '@/features/mechanics/domain/encounter'
+import { isValidActionTarget, getActionTargetInvalidReason } from '@/features/mechanics/domain/encounter'
 import type { EncounterState } from '@/features/mechanics/domain/encounter'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 
 import { isAreaGridAction, type AoeStep } from '../helpers/area-grid-action'
+
+export type ValidActionIdsForTargetResult = {
+  validIds: Set<string>
+  /** Authoritative reason string for each action that failed target validation. */
+  invalidReasons: Map<string, string>
+}
 
 /**
  * Action IDs that are valid against the current target (when a target is selected).
@@ -14,15 +20,21 @@ export function selectValidActionIdsForTarget(
   activeCombatant: CombatantInstance,
   targetCombatant: CombatantInstance | null,
   availableActions: CombatActionDefinition[],
-): Set<string> | undefined {
+): ValidActionIdsForTargetResult | undefined {
   if (!targetCombatant) return undefined
-  const ids = new Set<string>()
+  const validIds = new Set<string>()
+  const invalidReasons = new Map<string, string>()
   for (const action of availableActions) {
     if (isValidActionTarget(encounterState, targetCombatant, activeCombatant, action)) {
-      ids.add(action.id)
+      validIds.add(action.id)
+    } else {
+      const reason = getActionTargetInvalidReason(
+        encounterState, targetCombatant, activeCombatant, action,
+      )
+      if (reason) invalidReasons.set(action.id, reason)
     }
   }
-  return ids
+  return { validIds, invalidReasons }
 }
 
 export type CanResolveCombatActionSelectionArgs = {
