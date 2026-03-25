@@ -1,5 +1,7 @@
 // import EditIcon from '@mui/icons-material/Edit'
 // import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import { useLayoutEffect, useRef } from 'react'
+
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 // import IconButton from '@mui/material/IconButton'
@@ -11,7 +13,11 @@ import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import type { CombatantTurnResources } from '@/features/mechanics/domain/encounter/state/types/combatant.types'
 
-import { AppBadge, AppTooltipWrap, encounterActiveBarSx } from '@/ui/primitives'
+import {
+  AppBadge,
+  ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR,
+  encounterActiveBarSx,
+} from '@/ui/primitives'
 
 import type { EndTurnEmphasis } from '../../../domain'
 import { EncounterActiveCombatantIdentity } from './EncounterActiveCombatantIdentity'
@@ -27,6 +33,9 @@ export type EncounterActiveHeaderProps = {
   baseMovementFt: number
   directive: string
   endTurnEmphasis: EndTurnEmphasis
+  /** When false, the Actions control is hidden (e.g. action and bonus action both spent). */
+  canOpenActions: boolean
+  onOpenActions: () => void
   canEndTurn: boolean
   onEndTurn: () => void
   onEditEncounter: () => void
@@ -44,19 +53,43 @@ export function EncounterActiveHeader({
   baseMovementFt,
   directive,
   endTurnEmphasis,
+  canOpenActions,
+  onOpenActions,
   canEndTurn,
   onEndTurn,
   // onEditEncounter,
   // onResetEncounter,
 }: EncounterActiveHeaderProps) {
   const move = turnResources?.movementRemaining ?? 0
+  const headerRootRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const el = headerRootRef.current
+    if (!el) return
+
+    const syncHeightVar = () => {
+      const h = Math.ceil(el.getBoundingClientRect().height)
+      document.documentElement.style.setProperty(ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR, `${h}px`)
+    }
+
+    syncHeightVar()
+    const ro = new ResizeObserver(syncHeightVar)
+    ro.observe(el)
+    return () => {
+      ro.disconnect()
+      document.documentElement.style.removeProperty(ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR)
+    }
+  }, [])
 
   return (
     <Paper
+      ref={headerRootRef}
       square
       elevation={2}
       sx={{
-        position: 'relative',
+        position: 'sticky',
+        top: 0,
+        zIndex: (theme) => theme.zIndex.appBar + 1,
         borderBottom: '1px solid',
         borderColor: 'divider',
         bgcolor: 'background.paper',
@@ -152,16 +185,32 @@ export function EncounterActiveHeader({
           >
             {directive}
           </Typography>
-          <Button
-            variant={endTurnEmphasis === 'strong' ? 'contained' : 'outlined'}
-            color={endTurnEmphasis === 'strong' ? 'primary' : 'inherit'}
-            size="medium"
-            disabled={!canEndTurn}
-            onClick={onEndTurn}
-            sx={{ alignSelf: { xs: 'stretch', md: 'flex-end' }, minWidth: 120 }}
+          <Stack
+            direction="row"
+            spacing={1}
+            useFlexGap
+            flexWrap="wrap"
+            sx={{
+              alignSelf: { xs: 'stretch', md: 'flex-end' },
+              justifyContent: { xs: 'stretch', md: 'flex-end' },
+            }}
           >
-            End Turn
-          </Button>
+            {canOpenActions && (
+              <Button variant="outlined" color="primary" size="medium" onClick={onOpenActions} sx={{ minWidth: 120 }}>
+                Actions
+              </Button>
+            )}
+            <Button
+              variant={endTurnEmphasis === 'strong' ? 'contained' : 'outlined'}
+              color={endTurnEmphasis === 'strong' ? 'primary' : 'inherit'}
+              size="medium"
+              disabled={!canEndTurn}
+              onClick={onEndTurn}
+              sx={{ minWidth: 120 }}
+            >
+              End Turn
+            </Button>
+          </Stack>
         </Stack>
       </Stack>
       

@@ -6,6 +6,10 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { AppTabs, AppTab } from '@/ui/patterns'
+import {
+  ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR,
+  ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX,
+} from '@/ui/primitives'
 import type { CombatantInstance, EncounterState } from '@/features/mechanics/domain/encounter'
 
 import { AllyCombatantActivePreviewCard } from '../cards/AllyCombatantActivePreviewCard'
@@ -37,14 +41,15 @@ export function EncounterActiveSidebar({
       elevation={6}
       sx={{
         position: 'fixed',
-        right: 16,
-        top: '50%',
-        transform: 'translateY(-50%)',
+        right: (theme) => theme.spacing(2),
+        top: (theme) =>
+          `calc(var(${ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR}, ${ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX}px) + ${theme.spacing(2)})`,
         width: SIDEBAR_WIDTH,
-        maxHeight: 'calc(100vh - 120px)',
+        maxHeight: (theme) =>
+          `calc(100vh - var(${ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR}, ${ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX}px) - ${theme.spacing(2)} - ${theme.spacing(2)})`,
         display: 'flex',
         flexDirection: 'column',
-        zIndex: 'appBar',
+        zIndex: (theme) => theme.zIndex.appBar,
         borderRadius: 2,
         overflow: 'hidden',
       }}

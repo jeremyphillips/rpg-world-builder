@@ -152,6 +152,7 @@ function useEncounterRuntimeValue() {
   const [opponentModalOpen, setOpponentModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [turnOrderModalOpen, setTurnOrderModalOpen] = useState(false)
+  const [actionDrawerOpen, setActionDrawerOpen] = useState(false)
 
   const allyModalOptions = useMemo(
     () =>
@@ -405,6 +406,10 @@ function useEncounterRuntimeValue() {
     canResolveActionForHeader,
   ])
 
+  /** Matches {@link getCombatantAvailableActions}: empty means no action/bonus costs left to spend on real options (bonus slot can read “available” while bonus list is empty). */
+  const canOpenActionsDrawer =
+    Boolean(capabilities?.canSelectAction) && availableActions.length > 0
+
   const activeHeader =
     encounterState && activeCombatant ? (
       <EncounterActiveHeader
@@ -418,6 +423,8 @@ function useEncounterRuntimeValue() {
         baseMovementFt={baseMovementFt}
         directive={encounterHeaderModel.directive}
         endTurnEmphasis={encounterHeaderModel.endTurnEmphasis}
+        canOpenActions={canOpenActionsDrawer}
+        onOpenActions={() => setActionDrawerOpen(true)}
         canEndTurn={capabilities?.canEndTurn ?? false}
         onEndTurn={handleNextTurn}
         onEditEncounter={() => setEditModalOpen(true)}
@@ -498,6 +505,8 @@ function useEncounterRuntimeValue() {
     setupHeader,
     activeHeader,
     activeFooter,
+    actionDrawerOpen,
+    setActionDrawerOpen,
     handleStartEncounter,
     handleResetEncounter,
     registerCombatLogAppended,

@@ -63,6 +63,8 @@ export default function EncounterActiveRoute() {
     handleResolveAction,
     handleNextTurn,
     registerCombatLogAppended,
+    actionDrawerOpen,
+    setActionDrawerOpen,
   } = useEncounterRuntime()
 
   const [toastPayload, setToastPayload] = useState<{
@@ -87,7 +89,6 @@ export default function EncounterActiveRoute() {
 
   const [zoom, setZoom] = useState(DEFAULT_ZOOM)
   const [pan, setPan] = useState({ x: 0, y: 0 })
-  const [actionDrawerOpen, setActionDrawerOpen] = useState(false)
 
   const handleZoomIn = useCallback(() => setZoom((z) => Math.min(z + ZOOM_STEP, MAX_ZOOM)), [])
   const handleZoomOut = useCallback(() => setZoom((z) => Math.max(z - ZOOM_STEP, MIN_ZOOM)), [])
@@ -221,7 +222,7 @@ export default function EncounterActiveRoute() {
     resetAoePlacement()
     setSelectedActionId('')
     setActionDrawerOpen(false)
-  }, [resetAoePlacement, setSelectedActionId])
+  }, [resetAoePlacement, setSelectedActionId, setActionDrawerOpen])
 
   useCloseCombatantActionDrawerOnActiveCombatantChange(activeCombatantId, handleCloseDrawer)
 
@@ -307,6 +308,7 @@ export default function EncounterActiveRoute() {
       handleSelectTarget,
       setAoeOriginCellId,
       setAoeStep,
+      setActionDrawerOpen,
     ],
   )
 
