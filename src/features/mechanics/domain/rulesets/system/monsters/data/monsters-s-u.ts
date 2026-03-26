@@ -236,6 +236,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
               kind: 'spawn',
               creature: 'Troll Limb',
               count: 1,
+              placement: { kind: 'self-space' },
               location: 'self-space',
               actsWhen: 'immediately-after-source-turn',
             },

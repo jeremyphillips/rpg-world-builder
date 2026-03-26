@@ -740,7 +740,7 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
       ],
     },
     effects: [
-      { kind: 'spawn', creature: 'familiar', count: 1, location: 'self-space', actsWhen: 'immediately-after-source-turn' },
+      { kind: 'spawn', creature: 'familiar', count: 1, placement: { kind: 'self-space' }, location: 'self-space', actsWhen: 'immediately-after-source-turn' },
       {
         kind: 'note',
         text: 'Familiar is CR 0 Beast form (Celestial/Fey/Fiend). Telepathy 100ft. Bonus Action: see/hear through it. Can deliver touch spells.',

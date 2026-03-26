@@ -562,7 +562,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
       ],
     },
     effects: [
-      { kind: 'spawn', creature: 'otherworldly-steed', count: 1, location: 'self-space', actsWhen: 'immediately-after-source-turn' },
+      { kind: 'spawn', creature: 'otherworldly-steed', count: 1, placement: { kind: 'self-space' }, location: 'self-space', actsWhen: 'immediately-after-source-turn' },
       {
         kind: 'note',
         text: 'Steed uses Otherworldly Steed stat block. Choose Celestial, Fey, or Fiend. Shares initiative; controlled mount. Disappears at 0 HP or if you die.',

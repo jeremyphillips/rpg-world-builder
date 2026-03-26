@@ -28,6 +28,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
       {
         kind: 'spawn',
         count: 1,
+        placement: { kind: 'inherit-from-target' },
         mapMonsterIdFromTargetRemains: { corpse: 'zombie', bones: 'skeleton' },
         initiativeMode: 'individual',
       },

@@ -50,9 +50,12 @@ src/features/mechanics/domain/encounter/resolution/
     ├── action-resolver.ts            # Combat action orchestrator
     ├── action-cost.ts                # Turn resource management
     ├── action-targeting.ts           # Target selection and sequence steps
-    ├── action-resolution-requirements.ts  # UI readiness: derived requirements + selection gating (Phase 1)
+    ├── action-resolution-requirements.ts  # UI readiness: legacy kinds + delegates to requirement model
+    ├── action-requirement-model.ts   # Declarative ActionRequirement[], ActionStepDefinition[], placement validation
     └── action-effects.ts             # Effect application to encounter state
 ```
+
+**Action requirements vs steps:** `getActionRequirements` derives what inputs an action needs (caster options, creature target, single-cell placement, area placement). `getActionSteps` maps those to ordered drawer views (`casterOptions`, `singleCellPlacement`, etc.). Line of sight is modeled as **validation** on placement/targeting requirements (`validateSingleCellPlacement`), not as its own step. `SpawnEffect.placement` in spell/monster data describes summon placement semantics (`single-cell`, `self-space`, `inherit-from-target`).
 
 ## 4. Layers
 

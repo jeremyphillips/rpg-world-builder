@@ -67,6 +67,8 @@ export type CanResolveCombatActionSelectionArgs = {
   aoeOriginCellId: string | null
   selectedActionTargetId: string
   selectedCasterOptions: Record<string, string>
+  /** Grid cell for summon placement when required by spawn metadata. */
+  selectedSummonCellId?: string | null
   encounterState: EncounterState | null | undefined
   activeCombatant: CombatantInstance | null | undefined
 }
@@ -81,6 +83,7 @@ export function canResolveCombatActionSelection(args: CanResolveCombatActionSele
     aoeOriginCellId,
     selectedActionTargetId,
     selectedCasterOptions,
+    selectedSummonCellId,
     encounterState,
     activeCombatant,
   } = args
@@ -92,6 +95,7 @@ export function canResolveCombatActionSelection(args: CanResolveCombatActionSele
     aoeStep,
     aoeOriginCellId,
     selectedCasterOptions,
+    selectedSummonCellId,
     encounterState,
     activeCombatant,
   }).canResolve

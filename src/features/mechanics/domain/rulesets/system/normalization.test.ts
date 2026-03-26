@@ -354,6 +354,7 @@ describe('system catalog normalization', () => {
         kind: 'spawn',
         creature: 'Troll Limb',
         count: 1,
+        placement: { kind: 'self-space' },
         location: 'self-space',
         actsWhen: 'immediately-after-source-turn',
       },

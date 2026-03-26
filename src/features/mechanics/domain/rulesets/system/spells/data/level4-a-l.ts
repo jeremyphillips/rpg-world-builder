@@ -285,6 +285,12 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
       {
         kind: 'spawn',
         count: 1,
+        placement: {
+          kind: 'single-cell',
+          rangeFromCaster: { value: 90, unit: 'ft' },
+          requiresLineOfSight: true,
+          mustBeUnoccupied: true,
+        },
         poolFromCasterOption: {
           fieldId: 'conjure-minor-elementals-option',
           mapping: {
@@ -343,6 +349,12 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
       {
         kind: 'spawn',
         count: 1,
+        placement: {
+          kind: 'single-cell',
+          rangeFromCaster: { value: 60, unit: 'ft' },
+          requiresLineOfSight: true,
+          mustBeUnoccupied: true,
+        },
         poolFromCasterOption: {
           fieldId: 'conjure-woodland-beings-option',
           mapping: {

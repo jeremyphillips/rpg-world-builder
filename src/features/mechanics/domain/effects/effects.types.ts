@@ -399,8 +399,30 @@ export type SpawnPoolFromCasterOptionSpec = {
 
 export type SpawnSummonInitiativeMode = 'group' | 'share-caster' | 'individual';
 
+/**
+ * Where a summon appears on the tactical grid. Authored on spell/monster spawn effects;
+ * drives requirement/step modeling (remote cell vs self vs corpse-derived).
+ */
+export type SpawnPlacement =
+  | {
+      kind: 'single-cell'
+      /** Range from caster; when omitted, use spell/action range in the adapter. */
+      rangeFromCaster?: { value: number; unit: 'ft' }
+      requiresLineOfSight?: boolean
+      mustBeUnoccupied?: boolean
+    }
+  | {
+      kind: 'self-space' | 'self-cell'
+    }
+  | {
+      kind: 'inherit-from-target'
+      /** Spawn uses dead target/remains placement (e.g. Animate Dead). */
+    }
+
 export type SpawnEffect = EffectBase<'spawn'> & {
   count: number;
+  /** Tactical placement semantics; omit only for legacy data — prefer explicit authoring. */
+  placement?: SpawnPlacement
   /** Legacy authored token when not using catalog ids (e.g. familiar, Troll Limb). */
   creature?: string;
   location?: 'self-space' | 'self-cell';
