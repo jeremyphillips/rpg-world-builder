@@ -1,11 +1,11 @@
-import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
-import type { CombatantTurnResources } from '@/features/mechanics/domain/encounter/state/types/combatant.types'
+import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution'
+import type { CombatantTurnResources } from '@/features/mechanics/domain/encounter/state/types'
 
 import {
   deriveBucketState,
   deriveTurnExhaustion,
   partitionCombatantActionBuckets,
-  type TurnOptionBucketState,
+  // type TurnOptionBucketState,
 } from './turn-options'
 
 export type CombatantTurnExhaustionInput = {
@@ -14,10 +14,10 @@ export type CombatantTurnExhaustionInput = {
   turnResources: CombatantTurnResources | null
 }
 
-function reactionAvailabilityToBucketState(turnResources: CombatantTurnResources | null): TurnOptionBucketState {
-  if (!turnResources) return 'spent'
-  return turnResources.reactionAvailable ? 'available' : 'spent'
-}
+// function reactionAvailabilityToBucketState(turnResources: CombatantTurnResources | null): TurnOptionBucketState {
+//   if (!turnResources) return 'spent'
+//   return turnResources.reactionAvailable ? 'available' : 'spent'
+// }
 
 /**
  * Action/bonus buckets + movement + reaction, composed into {@link deriveTurnExhaustion}.

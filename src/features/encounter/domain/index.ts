@@ -15,13 +15,13 @@ export type {
   ActionBadgeDescriptor,
   ActionBadgeKind,
 } from './badges/action/combat-action-badges.types'
-export { deriveActionPresentation } from './badges/action/action-presentation'
+export { deriveActionPresentation } from './actions/action-presentation'
 export type {
   ActionPresentationViewModel,
   ActionSemanticCategory,
   ActionSourceTag,
   ActionFooterLink,
-} from './badges/action/action-presentation.types'
+} from './actions/action-presentation.types'
 export {
   collectPresentableEffects,
   enrichPresentableEffects,
@@ -72,7 +72,7 @@ export type {
   CombatLogEntryImportance,
   CombatLogPresentationMode,
 } from './combat-log/combat-log.types'
-export type { GridInteractionMode } from './encounter-interaction.types'
+export type { GridInteractionMode } from './interaction/encounter-interaction.types'
 export {
   deriveBucketChrome,
   deriveBucketState,
@@ -80,17 +80,17 @@ export {
   deriveTurnExhaustion,
   partitionCombatantActionBuckets,
   turnResourceBucketHeaderBadge,
-} from './turn-options'
+} from './turn/turn-options'
 export {
   canResolveCombatActionSelection,
   selectValidActionIdsForTarget,
-} from './encounter-resolve-selection'
-export type { CanResolveCombatActionSelectionArgs } from './encounter-resolve-selection'
-export { deriveCombatantTurnExhaustion } from './combatant-turn-exhaustion'
-export type { CombatantTurnExhaustionInput } from './combatant-turn-exhaustion'
+} from './interaction/encounter-resolve-selection'
+export type { CanResolveCombatActionSelectionArgs } from './interaction/encounter-resolve-selection'
+export { deriveCombatantTurnExhaustion } from './turn/combatant-turn-exhaustion'
+export type { CombatantTurnExhaustionInput } from './turn/combatant-turn-exhaustion'
 export {
   deriveEncounterHeaderModel,
-} from './encounter-header-model'
+} from './header/encounter-header-model'
 export type {
   DeriveEncounterHeaderModelArgs,
   EncounterHeaderDisplayArgs,
@@ -98,8 +98,8 @@ export type {
   EncounterHeaderModel,
   EncounterHeaderTurnArgs,
   EndTurnEmphasis,
-} from './encounter-header-model'
-export type { TurnOptionBucketState, TurnResourceBucketHeaderBadge } from './turn-options'
+} from './header/encounter-header-model'
+export type { TurnOptionBucketState, TurnResourceBucketHeaderBadge } from './turn/turn-options'
 export {
   deriveEncounterCapabilities,
 } from './capabilities/encounter-capabilities.types'

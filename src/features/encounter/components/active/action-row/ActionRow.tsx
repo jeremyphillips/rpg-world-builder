@@ -3,7 +3,7 @@ import Typography from '@mui/material/Typography'
 
 import { ROUTES } from '@/app/routes'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
-import { deriveActionPresentation } from '../../../domain/badges/action/action-presentation'
+import { deriveActionPresentation } from '../../../domain/actions/action-presentation'
 import { ActionRowBase } from './ActionRowBase'
 
 type ActionRowProps = {

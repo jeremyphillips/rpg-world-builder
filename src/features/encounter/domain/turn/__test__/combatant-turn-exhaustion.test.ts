@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import { createCombatTurnResources } from '@/features/mechanics/domain/encounter/state/types/combatant.types'
 
-import { deriveCombatantTurnExhaustion } from './combatant-turn-exhaustion'
+import { deriveCombatantTurnExhaustion } from '../combatant-turn-exhaustion'
 
 function strike(): CombatActionDefinition {
   return {

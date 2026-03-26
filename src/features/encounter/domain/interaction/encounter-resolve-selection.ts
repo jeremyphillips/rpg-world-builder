@@ -3,7 +3,7 @@ import type { EncounterState } from '@/features/mechanics/domain/encounter'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 
-import { isAreaGridAction, type AoeStep } from '../helpers/area-grid-action'
+import { isAreaGridAction, type AoeStep } from '../../helpers/area-grid-action'
 
 export type ValidActionIdsForTargetResult = {
   validIds: Set<string>

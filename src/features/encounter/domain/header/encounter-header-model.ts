@@ -1,8 +1,8 @@
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 
-import { isAreaGridAction, isSelfCenteredAreaAction, type AoeStep } from '../helpers/area-grid-action'
-import { deriveCombatantTurnExhaustion, type CombatantTurnExhaustionInput } from './combatant-turn-exhaustion'
-import type { GridInteractionMode } from './encounter-interaction.types'
+import { isAreaGridAction, isSelfCenteredAreaAction, type AoeStep } from '../../helpers/area-grid-action'
+import { deriveCombatantTurnExhaustion, type CombatantTurnExhaustionInput } from '../turn/combatant-turn-exhaustion'
+import type { GridInteractionMode } from '../interaction/encounter-interaction.types'
 
 export type EndTurnEmphasis = 'subtle' | 'strong'
 

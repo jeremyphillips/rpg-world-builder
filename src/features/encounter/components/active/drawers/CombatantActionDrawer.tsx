@@ -23,7 +23,7 @@ import {
   type EnrichedPresentableEffect,
 } from '../../../domain'
 import type { ActionSemanticCategory } from '../../../domain/badges/action/action-presentation.types'
-import { deriveActionPresentation } from '../../../domain/badges/action/action-presentation'
+import { deriveActionPresentation } from '../../../domain/actions/action-presentation'
 import { ActionRow } from '../action-row/ActionRow'
 import { CasterOptionsFields } from '../action-row/CasterOptionsFields'
 import { deriveActionUnavailableHint } from './helpers/derive-action-unavailable-hint'

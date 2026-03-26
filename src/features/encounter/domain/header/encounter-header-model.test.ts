@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import { createCombatTurnResources } from '@/features/mechanics/domain/encounter/state/types/combatant.types'
 
-import { deriveEncounterHeaderModel } from './encounter-header-model'
+import { deriveEncounterHeaderModel } from '../encounter-header-model'
 
 const baseTurn = createCombatTurnResources(30)
 

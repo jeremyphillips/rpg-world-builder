@@ -27,7 +27,7 @@ Two surfaces format damage resistances / immunities / vulnerabilities differentl
 - **Damage-type markers** (`damageResistanceMarkers`) store a free-form `label` at creation time (`immunity to fire`, `vulnerability to cold`, etc. in `combatant-builders.ts`, spell paths in `action-effects.ts`).
 - `**deriveEncounterDefenseBadges` → `damageDefenseBadges`** passes through `m.label`.
 - `**defenseBadgesToPresentableCombatEffects`** (used by `collectPresentableEffects`) therefore shows the legacy lowercase phrasing.
-- `**buildEncounterDefensePreviewChips**` already ignores `d.label` and uses `formatDamageDefenseLabel(level, damageType)` — so preview chips and full effect lists disagree.
+- `**buildEncounterDefensePreviewChips`** already ignores `d.label` and uses `formatDamageDefenseLabel(level, damageType)` — so preview chips and full effect lists disagree.
 
 Mechanics are keyed by `damageType` + `level`; drift is **presentation only**.
 
