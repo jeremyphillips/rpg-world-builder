@@ -1,4 +1,5 @@
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
 import type { CombatStatePriority } from '../domain/effects/presentable-effects.types'
 
 import {
@@ -57,6 +58,17 @@ export function buildCombatantPreviewChips(
   } = options ?? {}
 
   const candidates: PreviewChip[] = []
+
+  if (isDefeatedCombatant(combatant)) {
+    const defeatedPres = resolvePresentationForSemanticKey('participation_defeated')
+    candidates.push({
+      id: 'participation-defeated',
+      label: defeatedPres.label,
+      tone: defeatedPres.tone,
+      priority: defeatedPres.priority,
+      tooltip: 'HP 0 — out of combat',
+    })
+  }
 
   // Bloodied (derived from HP threshold)
   const isBloodied =

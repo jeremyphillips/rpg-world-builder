@@ -231,6 +231,16 @@ export type CombatantEquipmentSnapshot = {
 /** Physical remains after death — drives resurrection / animate targeting. */
 export type CombatantRemainsKind = 'corpse' | 'bones' | 'dust' | 'disintegrated'
 
+/**
+ * Recorded when damage (or equivalent) reduces a creature to 0 HP and defeat is finalized.
+ * Not applied when a trait stabilizes the creature (e.g. Undead Fortitude → 1 HP).
+ * Semantic helpers live in `combatant-participation.ts`.
+ */
+export type CombatantDeathRecord = {
+  remains: CombatantRemainsKind
+  diedAtRound: number
+}
+
 export interface CombatantInstance {
   instanceId: string
   side: CombatantSide
@@ -242,11 +252,19 @@ export interface CombatantInstance {
   portraitImageKey?: string | null
   creatureType?: string
   /**
-   * Set when the combatant is dead (0 HP): what is left to target for spells.
-   * Defaults to `corpse` on first death unless overridden (e.g. disintegrate, death-outcome).
+   * Aftermath once a death record exists (lethal 0 HP). Semantics by helper:
+   * - **Living:** usually `undefined` (no corpse on the field).
+   * - **Defeated with record:** concrete kind (`corpse`, `bones`, `dust`, …).
+   * - **`undefined` at 0 HP:** possible only in synthetic/test state; `canTargetAsDeadCreature`
+   *   treats that as implicit corpse for spells; `hasRemainsOnGrid` stays false until explicit `remains`.
+   * Mutated by lethal damage (e.g. disintegrate) and `death-outcome` effects (e.g. turns-to-dust).
    */
   remains?: CombatantRemainsKind
-  /** Encounter `roundNumber` when the creature first reached 0 HP (for Revivify window). */
+  /**
+   * **Death record** — set when damage (etc.) applies a lethal crossing to 0 HP in resolution.
+   * **Truth source for “dead” in code** (`isDeadCombatant`): not the same as “defeated” (`HP ≤ 0`).
+   * Cleared when healing brings `currentHitPoints` above 0 (revival). Used for revival windows (e.g. Revivify).
+   */
   diedAtRound?: number
   /** When set (e.g. from character loadout), enables authored `effect.condition` gates that read `equipment.armorEquipped`. */
   equipment?: CombatantEquipmentSnapshot

@@ -18,6 +18,7 @@ src/features/encounter/space/
 ├── space.types.ts                  # EncounterSpace, EncounterCell, GridObstacle, CombatantPosition
 ├── space.helpers.ts                # Pure cell/distance/occupancy queries
 ├── space.selectors.ts              # State-level selectors, GridViewModel, movement
+├── applyGridSpawnReplacement.ts    # Spawn target → new combatant(s) placement transfer
 ├── createSquareGridSpace.ts        # Factory: square-grid EncounterSpace
 ├── createZoneGridSpace.ts          # Factory: zone-grid EncounterSpace
 ├── generateInitialPlacements.ts    # Side-based initial combatant placement
@@ -69,6 +70,10 @@ The `showReachable` option is driven by movement budget (`movementRemaining > 0`
 **Movement rejection helper:** `getMoveRejectionReason(state, combatantId, targetCellId)` returns short labels such as `Out of range`, `Cell occupied`, or `Blocked` when a move would fail, for anchored status text (not tooltips on cells).
 
 **Grid hover status:** `deriveGridHoverStatusMessage` (encounter helpers) composes a single line for illegal hover (movement, creature targeting, or invalid AoE origin) to show under the encounter header.
+
+### Spawn and grid replacement (tactical token handoff)
+
+When a **`spawn`** effect creates new combatants that **replace** an existing token on the grid (e.g. animating a corpse into a new creature), **`applyGridSpawnReplacementFromTarget`** (`src/features/encounter/space/applyGridSpawnReplacement.ts`) updates **`EncounterState.placements`**: the spawn target is removed from placements, the first spawned combatant takes the target’s **`cellId`**, and any additional spawns are placed on the nearest passable empty cells (Chebyshev distance). The grid view model continues to derive **`occupantId`** from placements only, so the **new** combatant becomes the visible token. This is the generic hook for corpse→minion replacement and is intended to extend to future **shapeshift / transformation** flows that introduce a new combatant instance in the same space.
 
 ### Line of sight (binary, first pass)
 
@@ -131,5 +136,6 @@ Current naming intentionally distinguishes *in-range by metric* (`selectCellsWit
 | `CombatantAttackRange` | `combatant.types.ts` | Discriminated union: melee (rangeFt) or ranged (normalFt, longFt) |
 | `GridCellViewModel` | `space.selectors.ts` | UI-ready cell with highlight flags |
 | `GridViewModel` | `space.selectors.ts` | Complete grid for rendering |
+| `applyGridSpawnReplacementFromTarget` | `applyGridSpawnReplacement.ts` | Transfers tactical `placements` from a spawn target to new combatant(s) (replacement / corpse→minion) |
 | `hasLineOfSight` | `space.sight.ts` | Binary LoS along supercover segment between cell centers |
 | `GridInteractionMode` | `encounter-interaction.types.ts` | `'select-target' \| 'move'` UI mode |

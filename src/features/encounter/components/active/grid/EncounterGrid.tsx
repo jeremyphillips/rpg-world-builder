@@ -9,6 +9,7 @@ import type { Theme } from '@mui/material/styles'
 import { AppAvatar } from '@/ui/primitives'
 import { resolveImageUrl } from '@/shared/lib/media'
 import type { GridViewModel, GridCellViewModel } from '../../../space/space.selectors'
+import { DEFEATED_PARTICIPATION_OPACITY } from '../../../domain/presentation-defeated'
 
 const BASE_CELL_SIZE = 48
 const HOVER_DELAY_MS = 350
@@ -345,6 +346,7 @@ export function EncounterGrid({
                       borderColor: ring,
                       bgcolor: tokenSrc ? 'transparent' : ring,
                       zIndex: 1,
+                      ...(cell.occupantIsDefeated ? { opacity: DEFEATED_PARTICIPATION_OPACITY } : {}),
                       animation: cell.isActive
                         ? `${activeTurnPulse} 2.4s ease-in-out infinite`
                         : showLegalTargetRedPulse

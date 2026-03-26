@@ -1,5 +1,13 @@
 export { getCombatantDisplayLabel } from './combatant-display-label'
 export {
+  canTargetAsDeadCreature,
+  hasIntactRemainsForRevival,
+  hasRemainsOnGrid,
+  isActiveCombatant,
+  isDeadCombatant,
+  isDefeatedCombatant,
+} from './combatant-participation'
+export {
   appendEncounterLogEvent,
   appendEncounterNote,
   appendHookTriggeredLog,

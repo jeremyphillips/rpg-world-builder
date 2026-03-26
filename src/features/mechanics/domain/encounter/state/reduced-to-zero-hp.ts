@@ -5,8 +5,7 @@ import { abilityIdToKey, type AbilityRef } from '@/features/mechanics/domain/cha
 import { rollD20WithRollMode } from '@/features/mechanics/domain/resolution/engines/dice.engine'
 import { buildReducedToZeroTraits } from '../runtime/monster-runtime'
 import type { CombatLogEvent } from './types'
-import type { CombatantInstance } from './types/combatant.types'
-import type { CombatantRemainsKind } from './types/combatant.types'
+import type { CombatantDeathRecord, CombatantInstance, CombatantRemainsKind } from './types/combatant.types'
 import { getCombatantDisplayLabel } from './combatant-display-label'
 import { normalizeDamageType } from './shared'
 
@@ -51,12 +50,18 @@ function shouldSkipSaveFromExceptionEffects(
   return { skip: false }
 }
 
+/**
+ * Result of Undead Fortitude–style resolution when damage would take HP from above 0 to 0.
+ * `defeatOutcome` is set only when the creature ends at **0 HP** (killed / defeated), not when stabilized at 1 HP.
+ */
 export type ReducedToZeroHpResult = {
   newHp: number
-  deathFields:
+  defeatOutcome:
     | {
-        remains: CombatantRemainsKind
-        diedAtRound: number
+        /** No longer in initiative — HP is 0 after this resolution. */
+        participation: 'defeated'
+        /** Death record applied with remains + round (revival / aftermath). */
+        death: CombatantDeathRecord
       }
     | undefined
   logEvents: Omit<CombatLogEvent, 'id' | 'timestamp'>[]
@@ -97,7 +102,7 @@ export function resolveReducedToZeroHpTrait(
   const effects = trait.effects ?? []
   const skip = shouldSkipSaveFromExceptionEffects(effects, options.damageType, options.criticalHit)
 
-  const defaultDeath = {
+  const defaultDeath: CombatantDeathRecord = {
     remains: (options.remainsOnKill ?? combatant.remains ?? 'corpse') as CombatantRemainsKind,
     diedAtRound: combatant.diedAtRound ?? round,
   }
@@ -108,7 +113,7 @@ export function resolveReducedToZeroHpTrait(
     const debugDetails = [...baseDebug, `skip: ${skip.reason ?? 'save exception'}`]
     return {
       newHp: 0,
-      deathFields: defaultDeath,
+      defeatOutcome: { participation: 'defeated', death: defaultDeath },
       logEvents: [
         {
           type: 'hook-triggered',
@@ -163,7 +168,7 @@ export function resolveReducedToZeroHpTrait(
   if (success) {
     return {
       newHp: 1,
-      deathFields: undefined,
+      defeatOutcome: undefined,
       logEvents: [
         hookEvent,
         {
@@ -180,7 +185,7 @@ export function resolveReducedToZeroHpTrait(
 
   return {
     newHp: 0,
-    deathFields: defaultDeath,
+    defeatOutcome: { participation: 'defeated', death: defaultDeath },
     logEvents: [hookEvent],
   }
 }

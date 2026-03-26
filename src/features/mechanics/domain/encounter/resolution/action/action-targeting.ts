@@ -7,9 +7,21 @@ import type { CombatantInstance } from '../../state'
 import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection } from '../action-resolution.types'
 import { cannotTargetWithHostileAction } from '../../state/condition-rules'
+import {
+  canTargetAsDeadCreature,
+  isActiveCombatant,
+  isDefeatedCombatant,
+} from '../../state/combatant-participation'
 import { canSeeForTargeting } from '../../state/visibility-seams'
 import { gridDistanceFt, getCellForCombatant, isWithinRange } from '@/features/encounter/space'
 import type { CombatActionAreaTemplate } from '../combat-action.types'
+
+/**
+ * Targeting semantics (domain):
+ * - `single-creature` — living combatant (`isActiveCombatant`): ally buffs / features that target one living creature.
+ * - `dead-creature` — {@link canTargetAsDeadCreature}: 0 HP with corpse-like remains (not dust/disintegrated).
+ * - `single-target` — varies by hostile/willing; still excludes defeated combatants via `isDefeatedCombatant` below.
+ */
 
 /** Chebyshev distance from origin cell to combatant cell; used as first-pass sphere/cube approximation. */
 export function areaTemplateRadiusFt(template: CombatActionAreaTemplate): number {
@@ -158,13 +170,10 @@ export function isValidActionTarget(
 
   if (kind === 'none') return false
   if (kind === 'dead-creature') {
-    if (combatant.stats.currentHitPoints !== 0) return false
-    const r = combatant.remains
-    if (r === 'dust' || r === 'disintegrated') return false
-    return true
+    return canTargetAsDeadCreature(combatant)
   }
-  if (combatant.stats.currentHitPoints <= 0) return false
-  if (kind === 'single-creature') return true
+  if (isDefeatedCombatant(combatant)) return false
+  if (kind === 'single-creature') return isActiveCombatant(combatant)
 
   if (kind === 'single-target') {
     if (action.targeting?.requiresWilling) {
@@ -196,12 +205,13 @@ export function getActionTargetInvalidReason(
   if (combatant.states.some((s) => s.label === 'banished')) return 'Target is banished'
 
   if (kind === 'dead-creature') {
-    if (combatant.stats.currentHitPoints !== 0) return 'Requires dead creature'
-    const r = combatant.remains
-    if (r === 'dust' || r === 'disintegrated') return 'Remains destroyed'
+    if (!canTargetAsDeadCreature(combatant)) {
+      if (combatant.stats.currentHitPoints !== 0) return 'Requires dead creature'
+      return 'Remains destroyed'
+    }
     return null
   }
-  
+
   if (!passesCreatureTypeFilter(combatant, action.targeting?.creatureTypeFilter)) return 'Invalid creature type'
 
   if (isHostileAction(action) && cannotTargetWithHostileAction(actor, combatant.instanceId)) {
@@ -220,7 +230,7 @@ export function getActionTargetInvalidReason(
 
   if (kind === 'none') return 'No target required'
 
-  if (combatant.stats.currentHitPoints <= 0) return 'Target is defeated'
+  if (isDefeatedCombatant(combatant)) return 'Target is defeated'
   if (kind === 'single-creature') return null
 
   if (kind === 'single-target') {

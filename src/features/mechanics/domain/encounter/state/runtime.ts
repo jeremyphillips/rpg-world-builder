@@ -114,6 +114,7 @@ function processActionRecharge(
   return nextState
 }
 
+/** Same “alive” predicate as `isActiveCombatant` in combatant-participation.ts (HP > 0). */
 function buildAliveInitiativeParticipants(state: EncounterState): InitiativeParticipant[] {
   return state.initiativeOrder
     .map((id) => state.combatantsById[id])

@@ -17,6 +17,8 @@ import { isValidActionTarget } from '@/features/mechanics/domain/encounter'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 
 import { buildEncounterActionToastPayload } from '../helpers/encounter-action-toast'
+import { deriveEncounterSideOutcome } from '../helpers/derive-encounter-side-outcome'
+import { EncounterGameOverModal } from '../components/active/modals/EncounterGameOverModal'
 import { canResolveCombatActionSelection, selectValidActionIdsForTarget } from '../domain'
 import {
   isAreaGridAction,
@@ -75,6 +77,7 @@ export default function EncounterActiveRoute() {
     handleResolveAction,
     handleNextTurn,
     registerCombatLogAppended,
+    handleResetEncounter,
     actionDrawerOpen,
     setActionDrawerOpen,
     monstersById,
@@ -90,10 +93,25 @@ export default function EncounterActiveRoute() {
   } | null>(null)
   const [toastOpen, setToastOpen] = useState(false)
   const [placementError, setPlacementError] = useState<string | null>(null)
+  const [gameOverDismissed, setGameOverDismissed] = useState(false)
+
+  const encounterOutcome = useMemo(() => deriveEncounterSideOutcome(encounterState), [encounterState])
 
   useEffect(() => {
-    registerCombatLogAppended((events) => {
-      const payload = buildEncounterActionToastPayload(events)
+    if (!encounterState) setGameOverDismissed(false)
+  }, [encounterState])
+
+  useEffect(() => {
+    if (encounterOutcome.kind === 'ongoing') setGameOverDismissed(false)
+  }, [encounterOutcome.kind])
+
+  const gameOverOpen =
+    encounterOutcome.kind !== 'ongoing' && !gameOverDismissed && encounterState != null
+
+
+  useEffect(() => {
+    registerCombatLogAppended((events, stateAfter) => {
+      const payload = buildEncounterActionToastPayload(events, stateAfter)
       if (payload) {
         setToastPayload(payload)
         setToastOpen(true)
@@ -463,6 +481,16 @@ export default function EncounterActiveRoute() {
           {gridHoverStatusMessage}
         </Typography>
       )}
+
+      <EncounterGameOverModal
+        open={gameOverOpen}
+        outcome={encounterOutcome}
+        onClose={() => setGameOverDismissed(true)}
+        onResetEncounter={() => {
+          setGameOverDismissed(false)
+          handleResetEncounter()
+        }}
+      />
 
       <AppToast
         open={toastOpen && toastPayload != null}

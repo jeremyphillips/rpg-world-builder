@@ -436,6 +436,14 @@ export type SpawnEffect = EffectBase<'spawn'> & {
     mapping: Record<string, SpawnPoolFromCasterOptionSpec>;
   };
   initiativeMode?: SpawnSummonInitiativeMode;
+  /**
+   * When true, after spawn resolves, tactical placement is transferred from the **target** to the
+   * spawned combatant(s): the target is removed from `placements`, the first spawn occupies the
+   * target's cell, extras use nearest empty passable cells. Use for replacement flows that are not
+   * expressed via `mapMonsterIdFromTargetRemains` (e.g. future shapeshift / new-instance transforms).
+   * `mapMonsterIdFromTargetRemains` implies the same placement transfer and does not require this flag.
+   */
+  inheritGridCellFromTarget?: boolean;
 };
 
 export type HitPointsEffect = EffectBase<'hit-points'> & {

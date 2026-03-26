@@ -1,4 +1,7 @@
 import type { CombatLogEvent } from '@/features/mechanics/domain/encounter'
+import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
+import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
+import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
 import type { AppAlertTone } from '@/ui/primitives'
 
 const MAX_EFFECT_LINES = 14
@@ -43,8 +46,37 @@ function parseDeclaredAction(summary: string): { actor: string; action: string; 
   return { actor: stripRuntimeIds(m[1]), action: m[2].trim(), target: m[3] ? stripRuntimeIds(m[3]) : undefined }
 }
 
+function appendDefeatSuffixToTitle(
+  title: string,
+  events: CombatLogEvent[],
+  encounterState: EncounterState | undefined,
+): string {
+  if (!encounterState) return title
+
+  const roster = Object.values(encounterState.combatantsById)
+  const names: string[] = []
+  const seen = new Set<string>()
+  for (const e of events) {
+    if (e.type !== 'damage-applied') continue
+    for (const tid of e.targetIds ?? []) {
+      const c = encounterState.combatantsById[tid]
+      if (!c || !isDefeatedCombatant(c)) continue
+      if (seen.has(tid)) continue
+      seen.add(tid)
+      names.push(getCombatantDisplayLabel(c, roster))
+    }
+  }
+  if (names.length === 0) return title
+  const suffix =
+    names.length === 1
+      ? `${names[0]} is defeated.`
+      : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} are defeated.`
+  return `${title} — ${suffix}`
+}
+
 export function buildEncounterActionToastPayload(
   events: CombatLogEvent[],
+  encounterState?: EncounterState,
 ): { title: string; tone: AppAlertTone; narrative: string; mechanics: string } | null {
   if (events.length === 0) return null
 
@@ -162,6 +194,8 @@ export function buildEncounterActionToastPayload(
     const first = hits[0] ?? misses[0]
     title = stripRuntimeIds(first.summary)
   }
+
+  title = appendDefeatSuffixToTitle(title, events, encounterState)
 
   const coreLines = [...(hits.length + misses.length > 0 ? flatLines : saveOrSpellLines)]
   if (effectLines.length > 0) {

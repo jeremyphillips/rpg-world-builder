@@ -4,6 +4,7 @@ import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
+import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
 import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
 import { useCharacter } from '@/features/character/hooks'
 
@@ -34,7 +35,7 @@ export function AllyCombatantActivePreviewCard({
   showChips = true,
   onClick,
 }: AllyCombatantActivePreviewCardProps) {
-  const isDefeated = combatant.stats.currentHitPoints <= 0
+  const isDefeated = isDefeatedCombatant(combatant)
 
   const title = useMemo(
     () =>

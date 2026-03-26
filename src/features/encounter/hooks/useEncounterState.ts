@@ -79,9 +79,11 @@ export function useEncounterState({
     setAoeHoverCellId(null)
   }, [])
 
-  const combatLogAppendedRef = useRef<((events: CombatLogEvent[]) => void) | undefined>(undefined)
+  const combatLogAppendedRef = useRef<
+    ((events: CombatLogEvent[], state: EncounterState) => void) | undefined
+  >(undefined)
   const registerCombatLogAppended = useCallback(
-    (fn: ((events: CombatLogEvent[]) => void) | undefined) => {
+    (fn: ((events: CombatLogEvent[], state: EncounterState) => void) | undefined) => {
       combatLogAppendedRef.current = fn
     },
     [],
@@ -276,7 +278,7 @@ export function useEncounterState({
       )
       const appended = next.log.slice(startLen)
       if (appended.length > 0) {
-        queueMicrotask(() => combatLogAppendedRef.current?.(appended))
+        queueMicrotask(() => combatLogAppendedRef.current?.(appended, next))
       }
       return next
     })

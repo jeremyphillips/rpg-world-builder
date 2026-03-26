@@ -69,6 +69,14 @@ export const CORE_ENGINE_MARKER_PRESENTATION_MAP: Record<string, CombatStatePres
     defaultSection: 'critical-now',
     userFacing: true,
   },
+  /** Encounter participation — not a PHB condition; preview chips + headers. */
+  participation_defeated: {
+    label: 'Defeated',
+    tone: 'danger',
+    priority: 'critical',
+    defaultSection: 'critical-now',
+    userFacing: true,
+  },
 }
 
 export const CORE_COMBAT_STATE_MAP: Record<string, CombatStatePresentation> = {

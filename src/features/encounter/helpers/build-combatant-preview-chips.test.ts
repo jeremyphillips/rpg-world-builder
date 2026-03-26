@@ -40,6 +40,15 @@ describe('buildCombatantPreviewChips', () => {
     expect(proneChip?.label).toBe(proneEffect?.label)
   })
 
+  it('includes Defeated chip from participation_defeated when HP is 0', () => {
+    const combatant = minimalCombatant({
+      stats: { armorClass: 10, maxHitPoints: 10, currentHitPoints: 0, initiativeModifier: 0 },
+    })
+    const chips = buildCombatantPreviewChips(combatant)
+    const defeated = chips.find((c) => c.id === 'participation-defeated')
+    expect(defeated?.label).toBe('Defeated')
+  })
+
   it('uses canonical label when raw marker label is wrong casing', () => {
     const combatant = minimalCombatant({
       conditions: [{ id: 'incapacitated', label: 'bad' }],

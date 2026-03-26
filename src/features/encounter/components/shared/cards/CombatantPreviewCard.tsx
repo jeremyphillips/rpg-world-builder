@@ -7,6 +7,7 @@ import { AppAvatar } from '@/ui/primitives'
 import { EntitySummaryCard } from '@/ui/patterns'
 
 import type { CombatantPreviewCardProps } from '../../../domain'
+import { DEFEATED_PARTICIPATION_OPACITY } from '../../../domain/presentation-defeated'
 import { CombatantPreviewChipRow } from './combatant-badges'
 
 export function CombatantPreviewCard({
@@ -60,7 +61,7 @@ export function CombatantPreviewCard({
       sx={{
         border: '1px solid',
         borderColor,
-        opacity: isDefeated ? 0.5 : 1,
+        opacity: isDefeated ? DEFEATED_PARTICIPATION_OPACITY : 1,
         overflow: 'hidden',
       }}
     >

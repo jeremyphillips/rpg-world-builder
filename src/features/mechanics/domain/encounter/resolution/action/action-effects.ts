@@ -38,14 +38,15 @@ import {
 import { inferStatModifierEligibilityFromEffect } from '../../state/equipment-eligibility'
 import { combatantToCreatureSnapshot } from '../../state/combatant-evaluation-snapshot'
 import { isImmuneToConditionIncludingScopedGrants } from '../../state/condition-immunity-resolution'
+import { hasIntactRemainsForRevival } from '../../state/combatant-participation'
+import { applyGridSpawnReplacementFromTarget } from '@/features/encounter/space'
 
 function reviveBlockedReason(
   target: CombatantInstance,
   state: EncounterState,
   action: CombatActionDefinition,
 ): string | null {
-  const r = target.remains
-  if (r === 'dust' || r === 'disintegrated') {
+  if (!hasIntactRemainsForRevival(target)) {
     return 'No intact body remains.'
   }
   const meta = action.displayMeta
@@ -85,7 +86,7 @@ export function getSaveModifier(combatant: CombatantInstance, ability: AbilityRe
   )
 }
 
-function resolveRepeatSaveDc(action: CombatActionDefinition, _ability: AbilityRef): number | null {
+function resolveRepeatSaveDc(action: CombatActionDefinition): number | null {
   if (action.saveProfile?.dc != null) return action.saveProfile.dc
   const saveEffect = action.effects?.find((e) => e.kind === 'save' && typeof e.save.dc === 'number')
   if (saveEffect && saveEffect.kind === 'save' && typeof saveEffect.save.dc === 'number') {
@@ -321,7 +322,7 @@ export function applyActionEffects(
       })
       markerIds.push(effect.conditionId)
       if (effect.repeatSave) {
-        const dc = resolveRepeatSaveDc(action, effect.repeatSave.ability)
+        const dc = resolveRepeatSaveDc(action)
         if (dc != null) {
           const hookId = `repeat-save-${effect.conditionId}-${action.id}-${target.instanceId}`
           nextState = updateEncounterCombatant(nextState, target.instanceId, (combatant) => ({
@@ -360,7 +361,7 @@ export function applyActionEffects(
       markerIds.push(effect.stateId)
 
       if (effect.repeatSave) {
-        const dc = resolveRepeatSaveDc(action, effect.repeatSave.ability)
+        const dc = resolveRepeatSaveDc(action)
         if (dc != null) {
           const hookId = `repeat-save-${effect.stateId}-${action.id}-${target.instanceId}`
           nextState = updateEncounterCombatant(nextState, target.instanceId, (combatant) => ({
@@ -542,6 +543,9 @@ export function applyActionEffects(
       return
     }
 
+    // Death-outcome: does not deal damage or kill by itself; runs after lethal damage when
+    // the target is already defeated (HP ≤ 0). Refines remains (e.g. turns-to-dust) while
+    // leaving defeat + death metadata intact.
     if (effect.kind === 'death-outcome') {
       if (target.stats.currentHitPoints <= 0) {
         if (effect.outcome === 'turns-to-dust') {
@@ -703,6 +707,13 @@ export function applyActionEffects(
             initiativeMode: effect.initiativeMode,
             casterInstanceId: actor.instanceId,
           })
+          if (effect.mapMonsterIdFromTargetRemains || effect.inheritGridCellFromTarget) {
+            nextState = applyGridSpawnReplacementFromTarget(
+              nextState,
+              spawnTarget.instanceId,
+              built.map((c) => c.instanceId),
+            )
+          }
           const roster = Object.values(nextState.combatantsById)
           const names = built.map((c) => getCombatantDisplayLabel(c, roster)).join(', ')
           nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Summoned ${names} — joined initiative (party).`, {

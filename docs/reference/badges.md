@@ -166,6 +166,7 @@ CombatantInstance
 CombatantInstance
   --> buildCombatantPreviewChips(combatant, options?)
         1. Collect candidates:
+           participation / defeated (`participation_defeated` in COMBAT_STATE_UI_MAP when `isDefeatedCombatant`; prepended first)
            bloodied (derived from HP ≤ 50%)
            concentration (uniform chip + timeLabel)
            conditions (priority + tone from COMBAT_STATE_UI_MAP)

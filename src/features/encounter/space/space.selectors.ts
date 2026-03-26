@@ -6,6 +6,7 @@ import type { EncounterCell, GridObstacleKind } from './space.types'
 import { gridObstacleDisplayName } from './placeRandomGridObstacle'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from './space.helpers'
 import type { CombatantSide } from '@/features/mechanics/domain/encounter/state/types/combatant.types'
+import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
 import { isAreaGridAction } from '../helpers/area-grid-action'
 
 // ---------------------------------------------------------------------------
@@ -96,6 +97,8 @@ export type GridCellViewModel = {
   aoeInvalidOriginHover?: boolean
   /** AoE: confirmed origin cell. */
   aoeOriginLocked?: boolean
+  /** Token dimming — `isDefeatedCombatant` when an occupant is present. */
+  occupantIsDefeated: boolean
 }
 
 export type GridViewModel = {
@@ -250,6 +253,7 @@ export function selectGridViewModel(
       occupantLabel: combatant ? getCombatantDisplayLabel(combatant, combatantRoster) : null,
       occupantSide: combatant?.side ?? null,
       occupantPortraitImageKey: combatant?.portraitImageKey ?? null,
+      occupantIsDefeated: combatant ? isDefeatedCombatant(combatant) : false,
       obstacleKind,
       obstacleLabel,
       isActive: occupantId !== null && occupantId === activeId,
