@@ -4,6 +4,11 @@ import { getActionTargetInvalidReason } from '@/features/mechanics/domain/encoun
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
 
 import { isAreaGridAction, isSelfCenteredAreaAction } from './area-grid-action'
+import type { GridInteractionMode } from '../domain/interaction/encounter-interaction.types'
+import {
+  getSingleCellPlacementRequirement,
+  validateSingleCellPlacement,
+} from '@/features/mechanics/domain/encounter/resolution/action/action-requirement-model'
 import { getCellById, getCellForCombatant, gridDistanceFt } from '../space/space.helpers'
 import {
   actionUsesGridCreatureTargeting,
@@ -58,6 +63,7 @@ export function deriveGridHoverStatusMessage(params: {
   aoeStep: AoeStep
   /** Same condition as movement reach highlights on the grid (off during AoE placement). */
   movementHighlightActive: boolean
+  interactionMode?: GridInteractionMode
 }): string | null {
   const {
     encounterState,
@@ -67,6 +73,7 @@ export function deriveGridHoverStatusMessage(params: {
     selectedAction,
     aoeStep,
     movementHighlightActive,
+    interactionMode,
   } =
     params
   if (!encounterState || !hoveredCellId || !activeCombatantId || !activeCombatant) return null
@@ -74,6 +81,26 @@ export function deriveGridHoverStatusMessage(params: {
   const space = encounterState.space
   const placements = encounterState.placements
   if (!space || !placements) return null
+
+
+  if (interactionMode === 'single-cell-place' && selectedAction) {
+    const req = getSingleCellPlacementRequirement(selectedAction)
+    if (req) {
+      const casterCell = getCellForCombatant(placements, activeCombatantId)
+      if (casterCell) {
+        const v = validateSingleCellPlacement(space, placements, casterCell, hoveredCellId, req)
+        if (!v.isValid) {
+          const r = v.reasons[0]
+          if (r === 'out-of-range') return 'Out of range'
+          if (r === 'no-line-of-sight') return 'No line of sight'
+          if (r === 'occupied') return 'Occupied'
+          if (r === 'invalid-terrain') return 'Blocked'
+          return 'Invalid placement'
+        }
+      }
+    }
+    return null
+  }
 
   if (
     (aoeStep === 'placing' || aoeStep === 'confirm') &&

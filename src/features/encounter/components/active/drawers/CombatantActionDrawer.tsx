@@ -22,6 +22,12 @@ import { isAreaGridAction, type AoeStep } from '../../../helpers/area-grid-actio
 import { AoePlacementPanel } from './drawer-modes/AoePlacementPanel'
 import { CasterOptionsDrawerPanel } from './drawer-modes/CasterOptionsDrawerPanel'
 import {
+  getPlacementCtaLabel,
+  getSingleCellPlacementRequirement,
+} from '@/features/mechanics/domain/encounter/resolution/action/action-requirement-model'
+import { SingleCellPlacementPanel } from './drawer-modes/SingleCellPlacementPanel'
+
+import {
   deriveBucketChrome,
   deriveBucketState,
   getUserFacingEffectLabel,
@@ -34,10 +40,9 @@ import { ActionRow } from '../action-row/ActionRow'
 import { deriveActionUnavailableHint } from './helpers/derive-action-unavailable-hint'
 
 /**
- * Drawer sub-views. `aoePlacement` is derived from encounter `aoeStep` + area action (parent-driven).
- * Future: e.g. `singleCellPlacement` can follow the same pattern (parent flag or local state).
+ * Drawer sub-views. `aoePlacement` is parent-driven via `aoeStep`. `singleCellPlacement` uses local subview + map mode.
  */
-export type CombatantActionDrawerView = 'main' | 'aoePlacement' | 'casterOptions'
+export type CombatantActionDrawerView = 'main' | 'aoePlacement' | 'casterOptions' | 'singleCellPlacement'
 
 type CombatantActionDrawerProps = {
   open: boolean
@@ -54,9 +59,15 @@ type CombatantActionDrawerProps = {
   onSelectAction?: (actionId: string) => void
   selectedCasterOptions?: Record<string, string>
   onCasterOptionsChange?: (values: Record<string, string>) => void
-  /** Summon placement cell (when required); wired from encounter runtime. */
-  selectedSummonCellId?: string | null
-  onSelectedSummonCellIdChange?: (cellId: string | null) => void
+  /** Selected map cell when the action requires single-cell placement. */
+  selectedSingleCellPlacementCellId?: string | null
+  onSelectedSingleCellPlacementCellIdChange?: (cellId: string | null) => void
+  /** Short label for main-view summary, e.g. `C7`. */
+  placementCellSummaryLabel?: string | null
+  singleCellPlacementError?: string | null
+  onDismissSingleCellPlacementError?: () => void
+  onEnterSingleCellPlacementMode?: () => void
+  onExitSingleCellPlacementMode?: () => void
   combatEffects: Record<CombatStateSection, EnrichedPresentableEffect[]>
   targetPreview?: ReactNode
   targetLabel?: string | null
@@ -380,6 +391,7 @@ function deriveCtaLabel(
   primaryResolutionMissingMessage: string | null | undefined,
   effectiveView: CombatantActionDrawerView,
 ): string {
+  if (effectiveView === 'singleCellPlacement') return 'Done'
   if (effectiveView === 'aoePlacement') return `Cast ${selectedActionLabel ?? 'spell'}`
   if (!selectedActionLabel) {
     if (!targetLabel) return 'Choose an action or target'
@@ -405,8 +417,13 @@ export function CombatantActionDrawer({
   onSelectAction,
   selectedCasterOptions = {},
   onCasterOptionsChange,
-  selectedSummonCellId: _selectedSummonCellId,
-  onSelectedSummonCellIdChange: _onSelectedSummonCellIdChange,
+  selectedSingleCellPlacementCellId,
+  onSelectedSingleCellPlacementCellIdChange: _onSelectedSingleCellPlacementCellIdChange,
+  placementCellSummaryLabel,
+  singleCellPlacementError,
+  onDismissSingleCellPlacementError,
+  onEnterSingleCellPlacementMode,
+  onExitSingleCellPlacementMode,
   combatEffects,
   targetPreview,
   targetLabel,
@@ -424,7 +441,7 @@ export function CombatantActionDrawer({
   onUndoAoeSelection,
 }: CombatantActionDrawerProps) {
   /** `aoePlacement` overrides when parent is in AoE flow; otherwise `main` or `casterOptions`. */
-  const [localSubView, setLocalSubView] = useState<'main' | 'casterOptions'>('main')
+  const [localSubView, setLocalSubView] = useState<'main' | 'casterOptions' | 'singleCellPlacement'>('main')
   const [fallbackCasterOptions, setFallbackCasterOptions] = useState<Record<string, string>>({})
   const isCasterOptionsControlled = onCasterOptionsChange != null
 
@@ -500,8 +517,15 @@ export function CombatantActionDrawer({
   const aoeAction =
     selectedActionDefinition && isAreaGridAction(selectedActionDefinition) ? selectedActionDefinition : null
 
+  const singleCellPlacementRequirement = useMemo(
+    () =>
+      selectedActionDefinition ? getSingleCellPlacementRequirement(selectedActionDefinition) : undefined,
+    [selectedActionDefinition],
+  )
+
   const effectiveView: CombatantActionDrawerView = useMemo(() => {
     if (aoeStep !== 'none' && aoeAction?.areaTemplate) return 'aoePlacement'
+    if (localSubView === 'singleCellPlacement') return 'singleCellPlacement'
     return localSubView === 'casterOptions' ? 'casterOptions' : 'main'
   }, [aoeStep, aoeAction?.areaTemplate, localSubView])
 
@@ -544,8 +568,13 @@ export function CombatantActionDrawer({
     return raw.replace(/^\s*\(/, '').replace(/\)\s*$/, '').trim()
   }, [casterFields, resolvedCasterOptions])
 
+  const handleDrawerClose = useCallback(() => {
+    onExitSingleCellPlacementMode?.()
+    onClose()
+  }, [onClose, onExitSingleCellPlacementMode])
+
   return (
-    <AppDrawer open={open} onClose={onClose} anchor="right" title={title} width={420} nonModal>
+    <AppDrawer open={open} onClose={handleDrawerClose} anchor="right" title={title} width={420} nonModal>
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <Box sx={{ flex: 1, overflow: 'auto', px: 2, py: 2 }}>
           <Stack spacing={2}>
@@ -573,6 +602,20 @@ export function CombatantActionDrawer({
                   onBack={() => setLocalSubView('main')}
                 />
               )}
+
+            
+            {effectiveView === 'singleCellPlacement' && singleCellPlacementRequirement && selectedActionDefinition && (
+              <SingleCellPlacementPanel
+                actionLabel={selectedActionDefinition.label}
+                requirement={singleCellPlacementRequirement}
+                placementError={singleCellPlacementError}
+                onDismissPlacementError={onDismissSingleCellPlacementError}
+                onBack={() => {
+                  setLocalSubView('main')
+                  onExitSingleCellPlacementMode?.()
+                }}
+              />
+            )}
 
             {isMain && (
               <>
@@ -669,6 +712,33 @@ export function CombatantActionDrawer({
                           </Button>
                         </Box>
                       )}
+                    {singleCellPlacementRequirement && selectedActionDefinition && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
+                          Map placement
+                        </Typography>
+                        {placementCellSummaryLabel ? (
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                            Placement: {placementCellSummaryLabel}
+                          </Typography>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                            None selected
+                          </Typography>
+                        )}
+                        <Button
+                          variant="outlined"
+                          fullWidth
+                          onClick={() => {
+                            setLocalSubView('singleCellPlacement')
+                            onEnterSingleCellPlacementMode?.()
+                          }}
+                        >
+                          {getPlacementCtaLabel(singleCellPlacementRequirement)}
+                        </Button>
+                      </Box>
+                    )}
+
 
                     <CollapsibleSection
                       key={`${open}-effects-${effectsSection.title}`}
@@ -736,16 +806,28 @@ export function CombatantActionDrawer({
             <Button variant="contained" color="primary" fullWidth onClick={() => setLocalSubView('main')}>
               Done
             </Button>
+          ) : effectiveView === 'singleCellPlacement' ? (
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              onClick={() => {
+                setLocalSubView('main')
+                onExitSingleCellPlacementMode?.()
+              }}
+            >
+              Done
+            </Button>
           ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            disabled={footerPrimaryDisabled}
-            onClick={handleFooterPrimaryClick}
-          >
-            {drawerFooterPrimaryLabel}
-          </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={footerPrimaryDisabled}
+              onClick={handleFooterPrimaryClick}
+            >
+              {drawerFooterPrimaryLabel}
+            </Button>
           )}
           {/* Phase-one: End Turn temporarily removed from drawer to reduce footer competition.
               Reintroduce when header / End Turn flow is redesigned.

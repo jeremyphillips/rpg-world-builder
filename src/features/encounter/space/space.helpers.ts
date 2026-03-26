@@ -90,3 +90,14 @@ export function isWithinRange(
 
   return dist <= rangeFt
 }
+
+/**
+ * Human-readable grid label (column letter + 1-based row), e.g. `C7` for x=2, y=6.
+ */
+export function formatGridCellLabel(space: EncounterSpace, cellId: string): string {
+  const cell = getCellById(space, cellId)
+  if (!cell) return cellId
+  if (cell.x >= 26) return cellId
+  const col = String.fromCharCode(65 + cell.x)
+  return `${col}${cell.y + 1}`
+}

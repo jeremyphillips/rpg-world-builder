@@ -42,7 +42,7 @@ describe('action-resolution-requirements', () => {
       effects: [{ kind: 'spawn', count: 1 }],
     })
     expect(actionRequiresCreatureTargetForResolve(a)).toBe(false)
-    expect(getActionResolutionRequirements(a)).toEqual(['caster-option', 'spawn-placement'])
+    expect(getActionResolutionRequirements(a)).toEqual(['caster-option', 'single-cell-placement'])
   })
 
   it('spawn readiness: missing caster then placement', () => {
@@ -60,7 +60,7 @@ describe('action-resolution-requirements', () => {
       selectedCasterOptions: { form: 'a' },
     })
     expect(r2.canResolve).toBe(false)
-    expect(r2.missingRequirements[0]?.kind).toBe('spawn-placement')
+    expect(r2.missingRequirements[0]?.kind).toBe('single-cell-placement')
   })
 
   it('area grid action requires area-selection only in requirements list', () => {

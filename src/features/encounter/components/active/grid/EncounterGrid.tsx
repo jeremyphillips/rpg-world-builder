@@ -26,11 +26,16 @@ type EncounterGridProps = {
   movementHighlightActive?: boolean
   hasMovementRemaining?: boolean
   creatureTargetingActive?: boolean
+  /** When selecting a single map cell (placement), not AoE. */
+  singleCellPlacementPickActive?: boolean
 }
 
 /** Base cell fill: paper only. Tinted fills: walls, AoE overlay, or legal-movement hover (in cell `sx`). */
 function cellColor(cell: GridCellViewModel, palette: Theme['palette']) {
   if (cell.kind === 'wall' || cell.kind === 'blocking') return palette.action.disabledBackground
+  if (cell.placementInvalidHover) return alpha(palette.error.main, 0.38)
+  if (cell.placementSelected) return alpha(palette.primary.main, 0.32)
+  if (cell.placementCastRange) return alpha(palette.info.main, 0.12)
   if (cell.aoeInvalidOriginHover) return alpha(palette.error.main, 0.42)
   if (cell.aoeOriginLocked) return alpha(palette.error.main, 0.32)
   if (cell.aoeInTemplate) return alpha(palette.error.light, 0.26)
@@ -49,6 +54,7 @@ function resolveCellCursor(params: {
   movementHighlightActive: boolean
   hasMovementRemaining: boolean
   creatureTargetingActive: boolean
+  singleCellPlacementPickActive: boolean
   clickable: boolean
 }): string {
   const {
@@ -57,12 +63,19 @@ function resolveCellCursor(params: {
     movementHighlightActive,
     hasMovementRemaining,
     creatureTargetingActive,
+    singleCellPlacementPickActive,
     clickable,
   } = params
   const isHover = Boolean(hoveredCellId && hoveredCellId === cell.cellId)
   const isWall = cell.kind === 'wall' || cell.kind === 'blocking'
 
   if (isHover) {
+    if (singleCellPlacementPickActive) {
+      if (cell.placementInvalidHover) return 'not-allowed'
+      if (cell.placementCastRange && !isWall) return 'pointer'
+    }
+
+
     const movementIllegal =
       movementHighlightActive &&
       hasMovementRemaining &&
@@ -99,6 +112,7 @@ export function EncounterGrid({
   movementHighlightActive = false,
   hasMovementRemaining = false,
   creatureTargetingActive = false,
+  singleCellPlacementPickActive = false,
 }: EncounterGridProps) {
   const theme = useTheme()
   const { palette } = theme
@@ -250,6 +264,7 @@ export function EncounterGrid({
               movementHighlightActive,
               hasMovementRemaining,
               creatureTargetingActive,
+              singleCellPlacementPickActive,
               clickable,
             })
 
@@ -273,7 +288,11 @@ export function EncounterGrid({
                 cell.aoeInTemplate ||
                 cell.aoeCastRange,
             )
-            const showReachableMovementFill = showReachableMovementBorder && !isAoeOverlayCell
+            const isPlacementOverlayCell = Boolean(
+              cell.placementInvalidHover || cell.placementSelected || cell.placementCastRange,
+            )
+            const showReachableMovementFill =
+              showReachableMovementBorder && !isAoeOverlayCell && !isPlacementOverlayCell
 
             const legalTarget = cell.isLegalTargetForSelectedAction
             const showLegalTargetRedPulse =

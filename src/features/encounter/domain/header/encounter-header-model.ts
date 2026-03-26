@@ -76,6 +76,13 @@ export function deriveEncounterHeaderModel(args: DeriveEncounterHeaderModelArgs)
     }
   }
 
+  if (interactionMode === 'single-cell-place') {
+    return {
+      directive: 'Choose a cell on the grid for placement',
+      endTurnEmphasis: subtle,
+    }
+  }
+
   const areaAction = selectedAction && isAreaGridAction(selectedAction) ? selectedAction : null
   const inAoeFlow = Boolean(areaAction && aoeStep !== 'none')
   const selfCentered = Boolean(areaAction && isSelfCenteredAreaAction(areaAction))

@@ -73,7 +73,8 @@ export function useEncounterState({
   const [aoeOriginCellId, setAoeOriginCellId] = useState<string | null>(null)
   const [aoeHoverCellId, setAoeHoverCellId] = useState<string | null>(null)
   /** Grid cell id for summon / single-cell placement readiness (when required by spawn metadata). */
-  const [selectedSummonCellId, setSelectedSummonCellId] = useState<string | null>(null)
+  const [selectedSingleCellPlacementCellId, setSelectedSingleCellPlacementCellId] = useState<string | null>(null)
+  const [singleCellPlacementHoverCellId, setSingleCellPlacementHoverCellId] = useState<string | null>(null)
 
   const resetAoePlacement = useCallback(() => {
     setAoeStep('none')
@@ -216,7 +217,7 @@ export function useEncounterState({
   useEffect(() => {
     const action = availableActions.find((a) => a.id === selectedActionId) ?? null
     setSelectedCasterOptions(buildInitialCasterOptionsForAction(action))
-    setSelectedSummonCellId(null)
+    setSelectedSingleCellPlacementCellId(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when selectedActionId changes; availableActions is read fresh
   }, [selectedActionId])
 
@@ -288,7 +289,7 @@ export function useEncounterState({
     resetAoePlacement()
     setSelectedActionId('')
     setSelectedActionTargetId('')
-    setSelectedSummonCellId(null)
+    setSelectedSingleCellPlacementCellId(null)
   }, [
     selectedActionId,
     selectedActionTargetId,
@@ -416,8 +417,10 @@ export function useEncounterState({
     setSelectedActionId,
     selectedCasterOptions,
     setSelectedCasterOptions,
-    selectedSummonCellId,
-    setSelectedSummonCellId,
+    selectedSingleCellPlacementCellId,
+    setSelectedSingleCellPlacementCellId,
+    singleCellPlacementHoverCellId,
+    setSingleCellPlacementHoverCellId,
     selectedActionTargetId,
     setSelectedActionTargetId,
     aoeStep,

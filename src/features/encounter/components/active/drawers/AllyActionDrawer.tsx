@@ -31,8 +31,8 @@ type AllyActionDrawerProps = {
   onSelectAction?: (actionId: string) => void
   selectedCasterOptions?: Record<string, string>
   onCasterOptionsChange?: (values: Record<string, string>) => void
-  selectedSummonCellId?: string | null
-  onSelectedSummonCellIdChange?: (cellId: string | null) => void
+  selectedSingleCellPlacementCellId?: string | null
+  onSelectedSingleCellPlacementCellIdChange?: (cellId: string | null) => void
   targetCombatant?: CombatantInstance | null
   allCombatants?: readonly CombatantInstance[]
   targetLabel?: string | null
@@ -48,6 +48,11 @@ type AllyActionDrawerProps = {
   aoeAffectedOverflow?: number
   onCancelAoe?: () => void
   onUndoAoeSelection?: () => void
+  placementCellSummaryLabel?: string | null
+  singleCellPlacementError?: string | null
+  onDismissSingleCellPlacementError?: () => void
+  onEnterSingleCellPlacementMode?: () => void
+  onExitSingleCellPlacementMode?: () => void
 }
 
 export function AllyActionDrawer({
@@ -64,8 +69,8 @@ export function AllyActionDrawer({
   onSelectAction,
   selectedCasterOptions,
   onCasterOptionsChange,
-  selectedSummonCellId,
-  onSelectedSummonCellIdChange,
+  selectedSingleCellPlacementCellId,
+  onSelectedSingleCellPlacementCellIdChange,
   targetCombatant,
   allCombatants,
   targetLabel,
@@ -81,6 +86,11 @@ export function AllyActionDrawer({
   aoeAffectedOverflow,
   onCancelAoe,
   onUndoAoeSelection,
+  placementCellSummaryLabel,
+  singleCellPlacementError,
+  onDismissSingleCellPlacementError,
+  onEnterSingleCellPlacementMode,
+  onExitSingleCellPlacementMode,
 }: AllyActionDrawerProps) {
   const availableActionIds = useMemo(
     () => new Set(availableActions.map((a) => a.id)),
@@ -132,8 +142,8 @@ export function AllyActionDrawer({
       onSelectAction={onSelectAction}
       selectedCasterOptions={selectedCasterOptions}
       onCasterOptionsChange={onCasterOptionsChange}
-      selectedSummonCellId={selectedSummonCellId}
-      onSelectedSummonCellIdChange={onSelectedSummonCellIdChange}
+      selectedSingleCellPlacementCellId={selectedSingleCellPlacementCellId}
+      onSelectedSingleCellPlacementCellIdChange={onSelectedSingleCellPlacementCellIdChange}
       combatEffects={combatEffects}
       targetPreview={targetPreview}
       targetLabel={targetLabel}
@@ -149,6 +159,11 @@ export function AllyActionDrawer({
       aoeAffectedOverflow={aoeAffectedOverflow}
       onCancelAoe={onCancelAoe}
       onUndoAoeSelection={onUndoAoeSelection}
+      placementCellSummaryLabel={placementCellSummaryLabel}
+      singleCellPlacementError={singleCellPlacementError}
+      onDismissSingleCellPlacementError={onDismissSingleCellPlacementError}
+      onEnterSingleCellPlacementMode={onEnterSingleCellPlacementMode}
+      onExitSingleCellPlacementMode={onExitSingleCellPlacementMode}
     />
   )
 }

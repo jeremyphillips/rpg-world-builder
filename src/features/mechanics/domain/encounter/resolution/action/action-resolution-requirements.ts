@@ -2,13 +2,18 @@ import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import type { CombatantInstance } from '../../state'
 import { isValidActionTarget } from './action-targeting'
-import { getActionRequirements, isSingleCellPlacementSatisfied } from './action-requirement-model'
+import {
+  getActionRequirements,
+  getPlacementCtaLabel,
+  getSingleCellPlacementRequirement,
+  isSingleCellPlacementSatisfied,
+} from './action-requirement-model'
 
 /** Phase-1 resolution gates derived from action metadata only (no map execution). */
 export type ActionResolutionRequirementKind =
   | 'creature-target'
   | 'area-selection'
-  | 'spawn-placement'
+  | 'single-cell-placement'
   | 'caster-option'
   | 'none'
 
@@ -59,7 +64,7 @@ export function getActionResolutionRequirements(action: CombatActionDefinition):
   for (const r of declarative) {
     if (r.kind === 'creature-target') out.push('creature-target')
     else if (r.kind === 'caster-option') out.push('caster-option')
-    else if (r.kind === 'single-cell-placement') out.push('spawn-placement')
+    else if (r.kind === 'single-cell-placement') out.push('single-cell-placement')
   }
   if (out.length === 0) {
     return ['none']
@@ -74,8 +79,8 @@ export type ActionResolutionReadinessContext = {
   aoeStep: AoeStep
   aoeOriginCellId: string | null
   selectedCasterOptions: Record<string, string>
-  /** Grid cell for summon / single-cell placement (when required). */
-  selectedSummonCellId?: string | null
+  /** Grid cell when the action requires single-cell map placement. */
+  selectedSingleCellPlacementCellId?: string | null
   encounterState: EncounterState | null | undefined
   activeCombatant: CombatantInstance | null | undefined
 }
@@ -158,18 +163,18 @@ export function getActionResolutionReadiness(
         missingRequirements.push({ kind: 'caster-option', message: 'Choose spell options' })
       }
     } else if (r.kind === 'single-cell-placement') {
+      const cellRaw = ctx.selectedSingleCellPlacementCellId?.trim()
       if (
         !isSingleCellPlacementSatisfied(action, {
-          selectedSummonCellId: ctx.selectedSummonCellId,
+          selectedSingleCellPlacementCellId: ctx.selectedSingleCellPlacementCellId,
           encounterState: ctx.encounterState,
           activeCombatantId: ctx.activeCombatant?.instanceId ?? null,
         })
       ) {
+        const req = getSingleCellPlacementRequirement(action)
         missingRequirements.push({
-          kind: 'spawn-placement',
-          message: ctx.selectedSummonCellId?.trim()
-            ? 'Invalid summon placement'
-            : 'Choose a cell for the summon',
+          kind: 'single-cell-placement',
+          message: cellRaw ? 'Invalid placement' : req ? getPlacementCtaLabel(req) : 'Choose Placement',
         })
       }
     }

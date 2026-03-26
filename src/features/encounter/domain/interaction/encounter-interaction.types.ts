@@ -1,1 +1,1 @@
-export type GridInteractionMode = 'select-target' | 'move' | 'aoe-place'
+export type GridInteractionMode = 'select-target' | 'move' | 'aoe-place' | 'single-cell-place'

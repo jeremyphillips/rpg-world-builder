@@ -1,13 +1,20 @@
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { SpawnEffect, SpawnPlacement } from '@/features/mechanics/domain/effects/effects.types'
 import type { CombatantPosition, EncounterSpace } from '@/features/encounter/space'
-import { getCellForCombatant, getOccupant, gridDistanceFt } from '@/features/encounter/space'
+import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt } from '@/features/encounter/space'
 import { hasLineOfSight } from '@/features/encounter/space/space.sight'
 import { areaTemplateRadiusFt } from './action-targeting'
 
 // ---------------------------------------------------------------------------
 // Declarative requirements (inputs before resolve)
 // ---------------------------------------------------------------------------
+
+export type SingleCellPlacementPurpose =
+  | 'spawn'
+  | 'teleport'
+  | 'effect-origin'
+  | 'object-placement'
+  | 'reposition'
 
 export type ActionRequirement =
   | { kind: 'caster-option' }
@@ -21,6 +28,8 @@ export type ActionRequirement =
       rangeFt: number
       lineOfSightRequired: boolean
       mustBeUnoccupied: boolean
+      purpose?: SingleCellPlacementPurpose
+      ctaLabel?: string
     }
   | {
       kind: 'area-placement'
@@ -42,7 +51,7 @@ export type ActionStepDefinition = {
 const STEP_LABELS: Record<ActionStepKind, string> = {
   creatureTarget: 'Target',
   casterOptions: 'Spell options',
-  singleCellPlacement: 'Summon placement',
+  singleCellPlacement: 'Placement',
   aoePlacement: 'Area',
 }
 
@@ -52,11 +61,30 @@ const STEP_ORDER: ActionStepKind[] = ['creatureTarget', 'casterOptions', 'single
 // Placement validation
 // ---------------------------------------------------------------------------
 
-export type PlacementValidationReason = 'out-of-range' | 'no-line-of-sight' | 'occupied'
+export type PlacementValidationReason =
+  | 'out-of-range'
+  | 'no-line-of-sight'
+  | 'occupied'
+  | 'invalid-terrain'
 
 export type PlacementValidationResult = {
   isValid: boolean
   reasons: PlacementValidationReason[]
+}
+
+const PURPOSE_DEFAULT_CTA: Record<SingleCellPlacementPurpose, string> = {
+  spawn: 'Choose Placement',
+  teleport: 'Choose Destination',
+  'effect-origin': 'Choose Origin',
+  'object-placement': 'Choose Placement',
+  reposition: 'Choose Placement',
+}
+
+/** Primary button label for entering single-cell placement (drawer CTA). */
+export function getPlacementCtaLabel(req: SingleCellPlacementRequirement): string {
+  if (req.ctaLabel?.trim()) return req.ctaLabel.trim()
+  if (req.purpose) return PURPOSE_DEFAULT_CTA[req.purpose]
+  return 'Choose Placement'
 }
 
 function isAreaGridCombatAction(action: CombatActionDefinition | undefined | null): boolean {
@@ -137,6 +165,7 @@ export function getActionRequirements(action: CombatActionDefinition): ActionReq
         rangeFt,
         lineOfSightRequired: ep.requiresLineOfSight ?? true,
         mustBeUnoccupied: ep.mustBeUnoccupied ?? true,
+        purpose: 'spawn',
       })
       break
     }
@@ -165,7 +194,7 @@ export function getActionSteps(requirements: ActionRequirement[]): ActionStepDef
 export type SingleCellPlacementRequirement = Extract<ActionRequirement, { kind: 'single-cell-placement' }>
 
 /**
- * Validates a chosen grid cell for a single-cell summon requirement (range, LoS, occupancy).
+ * Validates a chosen grid cell for single-cell placement (range, walkable cell, LoS, occupancy).
  */
 export function validateSingleCellPlacement(
   space: EncounterSpace,
@@ -175,6 +204,11 @@ export function validateSingleCellPlacement(
   req: SingleCellPlacementRequirement,
 ): PlacementValidationResult {
   const reasons: PlacementValidationReason[] = []
+
+  const targetCell = getCellById(space, targetCellId)
+  if (!targetCell || targetCell.kind === 'wall' || targetCell.kind === 'blocking') {
+    reasons.push('invalid-terrain')
+  }
 
   const d = gridDistanceFt(space, casterCellId, targetCellId)
   if (d === undefined || d > req.rangeFt) {
@@ -206,6 +240,9 @@ export function getSingleCellPlacementRequirement(
 export function isSingleCellPlacementSatisfied(
   action: CombatActionDefinition,
   ctx: {
+    /** Selected grid cell id for single-cell placement readiness. */
+    selectedSingleCellPlacementCellId?: string | null
+    /** @deprecated use selectedSingleCellPlacementCellId */
     selectedSummonCellId?: string | null
     encounterState: { space?: EncounterSpace | null; placements?: CombatantPosition[] | null } | null | undefined
     activeCombatantId?: string | null
@@ -214,20 +251,21 @@ export function isSingleCellPlacementSatisfied(
   const req = getSingleCellPlacementRequirement(action)
   if (!req) return true
 
-  const cellId = ctx.selectedSummonCellId?.trim()
-  if (!cellId) return false
+  const raw =
+    ctx.selectedSingleCellPlacementCellId?.trim() || ctx.selectedSummonCellId?.trim()
+  if (!raw) return false
 
   const state = ctx.encounterState
   const space = state?.space
   const placements = state?.placements
   const actorId = ctx.activeCombatantId
   if (!space || !placements || !actorId) {
-    return true
+    return false
   }
 
   const casterCell = getCellForCombatant(placements, actorId)
   if (!casterCell) return false
 
-  const v = validateSingleCellPlacement(space, placements, casterCell, cellId, req)
+  const v = validateSingleCellPlacement(space, placements, casterCell, raw, req)
   return v.isValid
 }

@@ -2,9 +2,10 @@ import type { CombatActionDefinition } from '@/features/mechanics/domain/encount
 import { isHostileAction, isValidActionTarget } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
-import type { EncounterCell, GridObstacleKind } from './space.types'
+import type { CombatantPosition, EncounterCell, EncounterSpace, GridObstacleKind } from './space.types'
 import { gridObstacleDisplayName } from './placeRandomGridObstacle'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from './space.helpers'
+import { hasLineOfSight } from './space.sight'
 import type { CombatantSide } from '@/features/mechanics/domain/encounter/state/types/combatant.types'
 import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
 import { isAreaGridAction } from '../helpers/area-grid-action'
@@ -97,6 +98,12 @@ export type GridCellViewModel = {
   aoeInvalidOriginHover?: boolean
   /** AoE: confirmed origin cell. */
   aoeOriginLocked?: boolean
+  /** Single-cell placement: within cast range (valid origin band). */
+  placementCastRange?: boolean
+  /** Single-cell placement: hovered cell fails full placement rules. */
+  placementInvalidHover?: boolean
+  /** Single-cell placement: confirmed chosen cell. */
+  placementSelected?: boolean
   /** Token dimming — `isDefeatedCombatant` when an occupant is present. */
   occupantIsDefeated: boolean
 }
@@ -119,6 +126,25 @@ export function isValidAoeOriginCell(
   if (!cell || cell.kind === 'wall' || cell.kind === 'blocking') return false
   const d = gridDistanceFt(space, casterCellId, originCellId)
   return d !== undefined && d <= castRangeFt
+}
+
+/**
+ * Full validity for single-cell map placement (range, walkable tile, LoS, occupancy).
+ */
+export function isValidSingleCellPlacementPick(
+  space: EncounterSpace,
+  placements: CombatantPosition[],
+  casterCellId: string,
+  targetCellId: string,
+  req: { rangeFt: number; lineOfSightRequired: boolean; mustBeUnoccupied: boolean },
+): boolean {
+  const cell = getCellById(space, targetCellId)
+  if (!cell || cell.kind === 'wall' || cell.kind === 'blocking') return false
+  const d = gridDistanceFt(space, casterCellId, targetCellId)
+  if (d === undefined || d > req.rangeFt) return false
+  if (req.lineOfSightRequired && !hasLineOfSight(space, casterCellId, targetCellId)) return false
+  if (req.mustBeUnoccupied && getOccupant(placements, targetCellId) !== undefined) return false
+  return true
 }
 
 
@@ -145,6 +171,14 @@ export function selectGridViewModel(
       originCellId: string | null
       step: 'placing' | 'confirm'
     } | null
+    placementPick?: {
+      casterCellId: string
+      rangeFt: number
+      lineOfSightRequired: boolean
+      mustBeUnoccupied: boolean
+      hoverCellId: string | null
+      selectedCellId: string | null
+    } | null
   },
 ): GridViewModel | undefined {
   const { space, placements } = state
@@ -163,6 +197,7 @@ export function selectGridViewModel(
     : undefined
 
   const aoe = opts?.aoe
+  const placementPick = opts?.placementPick
   const hoverValid =
     Boolean(
       aoe &&
@@ -244,6 +279,29 @@ export function selectGridViewModel(
       }
     }
 
+    let placementCastRange: boolean | undefined
+    let placementInvalidHover: boolean | undefined
+    let placementSelected: boolean | undefined
+    if (placementPick) {
+      const req = {
+        rangeFt: placementPick.rangeFt,
+        lineOfSightRequired: placementPick.lineOfSightRequired,
+        mustBeUnoccupied: placementPick.mustBeUnoccupied,
+      }
+      placementCastRange = isValidAoeOriginCell(space, placementPick.casterCellId, cell.id, placementPick.rangeFt)
+      placementInvalidHover = Boolean(
+        placementPick.hoverCellId === cell.id &&
+          !isValidSingleCellPlacementPick(
+            space,
+            placements,
+            placementPick.casterCellId,
+            cell.id,
+            req,
+          ),
+      )
+      placementSelected = placementPick.selectedCellId === cell.id
+    }
+
     return {
       cellId: cell.id,
       x: cell.x,
@@ -269,6 +327,13 @@ export function selectGridViewModel(
             aoeInTemplate,
             aoeInvalidOriginHover,
             aoeOriginLocked,
+          }
+        : {}),
+      ...(placementPick
+        ? {
+            placementCastRange,
+            placementInvalidHover,
+            placementSelected,
           }
         : {}),
     }
