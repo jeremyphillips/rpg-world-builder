@@ -14,7 +14,7 @@ function occupiedCells(placements: CombatantPosition[]): Set<string> {
  * Picks passable, unoccupied cells nearest to `anchorCellId` (Chebyshev distance via
  * {@link gridDistanceFt}), tie-broken by `cell.id` for stability.
  */
-function pickNearestOpenCellIds(
+export function pickNearestOpenCellIds(
   space: EncounterSpace,
   placements: CombatantPosition[],
   anchorCellId: string,

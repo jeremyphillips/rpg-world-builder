@@ -277,6 +277,7 @@ export function useEncounterState({
           actionId: selectedActionId,
           casterOptions: selectedCasterOptions,
           aoeOriginCellId: aoeOriginCellId || undefined,
+          singleCellPlacementCellId: selectedSingleCellPlacementCellId || undefined,
         },
         { monstersById, buildSummonAllyCombatant },
       )
@@ -295,6 +296,7 @@ export function useEncounterState({
     selectedActionTargetId,
     selectedCasterOptions,
     aoeOriginCellId,
+    selectedSingleCellPlacementCellId,
     monstersById,
     buildSummonAllyCombatant,
     resetAoePlacement,

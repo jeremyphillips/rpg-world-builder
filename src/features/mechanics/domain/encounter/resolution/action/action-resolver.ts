@@ -237,6 +237,7 @@ function resolveCombatActionInternal(
     monstersById: options.monstersById,
     buildSummonAllyCombatant: options.buildSummonAllyCombatant,
     casterOptions: selection.casterOptions,
+    singleCellPlacementCellId: selection.singleCellPlacementCellId,
   }
   const targetLabel = target ? getEncounterCombatantLabel(state, target.instanceId) : 'no target'
   const casterSummary = formatCasterOptionSummary(action.casterOptions, selection.casterOptions)
@@ -282,6 +283,8 @@ function resolveCombatActionInternal(
             targetId: selection.targetId,
             actionId: childAction.id,
             casterOptions: selection.casterOptions,
+            aoeOriginCellId: selection.aoeOriginCellId,
+            singleCellPlacementCellId: selection.singleCellPlacementCellId,
           },
           options,
           { skipCost: true },

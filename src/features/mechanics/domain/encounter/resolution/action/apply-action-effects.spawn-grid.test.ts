@@ -188,4 +188,68 @@ describe('applyActionEffects — spawn grid replacement (remains → new occupan
     expect(getOccupant(next.placements!, 'c-1-1')).toBe(spawnedId)
     expect(next.placements!.some((p) => p.combatantId === 't')).toBe(false)
   })
+
+  it('places single-cell spawn on options.singleCellPlacementCellId when not inherit-from-target', () => {
+    const action: CombatActionDefinition = {
+      id: 'conjure-test',
+      label: 'Conjure',
+      kind: 'spell',
+      cost: { action: true },
+      resolutionMode: 'effects',
+      effects: [
+        {
+          kind: 'spawn',
+          count: 1,
+          monsterId: 'zombie',
+        },
+      ],
+      targeting: { kind: 'none' },
+    }
+
+    const wizard = createCombatant({
+      instanceId: 'wiz',
+      label: 'Wizard',
+      side: 'party',
+      initiativeModifier: 2,
+      dexterityScore: 14,
+      armorClass: 12,
+      actions: [action],
+    })
+
+    const space = createSquareGridSpace({ id: 'arena', name: 'Arena', columns: 4, rows: 4 })
+    const base: EncounterState = {
+      combatantsById: { [wizard.instanceId]: wizard },
+      partyCombatantIds: [wizard.instanceId],
+      enemyCombatantIds: [],
+      initiative: [],
+      initiativeOrder: [wizard.instanceId],
+      activeCombatantId: wizard.instanceId,
+      turnIndex: 0,
+      roundNumber: 1,
+      started: true,
+      log: [],
+      space,
+      placements: [{ combatantId: 'wiz', cellId: 'c-0-0' }],
+    }
+
+    const { state } = applyActionEffects(base, wizard, wizard, action, action.effects, {
+      rng: () => 0.5,
+      sourceLabel: 'Conjure',
+      monstersById: { zombie: zombieMonster },
+      buildSummonAllyCombatant: ({ monster, runtimeId }) =>
+        createCombatant({
+          instanceId: runtimeId,
+          label: monster.name,
+          side: 'party',
+          initiativeModifier: 0,
+          dexterityScore: 6,
+          armorClass: 8,
+        }),
+      singleCellPlacementCellId: 'c-2-0',
+    })
+
+    const spawnedId = Object.keys(state.combatantsById).find((id) => id.includes('spawn-zombie'))
+    expect(spawnedId).toBeDefined()
+    expect(getOccupant(state.placements!, 'c-2-0')).toBe(spawnedId)
+  })
 })

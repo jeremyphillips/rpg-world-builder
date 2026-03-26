@@ -39,7 +39,12 @@ import { inferStatModifierEligibilityFromEffect } from '../../state/equipment-el
 import { combatantToCreatureSnapshot } from '../../state/combatant-evaluation-snapshot'
 import { isImmuneToConditionIncludingScopedGrants } from '../../state/condition-immunity-resolution'
 import { hasIntactRemainsForRevival } from '../../state/combatant-participation'
-import { applyGridSpawnReplacementFromTarget } from '@/features/encounter/space'
+import {
+  applyGridSpawnReplacementFromTarget,
+  pickNearestOpenCellIds,
+  placeCombatant,
+} from '@/features/encounter/space'
+import { effectiveSpawnPlacement } from './action-requirement-model'
 
 function reviveBlockedReason(
   target: CombatantInstance,
@@ -190,6 +195,8 @@ export type ApplyActionEffectsOptions = {
   buildSummonAllyCombatant?: (args: { monster: Monster; runtimeId: string }) => CombatantInstance
   /** Enum selections from the encounter UI (e.g. conjure tier, animate form). */
   casterOptions?: Record<string, string>
+  /** When set with `single-cell` spawn placement, places summoned combatants on this grid cell. */
+  singleCellPlacementCellId?: string
 }
 
 /** Spell duration as turn-count fixed duration for `activeEffects` (from `concentrationDurationTurns`). */
@@ -713,6 +720,25 @@ export function applyActionEffects(
               spawnTarget.instanceId,
               built.map((c) => c.instanceId),
             )
+          } else if (
+            effectiveSpawnPlacement(effect).kind === 'single-cell' &&
+            options.singleCellPlacementCellId
+          ) {
+            const anchor = options.singleCellPlacementCellId
+            const spawnedIds = built.map((c) => c.instanceId)
+            const [first, ...rest] = spawnedIds
+            if (first) {
+              let ns = placeCombatant(nextState, first, anchor)
+              if (rest.length > 0 && ns.space && ns.placements) {
+                const extraCells = pickNearestOpenCellIds(ns.space, ns.placements, anchor, rest.length)
+                for (let i = 0; i < rest.length; i++) {
+                  const cellId = extraCells[i]
+                  const sid = rest[i]!
+                  if (cellId) ns = placeCombatant(ns, sid, cellId)
+                }
+              }
+              nextState = ns
+            }
           }
           const roster = Object.values(nextState.combatantsById)
           const names = built.map((c) => getCombatantDisplayLabel(c, roster)).join(', ')

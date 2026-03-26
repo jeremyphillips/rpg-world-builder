@@ -9,6 +9,8 @@ export interface ResolveCombatActionSelection {
   casterOptions?: Record<string, string>
   /** Grid cell id for the center of an AoE when {@link CombatActionDefinition.areaTemplate} is set. */
   aoeOriginCellId?: string
+  /** Grid cell id for summon placement when the action requires single-cell placement (spawn `single-cell`). */
+  singleCellPlacementCellId?: string
 }
 
 export interface ResolveCombatActionOptions {
