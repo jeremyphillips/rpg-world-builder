@@ -177,7 +177,12 @@ export function buildEncounterActionToastPayload(
       }
     }
     for (const e of events) {
-      if (e.type === 'note' && (e.summary.includes('save') || e.summary.includes('(aura)'))) {
+      if (
+        e.type === 'note' &&
+        (e.summary.includes('save') ||
+          e.summary.includes('(aura)') ||
+          e.summary.toLowerCase().includes('entering'))
+      ) {
         saveOrSpellLines.push(stripRuntimeIds(e.summary))
         if (e.details?.trim()) saveOrSpellLines.push(e.details.trim())
       }

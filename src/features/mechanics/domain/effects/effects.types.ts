@@ -291,6 +291,11 @@ export type IntervalEffect = EffectBase<'interval'> & {
     unit: 'turn' | 'round' | 'minute' | 'hour' | 'day';
   };
   effects: Effect[];
+  /**
+   * Optional triggers in addition to `every` (e.g. movement reconciliation when a creature newly enters
+   * an attached emanation). See `resolveAttachedAuraSpatialEntryAfterMovement`.
+   */
+  spatialTriggers?: ('enter')[];
 };
 
 export type SourceActionImmunityEffect = EffectBase<'immunity'> & {

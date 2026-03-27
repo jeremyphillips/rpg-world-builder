@@ -374,6 +374,7 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
         kind: 'interval',
         stateId: 'spirit-guardians-damage',
         every: { value: 1, unit: 'turn' },
+        spatialTriggers: ['enter'],
         effects: [
           {
             kind: 'save',

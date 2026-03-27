@@ -27,6 +27,10 @@ export {
   type BattlefieldIntervalResolutionOptions,
 } from './battlefield-interval-resolution'
 export {
+  resolveAttachedAuraSpatialEntryAfterMovement,
+  type BattlefieldSpatialEntryResolutionOptions,
+} from './battlefield-spatial-entry-resolution'
+export {
   addConditionToCombatant,
   addDamageResistanceMarker,
   addRollModifierToCombatant,

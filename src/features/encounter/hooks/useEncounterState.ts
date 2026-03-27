@@ -5,6 +5,7 @@ import {
   addConditionToCombatant,
   addStateToCombatant,
   advanceEncounterTurn,
+  resolveAttachedAuraSpatialEntryAfterMovement,
   applyDamageToCombatant,
   applyHealingToCombatant,
   buildReducedToZeroTraits,
@@ -421,7 +422,25 @@ export function useEncounterState({
 
   function handleMoveCombatant(targetCellId: string) {
     if (!encounterState || !activeCombatantId) return
-    setEncounterState(moveCombatant(encounterState, activeCombatantId, targetCellId))
+    setEncounterState((prev) => {
+      if (!prev) return prev
+      const afterMove = moveCombatant(prev, activeCombatantId, targetCellId)
+      if (afterMove === prev) return prev
+      const startLen = prev.log.length
+      let next = afterMove
+      if (spellsById != null) {
+        next = resolveAttachedAuraSpatialEntryAfterMovement(prev, afterMove, {
+          spellLookup: (id) => spellsById[id],
+          suppressSameSideHostile,
+          monstersById,
+        })
+      }
+      const appended = next.log.slice(startLen)
+      if (appended.length > 0) {
+        queueMicrotask(() => combatLogAppendedRef.current?.(appended, next))
+      }
+      return next
+    })
   }
 
   function handleMonsterManualTriggerChange(
