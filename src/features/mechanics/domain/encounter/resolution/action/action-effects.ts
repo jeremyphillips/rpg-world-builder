@@ -720,6 +720,14 @@ export function applyActionEffects(
               spawnTarget.instanceId,
               built.map((c) => c.instanceId),
             )
+            const firstSpawnId = built[0]?.instanceId
+            nextState = updateEncounterCombatant(nextState, spawnTarget.instanceId, (c) => ({
+              ...c,
+              remainsConsumed: {
+                atRound: nextState.roundNumber,
+                ...(firstSpawnId ? { spawnInstanceId: firstSpawnId } : {}),
+              },
+            }))
           } else if (
             effectiveSpawnPlacement(effect).kind === 'single-cell' &&
             options.singleCellPlacementCellId

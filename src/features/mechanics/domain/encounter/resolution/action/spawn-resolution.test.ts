@@ -79,6 +79,22 @@ describe('describeResolvedSpawn', () => {
     expect(s).toContain('no fey in catalog at CR ≤ 0')
   })
 
+  it('returns empty ids when target remains were consumed', () => {
+    const effect: SpawnEffect = {
+      kind: 'spawn',
+      count: 1,
+      mapMonsterIdFromTargetRemains: { corpse: 'zombie', bones: 'skeleton' },
+    }
+    const monstersById = {
+      zombie: m('zombie', 'Zombie', 'undead', 0.25),
+    }
+    const consumed = {
+      remains: 'corpse',
+      remainsConsumed: { atRound: 2 },
+    } as CombatantInstance
+    expect(resolveSpawnMonsterIds(effect, monstersById, () => 0.5, undefined, consumed)).toEqual([])
+  })
+
   it('maps monster id from target remains (corpse vs bones)', () => {
     const effect: SpawnEffect = {
       kind: 'spawn',

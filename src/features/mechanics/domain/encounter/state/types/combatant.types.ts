@@ -241,6 +241,41 @@ export type CombatantDeathRecord = {
   diedAtRound: number
 }
 
+/** Set when a replacement spawn (e.g. Animate Dead) consumes the corpse; combatant row stays for history. */
+export type RemainsConsumptionRecord = {
+  atRound: number
+  spawnInstanceId?: string
+}
+
+/**
+ * Derived effective participation / presence / capability for turn handling — computed from
+ * {@link CombatantInstance} via `getCombatantTurnStatus` in `combatant-participation.ts`.
+ * **Not persisted** on the combatant; not initiative-row presentation (`TurnOrderStatus`);
+ * not timing (`TurnBoundary`, duration helpers).
+ */
+export type CombatantTurnStatus = {
+  isDefeated: boolean
+  isDead: boolean
+
+  hasBattlefieldPresence: boolean
+  occupiesGrid: boolean
+  canBeTargetedOnGrid: boolean
+
+  canTakeActions: boolean
+  canTakeBonusActions: boolean
+  canTakeReactions: boolean
+  canMove: boolean
+
+  shouldAutoSkipTurn: boolean
+  /**
+   * When `shouldAutoSkipTurn` is true. Precedence: banished / off-grid → remains-consumed (defeated) → defeated → cannot-act.
+   */
+  skipReason?: 'defeated' | 'cannot-act' | 'banished' | 'off-grid' | 'remains-consumed'
+
+  /** Matches “alive for initiative re-roll” (`HP > 0`, see `buildAliveInitiativeParticipants`). */
+  remainsInInitiative: boolean
+}
+
 export interface CombatantInstance {
   instanceId: string
   side: CombatantSide
@@ -260,6 +295,11 @@ export interface CombatantInstance {
    * Mutated by lethal damage (e.g. disintegrate) and `death-outcome` effects (e.g. turns-to-dust).
    */
   remains?: CombatantRemainsKind
+  /**
+   * When set, tactical remains were consumed (e.g. replacement spawn); targeting/presence helpers
+   * treat the body as gone. Does **not** remove this combatant from `combatantsById` or logs.
+   */
+  remainsConsumed?: RemainsConsumptionRecord
   /**
    * **Death record** — set when damage (etc.) applies a lethal crossing to 0 HP in resolution.
    * **Truth source for “dead” in code** (`isDeadCombatant`): not the same as “defeated” (`HP ≤ 0`).

@@ -1,11 +1,18 @@
 export { getCombatantDisplayLabel } from './combatant-display-label'
 export {
+  canCombatantTakeActions,
+  canCombatantTakeBonusActions,
+  canCombatantTakeReactions,
   canTargetAsDeadCreature,
+  getCombatantTurnStatus,
+  hasBattlefieldPresence,
+  hasConsumableRemains,
   hasIntactRemainsForRevival,
   hasRemainsOnGrid,
   isActiveCombatant,
   isDeadCombatant,
   isDefeatedCombatant,
+  shouldAutoSkipCombatantTurn,
 } from './combatant-participation'
 export {
   appendEncounterLogEvent,

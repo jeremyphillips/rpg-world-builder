@@ -423,7 +423,9 @@ export function applyHealingToCombatant(
     const revivedFromDead = prevHp <= 0 && newHp > 0
     return {
       ...combatant,
-      ...(revivedFromDead ? { remains: undefined, diedAtRound: undefined } : {}),
+      ...(revivedFromDead
+        ? { remains: undefined, diedAtRound: undefined, remainsConsumed: undefined }
+        : {}),
       stats: {
         ...combatant.stats,
         currentHitPoints: newHp,

@@ -26,6 +26,10 @@ import {
   turnResourceBucketHeaderBadge,
 } from '../../../domain'
 import { EncounterActiveCombatantIdentity } from './EncounterActiveCombatantIdentity'
+import { AppTooltipWrap } from '@/ui/primitives'
+import IconButton from '@mui/material/IconButton'
+import EditIcon from '@mui/icons-material/Edit'
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
 
 export type EncounterActiveHeaderProps = {
   roundNumber: number
@@ -65,8 +69,8 @@ export function EncounterActiveHeader({
   onOpenActions,
   canEndTurn,
   onEndTurn,
-  // onEditEncounter,
-  // onResetEncounter,
+  onEditEncounter,
+  onResetEncounter,
 }: EncounterActiveHeaderProps) {
   const move = turnResources?.movementRemaining ?? 0
   const headerRootRef = useRef<HTMLDivElement>(null)
@@ -240,7 +244,7 @@ export function EncounterActiveHeader({
       </Stack>
       
       {/* leaving commented out until i can find a better place for these buttons */}
-      {/* <Stack
+      <Stack
         direction="row"
         spacing={0}
         sx={{
@@ -270,7 +274,7 @@ export function EncounterActiveHeader({
             <RestartAltIcon fontSize="small" />
           </IconButton>
         </AppTooltipWrap>
-      </Stack> */}
+      </Stack>
     </Paper>
   )
 }

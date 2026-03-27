@@ -103,6 +103,11 @@ describe('applyActionEffects — spawn grid replacement (remains → new occupan
     const spawnedId = Object.keys(state.combatantsById).find((id) => id.includes('spawn-zombie'))
     expect(spawnedId).toBeDefined()
 
+    expect(state.combatantsById['fallen']?.remainsConsumed).toEqual({
+      atRound: 1,
+      spawnInstanceId: spawnedId,
+    })
+
     expect(state.placements!.some((p) => p.combatantId === 'fallen')).toBe(false)
     expect(getOccupant(state.placements!, 'c-2-2')).toBe(spawnedId)
 

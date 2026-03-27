@@ -33,6 +33,7 @@ export function resolveSpawnMonsterIds(
   spawnTarget?: CombatantInstance,
 ): string[] {
   if (effect.mapMonsterIdFromTargetRemains && spawnTarget) {
+    if (spawnTarget.remainsConsumed) return []
     const r = spawnTarget.remains ?? 'corpse'
     if (r === 'dust' || r === 'disintegrated') return []
     const mid = r === 'bones' ? effect.mapMonsterIdFromTargetRemains.bones : effect.mapMonsterIdFromTargetRemains.corpse
@@ -107,6 +108,9 @@ export function describeResolvedSpawn(
   if (effect.mapMonsterIdFromTargetRemains) {
     if (!spawnTarget) {
       return `Spawn: dead creature target required for remains (corpse vs bones). ${NOT_YET}`
+    }
+    if (spawnTarget.remainsConsumed) {
+      return `Spawn: remains already consumed. ${NOT_YET}`
     }
     const r = spawnTarget.remains ?? 'corpse'
     if (r === 'dust' || r === 'disintegrated') {
