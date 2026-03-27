@@ -54,6 +54,10 @@ export type CombatantPreviewCardProps = {
   isCurrentTurn?: boolean
   isSelected?: boolean
   isDefeated?: boolean
+  /**
+   * When false, dim the card like defeated (banished / off-grid). Defaults to true when omitted (e.g. setup roster).
+   */
+  hasBattlefieldPresence?: boolean
   primaryAction?: CombatantPreviewAction
   secondaryActions?: CombatantPreviewAction[]
   onClick?: () => void

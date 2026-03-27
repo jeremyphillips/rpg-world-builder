@@ -5,7 +5,10 @@ import { formatMonsterIdentityLine } from '@/features/content/monsters/formatter
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
-import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
+import {
+  hasBattlefieldPresence,
+  isDefeatedCombatant,
+} from '@/features/mechanics/domain/encounter/state/combatant-participation'
 
 import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
 import { buildCombatantPreviewChips, formatSigned, getPreviewStatTooltip } from '../../../helpers'
@@ -34,6 +37,7 @@ export function OpponentCombatantActivePreviewCard({
   onClick,
 }: OpponentCombatantActivePreviewCardProps) {
   const isDefeated = isDefeatedCombatant(combatant)
+  const onBattlefield = hasBattlefieldPresence(combatant)
 
   const title = useMemo(
     () =>
@@ -102,6 +106,7 @@ export function OpponentCombatantActivePreviewCard({
     isCurrentTurn,
     isSelected,
     isDefeated,
+    hasBattlefieldPresence: onBattlefield,
     onClick,
   }
 

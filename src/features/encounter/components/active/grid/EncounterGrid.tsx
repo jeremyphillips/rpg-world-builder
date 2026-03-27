@@ -253,7 +253,7 @@ export function EncounterGrid({
             const bg = cellColor(cell, palette)
             const isWall = cell.kind === 'wall' || cell.kind === 'blocking'
             const clickable = !isWall && Boolean(onCellClick)
-            const hasPopover = Boolean(cell.occupantId && renderTokenPopover)
+            const hasPopover = Boolean(cell.occupantRendersToken && renderTokenPopover)
             const tokenSrc = resolveImageUrl(cell.occupantPortraitImageKey)
             const isHoverCell = hoveredCellId === cell.cellId
             const ring = tokenRingColor(cell, palette)
@@ -344,7 +344,7 @@ export function EncounterGrid({
                         : {}),
                 }}
               >
-                {cell.occupantId && (
+                {cell.occupantRendersToken && (
                   <Box
                     onPointerEnter={() => onCellHover?.(cell.cellId)}
                     onMouseEnter={
@@ -410,7 +410,7 @@ export function EncounterGrid({
               )
             }
 
-            if (!hasPopover && cell.occupantLabel) {
+            if (!hasPopover && cell.occupantRendersToken && cell.occupantLabel) {
               return (
                 <Tooltip key={cell.cellId} title={cell.occupantLabel} placement="top" arrow>
                   {cellBox}

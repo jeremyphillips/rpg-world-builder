@@ -4,7 +4,10 @@ import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
-import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
+import {
+  hasBattlefieldPresence,
+  isDefeatedCombatant,
+} from '@/features/mechanics/domain/encounter/state/combatant-participation'
 import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
 import { useCharacter } from '@/features/character/hooks'
 
@@ -36,6 +39,7 @@ export function AllyCombatantActivePreviewCard({
   onClick,
 }: AllyCombatantActivePreviewCardProps) {
   const isDefeated = isDefeatedCombatant(combatant)
+  const onBattlefield = hasBattlefieldPresence(combatant)
 
   const title = useMemo(
     () =>
@@ -101,6 +105,7 @@ export function AllyCombatantActivePreviewCard({
     isCurrentTurn,
     isSelected,
     isDefeated,
+    hasBattlefieldPresence: onBattlefield,
     onClick,
   }
 

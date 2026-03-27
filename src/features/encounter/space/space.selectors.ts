@@ -7,7 +7,10 @@ import { gridObstacleDisplayName } from './placeRandomGridObstacle'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from './space.helpers'
 import { hasLineOfSight } from './space.sight'
 import type { CombatantSide } from '@/features/mechanics/domain/encounter/state/types/combatant.types'
-import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
+import {
+  hasBattlefieldPresence,
+  isDefeatedCombatant,
+} from '@/features/mechanics/domain/encounter/state/combatant-participation'
 import { isAreaGridAction } from '../helpers/area-grid-action'
 
 // ---------------------------------------------------------------------------
@@ -106,6 +109,8 @@ export type GridCellViewModel = {
   placementSelected?: boolean
   /** Token dimming — `isDefeatedCombatant` when an occupant is present. */
   occupantIsDefeated: boolean
+  /** False when a placement exists but the creature is absent from the grid (banished, off-grid, …). */
+  occupantRendersToken: boolean
 }
 
 export type GridViewModel = {
@@ -312,6 +317,9 @@ export function selectGridViewModel(
       occupantSide: combatant?.side ?? null,
       occupantPortraitImageKey: combatant?.portraitImageKey ?? null,
       occupantIsDefeated: combatant ? isDefeatedCombatant(combatant) : false,
+      occupantRendersToken: Boolean(
+        occupantId && combatant && hasBattlefieldPresence(combatant),
+      ),
       obstacleKind,
       obstacleLabel,
       isActive: occupantId !== null && occupantId === activeId,
