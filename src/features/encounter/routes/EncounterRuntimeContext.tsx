@@ -16,6 +16,7 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
+import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/encounter/state'
 import { getCombatantBaseMovement } from '@/features/mechanics/domain/encounter/state/shared'
 import { actionRequiresCreatureTargetForResolve } from '@/features/mechanics/domain/encounter'
 import { getSingleCellPlacementRequirement } from '@/features/mechanics/domain/encounter/resolution/action/action-requirement-model'
@@ -461,10 +462,16 @@ function useEncounterRuntimeValue() {
     [availableActions],
   )
 
-  const baseMovementFt = useMemo(
-    () => (activeCombatant ? getCombatantBaseMovement(activeCombatant) : 0),
-    [activeCombatant],
-  )
+  const baseMovementFt = useMemo(() => {
+    if (!activeCombatant) return 0
+    if (encounterState && catalog.spellsById) {
+      return getEffectiveGroundMovementBudgetFt(activeCombatant, encounterState, {
+        spellLookup: (id) => catalog.spellsById[id],
+        suppressSameSideHostile,
+      })
+    }
+    return getCombatantBaseMovement(activeCombatant)
+  }, [activeCombatant, encounterState, catalog.spellsById, suppressSameSideHostile])
 
   const encounterHeaderModel = useMemo(() => {
     if (!activeCombatant) {
@@ -581,6 +588,7 @@ function useEncounterRuntimeValue() {
     unaffectedCombatantIds,
     setUnaffectedCombatantIds,
     suppressSameSideHostile,
+    spellsById: catalog.spellsById,
     unresolvedCombatantCount,
     selectedCombatants,
     environmentContext,

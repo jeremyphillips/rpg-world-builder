@@ -266,6 +266,10 @@ export function useEncounterState({
       createEncounterState(selectedCombatants, {
         space: opts?.space,
         placementOptions: opts?.placementOptions,
+        battlefieldSpell:
+          spellsById != null
+            ? { spellLookup: (id) => spellsById[id], suppressSameSideHostile }
+            : undefined,
       }),
     )
   }
@@ -424,7 +428,14 @@ export function useEncounterState({
     if (!encounterState || !activeCombatantId) return
     setEncounterState((prev) => {
       if (!prev) return prev
-      const afterMove = moveCombatant(prev, activeCombatantId, targetCellId)
+      const afterMove = moveCombatant(
+        prev,
+        activeCombatantId,
+        targetCellId,
+        spellsById != null
+          ? { spellLookup: (id) => spellsById[id], suppressSameSideHostile }
+          : undefined,
+      )
       if (afterMove === prev) return prev
       const startLen = prev.log.length
       let next = afterMove

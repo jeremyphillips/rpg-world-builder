@@ -109,6 +109,8 @@ export interface RuntimeTurnHook {
 export interface CombatantTurnContext {
   totalDamageTaken: number
   damageTakenByType: Record<string, number>
+  /** Feet moved this turn; used with spatial speed changes (attached auras) to reconcile remaining movement. */
+  movementSpentThisTurn?: number
 }
 
 export interface CombatantTurnResources {

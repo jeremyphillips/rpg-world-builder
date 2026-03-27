@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
-import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import type { CombatantInstance, SpatialBattlefieldPresentationOptions } from '@/features/mechanics/domain/encounter'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import {
   hasBattlefieldPresence,
@@ -24,6 +24,7 @@ type OpponentCombatantActivePreviewCardProps = {
   isSelected?: boolean
   showChips?: boolean
   onClick?: () => void
+  spatialPresentation?: SpatialBattlefieldPresentationOptions
 }
 
 export function OpponentCombatantActivePreviewCard({
@@ -35,6 +36,7 @@ export function OpponentCombatantActivePreviewCard({
   isSelected = false,
   showChips = true,
   onClick,
+  spatialPresentation,
 }: OpponentCombatantActivePreviewCardProps) {
   const isDefeated = isDefeatedCombatant(combatant)
   const onBattlefield = hasBattlefieldPresence(combatant)
@@ -84,7 +86,7 @@ export function OpponentCombatantActivePreviewCard({
     }
   }
 
-  const chips = buildCombatantPreviewChips(combatant)
+  const chips = buildCombatantPreviewChips(combatant, { spatial: spatialPresentation })
 
   const previewProps: CombatantPreviewCardProps = {
     id: combatant.instanceId,

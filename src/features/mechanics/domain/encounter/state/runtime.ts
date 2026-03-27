@@ -19,6 +19,7 @@ import {
   createEmptyTurnContext,
   rollRechargeDie,
 } from './shared'
+import type { BattlefieldSpellContext } from './battlefield-spatial-movement-modifiers'
 import {
   appendLog,
   createEncounterStartedLog,
@@ -41,13 +42,20 @@ import {
   type BattlefieldIntervalResolutionOptions,
 } from './battlefield-interval-resolution'
 
-function resetCombatantTurnState(state: EncounterState, combatantId: string | null): EncounterState {
+function resetCombatantTurnState(
+  state: EncounterState,
+  combatantId: string | null,
+  battlefieldSpell?: BattlefieldSpellContext,
+): EncounterState {
   if (!combatantId) return state
 
   return updateCombatant(state, combatantId, (combatant) => ({
     ...combatant,
     turnContext: createEmptyTurnContext(),
-    turnResources: createCombatantTurnResources(combatant),
+    turnResources: createCombatantTurnResources(combatant, {
+      encounterState: state,
+      battlefieldSpell,
+    }),
   }))
 }
 
@@ -302,6 +310,8 @@ export function createEncounterState(
   options: InitiativeResolverOptions & {
     space?: EncounterSpace
     placementOptions?: InitialPlacementOptions
+    /** When set with `spellLookup`, turn-start movement uses spatial attached-aura modifiers. */
+    battlefieldSpell?: BattlefieldSpellContext
   } = {},
 ): EncounterState {
   const seededCombatants = combatants.map(seedRuntimeEffects)
@@ -346,7 +356,7 @@ export function createEncounterState(
   state.log = [createEncounterStartedLog(state)]
   if (state.activeCombatantId) {
     state.log.push(createTurnStartedLog(state))
-    const withResetContext = resetCombatantTurnState(state, state.activeCombatantId)
+    const withResetContext = resetCombatantTurnState(state, state.activeCombatantId, options.battlefieldSpell)
     const withRecharge = processActionRecharge(
       withResetContext,
       state.activeCombatantId,
@@ -442,7 +452,14 @@ function advanceEncounterTurnOnce(
     log: [...nextState.log, createTurnStartedLog(nextState)],
   }
 
-  const withResetContext = resetCombatantTurnState(startedState, startedState.activeCombatantId)
+  const battlefieldSpell: BattlefieldSpellContext | undefined =
+    options.battlefieldInterval != null
+      ? {
+          spellLookup: options.battlefieldInterval.spellLookup,
+          suppressSameSideHostile: options.battlefieldInterval.suppressSameSideHostile,
+        }
+      : undefined
+  const withResetContext = resetCombatantTurnState(startedState, startedState.activeCombatantId, battlefieldSpell)
   const withRecharge = processActionRecharge(
     withResetContext,
     withResetContext.activeCombatantId,

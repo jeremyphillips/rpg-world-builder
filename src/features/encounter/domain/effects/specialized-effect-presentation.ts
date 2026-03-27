@@ -34,7 +34,7 @@ export const SPECIALIZED_EFFECT_PRESENTATION_MAP: Record<string, CombatStatePres
     defaultSection: 'ongoing-effects',
     userFacing: true,
   },
-  speed_halved: {
+  'speed-halved': {
     label: 'Speed Halved',
     tone: 'warning',
     priority: 'normal',

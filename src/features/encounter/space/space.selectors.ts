@@ -11,6 +11,9 @@ import {
   hasBattlefieldPresence,
   isDefeatedCombatant,
 } from '@/features/mechanics/domain/encounter/state/combatant-participation'
+import type { BattlefieldSpellContext } from '@/features/mechanics/domain/encounter/state/battlefield-spatial-movement-modifiers'
+import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/encounter/state/battlefield-spatial-movement-modifiers'
+import { createEmptyTurnContext } from '@/features/mechanics/domain/encounter/state/shared'
 import { isAreaGridAction } from '../helpers/area-grid-action'
 
 // ---------------------------------------------------------------------------
@@ -512,11 +515,15 @@ export function getMoveRejectionReason(
 /**
  * Move a combatant to a target cell, deducting movement cost.
  * Returns the original state if the move is invalid.
+ *
+ * When `options` includes `spellLookup`, remaining movement is reconciled against the **current**
+ * effective ground speed (attached aura spatial modifiers) using feet spent this turn.
  */
 export function moveCombatant(
   state: EncounterState,
   combatantId: string,
   targetCellId: string,
+  options?: BattlefieldSpellContext,
 ): EncounterState {
   if (!canMoveTo(state, combatantId, targetCellId)) return state
 
@@ -525,24 +532,50 @@ export function moveCombatant(
   const dist = gridDistanceFt(space!, currentCellId, targetCellId)!
 
   const combatant = state.combatantsById[combatantId]
+  const filteredPlacements = placements!.filter((p) => p.combatantId !== combatantId)
+  const placementsNext = [...filteredPlacements, { combatantId, cellId: targetCellId }]
+
+  if (options?.spellLookup) {
+    const spent = (combatant.turnContext?.movementSpentThisTurn ?? 0) + dist
+    const nextStateBase: EncounterState = {
+      ...state,
+      placements: placementsNext,
+    }
+    const effectiveMax = getEffectiveGroundMovementBudgetFt(combatant, nextStateBase, options)
+    const updatedCombatant = {
+      ...combatant,
+      turnContext: {
+        ...(combatant.turnContext ?? createEmptyTurnContext()),
+        movementSpentThisTurn: spent,
+      },
+      turnResources: {
+        ...combatant.turnResources!,
+        movementRemaining: Math.max(0, effectiveMax - spent),
+      },
+    }
+    return {
+      ...nextStateBase,
+      combatantsById: {
+        ...nextStateBase.combatantsById,
+        [combatantId]: updatedCombatant,
+      },
+    }
+  }
+
   const updatedResources = {
     ...combatant.turnResources!,
     movementRemaining: combatant.turnResources!.movementRemaining - dist,
   }
 
-  const updatedCombatant = {
-    ...combatant,
-    turnResources: updatedResources,
-  }
-
-  const filteredPlacements = placements!.filter((p) => p.combatantId !== combatantId)
-
   return {
     ...state,
     combatantsById: {
       ...state.combatantsById,
-      [combatantId]: updatedCombatant,
+      [combatantId]: {
+        ...combatant,
+        turnResources: updatedResources,
+      },
     },
-    placements: [...filteredPlacements, { combatantId, cellId: targetCellId }],
+    placements: placementsNext,
   }
 }

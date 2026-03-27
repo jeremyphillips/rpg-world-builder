@@ -2,7 +2,10 @@ import { useMemo } from 'react'
 
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
-import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import type {
+  CombatantInstance,
+  SpatialBattlefieldPresentationOptions,
+} from '@/features/mechanics/domain/encounter'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import type { AoeStep } from '../../../helpers/area-grid-action'
 import {
@@ -53,6 +56,7 @@ type OpponentActionDrawerProps = {
   onEnterSingleCellPlacementMode?: () => void
   onExitSingleCellPlacementMode?: () => void
   attachedEmanationSetup?: CombatantActionDrawerProps['attachedEmanationSetup']
+  spatialPresentation?: SpatialBattlefieldPresentationOptions
 }
 
 export function OpponentActionDrawer({
@@ -92,6 +96,7 @@ export function OpponentActionDrawer({
   onEnterSingleCellPlacementMode,
   onExitSingleCellPlacementMode,
   attachedEmanationSetup,
+  spatialPresentation,
 }: OpponentActionDrawerProps) {
   const availableActionIds = useMemo(
     () => new Set(availableActions.map((a) => a.id)),
@@ -103,11 +108,11 @@ export function OpponentActionDrawer({
   )
 
   const combatEffects = useMemo(() => {
-    const presentable = collectPresentableEffects(combatant)
+    const presentable = collectPresentableEffects(combatant, spatialPresentation)
     const enriched = enrichPresentableEffects(presentable)
     const sorted = sortByPriority(enriched)
     return groupBySection(sorted)
-  }, [combatant])
+  }, [combatant, spatialPresentation])
 
   const targetPreview = targetCombatant ? (
     targetCombatant.side === 'party' ? (

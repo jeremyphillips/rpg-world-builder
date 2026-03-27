@@ -1,4 +1,8 @@
-import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import {
+  combatantHasSpatialSpeedReduction,
+  type CombatantInstance,
+  type SpatialBattlefieldPresentationOptions,
+} from '@/features/mechanics/domain/encounter'
 import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
 import type { CombatStatePriority } from '../domain/effects/presentable-effects.types'
 
@@ -21,6 +25,8 @@ export type BuildCombatantPreviewChipsOptions = {
   excludeGrantedDefenses?: boolean
   /** Skip damage-vulnerability badges. Default `true` for preview cards. */
   excludeVulnerabilities?: boolean
+  /** When set, may add Speed Halved from attached-aura spatial overlap (same source as movement math). */
+  spatial?: SpatialBattlefieldPresentationOptions
 }
 
 const PRIORITY_RANK: Record<CombatStatePriority, number> = {
@@ -55,6 +61,7 @@ export function buildCombatantPreviewChips(
     maxDefenseChips,
     excludeGrantedDefenses = true,
     excludeVulnerabilities = true,
+    spatial,
   } = options ?? {}
 
   const candidates: PreviewChip[] = []
@@ -86,6 +93,20 @@ export function buildCombatantPreviewChips(
   }
 
   // Concentration
+  if (
+    spatial &&
+    combatantHasSpatialSpeedReduction(combatant, spatial.encounterState, spatial.battlefieldSpell)
+  ) {
+    const speedPres = resolvePresentationForSemanticKey('speed-halved')
+    candidates.push({
+      id: 'spatial-speed-halved',
+      label: speedPres.label,
+      tone: speedPres.tone,
+      priority: speedPres.priority,
+      tooltip: 'Speed reduced by an area effect on the battlefield (current position).',
+    })
+  }
+
   if (combatant.concentration) {
     const { remainingTurns, totalTurns } = combatant.concentration
     const timeLabel =

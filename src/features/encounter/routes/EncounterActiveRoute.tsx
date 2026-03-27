@@ -116,6 +116,7 @@ export default function EncounterActiveRoute() {
     unaffectedCombatantIds,
     setUnaffectedCombatantIds,
     suppressSameSideHostile,
+    spellsById,
   } = useEncounterRuntime()
 
   const [toastPayload, setToastPayload] = useState<{
@@ -603,6 +604,20 @@ export default function EncounterActiveRoute() {
 
   const actionDrawerCombatant = activeCombatant
 
+  const spatialPresentation = useMemo(
+    () =>
+      encounterState && spellsById
+        ? {
+            encounterState,
+            battlefieldSpell: {
+              spellLookup: (id: string) => spellsById[id],
+              suppressSameSideHostile,
+            },
+          }
+        : undefined,
+    [encounterState, spellsById, suppressSameSideHostile],
+  )
+
   const drawerProps = {
     open: actionDrawerOpen,
     onClose: handleCloseDrawer,
@@ -646,6 +661,7 @@ export default function EncounterActiveRoute() {
     onCancelAoe: handleCancelAoe,
     onUndoAoeSelection: handleUndoAoeSelection,
     attachedEmanationSetup,
+    spatialPresentation,
   }
 
   return (
@@ -733,6 +749,8 @@ export default function EncounterActiveRoute() {
           characterPortraitById={characterPortraitById}
           activeCombatantId={activeCombatantId}
           selectedTargetId={selectedActionTargetId}
+          spellsById={spellsById}
+          suppressSameSideHostile={suppressSameSideHostile}
           onSelectTarget={(combatantId) => {
             handleSelectTarget(combatantId)
             setActionDrawerOpen(true)

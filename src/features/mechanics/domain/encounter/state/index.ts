@@ -31,6 +31,14 @@ export {
   type BattlefieldSpatialEntryResolutionOptions,
 } from './battlefield-spatial-entry-resolution'
 export {
+  combatantHasSpatialSpeedReduction,
+  getEffectiveGroundMovementBudgetFt,
+  getSpatialAttachedAuraSpeedMultiplier,
+  getSpeedMultiplyProductFromSpell,
+  type BattlefieldSpellContext,
+  type SpatialBattlefieldPresentationOptions,
+} from './battlefield-spatial-movement-modifiers'
+export {
   addConditionToCombatant,
   addDamageResistanceMarker,
   addRollModifierToCombatant,
