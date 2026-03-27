@@ -37,13 +37,11 @@ export const MONSTERS_F: readonly MonsterCatalogEntry[] = [
           name: 'Fire Aura',
           description:
             'At the end of each of the elemental’s turns, each creature in a 10-foot Emanation originating from the elemental takes 5 (1d10) Fire damage.',
-          effects: [
-            {
-              kind: 'note',
-              text: 'End-of-turn aura damage to creatures in 10 ft. is not auto-resolved in encounter.',
-              category: 'under-modeled',
-            },
-          ],
+          resolution: {
+            caveats: [
+              'End-of-turn 10-ft emanation fire damage to creatures in the area is not automated in encounter resolution.',
+            ],
+          },
         },
         {
           name: 'Fire Form',

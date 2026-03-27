@@ -9,6 +9,10 @@ import type {
 import { classifySpellResolutionMode } from './spell-resolution-classifier'
 import { deriveSpellHostility, spellHostilityToHostileApplication } from './spell-hostility'
 
+function spellHasEmanationEffect(spell: Spell): boolean {
+  return (spell.effects ?? []).some((e) => e.kind === 'emanation')
+}
+
 /** Resource key for persisting spell use. Export for onSpellSlotSpent handlers. */
 export const SPELL_USED_PREFIX = 'spell_used_'
 
@@ -189,6 +193,10 @@ function buildSpellTargeting(spell: Spell): CombatActionTargetingProfile {
     primaryTargeting?.kind === 'targeting' &&
     (primaryTargeting.area != null || primaryTargeting.target === 'creatures-in-area')
   ) {
+    /** Self-centered attached auras (e.g. buffs) use `creatures-in-area` for geometry only — not hostile pick-all-enemies. */
+    if (spellHasEmanationEffect(spell) && deriveSpellHostility(spell) !== 'hostile') {
+      return { kind: 'self', ...sight }
+    }
     const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
     const areaRangeField =
       spell.range?.kind === 'self' && primaryTargeting.area != null

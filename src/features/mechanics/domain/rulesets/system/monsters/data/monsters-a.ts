@@ -60,13 +60,11 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
           name: 'Mucus Cloud',
           description:
             'While underwater, the aboleth is surrounded by mucus. Constitution Saving Throw: DC 14, each creature in a 5-foot Emanation originating from the aboleth at the end of the aboleth’s turn. Failure: The target is cursed. Until the curse ends, the target’s skin becomes slimy, the target can breathe air and water, and it can’t regain Hit Points unless it is underwater. While the cursed creature is outside a body of water, the creature takes 6 (1d12) Acid damage at the end of every 10 minutes unless moisture is applied to its skin before those minutes have passed.',
-          effects: [
-            {
-              kind: 'note',
-              text: 'End-of-turn aura, curse, and out-of-water acid ticks are not auto-resolved.',
-              category: 'under-modeled',
-            },
-          ],
+          resolution: {
+            caveats: [
+              'End-of-turn 5-ft emanation Con save, curse effects, and out-of-water acid ticks are not automated in encounter resolution.',
+            ],
+          },
         },
         {
           name: 'Probing Telepathy',
@@ -702,13 +700,11 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
           name: 'Fire Aura',
           description:
             'At the end of each of the azer’s turns, each creature of the azer’s choice in a 5-foot Emanation originating from the azer takes 5 (1d10) Fire damage unless the azer has the Incapacitated condition.',
-          effects: [
-            {
-              kind: 'note',
-              text: 'End-of-turn aura damage and chosen targets in 5 ft. are not auto-resolved in encounter.',
-              category: 'under-modeled',
-            },
-          ],
+          resolution: {
+            caveats: [
+              'End-of-turn 5-ft emanation fire damage and azer’s choice of targets are not automated in encounter resolution.',
+            ],
+          },
         },
         {
           name: 'Illumination',

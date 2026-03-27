@@ -104,13 +104,11 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
           description:
             'The mephit explodes when it dies. Dexterity Saving Throw: DC 10, each creature in a 5-foot Emanation originating from the mephit. Failure: 5 (2d4) Fire damage. Success: Half damage.',
           trigger: { kind: 'reduced-to-0-hp' },
-          effects: [
-            {
-              kind: 'note',
-              text: 'Resolve 5-ft emanation Dex save DC 10 vs 2d4 fire (half on success) at table.',
-              category: 'under-modeled',
-            },
-          ],
+          resolution: {
+            caveats: [
+              'Resolve 5-ft emanation Dex save DC 10 vs 2d4 fire (half on success) at table; not automated in encounter.',
+            ],
+          },
         },
       ],
       actions: [

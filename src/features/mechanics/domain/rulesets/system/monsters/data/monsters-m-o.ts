@@ -30,13 +30,11 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
           description:
             'The magmin explodes when it dies. Dexterity Saving Throw: DC 11, each creature in a 10-foot Emanation originating from the magmin. Failure: 7 (2d6) Fire damage. Success: Half damage.',
           trigger: { kind: 'reduced-to-0-hp' },
-          effects: [
-            {
-              kind: 'note',
-              text: 'Resolve 10-ft emanation Dex save DC 11 vs 2d6 fire (half on success) at table.',
-              category: 'under-modeled',
-            },
-          ],
+          resolution: {
+            caveats: [
+              'Resolve 10-ft emanation Dex save DC 11 vs 2d6 fire (half on success) at table; not automated in encounter.',
+            ],
+          },
         },
       ],
       actions: [
