@@ -43,8 +43,6 @@ export function resolveAttachedAuraSpatialEntryAfterMovement(
   const auras = stateAfter.attachedAuraInstances ?? []
   if (auras.length === 0) return stateAfter
 
-  const spaceBefore = stateBefore.space
-  const placementsBefore = stateBefore.placements
   const spaceAfter = stateAfter.space
   const placementsAfter = stateAfter.placements
   if (!spaceAfter || !placementsAfter) return stateAfter
@@ -59,7 +57,7 @@ export function resolveAttachedAuraSpatialEntryAfterMovement(
   }
 
   for (const aura of auras) {
-    if (aura.attachedTo !== 'self' || aura.area.kind !== 'sphere') continue
+    if (aura.area.kind !== 'sphere') continue
 
     const saveDc = aura.saveDc
     if (saveDc == null) continue
@@ -67,8 +65,8 @@ export function resolveAttachedAuraSpatialEntryAfterMovement(
     const rootEffects = getEffectsForAttachedBattlefieldSource(aura.source, resolveOpts)
     if (rootEffects.length === 0) continue
 
-    const source = nextState.combatantsById[aura.sourceCombatantId]
-    if (!source || isDefeatedCombatant(source)) continue
+    const caster = nextState.combatantsById[aura.casterCombatantId]
+    if (!caster || isDefeatedCombatant(caster)) continue
 
     const intervals = rootEffects.filter(
       (e): e is Extract<Effect, { kind: 'interval' }> =>
@@ -91,27 +89,24 @@ export function resolveAttachedAuraSpatialEntryAfterMovement(
     if (!syntheticAction) continue
 
     for (const combatantId of combatantIds) {
-      if (combatantId === aura.sourceCombatantId) continue
+      if (aura.anchor.kind === 'creature' && combatantId === aura.anchor.combatantId) continue
 
       const target = nextState.combatantsById[combatantId]
       if (!target || isDefeatedCombatant(target)) continue
 
       if (aura.unaffectedCombatantIds.includes(combatantId)) continue
 
-      if (options.suppressSameSideHostile && source.side === target.side) continue
+      if (options.suppressSameSideHostile && caster.side === target.side) continue
 
-      const beforeInside =
-        spaceBefore && placementsBefore
-          ? combatantInsideAttachedSphereAura(spaceBefore, placementsBefore, aura, combatantId)
-          : false
+      const beforeInside = combatantInsideAttachedSphereAura(stateBefore, aura, combatantId)
 
-      const afterInside = combatantInsideAttachedSphereAura(spaceAfter, placementsAfter, aura, combatantId)
+      const afterInside = combatantInsideAttachedSphereAura(stateAfter, aura, combatantId)
 
       if (beforeInside || !afterInside) continue
 
       for (const interval of intervals) {
         const payload = injectSpellSaveDcDeep(interval.effects, saveDc)
-        const result = applyActionEffects(nextState, source, target, syntheticAction, payload, {
+        const result = applyActionEffects(nextState, caster, target, syntheticAction, payload, {
           rng,
           sourceLabel: `${auraLabel} (aura — entering)`,
           monstersById: options.monstersById,

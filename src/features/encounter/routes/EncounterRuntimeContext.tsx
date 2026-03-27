@@ -17,6 +17,7 @@ import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
 import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/encounter/state'
+import { resolveBattlefieldEffectOriginCellId } from '@/features/mechanics/domain/encounter/state/battlefield-effect-anchor'
 import { getCombatantBaseMovement } from '@/features/mechanics/domain/encounter/state/shared'
 import { actionRequiresCreatureTargetForResolve } from '@/features/mechanics/domain/encounter'
 import { getSingleCellPlacementRequirement } from '@/features/mechanics/domain/encounter/resolution/action/action-requirement-model'
@@ -283,11 +284,19 @@ function useEncounterRuntimeValue() {
 
   const persistentAttachedAuras = useMemo(() => {
     if (!encounterState?.attachedAuraInstances?.length) return undefined
-    return encounterState.attachedAuraInstances.map((a) => ({
-      sourceCombatantId: a.sourceCombatantId,
-      areaRadiusFt: a.area.size,
-    }))
-  }, [encounterState?.attachedAuraInstances])
+    const resolved = encounterState.attachedAuraInstances
+      .map((a) => {
+        const originCellId = resolveBattlefieldEffectOriginCellId(
+          encounterState.space,
+          encounterState.placements,
+          a.anchor,
+        )
+        if (!originCellId) return null
+        return { originCellId, areaRadiusFt: a.area.size }
+      })
+      .filter((x): x is { originCellId: string; areaRadiusFt: number } => x !== null)
+    return resolved.length > 0 ? resolved : undefined
+  }, [encounterState?.attachedAuraInstances, encounterState?.space, encounterState?.placements])
 
   const aoeGridOverlay = useMemo(() => {
     if (!encounterState?.space || !encounterState.placements || !activeCombatantId) return null

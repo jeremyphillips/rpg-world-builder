@@ -7,7 +7,7 @@ export type AttachedBattlefieldEffectSource =
   | { kind: 'monster-action'; monsterId: string; actionId: string }
   | { kind: 'monster-trait'; monsterId: string; traitIndex: number }
 
-/** Stable id for {@link EncounterState.attachedAuraInstances} rows (unique per source combatant). */
+/** Stable id for {@link EncounterState.attachedAuraInstances} rows (unique per source + caster combatant). */
 export function attachedAuraInstanceId(
   source: AttachedBattlefieldEffectSource,
   actorId: string,

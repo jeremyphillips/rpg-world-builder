@@ -1,9 +1,9 @@
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
-import type { EncounterSpace, CombatantPosition } from '@/features/encounter/space'
 import { getCellForCombatant, gridDistanceFt } from '@/features/encounter/space'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { CombatActionDefinition } from '../resolution/combat-action.types'
-import type { AttachedAuraInstance } from './types'
+import { resolveBattlefieldEffectOriginCellId } from './battlefield-effect-anchor'
+import type { BattlefieldEffectInstance, EncounterState } from './types'
 
 /** Product of speed `multiply` modifiers from an effect list (attached aura spatial speed). */
 export function getSpeedMultiplyProductFromEffects(effects: Effect[]): number {
@@ -80,16 +80,38 @@ export function buildSyntheticMonsterAuraIntervalAction(label: string, auraId: s
  * Strict sphere check for overlap transitions: false if placements are missing (no “assume inside”).
  */
 export function combatantInsideAttachedSphereAura(
-  space: EncounterSpace,
-  placements: CombatantPosition[],
-  aura: AttachedAuraInstance,
+  state: EncounterState,
+  aura: BattlefieldEffectInstance,
   targetCombatantId: string,
 ): boolean {
-  if (aura.area.kind !== 'sphere') return false
-  const sourceCell = getCellForCombatant(placements, aura.sourceCombatantId)
+  const space = state.space
+  const placements = state.placements
+  if (!space || !placements || aura.area.kind !== 'sphere') return false
+  const originCellId = resolveBattlefieldEffectOriginCellId(space, placements, aura.anchor)
   const targetCell = getCellForCombatant(placements, targetCombatantId)
-  if (!sourceCell || !targetCell) return false
-  const dist = gridDistanceFt(space, sourceCell, targetCell)
+  if (!originCellId || !targetCell) return false
+  const dist = gridDistanceFt(space, originCellId, targetCell)
   if (dist === undefined) return false
   return dist <= aura.area.size
+}
+
+/**
+ * Whether `combatantId` is within `rangeFt` (Chebyshev sphere) of the aura’s resolved origin.
+ * Matches legacy “missing grid means permissive” behavior for missing target placement.
+ */
+export function isCombatantWithinFtOfAuraOrigin(
+  state: EncounterState,
+  aura: BattlefieldEffectInstance,
+  combatantId: string,
+  rangeFt: number,
+): boolean {
+  const space = state.space
+  const placements = state.placements
+  if (!space || !placements) return true
+  const originCellId = resolveBattlefieldEffectOriginCellId(space, placements, aura.anchor)
+  const targetCell = getCellForCombatant(placements, combatantId)
+  if (!originCellId || !targetCell) return true
+  const dist = gridDistanceFt(space, originCellId, targetCell)
+  if (dist === undefined) return true
+  return dist <= rangeFt
 }

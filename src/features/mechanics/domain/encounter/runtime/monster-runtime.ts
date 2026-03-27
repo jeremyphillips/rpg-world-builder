@@ -8,7 +8,7 @@ import type { Effect, EmanationEffect, RegenerationEffect } from '@/features/mec
 import type { EffectDuration, TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 
 import { attachedAuraInstanceId } from '../state/attached-battlefield-source'
-import type { AttachedAuraInstance } from '../state/types/encounter-state.types'
+import type { BattlefieldEffectInstance } from '../state/types/encounter-state.types'
 import type { CombatantInstance } from '../state/types/combatant.types'
 import type { RuntimeTurnHook, RuntimeTurnHookRequirement } from '../state/types/combatant.types'
 import {
@@ -91,9 +91,9 @@ export function buildAttachedAuraInstancesFromMonsterTraits(
   monster: Monster,
   context: MonsterRuntimeContext,
   combatantInstanceId: string,
-): AttachedAuraInstance[] {
+): BattlefieldEffectInstance[] {
   const traits = monster.mechanics.traits ?? []
-  const out: AttachedAuraInstance[] = []
+  const out: BattlefieldEffectInstance[] = []
 
   traits.forEach((trait, traitIndex) => {
     if (!traitContributesAtRuntime(trait, context)) return
@@ -110,9 +110,9 @@ export function buildAttachedAuraInstancesFromMonsterTraits(
       const source = { kind: 'monster-trait' as const, monsterId: monster.id, traitIndex }
       out.push({
         id: attachedAuraInstanceId(source, combatantInstanceId),
-        sourceCombatantId: combatantInstanceId,
+        casterCombatantId: combatantInstanceId,
         source,
-        attachedTo: 'self',
+        anchor: { kind: 'creature', combatantId: combatantInstanceId },
         area: { kind: 'sphere', size: em.area.size },
         unaffectedCombatantIds: [],
         ...(typeof saveDc === 'number' ? { saveDc } : {}),
@@ -128,9 +128,9 @@ export function collectMonsterTraitAttachedAuras(
   combatants: CombatantInstance[],
   monstersById: Record<string, Monster> | undefined,
   context: MonsterRuntimeContext,
-): AttachedAuraInstance[] {
+): BattlefieldEffectInstance[] {
   if (!monstersById) return []
-  const out: AttachedAuraInstance[] = []
+  const out: BattlefieldEffectInstance[] = []
   for (const c of combatants) {
     if (c.source.kind !== 'monster') continue
     const monster = monstersById[c.source.sourceId]

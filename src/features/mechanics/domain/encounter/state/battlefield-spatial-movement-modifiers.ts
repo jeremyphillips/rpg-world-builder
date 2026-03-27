@@ -45,18 +45,18 @@ export function getSpatialAttachedAuraSpeedMultiplier(
   const auras = state.attachedAuraInstances ?? []
 
   for (const aura of auras) {
-    if (aura.attachedTo !== 'self' || aura.area.kind !== 'sphere') continue
+    if (aura.area.kind !== 'sphere') continue
 
-    if (combatantId === aura.sourceCombatantId) continue
+    if (aura.anchor.kind === 'creature' && combatantId === aura.anchor.combatantId) continue
 
     if (aura.unaffectedCombatantIds.includes(combatantId)) continue
 
-    const source = state.combatantsById[aura.sourceCombatantId]
-    if (!source || isDefeatedCombatant(source)) continue
+    const caster = state.combatantsById[aura.casterCombatantId]
+    if (!caster || isDefeatedCombatant(caster)) continue
 
-    if (ctx.suppressSameSideHostile && source.side === combatant.side) continue
+    if (ctx.suppressSameSideHostile && caster.side === combatant.side) continue
 
-    if (!combatantInsideAttachedSphereAura(space, placements, aura, combatantId)) continue
+    if (!combatantInsideAttachedSphereAura(state, aura, combatantId)) continue
 
     const rootEffects = getEffectsForAttachedBattlefieldSource(aura.source, {
       spellLookup: ctx.spellLookup ?? (() => undefined),

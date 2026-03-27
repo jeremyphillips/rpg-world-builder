@@ -606,9 +606,9 @@ function resolveCombatActionInternal(
     const ids = selection.unaffectedCombatantIds ?? []
     finalReturnState = addAttachedAuraInstance(finalState, {
       id: attachedAuraInstanceId(action.attachedEmanation.source, selection.actorId),
-      sourceCombatantId: selection.actorId,
+      casterCombatantId: selection.actorId,
       source: action.attachedEmanation.source,
-      attachedTo: 'self',
+      anchor: { kind: 'creature', combatantId: selection.actorId },
       area: { kind: 'sphere', size: action.attachedEmanation.radiusFt },
       unaffectedCombatantIds: [...ids],
       ...(typeof action.saveDc === 'number' ? { saveDc: action.saveDc } : {}),

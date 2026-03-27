@@ -53,9 +53,9 @@ function stateWithAura(goblinCell: string): EncounterState {
     attachedAuraInstances: [
       {
         id: 'aura-sg',
-        sourceCombatantId: 'cleric',
+        casterCombatantId: 'cleric',
         source: { kind: 'spell', spellId: 'spirit-guardians' },
-        attachedTo: 'self',
+        anchor: { kind: 'creature', combatantId: 'cleric' },
         area: { kind: 'sphere', size: 15 },
         unaffectedCombatantIds: [],
         saveDc: 13,
@@ -114,6 +114,47 @@ describe('resolveIntervalEffectsForCombatantAtTurnBoundary', () => {
       rng: () => 0.5,
     })
     expect(next.log.filter((e) => e.type === 'damage-applied')).toHaveLength(0)
+  })
+
+
+
+  it('uses place anchor cell for interval geometry (not caster position)', () => {
+    const space = createSquareGridSpace({ id: 's', name: 't', columns: 8, rows: 8 })
+    const cleric = base('cleric', 'party')
+    const goblin = base('goblin', 'enemies')
+    const s: EncounterState = {
+      combatantsById: { cleric, goblin },
+      partyCombatantIds: ['cleric'],
+      enemyCombatantIds: ['goblin'],
+      initiative: [],
+      initiativeOrder: ['goblin', 'cleric'],
+      activeCombatantId: 'goblin',
+      turnIndex: 0,
+      roundNumber: 1,
+      started: true,
+      log: [],
+      space,
+      placements: [
+        { combatantId: 'cleric', cellId: 'c-1-0' },
+        { combatantId: 'goblin', cellId: 'c-0-1' },
+      ],
+      attachedAuraInstances: [
+        {
+          id: 'aura-place',
+          casterCombatantId: 'cleric',
+          source: { kind: 'spell', spellId: 'spirit-guardians' },
+          anchor: { kind: 'place', cellId: 'c-0-0' },
+          area: { kind: 'sphere', size: 15 },
+          unaffectedCombatantIds: [],
+          saveDc: 13,
+        },
+      ],
+    }
+    const next = resolveIntervalEffectsForCombatantAtTurnBoundary(s, 'goblin', 'end', {
+      spellLookup: lookup,
+      rng: () => 0.5,
+    })
+    expect(next.log.some((e) => e.type === 'damage-applied')).toBe(true)
   })
 
   it('no-ops for boundary other than end', () => {

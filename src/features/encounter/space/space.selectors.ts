@@ -190,7 +190,7 @@ export function selectGridViewModel(
       selectedCellId: string | null
     } | null
     /** Ongoing attached auras (center follows source combatant). */
-    persistentAttachedAuras?: Array<{ sourceCombatantId: string; areaRadiusFt: number }>
+    persistentAttachedAuras?: Array<{ originCellId: string; areaRadiusFt: number }>
   },
 ): GridViewModel | undefined {
   const { space, placements } = state
@@ -318,9 +318,7 @@ export function selectGridViewModel(
     let persistentAttachedAura: boolean | undefined
     if (persistentAttachedAuras?.length) {
       for (const pa of persistentAttachedAuras) {
-        const center = getCellForCombatant(placements, pa.sourceCombatantId)
-        if (!center) continue
-        const dAura = gridDistanceFt(space, center, cell.id)
+        const dAura = gridDistanceFt(space, pa.originCellId, cell.id)
         if (dAura !== undefined && dAura <= pa.areaRadiusFt) {
           persistentAttachedAura = true
           break

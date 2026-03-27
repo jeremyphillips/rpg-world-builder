@@ -3,19 +3,25 @@ import type { CombatantInstance } from './combatant.types'
 import type { CombatLogEvent } from './combat-log.types'
 import type { EncounterSpace, CombatantPosition } from '@/features/encounter/space'
 import type { AttachedBattlefieldEffectSource } from '../attached-battlefield-source'
+import type { BattlefieldEffectAnchor } from '../battlefield-effect-anchor'
 
-/** Runtime attached battlefield aura (e.g. Spirit Guardians emanation). */
-export type AttachedAuraInstance = {
+/** Persistent battlefield sphere effect (e.g. Spirit Guardians emanation). */
+export type BattlefieldEffectInstance = {
   id: string
-  sourceCombatantId: string
-  /** Origin of the effect (spell, monster action, or future monster trait). */
+  /** Combatant who owns the effect row (concentration, synthetic action source for resolution). */
+  casterCombatantId: string
+  /** Authored identity (spell, monster action, trait). */
   source: AttachedBattlefieldEffectSource
-  attachedTo: 'self'
+  /** Where the sphere is anchored in space (may differ from the caster). */
+  anchor: BattlefieldEffectAnchor
   area: { kind: 'sphere'; size: number }
   unaffectedCombatantIds: string[]
   /** Save DC at cast/use time for nested save payloads (intervals, spatial entry). */
   saveDc?: number
 }
+
+/** @deprecated Use {@link BattlefieldEffectInstance}. */
+export type AttachedAuraInstance = BattlefieldEffectInstance
 
 export interface EncounterState {
   combatantsById: Record<string, CombatantInstance>
@@ -30,6 +36,6 @@ export interface EncounterState {
   log: CombatLogEvent[]
   space?: EncounterSpace
   placements?: CombatantPosition[]
-  /** Persistent self-centered effects tied to a combatant (e.g. Spirit Guardians). */
-  attachedAuraInstances?: AttachedAuraInstance[]
+  /** Persistent battlefield effects (e.g. emanation auras). */
+  attachedAuraInstances?: BattlefieldEffectInstance[]
 }

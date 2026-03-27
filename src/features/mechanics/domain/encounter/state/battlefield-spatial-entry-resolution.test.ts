@@ -50,9 +50,9 @@ function baseState(placements: { combatantId: string; cellId: string }[]): Encou
     attachedAuraInstances: [
       {
         id: 'aura-sg',
-        sourceCombatantId: 'cleric',
+        casterCombatantId: 'cleric',
         source: { kind: 'spell', spellId: 'spirit-guardians' },
-        attachedTo: 'self',
+        anchor: { kind: 'creature', combatantId: 'cleric' },
         area: { kind: 'sphere', size: 15 },
         unaffectedCombatantIds: [],
         saveDc: 13,

@@ -27,6 +27,8 @@ export {
   removeAttachedAurasForSpell,
 } from './attached-aura-mutations'
 export type { AttachedBattlefieldEffectSource } from './attached-battlefield-source'
+export type { BattlefieldEffectAnchor } from './battlefield-effect-anchor'
+export { resolveBattlefieldEffectOriginCellId } from './battlefield-effect-anchor'
 export {
   attachedAuraInstanceId,
   attachedBattlefieldSourceEquals,

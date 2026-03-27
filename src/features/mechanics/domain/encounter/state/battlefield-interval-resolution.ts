@@ -2,7 +2,6 @@ import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
-import { isWithinRange } from '@/features/encounter/space'
 import { applyActionEffects } from '../resolution/action/action-effects'
 import type { EncounterState } from './types'
 import { isDefeatedCombatant } from './combatant-participation'
@@ -11,6 +10,7 @@ import {
   buildSyntheticMonsterAuraIntervalAction,
   buildSyntheticSpellAction,
   injectSpellSaveDcDeep,
+  isCombatantWithinFtOfAuraOrigin,
 } from './battlefield-attached-aura-shared'
 import {
   getEffectsForAttachedBattlefieldSource,
@@ -60,7 +60,7 @@ export function resolveIntervalEffectsForCombatantAtTurnBoundary(
   }
 
   for (const aura of auras) {
-    if (aura.attachedTo !== 'self' || aura.area.kind !== 'sphere') continue
+    if (aura.area.kind !== 'sphere') continue
 
     const saveDc = aura.saveDc
 
@@ -75,20 +75,16 @@ export function resolveIntervalEffectsForCombatantAtTurnBoundary(
       continue
     }
 
-    const source = nextState.combatantsById[aura.sourceCombatantId]
-    if (!source || isDefeatedCombatant(source)) continue
+    const caster = nextState.combatantsById[aura.casterCombatantId]
+    if (!caster || isDefeatedCombatant(caster)) continue
 
-    if (actingCombatantId === aura.sourceCombatantId) continue
+    if (aura.anchor.kind === 'creature' && actingCombatantId === aura.anchor.combatantId) continue
 
     if (aura.unaffectedCombatantIds.includes(actingCombatantId)) continue
 
-    if (options.suppressSameSideHostile && source.side === acting.side) continue
+    if (options.suppressSameSideHostile && caster.side === acting.side) continue
 
-    const space = nextState.space
-    const placements = nextState.placements
-    if (!space || !placements) continue
-
-    const inRange = isWithinRange(space, placements, aura.sourceCombatantId, actingCombatantId, aura.area.size)
+    const inRange = isCombatantWithinFtOfAuraOrigin(nextState, aura, actingCombatantId, aura.area.size)
     if (!inRange) continue
 
     const intervals = rootEffects.filter(
@@ -111,7 +107,7 @@ export function resolveIntervalEffectsForCombatantAtTurnBoundary(
     for (const interval of intervals) {
       const payload =
         typeof saveDc === 'number' ? injectSpellSaveDcDeep(interval.effects, saveDc) : interval.effects
-      const result = applyActionEffects(nextState, source, acting, syntheticAction, payload, {
+      const result = applyActionEffects(nextState, caster, acting, syntheticAction, payload, {
         rng,
         sourceLabel: `${auraLabel} (aura)`,
         monstersById: options.monstersById,

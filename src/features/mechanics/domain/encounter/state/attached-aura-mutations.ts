@@ -1,10 +1,10 @@
 import type { AttachedBattlefieldEffectSource } from './attached-battlefield-source'
 import { attachedBattlefieldSourceEquals } from './attached-battlefield-source'
-import type { AttachedAuraInstance, EncounterState } from './types'
+import type { BattlefieldEffectInstance, EncounterState } from './types'
 
 export function addAttachedAuraInstance(
   state: EncounterState,
-  instance: AttachedAuraInstance,
+  instance: BattlefieldEffectInstance,
 ): EncounterState {
   const prev = state.attachedAuraInstances ?? []
   return {
@@ -15,13 +15,13 @@ export function addAttachedAuraInstance(
 
 export function removeAttachedAurasForSource(
   state: EncounterState,
-  sourceCombatantId: string,
+  casterCombatantId: string,
   source: AttachedBattlefieldEffectSource,
 ): EncounterState {
   const prev = state.attachedAuraInstances ?? []
   const next = prev.filter(
     (a) =>
-      !(a.sourceCombatantId === sourceCombatantId && attachedBattlefieldSourceEquals(a.source, source)),
+      !(a.casterCombatantId === casterCombatantId && attachedBattlefieldSourceEquals(a.source, source)),
   )
   if (next.length === prev.length) return state
   return { ...state, attachedAuraInstances: next }
@@ -29,8 +29,8 @@ export function removeAttachedAurasForSource(
 
 export function removeAttachedAurasForSpell(
   state: EncounterState,
-  sourceCombatantId: string,
+  casterCombatantId: string,
   spellId: string,
 ): EncounterState {
-  return removeAttachedAurasForSource(state, sourceCombatantId, { kind: 'spell', spellId })
+  return removeAttachedAurasForSource(state, casterCombatantId, { kind: 'spell', spellId })
 }
