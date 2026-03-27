@@ -13,6 +13,7 @@ import {
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import type { CombatantInstance, EncounterState } from '@/features/mechanics/domain/encounter'
+import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
 
 import { AllyCombatantActivePreviewCard } from '../cards/AllyCombatantActivePreviewCard'
 import { OpponentCombatantActivePreviewCard } from '../cards/OpponentCombatantActivePreviewCard'
@@ -108,7 +109,29 @@ function InitiativeOrderTab({
 }) {
   const allCombatants = useMemo(() => Object.values(combatantsById), [combatantsById])
 
-  if (initiativeOrder.length === 0) {
+  const { activeIds, defeatedIds } = useMemo(() => {
+    const active: string[] = []
+    const defeated: string[] = []
+    const seen = new Set<string>()
+
+    for (const id of initiativeOrder) {
+      const combatant = combatantsById[id]
+      if (!combatant) continue
+      seen.add(id)
+      if (isDefeatedCombatant(combatant)) defeated.push(id)
+      else active.push(id)
+    }
+
+    for (const id of Object.keys(combatantsById).sort()) {
+      if (seen.has(id)) continue
+      const combatant = combatantsById[id]
+      if (combatant && isDefeatedCombatant(combatant)) defeated.push(id)
+    }
+
+    return { activeIds: active, defeatedIds: defeated }
+  }, [initiativeOrder, combatantsById])
+
+  if (initiativeOrder.length === 0 && activeIds.length === 0 && defeatedIds.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
         No initiative order yet.
@@ -116,43 +139,65 @@ function InitiativeOrderTab({
     )
   }
 
+  const renderCard = (id: string) => {
+    const combatant = combatantsById[id]
+    if (!combatant) return null
+
+    const isCurrentTurn = id === activeCombatantId
+    const isSelected = id === selectedTargetId
+
+    if (combatant.side === 'party') {
+      return (
+        <AllyCombatantActivePreviewCard
+          key={id}
+          combatant={combatant}
+          monstersById={monstersById}
+          characterPortraitById={characterPortraitById}
+          allCombatants={allCombatants}
+          isCurrentTurn={isCurrentTurn}
+          isSelected={isSelected}
+          onClick={() => onSelectTarget(id)}
+        />
+      )
+    }
+
+    return (
+      <OpponentCombatantActivePreviewCard
+        key={id}
+        combatant={combatant}
+        monstersById={monstersById}
+        characterPortraitById={characterPortraitById}
+        allCombatants={allCombatants}
+        isCurrentTurn={isCurrentTurn}
+        isSelected={isSelected}
+        onClick={() => onSelectTarget(id)}
+      />
+    )
+  }
+
   return (
     <Stack spacing={1}>
-      {initiativeOrder.map((id) => {
-        const combatant = combatantsById[id]
-        if (!combatant) return null
+      {activeIds.map((id) => renderCard(id))}
 
-        const isCurrentTurn = id === activeCombatantId
-        const isSelected = id === selectedTargetId
-
-        if (combatant.side === 'party') {
-          return (
-            <AllyCombatantActivePreviewCard
-              key={id}
-              combatant={combatant}
-              monstersById={monstersById}
-              characterPortraitById={characterPortraitById}
-              allCombatants={allCombatants}
-              isCurrentTurn={isCurrentTurn}
-              isSelected={isSelected}
-              onClick={() => onSelectTarget(id)}
-            />
-          )
-        }
-
-        return (
-          <OpponentCombatantActivePreviewCard
-            key={id}
-            combatant={combatant}
-            monstersById={monstersById}
-            characterPortraitById={characterPortraitById}
-            allCombatants={allCombatants}
-            isCurrentTurn={isCurrentTurn}
-            isSelected={isSelected}
-            onClick={() => onSelectTarget(id)}
-          />
-        )
-      })}
+      {defeatedIds.length > 0 && (
+        <>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              display: 'block',
+              pt: activeIds.length > 0 ? 1.5 : 0,
+              pb: 0.5,
+              letterSpacing: '0.08em',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+            }}
+          >
+            DEFEATED
+          </Typography>
+          {defeatedIds.map((id) => renderCard(id))}
+        </>
+      )}
     </Stack>
   )
 }
