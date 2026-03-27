@@ -338,7 +338,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
       summary: 'Permanent flame on object. No heat or fuel. Until dispelled.',
     },
   },
-{
+  {
     id: 'darkness',
     name: 'Darkness',
     school: 'evocation',
@@ -350,7 +350,9 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
     components: { verbal: true, material: { description: 'bat fur and a piece of coal' } },
     resolution: {
       caveats: [
-        'Magical Darkness vs. light/darkvision and object-centered emanations are not fully modeled.',
+        'Magical Darkness vs. light/darkvision and dispel interactions are not fully modeled.',
+        'Point- or object-centered Darkness is not caster-centered. Do not author `emanation` with `attachedTo: self` in spell data—that primitive is only for Spirit Guardians–style self-centered auras. Runtime can represent `place`/`object` anchors on `BattlefieldEffectInstance`, but wiring a Darkness cast to those anchors (and persisting the effect) is still adapter/UI follow-up.',
+        'Encounter sphere-at-point uses AoE origin placement for area spells (`aoe-place`), not `SingleCellPlacementPanel`—that panel is for spawn (and similar) single-cell requirements from `getActionRequirements`.',
         'Encounter may map area effects to creatures only; geometry and allies differ at the table.',
       ],
     },
@@ -362,13 +364,18 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
         text: 'Darkvision cannot see through it. Nonmagical light cannot illuminate it. Overlaps with level 2 or lower light spells dispels them.',
         category: 'under-modeled' as const,
       },
+      {
+        kind: 'note',
+        text: 'SRD modes: (1) 15-foot-radius sphere from a point within range; (2) cast on an object for a 15-foot emanation from that object.',
+        category: 'under-modeled' as const,
+      },
     ],
     description: {
       full: "For the duration, magical Darkness spreads from a point within range and fills a 15-foot-radius Sphere. Darkvision can't see through it, and nonmagical light can't illuminate it. Alternatively, cast on object for 15-foot Emanation. If area overlaps Bright/Dim Light from spell level 2 or lower, that spell is dispelled.",
       summary: '15ft magical Darkness. Darkvision cannot penetrate.',
     },
   },
-{
+  {
     id: 'darkvision',
     name: 'Darkvision',
     school: 'transmutation',

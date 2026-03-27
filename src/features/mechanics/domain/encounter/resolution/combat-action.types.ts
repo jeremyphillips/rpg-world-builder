@@ -150,8 +150,12 @@ export interface CombatActionDefinition {
   /** Remote grid point vs centered on caster (self-range emanation). */
   areaPlacement?: 'remote' | 'self'
   /**
-   * Persistent self-centered emanation (e.g. Spirit Guardians): cast-time unaffected setup + battlefield aura.
+   * Persistent emanation metadata for encounter setup (e.g. Spirit Guardians): cast-time unaffected setup + battlefield aura.
    * Does not replace `areaTemplate` / `all-enemies` for targeting metadata.
+   *
+   * **Anchor placement:** this shape does not carry spatial anchor hints. The resolver builds a
+   * `BattlefieldEffectInstance` with `anchor: { kind: 'creature', combatantId: caster }` by default.
+   * Optional authoring/adapters for other anchors (target creature, chosen place, object) are a follow-up.
    */
   attachedEmanation?: {
     source: AttachedBattlefieldEffectSource

@@ -245,6 +245,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Light vs. Darkness overlap and object emanation are not fully modeled.',
+        'Like Darkness: default is a sphere at a point or an emanation from an object—not caster-centered. Do not use the shared `emanation` effect (`attachedTo: self`) here until place/object anchor authoring exists.',
       ],
     },
     effects: [

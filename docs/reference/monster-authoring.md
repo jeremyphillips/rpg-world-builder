@@ -90,7 +90,7 @@ Rule text should follow your project’s **SRD 5.2.1** (CC BY 4.0) source, not t
 
 ## Traits: emanations and attached battlefield {#traits-emanations-and-attached-battlefield}
 
-Spell-style **`kind: 'emanation'`** on monsters uses the same effect shape as spells. Full field semantics, pairing with **`targeting`** (spells), **`interval`** / grid runtime, and limitations (stationary vs moving aura, speed multipliers) live in [effects.md § `emanation`](./effects.md#emanation) — read that first.
+Spell-style **`kind: 'emanation'`** on monsters uses the same effect shape as spells. Full field semantics, pairing with **`targeting`** (spells), **`interval`** / grid runtime, and limitations (stationary vs moving aura, speed multipliers) live in [effects.md § `emanation`](./effects.md#emanation) — read that first. Cross-cutting architecture (adapters, sources, UI, gaps): [resource/emanation.md](../resource/emanation.md).
 
 ### Trait effects (`MonsterTrait.effects`)
 
