@@ -57,11 +57,11 @@ function stateWithAura(goblinCell: string): EncounterState {
       {
         id: 'aura-sg',
         sourceCombatantId: 'cleric',
-        spellId: 'spirit-guardians',
+        source: { kind: 'spell', spellId: 'spirit-guardians' },
         attachedTo: 'self',
         area: { kind: 'sphere', size: 15 },
         unaffectedCombatantIds: [],
-        spellSaveDc: 13,
+        saveDc: 13,
       },
     ],
   }

@@ -7,7 +7,15 @@ import { applyActionEffects } from '../resolution/action/action-effects'
 import type { EncounterState } from './types'
 import { isDefeatedCombatant } from './combatant-participation'
 import { appendEncounterNote } from './logging'
-import { buildSyntheticSpellAction, injectSpellSaveDcDeep } from './battlefield-attached-aura-shared'
+import {
+  buildSyntheticMonsterAuraIntervalAction,
+  buildSyntheticSpellAction,
+  injectSpellSaveDcDeep,
+} from './battlefield-attached-aura-shared'
+import {
+  getEffectsForAttachedBattlefieldSource,
+  getLabelForAttachedBattlefieldSource,
+} from './battlefield-attached-source-effects'
 
 /**
  * Options for resolving turn-boundary interval effects from persistent attached battlefield state
@@ -46,24 +54,31 @@ export function resolveIntervalEffectsForCombatantAtTurnBoundary(
   const rng = options.rng ?? Math.random
   let nextState = state
 
+  const resolveOpts = {
+    spellLookup: options.spellLookup,
+    monstersById: options.monstersById,
+  }
+
   for (const aura of auras) {
     if (aura.attachedTo !== 'self' || aura.area.kind !== 'sphere') continue
 
-    const spellSaveDc = aura.spellSaveDc
-    if (spellSaveDc == null) {
+    const saveDc = aura.saveDc
+    if (saveDc == null) {
+      const label = getLabelForAttachedBattlefieldSource(aura.source, resolveOpts)
       nextState = appendEncounterNote(
         nextState,
-        `Attached aura (${aura.spellId}): missing spell save DC; skipped interval resolution.`,
+        `Attached aura (${label}): missing save DC; skipped interval resolution.`,
         { targetIds: [actingCombatantId] },
       )
       continue
     }
 
-    const spell = options.spellLookup(aura.spellId)
-    if (!spell) {
+    const rootEffects = getEffectsForAttachedBattlefieldSource(aura.source, resolveOpts)
+    if (rootEffects.length === 0) {
+      const label = getLabelForAttachedBattlefieldSource(aura.source, resolveOpts)
       nextState = appendEncounterNote(
         nextState,
-        `Attached aura: unknown spell "${aura.spellId}"; skipped interval resolution.`,
+        `Attached aura (${label}): no authored effects; skipped interval resolution.`,
         { targetIds: [actingCombatantId] },
       )
       continue
@@ -85,19 +100,28 @@ export function resolveIntervalEffectsForCombatantAtTurnBoundary(
     const inRange = isWithinRange(space, placements, aura.sourceCombatantId, actingCombatantId, aura.area.size)
     if (!inRange) continue
 
-    const intervals = (spell.effects ?? []).filter(
+    const intervals = rootEffects.filter(
       (e): e is Extract<Effect, { kind: 'interval' }> =>
         e.kind === 'interval' && e.every.unit === 'turn' && e.every.value === 1,
     )
     if (intervals.length === 0) continue
 
-    const syntheticAction = buildSyntheticSpellAction(spell, aura.id, 'interval')
+    const auraLabel = getLabelForAttachedBattlefieldSource(aura.source, resolveOpts)
+    const syntheticAction =
+      aura.source.kind === 'spell'
+        ? (() => {
+            const spell = options.spellLookup(aura.source.spellId)
+            return spell ? buildSyntheticSpellAction(spell, aura.id, 'interval') : null
+          })()
+        : buildSyntheticMonsterAuraIntervalAction(auraLabel, aura.id, 'interval')
+
+    if (!syntheticAction) continue
 
     for (const interval of intervals) {
-      const payload = injectSpellSaveDcDeep(interval.effects, spellSaveDc)
+      const payload = injectSpellSaveDcDeep(interval.effects, saveDc)
       const result = applyActionEffects(nextState, source, acting, syntheticAction, payload, {
         rng,
-        sourceLabel: `${spell.name} (aura)`,
+        sourceLabel: `${auraLabel} (aura)`,
         monstersById: options.monstersById,
       })
       nextState = result.state

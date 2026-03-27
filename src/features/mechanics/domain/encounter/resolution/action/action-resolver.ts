@@ -14,6 +14,10 @@ import {
   addAttachedAuraInstance,
 } from '../../state'
 import {
+  attachedAuraInstanceId,
+  concentrationLinkedMarkerIdForSpellAttachedEmanation,
+} from '../../state/attached-battlefield-source'
+import {
   formatAttackRollDebug,
   formatAutoFailDebug,
   formatSaveDebug,
@@ -152,8 +156,10 @@ export function getCombatantAvailableActions(
   )
 }
 
-function isConcentrationAction(action: CombatActionDefinition): boolean {
-  return action.displayMeta?.source === 'spell' && action.displayMeta.concentration === true
+function isConcentrationAction(action: CombatActionDefinition | undefined): boolean {
+  return Boolean(
+    action && action.displayMeta?.source === 'spell' && action.displayMeta.concentration === true,
+  )
 }
 
 export function resolveCombatAction(
@@ -173,8 +179,8 @@ export function resolveCombatAction(
   const linkedForConc =
     result.createdMarkerIds.length > 0
       ? result.createdMarkerIds
-      : needsConcFromAttachedEmanation && action?.attachedEmanation
-        ? [`attached-emanation-${action.attachedEmanation.spellId}`]
+      : needsConcFromAttachedEmanation && action?.attachedEmanation?.source.kind === 'spell'
+        ? [concentrationLinkedMarkerIdForSpellAttachedEmanation(action.attachedEmanation.source.spellId)]
         : []
 
   if (action && isConcentrationAction(action) && linkedForConc.length > 0 && meta?.source === 'spell') {
@@ -599,13 +605,13 @@ function resolveCombatActionInternal(
   if (action.attachedEmanation && !behavior.skipCost) {
     const ids = selection.unaffectedCombatantIds ?? []
     finalReturnState = addAttachedAuraInstance(finalState, {
-      id: `attached-emanation-${action.attachedEmanation.spellId}-${selection.actorId}`,
+      id: attachedAuraInstanceId(action.attachedEmanation.source, selection.actorId),
       sourceCombatantId: selection.actorId,
-      spellId: action.attachedEmanation.spellId,
+      source: action.attachedEmanation.source,
       attachedTo: 'self',
       area: { kind: 'sphere', size: action.attachedEmanation.radiusFt },
       unaffectedCombatantIds: [...ids],
-      ...(typeof action.spellSaveDc === 'number' ? { spellSaveDc: action.spellSaveDc } : {}),
+      ...(typeof action.saveDc === 'number' ? { saveDc: action.saveDc } : {}),
     })
   }
   return { state: finalReturnState, createdMarkerIds: allMarkerIds }

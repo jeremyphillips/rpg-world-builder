@@ -133,7 +133,7 @@ function deriveAttachedEmanation(spell: Spell): CombatActionDefinition['attached
   const em = getSpellEmanationEffect(spell)
   if (!em || em.attachedTo !== 'self' || em.area.kind !== 'sphere') return undefined
   return {
-    spellId: spell.id,
+    source: { kind: 'spell', spellId: spell.id },
     radiusFt: em.area.size,
     selectUnaffectedAtCast: em.selectUnaffectedAtCast,
   }
@@ -431,7 +431,7 @@ function buildSpellEffectsAction(
     targeting: buildSpellTargeting(spell),
     logText: buildSpellLogText(spell),
     displayMeta: buildSpellDisplayMeta(spell),
-    spellSaveDc,
+    saveDc: spellSaveDc,
     usage,
     ...(areaTemplate ? { areaTemplate, ...(areaPlacement ? { areaPlacement } : {}) } : {}),
     ...(attachedEmanation ? { attachedEmanation } : {}),

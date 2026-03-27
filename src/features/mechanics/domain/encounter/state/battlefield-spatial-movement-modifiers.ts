@@ -1,13 +1,19 @@
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
+import type { Monster } from '@/features/content/monsters/domain/types'
 import type { EncounterState } from './types'
 import type { CombatantInstance } from './types'
-import { combatantInsideAttachedSphereAura } from './battlefield-attached-aura-shared'
+import {
+  combatantInsideAttachedSphereAura,
+  getSpeedMultiplyProductFromEffects,
+} from './battlefield-attached-aura-shared'
+import { getEffectsForAttachedBattlefieldSource } from './battlefield-attached-source-effects'
 import { isDefeatedCombatant } from './combatant-participation'
 import { getCombatantBaseMovement } from './combatant-movement-helpers'
 import { getSpeedConsequences } from './condition-rules'
 
 export type BattlefieldSpellContext = {
   spellLookup?: (spellId: string) => Spell | undefined
+  monstersById?: Record<string, Monster>
   suppressSameSideHostile?: boolean
 }
 
@@ -16,18 +22,7 @@ export type BattlefieldSpellContext = {
  * (e.g. Spirit Guardians 0.5 while in the emanation — applied spatially, not here per se).
  */
 export function getSpeedMultiplyProductFromSpell(spell: Spell): number {
-  let product = 1
-  for (const e of spell.effects ?? []) {
-    if (
-      e.kind === 'modifier' &&
-      e.target === 'speed' &&
-      e.mode === 'multiply' &&
-      typeof e.value === 'number'
-    ) {
-      product *= e.value
-    }
-  }
-  return product
+  return getSpeedMultiplyProductFromEffects(spell.effects ?? [])
 }
 
 /**
@@ -40,7 +35,8 @@ export function getSpatialAttachedAuraSpeedMultiplier(
   ctx?: BattlefieldSpellContext,
 ): number {
   const { space, placements } = state
-  if (!space || !placements || !ctx?.spellLookup) return 1
+  if (!space || !placements || !ctx) return 1
+  if (!ctx.spellLookup && !ctx.monstersById) return 1
 
   const combatant = state.combatantsById[combatantId]
   if (!combatant || isDefeatedCombatant(combatant)) return 1
@@ -62,10 +58,11 @@ export function getSpatialAttachedAuraSpeedMultiplier(
 
     if (!combatantInsideAttachedSphereAura(space, placements, aura, combatantId)) continue
 
-    const spell = ctx.spellLookup(aura.spellId)
-    if (!spell) continue
-
-    const m = getSpeedMultiplyProductFromSpell(spell)
+    const rootEffects = getEffectsForAttachedBattlefieldSource(aura.source, {
+      spellLookup: ctx.spellLookup ?? (() => undefined),
+      monstersById: ctx.monstersById,
+    })
+    const m = getSpeedMultiplyProductFromEffects(rootEffects)
     if (m > 0 && m < 1) {
       multiplier *= m
     }
@@ -98,7 +95,7 @@ export function combatantHasSpatialSpeedReduction(
   state: EncounterState,
   ctx?: BattlefieldSpellContext,
 ): boolean {
-  if (!ctx?.spellLookup) return false
+  if (!ctx || (!ctx.spellLookup && !ctx.monstersById)) return false
   if (getSpeedConsequences(combatant).speedBecomesZero) return false
   return getSpatialAttachedAuraSpeedMultiplier(state, combatant.instanceId, ctx) < 1
 }

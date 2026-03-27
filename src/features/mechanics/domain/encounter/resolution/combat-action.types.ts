@@ -1,4 +1,5 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
+import type { AttachedBattlefieldEffectSource } from '../state/attached-battlefield-source'
 import type { AbilityId } from '@/features/mechanics/domain/character'
 import type { BreakdownToken } from '../../resolution/resolvers/stat-resolver'
 import type { CasterOptionField } from '../../spells/caster-options'
@@ -130,10 +131,10 @@ export interface CombatActionDefinition {
   logText?: string
   displayMeta?: CombatActionDisplayMeta
   /**
-   * Spell actions: caster's spell save DC (8 + PB + ability), used when persisting attached auras
-   * that resolve interval saves later (e.g. Spirit Guardians end-of-turn damage).
+   * Save DC for effect payloads (8 + PB + ability for spells; monster action save DC when authored).
+   * Used when persisting attached auras that resolve interval saves later (e.g. Spirit Guardians).
    */
-  spellSaveDc?: number
+  saveDc?: number
   /**
    * Spell-derived: whether the action is a hostile application for charm / same-side targeting rules.
    * When set (spell actions from `buildSpellCombatActions`), `isHostileAction` uses this; otherwise legacy `targeting` kind rules apply.
@@ -153,7 +154,7 @@ export interface CombatActionDefinition {
    * Does not replace `areaTemplate` / `all-enemies` for targeting metadata.
    */
   attachedEmanation?: {
-    spellId: string
+    source: AttachedBattlefieldEffectSource
     radiusFt: number
     selectUnaffectedAtCast: boolean
   }

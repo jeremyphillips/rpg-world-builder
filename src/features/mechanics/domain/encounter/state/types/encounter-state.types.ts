@@ -2,17 +2,19 @@ import type { InitiativeRoll } from '../../resolution'
 import type { CombatantInstance } from './combatant.types'
 import type { CombatLogEvent } from './combat-log.types'
 import type { EncounterSpace, CombatantPosition } from '@/features/encounter/space'
+import type { AttachedBattlefieldEffectSource } from '../attached-battlefield-source'
 
 /** Runtime attached battlefield aura (e.g. Spirit Guardians emanation). */
 export type AttachedAuraInstance = {
   id: string
   sourceCombatantId: string
-  spellId: string
+  /** Origin of the effect (spell, monster action, or future monster trait). */
+  source: AttachedBattlefieldEffectSource
   attachedTo: 'self'
   area: { kind: 'sphere'; size: number }
   unaffectedCombatantIds: string[]
-  /** Caster's spell save DC at cast time; used for interval payloads (e.g. end-of-turn saves). */
-  spellSaveDc?: number
+  /** Save DC at cast/use time for nested save payloads (intervals, spatial entry). */
+  saveDc?: number
 }
 
 export interface EncounterState {

@@ -5,10 +5,15 @@ import { applyActionEffects } from '../resolution/action/action-effects'
 import type { EncounterState } from './types'
 import { isDefeatedCombatant } from './combatant-participation'
 import {
+  buildSyntheticMonsterAuraIntervalAction,
   buildSyntheticSpellAction,
   combatantInsideAttachedSphereAura,
   injectSpellSaveDcDeep,
 } from './battlefield-attached-aura-shared'
+import {
+  getEffectsForAttachedBattlefieldSource,
+  getLabelForAttachedBattlefieldSource,
+} from './battlefield-attached-source-effects'
 
 /**
  * Options for resolving movement-entry spatial effects on attached auras (see {@link resolveAttachedAuraSpatialEntryAfterMovement}).
@@ -48,20 +53,24 @@ export function resolveAttachedAuraSpatialEntryAfterMovement(
   let nextState = stateAfter
 
   const combatantIds = Object.keys(nextState.combatantsById).sort()
+  const resolveOpts = {
+    spellLookup: options.spellLookup,
+    monstersById: options.monstersById,
+  }
 
   for (const aura of auras) {
     if (aura.attachedTo !== 'self' || aura.area.kind !== 'sphere') continue
 
-    const spellSaveDc = aura.spellSaveDc
-    if (spellSaveDc == null) continue
+    const saveDc = aura.saveDc
+    if (saveDc == null) continue
 
-    const spell = options.spellLookup(aura.spellId)
-    if (!spell) continue
+    const rootEffects = getEffectsForAttachedBattlefieldSource(aura.source, resolveOpts)
+    if (rootEffects.length === 0) continue
 
     const source = nextState.combatantsById[aura.sourceCombatantId]
     if (!source || isDefeatedCombatant(source)) continue
 
-    const intervals = (spell.effects ?? []).filter(
+    const intervals = rootEffects.filter(
       (e): e is Extract<Effect, { kind: 'interval' }> =>
         e.kind === 'interval' &&
         e.spatialTriggers?.includes('enter') === true &&
@@ -70,7 +79,16 @@ export function resolveAttachedAuraSpatialEntryAfterMovement(
     )
     if (intervals.length === 0) continue
 
-    const syntheticAction = buildSyntheticSpellAction(spell, aura.id, 'spatial-entry')
+    const auraLabel = getLabelForAttachedBattlefieldSource(aura.source, resolveOpts)
+    const syntheticAction =
+      aura.source.kind === 'spell'
+        ? (() => {
+            const spell = options.spellLookup(aura.source.spellId)
+            return spell ? buildSyntheticSpellAction(spell, aura.id, 'spatial-entry') : null
+          })()
+        : buildSyntheticMonsterAuraIntervalAction(auraLabel, aura.id, 'spatial-entry')
+
+    if (!syntheticAction) continue
 
     for (const combatantId of combatantIds) {
       if (combatantId === aura.sourceCombatantId) continue
@@ -92,10 +110,10 @@ export function resolveAttachedAuraSpatialEntryAfterMovement(
       if (beforeInside || !afterInside) continue
 
       for (const interval of intervals) {
-        const payload = injectSpellSaveDcDeep(interval.effects, spellSaveDc)
+        const payload = injectSpellSaveDcDeep(interval.effects, saveDc)
         const result = applyActionEffects(nextState, source, target, syntheticAction, payload, {
           rng,
-          sourceLabel: `${spell.name} (aura — entering)`,
+          sourceLabel: `${auraLabel} (aura — entering)`,
           monstersById: options.monstersById,
         })
         nextState = result.state

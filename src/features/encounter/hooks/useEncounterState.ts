@@ -266,10 +266,11 @@ export function useEncounterState({
       createEncounterState(selectedCombatants, {
         space: opts?.space,
         placementOptions: opts?.placementOptions,
-        battlefieldSpell:
-          spellsById != null
-            ? { spellLookup: (id) => spellsById[id], suppressSameSideHostile }
-            : undefined,
+        battlefieldSpell: {
+          spellLookup: spellsById != null ? (id) => spellsById[id] : () => undefined,
+          suppressSameSideHostile,
+          monstersById,
+        },
       }),
     )
   }

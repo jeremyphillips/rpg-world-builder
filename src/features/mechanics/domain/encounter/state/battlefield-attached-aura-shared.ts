@@ -5,6 +5,22 @@ import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { CombatActionDefinition } from '../resolution/combat-action.types'
 import type { AttachedAuraInstance } from './types'
 
+/** Product of speed `multiply` modifiers from an effect list (attached aura spatial speed). */
+export function getSpeedMultiplyProductFromEffects(effects: Effect[]): number {
+  let product = 1
+  for (const e of effects) {
+    if (
+      e.kind === 'modifier' &&
+      e.target === 'speed' &&
+      e.mode === 'multiply' &&
+      typeof e.value === 'number'
+    ) {
+      product *= e.value
+    }
+  }
+  return product
+}
+
 export function injectSpellSaveDcDeep(effects: Effect[], dc: number): Effect[] {
   return effects.map((effect) => {
     if (effect.kind === 'save') {
@@ -40,6 +56,22 @@ export function buildSyntheticSpellAction(spell: Spell, auraId: string, suffix: 
       level: spell.level,
       concentration: Boolean(conc),
       range: 'Self',
+    },
+  }
+}
+
+/** Minimal action for `applyActionEffects` when resolving intervals from non-spell attached sources. */
+export function buildSyntheticMonsterAuraIntervalAction(label: string, auraId: string, suffix: string): CombatActionDefinition {
+  return {
+    id: `battlefield-${suffix}-${auraId}`,
+    label,
+    kind: 'monster-action',
+    cost: {},
+    resolutionMode: 'effects',
+    displayMeta: {
+      source: 'natural',
+      attackType: 'special',
+      description: label,
     },
   }
 }

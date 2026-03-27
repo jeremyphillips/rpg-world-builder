@@ -457,6 +457,7 @@ function advanceEncounterTurnOnce(
       ? {
           spellLookup: options.battlefieldInterval.spellLookup,
           suppressSameSideHostile: options.battlefieldInterval.suppressSameSideHostile,
+          monstersById: options.battlefieldInterval.monstersById,
         }
       : undefined
   const withResetContext = resetCombatantTurnState(startedState, startedState.activeCombatantId, battlefieldSpell)

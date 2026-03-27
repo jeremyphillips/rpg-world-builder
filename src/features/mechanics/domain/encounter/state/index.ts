@@ -21,7 +21,22 @@ export {
   getEncounterCombatantLabel,
 } from './logging'
 export * from './types'
-export { addAttachedAuraInstance, removeAttachedAurasForSpell } from './attached-aura-mutations'
+export {
+  addAttachedAuraInstance,
+  removeAttachedAurasForSource,
+  removeAttachedAurasForSpell,
+} from './attached-aura-mutations'
+export type { AttachedBattlefieldEffectSource } from './attached-battlefield-source'
+export {
+  attachedAuraInstanceId,
+  attachedBattlefieldSourceEquals,
+  concentrationLinkedMarkerIdForSpellAttachedEmanation,
+} from './attached-battlefield-source'
+export {
+  getEffectsForAttachedBattlefieldSource,
+  getLabelForAttachedBattlefieldSource,
+  type BattlefieldAttachedSourceResolutionOptions,
+} from './battlefield-attached-source-effects'
 export {
   resolveIntervalEffectsForCombatantAtTurnBoundary,
   type BattlefieldIntervalResolutionOptions,
