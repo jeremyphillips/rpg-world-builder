@@ -50,6 +50,7 @@ export {
   findNearestUnoccupiedPassableCell,
   markerCausesBattlefieldAbsence,
   maybeRestoreBattlefieldPlacement,
+  reconcileBattlefieldPresenceForCombatants,
   stripPlacementAndRememberReturnCell,
 } from './battlefield-return-placement'
 export { createEncounterState, advanceEncounterTurn, formatRuntimeEffectLabel, mergeCombatantsIntoEncounter, removeCombatantFromInitiativeOrder } from './runtime'

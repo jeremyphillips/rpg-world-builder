@@ -149,3 +149,20 @@ export function maybeRestoreBattlefieldPlacement(state: EncounterState, combatan
     return rest
   })
 }
+
+/**
+ * Run {@link maybeRestoreBattlefieldPlacement} for each combatant id (deduped, stable order).
+ * Use when linked markers are removed without `removeStateFromCombatant` — e.g. concentration
+ * `dropConcentration` strips states by id; battlefield absence may end and grid return must apply immediately.
+ */
+export function reconcileBattlefieldPresenceForCombatants(
+  state: EncounterState,
+  combatantIds: string[],
+): EncounterState {
+  const unique = [...new Set(combatantIds)].sort((a, b) => a.localeCompare(b))
+  let next = state
+  for (const id of unique) {
+    next = maybeRestoreBattlefieldPlacement(next, id)
+  }
+  return next
+}

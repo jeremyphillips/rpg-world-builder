@@ -1,4 +1,5 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
+import { reconcileBattlefieldPresenceForCombatants } from './battlefield-return-placement'
 import type { ConcentrationState, EncounterState } from './types'
 import { updateCombatant } from './shared'
 import { appendLog, getCombatantLabel } from './logging'
@@ -81,6 +82,8 @@ export function dropConcentration(
     }),
   }))
 
+  const reconcileIds = new Set<string>([casterId])
+
   for (const [id, instance] of Object.entries(nextState.combatantsById)) {
     if (id === casterId) continue
     const activeEffectLinked = instance.activeEffects.some((e: Effect) => {
@@ -98,6 +101,7 @@ export function dropConcentration(
       activeEffectLinked
 
     if (hasLinked) {
+      reconcileIds.add(id)
       nextState = updateCombatant(nextState, id, (combatant) => ({
         ...combatant,
         conditions: combatant.conditions.filter((m) => !linkedIds.has(m.id)),
@@ -113,6 +117,8 @@ export function dropConcentration(
       }))
     }
   }
+
+  nextState = reconcileBattlefieldPresenceForCombatants(nextState, [...reconcileIds])
 
   return appendLog(nextState, {
     type: 'note',

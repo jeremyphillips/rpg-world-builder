@@ -4,6 +4,7 @@ import { createSquareGridSpace } from '@/features/encounter/space'
 import type { CombatantPosition, EncounterSpace } from '@/features/encounter/space'
 
 import { addStateToCombatant, removeStateFromCombatant } from './condition-mutations'
+import { dropConcentration } from './concentration-mutations'
 import {
   findNearestUnoccupiedPassableCell,
   markerCausesBattlefieldAbsence,
@@ -152,5 +153,36 @@ describe('banishment clears occupancy and restores on return', () => {
     expect(wizPlacement!.cellId).not.toBe(c00.id)
     const placed = space.cells.find((c) => c.id === wizPlacement!.cellId)!
     expect(Math.max(Math.abs(placed.x - c00.x), Math.abs(placed.y - c00.y))).toBe(1)
+  })
+
+  it('restores grid placement immediately when banished is stripped via dropConcentration (concentration ends)', () => {
+    const space = createSquareGridSpace({ id: 'g', name: 'g', columns: 4, rows: 4, cellFeet: 5 })
+    const c00 = space.cells.find((c) => c.x === 0 && c.y === 0)!
+    const c11 = space.cells.find((c) => c.x === 1 && c.y === 1)!
+
+    const caster = minimalCombatant('caster', {
+      concentration: {
+        spellId: 'banishment',
+        spellLabel: 'Banishment',
+        linkedMarkerIds: ['banished'],
+        remainingTurns: 10,
+        totalTurns: 10,
+      },
+    })
+    const target = minimalCombatant('target', {
+      side: 'enemies',
+      states: [{ id: 'banished', label: 'banished' }],
+      battlefieldReturnCellId: c00.id,
+    })
+
+    let state = makeEncounter([caster, target], space, [{ combatantId: 'caster', cellId: c11.id }])
+
+    expect(state.placements?.some((p) => p.combatantId === 'target')).toBe(false)
+
+    state = dropConcentration(state, 'caster')
+
+    expect(state.combatantsById.target?.states.some((s) => s.label === 'banished')).toBe(false)
+    expect(state.placements?.find((p) => p.combatantId === 'target')?.cellId).toBe(c00.id)
+    expect(state.combatantsById.target?.battlefieldReturnCellId).toBeUndefined()
   })
 })
