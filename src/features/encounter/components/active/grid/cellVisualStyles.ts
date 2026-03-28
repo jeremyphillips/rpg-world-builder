@@ -29,6 +29,14 @@ function baseFillSx(theme: Theme, kind: CellBaseFillKind): SystemStyleObject<The
       return { bgcolor: alpha(palette.secondary.main, 0.3) }
     case 'paper':
       return { bgcolor: palette.background.paper }
+    case 'visibility-dim':
+      return { bgcolor: alpha(palette.common.black, 0.18) }
+    case 'visibility-darkness':
+      return { bgcolor: alpha(palette.common.black, 0.45) }
+    case 'visibility-magical-darkness':
+      return { bgcolor: alpha(palette.common.black, 0.62) }
+    case 'visibility-hidden':
+      return { bgcolor: alpha(palette.common.black, 0.88) }
     default: {
       const _exhaustive: never = kind
       return _exhaustive

@@ -1,4 +1,5 @@
 import type { CombatantInstance } from '../state/types'
+import type { EncounterViewerPerceptionCapabilities } from '../environment/perception.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 
 export interface ResolveCombatActionSelection {
@@ -46,4 +47,9 @@ export interface ResolveCombatActionOptions {
    * Set false for pure core (friendly fire / PC vs PC on same side allowed). Prefer driving from ruleset `mechanics.combat.encounter.suppressSameSideHostile` in app code.
    */
   suppressSameSideHostileActions?: boolean
+  /**
+   * Passed into effect resolution for sight-based checks (`CheckEffect.requiresSight`) and other
+   * shared-perception call sites that accept `EncounterViewerPerceptionCapabilities`.
+   */
+  perceptionCapabilities?: EncounterViewerPerceptionCapabilities
 }

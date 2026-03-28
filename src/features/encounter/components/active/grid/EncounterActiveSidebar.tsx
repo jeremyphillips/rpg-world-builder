@@ -14,7 +14,7 @@ import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import type { CombatantInstance, EncounterState } from '@/features/mechanics/domain/encounter'
-import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
+import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatants/combatant-participation'
 
 import { AllyCombatantActivePreviewCard } from '../cards/AllyCombatantActivePreviewCard'
 import { OpponentCombatantActivePreviewCard } from '../cards/OpponentCombatantActivePreviewCard'

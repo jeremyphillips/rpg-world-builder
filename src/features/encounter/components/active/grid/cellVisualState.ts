@@ -1,8 +1,12 @@
+import type { EncounterGridCellRenderState } from '@/features/mechanics/domain/encounter/environment/perception.render.projection'
+
 import type { GridCellViewModel } from '../../../space/space.selectors'
 
 /**
  * Resolved base fill / overlay intent (top-down precedence). Used by {@link getCellVisualSx}.
  * `aoe-cast-range` is first-class: cast-range band when no higher-priority tint applies (style map may use paper-equivalent fill).
+ *
+ * `visibility-*` kinds are **presentation-only** tints from viewer perception projection — not tactical rules.
  */
 export type CellBaseFillKind =
   | 'blocked'
@@ -15,6 +19,10 @@ export type CellBaseFillKind =
   | 'aoe-cast-range'
   | 'persistent-attached-aura'
   | 'paper'
+  | 'visibility-dim'
+  | 'visibility-darkness'
+  | 'visibility-magical-darkness'
+  | 'visibility-hidden'
 
 /**
  * Movement emphasis on top of base fill. Mutually exclusive branches match legacy EncounterGrid behavior.
@@ -104,5 +112,25 @@ export function getCellVisualState(cell: GridCellViewModel, ctx: CellVisualConte
     baseFillKind: resolveBaseFillKind(cell),
     movementFillSuppressedByOverlay: suppressMovementFill,
     movementVisual,
+  }
+}
+
+/** When true, viewer perception tint may replace the tactical base fill (see {@link mergePerceptionIntoCellVisualState}). */
+export function tacticalBaseFillAllowsPerceptionTint(baseFillKind: CellBaseFillKind): boolean {
+  return baseFillKind === 'paper' || baseFillKind === 'persistent-attached-aura'
+}
+
+/**
+ * Layers perception presentation onto tactical cell visuals. World/encounter state is unchanged — display only.
+ */
+export function mergePerceptionIntoCellVisualState(
+  tactical: CellVisualState,
+  perception: EncounterGridCellRenderState | undefined,
+): CellVisualState {
+  if (!perception?.perceptionBaseFillKind) return tactical
+  if (!tacticalBaseFillAllowsPerceptionTint(tactical.baseFillKind)) return tactical
+  return {
+    ...tactical,
+    baseFillKind: perception.perceptionBaseFillKind,
   }
 }

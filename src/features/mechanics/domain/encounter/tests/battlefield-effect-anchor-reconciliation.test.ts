@@ -8,8 +8,8 @@ import { resolveCombatAction } from '../resolution'
 import {
   reconcileBattlefieldEffectAnchors,
   moveGridObstacleInEncounterState,
-} from '../state/battlefield-effect-anchor-reconciliation'
-import { resolveBattlefieldEffectOriginCellId } from '../state/battlefield-effect-anchor'
+} from '../state/auras/battlefield-effect-anchor-reconciliation'
+import { resolveBattlefieldEffectOriginCellId } from '../state/battlefield/battlefield-effect-anchor'
 import { createEncounterState } from '../state/runtime'
 import type { BattlefieldEffectInstance } from '../state/types'
 

@@ -32,6 +32,57 @@ export interface CombatantAttackEntry {
   range?: CombatantAttackRange
 }
 
+/** 0 = none, 1 = proficient, 2 = expertise (same semantics as character `ProficiencyLevel`). */
+export type CombatantSkillProficiencyLevel = 0 | 1 | 2
+
+/**
+ * Minimal Perception / Stealth runtime seam for encounter rules (no generalized skill engine).
+ * Populated by character/monster combatant builders; stealth rules read only this plus ability scores.
+ */
+/**
+ * Feat/trait-sourced inputs for hide eligibility (`sight-hide-rules` / `combatant-hide-eligibility.ts`).
+ * Extend with new optional booleans as hide rules grow; keep in sync with `CombatantHideEligibilityExtension.featureFlags`.
+ */
+export type CombatantHideEligibilityFeatureFlagsRuntime = {
+  allowHalfCoverForHide?: boolean
+  /** Dim light alone (`lightingLevel === 'dim'`) counts as hide basis only when set — not universal. */
+  allowDimLightHide?: boolean
+  /**
+   * Magically tagged **light** obscurement (`visibilityObscured === 'light'` and merged `world.magical`).
+   * Natural (non-magical) light obscurement remains baseline for everyone; see `sight-hide-rules.ts`.
+   */
+  allowMagicalConcealmentHide?: boolean
+  /**
+   * **Difficult terrain** on the hider’s merged cell (`terrainMovement` **`difficult`** or **`greater-difficult`**)
+   * counts as hide world basis (brush, rubble). Entry + sustain; hider cell only, not observer-relative.
+   */
+  allowDifficultTerrainHide?: boolean
+  /**
+   * **High wind** on the hider’s merged cell (`atmosphereTags` includes **`high-wind`**) counts as hide
+   * world basis (dust, noise). Entry + sustain; hider cell only.
+   */
+  allowHighWindHide?: boolean
+}
+
+export type CombatantSkillRuntimeSnapshot = {
+  /** Ruleset or creature proficiency bonus; used as `bonus × proficiencyLevel` for skills when deriving modifiers. */
+  proficiencyBonus?: number
+  /** Wisdom (Perception): proficiency level for passive Perception derivation. */
+  perceptionProficiencyLevel?: CombatantSkillProficiencyLevel
+  /** Dexterity (Stealth): proficiency level for Stealth check modifier derivation. */
+  stealthProficiencyLevel?: CombatantSkillProficiencyLevel
+  /** Authoritative passive Perception when authored (e.g. monster senses). Takes precedence over derivation. */
+  passivePerception?: number
+  /** When set, Stealth check uses this total modifier instead of Dex + proficiency contribution. */
+  stealthCheckModifierOverride?: number
+  /**
+   * Authoring-time hide-eligibility flags (feats/traits from builders). OR-merged in
+   * `getCombatantHideEligibilityExtensionOptions` with temporary `activeEffects` / marker grants — not
+   * the persisted stealth snapshot (see `stealth.hideEligibility`).
+   */
+  hideEligibilityFeatureFlags?: CombatantHideEligibilityFeatureFlagsRuntime
+}
+
 export interface CombatantStatBlock {
   armorClass: number
   maxHitPoints: number
@@ -41,6 +92,10 @@ export interface CombatantStatBlock {
   abilityScores?: Partial<Record<AbilityKey, number>>
   savingThrowModifiers?: Partial<Record<AbilityKey, number>>
   speeds?: Partial<Record<'ground' | 'climb' | 'fly' | 'swim' | 'burrow', number>>
+  /** Perception / Stealth proficiency thread; preferred source for passive Perception and Stealth modifiers. */
+  skillRuntime?: CombatantSkillRuntimeSnapshot
+  /** Legacy/explicit passive Perception on stats (e.g. tests). Precedence: `skillRuntime.passivePerception` then this field. */
+  passivePerception?: number
 }
 
 export interface RuntimeMarkerDuration {
@@ -278,6 +333,52 @@ export type CombatantTurnStatus = {
   remainsInInitiative: boolean
 }
 
+/**
+ * Hide eligibility extension flags persisted on stealth — same semantic shape as
+ * `HideEligibilityExtensionOptions` / `cellWorldSupportsHideAttemptWorldBasis` in `sight-hide-rules.ts`
+ * (import cycle avoided by duplicating the minimal surface here).
+ */
+export type CombatantHideEligibilityExtension = {
+  featureFlags?: {
+    allowHalfCoverForHide?: boolean
+    allowDimLightHide?: boolean
+    allowMagicalConcealmentHide?: boolean
+    allowDifficultTerrainHide?: boolean
+    allowHighWindHide?: boolean
+  }
+}
+
+/**
+ * Observer-relative **non-visual** location hints (e.g. sound). Does **not** grant sight or satisfy
+ * requires-sight targeting — see `awareness-rules.ts` and `canSeeForTargeting`.
+ */
+export interface CombatantAwarenessRuntime {
+  /**
+   * Observer combatant id → **grid cell id** this observer currently attributes to the subject.
+   * Cleared for a pair when the observer can **perceive the subject’s occupant** (vision supersedes).
+   */
+  guessedCellByObserverId?: Record<string, string>
+}
+
+/**
+ * Observer-relative stealth bookkeeping on the **subject** (hider). Not a substitute for perception
+ * (`canPerceiveTargetOccupantForCombat` remains the sight seam); stealth layers rules that need
+ * hidden-state semantics. Extend with metadata later without reshaping `CombatantInstance`.
+ */
+export interface CombatantStealthRuntime {
+  /**
+   * Observers for whom this combatant is treated as **hidden** (runtime stealth), subject to
+   * reconciliation with perception in `stealth-rules.ts`.
+   */
+  hiddenFromObserverIds: string[]
+  /**
+   * Eligibility extension flags in effect for this hider (e.g. from successful hide resolution or
+   * manual application). **Stealth sustain** merges persisted values before call-site `StealthRulesOptions`
+   * so feat-style hide matches reconciliation after the hide succeeds.
+   */
+  hideEligibility?: CombatantHideEligibilityExtension
+}
+
 export interface CombatantInstance {
   instanceId: string
   side: CombatantSide
@@ -336,6 +437,16 @@ export interface CombatantInstance {
    * (e.g. banished, off-grid). Set when placement is cleared; cleared after a successful restore placement.
    */
   battlefieldReturnCellId?: string
+  /**
+   * Stealth / hidden-from-observers state (wrapper for future round/source/debug fields).
+   * Owned and mutated only via `stealth-rules.ts`.
+   */
+  stealth?: CombatantStealthRuntime
+  /**
+   * Sound / guessed-cell awareness (observer-relative). Owned and mutated via `awareness-rules.ts`.
+   * Independent of `stealth` — a subject may be hidden and still have guessed cells for some observers.
+   */
+  awareness?: CombatantAwarenessRuntime
   conditions: RuntimeMarker[]
   states: RuntimeMarker[]
 }

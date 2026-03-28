@@ -138,7 +138,7 @@ Turn Triggers, System Details).
 | File | Role |
 |---|---|
 | `src/features/mechanics/domain/conditions/effect-condition-definitions.ts` | `EFFECT_CONDITION_DEFINITIONS` -- PHB condition data; `DAMAGE_IMPLIES_CONDITION` -- damage→condition dedup map |
-| `src/features/mechanics/domain/encounter/state/condition-rules/condition-definitions.ts` | `CONDITION_RULES` -- mechanical consequence rules |
+| `src/features/mechanics/domain/encounter/state/conditions/condition-rules/condition-definitions.ts` | `CONDITION_RULES` -- mechanical consequence rules |
 | `src/features/encounter/domain/effects/presentable-effects.types.ts` | `CombatStateTone`, `CombatStatePriority`, `CombatStateSection`, `CombatStatePresentation`, `EnrichedPresentableEffect` |
 | `src/features/encounter/domain/effects/presentable-effects.ts` | `collectPresentableEffects`, `enrichPresentableEffects`, `sortByPriority`, `groupBySection` |
 | `src/features/encounter/domain/effects/combat-state-ui-map.ts` | `COMBAT_STATE_UI_MAP` -- merged lookup from condition definitions + engine markers |

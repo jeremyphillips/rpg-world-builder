@@ -1,6 +1,6 @@
 # Encounter death, defeat, and remains (domain model)
 
-Reference for mechanics encounter semantics: participation, recorded death, remains, and targeting. **Authoritative implementation:** [`src/features/mechanics/domain/encounter/state/combatant-participation.ts`](../../src/features/mechanics/domain/encounter/state/combatant-participation.ts) and [`action-targeting.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-targeting.ts).
+Reference for mechanics encounter semantics: participation, recorded death, remains, and targeting. **Authoritative implementation:** [`src/features/mechanics/domain/encounter/state/combatants/combatant-participation.ts`](../../src/features/mechanics/domain/encounter/state/combatants/combatant-participation.ts) and [`action-targeting.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-targeting.ts).
 
 ---
 

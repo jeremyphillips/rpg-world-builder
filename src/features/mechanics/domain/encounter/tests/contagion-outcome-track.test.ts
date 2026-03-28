@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { addConditionToCombatant, createEncounterState, updateEncounterCombatant } from '../state'
-import { executeTurnHooks } from '../state/turn-hooks'
+import { executeTurnHooks } from '../state/effects/turn-hooks'
 import type { CombatantInstance, RuntimeTurnHook } from '../state'
 
 function enemy(id: string, label: string, hp: number): CombatantInstance {

@@ -42,7 +42,7 @@ Pair **`emanation`** with a **`targeting`** effect whose **`area`** matches the 
 
 ## 3. Source identity (`AttachedBattlefieldEffectSource`)
 
-Defined in [`attached-battlefield-source.ts`](../../src/features/mechanics/domain/encounter/state/attached-battlefield-source.ts):
+Defined in [`attached-battlefield-source.ts`](../../src/features/mechanics/domain/encounter/state/auras/attached-battlefield-source.ts):
 
 | `kind` | Payload | Typical use |
 | --- | --- | --- |
@@ -52,7 +52,7 @@ Defined in [`attached-battlefield-source.ts`](../../src/features/mechanics/domai
 
 **Stable instance ids:** **`attachedAuraInstanceId(source, actorId)`** — unique per source + casting combatant.
 
-**Spell concentration:** **`concentrationLinkedMarkerIdForSpellAttachedEmanation(spellId)`** links concentration cleanup to the attached row; dropping concentration calls **`removeAttachedAurasForSpell`** ([`concentration-mutations.ts`](../../src/features/mechanics/domain/encounter/state/concentration-mutations.ts)).
+**Spell concentration:** **`concentrationLinkedMarkerIdForSpellAttachedEmanation(spellId)`** links concentration cleanup to the attached row; dropping concentration calls **`removeAttachedAurasForSpell`** ([`concentration-mutations.ts`](../../src/features/mechanics/domain/encounter/state/effects/concentration-mutations.ts)).
 
 ## 4. Spells
 
@@ -80,12 +80,12 @@ All sources share the same pipeline once **`BattlefieldEffectInstance`** exists.
 
 | Concern | Primary modules |
 | --- | --- |
-| Origin cell | [`resolveBattlefieldEffectOriginCellId`](../../src/features/mechanics/domain/encounter/state/battlefield-effect-anchor.ts) |
-| Turn-boundary intervals | [`battlefield-interval-resolution.ts`](../../src/features/mechanics/domain/encounter/state/battlefield-interval-resolution.ts) |
-| Movement entry (`spatialTriggers: ['enter']`) | [`battlefield-spatial-entry-resolution.ts`](../../src/features/mechanics/domain/encounter/state/battlefield-spatial-entry-resolution.ts) |
-| Spatial speed multipliers | [`battlefield-spatial-movement-modifiers.ts`](../../src/features/mechanics/domain/encounter/state/battlefield-spatial-movement-modifiers.ts) |
-| Shared helpers (sphere check, synthetic actions, DC injection) | [`battlefield-attached-aura-shared.ts`](../../src/features/mechanics/domain/encounter/state/battlefield-attached-aura-shared.ts) |
-| Loading spell/trait effects by source | [`battlefield-attached-source-effects.ts`](../../src/features/mechanics/domain/encounter/state/battlefield-attached-source-effects.ts) |
+| Origin cell | [`resolveBattlefieldEffectOriginCellId`](../../src/features/mechanics/domain/encounter/state/battlefield/battlefield-effect-anchor.ts) |
+| Turn-boundary intervals | [`battlefield-interval-resolution.ts`](../../src/features/mechanics/domain/encounter/state/battlefield/battlefield-interval-resolution.ts) |
+| Movement entry (`spatialTriggers: ['enter']`) | [`battlefield-spatial-entry-resolution.ts`](../../src/features/mechanics/domain/encounter/state/battlefield/battlefield-spatial-entry-resolution.ts) |
+| Spatial speed multipliers | [`battlefield-spatial-movement-modifiers.ts`](../../src/features/mechanics/domain/encounter/state/battlefield/battlefield-spatial-movement-modifiers.ts) |
+| Shared helpers (sphere check, synthetic actions, DC injection) | [`battlefield-attached-aura-shared.ts`](../../src/features/mechanics/domain/encounter/state/auras/battlefield-attached-aura-shared.ts) |
+| Loading spell/trait effects by source | [`battlefield-attached-source-effects.ts`](../../src/features/mechanics/domain/encounter/state/auras/battlefield-attached-source-effects.ts) |
 
 ## 8. Encounter UI (high level)
 
@@ -117,7 +117,7 @@ flowchart LR
 **In place today**
 
 - **`attachedEmanation.anchorMode`** on [`CombatActionDefinition`](../../src/features/mechanics/domain/encounter/resolution/combat-action.types.ts) and authored **`EmanationEffect.anchorMode`**.
-- Cast-time selection + resolver mapping for **`caster`**, **`place`**, **`creature`**, and **`object`** anchors ([`action-resolver.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-resolver.ts), [`battlefield-effect-anchor.ts`](../../src/features/mechanics/domain/encounter/state/battlefield-effect-anchor.ts)).
+- Cast-time selection + resolver mapping for **`caster`**, **`place`**, **`creature`**, and **`object`** anchors ([`action-resolver.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-resolver.ts), [`battlefield-effect-anchor.ts`](../../src/features/mechanics/domain/encounter/state/battlefield/battlefield-effect-anchor.ts)).
 - Example **place**-anchored authored spell: **Darkness** (sphere at a point) — validates content → adapter → UI → resolver → runtime → grid for non-caster anchoring ([`darkness-place-anchor.test.ts`](../../src/features/mechanics/domain/encounter/tests/darkness-place-anchor.test.ts)).
 - **Single-cell vs AoE** remains a separate concept: [`SingleCellPlacementPanel`](../../src/features/encounter/components/active/drawers/drawer-modes/SingleCellPlacementPanel.tsx) is for **`getActionRequirements`** spawn/single-cell rules ([`action-requirement-model.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-requirement-model.ts)), not emanation. Point-based emanations use the **AoE origin** path.
 
@@ -125,11 +125,11 @@ flowchart LR
 
 | Priority | Modeling | Why it matters |
 | --- | --- | --- |
-| **1** | **Object anchor lifecycle** — obstacle moves, removal, carried vs fixed object; snapshot vs live cell in [`resolveBattlefieldEffectOriginCellId`](../../src/features/mechanics/domain/encounter/state/battlefield-effect-anchor.ts). | Completes the anchor matrix (place/creature/caster already exercised); unlocks “cast on object” spheres without a new pipeline. |
+| **1** | **Object anchor lifecycle** — obstacle moves, removal, carried vs fixed object; snapshot vs live cell in [`resolveBattlefieldEffectOriginCellId`](../../src/features/mechanics/domain/encounter/state/battlefield/battlefield-effect-anchor.ts). | Completes the anchor matrix (place/creature/caster already exercised); unlocks “cast on object” spheres without a new pipeline. |
 | **2** | **Mobile / re-anchorable zones** — bonus or magic action to move the area (e.g. Moonbeam, Flaming Sphere patterns) on the **same** `BattlefieldEffectInstance`. | Many emanations are not static after cast; same data model should accept anchor updates with explicit action + range rules. |
 | **3** | **Zone semantics: obscurement, light, vision** — sphere membership driving heavily obscured, advantage/disadvantage, darkvision limits, light/dispel overlap. | Footprint alone is insufficient for Darkness, fog, and similar; largest *play* gap once anchors work. |
 | **4** | **Cast-time beneficiary semantics** — distinguish Spirit Guardians **“unaffected”** from **chosen allies / willing targets** (may need more than `selectUnaffectedAtCast`: a small enum or structured field + UI copy). | Avoids misusing one boolean for different SRD patterns (Pass without Trace, Holy Aura, etc.). |
-| **5** | **Deferral cleanup** — stop stripping **`interval`** / **`modifier`** where the shared battlefield modules can apply them ([`battlefield-interval-resolution.ts`](../../src/features/mechanics/domain/encounter/state/battlefield-interval-resolution.ts), spatial entry, speed). | Finishes automation for spells already modeled in data (e.g. Spirit Guardians) using existing infrastructure. |
+| **5** | **Deferral cleanup** — stop stripping **`interval`** / **`modifier`** where the shared battlefield modules can apply them ([`battlefield-interval-resolution.ts`](../../src/features/mechanics/domain/encounter/state/battlefield/battlefield-interval-resolution.ts), spatial entry, speed). | Finishes automation for spells already modeled in data (e.g. Spirit Guardians) using existing infrastructure. |
 
 **Polish (non-blocking)**
 

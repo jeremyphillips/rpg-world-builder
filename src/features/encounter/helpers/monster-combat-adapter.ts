@@ -19,7 +19,7 @@ import {
   type RuntimeTurnHook,
 } from '@/features/mechanics/domain/encounter'
 import { formatAuthoredDamage } from './combatant-builders'
-import { injectSpellSaveDcDeep } from '@/features/mechanics/domain/encounter/state/battlefield-attached-aura-shared'
+import { injectSpellSaveDcDeep } from '@/features/mechanics/domain/encounter/state/auras/battlefield-attached-aura-shared'
 import { buildMonsterActionRuntimeId } from './monster-action-runtime-ids'
 
 function formatDice(value: DiceOrFlat | undefined): string | undefined {

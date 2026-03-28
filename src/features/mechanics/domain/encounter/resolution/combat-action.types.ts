@@ -1,5 +1,6 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
-import type { AttachedBattlefieldEffectSource } from '../state/attached-battlefield-source'
+import type { AttachedEnvironmentZoneProfile } from '../environment/environment.types'
+import type { AttachedBattlefieldEffectSource } from '../state/auras/attached-battlefield-source'
 import type { AbilityId } from '@/features/mechanics/domain/character'
 import type { BreakdownToken } from '../../resolution/resolvers/stat-resolver'
 import type { CasterOptionField } from '../../spells/caster-options'
@@ -10,7 +11,7 @@ export type CombatActionKind =
   | 'spell'
   | 'combat-effect'
 
-export type CombatActionResolutionMode = 'attack-roll' | 'saving-throw' | 'effects' | 'log-only'
+export type CombatActionResolutionMode = 'attack-roll' | 'saving-throw' | 'effects' | 'log-only' | 'hide'
 
 export interface CombatActionCost {
   action?: boolean
@@ -39,6 +40,11 @@ export interface CombatActionSaveProfile {
   halfDamageOnSave?: boolean
 }
 
+/** When `resolutionMode === 'hide'`, Stealth modifier for the d20 roll (omit to use dex-based default from resolver). */
+export type CombatActionHideProfile = {
+  stealthModifier?: number
+}
+
 export interface CombatActionTargetingProfile {
   kind:
     | 'single-target'
@@ -62,10 +68,20 @@ export interface CombatActionTargetingProfile {
    */
   requiresWilling?: boolean
   /**
-   * From spell targeting metadata: “creature you can see.” Validated via {@link canSeeForTargeting}
-   * (blinded, invisible vs See Invisibility, LOS/LoE stubs). Ignored for `self` and `all-enemies` in the resolver.
+   * From spell targeting metadata: “creature you can see.” Validated via {@link canSeeForTargeting} (delegates
+   * to `canPerceiveTargetOccupantForCombat` in `combatant-pair-visibility.ts`) — same seam as attack-roll
+   * visibility: **occupant** perception (not cell-only), including world/perception (heavy obscurement,
+   * magical darkness) after blinded / invisible vs See Invisibility / LOS. Ignored for `self` and `all-enemies`
+   * in the resolver.
    */
   requiresSight?: boolean
+  /**
+   * When **`requiresSight`** is false/undefined: whether an observer may target using **guessed cell**
+   * awareness on the subject (`CombatantAwarenessRuntime`) when they cannot **`canSeeForTargeting`** the
+   * occupant. Defaults **true** — “fully unknown” location fails; **false** forces sight-only (same as
+   * requiring visible occupant) without setting **`requiresSight`**.
+   */
+  allowGuessedLocationWhenUnseen?: boolean
 }
 
 export interface CombatActionMovementProfile {
@@ -123,6 +139,8 @@ export interface CombatActionDefinition {
   damage?: string
   damageType?: string
   saveProfile?: CombatActionSaveProfile
+  /** When `resolutionMode === 'hide'`: rolled Stealth total = d20 + modifier from profile or dex-based default. */
+  hideProfile?: CombatActionHideProfile
   targeting?: CombatActionTargetingProfile
   movement?: CombatActionMovementProfile
   usage?: CombatActionUsage
@@ -173,5 +191,20 @@ export interface CombatActionDefinition {
      * `object`, selecting between point-in-space vs grid obstacle anchor at cast time.
      */
     anchorChoiceFieldId?: string
+    /**
+     * When set, copied onto the persisted battlefield effect row so environment zone reconciliation can
+     * project world coverage (e.g. magical darkness) from authored metadata.
+     */
+    environmentZoneProfile?: AttachedEnvironmentZoneProfile
   }
+}
+
+/** Standard Hide action: `resolutionMode: 'hide'` rolls Stealth and resolves vs passive Perception in the resolver. */
+export const DEFAULT_HIDE_COMBAT_ACTION: CombatActionDefinition = {
+  id: 'combat-hide',
+  label: 'Hide',
+  kind: 'combat-effect',
+  cost: { action: true },
+  resolutionMode: 'hide',
+  targeting: { kind: 'self' },
 }

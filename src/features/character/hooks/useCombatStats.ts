@@ -201,6 +201,7 @@ export function useCombatStats(character: Character) {
       armorClass: acResult.value,
       maxHp,
       initiative,
+      proficiencyBonus: context.self.proficiencyBonus,
       activeEffects: allEffects,
       calculatedArmorClass: {
         value: acResult.value,

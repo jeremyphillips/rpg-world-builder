@@ -19,7 +19,10 @@ import {
   type CombatantInstance,
 } from '../../state'
 import type { EffectDuration } from '../../../effects/timing.types'
-import type { ConditionImmunityGrantEffect } from '../../../effects/effects.types'
+import type {
+  ConditionImmunityGrantEffect,
+  HideEligibilityGrantEffect,
+} from '../../../effects/effects.types'
 import { getAbilityModifier } from '../../../abilities/getAbilityModifier'
 import { abilityIdToKey, type AbilityRef } from '../../../character'
 import type { Condition } from '../../../conditions/condition.types'
@@ -36,16 +39,18 @@ import {
   rollDamage,
   rollHealing,
 } from '../../../resolution/engines/dice.engine'
-import { inferStatModifierEligibilityFromEffect } from '../../state/equipment-eligibility'
-import { combatantToCreatureSnapshot } from '../../state/combatant-evaluation-snapshot'
-import { isImmuneToConditionIncludingScopedGrants } from '../../state/condition-immunity-resolution'
-import { hasIntactRemainsForRevival } from '../../state/combatant-participation'
+import { inferStatModifierEligibilityFromEffect } from '../../state/combatants/equipment-eligibility'
+import { combatantToCreatureSnapshot } from '../../state/combatants/combatant-evaluation-snapshot'
+import { isImmuneToConditionIncludingScopedGrants } from '../../state/conditions/condition-immunity-resolution'
+import { hasIntactRemainsForRevival } from '../../state/combatants/combatant-participation'
 import {
   applyGridSpawnReplacementFromTarget,
   pickNearestOpenCellIds,
   placeCombatant,
 } from '@/features/encounter/space'
 import { effectiveSpawnPlacement } from './action-requirement-model'
+import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
+import { getEncounterAbilityCheckSightDenialReason } from '../encounter-ability-check-resolution'
 
 function reviveBlockedReason(
   target: CombatantInstance,
@@ -198,6 +203,11 @@ export type ApplyActionEffectsOptions = {
   casterOptions?: Record<string, string>
   /** When set with `single-cell` spawn placement, places summoned combatants on this grid cell. */
   singleCellPlacementCellId?: string
+  /**
+   * For `check` effects with `requiresSight`, forwarded to the shared occupant perception seam
+   * (`getEncounterAbilityCheckSightDenialReason` → `canPerceiveTargetOccupantForCombat`).
+   */
+  perceptionCapabilities?: EncounterViewerPerceptionCapabilities
 }
 
 /** Spell duration as turn-count fixed duration for `activeEffects` (from `concentrationDurationTurns`). */
@@ -635,6 +645,25 @@ export function applyActionEffects(
     }
 
     if (effect.kind === 'check') {
+      const sightDenial = getEncounterAbilityCheckSightDenialReason(
+        nextState,
+        actor.instanceId,
+        target.instanceId,
+        effect.requiresSight,
+        options.perceptionCapabilities != null ? { capabilities: options.perceptionCapabilities } : undefined,
+      )
+      if (sightDenial != null) {
+        nextState = appendEncounterNote(
+          nextState,
+          `${options.sourceLabel}: Check blocked (${sightDenial}).`,
+          {
+            actorId: actor.instanceId,
+            targetIds: [target.instanceId],
+            details: `Sight-based check requires a visible subject (occupant perception). Denial reason: ${sightDenial}.`,
+          },
+        )
+        return
+      }
       nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Check DC ${effect.check.dc} ${effect.check.ability.toUpperCase()}${effect.check.skill ? ` (${effect.check.skill})` : ''} required.`, {
         actorId: actor.instanceId,
         targetIds: [target.instanceId],
@@ -792,6 +821,24 @@ export function applyActionEffects(
         `${options.sourceLabel}: Regeneration effect noted — runtime adapter handles turn hook seeding.`,
         { actorId: actor.instanceId, targetIds: [target.instanceId] },
       )
+      return
+    }
+
+    if (effect.kind === 'hide-eligibility-grant') {
+      const duration = effect.duration ?? spellTurnDurationFromAction(action)
+      const payload: HideEligibilityGrantEffect = {
+        ...effect,
+        ...(duration ? { duration } : {}),
+        source: effect.source ?? options.sourceLabel,
+      }
+      nextState = updateEncounterCombatant(nextState, target.instanceId, (c) => ({
+        ...c,
+        activeEffects: [...c.activeEffects, payload],
+      }))
+      nextState = appendEncounterNote(nextState, `${options.sourceLabel}: Hide eligibility flags granted (active effect).`, {
+        actorId: actor.instanceId,
+        targetIds: [target.instanceId],
+      })
       return
     }
 

@@ -56,6 +56,8 @@ export type CharacterDocForDetail = {
   hitPoints?: { total?: number; generationMethod?: string }
   armorClass?: { current?: number }
   combat?: { loadout?: { armorId?: string; shieldId?: string; mainHandWeaponId?: string; offHandWeaponId?: string } }
+  /** Stored feat content ids (e.g. `skulker`). */
+  feats?: string[]
   spells?: string[]
   narrative?: {
     personalityTraits?: string[]
@@ -175,6 +177,7 @@ export function toCharacterDetailDto(
     alignment: char.alignment ?? null,
     abilityScores,
     proficiencies,
+    feats: (char.feats ?? []).map((id) => ({ id, name: id })),
     equipment,
     wealth: {
       gp: char.wealth?.gp,
@@ -225,6 +228,7 @@ export function toCharacterForEngine(dto: CharacterDetailDto): import('@/feature
         dto.proficiencies.map((p) => [p.id, { proficiencyLevel: 1 }]),
       ),
     },
+    feats: dto.feats?.map((f) => f.id),
     spells: dto.spells,
     equipment: {
       armor: dto.equipment.armor.map((a) => a.id),

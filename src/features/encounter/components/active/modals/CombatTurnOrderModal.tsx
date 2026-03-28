@@ -6,7 +6,7 @@ import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/
 import {
   hasBattlefieldPresence,
   isDefeatedCombatant,
-} from '@/features/mechanics/domain/encounter/state/combatant-participation'
+} from '@/features/mechanics/domain/encounter/state/combatants/combatant-participation'
 import type { TurnOrderStatus } from '../../../domain'
 import { TurnOrderList } from './TurnOrderList'
 import type { TurnOrderEntry } from './TurnOrderList'

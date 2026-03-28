@@ -1,4 +1,4 @@
-export { getCombatantDisplayLabel } from './combatant-display-label'
+export { getCombatantDisplayLabel } from './combatants/combatant-display-label'
 export {
   canCombatantTakeActions,
   canCombatantTakeBonusActions,
@@ -13,44 +13,44 @@ export {
   isDeadCombatant,
   isDefeatedCombatant,
   shouldAutoSkipCombatantTurn,
-} from './combatant-participation'
+} from './combatants/combatant-participation'
 export {
   appendEncounterLogEvent,
   appendEncounterNote,
   appendHookTriggeredLog,
   getEncounterCombatantLabel,
-} from './logging'
+} from './effects/logging'
 export * from './types'
 export {
   addAttachedAuraInstance,
   removeAttachedAurasForSource,
   removeAttachedAurasForSpell,
-} from './attached-aura-mutations'
-export type { AttachedBattlefieldEffectSource } from './attached-battlefield-source'
-export type { BattlefieldEffectAnchor } from './battlefield-effect-anchor'
-export { resolveBattlefieldEffectOriginCellId } from './battlefield-effect-anchor'
+} from './auras/attached-aura-mutations'
+export type { AttachedBattlefieldEffectSource } from './auras/attached-battlefield-source'
+export type { BattlefieldEffectAnchor } from './battlefield/battlefield-effect-anchor'
+export { resolveBattlefieldEffectOriginCellId } from './battlefield/battlefield-effect-anchor'
 export {
   reconcileBattlefieldEffectAnchors,
   moveGridObstacleInEncounterState,
-} from './battlefield-effect-anchor-reconciliation'
+} from './auras/battlefield-effect-anchor-reconciliation'
 export {
   attachedAuraInstanceId,
   attachedBattlefieldSourceEquals,
   concentrationLinkedMarkerIdForSpellAttachedEmanation,
-} from './attached-battlefield-source'
+} from './auras/attached-battlefield-source'
 export {
   getEffectsForAttachedBattlefieldSource,
   getLabelForAttachedBattlefieldSource,
   type BattlefieldAttachedSourceResolutionOptions,
-} from './battlefield-attached-source-effects'
+} from './auras/battlefield-attached-source-effects'
 export {
   resolveIntervalEffectsForCombatantAtTurnBoundary,
   type BattlefieldIntervalResolutionOptions,
-} from './battlefield-interval-resolution'
+} from './battlefield/battlefield-interval-resolution'
 export {
   resolveAttachedAuraSpatialEntryAfterMovement,
   type BattlefieldSpatialEntryResolutionOptions,
-} from './battlefield-spatial-entry-resolution'
+} from './battlefield/battlefield-spatial-entry-resolution'
 export {
   combatantHasSpatialSpeedReduction,
   getEffectiveGroundMovementBudgetFt,
@@ -58,7 +58,7 @@ export {
   getSpeedMultiplyProductFromSpell,
   type BattlefieldSpellContext,
   type SpatialBattlefieldPresentationOptions,
-} from './battlefield-spatial-movement-modifiers'
+} from './battlefield/battlefield-spatial-movement-modifiers'
 export {
   addConditionToCombatant,
   addDamageResistanceMarker,
@@ -76,13 +76,91 @@ export {
   tickConcentrationDuration,
   updateEncounterCombatant,
   patchCombatantEquipmentSnapshot,
-} from './mutations'
-export { inferStatModifierEligibilityFromEffect } from './equipment-eligibility'
+  updateEncounterEnvironmentBaseline,
+} from './mutations/mutations'
+export { inferStatModifierEligibilityFromEffect } from './combatants/equipment-eligibility'
 export {
   lineOfSightClear,
   lineOfEffectClear,
   canSeeForTargeting,
-} from './visibility-seams'
+  canPerceiveTargetOccupantForCombat,
+  resolveCombatantPairVisibilityForAttackRoll,
+  getAttackVisibilityRollModifiersFromPair,
+} from './visibility/visibility-seams'
+export {
+  DEFAULT_OPPORTUNITY_ATTACK_REACH_FT,
+  getDefaultMeleeReachFtForOpportunityAttack,
+  reactorHasReactionBudgetForOpportunityAttack,
+  didHostileMoverLeaveMeleeReachOfReactor,
+  canReactorPerceiveDepartingOccupantForOpportunityAttack,
+  getOpportunityAttackLegalityDenialReason,
+  getCombatantIdsEligibleForOpportunityAttackAgainstMover,
+  type OpportunityAttackLegalityDenialReason,
+} from './reactions/opportunity-attack'
+export { getCombatantHideEligibilityExtensionOptions } from './stealth/combatant-hide-eligibility'
+export { FEAT_IDS_ALLOW_HALF_COVER_FOR_HIDE, featGrantsAllowHalfCoverForHide } from './stealth/hide-eligibility-feat-sources'
+export {
+  RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_HALF_COVER_ID,
+  RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_DIM_LIGHT_ID,
+  RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_MAGICAL_CONCEALMENT_ID,
+  RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_DIFFICULT_TERRAIN_ID,
+  RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_HIGH_WIND_ID,
+  mergeHideEligibilityFeatureFlagsOr,
+  resolveTemporaryHideEligibilityFeatureFlagsFromCombatantRuntime,
+} from './stealth/hide-eligibility-runtime-sources'
+export {
+  canVisuallyPerceiveSubjectForRules,
+  getSightBasedCheckLegalityDenialReason,
+  cellTerrainCoverSupportsHideBaseline,
+  cellWorldSupportsDifficultTerrainHideBasis,
+  cellWorldSupportsHighWindHideBasis,
+  cellWorldSupportsHideAttemptWorldBasis,
+  cellWorldSupportsHideConcealment,
+  getHideAttemptEligibilityDenialReason,
+  pairSupportsHideWorldBasisFromObserver,
+  resolveHideEligibilityForCombatant,
+  type GetHideAttemptEligibilityDenialReasonOptions,
+  type SightBasedCheckDenialReason,
+  type HideAttemptEligibilityDenialReason,
+  type HideEligibilityExtensionOptions,
+  type HideEligibilityFeatureFlags,
+} from './stealth/sight-hide-rules'
+export {
+  maxTerrainCoverGrade,
+  resolveTerrainCoverGradeForHideFromObserver,
+  terrainCoverGradeSupportsHideAttempt,
+} from './environment/observer-hide-terrain-cover'
+export {
+  applyStealthHideSuccess,
+  breakStealthOnAttack,
+  getStealthHideAttemptDenialReason,
+  isHiddenFromObserver,
+  applyEncounterEnvironmentBaselinePatchAndReconcileStealth,
+  reconcileStealthAfterMovementOrEnvironmentChange,
+  reconcileStealthBreakWhenNoConcealmentInCell,
+  reconcileStealthHiddenForPerceivedObservers,
+  resolveDefaultHideObservers,
+  resolveHideWithPassivePerception,
+  stealthBeatsPassivePerception,
+  type HideResolutionOutcome,
+  type StealthRulesOptions,
+} from './stealth/stealth-rules'
+export {
+  applyNoiseAwarenessForSubject,
+  clearGuessedCellForObserver,
+  getGuessedCellForObserver,
+  reconcileAwarenessGuessesWithPerception,
+  resolveTargetLocationAwareness,
+  setGuessedCellForObserver,
+  type NoiseAwarenessKind,
+  type TargetLocationAwarenessResolution,
+} from './awareness/awareness-rules'
+export {
+  getCombatantAbilityScore,
+  getPassivePerceptionScore,
+  getStealthCheckModifier,
+} from './awareness/passive-perception'
+export { ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE } from './stealth/stealth-attack-integration'
 export {
   combatantHasBattlefieldAbsenceEngineState,
   findNearestUnoccupiedPassableCell,
@@ -90,7 +168,7 @@ export {
   maybeRestoreBattlefieldPlacement,
   reconcileBattlefieldPresenceForCombatants,
   stripPlacementAndRememberReturnCell,
-} from './battlefield-return-placement'
+} from './battlefield/battlefield-return-placement'
 export {
   createEncounterState,
   advanceEncounterTurn,
@@ -99,10 +177,10 @@ export {
   removeCombatantFromInitiativeOrder,
   type AdvanceEncounterTurnOptions,
 } from './runtime'
-export { triggerManualHook } from './manual-hooks'
+export { triggerManualHook } from './effects/manual-hooks'
 export { effectDurationToRuntimeDuration, formatMarkerLabel } from './shared'
-export { combatantToCreatureSnapshot } from './combatant-evaluation-snapshot'
-export { isImmuneToConditionIncludingScopedGrants } from './condition-immunity-resolution'
+export { combatantToCreatureSnapshot } from './combatants/combatant-evaluation-snapshot'
+export { isImmuneToConditionIncludingScopedGrants } from './conditions/condition-immunity-resolution'
 export {
   ALL_MARKER_RULES,
   CONDITION_RULES,
@@ -137,4 +215,4 @@ export {
   type MarkerRule,
   type SourceRelativeRestriction,
   type ConsequenceWithOrigin,
-} from './condition-rules'
+} from './conditions/condition-rules'

@@ -1,5 +1,5 @@
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
-import { isActiveCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
+import { isActiveCombatant } from '@/features/mechanics/domain/encounter/state/combatants/combatant-participation'
 
 export type EncounterSideOutcome =
   | { kind: 'ongoing' }

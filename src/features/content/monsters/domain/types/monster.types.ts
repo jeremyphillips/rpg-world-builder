@@ -98,6 +98,17 @@ export interface MonsterFields {
     vulnerabilities?: CreatureVulnerabilityDamageType[];
     /** Optional whole-stat-block resolution metadata; prefer per-trait/action `resolution` when possible. */
     resolution?: ContentResolutionMeta;
+    /**
+     * Optional encounter stealth permissions (same shape as combatant `skillRuntime.hideEligibilityFeatureFlags`).
+     * Authored on homebrew / special stat blocks; not a generalized trait engine.
+     */
+    hideEligibilityFeatureFlags?: {
+      allowHalfCoverForHide?: boolean;
+      allowDimLightHide?: boolean;
+      allowMagicalConcealmentHide?: boolean;
+      allowDifficultTerrainHide?: boolean;
+      allowHighWindHide?: boolean;
+    };
   };
 
   lore: {

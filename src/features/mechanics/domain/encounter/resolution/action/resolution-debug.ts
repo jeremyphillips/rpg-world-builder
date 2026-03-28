@@ -3,7 +3,7 @@ import type { EffectConditionId } from '../../../effects/effects.types'
 import type { D20RollMode } from '../../../resolution/engines/dice.engine'
 import type { CombatantInstance, RollModifierMarker } from '../../state/types'
 import type { CombatActionCost } from '../combat-action.types'
-import type { ConditionConsequence, SaveModConsequence, DamageInteractionConsequence } from '../../state/condition-rules'
+import type { ConditionConsequence, SaveModConsequence, DamageInteractionConsequence } from '../../state/conditions/condition-rules'
 import {
   CONDITION_RULES,
   getActiveConsequencesWithOrigin,
@@ -11,7 +11,7 @@ import {
   canTakeReactions,
   getSpeedConsequences,
   shouldCountAttackModForAttackRoll,
-} from '../../state/condition-rules'
+} from '../../state/conditions/condition-rules'
 
 export function formatAttackRollDebug(
   attacker: CombatantInstance,
@@ -20,8 +20,21 @@ export function formatAttackRollDebug(
   defenderMarkers: RollModifierMarker[],
   attackRange: 'melee' | 'ranged',
   rollMod: D20RollMode,
+  pairVisibility?: {
+    attackerCanSeeDefenderOccupant: boolean
+    defenderCanSeeAttackerOccupant: boolean
+  },
 ): string[] {
   const lines: string[] = [`roll mode: ${rollMod}`]
+
+  if (pairVisibility) {
+    if (!pairVisibility.attackerCanSeeDefenderOccupant) {
+      lines.push(`  unseen-target -> outgoing disadvantage (cannot perceive defender occupant)`)
+    }
+    if (!pairVisibility.defenderCanSeeAttackerOccupant) {
+      lines.push(`  unseen-attacker -> incoming advantage (defender cannot perceive attacker occupant)`)
+    }
+  }
 
   for (const m of attackerMarkers) {
     lines.push(`  ${m.label} -> outgoing ${m.modifier}`)

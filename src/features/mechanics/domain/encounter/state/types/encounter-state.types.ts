@@ -2,6 +2,11 @@ import type { InitiativeRoll } from '../../resolution'
 import type { CombatantInstance } from './combatant.types'
 import type { CombatLogEvent } from './combat-log.types'
 import type { EncounterSpace, CombatantPosition } from '@/features/encounter/space'
+import type {
+  AttachedEnvironmentZoneProfile,
+  EncounterEnvironmentBaseline,
+  EncounterEnvironmentZone,
+} from '../../environment/environment.types'
 import type { AttachedBattlefieldEffectSource } from '../attached-battlefield-source'
 import type { BattlefieldEffectAnchor } from '../battlefield-effect-anchor'
 
@@ -18,6 +23,8 @@ export type BattlefieldEffectInstance = {
   unaffectedCombatantIds: string[]
   /** Save DC at cast/use time for nested save payloads (intervals, spatial entry). */
   saveDc?: number
+  /** When set, `reconcileEnvironmentZonesFromAttachedAuras` keeps a matching environment zone in sync. */
+  environmentZoneProfile?: AttachedEnvironmentZoneProfile
 }
 
 /** @deprecated Use {@link BattlefieldEffectInstance}. */
@@ -38,4 +45,12 @@ export interface EncounterState {
   placements?: CombatantPosition[]
   /** Persistent battlefield effects (e.g. emanation auras). */
   attachedAuraInstances?: BattlefieldEffectInstance[]
+  /**
+   * **Runtime** global encounter environment (initialized from setup when the encounter starts).
+   * May change during play via `updateEncounterEnvironmentBaseline`. Layer with `environmentZones`
+   * for per-cell resolution (`resolveWorldEnvironmentForCell` / `resolveWorldEnvironmentFromEncounterState`).
+   */
+  environmentBaseline?: EncounterEnvironmentBaseline
+  /** Localized environment overrides (magical darkness patches, fog, etc.). */
+  environmentZones?: EncounterEnvironmentZone[]
 }

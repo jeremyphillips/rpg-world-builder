@@ -1,7 +1,7 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import { rollDie } from '@/features/mechanics/domain/resolution/engines/dice.engine'
-import { canTakeActions, canTakeReactions, getSpeedConsequences } from './condition-rules'
+import { canTakeActions, canTakeReactions, getSpeedConsequences } from './conditions/condition-rules'
 
 import type {
   CombatantInstance,
@@ -16,9 +16,9 @@ import type {
 } from './types'
 import { createCombatTurnResources } from './types'
 import type { EncounterState } from './types'
-import type { BattlefieldSpellContext } from './battlefield-spatial-movement-modifiers'
-import { getEffectiveGroundMovementBudgetFt } from './battlefield-spatial-movement-modifiers'
-import { getCombatantBaseMovement } from './combatant-movement-helpers'
+import type { BattlefieldSpellContext } from './battlefield/battlefield-spatial-movement-modifiers'
+import { getEffectiveGroundMovementBudgetFt } from './battlefield/battlefield-spatial-movement-modifiers'
+import { getCombatantBaseMovement } from './battlefield/combatant-movement-helpers'
 
 export function indexCombatants(combatants: CombatantInstance[]): Record<string, CombatantInstance> {
   return Object.fromEntries(combatants.map((combatant) => [combatant.instanceId, combatant]))
@@ -94,6 +94,8 @@ export function formatEffectLabel(effect: Effect): string {
         return `Immunity: ${effect.value}`
       }
       return effect.text ?? 'Grant'
+    case 'hide-eligibility-grant':
+      return effect.text ?? 'Hide eligibility grant'
     default:
       return effect.text ?? effect.kind.replaceAll('_', ' ')
   }
@@ -175,7 +177,7 @@ export function createEmptyTurnContext(): CombatantTurnContext {
   }
 }
 
-export { getCombatantBaseMovement } from './combatant-movement-helpers'
+export { getCombatantBaseMovement } from './battlefield/combatant-movement-helpers'
 
 export function getTrackedPartCount(combatant: CombatantInstance, part: 'head' | 'limb'): number {
   return combatant.trackedParts?.find((trackedPart) => trackedPart.part === part)?.currentCount ?? 0

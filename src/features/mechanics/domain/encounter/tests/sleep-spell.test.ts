@@ -5,7 +5,7 @@ import {
   applyDamageToCombatant,
   createEncounterState,
 } from '../state'
-import { executeTurnHooks } from '../state/turn-hooks'
+import { executeTurnHooks } from '../state/effects/turn-hooks'
 import type { CombatantInstance } from '../state'
 
 function baseEnemy(id: string, label: string, hp: number): CombatantInstance {

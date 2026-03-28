@@ -105,9 +105,17 @@ export {
 } from './capabilities/encounter-capabilities.types'
 export type {
   EncounterCapabilities,
+  EncounterSimulatorViewerMode,
   EncounterViewerContext,
   EncounterViewerRole,
 } from './capabilities/encounter-capabilities.types'
+export {
+  deriveEncounterPerceptionUiFeedback,
+} from './perception/encounter-perception-ui.feedback'
+export type {
+  EncounterPerceptionUiFeedback,
+  DeriveEncounterPerceptionUiFeedbackArgs,
+} from './perception/encounter-perception-ui.feedback'
 export type {
   CombatantPreviewMode,
   CombatantPreviewKind,

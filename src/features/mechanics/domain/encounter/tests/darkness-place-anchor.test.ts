@@ -7,7 +7,9 @@ import { classifySpellResolutionMode } from '@/features/encounter/helpers/spell-
 import { SPELLS_LEVEL_2_A_F } from '@/features/mechanics/domain/rulesets/system/spells/data/level2-a-f'
 import { resolveCombatAction } from '../resolution'
 import { createEncounterState } from '../state'
-import { resolveBattlefieldEffectOriginCellId } from '../state/battlefield-effect-anchor'
+import { environmentZoneIdForAttachedAuraInstance } from '../environment/environment-zones-battlefield-sync'
+import { resolveBattlefieldEffectOriginCellId } from '../state/battlefield/battlefield-effect-anchor'
+import { resolveWorldEnvironmentFromEncounterState } from '../environment/environment.resolve'
 import {
   getActionResolutionRequirements,
   isAreaGridCombatAction,
@@ -43,6 +45,7 @@ describe('Darkness — place-anchored emanation (shared anchor pipeline)', () =>
       selectUnaffectedAtCast: false,
       anchorMode: 'place-or-object',
       anchorChoiceFieldId: 'darkness-anchor',
+      environmentZoneProfile: 'magical-darkness',
     })
     expect(action?.areaTemplate).toEqual({ kind: 'sphere', radiusFt: 15 })
     expect(action?.areaPlacement).toBe('remote')
@@ -108,5 +111,14 @@ describe('Darkness — place-anchored emanation (shared anchor pipeline)', () =>
     expect(
       resolveBattlefieldEffectOriginCellId(resolved.space, resolved.placements, aura!.anchor),
     ).toBe(originCellId)
+
+    const zoneId = environmentZoneIdForAttachedAuraInstance(aura!.id)
+    const zone = resolved.environmentZones?.find((z) => z.id === zoneId)
+    expect(zone).toBeDefined()
+    expect(zone?.sourceKind).toBe('attached-aura')
+    expect(zone?.area).toEqual({ kind: 'sphere-ft', originCellId, radiusFt: 15 })
+    expect(zone?.magical?.magicalDarkness).toBe(true)
+    const world = resolveWorldEnvironmentFromEncounterState(resolved, originCellId)
+    expect(world.magicalDarkness).toBe(true)
   })
 })

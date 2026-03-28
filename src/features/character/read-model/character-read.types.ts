@@ -99,6 +99,9 @@ export type CharacterDetailDto = {
 
   proficiencies: { id: string; name: string }[]
 
+  /** Selected feats as id + display name (ids match `hide-eligibility-feat-sources` / content). */
+  feats?: { id: string; name: string }[]
+
   equipment: {
     armor: { id: string; name: string }[]
     weapons: { id: string; name: string }[]

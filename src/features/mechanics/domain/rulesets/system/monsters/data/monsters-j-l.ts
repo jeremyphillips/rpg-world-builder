@@ -6,6 +6,7 @@ export const MONSTERS_J_L: readonly MonsterCatalogEntry[] = [
 {
     id: "kobold-warrior",
     name: "Kobold Warrior",
+    imageKey: '/assets/system/monsters/kobold-warrior.png',
     type: "dragon",
     languages: [{ id: "common" }, { id: "draconic" }],
     sizeCategory: "small",

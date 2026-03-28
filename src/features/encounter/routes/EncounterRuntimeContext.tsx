@@ -16,8 +16,12 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
+import {
+  ATMOSPHERE_TAGS,
+  DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE,
+} from '@/features/mechanics/domain/encounter/environment'
 import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/encounter/state'
-import { resolveBattlefieldEffectOriginCellId } from '@/features/mechanics/domain/encounter/state/battlefield-effect-anchor'
+import { resolveBattlefieldEffectOriginCellId } from '@/features/mechanics/domain/encounter/state/battlefield/battlefield-effect-anchor'
 import { getCombatantBaseMovement } from '@/features/mechanics/domain/encounter/state/shared'
 import { actionRequiresCreatureTargetForResolve } from '@/features/mechanics/domain/encounter'
 import { getSingleCellPlacementRequirement } from '@/features/mechanics/domain/encounter/resolution/action/action-requirement-model'
@@ -27,6 +31,7 @@ import {
   canResolveCombatActionSelection,
   deriveEncounterCapabilities,
   deriveEncounterHeaderModel,
+  deriveEncounterPerceptionUiFeedback,
   type EncounterViewerContext,
 } from '../domain'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
@@ -54,13 +59,6 @@ import { placeRandomGridObstacle } from '../space/placeRandomGridObstacle'
 import type { CombatantPortraitEntry } from '../helpers/resolveCombatantAvatarSrc'
 
 import { campaignEncounterActivePath, campaignEncounterSetupPath } from './encounterPaths'
-
-const DEFAULT_ENVIRONMENT: EnvironmentSetupValues = {
-  setting: 'outdoors',
-  lightingLevel: 'bright',
-  terrainMovement: 'normal',
-  visibilityObscured: 'none',
-}
 
 function useEncounterRuntimeValue() {
   useActiveCampaign()
@@ -167,6 +165,16 @@ function useEncounterRuntimeValue() {
     suppressSameSideHostile,
   })
 
+  const viewerContext: EncounterViewerContext = useMemo(
+    () => ({
+      viewerRole: 'dm' as const,
+      /** Simulator: grid perception follows the active combatant unless switched to DM omniscience. */
+      simulatorViewerMode: 'active-combatant' as const,
+      controlledCombatantIds: [],
+    }),
+    [],
+  )
+
   const handleStartEncounter = useCallback(
     (opts?: Parameters<typeof handleStartEncounterBase>[0]) => {
       handleStartEncounterBase(opts)
@@ -180,7 +188,9 @@ function useEncounterRuntimeValue() {
     if (campaignId) navigate(campaignEncounterSetupPath(campaignId), { replace: true })
   }, [handleResetEncounterBase, navigate, campaignId])
 
-  const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(DEFAULT_ENVIRONMENT)
+  const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(
+    DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE,
+  )
   const [gridSizePreset, setGridSizePreset] = useState<GridSizePreset>('medium')
   const [interactionMode, setInteractionMode] = useState<GridInteractionMode>('select-target')
   const [allyModalOpen, setAllyModalOpen] = useState(false)
@@ -358,6 +368,9 @@ function useEncounterRuntimeValue() {
     if (!encounterState) return undefined
     const rangeForRing =
       aoeGridOverlay || singleCellPlacementGridOverlay ? null : selectedActionRangeFt
+    /** `pc` = apply visibility rules; `dm` = omniscient grid (debug). */
+    const perceptionViewerRole =
+      viewerContext.simulatorViewerMode === 'dm' ? ('dm' as const) : ('pc' as const)
     return selectGridViewModel(encounterState, {
       selectedTargetId: selectedActionTargetId || null,
       selectedActionRangeFt: rangeForRing,
@@ -369,6 +382,14 @@ function useEncounterRuntimeValue() {
       aoe: aoeGridOverlay,
       placementPick: singleCellPlacementGridOverlay,
       persistentAttachedAuras,
+      perception:
+        activeCombatantId != null
+          ? {
+              viewerCombatantId: activeCombatantId,
+              viewerRole: perceptionViewerRole,
+              debugOverrides: viewerContext.debugPerceptionOverrides,
+            }
+          : undefined,
     })
   }, [
     encounterState,
@@ -380,6 +401,9 @@ function useEncounterRuntimeValue() {
     singleCellPlacementGridOverlay,
     interactionMode,
     persistentAttachedAuras,
+    activeCombatantId,
+    viewerContext.simulatorViewerMode,
+    viewerContext.debugPerceptionOverrides,
   ])
 
   // turnResources was consumed by the now-commented-out footer.
@@ -390,6 +414,11 @@ function useEncounterRuntimeValue() {
     environmentSetup.lightingLevel !== 'bright' ? environmentSetup.lightingLevel : null,
     environmentSetup.terrainMovement !== 'normal' ? environmentSetup.terrainMovement : null,
     environmentSetup.visibilityObscured !== 'none' ? environmentSetup.visibilityObscured : null,
+    environmentSetup.atmosphereTags.length > 0
+      ? environmentSetup.atmosphereTags
+          .map((id) => ATMOSPHERE_TAGS.find((t) => t.id === id)?.name ?? id)
+          .join(', ')
+      : null,
   ].filter(Boolean)
   const environmentSummary = environmentSummaryParts.length > 0 ? environmentSummaryParts.join(', ') : undefined
 
@@ -408,7 +437,7 @@ function useEncounterRuntimeValue() {
           rows: preset.rows,
         })
         const space = placeRandomGridObstacle(base, environmentSetup.setting)
-        handleStartEncounter({ space })
+        handleStartEncounter({ space, environmentBaseline: environmentSetup })
       }}
     />
   )
@@ -430,9 +459,24 @@ function useEncounterRuntimeValue() {
     return getCombatantDisplayLabel(nextCombatant, encounterCombatantRoster)
   }, [encounterState, encounterCombatantRoster])
 
-  const viewerContext: EncounterViewerContext = useMemo(
-    () => ({ viewerRole: 'dm' as const, controlledCombatantIds: [] }),
-    [],
+  const perceptionUiFeedback = useMemo(
+    () =>
+      activeCombatant
+        ? deriveEncounterPerceptionUiFeedback({
+            simulatorViewerMode: viewerContext.simulatorViewerMode,
+            activeCombatantDisplayLabel: getCombatantDisplayLabel(
+              activeCombatant,
+              encounterCombatantRoster,
+            ),
+            gridPerception: gridViewModel?.perception,
+          })
+        : null,
+    [
+      activeCombatant,
+      encounterCombatantRoster,
+      gridViewModel?.perception,
+      viewerContext.simulatorViewerMode,
+    ],
   )
 
   const capabilities = useMemo(
@@ -558,6 +602,7 @@ function useEncounterRuntimeValue() {
         onEndTurn={handleNextTurn}
         onEditEncounter={() => setEditModalOpen(true)}
         onResetEncounter={handleResetEncounter}
+        perceptionFeedback={perceptionUiFeedback}
       />
     ) : undefined
 

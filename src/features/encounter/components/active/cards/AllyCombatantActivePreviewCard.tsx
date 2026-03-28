@@ -7,7 +7,7 @@ import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/
 import {
   hasBattlefieldPresence,
   isDefeatedCombatant,
-} from '@/features/mechanics/domain/encounter/state/combatant-participation'
+} from '@/features/mechanics/domain/encounter/state/combatants/combatant-participation'
 import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
 import { useCharacter } from '@/features/character/hooks'
 

@@ -15,6 +15,7 @@ import type { MonsterSizeCategory, MonsterType } from '@/features/content/monste
 import type { EffectNoteCategory } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { AreaOfEffectTemplate } from './area.types';
 import type { TargetingEffectTarget } from './targeting.types';
+import type { AttachedEnvironmentZoneProfile } from '../encounter/environment/environment.types';
 
 export type { FormulaDefinition, FormulaEffect } from '../resolution/engines/formula.engine';
 export type { AreaOfEffectTemplate } from './area.types';
@@ -156,6 +157,12 @@ export type CheckEffect = EffectBase<'check'> & {
   actor: 'nearby-creature';
   distanceFeet?: number;
   actionRequired?: boolean;
+  /**
+   * When true, the acting creature must visually perceive the **target combatant’s occupant** (shared
+   * `canPerceiveTargetOccupantForCombat` seam) before the check is applied; otherwise the effect is blocked
+   * with reason `cannot-perceive-subject`. Subject-based, not “cell known” alone.
+   */
+  requiresSight?: boolean;
   check: {
     ability: AbilityRef;
     skill?: string;
@@ -504,6 +511,11 @@ export type EmanationEffect = EffectBase<'emanation'> & {
    * Required when `anchorMode === 'place-or-object'`: enum `casterOptions` field id (`value` `place` | `object`).
    */
   anchorChoiceFieldId?: string;
+  /**
+   * When set, spell combat adapter copies to `CombatActionDefinition.attachedEmanation` and runtime
+   * syncs a matching `EncounterEnvironmentZone` from the attached aura row.
+   */
+  environmentZoneProfile?: AttachedEnvironmentZoneProfile;
 };
 
 export type NoteEffect = EffectBase<'note'> & {
@@ -521,6 +533,21 @@ export type RegenerationEffect = EffectBase<'regeneration'> & {
   suppressedByDamageTypes?: string[];
   suppressionDuration?: EffectDuration;
   disabledAtZeroHp?: boolean;
+};
+
+/**
+ * Grants temporary hide-eligibility feature flags while the effect remains on `activeEffects`.
+ * OR-merged with `skillRuntime.hideEligibilityFeatureFlags` in encounter hide resolution (see
+ * `getCombatantHideEligibilityExtensionOptions`). Not a second permission system — same boolean seam.
+ */
+export type HideEligibilityGrantEffect = EffectBase<'hide-eligibility-grant'> & {
+  featureFlags: {
+    allowHalfCoverForHide?: boolean;
+    allowDimLightHide?: boolean;
+    allowMagicalConcealmentHide?: boolean;
+    allowDifficultTerrainHide?: boolean;
+    allowHighWindHide?: boolean;
+  };
 };
 
 export type Effect =
@@ -555,4 +582,5 @@ export type Effect =
   | NoteEffect
   | RemoveClassificationEffect
   | RegenerationEffect
+  | HideEligibilityGrantEffect
   | CustomEffect;

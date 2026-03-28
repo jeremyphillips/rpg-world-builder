@@ -1,6 +1,7 @@
 export * from './combat-action.types'
 export * from '../../spells/caster-options'
 export * from './action-resolution.types'
+export * from './encounter-ability-check-resolution'
 export * from './action/action-resolver'
 export * from './action/action-cost'
 export * from './action/action-targeting'

@@ -8,7 +8,7 @@ import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/
 import {
   hasBattlefieldPresence,
   isDefeatedCombatant,
-} from '@/features/mechanics/domain/encounter/state/combatant-participation'
+} from '@/features/mechanics/domain/encounter/state/combatants/combatant-participation'
 
 import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
 import { buildCombatantPreviewChips, formatSigned, getPreviewStatTooltip } from '../../../helpers'

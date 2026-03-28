@@ -1,9 +1,24 @@
+import type { GridPerceptionDebugOverrides } from '@/features/mechanics/domain/encounter/environment/perception.render.projection'
 import type { EncounterState } from '@/features/mechanics/domain/encounter'
 
 export type EncounterViewerRole = 'dm' | 'pc'
 
+/**
+ * Who the tactical grid “camera” follows for perception/render (simulator POV).
+ * Distinct from {@link EncounterViewerRole} (session/DM tools vs player UI).
+ */
+export type EncounterSimulatorViewerMode = 'active-combatant' | 'dm'
+
 export type EncounterViewerContext = {
+  /** Session role: DM tools, hidden info, etc. */
   viewerRole: EncounterViewerRole
+  /**
+   * Perception source: active turn combatant’s POV (`active-combatant`) or omniscient debug (`dm`).
+   * Maps to `GridPerceptionInput.viewerRole`: `active-combatant` → `pc`, `dm` → `dm`.
+   */
+  simulatorViewerMode: EncounterSimulatorViewerMode
+  /** Centralized debug flags for the perception pipeline (not scattered in components). */
+  debugPerceptionOverrides?: GridPerceptionDebugOverrides
   controlledCombatantIds: string[]
 }
 

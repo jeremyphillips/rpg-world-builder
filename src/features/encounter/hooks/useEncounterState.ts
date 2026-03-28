@@ -14,6 +14,7 @@ import {
   getActionTargetCandidates,
   getCombatantAvailableActions,
   removeConditionFromCombatant,
+  reconcileBattlefieldEffectAnchors,
   resolveCombatAction,
   removeStateFromCombatant,
   triggerManualHook,
@@ -28,6 +29,10 @@ import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/
 import { buildInitialCasterOptionsForAction } from '@/features/mechanics/domain/spells/caster-options'
 import type { Armor } from '@/features/content/equipment/armor/domain/types/armor.types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types/weapon.types'
+import type {
+  EncounterEnvironmentBaseline,
+  EncounterEnvironmentZone,
+} from '@/features/mechanics/domain/encounter/environment'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import { buildSummonAllyMonsterCombatant } from '../helpers/encounter-helpers'
@@ -270,12 +275,16 @@ export function useEncounterState({
   function handleStartEncounter(opts?: {
     space?: EncounterSpace
     placementOptions?: InitialPlacementOptions
+    environmentBaseline?: EncounterEnvironmentBaseline
+    environmentZones?: EncounterEnvironmentZone[]
   }) {
     if (selectedCombatants.length === 0 || unresolvedCombatantCount > 0) return
     setEncounterState(
       createEncounterState(selectedCombatants, {
         space: opts?.space,
         placementOptions: opts?.placementOptions,
+        environmentBaseline: opts?.environmentBaseline,
+        environmentZones: opts?.environmentZones,
         battlefieldSpell: {
           spellLookup: spellsById != null ? (id) => spellsById[id] : () => undefined,
           suppressSameSideHostile,
@@ -453,9 +462,9 @@ export function useEncounterState({
       )
       if (afterMove === prev) return prev
       const startLen = prev.log.length
-      let next = afterMove
+      let next = reconcileBattlefieldEffectAnchors(afterMove)
       if (spellsById != null) {
-        next = resolveAttachedAuraSpatialEntryAfterMovement(prev, afterMove, {
+        next = resolveAttachedAuraSpatialEntryAfterMovement(prev, next, {
           spellLookup: (id) => spellsById[id],
           suppressSameSideHostile,
           monstersById,

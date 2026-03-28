@@ -17,11 +17,13 @@ import {
   type CombatantAttackEntry,
   type CombatantInstance,
   type CombatantSide,
+  type CombatantSkillProficiencyLevel,
   type DamageResistanceMarker,
   createCombatTurnResources,
   type RuntimeTurnHook,
 } from '@/features/mechanics/domain/encounter'
 
+import { deriveHideEligibilityFeatureFlagsFromCharacterDetail } from './derive-hide-eligibility-from-authored'
 import { getCombatantPortraitImageKey } from './getCombatantPortraitImageKey'
 
 const CONDITION_IDS: ReadonlySet<string> = new Set<EffectConditionId>(EFFECT_CONDITION_IDS)
@@ -66,6 +68,20 @@ function mapMonsterResistances(resistances: CreatureResistanceDamageType[]): Dam
 
 export function formatSigned(value: number): string {
   return value >= 0 ? `+${value}` : String(value)
+}
+
+function normalizeMonsterSkillProficiencyLevel(level: unknown): CombatantSkillProficiencyLevel {
+  if (level === 2) return 2
+  if (level === 1) return 1
+  return 0
+}
+
+/** Detail DTO lists skill ids only; expertise (level 2) is not represented until the API carries it. */
+function skillProficiencyLevelFromCharacterDetail(
+  character: CharacterDetailDto,
+  skillId: string,
+): CombatantSkillProficiencyLevel {
+  return character.proficiencies.some((p) => p.id === skillId) ? 1 : 0
 }
 
 export function toSavingThrowModifier(score: number | null | undefined, proficiencyLevel = 0, proficiencyBonus = 2): number {
@@ -134,6 +150,8 @@ export function buildCharacterCombatantInstance(args: {
 }): CombatantInstance {
   const { runtimeId, side, sourceKind, character, combatStats, attacks, extraActions = [], turnHooks } = args
 
+  const hideEligibilityFromFeats = deriveHideEligibilityFeatureFlagsFromCharacterDetail(character)
+
   return {
     instanceId: runtimeId,
     side,
@@ -158,6 +176,12 @@ export function buildCharacterCombatantInstance(args: {
       dexterityScore: character.abilityScores.dexterity,
       abilityScores: character.abilityScores,
       speeds: { ground: 30 },
+      skillRuntime: {
+        proficiencyBonus: combatStats.proficiencyBonus,
+        perceptionProficiencyLevel: skillProficiencyLevelFromCharacterDetail(character, 'perception'),
+        stealthProficiencyLevel: skillProficiencyLevelFromCharacterDetail(character, 'stealth'),
+        ...(hideEligibilityFromFeats != null ? { hideEligibilityFeatureFlags: hideEligibilityFromFeats } : {}),
+      },
     },
     attacks,
     actions: [...buildAttackActions(attacks, 'weapon-attack'), ...extraActions],
@@ -283,6 +307,21 @@ export function buildMonsterCombatantInstance(args: {
           }
         : undefined,
       speeds: monster.mechanics.movement,
+      skillRuntime: {
+        proficiencyBonus: monster.mechanics.proficiencyBonus,
+        perceptionProficiencyLevel: normalizeMonsterSkillProficiencyLevel(
+          monster.mechanics.proficiencies?.skills?.perception?.proficiencyLevel,
+        ),
+        stealthProficiencyLevel: normalizeMonsterSkillProficiencyLevel(
+          monster.mechanics.proficiencies?.skills?.stealth?.proficiencyLevel,
+        ),
+        ...(monster.mechanics.senses?.passivePerception != null
+          ? { passivePerception: monster.mechanics.senses.passivePerception }
+          : {}),
+        ...(monster.mechanics.hideEligibilityFeatureFlags != null
+          ? { hideEligibilityFeatureFlags: monster.mechanics.hideEligibilityFeatureFlags }
+          : {}),
+      },
     },
     attacks,
     actions,

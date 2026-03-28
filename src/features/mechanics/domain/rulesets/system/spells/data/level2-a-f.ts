@@ -374,6 +374,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
         area: { kind: 'sphere', size: 15 },
         anchorMode: 'place-or-object',
         anchorChoiceFieldId: 'darkness-anchor',
+        environmentZoneProfile: 'magical-darkness',
       },
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 15 } },
       {

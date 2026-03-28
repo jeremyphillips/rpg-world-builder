@@ -3,6 +3,7 @@ import Typography from '@mui/material/Typography'
 
 import { AppBadge } from '@/ui/primitives'
 import {
+  ATMOSPHERE_TAGS,
   ENVIRONMENT_SETTINGS,
   LIGHTING_LEVELS,
   TERRAIN_MOVEMENT_TYPES,
@@ -20,6 +21,16 @@ export function EncounterEnvironmentSummary({ values }: EncounterEnvironmentSumm
     { label: 'Lighting', value: LIGHTING_LEVELS.find((l) => l.id === values.lightingLevel)?.name ?? values.lightingLevel },
     { label: 'Terrain', value: TERRAIN_MOVEMENT_TYPES.find((t) => t.id === values.terrainMovement)?.name ?? values.terrainMovement },
     { label: 'Visibility', value: VISIBILITY_OBSCURED_LEVELS.find((v) => v.id === values.visibilityObscured)?.name ?? values.visibilityObscured },
+    ...(values.atmosphereTags.length > 0
+      ? [
+          {
+            label: 'Atmosphere',
+            value: values.atmosphereTags
+              .map((id) => ATMOSPHERE_TAGS.find((t) => t.id === id)?.name ?? id)
+              .join(', '),
+          },
+        ]
+      : []),
   ]
 
   return (

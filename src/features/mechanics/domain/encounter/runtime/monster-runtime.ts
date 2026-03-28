@@ -7,7 +7,7 @@ import type {
 import type { Effect, EmanationEffect, RegenerationEffect } from '@/features/mechanics/domain/effects/effects.types'
 import type { EffectDuration, TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 
-import { attachedAuraInstanceId } from '../state/attached-battlefield-source'
+import { attachedAuraInstanceId } from '../state/auras/attached-battlefield-source'
 import type { BattlefieldEffectInstance } from '../state/types/encounter-state.types'
 import type { CombatantInstance } from '../state/types/combatant.types'
 import type { RuntimeTurnHook, RuntimeTurnHookRequirement } from '../state/types/combatant.types'

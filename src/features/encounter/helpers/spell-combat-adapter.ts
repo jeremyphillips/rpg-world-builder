@@ -141,6 +141,7 @@ function deriveAttachedEmanation(spell: Spell): CombatActionDefinition['attached
     ...(anchorMode === 'place-or-object' && em.anchorChoiceFieldId
       ? { anchorChoiceFieldId: em.anchorChoiceFieldId }
       : {}),
+    ...(em.environmentZoneProfile ? { environmentZoneProfile: em.environmentZoneProfile } : {}),
   }
 }
 

@@ -12,11 +12,20 @@ import {
   type CombatantInstance,
   type RollModifierMarker,
   addAttachedAuraInstance,
+  getAttackVisibilityRollModifiersFromPair,
+  resolveCombatantPairVisibilityForAttackRoll,
+  applyNoiseAwarenessForSubject,
+  breakStealthOnAttack,
+  getStealthCheckModifier,
+  reconcileStealthHiddenForPerceivedObservers,
+  resolveDefaultHideObservers,
+  resolveHideWithPassivePerception,
 } from '../../state'
+import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
 import {
   attachedAuraInstanceId,
   concentrationLinkedMarkerIdForSpellAttachedEmanation,
-} from '../../state/attached-battlefield-source'
+} from '../../state/auras/attached-battlefield-source'
 import {
   formatAttackRollDebug,
   formatAutoFailDebug,
@@ -43,7 +52,7 @@ import {
   spendCombatActionUsage,
 } from './action-cost'
 import { evaluateCondition } from '../../../conditions/evaluateCondition'
-import { combatantToCreatureSnapshot } from '../../state/combatant-evaluation-snapshot'
+import { combatantToCreatureSnapshot } from '../../state/combatants/combatant-evaluation-snapshot'
 import { getActionTargets, getSequenceStepCount, type ActionTargetingResolveOptions } from './action-targeting'
 import { applyActionEffects, formatMovementSummary, getImmunityStateLabel, getSaveModifier } from './action-effects'
 
@@ -53,6 +62,11 @@ type RollModifierResult = {
   rollMod: D20RollMode
   attackerMarkers: RollModifierMarker[]
   defenderMarkers: RollModifierMarker[]
+  /** Present when `encounterState` was passed; drives unseen-target / unseen-attacker from occupant perception. */
+  pairVisibility?: {
+    attackerCanSeeDefenderOccupant: boolean
+    defenderCanSeeAttackerOccupant: boolean
+  }
 }
 
 /** Canonical tokens for `RollModifierMarker.appliesTo` (hyphenated). */
@@ -82,11 +96,13 @@ function rollModifierConditionApplies(
   })
 }
 
-/** Exported for tests — combines spell `RollModifierMarker`s with condition-based attack mods. */
+/** Exported for tests — combines spell `RollModifierMarker`s with condition-based attack mods and optional pair visibility. */
 export function resolveRollModifier(
   attacker: CombatantInstance,
   defender: CombatantInstance,
   attackRange: 'melee' | 'ranged' = 'melee',
+  encounterState?: EncounterState,
+  visibilityOptions?: { capabilities?: EncounterViewerPerceptionCapabilities },
 ): RollModifierResult {
   const rawAttacker = (attacker.rollModifiers ?? []).filter((m) =>
     matchesRollContext(m, ROLL_CONTEXT_ATTACK_ROLLS),
@@ -109,9 +125,22 @@ export function resolveRollModifier(
     ...getIncomingAttackModifiersForAttack(attacker, defender, attackRange),
   ]
 
-  const rollMod = resolveD20RollMode([...markerModifiers, ...conditionModifiers])
+  const pairVisibility =
+    encounterState != null
+      ? resolveCombatantPairVisibilityForAttackRoll(
+          encounterState,
+          attacker.instanceId,
+          defender.instanceId,
+          visibilityOptions,
+        )
+      : undefined
 
-  return { rollMod, attackerMarkers, defenderMarkers }
+  const visibilityModifiers =
+    pairVisibility != null ? getAttackVisibilityRollModifiersFromPair(pairVisibility) : []
+
+  const rollMod = resolveD20RollMode([...markerModifiers, ...conditionModifiers, ...visibilityModifiers])
+
+  return { rollMod, attackerMarkers, defenderMarkers, pairVisibility }
 }
 
 function matchesRollContext(marker: RollModifierMarker, context: string): boolean {
@@ -209,14 +238,14 @@ function resolveTargetingOptions(options: ResolveCombatActionOptions): ActionTar
 }
 
 function resolveCombatActionInternal(
-  state: EncounterState,
+  initialState: EncounterState,
   selection: ResolveCombatActionSelection,
   options: ResolveCombatActionOptions,
   behavior: { skipCost: boolean },
 ): InternalResolutionResult {
-  const noOp: InternalResolutionResult = { state, createdMarkerIds: [] }
-  const actor = state.combatantsById[selection.actorId]
-  if (!actor || state.activeCombatantId !== selection.actorId) return noOp
+  const noOp: InternalResolutionResult = { state: initialState, createdMarkerIds: [] }
+  let actor = initialState.combatantsById[selection.actorId]
+  if (!actor || initialState.activeCombatantId !== selection.actorId) return noOp
 
   const action = getCombatantActions(actor).find((candidate) => candidate.id === selection.actionId)
   if (!action) return noOp
@@ -228,7 +257,7 @@ function resolveCombatActionInternal(
     const resourceDebug = formatTurnResourceDebug(actor, action.cost)
     if (resourceDebug.length > 0) {
       return {
-        state: appendEncounterNote(state, `${action.label || action.id} blocked: insufficient turn resources.`, {
+        state: appendEncounterNote(initialState, `${action.label || action.id} blocked: insufficient turn resources.`, {
           actorId: actor.instanceId,
           debugDetails: resourceDebug,
         }),
@@ -238,6 +267,11 @@ function resolveCombatActionInternal(
     return noOp
   }
   if (!behavior.skipCost && !canUseCombatAction(action)) return noOp
+
+  const state = reconcileStealthHiddenForPerceivedObservers(initialState, {
+    perceptionCapabilities: options.perceptionCapabilities,
+  })
+  actor = state.combatantsById[selection.actorId]!
 
   const targets = getActionTargets(state, actor, selection, action, targetingOptions)
   const target = targets[0]
@@ -256,6 +290,7 @@ function resolveCombatActionInternal(
     buildSummonAllyCombatant: options.buildSummonAllyCombatant,
     casterOptions: selection.casterOptions,
     singleCellPlacementCellId: selection.singleCellPlacementCellId,
+    perceptionCapabilities: options.perceptionCapabilities,
   }
   const targetLabel = target ? getEncounterCombatantLabel(state, target.instanceId) : 'no target'
   const casterSummary = formatCasterOptionSummary(action.casterOptions, selection.casterOptions)
@@ -337,12 +372,54 @@ function resolveCombatActionInternal(
     return { state: finalState, createdMarkerIds: allMarkerIds }
   }
 
-  if (action.resolutionMode === 'attack-roll') {
+  if (action.resolutionMode === 'hide') {
+    const hidePerceptionOpts = { perceptionCapabilities: options.perceptionCapabilities }
+    const hideCandidates = resolveDefaultHideObservers(nextState, actor.instanceId, hidePerceptionOpts)
+    if (hideCandidates.length === 0) {
+      nextState = appendEncounterLogEvent(nextState, {
+        type: 'action-resolved',
+        actorId: actor.instanceId,
+        round: state.roundNumber,
+        turn: state.turnIndex + 1,
+        summary: `${getEncounterCombatantLabel(state, actor.instanceId)} attempts to hide but has no eligible observers (concealment / eligibility).`,
+        details:
+          'No Stealth roll — no opposing observer passed hide eligibility for this attempt (see getStealthHideAttemptDenialReason / sight-hide-rules).',
+      })
+    } else {
+      const stealthMod = action.hideProfile?.stealthModifier ?? getStealthCheckModifier(actor)
+      const { rawRoll, detail: stealthRollDetail } = rollD20WithRollMode(resolveD20RollMode([]), rng)
+      const stealthTotal = rawRoll + stealthMod
+      const hideResolved = resolveHideWithPassivePerception(nextState, actor.instanceId, stealthTotal, hidePerceptionOpts)
+      nextState = hideResolved.state
+      const { outcome } = hideResolved
+      let details = `Stealth: ${stealthRollDetail} + ${stealthMod} = ${stealthTotal}.`
+      let summary: string
+      if (outcome.kind === 'no-eligible-observers') {
+        summary = `${getEncounterCombatantLabel(state, actor.instanceId)} attempts to hide but has no eligible observers (concealment / eligibility).`
+      } else {
+        details += ` Beat passive Perception: ${outcome.beatenObserverIds.join(', ') || 'none'}. Did not beat: ${outcome.failedObserverIds.join(', ') || 'none'}.`
+        summary = `${getEncounterCombatantLabel(state, actor.instanceId)} attempts to hide (Stealth ${stealthTotal}).`
+      }
+      nextState = appendEncounterLogEvent(nextState, {
+        type: 'action-resolved',
+        actorId: actor.instanceId,
+        round: state.roundNumber,
+        turn: state.turnIndex + 1,
+        summary,
+        details,
+      })
+    }
+  } else if (action.resolutionMode === 'attack-roll') {
     const attackBonus = action.attackProfile?.attackBonus
     if (target == null || attackBonus == null) return { state: nextState, createdMarkerIds: [] }
 
     const attackRange = deriveAttackRange(action)
-    const { rollMod, attackerMarkers, defenderMarkers } = resolveRollModifier(actor, target, attackRange)
+    const { rollMod, attackerMarkers, defenderMarkers, pairVisibility } = resolveRollModifier(
+      actor,
+      target,
+      attackRange,
+      nextState,
+    )
     const { rawRoll, detail: rollDetail } = rollD20WithRollMode(rollMod, rng)
     const totalRoll = rawRoll + attackBonus
     const isNaturalTwenty = rawRoll === 20
@@ -350,9 +427,20 @@ function resolveCombatActionInternal(
     const hit = isNaturalTwenty || (!isNaturalOne && totalRoll >= target.stats.armorClass)
     const isCritical = isNaturalTwenty
 
+    nextState = breakStealthOnAttack(nextState, actor.instanceId)
+    nextState = applyNoiseAwarenessForSubject(nextState, actor.instanceId, { kind: 'attack' })
+
     const hitSuffix = isCritical ? ' (critical hit)' : ''
     const missSuffix = isNaturalOne ? ' (natural 1)' : ''
-    const attackDebug = formatAttackRollDebug(actor, target, attackerMarkers, defenderMarkers, attackRange, rollMod)
+    const attackDebug = formatAttackRollDebug(
+      actor,
+      target,
+      attackerMarkers,
+      defenderMarkers,
+      attackRange,
+      rollMod,
+      pairVisibility,
+    )
     nextState = appendEncounterLogEvent(nextState, {
       type: hit ? 'attack-hit' : 'attack-missed',
       actorId: actor.instanceId,
@@ -653,6 +741,9 @@ function resolveCombatActionInternal(
         area: { kind: 'sphere', size: action.attachedEmanation.radiusFt },
         unaffectedCombatantIds: [...ids],
         ...(typeof action.saveDc === 'number' ? { saveDc: action.saveDc } : {}),
+        ...(action.attachedEmanation.environmentZoneProfile
+          ? { environmentZoneProfile: action.attachedEmanation.environmentZoneProfile }
+          : {}),
       })
     }
   }

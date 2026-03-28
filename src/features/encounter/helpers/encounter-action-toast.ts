@@ -1,7 +1,7 @@
 import type { CombatLogEvent } from '@/features/mechanics/domain/encounter'
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
-import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
+import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatants/combatant-participation'
 import type { AppAlertTone } from '@/ui/primitives'
 
 const MAX_EFFECT_LINES = 14

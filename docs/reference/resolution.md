@@ -143,7 +143,7 @@ The encounter action system resolves combat actions against encounter state:
 **Targeting profile fields:**
 
 - `requiresWilling` — when `true` on `single-target`, valid targets are same-side only (caster + allies); “willing” is approximated as allies until explicit consent exists. Such actions are **non-hostile** for charm / hostile-action rules. Authored on spells via `targeting.requiresWilling` in spell effects.
-- `requiresSight` — when `true` (spell `targeting.requiresSight` → `buildSpellCombatActions`), valid targets must pass `canSeeForTargeting` in `encounter/state/visibility-seams.ts`: not blinded (via `canSee`), invisible targets blocked unless the observer has the See Invisibility state, and grid **line of sight** when `EncounterSpace` and placements exist (`hasLineOfSight` in `encounter/space/space.sight.ts` via `lineOfSightClear`). When there is no tactical grid, geometry defaults to clear. Not applied to `self`, `none`, or `all-enemies` (area mapping does not validate per-creature sight).
+- `requiresSight` — when `true` (spell `targeting.requiresSight` → `buildSpellCombatActions`), valid targets must pass `canSeeForTargeting`, which delegates to `canPerceiveTargetOccupantForCombat` (`encounter/state/visibility/combatant-pair-visibility.ts`): **occupant** perception (not “cell only”), same as attack-roll visibility. After blinded (`canSee`), invisible vs See Invisibility, and LOS/LoE, world/perception (`resolveViewerPerceptionForCellFromState`, `canPerceiveOccupants`) applies heavy obscurement and magical darkness. **Missing tactical grid:** permissive fallback treats occupant visibility as allowed once the condition/LOS gates pass (matches legacy non-grid encounters). Not applied to `self`, `none`, or `all-enemies` (area mapping does not validate per-creature sight).
 - `suppressSameSideHostileActions` — passed through `ResolveCombatActionOptions` (default **true** when omitted: legacy “no friendly fire”). When **true**, hostile `single-target` actions cannot target same-side combatants. When **false**, core resolution allows same-side targets (e.g. PC vs PC). Campaign/app code can drive this from `mechanics.combat.encounter.suppressSameSideHostile` on the ruleset.
 
 **Targeting query layer** (`action-targeting.ts`):
@@ -154,7 +154,13 @@ Targeting validation is centralized so the resolver and UI share a single source
 - `getActionTargetCandidates(state, actor, action, options?)` — returns all combatants that pass `isValidActionTarget`. **Initiative order** for most kinds; for **`dead-creature`**, also includes combatants in `combatantsById` that are **missing from `initiativeOrder`** (e.g. corpses dropped when a new round re-rolls initiative from living participants only in `advanceEncounterTurn`). Used by the UI to populate the target picker.
 - `getActionTargets(state, actor, selection, action, options?)` — resolves the actual target(s) for a selected action. Handles selection-specific concerns (targetId lookup, `self` auto-targeting, no-target fallbacks) and delegates validation to `isValidActionTarget`.
 
-**LOS / visibility seams** (`visibility-seams.ts`): `lineOfSightClear` / `lineOfEffectClear` delegate to `hasLineOfSight` when `EncounterSpace` and placements exist; otherwise they stay **clear** for backwards compatibility. `canSeeForTargeting` is the single entry point for “can I select this target for a sight-required action?” Geometry is **binary** LoS only (see `docs/reference/space.md`).
+**LOS / visibility seams** (`visibility/visibility-seams.ts` re-exports; see `visibility/visibility-los.ts`, `visibility/combatant-pair-visibility.ts`): `lineOfSightClear` / `lineOfEffectClear` delegate to `hasLineOfSight` when `EncounterSpace` and placements exist; otherwise they stay **clear** for backwards compatibility. `canSeeForTargeting` is the public entry for “can I select this target for a sight-required action?” and shares `canPerceiveTargetOccupantForCombat` with attack-roll resolution. **Binary** LoS geometry is in `space.sight.ts`; **obscurement / darkness** affecting whether the **occupant** is perceived are resolved in `perception.resolve.ts`, not as a second ad hoc targeting layer.
+
+**Opportunity attacks** (`reactions/opportunity-attack.ts`): **Leave reach** (spatial) is `didHostileMoverLeaveMeleeReachOfReactor` — compare distances before/after `moveCombatant`. **Sight** for OA uses the same occupant seam: `canReactorPerceiveDepartingOccupantForOpportunityAttack` → `canPerceiveTargetOccupantForCombat` on **pre-move** state (combat semantics, `viewerRole: 'pc'`). Full legality is `getOpportunityAttackLegalityDenialReason` (hostile, active, reaction budget, leave-reach, then sight). Disengage / no-OA movement flags are not modeled yet.
+
+**Sight-based checks & Hide** (`stealth/sight-hide-rules.ts`): `canVisuallyPerceiveSubjectForRules` / `getSightBasedCheckLegalityDenialReason` delegate to `canPerceiveTargetOccupantForCombat`. Hide **attempt** eligibility uses the same occupant seam plus **`cellWorldSupportsHideAttemptWorldBasis`** (concealment **or** baseline terrain cover — three-quarters/full on merged `terrainCover`; feature flags from **`resolveHideEligibilityForCombatant`**, including **`getCombatantHideEligibilityExtensionOptions`** / **`stats.skillRuntime.hideEligibilityFeatureFlags`**): denied when the observer perceives the hider’s occupant **and** the cell provides no such basis (`observer-sees-without-concealment`). **`reconcileStealthBreakWhenNoConcealmentInCell`** uses that same world-basis helper for sustain. No grid → permissive (allow attempt), matching pair-visibility fallback.
+
+**Check effects** (`Effect` `kind: 'check'`): When `requiresSight` is set, `applyActionEffects` calls `getEncounterAbilityCheckSightDenialReason` (wrapper → `getSightBasedCheckLegalityDenialReason`) on **actor → target** before logging the DC; denial id **`cannot-perceive-subject`**. Optional `ResolveCombatActionOptions.perceptionCapabilities` threads into `ApplyActionEffectsOptions.perceptionCapabilities` for the same seam as attack/targeting.
 
 **Encounter UI readiness** (`action-resolution-requirements.ts`, `encounter/domain/interaction/encounter-resolve-selection.ts`):
 
@@ -171,7 +177,7 @@ Pure helpers describe what must be true before the encounter action drawer enabl
 
 Condition consequences model the mechanical rules of each `EffectConditionId` as composable data primitives. Rather than scattering condition-specific `if` checks through action resolution code, each condition declares its consequences as a typed array, and derived query helpers combine active conditions into answers the resolution layer can consume.
 
-**Directory:** `encounter/state/condition-rules/`
+**Directory:** `encounter/state/conditions/condition-rules/`
 
 | Module | Responsibility |
 |--------|----------------|
@@ -196,7 +202,7 @@ Condition consequences model the mechanical rules of each `EffectConditionId` as
 
 **Derived queries:**
 
-- `canTakeActions(combatant)` / `canTakeReactions(combatant)` — used by `createCombatantTurnResources` in `shared.ts`
+- `canTakeActions(combatant)` / `canTakeReactions(combatant)` — used by `createCombatantTurnResources` in `state/shared.ts`
 - `getIncomingAttackModifiers(combatant, range)` / `getOutgoingAttackModifiers(combatant, range)` — flat condition-derived attack mods (no attacker/defender pairing).
 - `getIncomingAttackModifiersForAttack(attacker, defender, range)` / `getOutgoingAttackModifiersForAttack(attacker, defender, range)` — used by `resolveRollModifier` in `action-resolver.ts`; suppresses invisible-related adv/disadv when the other combatant has the `see-invisibility` state.
 - `autoFailsSave(combatant, ability)` / `getSaveModifiersFromConditions(combatant, ability)` — used by saving-throw resolution in `action-resolver.ts`
@@ -214,11 +220,11 @@ Condition consequences model the mechanical rules of each `EffectConditionId` as
 
 **Integration points:**
 
-- `shared.ts` `createCombatantTurnResources` — uses `canTakeActions`/`canTakeReactions` to disable actions for incapacitated, paralyzed, stunned, unconscious, and petrified. Uses `getSpeedConsequences` to zero movement for grappled, restrained, paralyzed, stunned, unconscious, and petrified. When called with optional **`{ encounterState, battlefieldSpell }`** (spell **`spellLookup`** + optional **`suppressSameSideHostile`**), initial **`movementRemaining`** uses **`getEffectiveGroundMovementBudgetFt`** so attached-aura spatial speed modifiers apply at turn start (same overlap rules as movement; see **`battlefield-spatial-movement-modifiers.ts`**).
+- `state/shared.ts` `createCombatantTurnResources` — uses `canTakeActions`/`canTakeReactions` to disable actions for incapacitated, paralyzed, stunned, unconscious, and petrified. Uses `getSpeedConsequences` to zero movement for grappled, restrained, paralyzed, stunned, unconscious, and petrified. When called with optional **`{ encounterState, battlefieldSpell }`** (spell **`spellLookup`** + optional **`suppressSameSideHostile`**), initial **`movementRemaining`** uses **`getEffectiveGroundMovementBudgetFt`** so attached-aura spatial speed modifiers apply at turn start (same overlap rules as movement; see **`battlefield/battlefield-spatial-movement-modifiers.ts`**).
 - `action-resolver.ts` `resolveRollModifier` — combines spell/effect `RollModifierMarker` entries with condition-derived attack modifiers. Blinded, poisoned, prone, restrained, invisible, frightened, paralyzed, stunned, unconscious, and petrified now affect attack rolls.
 - `action-resolver.ts` saving-throw resolution — checks `autoFailsSave` before rolling. Paralyzed, stunned, unconscious, and petrified combatants auto-fail Str/Dex saves. Restrained combatants roll Dex saves at disadvantage.
 - `action-resolver.ts` attack-roll resolution — natural 20 = auto-hit + critical hit (doubled damage dice). Natural 1 = auto-miss.
-- `damage-mutations.ts` `applyDamageToCombatant` — checks `getDamageResistanceFromConditions` after marker-based resistance. Petrified combatants have resistance to all damage types. **Charm Person (early end):** if the target has `charmed` with `sourceInstanceId` set to the charmer’s combatant id, and the damage source (`options.actorId` or `activeCombatantId`) is on the **same** `CombatantSide` as that charmer, the `charmed` marker(s) matching that rule are stripped and a `condition-removed` log line is emitted.
+- `mutations/damage-mutations.ts` `applyDamageToCombatant` — checks `getDamageResistanceFromConditions` after marker-based resistance. Petrified combatants have resistance to all damage types. **Charm Person (early end):** if the target has `charmed` with `sourceInstanceId` set to the charmer’s combatant id, and the damage source (`options.actorId` or `activeCombatantId`) is on the **same** `CombatantSide` as that charmer, the `charmed` marker(s) matching that rule are stripped and a `condition-removed` log line is emitted.
 - `action-targeting.ts` `isValidActionTarget` — uses `cannotTargetWithHostileAction` (backed by `getSourceRelativeRestrictions`) to enforce the charmed targeting exclusion via the consequence framework instead of the ad-hoc `getCharmedSourceIds` helper.
 
 **Consequence wiring status:**
@@ -227,7 +233,7 @@ Condition consequences model the mechanical rules of each `EffectConditionId` as
 
 - `action_limit` — `canTakeActions` / `canTakeReactions` consumed by `createCombatantTurnResources`
 - `movement.speedBecomesZero` — `getSpeedConsequences` consumed by `createCombatantTurnResources`
-- `attack_mod` — pair-aware helpers in `condition-queries.ts` consumed by `resolveRollModifier` (See Invisibility vs invisible)
+- `attack_mod` — pair-aware helpers in `conditions/condition-rules/condition-queries.ts` consumed by `resolveRollModifier` (See Invisibility vs invisible)
 - `save_mod` — `autoFailsSave` / `getSaveModifiersFromConditions` consumed by saving-throw resolution
 - `damage_interaction` — `getDamageResistanceFromConditions` consumed by `applyDamageToCombatant`
 - `source_relative` by source identity — `cannotTargetWithHostileAction` consumed by `isValidActionTarget` (charmed targeting exclusion)
@@ -272,10 +278,10 @@ Pure formatting functions that take raw resolution data and return `string[]` fo
 **Integration points:**
 
 - `action-resolver.ts` — attack-roll, save auto-fail, save-roll, and resource-blocked noOp events include `debugDetails`.
-- `damage-mutations.ts` — condition-based resistance notes include `debugDetails`. Monster **`reduced-to-0-hp`** traits (e.g. Undead Fortitude on zombies) resolve inside `applyDamageToCombatant` when `monstersById` is provided; pass `criticalHit` for attack crits and `rng` for the CON save. `hook-triggered` entries include `debugDetails` (trigger, DC, roll, outcome).
-- `condition-mutations.ts` — condition-applied events include a consequence breakdown when the condition is a known `EffectConditionId`.
-- `logging.ts` `createTurnStartedLog` — includes a combatant status snapshot (HP, conditions, states, concentration, disabled resources).
-- `logging.ts` `createTurnEndedLog` — includes the concentration timer when the active combatant is concentrating.
+- `mutations/damage-mutations.ts` — condition-based resistance notes include `debugDetails`. Monster **`reduced-to-0-hp`** traits (e.g. Undead Fortitude on zombies) resolve inside `applyDamageToCombatant` when `monstersById` is provided; pass `criticalHit` for attack crits and `rng` for the CON save. `hook-triggered` entries include `debugDetails` (trigger, DC, roll, outcome).
+- `conditions/condition-mutations.ts` — condition-applied events include a consequence breakdown when the condition is a known `EffectConditionId`.
+- `effects/logging.ts` `createTurnStartedLog` — includes a combatant status snapshot (HP, conditions, states, concentration, disabled resources).
+- `effects/logging.ts` `createTurnEndedLog` — includes the concentration timer when the active combatant is concentrating.
 - `appendEncounterNote` — accepts `debugDetails` in its options, allowing any call site to attach debug lines.
 
 To add debug details to a new log event, format the relevant diagnostic data into `string[]` and pass it as `debugDetails` on the `CombatLogEvent`. The bridge and UI handle it automatically.
@@ -290,9 +296,9 @@ To add debug details to a new log event, format the relevant diagnostic data int
 
 ### Adding a new condition consequence
 
-1. If the consequence kind already exists in `ConditionConsequence`, add it to the condition's entry in `CONDITION_RULES` in `condition-definitions.ts`. Use existing primitive builders from `condition-consequence-helpers.ts` where possible.
-2. If a new consequence kind is needed, add a new interface to `condition-consequences.types.ts` and add it to the `ConditionConsequence` union.
-3. Add a derived query helper in `condition-queries.ts` if the resolution layer needs to consume it (e.g., `canConcentrate(combatant)`).
+1. If the consequence kind already exists in `ConditionConsequence`, add it to the condition's entry in `CONDITION_RULES` in `conditions/condition-rules/condition-definitions.ts`. Use existing primitive builders from `conditions/condition-rules/condition-consequence-helpers.ts` where possible.
+2. If a new consequence kind is needed, add a new interface to `conditions/condition-rules/condition-consequences.types.ts` and add it to the `ConditionConsequence` union.
+3. Add a derived query helper in `conditions/condition-rules/condition-queries.ts` if the resolution layer needs to consume it (e.g., `canConcentrate(combatant)`).
 4. Wire the query into the appropriate resolution code (action-resolver, shared, or action-effects).
 
 ### Adding a new effect kind
@@ -360,7 +366,7 @@ Turn hooks fire at `turn-start` or `turn-end` and apply their nested effects (da
 
 **Movement entry (tactical):** After **`moveCombatant`**, **`resolveAttachedAuraSpatialEntryAfterMovement`** can apply **`interval.spatialTriggers`** (e.g. `enter`) when a creature **enters** an attached aura mid-turn, using the same spell lookup and suppression options.
 
-**Spatial speed (tactical):** Speed multipliers authored on the spell as **`modifier`** (`target: 'speed'`, `mode: 'multiply'`) are evaluated **spatially** — see **`battlefield-spatial-movement-modifiers.ts`**, **`combatantHasSpatialSpeedReduction`** for UI, and [space.md](./space.md) §3 Movement. They are not applied as static stat modifiers at cast for emanation spells.
+**Spatial speed (tactical):** Speed multipliers authored on the spell as **`modifier`** (`target: 'speed'`, `mode: 'multiply'`) are evaluated **spatially** — see **`battlefield/battlefield-spatial-movement-modifiers.ts`**, **`combatantHasSpatialSpeedReduction`** for UI, and [space.md](./space.md) §3 Movement. They are not applied as static stat modifiers at cast for emanation spells.
 
 To add a new ongoing effect pattern:
 
@@ -644,7 +650,7 @@ These items can be connected to existing resolution code with minimal new surfac
 
 - **Wire `canSpeak` / `isAwareOfSurroundings` into action availability or spell component validation** — the queries exist and are exported. Once verbal spell components or surprise mechanics are added, they become immediate consumers.
 - **Wire `canSee` into targeting or action-availability guards** — e.g., blinded creatures auto-fail ability checks requiring sight, once ability check resolution exists.
-- **Unconscious on-apply state transitions** — when the unconscious condition is applied, 5e rules dictate the creature drops prone and drops whatever it is holding. These are one-time transitions, not ongoing consequences, and should be handled in `addConditionToCombatant` in `condition-mutations.ts`.
+- **Unconscious on-apply state transitions** — when the unconscious condition is applied, 5e rules dictate the creature drops prone and drops whatever it is holding. These are one-time transitions, not ongoing consequences, and should be handled in `addConditionToCombatant` in `conditions/condition-mutations.ts`.
 - **Wire `check_mod` if contested checks are added** — poisoned and frightened already declare disadvantage on ability checks. Adding grapple escape or shove resolution would be the natural trigger.
 
 ### Subsystem-gated wiring

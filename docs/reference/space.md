@@ -75,7 +75,7 @@ The `showReachable` option is driven by movement budget (`movementRemaining > 0`
 
 ### Battlefield presence, occupancy, and return placement (mechanics linkage)
 
-Grid **`CombatantPosition[]`** is the source of truth for **which combatant occupies which cell**. Separately, **participation / battlefield presence** (whether a creature should appear on the tactical map at all) is defined in mechanics via `hasBattlefieldPresence` and engine-state rules (e.g. **banished**, **off-grid**) — see `combatant-participation.ts` and `condition-rules/engine-state-definitions.ts` in `src/features/mechanics/domain/encounter/state/`.
+Grid **`CombatantPosition[]`** is the source of truth for **which combatant occupies which cell**. Separately, **participation / battlefield presence** (whether a creature should appear on the tactical map at all) is defined in mechanics via `hasBattlefieldPresence` and engine-state rules (e.g. **banished**, **off-grid**) — see `combatants/combatant-participation.ts` and `conditions/condition-rules/engine-state-definitions.ts` in `src/features/mechanics/domain/encounter/state/`.
 
 **When a combatant becomes temporarily absent** (those engine states), mechanics **`battlefield-return-placement.ts`**:
 
@@ -99,7 +99,7 @@ When a **`spawn`** effect creates new combatants that **replace** an existing to
 - **Line geometry:** The segment runs between **cell centers** of the source and target cells `(x+0.5, y+0.5)`. The set of cells visited is a **grid supercover** using an **Amanatides & Woo–style DDA** (each unit cell the segment intersects). When a ray hits a **corner** between two cells, the tie branch steps **diagonally** so both grid steps are included.
 - **Blocking:** `cellBlocksSight(space, cellId)` is the **only** resolver for opaque sight blockers; it reads `EncounterCell.blocksSight`. **Intermediate** cells on the path may block; **source and target cells do not** block their own endpoints (occupants on those squares do not apply blocking in this first pass).
 - **API:** `hasLineOfSight(space, fromCellId, toCellId)`; `traceLineOfSightCells` is mainly for tests and debugging.
-- **Targeting:** `canSeeForTargeting` in `visibility-seams.ts` composes condition-based sight (e.g. blinded, invisible) with `lineOfSightClear`, which calls `hasLineOfSight` when `EncounterSpace` and placements exist. **Cover** and **obscurement** are out of scope here; future `deriveCoverLevel` would sit beside LoS, not inside it.
+- **Targeting:** `canSeeForTargeting` delegates to `canPerceiveTargetOccupantForCombat` (`visibility/combatant-pair-visibility.ts`): condition-based sight (e.g. blinded, invisible), `lineOfSightClear` → `hasLineOfSight` when a grid exists, then **occupant** visibility from `perception.resolve.ts` (heavy obscurement, magical darkness, etc.). **Cover** for attack modifiers is still separate; binary LoS here does not replace perception’s “can you see the creature in that cell?”
 
 ### Movement
 
@@ -107,7 +107,7 @@ When a **`spawn`** effect creates new combatants that **replace** an existing to
 
 **Optional battlefield spell context:** When the caller passes **`BattlefieldSpellContext`** (`spellLookup`, optional **`suppressSameSideHostile`**) as the fourth argument, movement is reconciled against **effective ground speed** for the combatant’s **current** cell after each step:
 
-- **`getEffectiveGroundMovementBudgetFt`** (`src/features/mechanics/domain/encounter/state/battlefield-spatial-movement-modifiers.ts`) applies **`floor(baseSpeed × product)`**, where the product comes from overlapping **attached sphere auras** (`EncounterState.attachedAuraInstances`) whose spells define **`modifier`** effects with **`target: 'speed'`** and **`mode: 'multiply'`** (e.g. Spirit Guardians `0.5`). Overlap uses the same geometry as aura rendering; the aura **source** and **`unaffectedCombatantIds`** are skipped; defeated combatants and same-side suppression follow **`battlefield-attached-aura-shared`** rules.
+- **`getEffectiveGroundMovementBudgetFt`** (`src/features/mechanics/domain/encounter/state/battlefield/battlefield-spatial-movement-modifiers.ts`) applies **`floor(baseSpeed × product)`**, where the product comes from overlapping **attached sphere auras** (`EncounterState.attachedAuraInstances`) whose spells define **`modifier`** effects with **`target: 'speed'`** and **`mode: 'multiply'`** (e.g. Spirit Guardians `0.5`). Overlap uses the same geometry as aura rendering; the aura **source** and **`unaffectedCombatantIds`** are skipped; defeated combatants and same-side suppression follow **`battlefield-attached-aura-shared`** rules.
 - **`turnContext.movementSpentThisTurn`** accumulates feet moved; after each move, **`movementRemaining = max(0, effectiveMax − spent)`** so entering or leaving an aura mid-turn updates the budget without double-counting.
 
 When no context is passed, behavior remains **remaining − distance** (legacy/tests).
@@ -127,7 +127,7 @@ These are intentional simplifications for the current milestone, not bugs:
 - **Distance-based cell selection is geometric only.** `selectCellsWithinDistance` ignores walls, terrain costs, and blockers. Sufficient for generated open grids. Named distinctly from future `selectPathReachableCells`.
 - **`targeting.rangeFt` is a single resolved scalar.** No long-range disadvantage, area templates, cone/line targeting, or minimum range. `CombatantAttackRange` carries `longFt` for future disadvantage rules, but the roll modifier is not wired.
 - **Character speed is hardcoded 30ft.** No race/species-based speeds. Refined when race modeling is added.
-- **No opportunity attacks.** Movement does not trigger reactions. The seam exists via `turnHooks` and `reactionAvailable`.
+- **Opportunity attacks (domain legality).** `reactions/opportunity-attack.ts` evaluates leave-reach (spatial) separately from sight: `canReactorPerceiveDepartingOccupantForOpportunityAttack` delegates to `canPerceiveTargetOccupantForCombat` (combat `viewerRole: 'pc'`, not DM omniscience). Movement resolution does not auto-spend reactions; callers use `getOpportunityAttackLegalityDenialReason` / `getCombatantIdsEligibleForOpportunityAttackAgainstMover` after `moveCombatant` when wiring OA UI or prompts.
 - **No Disengage or Dash actions.** Dash would double `movementRemaining`; Disengage would suppress opportunity attacks. `CombatActionCost.movementFeet` exists for future action costs.
 - **Pathfinding** is still geometric / not path-aware for movement highlights. **Ray-based LOS** exists for targeting (`hasLineOfSight`); **cover bonuses** and **obscurement** are still deferred.
 - **No large creature footprints.** `CombatantPosition.size` exists as a seam but is not consumed by placement, movement, or range validation.
@@ -164,7 +164,7 @@ Current naming intentionally distinguishes *in-range by metric* (`selectCellsWit
 | `GridViewModel` | `space.selectors.ts` | Complete grid for rendering |
 | `placeCombatant` | `space.selectors.ts` | Authoritative placement update: filter prior row, append `{ combatantId, cellId }` for passable cells |
 | `moveCombatant` | `space.selectors.ts` | Validates move; updates `movementRemaining` and `placements`; optional 4th arg **`BattlefieldSpellContext`** for spatial speed reconciliation |
-| `getEffectiveGroundMovementBudgetFt` | `encounter/state/battlefield-spatial-movement-modifiers.ts` | Effective movement cap from base speed × attached-aura speed multipliers (current overlap) |
+| `getEffectiveGroundMovementBudgetFt` | `encounter/state/battlefield/battlefield-spatial-movement-modifiers.ts` | Effective movement cap from base speed × attached-aura speed multipliers (current overlap) |
 | `applyGridSpawnReplacementFromTarget` | `applyGridSpawnReplacement.ts` | Transfers tactical `placements` from a spawn target to new combatant(s) (replacement / corpse→minion) |
 | `hasLineOfSight` | `space.sight.ts` | Binary LoS along supercover segment between cell centers |
 | `GridInteractionMode` | `encounter-interaction.types.ts` | `'select-target' \| 'move'` UI mode |
