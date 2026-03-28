@@ -60,7 +60,7 @@ That output feeds **`resolveHideEligibilityForCombatant`** after call-site / per
 
 **Optional overrides:** **`hideEligibility`** on **`StealthRulesOptions`** / **`GetHideAttemptEligibilityDenialReasonOptions`** — for tests or tools; normal encounter flow does **not** need to pass flags when they exist on the combatant. **`resolveHideEligibilityForCombatant`** precedence: **hide-attempt** — call-site → **`stealth.hideEligibility`** → **combatant-derived**; **stealth-sustain** — **`stealth.hideEligibility`** → call-site → **combatant-derived**. Reconciliation passes **`hideEligibilityResolveMode: 'stealth-sustain'`** on **`GetHideAttemptEligibilityDenialReasonOptions`**.
 
-**Entry and sustain share one eligibility check:** **`getHideAttemptEligibilityDenialReason`** (pair-aware cover when gridded). **`reconcileStealthBreakWhenNoConcealmentInCell`** removes individual **`hiddenFromObserverIds`** entries when that observer would now fail eligibility — not a single global “cell no longer supports hide” clear (unless every observer fails).
+**Entry** uses **`getHideAttemptEligibilityDenialReason`** (pair-aware cover when gridded). **Sustain / reveal** after movement or environment changes is **not** driven by eligibility alone: losing cover/concealment basis for a **new** Hide attempt does **not** prune **`hiddenFromObserverIds`**. Observer-relative hidden state drops when the observer **can perceive** the subject’s occupant (**`reconcileStealthHiddenForPerceivedObservers`**) or when an explicit rule applies (e.g. **`breakStealthOnAttack`**). Optional combat-log lines may note “hide basis gone but still unseen” as **diagnostic context** (`hide-basis-lost-context`).
 
 Eligibility answers **whether a hide attempt may be attempted** vs a given observer. It does **not** roll Stealth or compare to passive Perception.
 
@@ -105,9 +105,9 @@ These keep stored **`hiddenFromObserverIds`** aligned with the **shared percepti
 
 | Helper | Purpose |
 |--------|---------|
-| **`reconcileStealthAfterMovementOrEnvironmentChange`** | **Authoritative sequence:** (1) for **each** combatant with `stealth`, **`reconcileStealthBreakWhenNoConcealmentInCell`**; (2) **`reconcileStealthHiddenForPerceivedObservers`**. Use after movement, placement, zone, or baseline changes. |
+| **`reconcileStealthAfterMovementOrEnvironmentChange`** | **`reconcileStealthHiddenForPerceivedObservers`**, then optional **hide-basis context** notes (no stealth mutation). Use after movement, placement, zone, or baseline changes. |
 | **`reconcileStealthHiddenForPerceivedObservers`** | Drop an observer from the subject’s list when that observer **can** perceive the subject’s occupant (observer-relative; partial lists preserved). |
-| **`reconcileStealthBreakWhenNoConcealmentInCell`** | Clear **that** subject’s stealth when their merged-world cell **no longer** supports **`cellWorldSupportsHideAttemptWorldBasis`** using **`resolveHideEligibilityForCombatant`** (**`stealth-sustain`** mode). Same rule path as hide entry — not a separate baseline-only check. |
+| **`reconcileStealthBreakWhenNoConcealmentInCell`** | **No-op** (stable export): concealment-basis loss alone no longer prunes hidden-from; tests may still call it to assert non-mutation. |
 | **`applyEncounterEnvironmentBaselinePatchAndReconcileStealth`** | **`updateEncounterEnvironmentBaseline`** + full reconcile (baseline-only callers; avoids circular imports). |
 
 **Runtime integration (deterministic order):**
@@ -163,10 +163,10 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth/stealt
 | `applyStealthHideSuccess` | Merge **observerIds** (manual / future active contest); optional **`hideEligibility`** for tests/DM tooling. |
 | `resolveHideEligibilityForCombatant` | Effective extension flags for hide attempt vs sustain (`stealth/sight-hide-rules.ts`). |
 | `resolveDefaultHideObservers` | Candidate observers (eligibility only). |
-| `reconcileStealthAfterMovementOrEnvironmentChange` | Full sequence: concealment loss + perceived-again pruning. |
+| `reconcileStealthAfterMovementOrEnvironmentChange` | Perceived-again pruning + optional hide-basis diagnostic notes. |
 | `applyEncounterEnvironmentBaselinePatchAndReconcileStealth` | Baseline patch + full reconcile. |
 | `reconcileStealthHiddenForPerceivedObservers` | Align hidden-from with perception. |
-| `reconcileStealthBreakWhenNoConcealmentInCell` | Prune per-observer hidden state when eligibility fails (same checks as entry; `stealth-sustain` mode). |
+| `reconcileStealthBreakWhenNoConcealmentInCell` | No-op placeholder; basis-loss pruning removed in favor of perception-driven reconcile. |
 | `breakStealthOnAttack` | Clear attacker stealth after attack roll (global reveal). |
 | `ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE` | Contract flag (`false`) — attack modifiers must not read `stealth`. |
 | `isHiddenFromObserver` | Read helper (bookkeeping only). |

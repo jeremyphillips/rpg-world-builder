@@ -63,7 +63,7 @@ function afterGridMoveLikeRuntime(state: EncounterState, moverId: string, target
 }
 
 describe('stealth reconciliation — movement & environment integration', () => {
-  it('moving out of heavy obscurement breaks hidden state (concealment loss)', () => {
+  it('moving out of heavy obscurement removes hidden-from when observer can perceive (perception reconcile)', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const wiz = combatant('wiz', 'party', 'Wizard')
     const orc = combatant('orc', 'enemies', 'Orc', {
