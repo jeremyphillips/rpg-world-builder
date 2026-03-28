@@ -5,7 +5,7 @@ import AddIcon from '@mui/icons-material/Add'
 
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
-import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
 
 import { CombatLane } from './CombatLane'
 import { AllyCombatantSetupPreviewCard } from './AllyCombatantSetupPreviewCard'

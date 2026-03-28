@@ -6,6 +6,7 @@ export const MONSTERS_D: readonly MonsterCatalogEntry[] = [
   {
     id: 'djinni',
     name: 'Djinni',
+    imageKey: '/assets/system/monsters/djinni.png',
     type: 'elemental',
     sizeCategory: 'large',
     languages: [{ id: 'primordial' }],
@@ -130,6 +131,7 @@ export const MONSTERS_D: readonly MonsterCatalogEntry[] = [
   {
     id: 'dust-mephit',
     name: 'Dust Mephit',
+    imageKey: '/assets/system/monsters/dust-mephit.png',
     type: 'elemental',
     sizeCategory: 'small',
     languages: [{ id: 'primordial' }],

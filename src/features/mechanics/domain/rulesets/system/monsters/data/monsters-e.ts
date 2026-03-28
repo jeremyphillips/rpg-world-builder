@@ -6,6 +6,7 @@ export const MONSTERS_E: readonly MonsterCatalogEntry[] = [
   {
     id: 'earth-elemental',
     name: 'Earth Elemental',
+    imageKey: '/assets/system/monsters/earth-elemental.png',
     type: 'elemental',
     sizeCategory: 'large',
     languages: [{ id: 'primordial' }],

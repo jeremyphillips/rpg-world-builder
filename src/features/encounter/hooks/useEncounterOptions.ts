@@ -33,6 +33,26 @@ export function useEncounterOptions(args: {
     [allies],
   )
 
+  const npcAllyOptions = useMemo<AllyOption[]>(
+    () =>
+      npcs
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((npc) => {
+          const classLine = formatNpcClassLine(npc)
+          const raceStr = typeof npc.race === 'string' ? npc.race : null
+          const subtitle = [raceStr, classLine].filter(Boolean).join(' · ')
+          return {
+            id: npc._id,
+            label: npc.name,
+            subtitle,
+            imageKey: npc.imageKey,
+            imageUrl: npc.imageUrl,
+          }
+        }),
+    [npcs],
+  )
+
   const monsterOptions = useMemo<OpponentOption[]>(
     () =>
       Object.values(monstersById)
@@ -80,5 +100,5 @@ export function useEncounterOptions(args: {
     [opponentOptions],
   )
 
-  return { allyOptions, opponentOptions, opponentOptionsByKey }
+  return { allyOptions, npcAllyOptions, opponentOptions, opponentOptionsByKey }
 }

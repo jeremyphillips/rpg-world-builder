@@ -206,8 +206,8 @@ Refactor `[CombatantPreviewCard](src/features/encounter/components/shared/Combat
 
 - In UI copy, **“active”** often collides with **selected**, **focused**, **pressed**, or MUI’s `active` state — easy to confuse with `isSelected` on combatant rows.
 - `**isCurrentTurn`** is explicit for encounter/tactical use. For a **generic** `EntitySummaryCard`, better options are:
-  - Keep `**isCurrentTurn`** only in encounter wrappers and pass a `**statusSlot` / `endAdornment` / `badge**` ReactNode from the parent, **or**
-  - Use a neutral name like `**showEmphasisBadge`**, `**leadingStatus**`, or `**highlight: 'none' | 'turn'**` if you want one boolean without combat-specific vocabulary.
+  - Keep `**isCurrentTurn`** only in encounter wrappers and pass a `**statusSlot` / `endAdornment` / `badge`** ReactNode from the parent, **or**
+  - Use a neutral name like `**showEmphasisBadge`**, `**leadingStatus`**, or `**highlight: 'none' | 'turn'**` if you want one boolean without combat-specific vocabulary.
 
 If you rename to `isActive`, document that it means **turn highlight**, not selection.
 

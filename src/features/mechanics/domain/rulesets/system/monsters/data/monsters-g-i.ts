@@ -5,7 +5,8 @@ import type { MonsterCatalogEntry } from '../types';
 export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
   {
     id: 'gargoyle',
-    name: 'Gargoyle',
+    name: 'Gargoyle', 
+    imageKey: '/assets/system/monsters/gargoyle.png',
     type: 'elemental',
     sizeCategory: 'medium',
     languages: [{ id: 'primordial' }],
@@ -238,6 +239,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
   {
     id: 'ghoul',
     name: 'Ghoul',
+    imageKey: '/assets/system/monsters/ghoul.png',
     type: 'undead',
     sizeCategory: 'medium',
     languages: [{ id: 'common' }],
@@ -498,6 +500,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
   {
     id: 'goblin-boss',
     name: 'Goblin Boss',
+    imageKey: '/assets/system/monsters/goblin-boss.png',
     type: 'fey',
     subtype: 'goblinoid',
     sizeCategory: 'small',
@@ -706,6 +709,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
 {
     id: "gnoll-warrior",
     name: "Gnoll Warrior",
+    imageKey: '/assets/system/monsters/gnoll-warrior.png',
     type: "fiend",
     languages: [{ id: "gnoll" }],
     sizeCategory: "medium",

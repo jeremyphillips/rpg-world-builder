@@ -6,28 +6,40 @@
  * for attacks) answers whether an observer can **see** a subject. `CombatantStealthRuntime` records
  * observer-relative stealth on top of that seam — stealth is **not** a second sight engine.
  *
- * **Reconciliation** helpers keep stored `hiddenFromObserverIds` aligned when visibility/concealment
- * changes so stealth does not become a divergent truth source.
+ * **Reconciliation** helpers keep stored `hiddenFromObserverIds` aligned when perception or explicit
+ * reveal rules change so stealth does not become a divergent truth source. Losing hide **eligibility**
+ * (cover/concealment basis for a new Hide attempt) alone does **not** prune observer-relative hidden state.
  */
 
-import type { EncounterEnvironmentBaselinePatch } from '@/features/mechanics/domain/encounter/environment/environment.types'
+import type { EncounterEnvironmentBaselinePatch } from '@/features/mechanics/domain/environment/environment.types'
 
 import { reconcileAwarenessGuessesWithPerception } from '../awareness/awareness-rules'
 import { getPassivePerceptionScore } from '../awareness/passive-perception'
-import { canPerceiveTargetOccupantForCombat } from '../visibility/combatant-pair-visibility'
+import {
+  canPerceiveTargetOccupantForCombat,
+  evaluatePerceiveTargetOccupantForCombat,
+  type PerceiveTargetOccupantEvaluation,
+} from '../visibility/combatant-pair-visibility'
 import { updateEncounterEnvironmentBaseline } from '../environment/environment-baseline-mutations'
 import { updateEncounterCombatant } from '../mutations/mutations'
 import { getCombatantHideEligibilityExtensionOptions } from './combatant-hide-eligibility'
 import {
   getHideAttemptEligibilityDenialReason,
+  pairSupportsHideWorldBasisFromObserver,
   resolveHideEligibilityForCombatant,
   type HideAttemptEligibilityDenialReason,
   type HideEligibilityExtensionOptions,
   type HideEligibilityFeatureFlags,
 } from './sight-hide-rules'
+import { getCellForCombatant } from '@/features/encounter/space/space.helpers'
 import type { CombatantStealthRuntime } from '../types/combatant.types'
 import type { EncounterState } from '../types'
-import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
+import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
+import {
+  appendStealthHideBasisLostContextNote,
+  appendStealthHideSuccessAppliedNote,
+  appendStealthPrunedObserverCanPerceiveNote,
+} from './stealth-debug-log'
 
 export type { HideEligibilityExtensionOptions, HideEligibilityFeatureFlags }
 
@@ -133,6 +145,64 @@ export function resolveDefaultHideObservers(
   })
 }
 
+function hideAttemptDenialReasonToMessage(reason: HideAttemptEligibilityDenialReason): string {
+  switch (reason) {
+    case 'self':
+      return 'Invalid hide context.'
+    case 'missing-hider-placement':
+      return 'Not placed on the grid.'
+    case 'observer-sees-without-concealment':
+      return 'Need concealment or cover from observers.'
+    default: {
+      const _exhaustive: never = reason
+      return _exhaustive
+    }
+  }
+}
+
+/**
+ * When the Hide combat action cannot be attempted from the hider’s **current** cell/position
+ * (same basis as {@link resolveDefaultHideObservers} / the hide resolver). Returns `null` when a hide
+ * attempt is allowed (at least one eligible observer). UI and {@link getActionResolutionReadiness} use this;
+ * do not reimplement eligibility in components.
+ */
+export function getHideActionUnavailableReason(
+  state: EncounterState,
+  hiderId: string,
+  options?: StealthRulesOptions,
+): string | null {
+  if (resolveDefaultHideObservers(state, hiderId, options).length > 0) {
+    return null
+  }
+
+  const hider = state.combatantsById[hiderId]
+  if (!hider) {
+    return 'Cannot hide.'
+  }
+
+  const opposingIds = hider.side === 'party' ? state.enemyCombatantIds : state.partyCombatantIds
+  const otherSide = opposingIds.filter((id) => id !== hiderId)
+  if (otherSide.length === 0) {
+    return 'No opponents to hide from.'
+  }
+
+  if (state.space && state.placements) {
+    const cell = getCellForCombatant(state.placements, hiderId)
+    if (!cell) {
+      return 'Not placed on the grid.'
+    }
+  }
+
+  for (const observerId of otherSide) {
+    const denial = getStealthHideAttemptDenialReason(state, hiderId, observerId, options)
+    if (denial != null) {
+      return hideAttemptDenialReasonToMessage(denial)
+    }
+  }
+
+  return 'Cannot hide from any observer (concealment / cover).'
+}
+
 /**
  * Resolves a completed **Stealth total** (d20 + modifiers from the action/resolver — not rolled here)
  * against each **eligible** observer’s passive Perception. Updates `stealth.hiddenFromObserverIds`:
@@ -179,7 +249,7 @@ export function resolveHideWithPassivePerception(
     nextIds.add(oid)
   }
 
-  const nextState = updateEncounterCombatant(state, hiderId, (c) => ({
+  let nextState = updateEncounterCombatant(state, hiderId, (c) => ({
     ...c,
     stealth:
       nextIds.size === 0
@@ -191,6 +261,10 @@ export function resolveHideWithPassivePerception(
               resolveHideEligibilityForCombatant(state, hiderId, options, 'hide-attempt') ?? c.stealth?.hideEligibility,
           },
   }))
+
+  if (beatenObserverIds.length > 0) {
+    nextState = appendStealthHideSuccessAppliedNote(nextState, hiderId, beatenObserverIds)
+  }
 
   return {
     state: nextState,
@@ -226,6 +300,18 @@ export function reconcileStealthHiddenForPerceivedObservers(
 
     if (filtered.length === stealth.hiddenFromObserverIds.length) continue
 
+    const removedObserverIds = stealth.hiddenFromObserverIds.filter((id) => !filtered.includes(id))
+
+    const perceiveByObserverId: Record<string, PerceiveTargetOccupantEvaluation> = {}
+    for (const observerId of removedObserverIds) {
+      perceiveByObserverId[observerId] = evaluatePerceiveTargetOccupantForCombat(
+        next,
+        observerId,
+        combatant.instanceId,
+        cap,
+      )
+    }
+
     next = updateEncounterCombatant(next, combatant.instanceId, (c) => ({
       ...c,
       stealth:
@@ -236,6 +322,12 @@ export function reconcileStealthHiddenForPerceivedObservers(
               hiddenFromObserverIds: filtered,
             },
     }))
+    next = appendStealthPrunedObserverCanPerceiveNote(
+      next,
+      combatant.instanceId,
+      removedObserverIds,
+      perceiveByObserverId,
+    )
   }
 
   return reconcileAwarenessGuessesWithPerception(next)
@@ -244,15 +336,15 @@ export function reconcileStealthHiddenForPerceivedObservers(
 /**
  * **Authoritative stealth reconciliation** after movement, placement, environment baseline, or
  * environment-zone changes (including attached-aura zone projection). Call this (or code paths that
- * delegate to it) so hidden state stays aligned with the shared perception seam plus the **same**
- * hide eligibility as hide entry ({@link getHideAttemptEligibilityDenialReason}, including
- * observer-relative terrain cover when a grid is present).
+ * delegate to it) so hidden state stays aligned with the shared **perception** seam. Hide **entry**
+ * still requires eligibility ({@link getHideAttemptEligibilityDenialReason}); **sustain** does not drop
+ * entries solely because eligibility for a **new** Hide attempt would fail after the world changes.
  *
- * **Deterministic order:**
- * 1. For each combatant that currently has `stealth`, {@link reconcileStealthBreakWhenNoConcealmentInCell}
- *    — drop observer ids that no longer pass hide eligibility (observer-relative cover + concealment).
- * 2. {@link reconcileStealthHiddenForPerceivedObservers} — drop observer ids when that observer can
- *    perceive the subject’s occupant (partial / observer-relative pruning).
+ * **Pipeline (only):**
+ * 1. {@link reconcileStealthHiddenForPerceivedObservers} — remove hidden-from entries when the observer
+ *    can perceive the subject’s occupant (the sole movement/environment **state** change for stealth).
+ * 2. Append hide-basis **diagnostic** combat-log lines when pair hide world basis is gone but the observer
+ *    still cannot perceive (via `appendStealthHideBasisLostContextNote`; **no** stealth mutation).
  *
  * **Integration:** `reconcileBattlefieldEffectAnchors` (after zone sync), `updateEncounterEnvironmentBaseline`,
  * and `useEncounterState` `handleMoveCombatant` (after `moveCombatant` + battlefield anchor pass) end with
@@ -262,15 +354,51 @@ export function reconcileStealthAfterMovementOrEnvironmentChange(
   state: EncounterState,
   options?: StealthRulesOptions,
 ): EncounterState {
-  const hiderIds = Object.values(state.combatantsById)
-    .filter((c) => c.stealth != null)
-    .map((c) => c.instanceId)
+  const afterPerception = reconcileStealthHiddenForPerceivedObservers(state, options)
+  return appendStealthHideBasisDiagnosticsAfterPerception(afterPerception, options)
+}
 
+/**
+ * Combat-log **diagnostics** only: pair hide world basis is absent while the observer still cannot
+ * perceive the occupant — does **not** remove hidden-from entries. Uses {@link pairSupportsHideWorldBasisFromObserver}
+ * because {@link getHideAttemptEligibilityDenialReason} only encodes “sees occupant without basis,” not
+ * “no basis but still unseen.”
+ */
+function appendStealthHideBasisDiagnosticsAfterPerception(
+  state: EncounterState,
+  options?: StealthRulesOptions,
+): EncounterState {
+  const cap = perceptionCapabilitiesOnly(options)
   let next = state
-  for (const id of hiderIds) {
-    next = reconcileStealthBreakWhenNoConcealmentInCell(next, id, options)
+
+  for (const combatant of Object.values(state.combatantsById)) {
+    const hidden = combatant.stealth?.hiddenFromObserverIds
+    if (!hidden?.length) continue
+
+    const effectiveHideEligibility = resolveHideEligibilityForCombatant(
+      state,
+      combatant.instanceId,
+      { hideEligibility: options?.hideEligibility },
+      'stealth-sustain',
+    )
+
+    const basisLostWhileStillUnseen: string[] = []
+    for (const observerId of hidden) {
+      if (canPerceiveTargetOccupantForCombat(state, observerId, combatant.instanceId, cap)) continue
+      const hasPairBasis = pairSupportsHideWorldBasisFromObserver(
+        state,
+        observerId,
+        combatant.instanceId,
+        effectiveHideEligibility,
+      )
+      if (hasPairBasis) continue
+      basisLostWhileStillUnseen.push(observerId)
+    }
+    if (basisLostWhileStillUnseen.length > 0) {
+      next = appendStealthHideBasisLostContextNote(next, combatant.instanceId, basisLostWhileStillUnseen)
+    }
   }
-  return reconcileStealthHiddenForPerceivedObservers(next, options)
+  return next
 }
 
 /**
@@ -284,45 +412,6 @@ export function applyEncounterEnvironmentBaselinePatchAndReconcileStealth(
   options?: StealthRulesOptions,
 ): EncounterState {
   return reconcileStealthAfterMovementOrEnvironmentChange(updateEncounterEnvironmentBaseline(state, patch), options)
-}
-
-/**
- * **Reconciliation:** for each `hiddenFromObserverIds` entry, re-run {@link getHideAttemptEligibilityDenialReason}
- * (with {@link resolveHideEligibilityForCombatant} in **`stealth-sustain`** mode) and **remove** observers
- * who would now be denied a hide attempt — including when **observer-relative** terrain cover no longer
- * supports hide from that viewer. When the list becomes empty, clears stealth.
- *
- * **Fallback:** without a tactical grid, eligibility stays permissive (same as hide entry); pruning
- * then follows perception-only checks from {@link reconcileStealthHiddenForPerceivedObservers}.
- *
- * Used inside {@link reconcileStealthAfterMovementOrEnvironmentChange} — see docs/reference/stealth.md.
- */
-export function reconcileStealthBreakWhenNoConcealmentInCell(
-  state: EncounterState,
-  hiderId: string,
-  options?: StealthRulesOptions,
-): EncounterState {
-  const combatant = state.combatantsById[hiderId]
-  const hidden = combatant?.stealth?.hiddenFromObserverIds
-  if (!hidden?.length) return state
-
-  const opts = hideEligibilityOpts(options)
-  const cap = perceptionCapabilitiesOnly(options)
-  const nextIds = hidden.filter((observerId) => {
-    const denial = getHideAttemptEligibilityDenialReason(state, hiderId, observerId, {
-      ...opts,
-      ...cap,
-      hideEligibilityResolveMode: 'stealth-sustain',
-    })
-    return denial === null
-  })
-
-  if (nextIds.length === hidden.length) return state
-  if (nextIds.length === 0) return clearStealthForCombatant(state, hiderId)
-  return updateEncounterCombatant(state, hiderId, (c) => ({
-    ...c,
-    stealth: { ...c.stealth!, hiddenFromObserverIds: nextIds },
-  }))
 }
 
 function clearStealthForCombatant(state: EncounterState, combatantId: string): EncounterState {

@@ -17,6 +17,8 @@ export type CombatLogEventType =
   | 'state-applied'
   | 'state-removed'
   | 'note'
+  /** Stealth: hidden-from pruned because observer can perceive subject's occupant (user-facing summary + optional debug trace). */
+  | 'stealth-reveal'
 
 export interface CombatLogEvent {
   id: string

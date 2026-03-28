@@ -6,7 +6,7 @@ import Paper from '@mui/material/Paper'
 import { AppAvatar } from '@/ui/primitives'
 import { EntitySummaryCard } from '@/ui/patterns'
 
-import type { CombatantPreviewCardProps } from '../../../domain'
+import type { CombatantPreviewCardProps, ViewerCombatantPresentationKind } from '../../../domain'
 import { getCombatantPreviewCardOpacity } from '../../../domain/presentation-participation'
 import { CombatantPreviewChipRow } from './combatant-badges'
 
@@ -23,10 +23,14 @@ export function CombatantPreviewCard({
   isSelected = false,
   isDefeated = false,
   hasBattlefieldPresence = true,
+  viewerPresentationKind = 'visible',
   primaryAction,
   secondaryActions,
   onClick,
 }: CombatantPreviewCardProps) {
+  const resolvedPresentation: ViewerCombatantPresentationKind = viewerPresentationKind ?? 'visible'
+  const nonVisiblePresentation = resolvedPresentation !== 'visible'
+
   const borderColor = isCurrentTurn
     ? 'primary.main'
     : isSelected
@@ -43,13 +47,28 @@ export function CombatantPreviewCard({
 
   const avatarNode = avatar ?? <AppAvatar name={title} size="sm" />
 
+  const visibilityLeadChip =
+    resolvedPresentation === 'out-of-sight'
+      ? ({ id: 'viewer-oos', label: 'Out of sight', tone: 'neutral' as const })
+      : resolvedPresentation === 'hidden'
+        ? ({ id: 'viewer-hidden', label: 'Hidden', tone: 'warning' as const })
+        : null
+
+  const chipsWithVisibility = visibilityLeadChip
+    ? [visibilityLeadChip, ...(chips ?? [])]
+    : chips
+
   const content = (
     <EntitySummaryCard
       avatar={avatarNode}
       title={title}
       subtitle={subtitle}
       stats={stats}
-      chips={chips && chips.length > 0 ? <CombatantPreviewChipRow chips={chips} maxVisible={4} /> : undefined}
+      chips={
+        chipsWithVisibility && chipsWithVisibility.length > 0 ? (
+          <CombatantPreviewChipRow chips={chipsWithVisibility} maxVisible={4} />
+        ) : undefined
+      }
       isCurrentTurn={isCurrentTurn}
       secondaryActions={secondaryActions}
       primaryAction={primaryAction}
@@ -65,6 +84,7 @@ export function CombatantPreviewCard({
         opacity: getCombatantPreviewCardOpacity({
           isDefeated,
           hasBattlefieldPresence,
+          nonVisibleViewerPresentation: nonVisiblePresentation,
         }),
         overflow: 'hidden',
       }}

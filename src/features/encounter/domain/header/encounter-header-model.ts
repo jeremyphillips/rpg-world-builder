@@ -1,7 +1,7 @@
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import { actionRequiresCreatureTargetForResolve } from '@/features/mechanics/domain/encounter'
 
-import { isAreaGridAction, isSelfCenteredAreaAction, type AoeStep } from '../../helpers/area-grid-action'
+import { isAreaGridAction, isSelfCenteredAreaAction, type AoeStep } from '../../helpers/actions'
 import { deriveCombatantTurnExhaustion, type CombatantTurnExhaustionInput } from '../turn/combatant-turn-exhaustion'
 import type { GridInteractionMode } from '../interaction/encounter-interaction.types'
 

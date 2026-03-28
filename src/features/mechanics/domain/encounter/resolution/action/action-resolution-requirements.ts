@@ -1,12 +1,13 @@
 import {
   isAreaGridAction,
   resolveAttachedEmanationAnchorModeFromSelection,
-} from '@/features/encounter/helpers/area-grid-action'
+} from '@/features/encounter/helpers/actions'
 import { getCellForCombatant } from '@/features/encounter/space/space.helpers'
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import type { CombatantInstance } from '../../state'
 import { isValidActionTarget } from './action-targeting'
+import { getHideActionUnavailableReason } from '../../state/stealth/stealth-rules'
 import {
   getActionRequirements,
   getPlacementCtaLabel,
@@ -14,7 +15,7 @@ import {
   isSingleCellPlacementSatisfied,
 } from './action-requirement-model'
 
-export { resolveAttachedEmanationAnchorModeFromSelection } from '@/features/encounter/helpers/area-grid-action'
+export { resolveAttachedEmanationAnchorModeFromSelection } from '@/features/encounter/helpers/actions'
 
 /** Phase-1 resolution gates derived from action metadata only (no map execution). */
 export type ActionResolutionRequirementKind =
@@ -23,6 +24,7 @@ export type ActionResolutionRequirementKind =
   | 'single-cell-placement'
   | 'caster-option'
   | 'object-anchor'
+  | 'hide-eligibility'
   | 'none'
 
 export type ActionResolutionMissing = {
@@ -281,6 +283,13 @@ export function getActionResolutionReadiness(
           message: cellRaw ? 'Invalid placement' : req ? getPlacementCtaLabel(req) : 'Choose Placement',
         })
       }
+    }
+  }
+
+  if (action.resolutionMode === 'hide' && ctx.encounterState && ctx.activeCombatant) {
+    const hideReason = getHideActionUnavailableReason(ctx.encounterState, ctx.activeCombatant.instanceId)
+    if (hideReason) {
+      missingRequirements.push({ kind: 'hide-eligibility', message: hideReason })
     }
   }
 

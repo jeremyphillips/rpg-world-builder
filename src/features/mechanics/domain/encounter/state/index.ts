@@ -84,8 +84,13 @@ export {
   lineOfEffectClear,
   canSeeForTargeting,
   canPerceiveTargetOccupantForCombat,
+  evaluatePerceiveTargetOccupantForCombat,
+  formatPerceiveTargetOccupantBreakdownCompact,
+  formatStealthRevealHumanReadable,
   resolveCombatantPairVisibilityForAttackRoll,
   getAttackVisibilityRollModifiersFromPair,
+  type PerceiveTargetOccupantBreakdown,
+  type PerceiveTargetOccupantEvaluation,
 } from './visibility/visibility-seams'
 export {
   DEFAULT_OPPORTUNITY_ATTACK_REACH_FT,
@@ -133,11 +138,11 @@ export {
 export {
   applyStealthHideSuccess,
   breakStealthOnAttack,
+  getHideActionUnavailableReason,
   getStealthHideAttemptDenialReason,
   isHiddenFromObserver,
   applyEncounterEnvironmentBaselinePatchAndReconcileStealth,
   reconcileStealthAfterMovementOrEnvironmentChange,
-  reconcileStealthBreakWhenNoConcealmentInCell,
   reconcileStealthHiddenForPerceivedObservers,
   resolveDefaultHideObservers,
   resolveHideWithPassivePerception,
@@ -145,6 +150,14 @@ export {
   type HideResolutionOutcome,
   type StealthRulesOptions,
 } from './stealth/stealth-rules'
+export {
+  STEALTH_DEBUG_REASON,
+  appendStealthBrokenOnAttackNote,
+  appendStealthHideBasisLostContextNote,
+  appendStealthHideSuccessAppliedNote,
+  appendStealthMovementRecheckHeaderNote,
+  appendStealthPrunedObserverCanPerceiveNote,
+} from './stealth/stealth-debug-log'
 export {
   applyNoiseAwarenessForSubject,
   clearGuessedCellForObserver,

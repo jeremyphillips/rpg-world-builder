@@ -1,6 +1,6 @@
 import { findGridObstacleById, moveGridObstacleToCell } from '@/features/encounter/space/space.helpers'
 
-import { reconcileEnvironmentZonesFromAttachedAuras } from '../../environment/environment-zones-battlefield-sync'
+import { reconcileEnvironmentZonesFromAttachedAuras } from '@/features/mechanics/domain/environment/environment-zones-battlefield-sync'
 import { dropConcentration } from '../effects/concentration-mutations'
 import { resolveBattlefieldEffectOriginCellId } from '../battlefield/battlefield-effect-anchor'
 import { reconcileStealthAfterMovementOrEnvironmentChange } from '../stealth/stealth-rules'

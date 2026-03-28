@@ -4,7 +4,7 @@ import { EXTRAPLANAR_CREATURE_TYPES } from '@/features/mechanics/domain/rulesets
 import { applyActionEffects } from './action-effects'
 import type { CombatActionDefinition } from '../combat-action.types'
 import { addConditionToCombatant, createEncounterState } from '../../state'
-import { createSquareGridSpace } from '@/features/encounter/space/createSquareGridSpace'
+import { createSquareGridSpace } from '@/features/encounter/space/creation/createSquareGridSpace'
 import {
   encounterAttackerOutsideDefenderHeavilyObscured,
   encounterAttackerOutsideDefenderMagicalDarknessCell,

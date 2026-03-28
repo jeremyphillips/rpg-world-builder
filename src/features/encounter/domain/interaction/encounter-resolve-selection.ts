@@ -1,4 +1,5 @@
 import {
+  getHideActionUnavailableReason,
   isValidActionTarget,
   getActionTargetInvalidReason,
   getActionResolutionReadiness,
@@ -8,7 +9,7 @@ import type { EncounterState } from '@/features/mechanics/domain/encounter'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 
-import type { AoeStep } from '../../helpers/area-grid-action'
+import type { AoeStep } from '../../helpers/actions'
 
 export type ValidActionIdsForTargetResult = {
   validIds: Set<string>
@@ -53,6 +54,15 @@ export function selectValidActionIdsForTarget(
         action,
       )
       if (reason) invalidReasons.set(action.id, reason)
+    }
+  }
+
+  for (const action of availableActions) {
+    if (action.resolutionMode !== 'hide') continue
+    const hideReason = getHideActionUnavailableReason(encounterState, activeCombatant.instanceId)
+    if (hideReason) {
+      validIds.delete(action.id)
+      invalidReasons.set(action.id, hideReason)
     }
   }
 

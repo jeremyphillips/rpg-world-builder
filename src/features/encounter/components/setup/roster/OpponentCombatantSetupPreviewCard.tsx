@@ -2,7 +2,13 @@ import { useEffect, useMemo, useRef } from 'react'
 
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
-import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
+import {
+  buildMonsterCombatantInstance,
+  formatSigned,
+  type CombatantPortraitEntry,
+} from '@/features/encounter/helpers/combatants'
+import { buildMonsterAttackEntries, buildMonsterExecutableActions } from '@/features/encounter/helpers/monsters'
+import { getPreviewStatTooltip } from '@/features/encounter/helpers/presentation'
 import { calculateMonsterArmorClass } from '@/features/content/monsters/domain/mechanics/calculateMonsterArmorClass'
 import { getAbilityScoreValue } from '@/features/mechanics/domain/character/abilities/abilityScoreMap'
 import type { Monster } from '@/features/content/monsters/domain/types'
@@ -16,13 +22,6 @@ import {
 } from '@/features/mechanics/domain/encounter'
 import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
-import {
-  buildMonsterAttackEntries,
-  buildMonsterCombatantInstance,
-  buildMonsterExecutableActions,
-  formatSigned,
-  getPreviewStatTooltip,
-} from '../../../helpers'
 import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
 import { CombatantAvatar } from '../../shared/CombatantAvatar'
 

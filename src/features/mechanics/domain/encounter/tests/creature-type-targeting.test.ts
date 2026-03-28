@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildSpellCombatActions } from '@/features/encounter/helpers/spell-combat-adapter'
+import { buildSpellCombatActions } from '@/features/encounter/helpers/spells'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import { getSystemSpell } from '@/features/mechanics/domain/rulesets/system/spells'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'

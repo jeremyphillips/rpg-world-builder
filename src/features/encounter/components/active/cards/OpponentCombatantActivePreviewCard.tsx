@@ -2,7 +2,8 @@ import { useMemo } from 'react'
 
 import type { Monster } from '@/features/content/monsters/domain/types'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
-import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
+import type { ViewerCombatantPresentationKind } from '@/features/encounter/domain'
 import type { CombatantInstance, SpatialBattlefieldPresentationOptions } from '@/features/mechanics/domain/encounter'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import {
@@ -11,7 +12,8 @@ import {
 } from '@/features/mechanics/domain/encounter/state/combatants/combatant-participation'
 
 import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
-import { buildCombatantPreviewChips, formatSigned, getPreviewStatTooltip } from '../../../helpers'
+import { formatSigned } from '@/features/encounter/helpers/combatants'
+import { buildCombatantPreviewChips, getPreviewStatTooltip } from '@/features/encounter/helpers/presentation'
 import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
 import { CombatantAvatar } from '../../shared/CombatantAvatar'
 
@@ -25,6 +27,7 @@ type OpponentCombatantActivePreviewCardProps = {
   showChips?: boolean
   onClick?: () => void
   spatialPresentation?: SpatialBattlefieldPresentationOptions
+  viewerPresentationKind?: ViewerCombatantPresentationKind
 }
 
 export function OpponentCombatantActivePreviewCard({
@@ -37,6 +40,7 @@ export function OpponentCombatantActivePreviewCard({
   showChips = true,
   onClick,
   spatialPresentation,
+  viewerPresentationKind = 'visible',
 }: OpponentCombatantActivePreviewCardProps) {
   const isDefeated = isDefeatedCombatant(combatant)
   const onBattlefield = hasBattlefieldPresence(combatant)
@@ -109,6 +113,7 @@ export function OpponentCombatantActivePreviewCard({
     isSelected,
     isDefeated,
     hasBattlefieldPresence: onBattlefield,
+    viewerPresentationKind,
     onClick,
   }
 

@@ -49,7 +49,7 @@ import {
   placeCombatant,
 } from '@/features/encounter/space'
 import { effectiveSpawnPlacement } from './action-requirement-model'
-import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
+import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 import { getEncounterAbilityCheckSightDenialReason } from '../encounter-ability-check-resolution'
 
 function reviveBlockedReason(

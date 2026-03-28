@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { GridCellViewModel } from '../../../space/space.selectors'
+import type { GridCellViewModel } from '../../../space/selectors/space.selectors'
 import {
   getCellVisualState,
   movementFillSuppressedByOverlay,

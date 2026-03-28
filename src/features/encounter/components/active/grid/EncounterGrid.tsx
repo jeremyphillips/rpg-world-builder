@@ -1,6 +1,8 @@
 /**
  * Grid presentation only. Tactical overlays come from the grid view model; viewer visibility comes from
- * `cell.perception` (domain projection). Do not infer perception rules here.
+ * `cell.perception` (domain projection) plus `viewerPerceivesOccupantToken` /
+ * `viewerOccupantPresentationKind` on the view model (`deriveViewerCombatantPresentationKind`).
+ * Do not infer perception rules here.
  */
 import { Fragment, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 
@@ -12,7 +14,7 @@ import { alpha, keyframes, useTheme } from '@mui/material/styles'
 import type { Theme } from '@mui/material/styles'
 import { AppAvatar } from '@/ui/primitives'
 import { resolveImageUrl } from '@/shared/lib/media'
-import type { GridViewModel, GridCellViewModel } from '../../../space/space.selectors'
+import type { GridViewModel, GridCellViewModel } from '../../../space/selectors/space.selectors'
 import { DEFEATED_PARTICIPATION_OPACITY } from '../../../domain/presentation-defeated'
 import { getCellVisualState, mergePerceptionIntoCellVisualState } from './cellVisualState'
 import { getCellVisualSx } from './cellVisualStyles'
@@ -106,6 +108,7 @@ function shouldRenderOccupantToken(
   viewerCombatantId: string | undefined,
 ): boolean {
   if (!cell.occupantRendersToken) return false
+  if (cell.viewerPerceivesOccupantToken === false) return false
   if (!cell.perception) return true
   switch (cell.perception.occupantTokenVisibility) {
     case 'all':

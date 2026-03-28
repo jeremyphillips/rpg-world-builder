@@ -12,8 +12,8 @@ import type { SpawnSummonInitiativeMode } from '../../effects/effects.types'
 import type { EncounterState } from './types'
 import type { EncounterSpace, InitialPlacementOptions } from '@/features/encounter/space'
 import { generateInitialPlacements } from '@/features/encounter/space'
-import type { EncounterEnvironmentBaseline, EncounterEnvironmentZone } from '@/features/mechanics/domain/encounter/environment'
-import { DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE } from '@/features/mechanics/domain/encounter/environment'
+import type { EncounterEnvironmentBaseline, EncounterEnvironmentZone } from '@/features/mechanics/domain/environment'
+import { DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE } from '@/features/mechanics/domain/environment'
 import {
   createCombatantTurnResources,
   indexCombatants,

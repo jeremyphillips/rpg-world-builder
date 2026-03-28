@@ -16,6 +16,7 @@ export type {
   ActionBadgeKind,
 } from './badges/action/combat-action-badges.types'
 export { deriveActionPresentation } from './actions/action-presentation'
+export { deriveRecommendedActionsForTarget } from './actions/derive-recommended-actions-for-target'
 export type {
   ActionPresentationViewModel,
   ActionSemanticCategory,
@@ -116,6 +117,10 @@ export type {
   EncounterPerceptionUiFeedback,
   DeriveEncounterPerceptionUiFeedbackArgs,
 } from './perception/encounter-perception-ui.feedback'
+export {
+  deriveEncounterPresentationGridPerceptionInput,
+} from './perception/derive-encounter-presentation-grid-perception'
+export type { DeriveEncounterPresentationGridPerceptionInputArgs } from './perception/derive-encounter-presentation-grid-perception'
 export type {
   CombatantPreviewMode,
   CombatantPreviewKind,
@@ -131,4 +136,5 @@ export type {
   SetupPreviewWrapperProps,
   ActivePreviewWrapperProps,
   TurnOrderStatus,
+  ViewerCombatantPresentationKind,
 } from './view/encounter-view.types'

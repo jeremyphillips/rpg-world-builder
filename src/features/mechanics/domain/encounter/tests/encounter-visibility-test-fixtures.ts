@@ -1,4 +1,4 @@
-import { createSquareGridSpace } from '@/features/encounter/space/createSquareGridSpace'
+import { createSquareGridSpace } from '@/features/encounter/space/creation/createSquareGridSpace'
 
 import { createEncounterState } from '../state'
 import type { CombatantInstance } from '../state/types'

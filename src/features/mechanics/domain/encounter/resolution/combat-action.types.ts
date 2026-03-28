@@ -1,5 +1,5 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
-import type { AttachedEnvironmentZoneProfile } from '../environment/environment.types'
+import type { AttachedEnvironmentZoneProfile } from '@/features/mechanics/domain/environment/environment.types'
 import type { AttachedBattlefieldEffectSource } from '../state/auras/attached-battlefield-source'
 import type { AbilityId } from '@/features/mechanics/domain/character'
 import type { BreakdownToken } from '../../resolution/resolvers/stat-resolver'

@@ -2,11 +2,14 @@ import { describe, expect, it } from 'vitest'
 
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 
+import { createSquareGridSpace } from '@/features/encounter/space/creation/createSquareGridSpace'
+import { createEncounterState } from '../state'
 import {
   actionRequiresCreatureTargetForResolve,
   getActionResolutionReadiness,
   getActionResolutionRequirements,
 } from '../resolution/action/action-resolution-requirements'
+import { testEnemy, testPc } from './encounter-visibility-test-fixtures'
 
 function baseAction(overrides: Partial<CombatActionDefinition> = {}): CombatActionDefinition {
   return {
@@ -70,5 +73,70 @@ describe('action-resolution-requirements', () => {
       areaTemplate: { kind: 'sphere', radiusFt: 20 },
     })
     expect(getActionResolutionRequirements(a)).toEqual(['area-selection'])
+  })
+
+  it('hide action: readiness false when getHideActionUnavailableReason applies (open ground)', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const w = testPc('wiz', 'Wizard', 20)
+    const o = testEnemy('orc', 'Orc', 20)
+    const base = createEncounterState([w, o], { rng: () => 0.5, space })
+    const encounterState = {
+      ...base,
+      placements: [
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+        { combatantId: 'orc', cellId: 'c-1-0' },
+      ],
+    }
+    const activeCombatant = encounterState.combatantsById.orc!
+    const hideAction = baseAction({
+      id: 'hide',
+      kind: 'combat-effect',
+      resolutionMode: 'hide',
+      targeting: { kind: 'self' },
+    })
+    const r = getActionResolutionReadiness(hideAction, {
+      ...emptyCtx,
+      encounterState,
+      activeCombatant,
+    })
+    expect(r.canResolve).toBe(false)
+    expect(r.missingRequirements.some((m) => m.kind === 'hide-eligibility')).toBe(true)
+  })
+
+  it('hide action: readiness true when concealment allows hide attempt', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const w = testPc('wiz', 'Wizard', 20)
+    const o = testEnemy('orc', 'Orc', 20)
+    const base = createEncounterState([w, o], { rng: () => 0.5, space })
+    const encounterState = {
+      ...base,
+      placements: [
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+        { combatantId: 'orc', cellId: 'c-2-2' },
+      ],
+      environmentZones: [
+        {
+          id: 'z-heavy',
+          kind: 'patch',
+          sourceKind: 'manual',
+          area: { kind: 'grid-cell-ids', cellIds: ['c-2-2'] },
+          overrides: { visibilityObscured: 'heavy' },
+        },
+      ],
+    }
+    const activeCombatant = encounterState.combatantsById.orc!
+    const hideAction = baseAction({
+      id: 'hide',
+      kind: 'combat-effect',
+      resolutionMode: 'hide',
+      targeting: { kind: 'self' },
+    })
+    const r = getActionResolutionReadiness(hideAction, {
+      ...emptyCtx,
+      encounterState,
+      activeCombatant,
+    })
+    expect(r.missingRequirements.filter((m) => m.kind === 'hide-eligibility')).toHaveLength(0)
+    expect(r.canResolve).toBe(true)
   })
 })

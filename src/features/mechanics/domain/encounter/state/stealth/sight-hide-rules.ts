@@ -1,6 +1,6 @@
 import { getCellForCombatant } from '@/features/encounter/space'
-import { resolveWorldEnvironmentFromEncounterState } from '@/features/mechanics/domain/encounter/environment/environment.resolve'
-import type { EncounterWorldCellEnvironment } from '@/features/mechanics/domain/encounter/environment/environment.types'
+import { resolveWorldEnvironmentFromEncounterState } from '@/features/mechanics/domain/environment/environment.resolve'
+import type { EncounterWorldCellEnvironment } from '@/features/mechanics/domain/environment/environment.types'
 
 import { getCombatantHideEligibilityExtensionOptions } from './combatant-hide-eligibility'
 import {
@@ -10,7 +10,7 @@ import {
 import { canPerceiveTargetOccupantForCombat } from '../visibility/combatant-pair-visibility'
 import type { CombatantHideEligibilityExtension } from '../types/combatant.types'
 import type { EncounterState } from '../types'
-import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
+import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 
 /**
  * Whether the observer can **visually perceive the subject’s occupant** for rules that care about sight

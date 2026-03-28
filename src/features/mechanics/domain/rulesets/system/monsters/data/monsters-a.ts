@@ -237,6 +237,7 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
   {
     id: 'animated-armor',
     name: 'Animated Armor',
+    imageKey: '/assets/system/monsters/animated-armor.png',
     type: 'construct',
     sizeCategory: 'medium',
     languages: [],
@@ -639,6 +640,7 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
   {
     id: 'axe-beak',
     name: 'Axe Beak',
+    imageKey: '/assets/system/monsters/axe-beak.png',
     type: 'beast',
     sizeCategory: 'large',
     languages: [],
@@ -677,6 +679,7 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
   {
     id: 'azer-sentinel',
     name: 'Azer Sentinel',
+    imageKey: '/assets/system/monsters/azer-sentinel.png',
     type: 'elemental',
     sizeCategory: 'medium',
     languages: [{ id: 'primordial' }],

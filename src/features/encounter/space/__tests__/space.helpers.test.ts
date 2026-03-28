@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createSquareGridSpace } from '../createSquareGridSpace'
+import { createSquareGridSpace } from '../creation/createSquareGridSpace'
 import {
   getCellAt,
   getCellById,

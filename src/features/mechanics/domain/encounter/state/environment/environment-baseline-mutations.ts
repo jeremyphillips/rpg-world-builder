@@ -1,6 +1,6 @@
-import { applyEnvironmentBaselinePatch } from '@/features/mechanics/domain/encounter/environment/environment.baseline.patch'
-import { DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE } from '@/features/mechanics/domain/encounter/environment/environment.resolve'
-import type { EncounterEnvironmentBaselinePatch } from '@/features/mechanics/domain/encounter/environment/environment.types'
+import { applyEnvironmentBaselinePatch } from '@/features/mechanics/domain/environment/environment.baseline.patch'
+import { DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE } from '@/features/mechanics/domain/environment/environment.resolve'
+import type { EncounterEnvironmentBaselinePatch } from '@/features/mechanics/domain/environment/environment.types'
 
 import type { EncounterState } from '../types'
 

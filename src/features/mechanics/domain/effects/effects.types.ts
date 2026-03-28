@@ -15,7 +15,7 @@ import type { MonsterSizeCategory, MonsterType } from '@/features/content/monste
 import type { EffectNoteCategory } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { AreaOfEffectTemplate } from './area.types';
 import type { TargetingEffectTarget } from './targeting.types';
-import type { AttachedEnvironmentZoneProfile } from '../encounter/environment/environment.types';
+import type { AttachedEnvironmentZoneProfile } from '../environment/environment.types';
 
 export type { FormulaDefinition, FormulaEffect } from '../resolution/engines/formula.engine';
 export type { AreaOfEffectTemplate } from './area.types';

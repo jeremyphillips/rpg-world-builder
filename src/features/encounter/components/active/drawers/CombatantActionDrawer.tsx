@@ -22,7 +22,7 @@ import {
   isAreaGridAction,
   resolveAttachedEmanationAnchorModeFromSelection,
   type AoeStep,
-} from '../../../helpers/area-grid-action'
+} from '../../../helpers/actions'
 import { AoePlacementPanel } from './drawer-modes/AoePlacementPanel'
 import { CasterOptionsDrawerPanel } from './drawer-modes/CasterOptionsDrawerPanel'
 import {
@@ -40,6 +40,7 @@ import {
 } from '../../../domain'
 import type { ActionSemanticCategory } from '../../../domain/actions/action-presentation.types'
 import { deriveActionPresentation } from '../../../domain/actions/action-presentation'
+import { deriveRecommendedActionsForTarget } from '../../../domain/actions/derive-recommended-actions-for-target'
 import { ActionRow } from '../action-row/ActionRow'
 import { deriveActionUnavailableHint } from './helpers/derive-action-unavailable-hint'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
@@ -196,70 +197,6 @@ function groupActionsByCategory(actions: CombatActionDefinition[]): CategoryGrou
 }
 
 // ---------------------------------------------------------------------------
-// Recommended actions
-// ---------------------------------------------------------------------------
-
-const MAX_RECOMMENDED = 3
-
-function hasSequence(action: CombatActionDefinition): boolean {
-  return action.sequence != null && action.sequence.length > 0
-}
-
-const CATEGORY_SORT_PRIORITY: Record<string, number> = {
-  attack: 0,
-  heal: 1,
-  buff: 2,
-  utility: 3,
-  item: 4,
-}
-
-function deriveRecommendedActions(
-  actions: CombatActionDefinition[],
-  availableActionIds: Set<string> | undefined,
-  validActionIdsForTarget: Set<string> | undefined,
-): CombatActionDefinition[] {
-  if (validActionIdsForTarget == null) return []
-
-  const allTreatAsAvailable = availableActionIds == null
-
-  const candidates = actions.filter((a) => {
-    const resourceAvailable = allTreatAsAvailable || availableActionIds!.has(a.id)
-    const validForTarget = validActionIdsForTarget.has(a.id)
-    return resourceAvailable && validForTarget
-  })
-
-  if (candidates.length === 0) return []
-
-  const multiattackChildLabels = new Set<string>()
-  for (const c of candidates) {
-    if (hasSequence(c)) {
-      for (const step of c.sequence!) {
-        multiattackChildLabels.add(step.actionLabel)
-      }
-    }
-  }
-
-  const hasMultiattack = multiattackChildLabels.size > 0
-  const filtered = hasMultiattack
-    ? candidates.filter((c) => hasSequence(c) || !multiattackChildLabels.has(c.label))
-    : candidates
-
-  filtered.sort((a, b) => {
-    const aSeq = hasSequence(a) ? 0 : 1
-    const bSeq = hasSequence(b) ? 0 : 1
-    if (aSeq !== bSeq) return aSeq - bSeq
-
-    const aCat = CATEGORY_SORT_PRIORITY[deriveActionPresentation(a).category] ?? 99
-    const bCat = CATEGORY_SORT_PRIORITY[deriveActionPresentation(b).category] ?? 99
-    if (aCat !== bCat) return aCat - bCat
-
-    return a.label.localeCompare(b.label)
-  })
-
-  return filtered.slice(0, MAX_RECOMMENDED)
-}
-
-// ---------------------------------------------------------------------------
 // Action list rendering
 // ---------------------------------------------------------------------------
 
@@ -317,7 +254,7 @@ function GroupedActionList({
 }) {
   const groups = useMemo(() => groupActionsByCategory(actions), [actions])
   const recommended = useMemo(
-    () => deriveRecommendedActions(actions, availableActionIds, validActionIdsForTarget),
+    () => deriveRecommendedActionsForTarget(actions, availableActionIds, validActionIdsForTarget),
     [actions, availableActionIds, validActionIdsForTarget],
   )
 
@@ -328,7 +265,8 @@ function GroupedActionList({
   function isActionAvailable(action: CombatActionDefinition): boolean {
     const resourceAvailable = allTreatAsAvailable || availableActionIds!.has(action.id)
     const validForTarget = validActionIdsForTarget == null || validActionIdsForTarget.has(action.id)
-    return resourceAvailable && validForTarget
+    const noBlockingReason = !invalidActionReasons?.has(action.id)
+    return resourceAvailable && validForTarget && noBlockingReason
   }
 
   if (actions.length === 0) {

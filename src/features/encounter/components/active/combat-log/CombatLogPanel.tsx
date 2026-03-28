@@ -14,7 +14,7 @@ import {
   formatLogGroupHeader,
   type CombatLogPresentationMode,
 } from '../../../domain'
-import { toCombatLogEntries } from '../../../helpers'
+import { toCombatLogEntries } from '../../../helpers/logs'
 
 type CombatLogPanelProps = {
   log: CombatLogEvent[]

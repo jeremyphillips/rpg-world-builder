@@ -6,7 +6,7 @@ import type {
   AttachedEnvironmentZoneProfile,
   EncounterEnvironmentBaseline,
   EncounterEnvironmentZone,
-} from '../../environment/environment.types'
+} from '@/features/mechanics/domain/environment/environment.types'
 import type { AttachedBattlefieldEffectSource } from '../attached-battlefield-source'
 import type { BattlefieldEffectAnchor } from '../battlefield-effect-anchor'
 

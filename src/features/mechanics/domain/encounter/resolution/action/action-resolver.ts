@@ -1,4 +1,9 @@
 import {
+  stealthHiddenSnapshot,
+  isStealthRuntimeTraceEnabled,
+  stealthTraceLog,
+} from '../../state/stealth/stealth-runtime-trace'
+import {
   applyDamageToCombatant,
   appendEncounterLogEvent,
   appendEncounterNote,
@@ -20,8 +25,9 @@ import {
   reconcileStealthHiddenForPerceivedObservers,
   resolveDefaultHideObservers,
   resolveHideWithPassivePerception,
+  appendStealthBrokenOnAttackNote,
 } from '../../state'
-import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
+import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 import {
   attachedAuraInstanceId,
   concentrationLinkedMarkerIdForSpellAttachedEmanation,
@@ -35,7 +41,7 @@ import {
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection, ResolveCombatActionOptions } from '../action-resolution.types'
-import { resolveAttachedEmanationAnchorModeFromSelection } from '@/features/encounter/helpers/area-grid-action'
+import { resolveAttachedEmanationAnchorModeFromSelection } from '@/features/encounter/helpers/actions'
 import { findGridObstacleById } from '@/features/encounter/space/space.helpers'
 import { formatCasterOptionSummary } from '../../../spells/caster-options'
 import {
@@ -271,6 +277,18 @@ function resolveCombatActionInternal(
   const state = reconcileStealthHiddenForPerceivedObservers(initialState, {
     perceptionCapabilities: options.perceptionCapabilities,
   })
+  if (isStealthRuntimeTraceEnabled()) {
+    const before = stealthHiddenSnapshot(initialState)
+    const after = stealthHiddenSnapshot(state)
+    if (JSON.stringify(before) !== JSON.stringify(after)) {
+      stealthTraceLog('reconcileStealthHiddenForPerceivedObservers (start of resolveCombatAction)', {
+        actorId: selection.actorId,
+        actionId: selection.actionId,
+        before,
+        after,
+      })
+    }
+  }
   actor = state.combatantsById[selection.actorId]!
 
   const targets = getActionTargets(state, actor, selection, action, targetingOptions)
@@ -392,12 +410,21 @@ function resolveCombatActionInternal(
       const hideResolved = resolveHideWithPassivePerception(nextState, actor.instanceId, stealthTotal, hidePerceptionOpts)
       nextState = hideResolved.state
       const { outcome } = hideResolved
+      if (isStealthRuntimeTraceEnabled()) {
+        stealthTraceLog('after resolveHideWithPassivePerception', {
+          hiderId: actor.instanceId,
+          outcome,
+          stealthSnapshot: stealthHiddenSnapshot(nextState),
+        })
+      }
       let details = `Stealth: ${stealthRollDetail} + ${stealthMod} = ${stealthTotal}.`
       let summary: string
       if (outcome.kind === 'no-eligible-observers') {
         summary = `${getEncounterCombatantLabel(state, actor.instanceId)} attempts to hide but has no eligible observers (concealment / eligibility).`
       } else {
-        details += ` Beat passive Perception: ${outcome.beatenObserverIds.join(', ') || 'none'}. Did not beat: ${outcome.failedObserverIds.join(', ') || 'none'}.`
+        const beatLabels = outcome.beatenObserverIds.map((id) => getEncounterCombatantLabel(nextState, id))
+        const failLabels = outcome.failedObserverIds.map((id) => getEncounterCombatantLabel(nextState, id))
+        details += ` Beat passive Perception: ${beatLabels.join(', ') || 'none'}. Did not beat: ${failLabels.join(', ') || 'none'}.`
         summary = `${getEncounterCombatantLabel(state, actor.instanceId)} attempts to hide (Stealth ${stealthTotal}).`
       }
       nextState = appendEncounterLogEvent(nextState, {
@@ -427,7 +454,11 @@ function resolveCombatActionInternal(
     const hit = isNaturalTwenty || (!isNaturalOne && totalRoll >= target.stats.armorClass)
     const isCritical = isNaturalTwenty
 
+    const hadStealthBeforeAttack = nextState.combatantsById[actor.instanceId]?.stealth != null
     nextState = breakStealthOnAttack(nextState, actor.instanceId)
+    if (hadStealthBeforeAttack) {
+      nextState = appendStealthBrokenOnAttackNote(nextState, actor.instanceId)
+    }
     nextState = applyNoiseAwarenessForSubject(nextState, actor.instanceId, { kind: 'attack' })
 
     const hitSuffix = isCritical ? ' (critical hit)' : ''

@@ -6,6 +6,18 @@
 - **Hidden state** (`CombatantInstance.stealth`) records **observer-relative** stealth bookkeeping **on top of** perception. It is **not** a second visibility engine.
 - **Guessed position / sound awareness** (`CombatantInstance.awareness`, **`awareness/awareness-rules.ts`**) stores **observer-relative** last attributed **grid cells** when an observer does **not** see the occupant. It is **not** stealth and **not** sight — see [Awareness and guessed position](./awareness-and-guessed-position.md).
 - **Targeting** continues to use **`canSeeForTargeting`**. **Attack-roll modifiers** continue to use **`resolveCombatantPairVisibilityForAttackRoll`**. Stealth rules live in **`stealth/stealth-rules.ts`** and layer semantics (lifecycle, future advantage hooks) without duplicating LOS/perception math.
+- **Encounter grid (active viewer):** normal **tokens** are suppressed under strict POV when **`deriveViewerCombatantPresentationKind`** is not **`visible`** (equivalently: need **`canPerceiveTargetOccupantForCombat`** and not **`isHiddenFromObserver`** for a normal token). **Labels** use hidden-before-out-of-sight precedence so Hide stays distinct in UI. DM view (`viewerRole: 'dm'`) still shows all tokens. **Guessed-position** UI on the grid is deferred; see [Perception and visibility — render projection](./perception-and-visibility.md#render-projection).
+- **Initiative sidebar / turn order / header:** the same seam feeds **`buildCombatantViewerPresentationKindById`** (`visible` / `out-of-sight` / `hidden`). **Presentation precedence** checks **`isHiddenFromObserver`** before generic **`!canPerceiveTargetOccupantForCombat`** so **Hidden** can show even when LOS/lighting would also deny perception. Combatants **remain** in the list with distinct chips; not removed from initiative. Presentation-only; reconciliation unchanged.
+
+### Stealth reference facts
+
+These are **rules / UX facts**, not TODOs:
+
+1. **Hidden-from is pruned when observer perception becomes true** — an observer id is removed from **`hiddenFromObserverIds`** when **`canPerceiveTargetOccupantForCombat(observer, subject)`** is true (**`reconcileStealthHiddenForPerceivedObservers`**). That is the **only** automatic “reveal” path from perception; it tracks the shared occupant-perception seam.
+2. **Losing hide basis alone does not remove hidden** — after movement or environment changes, **sustain** does **not** drop **`hiddenFromObserverIds`** just because **`getHideAttemptEligibilityDenialReason`** would now fail for a **new** Hide attempt. Optional combat-log lines (**`hide-basis-lost-context`**) describe that situation **without** mutating stealth.
+3. **Strict POV still suppresses both “hidden” and “out-of-sight” tokens** — under strict point-of-view, the normal occupant token is shown only when presentation resolves to **`visible`**; **`hidden`** and **`out-of-sight`** both suppress it (chips/labels can still distinguish). See [Perception and visibility — render projection](./perception-and-visibility.md#render-projection).
+4. **No guessed-position or sound-driven encounter gameplay yet** — on-grid **guessed-cell** presentation and **sound propagation / hearing** as a play loop are not built out; see [Perception and visibility](./perception-and-visibility.md#render-projection), [Awareness and guessed position](./awareness-and-guessed-position.md), and [Sound and awareness (roadmap)](./sound-and-awareness.md). Narrow **rules** for **`guessedCellByObserverId`** (e.g. noise hooks, some targeting) exist; they are **not** a substitute for full grid/sound UX.
+5. **Viewer and log presentation modes materially affect the UI** — which combatants/tokens “count” as visible on the **grid** depends on **active viewer**, **DM vs PC**, and **strict POV** (see [Perception and visibility — Encounter UI](./perception-and-visibility.md#encounter-ui-presentation-modes)). The **combat log** **Compact / Normal / Debug** filter also changes which entries appear and whether **`debugDetails`** lines show; see [Combat log (stealth)](#combat-log-stealth) below.
 
 ---
 
@@ -35,11 +47,11 @@ Other modules (**`action-resolver.ts`**, **`useEncounterState`**) call exported 
 **Concealment and feature-flag branches** still use the **hider’s merged cell** only (same as before):
 
 - **Baseline concealment** — [`cellWorldSupportsHideConcealment`](../../src/features/mechanics/domain/encounter/state/stealth/sight-hide-rules.ts): heavy obscurement; **non-magical** light obscurement; darkness lighting; **magical darkness**. Dim-only and magical light obscurement need the feat/runtime flags below.
-- **Feature-flag branches** (OR-merge, **hider cell only** — entry + sustain): **`allowDimLightHide`**, **`allowMagicalConcealmentHide`**, **`allowDifficultTerrainHide`** (merged **`terrainMovement`** **`difficult`** or **`greater-difficult`**), **`allowHighWindHide`** (merged **`atmosphereTags`** includes **`high-wind`**). See [`environment.resolve.ts`](../../src/features/mechanics/domain/encounter/environment/environment.resolve.ts) for `world.magical` and atmosphere merge.
+- **Feature-flag branches** (OR-merge, **hider cell only** — entry + sustain): **`allowDimLightHide`**, **`allowMagicalConcealmentHide`**, **`allowDifficultTerrainHide`** (merged **`terrainMovement`** **`difficult`** or **`greater-difficult`**), **`allowHighWindHide`** (merged **`atmosphereTags`** includes **`high-wind`**). See [`environment.resolve.ts`](../../src/features/mechanics/domain/environment/environment.resolve.ts) for `world.magical` and atmosphere merge.
 
 **Terrain cover for hide** (when concealment/flags do not already allow the attempt):
 
-- **With grid** — [`pairSupportsHideWorldBasisFromObserver`](../../src/features/mechanics/domain/encounter/state/stealth/sight-hide-rules.ts) uses [`resolveTerrainCoverGradeForHideFromObserver`](../../src/features/mechanics/domain/encounter/state/environment/observer-hide-terrain-cover.ts): **maximum** merged `terrainCover` along the same **supercover segment** as line-of-sight (`traceLineOfSightCells` in [`space.sight.ts`](../../src/features/encounter/space/space.sight.ts)), from the **observer’s cell** through the **hider’s cell** (observer endpoint excluded from the max; hider cell included). Half cover only counts with **`allowHalfCoverForHide`**; three-quarters/full baseline.
+- **With grid** — [`pairSupportsHideWorldBasisFromObserver`](../../src/features/mechanics/domain/encounter/state/stealth/sight-hide-rules.ts) uses [`resolveTerrainCoverGradeForHideFromObserver`](../../src/features/mechanics/domain/encounter/state/environment/observer-hide-terrain-cover.ts): **maximum** merged `terrainCover` along the same **supercover segment** as line-of-sight (`traceLineOfSightCells` in [`sight/space.sight.ts`](../../src/features/encounter/space/sight/space.sight.ts)), from the **observer’s cell** through the **hider’s cell** (observer endpoint excluded from the max; hider cell included). Half cover only counts with **`allowHalfCoverForHide`**; three-quarters/full baseline.
 - **Without grid / placements** — **fallback:** [`cellWorldSupportsHideAttemptWorldBasis`](../../src/features/mechanics/domain/encounter/state/stealth/sight-hide-rules.ts) on the hider’s cell only (cell-local `terrainCover`), so behavior matches the legacy permissive tactical gap.
 
 **Combatant-sourced feature flags:** **`getCombatantHideEligibilityExtensionOptions`** ([`combatant-hide-eligibility.ts`](../../src/features/mechanics/domain/encounter/state/stealth/combatant-hide-eligibility.ts)) merges **one boolean seam** from:
@@ -58,7 +70,7 @@ That output feeds **`resolveHideEligibilityForCombatant`** after call-site / per
 
 **Optional overrides:** **`hideEligibility`** on **`StealthRulesOptions`** / **`GetHideAttemptEligibilityDenialReasonOptions`** — for tests or tools; normal encounter flow does **not** need to pass flags when they exist on the combatant. **`resolveHideEligibilityForCombatant`** precedence: **hide-attempt** — call-site → **`stealth.hideEligibility`** → **combatant-derived**; **stealth-sustain** — **`stealth.hideEligibility`** → call-site → **combatant-derived**. Reconciliation passes **`hideEligibilityResolveMode: 'stealth-sustain'`** on **`GetHideAttemptEligibilityDenialReasonOptions`**.
 
-**Entry and sustain share one eligibility check:** **`getHideAttemptEligibilityDenialReason`** (pair-aware cover when gridded). **`reconcileStealthBreakWhenNoConcealmentInCell`** removes individual **`hiddenFromObserverIds`** entries when that observer would now fail eligibility — not a single global “cell no longer supports hide” clear (unless every observer fails).
+**Entry** uses **`getHideAttemptEligibilityDenialReason`** (pair-aware cover when gridded). **Sustain / reveal** after movement or environment changes is **not** driven by eligibility alone: losing cover/concealment basis for a **new** Hide attempt does **not** prune **`hiddenFromObserverIds`**. Observer-relative hidden state drops when the observer **can perceive** the subject’s occupant (**`reconcileStealthHiddenForPerceivedObservers`**) or when an explicit rule applies (e.g. **`breakStealthOnAttack`**). Optional combat-log lines may note “hide basis gone but still unseen” as **diagnostic context** (`hide-basis-lost-context`).
 
 Eligibility answers **whether a hide attempt may be attempted** vs a given observer. It does **not** roll Stealth or compare to passive Perception.
 
@@ -85,6 +97,16 @@ Eligibility answers **whether a hide attempt may be attempted** vs a given obser
 
 **Not implemented:** active **opposed** Stealth vs **rolled** Perception (passive-only baseline). **`applyStealthHideSuccess`** remains for tests/manual/DM tooling and future active-contest output.
 
+### Encounter UI: Hide from the current cell (no extra grid steps)
+
+Hide is a normal **`CombatActionDefinition`** on the combatant’s action list (e.g. skill affordance → `id: 'hide'`, `resolutionMode: 'hide'`, `targeting: self`, `cost: { action: true }`). Execution uses **only** the hider’s **current** placement and merged environment — there is **no** destination cell, cover object, or move-and-hide step in this baseline.
+
+- **Eligibility (disabled rows / Resolve):** **`getHideActionUnavailableReason`** in [`stealth-rules.ts`](../../src/features/mechanics/domain/encounter/state/stealth/stealth-rules.ts) mirrors whether **`resolveDefaultHideObservers`** would be non-empty. If it returns a string, the Hide row is treated as invalid with that reason (`invalidActionReasons` in the action drawer), and **`getActionResolutionReadiness`** adds a **`hide-eligibility`** gate so Resolve stays off until the situation changes (e.g. concealment/cover). Same rules as the resolver — no duplicate stealth math in React.
+- **Action economy:** Hide consumes the **standard Action** via **`spendActionCost`** in **`resolveCombatActionInternal`** (same path as other actions). Bonus-action Hide is not implemented.
+- **Feedback:** Outcomes appear in the combat log (and encounter toast pipeline) via existing **`action-resolved`** entries; no separate stealth-only feedback channel.
+
+**TODO (not in current UI baseline):** move then hide as one flow; bonus-action Hide (e.g. Cunning Action); choosing a **different** cell or **object** anchor to hide behind; richer “already hidden” / sound-driven UX.
+
 ---
 
 ## Reconciliation helpers (consistency with perception)
@@ -93,9 +115,8 @@ These keep stored **`hiddenFromObserverIds`** aligned with the **shared percepti
 
 | Helper | Purpose |
 |--------|---------|
-| **`reconcileStealthAfterMovementOrEnvironmentChange`** | **Authoritative sequence:** (1) for **each** combatant with `stealth`, **`reconcileStealthBreakWhenNoConcealmentInCell`**; (2) **`reconcileStealthHiddenForPerceivedObservers`**. Use after movement, placement, zone, or baseline changes. |
+| **`reconcileStealthAfterMovementOrEnvironmentChange`** | **`reconcileStealthHiddenForPerceivedObservers`**, then optional **`appendStealthHideBasisLostContextNote`** diagnostics (combat log only — no stealth mutation). Use after movement, placement, zone, or baseline changes. |
 | **`reconcileStealthHiddenForPerceivedObservers`** | Drop an observer from the subject’s list when that observer **can** perceive the subject’s occupant (observer-relative; partial lists preserved). |
-| **`reconcileStealthBreakWhenNoConcealmentInCell`** | Clear **that** subject’s stealth when their merged-world cell **no longer** supports **`cellWorldSupportsHideAttemptWorldBasis`** using **`resolveHideEligibilityForCombatant`** (**`stealth-sustain`** mode). Same rule path as hide entry — not a separate baseline-only check. |
 | **`applyEncounterEnvironmentBaselinePatchAndReconcileStealth`** | **`updateEncounterEnvironmentBaseline`** + full reconcile (baseline-only callers; avoids circular imports). |
 
 **Runtime integration (deterministic order):**
@@ -105,6 +126,15 @@ These keep stored **`hiddenFromObserverIds`** aligned with the **shared percepti
 3. **`resolveCombatActionInternal`** — still runs **`reconcileStealthHiddenForPerceivedObservers`** **before** resolving the declared action (unchanged).
 
 **Pure baseline patch:** **`updateEncounterEnvironmentBaseline`** does **not** run stealth (keeps tests and imports simple). For runtime lighting/obscurement changes that should affect hidden state, use **`applyEncounterEnvironmentBaselinePatchAndReconcileStealth`**.
+
+### Combat log (stealth)
+
+Prune/reveal events are logged as **`type: 'stealth-reveal'`** (**`appendStealthPrunedObserverCanPerceiveNote`** in **`stealth-debug-log.ts`**):
+
+- **`summary`** — plain-language sentence(s) per observer–subject pair, derived from the same perception breakdown as **`canPerceiveTargetOccupantForCombat`** (e.g. “clear line of sight … and can perceive the occupant” when grid + LOS/LOE + battlefield perception resolve; alternate wording for permissive / unresolved perception paths). Shown in **Normal** and **Debug** modes (importance **`supporting`**).
+- **`debugDetails`** — semicolon-separated structured trace (**`reason=observer-can-perceive-target`**, **`traceKind=observer-perceive-prune-breakdown`**, compact **`perceive`** / **`perceiveIds`** pipes) for diagnosis. Shown only when the combat log is in **Debug** mode (see **`filterLogByMode`** / **`CombatLogPanel`**).
+
+Hide-success, movement-reconcile headers, hide-basis-lost-context, and attack-break notes remain **`type: 'note'`** (debug importance in the combat-log bridge).
 
 **TODO (still):** feat **display** names from a content catalog (today DTO uses id as name); observer-relative cover rays; sense-specific exceptions; richer “who counts as an observer” than passive hide resolution.
 
@@ -143,6 +173,7 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth/stealt
 |--------|------|
 | `getCombatantHideEligibilityExtensionOptions` | Derive hide flags from **snapshot + `activeEffects` + markers** (OR merge; see [`hide-eligibility-runtime-sources.ts`](../../src/features/mechanics/domain/encounter/state/stealth/hide-eligibility-runtime-sources.ts)). |
 | `getStealthHideAttemptDenialReason` | Hide **attempt** eligibility (delegates). |
+| `getHideActionUnavailableReason` | UI/readiness: short reason when a Hide attempt is not allowed from the current cell (same basis as `resolveDefaultHideObservers`); `null` when allowed. |
 | `getPassivePerceptionScore` | Passive Perception for hide comparison. |
 | `getStealthCheckModifier` | Dex-based Stealth modifier for the Hide action roll. |
 | `resolveHideWithPassivePerception` | Apply hide outcome vs passive Perception (after total is known). |
@@ -150,10 +181,10 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth/stealt
 | `applyStealthHideSuccess` | Merge **observerIds** (manual / future active contest); optional **`hideEligibility`** for tests/DM tooling. |
 | `resolveHideEligibilityForCombatant` | Effective extension flags for hide attempt vs sustain (`stealth/sight-hide-rules.ts`). |
 | `resolveDefaultHideObservers` | Candidate observers (eligibility only). |
-| `reconcileStealthAfterMovementOrEnvironmentChange` | Full sequence: concealment loss + perceived-again pruning. |
+| `reconcileStealthAfterMovementOrEnvironmentChange` | Perceived-again pruning + optional hide-basis diagnostic notes (see `stealth-debug-log.ts`). |
 | `applyEncounterEnvironmentBaselinePatchAndReconcileStealth` | Baseline patch + full reconcile. |
 | `reconcileStealthHiddenForPerceivedObservers` | Align hidden-from with perception. |
-| `reconcileStealthBreakWhenNoConcealmentInCell` | Prune per-observer hidden state when eligibility fails (same checks as entry; `stealth-sustain` mode). |
+| `appendStealthHideBasisLostContextNote` | Combat-log diagnostic when hide world basis is gone but observers still cannot perceive (does not change stealth). |
 | `breakStealthOnAttack` | Clear attacker stealth after attack roll (global reveal). |
 | `ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE` | Contract flag (`false`) — attack modifiers must not read `stealth`. |
 | `isHiddenFromObserver` | Read helper (bookkeeping only). |
@@ -162,6 +193,7 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth/stealt
 
 ## TODO / future work
 
+- **Move-and-hide**, **bonus-action Hide** (e.g. Cunning Action), **grid/object selection** for hiding in a chosen cell or behind a cover object — not implemented; current Hide is a single **Action** from the **current** cell only.
 - **Finer cover than merged `terrainCover` per cell** — e.g. edge/corner rules, size, true 3D LOS.
 - **Observer-relative or partial break** on attack (vs global `breakStealthOnAttack`).
 - **Narrow guessed-cell / noise seam** — implemented in **`awareness/awareness-rules.ts`** (see [Awareness and guessed position](./awareness-and-guessed-position.md)); full hearing propagation and attack-at-square remain TODO.

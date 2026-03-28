@@ -14,7 +14,7 @@ import {
   type ManualMonsterTriggerContext,
   type MonsterFormContext,
 } from '@/features/mechanics/domain/encounter'
-import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
 
 import type { OpponentOption, OpponentRosterEntry } from '../../../types'
 import { CombatLane } from './CombatLane'

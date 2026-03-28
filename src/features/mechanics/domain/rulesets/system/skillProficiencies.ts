@@ -67,6 +67,7 @@ export const SKILL_PROFICIENCIES_RAW = [
     ],
     tags: ['dexterity', 'sneaking', 'hiding', 'ambush', 'infiltration', 'silent'],
     description: 'Escaping notice by moving silently and hiding from view.',
+    combatUi: { actionId: 'hide' },
   },
   {
     id: 'arcana',
@@ -185,6 +186,7 @@ export const SKILL_PROFICIENCIES_RAW = [
     name: 'Perception',
     ability: 'wis',
     suggestedClasses: ['barbarian', 'druid', 'fighter', 'ranger', 'rogue'],
+    // TODO: support search in combat ui. Dependent on search modeling.
     examples: [
       'Spotting a hidden enemy or ambush',
       'Hearing a conversation through a door',

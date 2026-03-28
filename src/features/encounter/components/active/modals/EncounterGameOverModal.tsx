@@ -1,6 +1,6 @@
 import { AppModal } from '@/ui/patterns'
 
-import type { EncounterSideOutcome } from '../../../helpers/derive-encounter-side-outcome'
+import type { EncounterSideOutcome } from '../../../helpers/state'
 
 function outcomeHeadline(outcome: EncounterSideOutcome): string {
   switch (outcome.kind) {

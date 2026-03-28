@@ -1,6 +1,6 @@
 # Sound and awareness (roadmap)
 
-Concise reference for **future** hearing / sound / awareness work. For **current** rules and types, see [Perception and visibility](./perception-and-visibility.md), [Stealth and hidden state](./stealth.md), and [Awareness and guessed position](./awareness-and-guessed-position.md).
+Concise reference for **future** hearing / sound / awareness work. For **current** rules and types, see [Perception and visibility](./perception-and-visibility.md), [Stealth and hidden state](./stealth.md), and [Awareness and guessed position](./awareness-and-guessed-position.md). For **UX caveats** (no grid guessed-position / sound **gameplay** yet, strict POV, combat log modes), see [Stealth reference facts](./stealth.md#stealth-reference-facts).
 
 ---
 
@@ -33,7 +33,7 @@ Preserve the **mental model** already encoded in code: **visual perception**, **
 ## 4. What is currently implemented
 
 - Shared **occupant** visibility for targeting, attack modifiers, opportunity attacks, hide eligibility, and stealth reconciliation (`canPerceiveTargetOccupantForCombat` / `canSeeForTargeting`).
-- **Stealth** entry (`resolveHideWithPassivePerception`, `getStealthHideAttemptDenialReason`), sustain/reconcile (`reconcileStealthAfterMovementOrEnvironmentChange`, `reconcileStealthBreakWhenNoConcealmentInCell`, `reconcileStealthHiddenForPerceivedObservers`) using **`getHideAttemptEligibilityDenialReason`** with **`hide-attempt`** vs **`stealth-sustain`** modes where documented in **`stealth/sight-hide-rules.ts`** / **`stealth/stealth-rules.ts`**.
+- **Stealth** entry (`resolveHideWithPassivePerception`, `getStealthHideAttemptDenialReason`), sustain/reconcile (`reconcileStealthAfterMovementOrEnvironmentChange`, `reconcileStealthHiddenForPerceivedObservers`) using **`getHideAttemptEligibilityDenialReason`** with **`hide-attempt`** vs **`stealth-sustain`** modes where documented in **`stealth/sight-hide-rules.ts`** / **`stealth/stealth-rules.ts`**.
 - **Passive Perception** and **Stealth check** modifiers from **`getPassivePerceptionScore`** / **`getStealthCheckModifier`** (`awareness/passive-perception.ts`) on **`CombatantInstance`** — not ad hoc source-model reads in resolution.
 - **Guessed cells**: **`getGuessedCellForObserver`**, **`setGuessedCellForObserver`**, **`applyNoiseAwarenessForSubject`** (e.g. after attack resolution in **`action-resolver.ts`**), **`reconcileAwarenessGuessesWithPerception`** (also after **`reconcileStealthHiddenForPerceivedObservers`**).
 - **Movement / environment**: **`reconcileBattlefieldEffectAnchors`** ends with **`reconcileStealthAfterMovementOrEnvironmentChange`** (see **`stealth.md`**); baseline patches use **`applyEncounterEnvironmentBaselinePatchAndReconcileStealth`**.

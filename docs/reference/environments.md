@@ -93,7 +93,7 @@ The encounter simulator uses **`GridPerceptionInput`** with **`viewerCombatantId
 | Module | Role |
 |--------|------|
 | `perception.render.projection.ts` | Maps `EncounterViewerPerceptionCell` + `EncounterViewerBattlefieldPerception` → `EncounterGridCellRenderState` / `EncounterBattlefieldRenderState` (presentation flags, not domain merge). |
-| `space.selectors.ts` (`selectGridViewModel`) | When `perception` input is passed, attaches per-cell render state and battlefield veil flags to the grid view model. |
+| [`selectors/space.selectors.ts`](../../src/features/encounter/space/selectors/space.selectors.ts) (`selectGridViewModel`) | When `perception` input is passed, attaches per-cell render state and battlefield veil flags to the grid view model. |
 | `cellVisualState.ts` / `cellVisualStyles.ts` | Maps `PerceptionPresentationFillKind` → `CellBaseFillKind` (`visibility-*`) and `baseFillSx` — **presentation only**; not a rules source. |
 | `EncounterGrid.tsx` | Applies merged cell visuals, blind veil overlay (viewer cell lifted above veil), token visibility from `occupantTokenVisibility`, obstacle glyphs from `showObstacleGlyph`. |
 

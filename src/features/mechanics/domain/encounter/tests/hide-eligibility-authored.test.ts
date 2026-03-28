@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { createSquareGridSpace } from '@/features/encounter/space/createSquareGridSpace'
-import { buildCharacterCombatantInstance } from '@/features/encounter/helpers/combatant-builders'
+import { createSquareGridSpace } from '@/features/encounter/space/creation/createSquareGridSpace'
+import { buildCharacterCombatantInstance } from '@/features/encounter/helpers/combatants'
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { useCombatStats } from '@/features/character/hooks'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter/state/types'
@@ -9,7 +9,6 @@ import {
   createEncounterState,
   getCombatantHideEligibilityExtensionOptions,
   getHideAttemptEligibilityDenialReason,
-  reconcileStealthBreakWhenNoConcealmentInCell,
   resolveHideWithPassivePerception,
 } from '@/features/mechanics/domain/encounter/state'
 
@@ -132,8 +131,7 @@ describe('hide eligibility from authored character feats (runtime)', () => {
 
     const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
     expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
-    const after = reconcileStealthBreakWhenNoConcealmentInCell(beat.state, 'rogue')
-    expect(after.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
+    expect(beat.state.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 })
 
@@ -191,8 +189,7 @@ describe('temporary runtime hide permissions (same resolver seam)', () => {
     )
     const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
     expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
-    const after = reconcileStealthBreakWhenNoConcealmentInCell(beat.state, 'rogue')
-    expect(after.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
+    expect(beat.state.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 
   it('authored skulker OR-merges with temporary grant (both true)', () => {
@@ -257,7 +254,6 @@ describe('temporary runtime hide permissions (same resolver seam)', () => {
     expect(getHideAttemptEligibilityDenialReason(state, 'rogue', 'wiz')).toBe(null)
     const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
     expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowDimLightHide).toBe(true)
-    const after = reconcileStealthBreakWhenNoConcealmentInCell(beat.state, 'rogue')
-    expect(after.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
+    expect(beat.state.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 })

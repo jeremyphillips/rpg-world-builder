@@ -1,5 +1,5 @@
 import type { CombatantInstance } from '../state/types'
-import type { EncounterViewerPerceptionCapabilities } from '../environment/perception.types'
+import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 
 export interface ResolveCombatActionSelection {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildCharacterCombatantInstance, buildMonsterCombatantInstance } from '@/features/encounter/helpers/combatant-builders'
+import { buildCharacterCombatantInstance, buildMonsterCombatantInstance } from '@/features/encounter/helpers/combatants'
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { useCombatStats } from '@/features/character/hooks'

@@ -2,7 +2,7 @@ import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { AttachedBattlefieldEffectSource } from './attached-battlefield-source'
-import { findMonsterSpecialActionByRuntimeActionId } from '@/features/encounter/helpers/monster-action-runtime-ids'
+import { findMonsterSpecialActionByRuntimeActionId } from '@/features/encounter/helpers/monsters'
 
 export type BattlefieldAttachedSourceResolutionOptions = {
   spellLookup: (spellId: string) => Spell | undefined

@@ -27,7 +27,7 @@ const AUDIT_ALLOWLIST = new Set<string>([
 ])
 import { getSystemSpells } from '../src/features/mechanics/domain/rulesets/system/spells/index.ts'
 import { DEFAULT_SYSTEM_RULESET_ID } from '../src/features/mechanics/domain/rulesets/ids/systemIds.ts'
-import { deriveSpellHostility } from '../src/features/encounter/helpers/spell-hostility.ts'
+import { deriveSpellHostility } from '../src/features/encounter/helpers/spells'
 import type { Spell } from '../src/features/content/spells/domain/types/spell.types.ts'
 
 function findSuspiciousTouchSpells(spells: readonly Spell[]): Spell[] {

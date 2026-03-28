@@ -26,21 +26,21 @@ import {
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import { buildInitialCasterOptionsForAction } from '@/features/mechanics/domain/spells/caster-options'
 
-import { buildEncounterActionToastPayload } from '../helpers/encounter-action-toast'
-import { deriveEncounterSideOutcome } from '../helpers/derive-encounter-side-outcome'
+import { buildEncounterActionToastPayload } from '../helpers/actions'
+import { deriveEncounterSideOutcome } from '../helpers/state'
 import { EncounterGameOverModal } from '../components/active/modals/EncounterGameOverModal'
 import { canResolveCombatActionSelection, selectValidActionIdsForTarget } from '../domain'
 import {
   isAreaGridAction,
   isSelfCenteredAreaAction,
   resolveAttachedEmanationAnchorModeFromSelection,
-} from '../helpers/area-grid-action'
+} from '../helpers/actions'
 import { findGridObstacleAtCell, formatGridCellLabel, getCellForCombatant } from '../space/space.helpers'
 import {
   actionUsesGridCreatureTargeting,
   isValidAoeOriginCell,
   selectCombatantIdsInAoeFootprint,
-} from '../space/space.selectors'
+} from '../space/selectors/space.selectors'
 import {
   AllyCombatantActivePreviewCard,
   AllyActionDrawer,
@@ -51,7 +51,7 @@ import {
   useCloseCombatantActionDrawerOnActiveCombatantChange,
 } from '../components'
 import type { CombatantActionDrawerProps } from '../components/active/drawers/CombatantActionDrawer'
-import { deriveGridHoverStatusMessage } from '../helpers/deriveGridHoverStatus'
+import { deriveGridHoverStatusMessage } from '../helpers/ui'
 import { campaignEncounterSetupPath } from './encounterPaths'
 import { useEncounterRuntime } from './EncounterRuntimeContext'
 
@@ -102,6 +102,7 @@ export default function EncounterActiveRoute() {
     setAoeHoverCellId,
     resetAoePlacement,
     gridViewModel,
+    combatantViewerPresentationKindById,
     handleMoveCombatant,
     handleResolveAction,
     handleNextTurn,
@@ -870,6 +871,7 @@ export default function EncounterActiveRoute() {
           selectedTargetId={selectedActionTargetId}
           spellsById={spellsById}
           suppressSameSideHostile={suppressSameSideHostile}
+          combatantViewerPresentationKindById={combatantViewerPresentationKindById}
           onSelectTarget={(combatantId) => {
             handleSelectTarget(combatantId)
             setActionDrawerOpen(true)

@@ -16,7 +16,7 @@ import type { CombatActionDefinition } from '../resolution/combat-action.types'
 import type { CombatantInstance } from '../state'
 import type { EncounterState } from '../state/types'
 
-import { createSquareGridSpace } from '@/features/encounter/space/createSquareGridSpace'
+import { createSquareGridSpace } from '@/features/encounter/space/creation/createSquareGridSpace'
 
 import {
   encounterAttackerOutsideDefenderHeavilyObscured,

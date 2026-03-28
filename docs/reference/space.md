@@ -17,13 +17,12 @@ src/features/encounter/space/
 ├── index.ts                        # Public barrel
 ├── space.types.ts                  # EncounterSpace, EncounterCell, GridObstacle, CombatantPosition
 ├── space.helpers.ts                # Pure cell/distance/occupancy queries
-├── space.selectors.ts              # State-level selectors, GridViewModel, movement
-├── applyGridSpawnReplacement.ts    # Spawn target → new combatant(s) placement transfer
-├── createSquareGridSpace.ts        # Factory: square-grid EncounterSpace
-├── createZoneGridSpace.ts          # Factory: zone-grid EncounterSpace
-├── generateInitialPlacements.ts    # Side-based initial combatant placement
-├── placeRandomGridObstacle.ts      # Optional single random obstruction from environment
-└── space.sight.ts                  # Line of sight: supercover line + hasLineOfSight / cellBlocksSight
+├── creation/                       # Space factories
+├── placement/                      # Placements, spawn replacement, obstacles
+├── rendering/                      # Grid occupant token presentation
+├── selectors/                      # State-level selectors, GridViewModel, movement
+├── sight/                          # Line of sight: supercover line + hasLineOfSight / cellBlocksSight
+└── __tests__/                      # Mirrors creation, placement, rendering, selectors, sight (+ space.helpers.test)
 ```
 
 ## 3. Current Functionality
@@ -82,7 +81,7 @@ Grid **`CombatantPosition[]`** is the source of truth for **which combatant occu
 - Clears their row from **`EncounterState.placements`** so the cell is **no longer occupied** for movement and targeting (no “invisible blocker”).
 - Stores **`battlefieldReturnCellId`** on the combatant for deterministic return.
 
-**When absence ends** (explicit `removeStateFromCombatant`, marker duration tick, or **concentration** `dropConcentration` stripping linked markers), the same module **restores** placement immediately using **`placeCombatant`** in `space.selectors.ts` — preferred cell first, then nearest passable unoccupied cell (Chebyshev rings, stable tie-break).
+**When absence ends** (explicit `removeStateFromCombatant`, marker duration tick, or **concentration** `dropConcentration` stripping linked markers), the same module **restores** placement immediately using **`placeCombatant`** in `selectors/space.selectors.ts` — preferred cell first, then nearest passable unoccupied cell (Chebyshev rings, stable tie-break).
 
 The grid view model’s **`occupantRendersToken`** flag stays aligned with presence: if mechanics have cleared placement, there is usually no `occupantId`; if state ever diverged, the flag still suppresses the token when presence is false.
 
@@ -90,11 +89,11 @@ The grid view model’s **`occupantRendersToken`** flag stays aligned with prese
 
 ### Spawn and grid replacement (tactical token handoff)
 
-When a **`spawn`** effect creates new combatants that **replace** an existing token on the grid (e.g. animating a corpse into a new creature), **`applyGridSpawnReplacementFromTarget`** (`src/features/encounter/space/applyGridSpawnReplacement.ts`) updates **`EncounterState.placements`**: the spawn target is removed from placements, the first spawned combatant takes the target’s **`cellId`**, and any additional spawns are placed on the nearest passable empty cells (Chebyshev distance). The grid view model continues to derive **`occupantId`** from placements only, so the **new** combatant becomes the visible token. This is the generic hook for corpse→minion replacement and is intended to extend to future **shapeshift / transformation** flows that introduce a new combatant instance in the same space.
+When a **`spawn`** effect creates new combatants that **replace** an existing token on the grid (e.g. animating a corpse into a new creature), **`applyGridSpawnReplacementFromTarget`** (`src/features/encounter/space/placement/applyGridSpawnReplacement.ts`) updates **`EncounterState.placements`**: the spawn target is removed from placements, the first spawned combatant takes the target’s **`cellId`**, and any additional spawns are placed on the nearest passable empty cells (Chebyshev distance). The grid view model continues to derive **`occupantId`** from placements only, so the **new** combatant becomes the visible token. This is the generic hook for corpse→minion replacement and is intended to extend to future **shapeshift / transformation** flows that introduce a new combatant instance in the same space.
 
 ### Line of sight (binary, first pass)
 
-`space.sight.ts` implements **binary** line of sight on the square grid for shared use by spells, ranged/thrown attacks, and any feature that needs “can I draw a line?” — not spell-specific.
+`sight/space.sight.ts` implements **binary** line of sight on the square grid for shared use by spells, ranged/thrown attacks, and any feature that needs “can I draw a line?” — not spell-specific.
 
 - **Line geometry:** The segment runs between **cell centers** of the source and target cells `(x+0.5, y+0.5)`. The set of cells visited is a **grid supercover** using an **Amanatides & Woo–style DDA** (each unit cell the segment intersects). When a ray hits a **corner** between two cells, the tie branch steps **diagonally** so both grid steps are included.
 - **Blocking:** `cellBlocksSight(space, cellId)` is the **only** resolver for opaque sight blockers; it reads `EncounterCell.blocksSight`. **Intermediate** cells on the path may block; **source and target cells do not** block their own endpoints (occupants on those squares do not apply blocking in this first pass).
@@ -160,11 +159,11 @@ Current naming intentionally distinguishes *in-range by metric* (`selectCellsWit
 | `EncounterCell` | `space.types.ts` | Single cell: position, kind, terrain tags |
 | `CombatantPosition` | `space.types.ts` | Links combatant to cell |
 | `CombatantAttackRange` | `combatant.types.ts` | Discriminated union: melee (rangeFt) or ranged (normalFt, longFt) |
-| `GridCellViewModel` | `space.selectors.ts` | UI-ready cell with highlight flags; includes **`occupantRendersToken`**, **`occupantIsDefeated`** |
-| `GridViewModel` | `space.selectors.ts` | Complete grid for rendering |
-| `placeCombatant` | `space.selectors.ts` | Authoritative placement update: filter prior row, append `{ combatantId, cellId }` for passable cells |
-| `moveCombatant` | `space.selectors.ts` | Validates move; updates `movementRemaining` and `placements`; optional 4th arg **`BattlefieldSpellContext`** for spatial speed reconciliation |
+| `GridCellViewModel` | `selectors/space.selectors.ts` | UI-ready cell with highlight flags; includes **`occupantRendersToken`**, **`occupantIsDefeated`** |
+| `GridViewModel` | `selectors/space.selectors.ts` | Complete grid for rendering |
+| `placeCombatant` | `selectors/space.selectors.ts` | Authoritative placement update: filter prior row, append `{ combatantId, cellId }` for passable cells |
+| `moveCombatant` | `selectors/space.selectors.ts` | Validates move; updates `movementRemaining` and `placements`; optional 4th arg **`BattlefieldSpellContext`** for spatial speed reconciliation |
 | `getEffectiveGroundMovementBudgetFt` | `encounter/state/battlefield/battlefield-spatial-movement-modifiers.ts` | Effective movement cap from base speed × attached-aura speed multipliers (current overlap) |
-| `applyGridSpawnReplacementFromTarget` | `applyGridSpawnReplacement.ts` | Transfers tactical `placements` from a spawn target to new combatant(s) (replacement / corpse→minion) |
-| `hasLineOfSight` | `space.sight.ts` | Binary LoS along supercover segment between cell centers |
+| `applyGridSpawnReplacementFromTarget` | `placement/applyGridSpawnReplacement.ts` | Transfers tactical `placements` from a spawn target to new combatant(s) (replacement / corpse→minion) |
+| `hasLineOfSight` | `sight/space.sight.ts` | Binary LoS along supercover segment between cell centers |
 | `GridInteractionMode` | `encounter-interaction.types.ts` | `'select-target' \| 'move'` UI mode |

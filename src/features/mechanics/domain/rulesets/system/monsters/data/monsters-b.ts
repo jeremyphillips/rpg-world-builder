@@ -139,6 +139,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
   {
     id: 'adult-brass-dragon',
     name: 'Adult Brass Dragon',
+    imageKey: '/assets/system/monsters/adult-brass-dragon.png',
     type: 'dragon',
     sizeCategory: 'huge',
     languages: [{ id: 'common' }, { id: 'draconic' }],
@@ -838,6 +839,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
   {
     id: 'blink-dog',
     name: 'Blink Dog',
+    imageKey: '/assets/system/monsters/blink-dog.png',
     type: 'fey',
     sizeCategory: 'medium',
     languages: [{ id: 'common' }],
@@ -962,6 +964,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
   {
     id: 'bone-devil',
     name: 'Bone Devil',
+    imageKey: '/assets/system/monsters/bone-devil.png',
     type: 'fiend',
     sizeCategory: 'large',
     languages: [{ id: 'infernal' }],
@@ -1202,6 +1205,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
   {
     id: 'bugbear-stalker',
     name: 'Bugbear Stalker',
+    imageKey: '/assets/system/monsters/bugbear-stalker.png',
     type: 'fey',
     subtype: 'goblinoid',
     sizeCategory: 'medium',

@@ -1,8 +1,8 @@
 import { getCellForCombatant } from '@/features/encounter/space'
-import { traceLineOfSightCells } from '@/features/encounter/space/space.sight'
+import { traceLineOfSightCells } from '@/features/encounter/space/sight/space.sight'
 
-import { resolveWorldEnvironmentFromEncounterState } from '../../environment/environment.resolve'
-import type { TerrainCoverGrade } from '../../environment/environment.types'
+import { resolveWorldEnvironmentFromEncounterState } from '@/features/mechanics/domain/environment/environment.resolve'
+import type { TerrainCoverGrade } from '@/features/mechanics/domain/environment/environment.types'
 import type { EncounterState } from '../types'
 import type { CombatantHideEligibilityExtension } from '../types/combatant.types'
 

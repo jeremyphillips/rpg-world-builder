@@ -1,4 +1,4 @@
-import type { EncounterViewerPerceptionCapabilities } from '../environment/perception.types'
+import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 import {
   getSightBasedCheckLegalityDenialReason,
   type SightBasedCheckDenialReason,

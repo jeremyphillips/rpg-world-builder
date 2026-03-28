@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { createSquareGridSpace } from '@/features/encounter/space/createSquareGridSpace'
-import { placeCombatant } from '@/features/encounter/space/space.selectors'
+import { createSquareGridSpace } from '@/features/encounter/space/creation/createSquareGridSpace'
+import { placeCombatant } from '@/features/encounter/space/selectors/space.selectors'
 import type { GridObstacle } from '@/features/encounter/space/space.types'
 
 import { resolveCombatAction } from '../resolution'
@@ -211,7 +211,7 @@ describe('resolveBattlefieldEffectOriginCellId — object anchor', () => {
 
 describe('object-anchored emanation via resolveCombatAction + obstacle move', () => {
   it('keeps spell action resolving with live origin after obstacle moves', async () => {
-    const { buildSpellCombatActions } = await import('@/features/encounter/helpers/spell-combat-adapter')
+    const { buildSpellCombatActions } = await import('@/features/encounter/helpers/spells')
     const { SPELLS_LEVEL_2_A_F } = await import(
       '@/features/mechanics/domain/rulesets/system/spells/data/level2-a-f'
     )

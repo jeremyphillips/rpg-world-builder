@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { moveCombatant } from '@/features/encounter/space'
-import { createSquareGridSpace } from '@/features/encounter/space/createSquareGridSpace'
+import { createSquareGridSpace } from '@/features/encounter/space/creation/createSquareGridSpace'
 import {
   addConditionToCombatant,
   addStateToCombatant,

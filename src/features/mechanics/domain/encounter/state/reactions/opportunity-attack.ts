@@ -5,7 +5,7 @@ import { canTakeReactions } from '../conditions/condition-rules/condition-querie
 import { canPerceiveTargetOccupantForCombat } from '../visibility/combatant-pair-visibility'
 import type { CombatantInstance } from '../types'
 import type { EncounterState } from '../types'
-import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
+import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 
 /**
  * Default melee reach (feet) for opportunity attacks when no melee attack entry supplies `range`.

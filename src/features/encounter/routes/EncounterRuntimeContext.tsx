@@ -15,11 +15,11 @@ import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
-import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
+import { buildMonsterModalStats } from '../helpers/presentation'
 import {
   ATMOSPHERE_TAGS,
   DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE,
-} from '@/features/mechanics/domain/encounter/environment'
+} from '@/features/mechanics/domain/environment'
 import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/encounter/state'
 import { resolveBattlefieldEffectOriginCellId } from '@/features/mechanics/domain/encounter/state/battlefield/battlefield-effect-anchor'
 import { getCombatantBaseMovement } from '@/features/mechanics/domain/encounter/state/shared'
@@ -32,6 +32,8 @@ import {
   deriveEncounterCapabilities,
   deriveEncounterHeaderModel,
   deriveEncounterPerceptionUiFeedback,
+  deriveEncounterPresentationGridPerceptionInput,
+  type EncounterSimulatorViewerMode,
   type EncounterViewerContext,
 } from '../domain'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
@@ -50,13 +52,14 @@ import {
   type GridSizePreset,
 } from '../components'
 import { areaTemplateRadiusFt } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
-import { isAreaGridAction } from '../helpers/area-grid-action'
+import { isAreaGridAction } from '../helpers/actions'
 import { getCellForCombatant } from '../space/space.helpers'
-import { selectGridViewModel } from '../space/space.selectors'
-import { createSquareGridSpace } from '../space/createSquareGridSpace'
-import { placeRandomGridObstacle } from '../space/placeRandomGridObstacle'
+import { buildCombatantViewerPresentationKindById } from '../space/rendering/grid-occupant-render-visibility'
+import { selectGridViewModel } from '../space/selectors/space.selectors'
+import { createSquareGridSpace } from '../space/creation/createSquareGridSpace'
+import { placeRandomGridObstacle } from '../space/placement/placeRandomGridObstacle'
 
-import type { CombatantPortraitEntry } from '../helpers/resolveCombatantAvatarSrc'
+import type { CombatantPortraitEntry } from '../helpers/combatants'
 
 import { campaignEncounterActivePath, campaignEncounterSetupPath } from './encounterPaths'
 
@@ -91,11 +94,17 @@ function useEncounterRuntimeValue() {
   }
 
   const monstersById = catalog.monstersById
-  const { allyOptions, opponentOptions, opponentOptionsByKey } = useEncounterOptions({
-    allies: party,
-    npcs,
-    monstersById,
-  })
+  const { allyOptions, npcAllyOptions, opponentOptions, opponentOptionsByKey } =
+    useEncounterOptions({
+      allies: party,
+      npcs,
+      monstersById,
+    })
+
+  const allAllyOptions = useMemo(
+    () => [...allyOptions, ...npcAllyOptions],
+    [allyOptions, npcAllyOptions],
+  )
 
   const {
     selectedAllyIds,
@@ -109,7 +118,7 @@ function useEncounterRuntimeValue() {
     removeOpponentCombatant,
     addOpponentCopy,
   } = useEncounterRoster({
-    allyOptions,
+    allyOptions: allAllyOptions,
     opponentOptionsByKey,
     nextRuntimeId,
   })
@@ -165,14 +174,50 @@ function useEncounterRuntimeValue() {
     suppressSameSideHostile,
   })
 
+  /** Presentation POV for grid/sidebar/header — not tied to turn/action ownership. */
+  const [simulatorViewerMode, setSimulatorViewerMode] = useState<EncounterSimulatorViewerMode>('active-combatant')
+  const [presentationSelectedCombatantId, setPresentationSelectedCombatantId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!encounterState) {
+      setSimulatorViewerMode('active-combatant')
+      setPresentationSelectedCombatantId(null)
+    }
+  }, [encounterState])
+
+  /**
+   * Last grid/sidebar target selection seeds `presentationSelectedCombatantId` for “Selected combatant” POV.
+   * Clearing the action target does not clear this — user can still view as that combatant until another selection.
+   */
+  useEffect(() => {
+    if (!encounterState || !selectedActionTargetId) return
+    if (!encounterState.combatantsById[selectedActionTargetId]) return
+    setPresentationSelectedCombatantId(selectedActionTargetId)
+  }, [encounterState, selectedActionTargetId])
+
+  const handleSimulatorViewerModeChange = useCallback((mode: EncounterSimulatorViewerMode) => {
+    setSimulatorViewerMode(mode)
+  }, [])
+
   const viewerContext: EncounterViewerContext = useMemo(
     () => ({
       viewerRole: 'dm' as const,
-      /** Simulator: grid perception follows the active combatant unless switched to DM omniscience. */
-      simulatorViewerMode: 'active-combatant' as const,
+      simulatorViewerMode,
+      presentationSelectedCombatantId,
       controlledCombatantIds: [],
     }),
-    [],
+    [simulatorViewerMode, presentationSelectedCombatantId],
+  )
+
+  const presentationGridPerceptionInput = useMemo(
+    () =>
+      deriveEncounterPresentationGridPerceptionInput({
+        encounterState,
+        simulatorViewerMode,
+        activeCombatantId,
+        presentationSelectedCombatantId,
+      }),
+    [encounterState, simulatorViewerMode, activeCombatantId, presentationSelectedCombatantId],
   )
 
   const handleStartEncounter = useCallback(
@@ -199,7 +244,7 @@ function useEncounterRuntimeValue() {
   const [turnOrderModalOpen, setTurnOrderModalOpen] = useState(false)
   const [actionDrawerOpen, setActionDrawerOpen] = useState(false)
 
-  const allyModalOptions = useMemo(
+  const partyAllyModalOptions = useMemo(
     () =>
       allyOptions.map((a) => ({
         id: a.id,
@@ -209,6 +254,18 @@ function useEncounterRuntimeValue() {
         imageUrl: a.imageUrl,
       })),
     [allyOptions],
+  )
+
+  const npcAllyModalOptions = useMemo(
+    () =>
+      npcAllyOptions.map((a) => ({
+        id: a.id,
+        label: a.label,
+        subtitle: a.subtitle,
+        imageKey: a.imageKey,
+        imageUrl: a.imageUrl,
+      })),
+    [npcAllyOptions],
   )
 
   const { monsterModalOptions, npcModalOptions } = useMemo(() => {
@@ -368,9 +425,6 @@ function useEncounterRuntimeValue() {
     if (!encounterState) return undefined
     const rangeForRing =
       aoeGridOverlay || singleCellPlacementGridOverlay ? null : selectedActionRangeFt
-    /** `pc` = apply visibility rules; `dm` = omniscient grid (debug). */
-    const perceptionViewerRole =
-      viewerContext.simulatorViewerMode === 'dm' ? ('dm' as const) : ('pc' as const)
     return selectGridViewModel(encounterState, {
       selectedTargetId: selectedActionTargetId || null,
       selectedActionRangeFt: rangeForRing,
@@ -382,14 +436,7 @@ function useEncounterRuntimeValue() {
       aoe: aoeGridOverlay,
       placementPick: singleCellPlacementGridOverlay,
       persistentAttachedAuras,
-      perception:
-        activeCombatantId != null
-          ? {
-              viewerCombatantId: activeCombatantId,
-              viewerRole: perceptionViewerRole,
-              debugOverrides: viewerContext.debugPerceptionOverrides,
-            }
-          : undefined,
+      perception: presentationGridPerceptionInput,
     })
   }, [
     encounterState,
@@ -401,10 +448,14 @@ function useEncounterRuntimeValue() {
     singleCellPlacementGridOverlay,
     interactionMode,
     persistentAttachedAuras,
-    activeCombatantId,
-    viewerContext.simulatorViewerMode,
-    viewerContext.debugPerceptionOverrides,
+    presentationGridPerceptionInput,
   ])
+
+  const combatantViewerPresentationKindById = useMemo(() => {
+    if (!encounterState) return {}
+    const ids = Object.keys(encounterState.combatantsById)
+    return buildCombatantViewerPresentationKindById(encounterState, presentationGridPerceptionInput, ids)
+  }, [encounterState, presentationGridPerceptionInput])
 
   // turnResources was consumed by the now-commented-out footer.
   // activeCombatant.turnResources is still accessible directly via the context.
@@ -447,33 +498,47 @@ function useEncounterRuntimeValue() {
     [encounterState],
   )
 
-  const nextCombatantLabel = useMemo(() => {
+  const nextCombatantId = useMemo(() => {
     if (!encounterState) return null
     const nextIdx = encounterState.turnIndex + 1
-    const nextId = nextIdx < encounterState.initiativeOrder.length
+    return nextIdx < encounterState.initiativeOrder.length
       ? encounterState.initiativeOrder[nextIdx]
       : encounterState.initiativeOrder[0] ?? null
-    if (!nextId) return null
-    const nextCombatant = encounterState.combatantsById[nextId]
+  }, [encounterState])
+
+  const nextCombatantLabel = useMemo(() => {
+    if (!encounterState || !nextCombatantId) return null
+    const nextCombatant = encounterState.combatantsById[nextCombatantId]
     if (!nextCombatant) return null
     return getCombatantDisplayLabel(nextCombatant, encounterCombatantRoster)
-  }, [encounterState, encounterCombatantRoster])
+  }, [encounterState, encounterCombatantRoster, nextCombatantId])
+
+  const nextCombatantPresentationKind = useMemo(() => {
+    if (!nextCombatantId) return null
+    return combatantViewerPresentationKindById[nextCombatantId] ?? 'visible'
+  }, [nextCombatantId, combatantViewerPresentationKindById])
+
+  const presentationViewerDisplayLabel = useMemo(() => {
+    if (!encounterState || !activeCombatant) return null
+    const vid = presentationGridPerceptionInput?.viewerCombatantId
+    if (vid && encounterState.combatantsById[vid]) {
+      return getCombatantDisplayLabel(encounterState.combatantsById[vid], encounterCombatantRoster)
+    }
+    return getCombatantDisplayLabel(activeCombatant, encounterCombatantRoster)
+  }, [encounterState, activeCombatant, encounterCombatantRoster, presentationGridPerceptionInput])
 
   const perceptionUiFeedback = useMemo(
     () =>
       activeCombatant
         ? deriveEncounterPerceptionUiFeedback({
             simulatorViewerMode: viewerContext.simulatorViewerMode,
-            activeCombatantDisplayLabel: getCombatantDisplayLabel(
-              activeCombatant,
-              encounterCombatantRoster,
-            ),
+            presentationViewerDisplayLabel,
             gridPerception: gridViewModel?.perception,
           })
         : null,
     [
       activeCombatant,
-      encounterCombatantRoster,
+      presentationViewerDisplayLabel,
       gridViewModel?.perception,
       viewerContext.simulatorViewerMode,
     ],
@@ -602,7 +667,10 @@ function useEncounterRuntimeValue() {
         onEndTurn={handleNextTurn}
         onEditEncounter={() => setEditModalOpen(true)}
         onResetEncounter={handleResetEncounter}
+        simulatorViewerMode={simulatorViewerMode}
+        onSimulatorViewerModeChange={handleSimulatorViewerModeChange}
         perceptionFeedback={perceptionUiFeedback}
+        nextCombatantPresentationKind={nextCombatantPresentationKind}
       />
     ) : undefined
 
@@ -611,6 +679,13 @@ function useEncounterRuntimeValue() {
 
   return {
     viewerContext,
+    /** Presentation POV (grid/sidebar/header); not turn ownership. */
+    simulatorViewerMode,
+    setSimulatorViewerMode,
+    presentationSelectedCombatantId,
+    setPresentationSelectedCombatantId,
+    presentationGridPerceptionInput,
+    presentationViewerCombatantId: presentationGridPerceptionInput?.viewerCombatantId ?? null,
     capabilities,
     campaignId,
     monstersById,
@@ -681,7 +756,8 @@ function useEncounterRuntimeValue() {
     setEditModalOpen,
     turnOrderModalOpen,
     setTurnOrderModalOpen,
-    allyModalOptions,
+    partyAllyModalOptions,
+    npcAllyModalOptions,
     monsterModalOptions,
     npcModalOptions,
     selectedOpponentKeys,
@@ -689,6 +765,7 @@ function useEncounterRuntimeValue() {
     handleOpponentModalApply,
     canStartEncounter,
     gridViewModel,
+    combatantViewerPresentationKindById,
     setupHeader,
     activeHeader,
     activeFooter,
@@ -724,7 +801,8 @@ function EncounterRuntimeModals() {
     setEditModalOpen,
     turnOrderModalOpen,
     setTurnOrderModalOpen,
-    allyModalOptions,
+    partyAllyModalOptions,
+    npcAllyModalOptions,
     monsterModalOptions,
     npcModalOptions,
     selectedOpponentKeys,
@@ -746,6 +824,7 @@ function EncounterRuntimeModals() {
     removeOpponentCombatant,
     addOpponentCopy,
     encounterState,
+    combatantViewerPresentationKindById,
   } = useEncounterRuntime()
 
   return (
@@ -753,7 +832,8 @@ function EncounterRuntimeModals() {
       <SelectEncounterAllyModal
         open={allyModalOpen}
         onClose={() => setAllyModalOpen(false)}
-        options={allyModalOptions}
+        partyOptions={partyAllyModalOptions}
+        npcOptions={npcAllyModalOptions}
         selectedAllyIds={selectedAllyIds}
         onApply={handleAllyModalApply}
       />
@@ -811,6 +891,7 @@ function EncounterRuntimeModals() {
           open={turnOrderModalOpen}
           onClose={() => setTurnOrderModalOpen(false)}
           encounterState={encounterState}
+          combatantViewerPresentationKindById={combatantViewerPresentationKindById}
         />
       )}
     </>

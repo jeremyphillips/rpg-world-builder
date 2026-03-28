@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { createEncounterState } from '../state/runtime'
-import { buildMonsterCombatantInstance } from '@/features/encounter/helpers/combatant-builders'
+import { buildMonsterCombatantInstance } from '@/features/encounter/helpers/combatants'
 import {
   buildAttachedAuraInstancesFromMonsterTraits,
   collectMonsterTraitAttachedAuras,

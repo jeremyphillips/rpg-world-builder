@@ -16,7 +16,7 @@ import {
   LIGHTING_LEVELS,
   TERRAIN_MOVEMENT_TYPES,
   VISIBILITY_OBSCURED_LEVELS,
-} from '@/features/mechanics/domain/encounter/environment'
+} from '@/features/mechanics/domain/environment'
 import type {
   EncounterAtmosphereTag,
   EncounterEnvironmentBaseline,
@@ -24,7 +24,7 @@ import type {
   EncounterLightingLevel,
   EncounterTerrainMovement,
   EncounterVisibilityObscured,
-} from '@/features/mechanics/domain/encounter/environment'
+} from '@/features/mechanics/domain/environment'
 
 /** Setup panel edits the global encounter baseline; same shape as {@link EncounterEnvironmentBaseline}. */
 export type EnvironmentSetupValues = EncounterEnvironmentBaseline

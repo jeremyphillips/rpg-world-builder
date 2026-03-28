@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 
 import type { Monster } from '@/features/content/monsters/domain/types'
-import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
+import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
+import type { ViewerCombatantPresentationKind } from '@/features/encounter/domain'
 import type { CombatantInstance, SpatialBattlefieldPresentationOptions } from '@/features/mechanics/domain/encounter'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import {
@@ -12,7 +13,8 @@ import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
 import { useCharacter } from '@/features/character/hooks'
 
 import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
-import { buildCombatantPreviewChips, formatSigned, getPreviewStatTooltip } from '../../../helpers'
+import { formatSigned } from '@/features/encounter/helpers/combatants'
+import { buildCombatantPreviewChips, getPreviewStatTooltip } from '@/features/encounter/helpers/presentation'
 import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
 import { CombatantAvatar } from '../../shared/CombatantAvatar'
 
@@ -27,6 +29,7 @@ type AllyCombatantActivePreviewCardProps = {
   showChips?: boolean
   onClick?: () => void
   spatialPresentation?: SpatialBattlefieldPresentationOptions
+  viewerPresentationKind?: ViewerCombatantPresentationKind
 }
 
 export function AllyCombatantActivePreviewCard({
@@ -39,6 +42,7 @@ export function AllyCombatantActivePreviewCard({
   showChips = true,
   onClick,
   spatialPresentation,
+  viewerPresentationKind = 'visible',
 }: AllyCombatantActivePreviewCardProps) {
   const isDefeated = isDefeatedCombatant(combatant)
   const onBattlefield = hasBattlefieldPresence(combatant)
@@ -108,6 +112,7 @@ export function AllyCombatantActivePreviewCard({
     isSelected,
     isDefeated,
     hasBattlefieldPresence: onBattlefield,
+    viewerPresentationKind,
     onClick,
   }
 
