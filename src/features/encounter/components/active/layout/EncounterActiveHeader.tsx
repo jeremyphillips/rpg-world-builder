@@ -19,7 +19,7 @@ import {
   encounterActiveBarSx,
 } from '@/ui/primitives'
 
-import type { EndTurnEmphasis } from '../../../domain'
+import type { EndTurnEmphasis, EncounterPerceptionUiFeedback } from '../../../domain'
 import {
   deriveTurnResourceBucketState,
   partitionCombatantActionBuckets,
@@ -51,6 +51,8 @@ export type EncounterActiveHeaderProps = {
   onEndTurn: () => void
   onEditEncounter: () => void
   onResetEncounter: () => void
+  /** Grid POV + magical darkness status (from `deriveEncounterPerceptionUiFeedback`). */
+  perceptionFeedback?: EncounterPerceptionUiFeedback | null
 }
 
 export function EncounterActiveHeader({
@@ -71,6 +73,7 @@ export function EncounterActiveHeader({
   onEndTurn,
   onEditEncounter,
   onResetEncounter,
+  perceptionFeedback,
 }: EncounterActiveHeaderProps) {
   const move = turnResources?.movementRemaining ?? 0
   const headerRootRef = useRef<HTMLDivElement>(null)
@@ -151,6 +154,37 @@ export function EncounterActiveHeader({
           <Typography variant="caption" color="text.primary" sx={{ fontWeight: 600, letterSpacing: '0.06em' }}>
             Round {roundNumber} · Turn {turnIndex + 1}/{turnCount}
           </Typography>
+          {perceptionFeedback && (
+            <Stack
+              spacing={0.5}
+              alignItems={{ md: 'center' }}
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+              sx={{ maxWidth: '100%' }}
+            >
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, lineHeight: 1.35 }}>
+                {perceptionFeedback.povLine}
+              </Typography>
+              {perceptionFeedback.magicalDarknessLine && (
+                <AppTooltipWrap
+                  tooltip={
+                    perceptionFeedback.visibilityHint ??
+                    'Visibility rules follow the active combatant’s position.'
+                  }
+                >
+                  <Box component="span" sx={{ display: 'inline-flex', maxWidth: '100%' }}>
+                    <AppBadge
+                      label={perceptionFeedback.magicalDarknessLine}
+                      tone="warning"
+                      variant="outlined"
+                      size="small"
+                    />
+                  </Box>
+                </AppTooltipWrap>
+              )}
+            </Stack>
+          )}
           {nextCombatantLabel && (
             <Typography variant="body2" color="text.secondary" noWrap>
               Next: <strong>{nextCombatantLabel}</strong>

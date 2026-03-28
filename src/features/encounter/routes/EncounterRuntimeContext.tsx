@@ -31,6 +31,7 @@ import {
   canResolveCombatActionSelection,
   deriveEncounterCapabilities,
   deriveEncounterHeaderModel,
+  deriveEncounterPerceptionUiFeedback,
   type EncounterViewerContext,
 } from '../domain'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
@@ -458,6 +459,26 @@ function useEncounterRuntimeValue() {
     return getCombatantDisplayLabel(nextCombatant, encounterCombatantRoster)
   }, [encounterState, encounterCombatantRoster])
 
+  const perceptionUiFeedback = useMemo(
+    () =>
+      activeCombatant
+        ? deriveEncounterPerceptionUiFeedback({
+            simulatorViewerMode: viewerContext.simulatorViewerMode,
+            activeCombatantDisplayLabel: getCombatantDisplayLabel(
+              activeCombatant,
+              encounterCombatantRoster,
+            ),
+            gridPerception: gridViewModel?.perception,
+          })
+        : null,
+    [
+      activeCombatant,
+      encounterCombatantRoster,
+      gridViewModel?.perception,
+      viewerContext.simulatorViewerMode,
+    ],
+  )
+
   const capabilities = useMemo(
     () => (encounterState ? deriveEncounterCapabilities(encounterState, viewerContext) : null),
     [encounterState, viewerContext],
@@ -581,6 +602,7 @@ function useEncounterRuntimeValue() {
         onEndTurn={handleNextTurn}
         onEditEncounter={() => setEditModalOpen(true)}
         onResetEncounter={handleResetEncounter}
+        perceptionFeedback={perceptionUiFeedback}
       />
     ) : undefined
 
