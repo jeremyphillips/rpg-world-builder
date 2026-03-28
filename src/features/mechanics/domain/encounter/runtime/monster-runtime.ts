@@ -1,19 +1,32 @@
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type {
+  MonsterTrait,
   MonsterTraitRequirement,
   MonsterTraitTrigger,
 } from '@/features/content/monsters/domain/types/monster-traits.types'
-import type { Effect, RegenerationEffect } from '@/features/mechanics/domain/effects/effects.types'
+import type { Effect, EmanationEffect, RegenerationEffect } from '@/features/mechanics/domain/effects/effects.types'
 import type { EffectDuration, TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 
-import type { RuntimeTurnHook, RuntimeTurnHookRequirement } from '../state'
-import type {
-  ManualMonsterTriggerContext,
-  MonsterContextTriggerStatus,
-  MonsterRuntimeContext,
+import { attachedAuraInstanceId } from '../state/attached-battlefield-source'
+import type { BattlefieldEffectInstance } from '../state/types/encounter-state.types'
+import type { CombatantInstance } from '../state/types/combatant.types'
+import type { RuntimeTurnHook, RuntimeTurnHookRequirement } from '../state/types/combatant.types'
+import {
+  DEFAULT_MANUAL_MONSTER_TRIGGER_CONTEXT,
+  type ManualMonsterTriggerContext,
+  type MonsterContextTriggerStatus,
+  type MonsterRuntimeContext,
 } from './monster-runtime.types'
 
 export type { ManualMonsterTriggerContext, MonsterContextTriggerStatus, MonsterRuntimeContext } from './monster-runtime.types'
+export { DEFAULT_MANUAL_MONSTER_TRIGGER_CONTEXT } from './monster-runtime.types'
+
+/** Default context when seeding trait attached auras at encounter start (matches summon-ally baseline). */
+export const DEFAULT_MONSTER_RUNTIME_CONTEXT_FOR_ENCOUNTER: MonsterRuntimeContext = {
+  environment: 'none',
+  form: 'true-form',
+  manual: DEFAULT_MANUAL_MONSTER_TRIGGER_CONTEXT,
+}
 
 export function monsterTriggersArray(
   triggers?: MonsterTraitTrigger | MonsterTraitTrigger[],
@@ -49,6 +62,82 @@ export function buildActiveMonsterEffects(
 
     return areSupportedContextTriggersMatched(triggers, context) ? trait.effects : []
   })
+}
+
+function traitContributesAtRuntime(trait: MonsterTrait, context: MonsterRuntimeContext): boolean {
+  if (!trait.effects?.length) return false
+  const triggers = monsterTriggersArray(trait.trigger)
+  if (triggers.length === 0) return true
+  return areSupportedContextTriggersMatched(triggers, context)
+}
+
+/** Save DC for trait-attached auras (`save` with numeric `dc`, including nested under `interval`). */
+export function resolveTraitSaveDcFromEffects(effects: Effect[]): number | undefined {
+  for (const e of effects) {
+    if (e.kind === 'save' && typeof e.save?.dc === 'number') return e.save.dc
+    if (e.kind === 'interval') {
+      const nested = resolveTraitSaveDcFromEffects(e.effects)
+      if (nested != null) return nested
+    }
+  }
+  return undefined
+}
+
+/**
+ * Persistent self-centered sphere emanations from traits that are active for the given context
+ * (same trigger gating as {@link buildActiveMonsterEffects}).
+ */
+export function buildAttachedAuraInstancesFromMonsterTraits(
+  monster: Monster,
+  context: MonsterRuntimeContext,
+  combatantInstanceId: string,
+): BattlefieldEffectInstance[] {
+  const traits = monster.mechanics.traits ?? []
+  const out: BattlefieldEffectInstance[] = []
+
+  traits.forEach((trait, traitIndex) => {
+    if (!traitContributesAtRuntime(trait, context)) return
+
+    const effects = trait.effects ?? []
+    const emanations = effects.filter((e): e is EmanationEffect => e.kind === 'emanation')
+    if (emanations.length === 0) return
+
+    const saveDc = resolveTraitSaveDcFromEffects(effects)
+
+    for (const em of emanations) {
+      if (em.attachedTo !== 'self' || em.area.kind !== 'sphere') continue
+
+      const source = { kind: 'monster-trait' as const, monsterId: monster.id, traitIndex }
+      out.push({
+        id: attachedAuraInstanceId(source, combatantInstanceId),
+        casterCombatantId: combatantInstanceId,
+        source,
+        anchor: { kind: 'creature', combatantId: combatantInstanceId },
+        area: { kind: 'sphere', size: em.area.size },
+        unaffectedCombatantIds: [],
+        ...(typeof saveDc === 'number' ? { saveDc } : {}),
+      })
+    }
+  })
+
+  return out
+}
+
+/** Collect trait-sourced attached auras for monster combatants when `monstersById` is available. */
+export function collectMonsterTraitAttachedAuras(
+  combatants: CombatantInstance[],
+  monstersById: Record<string, Monster> | undefined,
+  context: MonsterRuntimeContext,
+): BattlefieldEffectInstance[] {
+  if (!monstersById) return []
+  const out: BattlefieldEffectInstance[] = []
+  for (const c of combatants) {
+    if (c.source.kind !== 'monster') continue
+    const monster = monstersById[c.source.sourceId]
+    if (!monster) continue
+    out.push(...buildAttachedAuraInstancesFromMonsterTraits(monster, context, c.instanceId))
+  }
+  return out
 }
 
 function toRuntimeTurnDuration(duration: EffectDuration): { remainingTurns: number; tickOn: TurnBoundary } | undefined {

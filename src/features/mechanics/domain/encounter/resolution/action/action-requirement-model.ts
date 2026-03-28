@@ -3,6 +3,7 @@ import type { SpawnEffect, SpawnPlacement } from '@/features/mechanics/domain/ef
 import type { CombatantPosition, EncounterSpace } from '@/features/encounter/space'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt } from '@/features/encounter/space'
 import { hasLineOfSight } from '@/features/encounter/space/space.sight'
+import { isAreaGridAction } from '@/features/encounter/helpers/area-grid-action'
 import { areaTemplateRadiusFt } from './action-targeting'
 
 // ---------------------------------------------------------------------------
@@ -88,11 +89,13 @@ export function getPlacementCtaLabel(req: SingleCellPlacementRequirement): strin
 }
 
 function isAreaGridCombatAction(action: CombatActionDefinition | undefined | null): boolean {
-  return Boolean(action?.targeting?.kind === 'all-enemies' && action.areaTemplate)
+  return isAreaGridAction(action)
 }
 
 function actionRequiresCreatureTargetForResolveLocal(action: CombatActionDefinition | undefined | null): boolean {
   if (!action) return false
+  if (action.attachedEmanation?.anchorMode === 'creature') return true
+  if (action.attachedEmanation?.anchorMode === 'place-or-object') return false
   if (isAreaGridCombatAction(action)) return false
   const kind = action.targeting?.kind
   if (kind === 'none' || kind === 'self' || kind === 'all-enemies') return false

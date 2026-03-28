@@ -161,10 +161,15 @@ export const MONSTERS_D: readonly MonsterCatalogEntry[] = [
           effects: [
             {
               kind: 'note',
-              text: 'Resolve 5-ft emanation Dex save DC 10 vs 2d4 bludgeoning (half on success) at table.',
+              text: 'On death only (not a persistent aura): 5-ft emanation; Dexterity DC 10; 2d4 Bludgeoning damage, half on success.',
               category: 'under-modeled',
             },
           ],
+          resolution: {
+            caveats: [
+              'Death-triggered burst is not resolved automatically; use manual damage when the mephit is reduced to 0 HP.',
+            ],
+          },
         },
       ],
       actions: [

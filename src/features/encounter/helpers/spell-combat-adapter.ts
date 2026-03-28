@@ -9,6 +9,10 @@ import type {
 import { classifySpellResolutionMode } from './spell-resolution-classifier'
 import { deriveSpellHostility, spellHostilityToHostileApplication } from './spell-hostility'
 
+function spellHasEmanationEffect(spell: Spell): boolean {
+  return (spell.effects ?? []).some((e) => e.kind === 'emanation')
+}
+
 /** Resource key for persisting spell use. Export for onSpellSlotSpent handlers. */
 export const SPELL_USED_PREFIX = 'spell_used_'
 
@@ -121,6 +125,25 @@ function getSpellTargetingEffect(spell: Spell): Extract<Effect, { kind: 'targeti
   return spell.effects?.find((e): e is Extract<Effect, { kind: 'targeting' }> => e.kind === 'targeting')
 }
 
+function getSpellEmanationEffect(spell: Spell): Extract<Effect, { kind: 'emanation' }> | undefined {
+  return spell.effects?.find((e): e is Extract<Effect, { kind: 'emanation' }> => e.kind === 'emanation')
+}
+
+function deriveAttachedEmanation(spell: Spell): CombatActionDefinition['attachedEmanation'] | undefined {
+  const em = getSpellEmanationEffect(spell)
+  if (!em || em.attachedTo !== 'self' || em.area.kind !== 'sphere') return undefined
+  const anchorMode = em.anchorMode ?? 'caster'
+  return {
+    source: { kind: 'spell', spellId: spell.id },
+    radiusFt: em.area.size,
+    selectUnaffectedAtCast: em.selectUnaffectedAtCast ?? false,
+    anchorMode,
+    ...(anchorMode === 'place-or-object' && em.anchorChoiceFieldId
+      ? { anchorChoiceFieldId: em.anchorChoiceFieldId }
+      : {}),
+  }
+}
+
 /** Maps spell AoE metadata to grid placement; cone/line/cylinder omit template until modeled. */
 function deriveCombatAreaTemplate(spell: Spell): CombatActionAreaTemplate | undefined {
   const t = getSpellTargetingEffect(spell)
@@ -170,11 +193,38 @@ function buildSpellTargeting(spell: Spell): CombatActionTargetingProfile {
   const hasSpawn = effects.some((e) => e.kind === 'spawn')
   if (hasSpawn) return { kind: 'none', ...sight }
 
+  const emanationAnchor = getSpellEmanationEffect(spell)
+  /** Persistent sphere centered on a chosen creature; anchor uses shared target selection (`targetId`). */
+  if (emanationAnchor?.anchorMode === 'creature') {
+    const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
+    const targeting = effects.find((e) => e.kind === 'targeting')
+    if (targeting?.kind === 'targeting' && targeting.requiresWilling) {
+      return { kind: 'single-target', creatureTypeFilter, requiresWilling: true, ...sight, ...rangeField }
+    }
+    return { kind: 'single-target', creatureTypeFilter, ...sight, ...rangeField }
+  }
+  /** Sphere anchored to a grid obstacle; selection uses `objectId` on the resolve payload. */
+  if (emanationAnchor?.anchorMode === 'object') {
+    return { kind: 'none', ...sight }
+  }
+  /** SRD “point or object” — cast-time enum picks place (AoE) vs object anchor; no creature target. */
+  if (emanationAnchor?.anchorMode === 'place-or-object') {
+    return { kind: 'self', ...sight, ...rangeField }
+  }
+  /** Place-anchored persistent sphere: pick origin via shared AoE flow; no creature target for resolve. */
+  if (emanationAnchor?.anchorMode === 'place') {
+    return { kind: 'self', ...sight, ...rangeField }
+  }
+
   const primaryTargeting = getSpellTargetingEffect(spell)
   if (
     primaryTargeting?.kind === 'targeting' &&
     (primaryTargeting.area != null || primaryTargeting.target === 'creatures-in-area')
   ) {
+    /** Self-centered attached auras (e.g. buffs) use `creatures-in-area` for geometry only — not hostile pick-all-enemies. */
+    if (spellHasEmanationEffect(spell) && deriveSpellHostility(spell) !== 'hostile') {
+      return { kind: 'self', ...sight }
+    }
     const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
     const areaRangeField =
       spell.range?.kind === 'self' && primaryTargeting.area != null
@@ -380,7 +430,11 @@ function buildSpellEffectsAction(
     spellSaveDc,
     spellcastingAbilityModifier,
   )
-  const resolvableEffects = enrichedEffects.filter((e) => e.kind !== 'targeting')
+  let resolvableEffects = enrichedEffects.filter((e) => e.kind !== 'targeting' && e.kind !== 'emanation')
+  // Phase 1: defer interval damage / speed — aura + concentration + grid only.
+  if (spell.id === 'spirit-guardians') {
+    resolvableEffects = resolvableEffects.filter((e) => e.kind !== 'interval' && e.kind !== 'modifier')
+  }
 
   const hpCfg = spell.resolution?.hpThreshold
   const aboveThresholdEffects = hpCfg?.aboveMaxHpEffects?.length
@@ -389,8 +443,18 @@ function buildSpellEffectsAction(
       )
     : undefined
 
-  const areaTemplate = deriveCombatAreaTemplate(spell)
-  const areaPlacement = deriveAreaPlacement(spell, Boolean(areaTemplate))
+  const attachedEmanation = deriveAttachedEmanation(spell)
+  let areaTemplate = deriveCombatAreaTemplate(spell)
+  let areaPlacement = deriveAreaPlacement(spell, Boolean(areaTemplate))
+  if (attachedEmanation?.anchorMode === 'place' || attachedEmanation?.anchorMode === 'place-or-object') {
+    /** Emanation is always a sphere; origin placement reuses AoE overlay radius from the same authored size. */
+    areaTemplate = { kind: 'sphere', radiusFt: attachedEmanation.radiusFt }
+    areaPlacement = 'remote'
+  } else if (attachedEmanation?.anchorMode === 'creature' || attachedEmanation?.anchorMode === 'object') {
+    /** Origin follows target combatant or map obstacle — no AoE placement row on the action. */
+    areaTemplate = undefined
+    areaPlacement = undefined
+  }
 
   return {
     id: `${runtimeId}-spell-${spell.id}`,
@@ -404,8 +468,10 @@ function buildSpellEffectsAction(
     targeting: buildSpellTargeting(spell),
     logText: buildSpellLogText(spell),
     displayMeta: buildSpellDisplayMeta(spell),
+    saveDc: spellSaveDc,
     usage,
     ...(areaTemplate ? { areaTemplate, ...(areaPlacement ? { areaPlacement } : {}) } : {}),
+    ...(attachedEmanation ? { attachedEmanation } : {}),
   }
 }
 

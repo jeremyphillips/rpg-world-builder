@@ -3,14 +3,28 @@ import type { Monster } from '@/features/content/monsters/domain/types'
 
 export interface ResolveCombatActionSelection {
   actorId: string
+  /**
+   * Selected creature for single-target actions. For **creature-anchored** attached emanations
+   * (`attachedEmanation.anchorMode === 'creature'`), this id is also the runtime sphere anchor combatant.
+   */
   targetId?: string
   actionId: string
   /** Values for {@link CombatActionDefinition.casterOptions}, keyed by field `id`. */
   casterOptions?: Record<string, string>
-  /** Grid cell id for the center of an AoE when {@link CombatActionDefinition.areaTemplate} is set. */
+  /**
+   * Grid cell id for the center of an AoE when {@link CombatActionDefinition.areaTemplate} is set, and for
+   * **place-anchored** attached emanations (`attachedEmanation.anchorMode === 'place'`) as the persistent
+   * sphere center (maps to `BattlefieldEffectAnchor` `{ kind: 'place', cellId }`).
+   */
   aoeOriginCellId?: string
   /** Grid cell id for summon placement when the action requires single-cell placement (spawn `single-cell`). */
   singleCellPlacementCellId?: string
+  /** Spirit Guardians–style: combatants designated unaffected at cast (stored on attached aura). */
+  unaffectedCombatantIds?: string[]
+  /**
+   * Grid obstacle id (`EncounterSpace.obstacles[].id`) when {@link CombatActionDefinition.attachedEmanation}.`anchorMode === 'object'`.
+   */
+  objectId?: string
 }
 
 export interface ResolveCombatActionOptions {

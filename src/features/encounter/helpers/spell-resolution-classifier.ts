@@ -35,6 +35,8 @@ export function classifySpellResolutionMode(spell: Spell): 'attack-roll' | 'effe
   if (effects.length === 0) return 'log-only'
   if (effects.every((e) => SUPPORT_ONLY_KINDS.has(e.kind))) return 'log-only'
   if (effects.some((e) => FULLY_ACTIONABLE_KINDS.has(e.kind))) return 'effects'
+  /** `emanation` is structural (attached battlefield aura); the combat adapter resolves it, not log-only. */
+  if (effects.some((e) => e.kind === 'emanation')) return 'effects'
 
   return 'log-only'
 }

@@ -1,4 +1,4 @@
-import type { EncounterSpace, EncounterCell, CombatantPosition } from './space.types'
+import type { EncounterSpace, EncounterCell, CombatantPosition, GridObstacle } from './space.types'
 
 // ---------------------------------------------------------------------------
 // Cell lookups
@@ -100,4 +100,34 @@ export function formatGridCellLabel(space: EncounterSpace, cellId: string): stri
   if (cell.x >= 26) return cellId
   const col = String.fromCharCode(65 + cell.x)
   return `${col}${cell.y + 1}`
+}
+
+/** First obstacle whose footprint is this cell (e.g. tree / pillar from {@link EncounterSpace.obstacles}). */
+export function findGridObstacleAtCell(
+  space: EncounterSpace | undefined,
+  cellId: string,
+): GridObstacle | undefined {
+  return space?.obstacles?.find((o) => o.cellId === cellId)
+}
+
+export function findGridObstacleById(
+  space: EncounterSpace | undefined,
+  objectId: string,
+): GridObstacle | undefined {
+  return space?.obstacles?.find((o) => o.id === objectId)
+}
+
+/** Move an existing grid obstacle to another valid cell (e.g. carried object / GM adjustment). Returns a new space, or `null` if the obstacle or target cell is invalid. */
+export function moveGridObstacleToCell(
+  space: EncounterSpace,
+  obstacleId: string,
+  cellId: string,
+): EncounterSpace | null {
+  if (!getCellById(space, cellId)) return null
+  const obstacles = space.obstacles ?? []
+  const idx = obstacles.findIndex((o) => o.id === obstacleId)
+  if (idx < 0) return null
+  const nextObs = [...obstacles]
+  nextObs[idx] = { ...nextObs[idx]!, cellId }
+  return { ...space, obstacles: nextObs }
 }

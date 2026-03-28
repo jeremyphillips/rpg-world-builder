@@ -33,10 +33,15 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
           effects: [
             {
               kind: 'note',
-              text: 'Resolve 10-ft emanation Dex save DC 11 vs 2d6 fire (half on success) at table.',
+              text: 'On death only (not a persistent aura): 10-ft emanation; Dexterity DC 11; 2d6 Fire damage, half on success.',
               category: 'under-modeled',
             },
           ],
+          resolution: {
+            caveats: [
+              'Death-triggered burst is not resolved automatically; use manual damage when the magmin is reduced to 0 HP.',
+            ],
+          },
         },
       ],
       actions: [

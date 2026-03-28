@@ -75,6 +75,7 @@ export const SPELLS_LEVEL_7_A_L: readonly SpellEntry[] = [
     resolution: {
       caveats: [
         'Total damage includes +1d6 per turn the bead persists; adjust rolled damage manually before applying the save.',
+        'The bead is a point in space (or thrown), not a self-centered emanation. Do not use the shared `emanation` effect: persistent bead location is a future `place` (or similar) anchor, not `attachedTo: self`.',
       ],
     },
     effects: [
@@ -85,7 +86,16 @@ export const SPELLS_LEVEL_7_A_L: readonly SpellEntry[] = [
         onFail: [{ kind: 'damage', damage: '12d6', damageType: 'fire' }],
         onSuccess: [{ kind: 'damage', damage: '6d6', damageType: 'fire' }],
       },
-      { kind: 'note', text: 'Bead accumulates +1d6 fire each turn it persists. If touched before detonation, creature makes Dex save or it explodes.', category: 'under-modeled' as const },
+      {
+        kind: 'note',
+        text: 'Bead accumulates +1d6 fire each turn it persists. If touched before detonation, creature makes Dex save or it explodes.',
+        category: 'under-modeled' as const,
+      },
+      {
+        kind: 'note',
+        text: 'Explosion is centered on the bead’s location when the spell ends or early detonation occurs—not on the caster.',
+        category: 'under-modeled' as const,
+      },
     ],
     scaling: [{ category: 'extra-damage', description: '+1d6 fire base per slot level above 7', mode: 'per-slot-level', startsAtSlotLevel: 8, amount: '1d6' }],
     description: {

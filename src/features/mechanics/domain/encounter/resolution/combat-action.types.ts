@@ -1,4 +1,5 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
+import type { AttachedBattlefieldEffectSource } from '../state/attached-battlefield-source'
 import type { AbilityId } from '@/features/mechanics/domain/character'
 import type { BreakdownToken } from '../../resolution/resolvers/stat-resolver'
 import type { CasterOptionField } from '../../spells/caster-options'
@@ -106,6 +107,12 @@ export type CombatActionAreaTemplate =
   | { kind: 'sphere'; radiusFt: number }
   | { kind: 'cube'; edgeFt: number }
 
+/**
+ * Where a persistent attached emanation should be anchored in space (action-level intent).
+ * Distinct from {@link AttachedBattlefieldEffectSource}, which identifies authored rules.
+ */
+export type EmanationAnchorMode = 'caster' | 'place' | 'creature' | 'object' | 'place-or-object'
+
 export interface CombatActionDefinition {
   id: string
   label: string
@@ -130,6 +137,11 @@ export interface CombatActionDefinition {
   logText?: string
   displayMeta?: CombatActionDisplayMeta
   /**
+   * Save DC for effect payloads (8 + PB + ability for spells; monster action save DC when authored).
+   * Used when persisting attached auras that resolve interval saves later (e.g. Spirit Guardians).
+   */
+  saveDc?: number
+  /**
    * Spell-derived: whether the action is a hostile application for charm / same-side targeting rules.
    * When set (spell actions from `buildSpellCombatActions`), `isHostileAction` uses this; otherwise legacy `targeting` kind rules apply.
    */
@@ -143,4 +155,23 @@ export interface CombatActionDefinition {
   areaTemplate?: CombatActionAreaTemplate
   /** Remote grid point vs centered on caster (self-range emanation). */
   areaPlacement?: 'remote' | 'self'
+  /**
+   * Persistent emanation metadata for encounter setup (e.g. Spirit Guardians): cast-time unaffected setup + battlefield aura.
+   * Does not replace `areaTemplate` / `all-enemies` for targeting metadata.
+   *
+   * **`anchorMode`:** `caster` → creature-on-caster; `place` → `aoeOriginCellId`; `creature` → `targetId`;
+   * `object` → `objectId` (grid obstacle id).
+   */
+  attachedEmanation?: {
+    source: AttachedBattlefieldEffectSource
+    radiusFt: number
+    /** Always set by spell/monster adapters (`false` when omitted on authored `emanation`). */
+    selectUnaffectedAtCast: boolean
+    anchorMode: EmanationAnchorMode
+    /**
+     * When `anchorMode === 'place-or-object'`, the `casterOptions` field id (enum) whose value is `place` or
+     * `object`, selecting between point-in-space vs grid obstacle anchor at cast time.
+     */
+    anchorChoiceFieldId?: string
+  }
 }

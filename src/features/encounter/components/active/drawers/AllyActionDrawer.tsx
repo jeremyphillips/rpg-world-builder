@@ -2,7 +2,10 @@ import { useMemo } from 'react'
 
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
-import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import type {
+  CombatantInstance,
+  SpatialBattlefieldPresentationOptions,
+} from '@/features/mechanics/domain/encounter'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
 import type { AoeStep } from '../../../helpers/area-grid-action'
 import {
@@ -14,7 +17,7 @@ import {
 } from '../../../domain'
 import { AllyCombatantActivePreviewCard } from '../cards/AllyCombatantActivePreviewCard'
 import { OpponentCombatantActivePreviewCard } from '../cards/OpponentCombatantActivePreviewCard'
-import { CombatantActionDrawer } from './CombatantActionDrawer'
+import { CombatantActionDrawer, type CombatantActionDrawerProps } from './CombatantActionDrawer'
 
 type AllyActionDrawerProps = {
   open: boolean
@@ -53,6 +56,9 @@ type AllyActionDrawerProps = {
   onDismissSingleCellPlacementError?: () => void
   onEnterSingleCellPlacementMode?: () => void
   onExitSingleCellPlacementMode?: () => void
+  attachedEmanationSetup?: CombatantActionDrawerProps['attachedEmanationSetup']
+  /** When set, combat effects include spatial speed reduction from attached auras (current overlap). */
+  spatialPresentation?: SpatialBattlefieldPresentationOptions
 }
 
 export function AllyActionDrawer({
@@ -91,6 +97,8 @@ export function AllyActionDrawer({
   onDismissSingleCellPlacementError,
   onEnterSingleCellPlacementMode,
   onExitSingleCellPlacementMode,
+  attachedEmanationSetup,
+  spatialPresentation,
 }: AllyActionDrawerProps) {
   const availableActionIds = useMemo(
     () => new Set(availableActions.map((a) => a.id)),
@@ -102,11 +110,11 @@ export function AllyActionDrawer({
   )
 
   const combatEffects = useMemo(() => {
-    const presentable = collectPresentableEffects(combatant)
+    const presentable = collectPresentableEffects(combatant, spatialPresentation)
     const enriched = enrichPresentableEffects(presentable)
     const sorted = sortByPriority(enriched)
     return groupBySection(sorted)
-  }, [combatant])
+  }, [combatant, spatialPresentation])
 
   const targetPreview = targetCombatant ? (
     targetCombatant.side === 'party' ? (
@@ -164,6 +172,7 @@ export function AllyActionDrawer({
       onDismissSingleCellPlacementError={onDismissSingleCellPlacementError}
       onEnterSingleCellPlacementMode={onEnterSingleCellPlacementMode}
       onExitSingleCellPlacementMode={onExitSingleCellPlacementMode}
+      attachedEmanationSetup={attachedEmanationSetup}
     />
   )
 }

@@ -88,6 +88,28 @@ Structured data lives in **`mechanics.legendaryActions`** ([`monster-legendary.t
 
 Rule text should follow your project’s **SRD 5.2.1** (CC BY 4.0) source, not third-party stat blocks.
 
+## Traits: emanations and attached battlefield {#traits-emanations-and-attached-battlefield}
+
+Spell-style **`kind: 'emanation'`** on monsters uses the same effect shape as spells. Full field semantics, pairing with **`targeting`** (spells), **`interval`** / grid runtime, and limitations (stationary vs moving aura, speed multipliers) live in [effects.md § `emanation`](./effects.md#emanation) — read that first. Cross-cutting architecture (adapters, sources, UI, gaps): [resource/emanation.md](../resource/emanation.md).
+
+### Trait effects (`MonsterTrait.effects`)
+
+- **Persistent self-centered sphere:** author **`emanation`** with **`attachedTo: 'self'`**, **`area: { kind: 'sphere', size: <feet> }`**, and **`selectUnaffectedAtCast`** (`true` only for Spirit Guardians–style “unaffected creatures”; otherwise **`false`**).
+- **Damage or saves on a schedule:** add **`interval`** with **`every: { value: 1, unit: 'turn' }`** and nested **`damage`**, **`save`**, etc., as in [effects.md § `emanation`](./effects.md#emanation) (runtime uses the same attached-aura interval / overlap machinery as spells). **`stateId`** on **`interval`** must be a stable string unique to that authored interval row.
+- **Stat block dice:** a line like **5 (1d10)** means **average 5** and dice **1d10**. In **`damage`**, author the **parenthetical dice** (e.g. **`'1d10'`**), not the average and not a misread such as **`5d10`**.
+- **Save DC on the aura:** put a numeric **`save.dc`** on a top-level **`save`** or on a **`save`** nested under **`interval`** so attached-aura metadata can pick it up (`resolveTraitSaveDcFromEffects` in `monster-runtime.ts`).
+- **Caveats:** use **`resolution.caveats`** for rules the engine does not match exactly (e.g. “only when the azer’s turn ends” vs Spirit Guardians–style resolution on other creatures’ turns, ally-only damage, **Incapacitated** gates, underwater-only mucus).
+
+At encounter start, qualifying traits can seed **`EncounterState.attachedAuraInstances`** when **`monstersById`** is available (source **`monster-trait`**). Triggers on the trait still gate **`buildActiveMonsterEffects`** / attached-aura creation the same way as other trait triggers (see `monster-runtime.ts`).
+
+### Special actions (`MonsterSpecialAction.effects`)
+
+**`emanation`** on a **special** action is bridged by **`buildMonsterExecutableActions`** / **`monster-combat-adapter.ts`** into **`CombatActionDefinition.attachedEmanation`** and filtered **`effects`**, aligned with spell behavior. See [effects.md § `emanation`](./effects.md#emanation).
+
+### Death bursts and other non-persistent “Emanation” text
+
+If the rule is **only on death** (e.g. mephit / magmin **Death Burst**), use **`trigger: { kind: 'reduced-to-0-hp' }`** and a **`note`** with **`category: 'under-modeled'`** — **do not** add **`kind: 'emanation'`** here, or a persistent attached aura could be implied. Spell out DC, dice, and radius in the note; keep **`resolution.caveats`** for manual resolution at the table.
+
 ## Resolution and under-modeling
 
 Follow [effects.md §5 `note`](./effects.md), [§8](./effects.md), and **Resolution Status Tracking**:

@@ -297,10 +297,21 @@ export const SPELLS_LEVEL_2_G_Z: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true, material: { description: 'ashes from burned mistletoe' } },
     resolution: {
       caveats: [
-        'Chosen allies in the aura and Stealth bonus are not enforced automatically.',
+        '+10 Dexterity (Stealth), no tracks, and which allies you choose in the aura are not enforced automatically.',
       ],
     },
     effects: [
+      {
+        kind: 'emanation',
+        attachedTo: 'self',
+        area: { kind: 'sphere', size: 30 },
+      },
+      {
+        kind: 'targeting',
+        target: 'creatures-in-area',
+        targetType: 'creature',
+        area: { kind: 'sphere', size: 30 },
+      },
       {
         kind: 'note',
         text: '30-foot Emanation: you and chosen creatures have +10 to Dexterity (Stealth) and leave no tracks.',

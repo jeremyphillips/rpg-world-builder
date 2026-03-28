@@ -291,6 +291,11 @@ export type IntervalEffect = EffectBase<'interval'> & {
     unit: 'turn' | 'round' | 'minute' | 'hour' | 'day';
   };
   effects: Effect[];
+  /**
+   * Optional triggers in addition to `every` (e.g. movement reconciliation when a creature newly enters
+   * an attached emanation). See `resolveAttachedAuraSpatialEntryAfterMovement`.
+   */
+  spatialTriggers?: ('enter')[];
 };
 
 export type SourceActionImmunityEffect = EffectBase<'immunity'> & {
@@ -480,6 +485,27 @@ export type AuraEffect = EffectBase<'aura'> & {
   effects: Effect[];
 };
 
+/**
+ * Persistent self-centered battlefield emanation (e.g. Spirit Guardians).
+ * Not applied as a direct mechanical payload — the spell combat adapter and encounter UI use it for setup + grid aura.
+ */
+export type EmanationEffect = EffectBase<'emanation'> & {
+  attachedTo: 'self';
+  area: { kind: 'sphere'; size: number };
+  /** When omitted, combat adapters treat this as `false` (no Spirit Guardians–style unaffected selection). */
+  selectUnaffectedAtCast?: boolean;
+  /**
+   * When set, spell/monster combat adapters copy this to the adapted action’s `attachedEmanation.anchorMode`.
+   * Omit for legacy caster-centered attached emanations (adapter defaults to `caster`).
+   * **`place-or-object`:** SRD “point within range” vs “cast on object” — pair with {@link anchorChoiceFieldId} and `resolution.casterOptions`.
+   */
+  anchorMode?: 'caster' | 'place' | 'creature' | 'object' | 'place-or-object';
+  /**
+   * Required when `anchorMode === 'place-or-object'`: enum `casterOptions` field id (`value` `place` | `object`).
+   */
+  anchorChoiceFieldId?: string;
+};
+
 export type NoteEffect = EffectBase<'note'> & {
   text: string;
   category?: EffectNoteCategory;
@@ -525,6 +551,7 @@ export type Effect =
   | SpawnEffect
   | HitPointsEffect
   | AuraEffect
+  | EmanationEffect
   | NoteEffect
   | RemoveClassificationEffect
   | RegenerationEffect

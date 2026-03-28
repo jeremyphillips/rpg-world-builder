@@ -400,6 +400,17 @@ export const SPELLS_LEVEL_6_A_L: readonly SpellEntry[] = [
     },
     effects: [
       {
+        kind: 'emanation',
+        attachedTo: 'self',
+        area: { kind: 'sphere', size: 10 },
+      },
+      {
+        kind: 'targeting',
+        target: 'creatures-in-area',
+        targetType: 'creature',
+        area: { kind: 'sphere', size: 10 },
+      },
+      {
         kind: 'note',
         text: '10-foot emanation. Spells of 5th level or lower cast from outside the barrier cannot affect creatures or objects inside (+1 blocked level per slot level above 6).',
         category: 'under-modeled' as const,

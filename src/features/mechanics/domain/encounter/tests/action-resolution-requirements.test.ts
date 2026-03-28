@@ -24,6 +24,7 @@ const emptyCtx = {
   aoeStep: 'none' as const,
   aoeOriginCellId: null,
   selectedCasterOptions: {},
+  selectedObjectAnchorId: null as string | null,
   encounterState: undefined,
   activeCombatant: undefined,
 }

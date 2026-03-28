@@ -363,11 +363,18 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 10, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a prayer scroll' } },
     effects: [
+      {
+        kind: 'emanation',
+        attachedTo: 'self',
+        area: { kind: 'sphere', size: 15 },
+        selectUnaffectedAtCast: true,
+      },
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 15 } },
       {
         kind: 'interval',
         stateId: 'spirit-guardians-damage',
         every: { value: 1, unit: 'turn' },
+        spatialTriggers: ['enter'],
         effects: [
           {
             kind: 'save',
@@ -411,7 +418,7 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
       summary: '20ft sphere gas. Heavily Obscured. Con save or Poisoned (no action/bonus).',
     },
   },
-{
+  {
     id: 'tiny-hut',
     name: 'Tiny Hut',
     school: 'evocation',
@@ -438,7 +445,7 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
       summary: '10ft dome. Creatures inside pass freely; others barred. Blocks 3rd-level or lower spells.',
     },
   },
-{
+  {
     id: 'tongues',
     name: 'Tongues',
     school: 'divination',

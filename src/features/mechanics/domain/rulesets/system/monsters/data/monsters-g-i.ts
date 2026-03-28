@@ -792,9 +792,21 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
           name: 'Aura of Authority',
           description:
             'While in a 10-foot Emanation originating from the hobgoblin, the hobgoblin and its allies have Advantage on attack rolls and saving throws, provided the hobgoblin doesn’t have the Incapacitated condition.',
+          effects: [
+            {
+              kind: 'emanation',
+              attachedTo: 'self',
+              area: { kind: 'sphere', size: 10 },
+            },
+            {
+              kind: 'note',
+              text: 'Advantage on attack rolls and saving throws for the hobgoblin and its allies in the emanation, if the hobgoblin is not Incapacitated. Ally detection and Incapacitated gate are not automated.',
+              category: 'under-modeled',
+            },
+          ],
           resolution: {
             caveats: [
-              '10-ft emanation granting advantage on attacks and saves for allies is not automated in encounter resolution.',
+              'Advantage on attacks and saves for allies is not rolled automatically; emanation footprint is for positioning only.',
             ],
           },
         },

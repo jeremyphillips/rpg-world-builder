@@ -1,3 +1,4 @@
+import type { Monster } from '@/features/content/monsters/domain/types'
 import type { CombatantInstance } from './types'
 import {
   rollInitiative,
@@ -19,6 +20,12 @@ import {
   createEmptyTurnContext,
   rollRechargeDie,
 } from './shared'
+import type { BattlefieldSpellContext } from './battlefield-spatial-movement-modifiers'
+import {
+  collectMonsterTraitAttachedAuras,
+  DEFAULT_MONSTER_RUNTIME_CONTEXT_FOR_ENCOUNTER,
+  type MonsterRuntimeContext,
+} from '../runtime/monster-runtime'
 import {
   appendLog,
   createEncounterStartedLog,
@@ -36,14 +43,26 @@ import { executeTurnHooks } from './turn-hooks'
 import { tickConcentrationDuration } from './concentration-mutations'
 import { formatRuntimeEffectLabel } from './shared'
 import { shouldAutoSkipCombatantTurn } from './combatant-participation'
+import {
+  resolveIntervalEffectsForCombatantAtTurnBoundary,
+  type BattlefieldIntervalResolutionOptions,
+} from './battlefield-interval-resolution'
+import { reconcileBattlefieldEffectAnchors } from './battlefield-effect-anchor-reconciliation'
 
-function resetCombatantTurnState(state: EncounterState, combatantId: string | null): EncounterState {
+function resetCombatantTurnState(
+  state: EncounterState,
+  combatantId: string | null,
+  battlefieldSpell?: BattlefieldSpellContext,
+): EncounterState {
   if (!combatantId) return state
 
   return updateCombatant(state, combatantId, (combatant) => ({
     ...combatant,
     turnContext: createEmptyTurnContext(),
-    turnResources: createCombatantTurnResources(combatant),
+    turnResources: createCombatantTurnResources(combatant, {
+      encounterState: state,
+      battlefieldSpell,
+    }),
   }))
 }
 
@@ -137,6 +156,9 @@ export function mergeCombatantsIntoEncounter(
   options: InitiativeResolverOptions & {
     initiativeMode?: SpawnSummonInitiativeMode
     casterInstanceId?: string
+    /** When set, monster combatants can receive trait-sourced {@link EncounterState.attachedAuraInstances}. */
+    monstersById?: Record<string, Monster>
+    monsterRuntimeContext?: MonsterRuntimeContext
   },
 ): EncounterState {
   if (newCombatants.length === 0) return state
@@ -202,7 +224,14 @@ export function mergeCombatantsIntoEncounter(
     combatantsById[c.instanceId] = c
   }
 
-  return {
+  const traitAuras = collectMonsterTraitAttachedAuras(
+    seeded,
+    options.monstersById,
+    options.monsterRuntimeContext ?? DEFAULT_MONSTER_RUNTIME_CONTEXT_FOR_ENCOUNTER,
+  )
+  const mergedAuras = [...(state.attachedAuraInstances ?? []), ...traitAuras]
+
+  return reconcileBattlefieldEffectAnchors({
     ...state,
     combatantsById,
     partyCombatantIds: Array.from(partyIds),
@@ -210,7 +239,8 @@ export function mergeCombatantsIntoEncounter(
     initiativeOrder,
     turnIndex,
     activeCombatantId: state.activeCombatantId,
-  }
+    attachedAuraInstances: mergedAuras,
+  })
 }
 
 /**
@@ -271,9 +301,14 @@ export function removeCombatantFromInitiativeOrder(
   }
 }
 
+/** Options for {@link advanceEncounterTurn} (initiative RNG + optional attached-aura interval resolution). */
+export type AdvanceEncounterTurnOptions = InitiativeResolverOptions & {
+  battlefieldInterval?: BattlefieldIntervalResolutionOptions
+}
+
 function skipNonInteractiveTurnsAfterActiveTurn(
   state: EncounterState,
-  options: InitiativeResolverOptions,
+  options: AdvanceEncounterTurnOptions,
   depth: number,
 ): EncounterState {
   const maxDepth = Math.max(state.initiativeOrder.length * 2, 16)
@@ -293,6 +328,15 @@ export function createEncounterState(
   options: InitiativeResolverOptions & {
     space?: EncounterSpace
     placementOptions?: InitialPlacementOptions
+    /** When set with `spellLookup`, turn-start movement uses spatial attached-aura modifiers. */
+    battlefieldSpell?: BattlefieldSpellContext
+    /**
+     * Context for which monster trait effects are considered active when seeding trait attached auras.
+     * Defaults to a neutral baseline (see {@link DEFAULT_MONSTER_RUNTIME_CONTEXT_FOR_ENCOUNTER}).
+     */
+    monsterRuntimeContext?: MonsterRuntimeContext
+    /** Monster catalog lookup for trait attached auras; falls back to `battlefieldSpell.monstersById`. */
+    monstersById?: Record<string, Monster>
   } = {},
 ): EncounterState {
   const seededCombatants = combatants.map(seedRuntimeEffects)
@@ -318,6 +362,13 @@ export function createEncounterState(
     ? generateInitialPlacements(options.space, seededCombatants, options.placementOptions)
     : undefined
 
+  const monstersById = options.monstersById ?? options.battlefieldSpell?.monstersById
+  const traitAuras = collectMonsterTraitAttachedAuras(
+    seededCombatants,
+    monstersById,
+    options.monsterRuntimeContext ?? DEFAULT_MONSTER_RUNTIME_CONTEXT_FOR_ENCOUNTER,
+  )
+
   const state: EncounterState = {
     combatantsById: indexCombatants(seededCombatants),
     partyCombatantIds,
@@ -331,12 +382,13 @@ export function createEncounterState(
     log: [],
     space: options.space,
     placements,
+    attachedAuraInstances: traitAuras,
   }
 
   state.log = [createEncounterStartedLog(state)]
   if (state.activeCombatantId) {
     state.log.push(createTurnStartedLog(state))
-    const withResetContext = resetCombatantTurnState(state, state.activeCombatantId)
+    const withResetContext = resetCombatantTurnState(state, state.activeCombatantId, options.battlefieldSpell)
     const withRecharge = processActionRecharge(
       withResetContext,
       state.activeCombatantId,
@@ -353,7 +405,7 @@ export function createEncounterState(
 
 function advanceEncounterTurnOnce(
   state: EncounterState,
-  options: InitiativeResolverOptions = {},
+  options: AdvanceEncounterTurnOptions = {},
 ): EncounterState {
   if (!state.started || state.initiativeOrder.length === 0 || !state.activeCombatantId) {
     return state
@@ -364,13 +416,19 @@ function advanceEncounterTurnOnce(
     log: [...state.log, createTurnEndedLog(state)],
   }
   const withTurnEndHooks = executeTurnHooks(withTurnEndLog, state.activeCombatantId, 'end')
-  const withConcentrationTick = tickConcentrationDuration(withTurnEndHooks, state.activeCombatantId)
+  const withAttachedIntervals =
+    options.battlefieldInterval != null
+      ? resolveIntervalEffectsForCombatantAtTurnBoundary(
+          withTurnEndHooks,
+          state.activeCombatantId,
+          'end',
+          options.battlefieldInterval,
+        )
+      : withTurnEndHooks
+  const withConcentrationTick = tickConcentrationDuration(withAttachedIntervals, state.activeCombatantId)
   const endedState = processMarkerBoundary(
     processRuntimeEffectBoundary(
-      processTrackedPartTurnEnd(
-        withConcentrationTick,
-        state.activeCombatantId,
-      ),
+      processTrackedPartTurnEnd(withConcentrationTick, state.activeCombatantId),
       state.activeCombatantId,
       'end',
     ),
@@ -426,27 +484,37 @@ function advanceEncounterTurnOnce(
     log: [...nextState.log, createTurnStartedLog(nextState)],
   }
 
-  const withResetContext = resetCombatantTurnState(startedState, startedState.activeCombatantId)
+  const battlefieldSpell: BattlefieldSpellContext | undefined =
+    options.battlefieldInterval != null
+      ? {
+          spellLookup: options.battlefieldInterval.spellLookup,
+          suppressSameSideHostile: options.battlefieldInterval.suppressSameSideHostile,
+          monstersById: options.battlefieldInterval.monstersById,
+        }
+      : undefined
+  const withResetContext = resetCombatantTurnState(startedState, startedState.activeCombatantId, battlefieldSpell)
   const withRecharge = processActionRecharge(
     withResetContext,
     withResetContext.activeCombatantId,
     options.rng ?? Math.random,
   )
 
-  return executeTurnHooks(
-    processMarkerBoundary(
-      processRuntimeEffectBoundary(withRecharge, withRecharge.activeCombatantId, 'start'),
+  return reconcileBattlefieldEffectAnchors(
+    executeTurnHooks(
+      processMarkerBoundary(
+        processRuntimeEffectBoundary(withRecharge, withRecharge.activeCombatantId, 'start'),
+        withRecharge.activeCombatantId,
+        'start',
+      ),
       withRecharge.activeCombatantId,
       'start',
     ),
-    withRecharge.activeCombatantId,
-    'start',
   )
 }
 
 export function advanceEncounterTurn(
   state: EncounterState,
-  options: InitiativeResolverOptions = {},
+  options: AdvanceEncounterTurnOptions = {},
 ): EncounterState {
   return skipNonInteractiveTurnsAfterActiveTurn(advanceEncounterTurnOnce(state, options), options, 0)
 }

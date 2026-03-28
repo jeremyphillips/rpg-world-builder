@@ -11,7 +11,12 @@ import {
   getSaveModifiersFromConditions,
   type CombatantInstance,
   type RollModifierMarker,
+  addAttachedAuraInstance,
 } from '../../state'
+import {
+  attachedAuraInstanceId,
+  concentrationLinkedMarkerIdForSpellAttachedEmanation,
+} from '../../state/attached-battlefield-source'
 import {
   formatAttackRollDebug,
   formatAutoFailDebug,
@@ -21,6 +26,8 @@ import {
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection, ResolveCombatActionOptions } from '../action-resolution.types'
+import { resolveAttachedEmanationAnchorModeFromSelection } from '@/features/encounter/helpers/area-grid-action'
+import { findGridObstacleById } from '@/features/encounter/space/space.helpers'
 import { formatCasterOptionSummary } from '../../../spells/caster-options'
 import {
   rollDamage,
@@ -151,8 +158,10 @@ export function getCombatantAvailableActions(
   )
 }
 
-function isConcentrationAction(action: CombatActionDefinition): boolean {
-  return action.displayMeta?.source === 'spell' && action.displayMeta.concentration === true
+function isConcentrationAction(action: CombatActionDefinition | undefined): boolean {
+  return Boolean(
+    action && action.displayMeta?.source === 'spell' && action.displayMeta.concentration === true,
+  )
 }
 
 export function resolveCombatAction(
@@ -166,13 +175,22 @@ export function resolveCombatAction(
   const result = resolveCombatActionInternal(state, selection, options, { skipCost: false })
   let finalState = result.state
 
-  if (action && isConcentrationAction(action) && result.createdMarkerIds.length > 0) {
-    const meta = action.displayMeta as { source: 'spell'; spellId: string; concentrationDurationTurns?: number }
+  const meta = action?.displayMeta as { source: 'spell'; spellId: string; concentrationDurationTurns?: number } | undefined
+  const needsConcFromAttachedEmanation =
+    Boolean(action?.attachedEmanation) && isConcentrationAction(action) && result.createdMarkerIds.length === 0
+  const linkedForConc =
+    result.createdMarkerIds.length > 0
+      ? result.createdMarkerIds
+      : needsConcFromAttachedEmanation && action?.attachedEmanation?.source.kind === 'spell'
+        ? [concentrationLinkedMarkerIdForSpellAttachedEmanation(action.attachedEmanation.source.spellId)]
+        : []
+
+  if (action && isConcentrationAction(action) && linkedForConc.length > 0 && meta?.source === 'spell') {
     const durationTurns = meta.concentrationDurationTurns
     finalState = setConcentration(finalState, selection.actorId, {
       spellId: meta.spellId,
       spellLabel: action.label,
-      linkedMarkerIds: result.createdMarkerIds,
+      linkedMarkerIds: linkedForConc,
       remainingTurns: durationTurns,
       totalTurns: durationTurns,
     })
@@ -510,12 +528,25 @@ function resolveCombatActionInternal(
       allMarkerIds.push(...saveEffectResult.createdMarkerIds)
     }
   } else if (action.resolutionMode === 'effects') {
+    const em = action.attachedEmanation
+    const emMode =
+      em?.anchorMode === 'place-or-object'
+        ? resolveAttachedEmanationAnchorModeFromSelection(action, selection.casterOptions)
+        : em?.anchorMode
     const effectTargets =
-      targets.length > 0
-        ? targets
-        : action.targeting?.kind === 'none'
-          ? [actor]
-          : []
+      em && action.effects?.length
+        ? emMode === 'creature'
+          ? targets.length > 0
+            ? targets
+            : []
+          : emMode === 'object'
+            ? [actor]
+            : [actor]
+        : targets.length > 0
+          ? targets
+          : action.targeting?.kind === 'none'
+            ? [actor]
+            : []
 
     if (effectTargets.length === 0 && action.effects?.length) {
       nextState = appendEncounterLogEvent(nextState, {
@@ -583,5 +614,47 @@ function resolveCombatActionInternal(
         ),
         turnResources: spendActionCost(getCombatantTurnResources(combatant), action.cost),
       }))
-  return { state: finalState, createdMarkerIds: allMarkerIds }
+  let finalReturnState = finalState
+  if (action.attachedEmanation && !behavior.skipCost) {
+    const mode =
+      action.attachedEmanation.anchorMode === 'place-or-object'
+        ? resolveAttachedEmanationAnchorModeFromSelection(action, selection.casterOptions)
+        : action.attachedEmanation.anchorMode
+    const ids = selection.unaffectedCombatantIds ?? []
+    let anchor:
+      | { kind: 'place'; cellId: string }
+      | { kind: 'creature'; combatantId: string }
+      | { kind: 'object'; objectId: string; snapshotCellId: string }
+      | null = null
+    if (mode === 'place') {
+      anchor = selection.aoeOriginCellId
+        ? { kind: 'place', cellId: selection.aoeOriginCellId }
+        : null
+    } else if (mode === 'creature') {
+      anchor =
+        selection.targetId && finalState.combatantsById[selection.targetId]
+          ? { kind: 'creature', combatantId: selection.targetId }
+          : null
+    } else if (mode === 'object') {
+      const obstacle =
+        selection.objectId != null ? findGridObstacleById(finalState.space, selection.objectId) : undefined
+      anchor = obstacle
+        ? { kind: 'object', objectId: obstacle.id, snapshotCellId: obstacle.cellId }
+        : null
+    } else {
+      anchor = { kind: 'creature', combatantId: selection.actorId }
+    }
+    if (anchor) {
+      finalReturnState = addAttachedAuraInstance(finalState, {
+        id: attachedAuraInstanceId(action.attachedEmanation.source, selection.actorId),
+        casterCombatantId: selection.actorId,
+        source: action.attachedEmanation.source,
+        anchor,
+        area: { kind: 'sphere', size: action.attachedEmanation.radiusFt },
+        unaffectedCombatantIds: [...ids],
+        ...(typeof action.saveDc === 'number' ? { saveDc: action.saveDc } : {}),
+      })
+    }
+  }
+  return { state: finalReturnState, createdMarkerIds: allMarkerIds }
 }

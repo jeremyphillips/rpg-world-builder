@@ -1,5 +1,6 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { reconcileBattlefieldPresenceForCombatants } from './battlefield-return-placement'
+import { removeAttachedAurasForSpell } from './attached-aura-mutations'
 import type { ConcentrationState, EncounterState } from './types'
 import { updateCombatant } from './shared'
 import { appendLog, getCombatantLabel } from './logging'
@@ -65,9 +66,12 @@ export function dropConcentration(
   if (!caster?.concentration) return state
 
   const spellLabel = caster.concentration.spellLabel
+  const spellId = caster.concentration.spellId
   const linkedIds = new Set(caster.concentration.linkedMarkerIds)
 
-  let nextState = updateCombatant(state, casterId, (combatant) => ({
+  let nextState = removeAttachedAurasForSpell(state, casterId, spellId)
+
+  nextState = updateCombatant(nextState, casterId, (combatant) => ({
     ...combatant,
     concentration: undefined,
     conditions: combatant.conditions.filter((m) => !linkedIds.has(m.id)),

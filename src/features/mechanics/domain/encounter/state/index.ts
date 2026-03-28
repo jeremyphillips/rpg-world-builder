@@ -22,6 +22,44 @@ export {
 } from './logging'
 export * from './types'
 export {
+  addAttachedAuraInstance,
+  removeAttachedAurasForSource,
+  removeAttachedAurasForSpell,
+} from './attached-aura-mutations'
+export type { AttachedBattlefieldEffectSource } from './attached-battlefield-source'
+export type { BattlefieldEffectAnchor } from './battlefield-effect-anchor'
+export { resolveBattlefieldEffectOriginCellId } from './battlefield-effect-anchor'
+export {
+  reconcileBattlefieldEffectAnchors,
+  moveGridObstacleInEncounterState,
+} from './battlefield-effect-anchor-reconciliation'
+export {
+  attachedAuraInstanceId,
+  attachedBattlefieldSourceEquals,
+  concentrationLinkedMarkerIdForSpellAttachedEmanation,
+} from './attached-battlefield-source'
+export {
+  getEffectsForAttachedBattlefieldSource,
+  getLabelForAttachedBattlefieldSource,
+  type BattlefieldAttachedSourceResolutionOptions,
+} from './battlefield-attached-source-effects'
+export {
+  resolveIntervalEffectsForCombatantAtTurnBoundary,
+  type BattlefieldIntervalResolutionOptions,
+} from './battlefield-interval-resolution'
+export {
+  resolveAttachedAuraSpatialEntryAfterMovement,
+  type BattlefieldSpatialEntryResolutionOptions,
+} from './battlefield-spatial-entry-resolution'
+export {
+  combatantHasSpatialSpeedReduction,
+  getEffectiveGroundMovementBudgetFt,
+  getSpatialAttachedAuraSpeedMultiplier,
+  getSpeedMultiplyProductFromSpell,
+  type BattlefieldSpellContext,
+  type SpatialBattlefieldPresentationOptions,
+} from './battlefield-spatial-movement-modifiers'
+export {
   addConditionToCombatant,
   addDamageResistanceMarker,
   addRollModifierToCombatant,
@@ -53,7 +91,14 @@ export {
   reconcileBattlefieldPresenceForCombatants,
   stripPlacementAndRememberReturnCell,
 } from './battlefield-return-placement'
-export { createEncounterState, advanceEncounterTurn, formatRuntimeEffectLabel, mergeCombatantsIntoEncounter, removeCombatantFromInitiativeOrder } from './runtime'
+export {
+  createEncounterState,
+  advanceEncounterTurn,
+  formatRuntimeEffectLabel,
+  mergeCombatantsIntoEncounter,
+  removeCombatantFromInitiativeOrder,
+  type AdvanceEncounterTurnOptions,
+} from './runtime'
 export { triggerManualHook } from './manual-hooks'
 export { effectDurationToRuntimeDuration, formatMarkerLabel } from './shared'
 export { combatantToCreatureSnapshot } from './combatant-evaluation-snapshot'

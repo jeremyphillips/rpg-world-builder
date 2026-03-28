@@ -1,9 +1,11 @@
-import type {
-  CombatantInstance,
-  RuntimeEffectInstance,
-  RuntimeMarker,
-  RuntimeTurnHook,
-  StatModifierMarker,
+import {
+  combatantHasSpatialSpeedReduction,
+  type CombatantInstance,
+  type RuntimeEffectInstance,
+  type RuntimeMarker,
+  type RuntimeTurnHook,
+  type SpatialBattlefieldPresentationOptions,
+  type StatModifierMarker,
 } from '@/features/mechanics/domain/encounter'
 import type {
   CombatStatePresentation,
@@ -118,8 +120,14 @@ function statModifierToPresentable(
  * Collects all engine state from a combatant into a flat PresentableCombatEffect array.
  * Includes derived state (e.g. bloodied) and normalizes conditions, states, effects,
  * turn hooks, suppressed hooks, and stat modifiers.
+ *
+ * When `spatial` is passed, adds derived presentation for attached-aura spatial speed reduction
+ * (e.g. Spirit Guardians) from **current** grid overlap — not a static condition on the combatant.
  */
-export function collectPresentableEffects(combatant: CombatantInstance): PresentableCombatEffect[] {
+export function collectPresentableEffects(
+  combatant: CombatantInstance,
+  spatial?: SpatialBattlefieldPresentationOptions,
+): PresentableCombatEffect[] {
   const { instanceId } = combatant
   const effects: PresentableCombatEffect[] = []
 
@@ -148,6 +156,18 @@ export function collectPresentableEffects(combatant: CombatantInstance): Present
       kind: 'effect',
       key: 'bloodied',
       label: 'Bloodied',
+    })
+  }
+
+  if (
+    spatial &&
+    combatantHasSpatialSpeedReduction(combatant, spatial.encounterState, spatial.battlefieldSpell)
+  ) {
+    effects.push({
+      id: `${instanceId}-spatial-speed-halved`,
+      kind: 'effect',
+      key: 'speed-halved',
+      label: 'Speed Halved',
     })
   }
 

@@ -16,6 +16,8 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
+import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/encounter/state'
+import { resolveBattlefieldEffectOriginCellId } from '@/features/mechanics/domain/encounter/state/battlefield-effect-anchor'
 import { getCombatantBaseMovement } from '@/features/mechanics/domain/encounter/state/shared'
 import { actionRequiresCreatureTargetForResolve } from '@/features/mechanics/domain/encounter'
 import { getSingleCellPlacementRequirement } from '@/features/mechanics/domain/encounter/resolution/action/action-requirement-model'
@@ -64,7 +66,8 @@ function useEncounterRuntimeValue() {
   useActiveCampaign()
   const navigate = useNavigate()
   const { id: campaignId } = useParams<{ id: string }>()
-  const { catalog } = useCampaignRules()
+  const { catalog, ruleset } = useCampaignRules()
+  const suppressSameSideHostile = ruleset.mechanics.combat.encounter.suppressSameSideHostile === true
   const { party } = useCampaignParty('approved')
   const { characters: npcs } = useCharacters({ type: 'npc' })
 
@@ -148,12 +151,20 @@ function useEncounterRuntimeValue() {
     aoeHoverCellId,
     setAoeHoverCellId,
     resetAoePlacement,
+    unaffectedCombatantIds,
+    setUnaffectedCombatantIds,
+    selectedObjectAnchorId,
+    setSelectedObjectAnchorId,
+    objectAnchorHoverCellId,
+    setObjectAnchorHoverCellId,
   } = useEncounterState({
     selectedCombatantIds,
     opponentRoster,
     monstersById,
     weaponsById: catalog.weaponsById,
     armorById: catalog.armorById,
+    spellsById: catalog.spellsById,
+    suppressSameSideHostile,
   })
 
   const handleStartEncounter = useCallback(
@@ -250,12 +261,6 @@ function useEncounterRuntimeValue() {
   }
 
   useEffect(() => {
-    if (aoeStep !== 'none') {
-      setInteractionMode('aoe-place')
-    }
-  }, [aoeStep])
-
-  useEffect(() => {
     if (aoeStep === 'none' && interactionMode === 'aoe-place') {
       setInteractionMode('select-target')
     }
@@ -271,13 +276,37 @@ function useEncounterRuntimeValue() {
     [availableActions, selectedActionId],
   )
 
+  useEffect(() => {
+    if (aoeStep === 'none') return
+    if (isAreaGridAction(selectedAction, selectedCasterOptions)) {
+      setInteractionMode('aoe-place')
+    }
+  }, [aoeStep, selectedAction, selectedCasterOptions])
+
   const selectedActionRangeFt = useMemo(() => {
     return selectedAction?.targeting?.rangeFt ?? null
   }, [selectedAction])
 
+  const persistentAttachedAuras = useMemo(() => {
+    if (!encounterState?.attachedAuraInstances?.length) return undefined
+    const resolved = encounterState.attachedAuraInstances
+      .map((a) => {
+        const originCellId = resolveBattlefieldEffectOriginCellId(
+          encounterState.space,
+          encounterState.placements,
+          a.anchor,
+        )
+        if (!originCellId) return null
+        return { originCellId, areaRadiusFt: a.area.size }
+      })
+      .filter((x): x is { originCellId: string; areaRadiusFt: number } => x !== null)
+    return resolved.length > 0 ? resolved : undefined
+  }, [encounterState?.attachedAuraInstances, encounterState?.space, encounterState?.placements])
+
   const aoeGridOverlay = useMemo(() => {
     if (!encounterState?.space || !encounterState.placements || !activeCombatantId) return null
-    if (!selectedAction || !isAreaGridAction(selectedAction) || aoeStep === 'none') return null
+    if (!selectedAction || !isAreaGridAction(selectedAction, selectedCasterOptions) || aoeStep === 'none')
+      return null
     const casterCellId = getCellForCombatant(encounterState.placements, activeCombatantId)
     if (!casterCellId || !selectedAction.areaTemplate) return null
     const castRangeFt = selectedAction.targeting?.rangeFt ?? 0
@@ -294,6 +323,7 @@ function useEncounterRuntimeValue() {
     encounterState,
     activeCombatantId,
     selectedAction,
+    selectedCasterOptions,
     aoeStep,
     aoeHoverCellId,
     aoeOriginCellId,
@@ -338,6 +368,7 @@ function useEncounterRuntimeValue() {
         interactionMode !== 'single-cell-place',
       aoe: aoeGridOverlay,
       placementPick: singleCellPlacementGridOverlay,
+      persistentAttachedAuras,
     })
   }, [
     encounterState,
@@ -348,6 +379,7 @@ function useEncounterRuntimeValue() {
     aoeGridOverlay,
     singleCellPlacementGridOverlay,
     interactionMode,
+    persistentAttachedAuras,
   ])
 
   // turnResources was consumed by the now-commented-out footer.
@@ -424,6 +456,7 @@ function useEncounterRuntimeValue() {
         selectedActionTargetId,
         selectedCasterOptions,
         selectedSingleCellPlacementCellId,
+        selectedObjectAnchorId,
         encounterState,
         activeCombatant,
       }),
@@ -436,6 +469,7 @@ function useEncounterRuntimeValue() {
       selectedActionTargetId,
       selectedCasterOptions,
       selectedSingleCellPlacementCellId,
+      selectedObjectAnchorId,
       encounterState,
       activeCombatant,
     ],
@@ -446,10 +480,16 @@ function useEncounterRuntimeValue() {
     [availableActions],
   )
 
-  const baseMovementFt = useMemo(
-    () => (activeCombatant ? getCombatantBaseMovement(activeCombatant) : 0),
-    [activeCombatant],
-  )
+  const baseMovementFt = useMemo(() => {
+    if (!activeCombatant) return 0
+    if (encounterState && catalog.spellsById) {
+      return getEffectiveGroundMovementBudgetFt(activeCombatant, encounterState, {
+        spellLookup: (id) => catalog.spellsById[id],
+        suppressSameSideHostile,
+      })
+    }
+    return getCombatantBaseMovement(activeCombatant)
+  }, [activeCombatant, encounterState, catalog.spellsById, suppressSameSideHostile])
 
   const encounterHeaderModel = useMemo(() => {
     if (!activeCombatant) {
@@ -465,10 +505,11 @@ function useEncounterRuntimeValue() {
         interactionMode,
         selectedActionId,
         selectedAction,
+        selectedCasterOptions,
         aoeStep,
         canResolveAction: canResolveActionForHeader,
         selectedActionRequiresCreatureTarget: selectedAction
-          ? actionRequiresCreatureTargetForResolve(selectedAction)
+          ? actionRequiresCreatureTargetForResolve(selectedAction, selectedCasterOptions)
           : undefined,
       },
       display: {
@@ -490,6 +531,7 @@ function useEncounterRuntimeValue() {
     canResolveActionForHeader,
     encounterState,
     encounterCombatantRoster,
+    selectedCasterOptions,
   ])
 
   /** Matches {@link getCombatantAvailableActions}: empty means no action/bonus costs left to spend on real options (bonus slot can read “available” while bonus list is empty). */
@@ -563,6 +605,14 @@ function useEncounterRuntimeValue() {
     aoeHoverCellId,
     setAoeHoverCellId,
     resetAoePlacement,
+    unaffectedCombatantIds,
+    setUnaffectedCombatantIds,
+    selectedObjectAnchorId,
+    setSelectedObjectAnchorId,
+    objectAnchorHoverCellId,
+    setObjectAnchorHoverCellId,
+    suppressSameSideHostile,
+    spellsById: catalog.spellsById,
     unresolvedCombatantCount,
     selectedCombatants,
     environmentContext,

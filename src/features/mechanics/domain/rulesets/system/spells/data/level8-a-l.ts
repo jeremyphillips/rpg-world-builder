@@ -46,10 +46,21 @@ export const SPELLS_LEVEL_8_A_L: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true, material: { description: 'iron filings' } },
     resolution: {
       caveats: [
-        'Artifact/deity exceptions and edge cases at the aura boundary are table-adjudicated.',
+        'Spell suppression, magic-item shutdown, teleport/planar blocks, and artifact/deity exceptions at the aura boundary are not fully automated.',
       ],
     },
     effects: [
+      {
+        kind: 'emanation',
+        attachedTo: 'self',
+        area: { kind: 'sphere', size: 10 },
+      },
+      {
+        kind: 'targeting',
+        target: 'creatures-in-area',
+        targetType: 'creature',
+        area: { kind: 'sphere', size: 10 },
+      },
       {
         kind: 'note',
         text: '10ft aura: no spells, magic actions, or magic item properties. Suppresses ongoing spells.',
@@ -316,10 +327,21 @@ export const SPELLS_LEVEL_8_A_L: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true, material: { description: 'a reliquary worth 1,000+ GP', cost: { value: 1000, unit: 'gp', atLeast: true } } },
     resolution: {
       caveats: [
-        'Chosen allies vs Fiend/Undead melee Blinded rider are not split into per-attacker automation.',
+        'Chosen creatures (advantage on saves, disadvantage to be hit), Fiend/Undead melee Blinded rider, and per-attacker tracking are not fully automated.',
       ],
     },
     effects: [
+      {
+        kind: 'emanation',
+        attachedTo: 'self',
+        area: { kind: 'sphere', size: 30 },
+      },
+      {
+        kind: 'targeting',
+        target: 'creatures-in-area',
+        targetType: 'creature',
+        area: { kind: 'sphere', size: 30 },
+      },
       {
         kind: 'note',
         text: '30-foot emanation. Chosen creatures: Advantage on saves. Others: Disadvantage to hit them. Fiend/Undead melee hit: Con save or Blinded.',

@@ -18,7 +18,11 @@ import {
   buildInitialCasterOptionsForAction,
   formatCasterOptionSummary,
 } from '@/features/mechanics/domain/spells/caster-options'
-import { isAreaGridAction, type AoeStep } from '../../../helpers/area-grid-action'
+import {
+  isAreaGridAction,
+  resolveAttachedEmanationAnchorModeFromSelection,
+  type AoeStep,
+} from '../../../helpers/area-grid-action'
 import { AoePlacementPanel } from './drawer-modes/AoePlacementPanel'
 import { CasterOptionsDrawerPanel } from './drawer-modes/CasterOptionsDrawerPanel'
 import {
@@ -38,13 +42,16 @@ import type { ActionSemanticCategory } from '../../../domain/actions/action-pres
 import { deriveActionPresentation } from '../../../domain/actions/action-presentation'
 import { ActionRow } from '../action-row/ActionRow'
 import { deriveActionUnavailableHint } from './helpers/derive-action-unavailable-hint'
+import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
+import type { CombatantOption } from '../../setup/modals/SelectEncounterCombatantModal'
+import { AttachedEmanationSetupPanel } from './AttachedEmanationSetupPanel'
 
 /**
  * Drawer sub-views. `aoePlacement` is parent-driven via `aoeStep`. `singleCellPlacement` uses local subview + map mode.
  */
 export type CombatantActionDrawerView = 'main' | 'aoePlacement' | 'casterOptions' | 'singleCellPlacement'
 
-type CombatantActionDrawerProps = {
+export type CombatantActionDrawerProps = {
   open: boolean
   onClose: () => void
   title: string
@@ -84,6 +91,16 @@ type CombatantActionDrawerProps = {
   aoeAffectedOverflow?: number
   onCancelAoe?: () => void
   onUndoAoeSelection?: () => void
+  /** When the selected spell has {@link CombatActionDefinition.attachedEmanation}. */
+  attachedEmanationSetup?: {
+    activeCombatantId: string
+    allCombatants: readonly CombatantInstance[]
+    combatantOptions: CombatantOption[]
+    unaffectedCombatantIds: string[]
+    onUnaffectedChange: (ids: string[]) => void
+    suppressSameSideHostile: boolean
+    partyCombatantIds: string[]
+  } | null
 }
 
 /**
@@ -390,6 +407,7 @@ function deriveCtaLabel(
   canResolveAction: boolean | undefined,
   primaryResolutionMissingMessage: string | null | undefined,
   effectiveView: CombatantActionDrawerView,
+  selectedCasterOptions?: Record<string, string>,
 ): string {
   if (effectiveView === 'singleCellPlacement') {
     return selectedActionLabel ? `Resolve ${selectedActionLabel}` : 'Resolve'
@@ -399,7 +417,7 @@ function deriveCtaLabel(
     if (!targetLabel) return 'Choose an action or target'
     return 'Choose an Action'
   }
-  const needsTarget = actionRequiresCreatureTargetForResolve(selectedAction)
+  const needsTarget = actionRequiresCreatureTargetForResolve(selectedAction, selectedCasterOptions)
   if (needsTarget && !targetLabel) return 'Select a Target'
   if (canResolveAction) return `Resolve ${selectedActionLabel}`
   if (primaryResolutionMissingMessage) {
@@ -450,6 +468,7 @@ export function CombatantActionDrawer({
   aoeAffectedOverflow = 0,
   onCancelAoe,
   onUndoAoeSelection,
+  attachedEmanationSetup = null,
 }: CombatantActionDrawerProps) {
   /** `aoePlacement` overrides when parent is in AoE flow; otherwise `main` or `casterOptions`. */
   const [localSubView, setLocalSubView] = useState<'main' | 'casterOptions' | 'singleCellPlacement'>('main')
@@ -526,7 +545,9 @@ export function CombatantActionDrawer({
   )
 
   const aoeAction =
-    selectedActionDefinition && isAreaGridAction(selectedActionDefinition) ? selectedActionDefinition : null
+    selectedActionDefinition && isAreaGridAction(selectedActionDefinition, resolvedCasterOptions)
+      ? selectedActionDefinition
+      : null
 
   const singleCellPlacementRequirement = useMemo(
     () =>
@@ -535,10 +556,22 @@ export function CombatantActionDrawer({
   )
 
   const effectiveView: CombatantActionDrawerView = useMemo(() => {
-    if (aoeStep !== 'none' && aoeAction?.areaTemplate) return 'aoePlacement'
+    /** All-enemies area + place / place-or-object (resolved to place) use the AoE placement panel. */
+    const ae = selectedActionDefinition?.attachedEmanation
+    const useAoePlacementForAttachedEmanation =
+      Boolean(aoeAction) &&
+      (!ae || ae.anchorMode === 'place' || ae.anchorMode === 'place-or-object')
+    if (aoeStep !== 'none' && aoeAction?.areaTemplate && useAoePlacementForAttachedEmanation) {
+      return 'aoePlacement'
+    }
     if (localSubView === 'singleCellPlacement') return 'singleCellPlacement'
     return localSubView === 'casterOptions' ? 'casterOptions' : 'main'
-  }, [aoeStep, aoeAction?.areaTemplate, localSubView])
+  }, [
+    aoeStep,
+    aoeAction,
+    selectedActionDefinition?.attachedEmanation,
+    localSubView,
+  ])
 
   const isMain = effectiveView === 'main'
 
@@ -550,6 +583,7 @@ export function CombatantActionDrawer({
     canResolveAction,
     primaryResolutionMissingMessage,
     effectiveView,
+    resolvedCasterOptions,
   )
 
   /** Footer reused the same copy as spell options but stayed disabled; open the options subview instead of resolve. */
@@ -626,17 +660,38 @@ export function CombatantActionDrawer({
         <Box sx={{ flex: 1, overflow: 'auto', px: 2, py: 2 }}>
           <Stack spacing={2}>
             {effectiveView === 'aoePlacement' && aoeAction?.areaTemplate && aoeStep !== 'none' && (
-              <AoePlacementPanel
-                action={aoeAction}
-                aoeStep={aoeStep}
-                aoePlacementError={aoePlacementError}
-                onDismissAoeError={onDismissAoeError}
-                aoeAffectedNames={aoeAffectedNames}
-                aoeAffectedTotal={aoeAffectedTotal}
-                aoeAffectedOverflow={aoeAffectedOverflow}
-                onCancelAoe={onCancelAoe}
-                onUndoAoeSelection={onUndoAoeSelection}
-              />
+              <>
+                {attachedEmanationSetup &&
+                  selectedActionDefinition?.attachedEmanation?.selectUnaffectedAtCast &&
+                  resolveAttachedEmanationAnchorModeFromSelection(
+                    selectedActionDefinition,
+                    resolvedCasterOptions,
+                  ) === 'place' &&
+                  (selectedActionDefinition.attachedEmanation.anchorMode === 'place' ||
+                    selectedActionDefinition.attachedEmanation.anchorMode === 'place-or-object') && (
+                    <AttachedEmanationSetupPanel
+                      actionLabel={selectedActionDefinition.label}
+                      activeCombatantId={attachedEmanationSetup.activeCombatantId}
+                      allCombatants={attachedEmanationSetup.allCombatants}
+                      combatantOptions={attachedEmanationSetup.combatantOptions}
+                      unaffectedCombatantIds={attachedEmanationSetup.unaffectedCombatantIds}
+                      onUnaffectedChange={attachedEmanationSetup.onUnaffectedChange}
+                      suppressSameSideHostile={attachedEmanationSetup.suppressSameSideHostile}
+                      partyCombatantIds={attachedEmanationSetup.partyCombatantIds}
+                    />
+                  )}
+                <AoePlacementPanel
+                  action={aoeAction}
+                  aoeStep={aoeStep}
+                  aoePlacementError={aoePlacementError}
+                  onDismissAoeError={onDismissAoeError}
+                  aoeAffectedNames={aoeAffectedNames}
+                  aoeAffectedTotal={aoeAffectedTotal}
+                  aoeAffectedOverflow={aoeAffectedOverflow}
+                  onCancelAoe={onCancelAoe}
+                  onUndoAoeSelection={onUndoAoeSelection}
+                />
+              </>
             )}
 
             {effectiveView === 'casterOptions' && showSpellOptionsSection && (
@@ -666,6 +721,18 @@ export function CombatantActionDrawer({
 
             {isMain && (
               <>
+                {selectedActionDefinition?.attachedEmanation && attachedEmanationSetup && (
+                  <AttachedEmanationSetupPanel
+                    actionLabel={selectedActionDefinition.label}
+                    activeCombatantId={attachedEmanationSetup.activeCombatantId}
+                    allCombatants={attachedEmanationSetup.allCombatants}
+                    combatantOptions={attachedEmanationSetup.combatantOptions}
+                    unaffectedCombatantIds={attachedEmanationSetup.unaffectedCombatantIds}
+                    onUnaffectedChange={attachedEmanationSetup.onUnaffectedChange}
+                    suppressSameSideHostile={attachedEmanationSetup.suppressSameSideHostile}
+                    partyCombatantIds={attachedEmanationSetup.partyCombatantIds}
+                  />
+                )}
                 <Box>
                   <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.6rem', letterSpacing: '0.08em' }}>
                     Target

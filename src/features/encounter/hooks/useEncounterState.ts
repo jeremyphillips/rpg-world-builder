@@ -5,6 +5,7 @@ import {
   addConditionToCombatant,
   addStateToCombatant,
   advanceEncounterTurn,
+  resolveAttachedAuraSpatialEntryAfterMovement,
   applyDamageToCombatant,
   applyHealingToCombatant,
   buildReducedToZeroTraits,
@@ -28,6 +29,7 @@ import { buildInitialCasterOptionsForAction } from '@/features/mechanics/domain/
 import type { Armor } from '@/features/content/equipment/armor/domain/types/armor.types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types/weapon.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
+import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import { buildSummonAllyMonsterCombatant } from '../helpers/encounter-helpers'
 import type { AoeStep } from '../helpers/area-grid-action'
 
@@ -41,6 +43,9 @@ type UseEncounterStateArgs = {
   monstersById: Record<string, Monster>
   weaponsById?: Record<string, Weapon>
   armorById?: Record<string, Armor>
+  /** When set, end-of-turn interval resolution can load spell payloads (e.g. Spirit Guardians). */
+  spellsById?: Record<string, Spell>
+  suppressSameSideHostile?: boolean
 }
 
 export function useEncounterState({
@@ -49,6 +54,8 @@ export function useEncounterState({
   monstersById,
   weaponsById,
   armorById,
+  spellsById,
+  suppressSameSideHostile,
 }: UseEncounterStateArgs) {
   const [resolvedCombatantsById, setResolvedCombatantsById] = useState<Record<string, CombatantInstance>>({})
   const [encounterState, setEncounterState] = useState<EncounterState | null>(null)
@@ -72,9 +79,14 @@ export function useEncounterState({
   const [aoeStep, setAoeStep] = useState<AoeStep>('none')
   const [aoeOriginCellId, setAoeOriginCellId] = useState<string | null>(null)
   const [aoeHoverCellId, setAoeHoverCellId] = useState<string | null>(null)
+  /** Spirit Guardians–style: designated unaffected combatant ids before resolve. */
+  const [unaffectedCombatantIds, setUnaffectedCombatantIds] = useState<string[]>([])
   /** Grid cell id for summon / single-cell placement readiness (when required by spawn metadata). */
   const [selectedSingleCellPlacementCellId, setSelectedSingleCellPlacementCellId] = useState<string | null>(null)
   const [singleCellPlacementHoverCellId, setSingleCellPlacementHoverCellId] = useState<string | null>(null)
+  /** `EncounterSpace.obstacles[].id` for attached emanation `anchorMode === 'object'`. */
+  const [selectedObjectAnchorId, setSelectedObjectAnchorId] = useState<string | null>(null)
+  const [objectAnchorHoverCellId, setObjectAnchorHoverCellId] = useState<string | null>(null)
 
   const resetAoePlacement = useCallback(() => {
     setAoeStep('none')
@@ -157,6 +169,13 @@ export function useEncounterState({
     )
     setEncounterState(null)
   }, [selectedCombatantIds])
+
+  useEffect(() => {
+    if (!encounterState) {
+      setSelectedObjectAnchorId(null)
+      setObjectAnchorHoverCellId(null)
+    }
+  }, [encounterState])
 
   useEffect(() => {
     const validMonsterIds = new Set(
@@ -257,12 +276,36 @@ export function useEncounterState({
       createEncounterState(selectedCombatants, {
         space: opts?.space,
         placementOptions: opts?.placementOptions,
+        battlefieldSpell: {
+          spellLookup: spellsById != null ? (id) => spellsById[id] : () => undefined,
+          suppressSameSideHostile,
+          monstersById,
+        },
       }),
     )
   }
 
   function handleNextTurn() {
-    setEncounterState((prev) => (prev ? advanceEncounterTurn(prev) : prev))
+    setEncounterState((prev) => {
+      if (!prev) return prev
+      const startLen = prev.log.length
+      const next = advanceEncounterTurn(prev, {
+        rng: Math.random,
+        battlefieldInterval:
+          spellsById != null
+            ? {
+                spellLookup: (id) => spellsById[id],
+                suppressSameSideHostile,
+                monstersById,
+              }
+            : undefined,
+      })
+      const appended = next.log.slice(startLen)
+      if (appended.length > 0) {
+        queueMicrotask(() => combatLogAppendedRef.current?.(appended, next))
+      }
+      return next
+    })
   }
 
   const handleResolveAction = useCallback(() => {
@@ -278,6 +321,8 @@ export function useEncounterState({
           casterOptions: selectedCasterOptions,
           aoeOriginCellId: aoeOriginCellId || undefined,
           singleCellPlacementCellId: selectedSingleCellPlacementCellId || undefined,
+          unaffectedCombatantIds,
+          objectId: selectedObjectAnchorId?.trim() || undefined,
         },
         { monstersById, buildSummonAllyCombatant },
       )
@@ -291,12 +336,17 @@ export function useEncounterState({
     setSelectedActionId('')
     setSelectedActionTargetId('')
     setSelectedSingleCellPlacementCellId(null)
+    setSelectedObjectAnchorId(null)
+    setObjectAnchorHoverCellId(null)
+    setUnaffectedCombatantIds([])
   }, [
     selectedActionId,
     selectedActionTargetId,
     selectedCasterOptions,
     aoeOriginCellId,
     selectedSingleCellPlacementCellId,
+    selectedObjectAnchorId,
+    unaffectedCombatantIds,
     monstersById,
     buildSummonAllyCombatant,
     resetAoePlacement,
@@ -391,7 +441,32 @@ export function useEncounterState({
 
   function handleMoveCombatant(targetCellId: string) {
     if (!encounterState || !activeCombatantId) return
-    setEncounterState(moveCombatant(encounterState, activeCombatantId, targetCellId))
+    setEncounterState((prev) => {
+      if (!prev) return prev
+      const afterMove = moveCombatant(
+        prev,
+        activeCombatantId,
+        targetCellId,
+        spellsById != null
+          ? { spellLookup: (id) => spellsById[id], suppressSameSideHostile }
+          : undefined,
+      )
+      if (afterMove === prev) return prev
+      const startLen = prev.log.length
+      let next = afterMove
+      if (spellsById != null) {
+        next = resolveAttachedAuraSpatialEntryAfterMovement(prev, afterMove, {
+          spellLookup: (id) => spellsById[id],
+          suppressSameSideHostile,
+          monstersById,
+        })
+      }
+      const appended = next.log.slice(startLen)
+      if (appended.length > 0) {
+        queueMicrotask(() => combatLogAppendedRef.current?.(appended, next))
+      }
+      return next
+    })
   }
 
   function handleMonsterManualTriggerChange(
@@ -432,6 +507,12 @@ export function useEncounterState({
     aoeHoverCellId,
     setAoeHoverCellId,
     resetAoePlacement,
+    unaffectedCombatantIds,
+    setUnaffectedCombatantIds,
+    selectedObjectAnchorId,
+    setSelectedObjectAnchorId,
+    objectAnchorHoverCellId,
+    setObjectAnchorHoverCellId,
     unresolvedCombatantCount,
     selectedCombatants,
     controlTargetId,

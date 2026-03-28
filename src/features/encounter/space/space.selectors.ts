@@ -1,7 +1,7 @@
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter'
 import { isHostileAction, isValidActionTarget } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
-import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
+import { getCombatantDisplayLabel, reconcileBattlefieldEffectAnchors } from '@/features/mechanics/domain/encounter/state'
 import type { CombatantPosition, EncounterCell, EncounterSpace, GridObstacleKind } from './space.types'
 import { gridObstacleDisplayName } from './placeRandomGridObstacle'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from './space.helpers'
@@ -11,6 +11,9 @@ import {
   hasBattlefieldPresence,
   isDefeatedCombatant,
 } from '@/features/mechanics/domain/encounter/state/combatant-participation'
+import type { BattlefieldSpellContext } from '@/features/mechanics/domain/encounter/state/battlefield-spatial-movement-modifiers'
+import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/encounter/state/battlefield-spatial-movement-modifiers'
+import { createEmptyTurnContext } from '@/features/mechanics/domain/encounter/state/shared'
 import { isAreaGridAction } from '../helpers/area-grid-action'
 
 // ---------------------------------------------------------------------------
@@ -107,6 +110,8 @@ export type GridCellViewModel = {
   placementInvalidHover?: boolean
   /** Single-cell placement: confirmed chosen cell. */
   placementSelected?: boolean
+  /** Persistent attached emanation (e.g. Spirit Guardians) — cell inside the moving aura footprint. */
+  persistentAttachedAura?: boolean
   /** Token dimming — `isDefeatedCombatant` when an occupant is present. */
   occupantIsDefeated: boolean
   /** False when a placement exists but the creature is absent from the grid (banished, off-grid, …). */
@@ -184,6 +189,8 @@ export function selectGridViewModel(
       hoverCellId: string | null
       selectedCellId: string | null
     } | null
+    /** Ongoing attached auras (center follows source combatant). */
+    persistentAttachedAuras?: Array<{ originCellId: string; areaRadiusFt: number }>
   },
 ): GridViewModel | undefined {
   const { space, placements } = state
@@ -203,6 +210,7 @@ export function selectGridViewModel(
 
   const aoe = opts?.aoe
   const placementPick = opts?.placementPick
+  const persistentAttachedAuras = opts?.persistentAttachedAuras
   const hoverValid =
     Boolean(
       aoe &&
@@ -307,6 +315,17 @@ export function selectGridViewModel(
       placementSelected = placementPick.selectedCellId === cell.id
     }
 
+    let persistentAttachedAura: boolean | undefined
+    if (persistentAttachedAuras?.length) {
+      for (const pa of persistentAttachedAuras) {
+        const dAura = gridDistanceFt(space, pa.originCellId, cell.id)
+        if (dAura !== undefined && dAura <= pa.areaRadiusFt) {
+          persistentAttachedAura = true
+          break
+        }
+      }
+    }
+
     return {
       cellId: cell.id,
       x: cell.x,
@@ -344,6 +363,7 @@ export function selectGridViewModel(
             placementSelected,
           }
         : {}),
+      ...(persistentAttachedAura ? { persistentAttachedAura: true } : {}),
     }
   })
 
@@ -375,10 +395,10 @@ export function placeCombatant(
   if (cell.kind === 'wall' || cell.kind === 'blocking') return state
 
   const filtered = state.placements.filter((p) => p.combatantId !== combatantId)
-  return {
+  return reconcileBattlefieldEffectAnchors({
     ...state,
     placements: [...filtered, { combatantId, cellId }],
-  }
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -493,11 +513,15 @@ export function getMoveRejectionReason(
 /**
  * Move a combatant to a target cell, deducting movement cost.
  * Returns the original state if the move is invalid.
+ *
+ * When `options` includes `spellLookup`, remaining movement is reconciled against the **current**
+ * effective ground speed (attached aura spatial modifiers) using feet spent this turn.
  */
 export function moveCombatant(
   state: EncounterState,
   combatantId: string,
   targetCellId: string,
+  options?: BattlefieldSpellContext,
 ): EncounterState {
   if (!canMoveTo(state, combatantId, targetCellId)) return state
 
@@ -506,24 +530,50 @@ export function moveCombatant(
   const dist = gridDistanceFt(space!, currentCellId, targetCellId)!
 
   const combatant = state.combatantsById[combatantId]
+  const filteredPlacements = placements!.filter((p) => p.combatantId !== combatantId)
+  const placementsNext = [...filteredPlacements, { combatantId, cellId: targetCellId }]
+
+  if (options?.spellLookup) {
+    const spent = (combatant.turnContext?.movementSpentThisTurn ?? 0) + dist
+    const nextStateBase: EncounterState = {
+      ...state,
+      placements: placementsNext,
+    }
+    const effectiveMax = getEffectiveGroundMovementBudgetFt(combatant, nextStateBase, options)
+    const updatedCombatant = {
+      ...combatant,
+      turnContext: {
+        ...(combatant.turnContext ?? createEmptyTurnContext()),
+        movementSpentThisTurn: spent,
+      },
+      turnResources: {
+        ...combatant.turnResources!,
+        movementRemaining: Math.max(0, effectiveMax - spent),
+      },
+    }
+    return {
+      ...nextStateBase,
+      combatantsById: {
+        ...nextStateBase.combatantsById,
+        [combatantId]: updatedCombatant,
+      },
+    }
+  }
+
   const updatedResources = {
     ...combatant.turnResources!,
     movementRemaining: combatant.turnResources!.movementRemaining - dist,
   }
 
-  const updatedCombatant = {
-    ...combatant,
-    turnResources: updatedResources,
-  }
-
-  const filteredPlacements = placements!.filter((p) => p.combatantId !== combatantId)
-
   return {
     ...state,
     combatantsById: {
       ...state.combatantsById,
-      [combatantId]: updatedCombatant,
+      [combatantId]: {
+        ...combatant,
+        turnResources: updatedResources,
+      },
     },
-    placements: [...filteredPlacements, { combatantId, cellId: targetCellId }],
+    placements: placementsNext,
   }
 }

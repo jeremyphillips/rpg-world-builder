@@ -10,6 +10,8 @@ import { AppAvatar } from '@/ui/primitives'
 import { resolveImageUrl } from '@/shared/lib/media'
 import type { GridViewModel, GridCellViewModel } from '../../../space/space.selectors'
 import { DEFEATED_PARTICIPATION_OPACITY } from '../../../domain/presentation-defeated'
+import { getCellVisualState } from './cellVisualState'
+import { getCellVisualSx } from './cellVisualStyles'
 
 const BASE_CELL_SIZE = 48
 const HOVER_DELAY_MS = 350
@@ -28,18 +30,8 @@ type EncounterGridProps = {
   creatureTargetingActive?: boolean
   /** When selecting a single map cell (placement), not AoE. */
   singleCellPlacementPickActive?: boolean
-}
-
-/** Base cell fill: paper only. Tinted fills: walls, AoE overlay, or legal-movement hover (in cell `sx`). */
-function cellColor(cell: GridCellViewModel, palette: Theme['palette']) {
-  if (cell.kind === 'wall' || cell.kind === 'blocking') return palette.action.disabledBackground
-  if (cell.placementInvalidHover) return alpha(palette.error.main, 0.38)
-  if (cell.placementSelected) return alpha(palette.primary.main, 0.32)
-  if (cell.placementCastRange) return alpha(palette.info.main, 0.12)
-  if (cell.aoeInvalidOriginHover) return alpha(palette.error.main, 0.42)
-  if (cell.aoeOriginLocked) return alpha(palette.error.main, 0.32)
-  if (cell.aoeInTemplate) return alpha(palette.error.light, 0.26)
-  return palette.background.paper
+  /** When selecting a grid obstacle for object-anchored attached emanations. */
+  objectAnchorPickActive?: boolean
 }
 
 function tokenRingColor(cell: GridCellViewModel, palette: Theme['palette']) {
@@ -55,6 +47,7 @@ function resolveCellCursor(params: {
   hasMovementRemaining: boolean
   creatureTargetingActive: boolean
   singleCellPlacementPickActive: boolean
+  objectAnchorPickActive: boolean
   clickable: boolean
 }): string {
   const {
@@ -64,6 +57,7 @@ function resolveCellCursor(params: {
     hasMovementRemaining,
     creatureTargetingActive,
     singleCellPlacementPickActive,
+    objectAnchorPickActive,
     clickable,
   } = params
   const isHover = Boolean(hoveredCellId && hoveredCellId === cell.cellId)
@@ -75,6 +69,9 @@ function resolveCellCursor(params: {
       if (cell.placementCastRange && !isWall) return 'pointer'
     }
 
+    if (objectAnchorPickActive) {
+      return cell.obstacleKind ? 'pointer' : 'not-allowed'
+    }
 
     const movementIllegal =
       movementHighlightActive &&
@@ -113,6 +110,7 @@ export function EncounterGrid({
   hasMovementRemaining = false,
   creatureTargetingActive = false,
   singleCellPlacementPickActive = false,
+  objectAnchorPickActive = false,
 }: EncounterGridProps) {
   const theme = useTheme()
   const { palette } = theme
@@ -250,7 +248,6 @@ export function EncounterGrid({
           }}
         >
           {grid.cells.map((cell) => {
-            const bg = cellColor(cell, palette)
             const isWall = cell.kind === 'wall' || cell.kind === 'blocking'
             const clickable = !isWall && Boolean(onCellClick)
             const hasPopover = Boolean(cell.occupantRendersToken && renderTokenPopover)
@@ -265,34 +262,16 @@ export function EncounterGrid({
               hasMovementRemaining,
               creatureTargetingActive,
               singleCellPlacementPickActive,
+              objectAnchorPickActive,
               clickable,
             })
 
-            const movementRejectedHover =
-              movementHighlightActive &&
-              hasMovementRemaining &&
-              isHoverCell &&
-              !cell.occupantId &&
-              !isWall &&
-              !cell.isReachable
-
-            const reachablePositiveHover =
-              movementHighlightActive && hasMovementRemaining && isHoverCell && cell.isReachable
-
-            const showReachableMovementBorder =
-              movementHighlightActive && hasMovementRemaining && cell.isReachable && !isWall
-
-            const isAoeOverlayCell = Boolean(
-              cell.aoeInvalidOriginHover ||
-                cell.aoeOriginLocked ||
-                cell.aoeInTemplate ||
-                cell.aoeCastRange,
-            )
-            const isPlacementOverlayCell = Boolean(
-              cell.placementInvalidHover || cell.placementSelected || cell.placementCastRange,
-            )
-            const showReachableMovementFill =
-              showReachableMovementBorder && !isAoeOverlayCell && !isPlacementOverlayCell
+            const visual = getCellVisualState(cell, {
+              hoveredCellId,
+              movementHighlightActive,
+              hasMovementRemaining,
+            })
+            const cellVisualSx = getCellVisualSx(theme, visual)
 
             const legalTarget = cell.isLegalTargetForSelectedAction
             const showLegalTargetRedPulse =
@@ -313,35 +292,12 @@ export function EncounterGrid({
                 sx={{
                   width: cellSizePx,
                   height: cellSizePx,
-                  bgcolor: bg,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: cellCursor,
                   position: 'relative',
-                  transition: 'background-color 0.15s, box-shadow 0.15s, outline 0.15s',
-                  outlineOffset: 0,
-                  boxSizing: 'border-box',
-                  ...(movementRejectedHover
-                    ? {
-                        outline: `1px dashed ${alpha(palette.error.main, 0.55)}`,
-                      }
-                    : {}),
-                  ...(reachablePositiveHover && showReachableMovementFill
-                    ? {
-                        outline: `1px solid ${alpha(palette.success.main, 0.75)}`,
-                        bgcolor: alpha(palette.success.main, 0.5),
-                      }
-                    : showReachableMovementFill
-                      ? {
-                          outline: `1px solid ${alpha(palette.success.main, 0.65)}`,
-                          bgcolor: alpha(palette.success.main, 0.3),
-                        }
-                      : showReachableMovementBorder
-                        ? {
-                            outline: `1px solid ${alpha(palette.success.light, 0.88)}`,
-                          }
-                        : {}),
+                  ...cellVisualSx,
                 }}
               >
                 {cell.occupantRendersToken && (

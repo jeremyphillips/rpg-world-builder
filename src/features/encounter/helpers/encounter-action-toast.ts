@@ -169,6 +169,24 @@ export function buildEncounterActionToastPayload(
         if (e.details?.trim()) saveOrSpellLines.push(e.details.trim())
       }
     }
+    for (const e of events) {
+      if (e.type === 'damage-applied') {
+        let line = stripRuntimeIds(e.summary)
+        if (e.details?.trim()) line = `${line} ${e.details.trim()}`
+        saveOrSpellLines.push(line)
+      }
+    }
+    for (const e of events) {
+      if (
+        e.type === 'note' &&
+        (e.summary.includes('save') ||
+          e.summary.includes('(aura)') ||
+          e.summary.toLowerCase().includes('entering'))
+      ) {
+        saveOrSpellLines.push(stripRuntimeIds(e.summary))
+        if (e.details?.trim()) saveOrSpellLines.push(e.details.trim())
+      }
+    }
   }
 
   let title: string

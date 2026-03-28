@@ -31,9 +31,9 @@ export type DerivedCombat = {
   savingThrows?: Record<string, number>;
   armorClass: number;
   /** Optional encounter policy layered on pure core targeting. */
-  encounter?: {
+  encounter: {
     /** When true (default in system ruleset), hostile single-target actions cannot target same-side combatants. */
-    suppressSameSideHostile?: boolean;
+    suppressSameSideHostile: boolean;
   };
 };
 

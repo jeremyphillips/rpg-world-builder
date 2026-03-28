@@ -11,6 +11,7 @@ import {
   ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX,
 } from '@/ui/primitives'
 import type { Monster } from '@/features/content/monsters/domain/types'
+import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
 import type { CombatantInstance, EncounterState } from '@/features/mechanics/domain/encounter'
 import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatant-participation'
@@ -26,6 +27,8 @@ type EncounterActiveSidebarProps = {
   activeCombatantId: string | null
   selectedTargetId: string | null
   onSelectTarget: (combatantId: string) => void
+  spellsById?: Record<string, Spell>
+  suppressSameSideHostile?: boolean
 }
 
 const SIDEBAR_WIDTH = 320
@@ -37,6 +40,8 @@ export function EncounterActiveSidebar({
   activeCombatantId,
   selectedTargetId,
   onSelectTarget,
+  spellsById,
+  suppressSameSideHostile,
 }: EncounterActiveSidebarProps) {
   const [tab, setTab] = useState(0)
 
@@ -75,6 +80,7 @@ export function EncounterActiveSidebar({
       <Box sx={{ flex: 1, overflow: 'auto', p: 1.5 }}>
         {tab === 0 && (
           <InitiativeOrderTab
+            encounterState={encounterState}
             initiativeOrder={initiativeOrder}
             combatantsById={combatantsById}
             monstersById={monstersById}
@@ -82,6 +88,8 @@ export function EncounterActiveSidebar({
             activeCombatantId={activeCombatantId}
             selectedTargetId={selectedTargetId}
             onSelectTarget={onSelectTarget}
+            spellsById={spellsById}
+            suppressSameSideHostile={suppressSameSideHostile}
           />
         )}
         {tab === 1 && <CombatLogPanel log={log} />}
@@ -91,6 +99,7 @@ export function EncounterActiveSidebar({
 }
 
 function InitiativeOrderTab({
+  encounterState,
   initiativeOrder,
   combatantsById,
   monstersById,
@@ -98,7 +107,10 @@ function InitiativeOrderTab({
   activeCombatantId,
   selectedTargetId,
   onSelectTarget,
+  spellsById,
+  suppressSameSideHostile,
 }: {
+  encounterState: EncounterState
   initiativeOrder: string[]
   combatantsById: Record<string, CombatantInstance>
   monstersById: Record<string, Monster>
@@ -106,8 +118,24 @@ function InitiativeOrderTab({
   activeCombatantId: string | null
   selectedTargetId: string | null
   onSelectTarget: (combatantId: string) => void
+  spellsById?: Record<string, Spell>
+  suppressSameSideHostile?: boolean
 }) {
   const allCombatants = useMemo(() => Object.values(combatantsById), [combatantsById])
+
+  const spatialPresentation = useMemo(
+    () =>
+      spellsById
+        ? {
+            encounterState,
+            battlefieldSpell: {
+              spellLookup: (id: string) => spellsById[id],
+              suppressSameSideHostile,
+            },
+          }
+        : undefined,
+    [encounterState, spellsById, suppressSameSideHostile],
+  )
 
   const { activeIds, defeatedIds } = useMemo(() => {
     const active: string[] = []
@@ -156,6 +184,7 @@ function InitiativeOrderTab({
           allCombatants={allCombatants}
           isCurrentTurn={isCurrentTurn}
           isSelected={isSelected}
+          spatialPresentation={spatialPresentation}
           onClick={() => onSelectTarget(id)}
         />
       )
@@ -170,6 +199,7 @@ function InitiativeOrderTab({
         allCombatants={allCombatants}
         isCurrentTurn={isCurrentTurn}
         isSelected={isSelected}
+        spatialPresentation={spatialPresentation}
         onClick={() => onSelectTarget(id)}
       />
     )

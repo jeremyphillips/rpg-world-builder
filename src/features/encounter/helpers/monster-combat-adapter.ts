@@ -1,4 +1,4 @@
-import type { MonsterAction } from '@/features/content/monsters/domain/types/monster-actions.types'
+import type { MonsterAction, MonsterSpecialAction } from '@/features/content/monsters/domain/types/monster-actions.types'
 import type { MonsterEquippedWeapon } from '@/features/content/monsters/domain/types/monster-equipment.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types/weapon.types'
@@ -19,6 +19,8 @@ import {
   type RuntimeTurnHook,
 } from '@/features/mechanics/domain/encounter'
 import { formatAuthoredDamage } from './combatant-builders'
+import { injectSpellSaveDcDeep } from '@/features/mechanics/domain/encounter/state/battlefield-attached-aura-shared'
+import { buildMonsterActionRuntimeId } from './monster-action-runtime-ids'
 
 function formatDice(value: DiceOrFlat | undefined): string | undefined {
   if (value == null) return undefined
@@ -175,6 +177,54 @@ function buildMonsterActionSequence(
   })
 }
 
+/**
+ * Maps **`MonsterSpecialAction`** `recharge` / `uses` to **`CombatActionDefinition['usage']`**.
+ *
+ * Only **`kind: 'special'`** actions participate; weapon and natural actions return `undefined`.
+ * Recharge begins **`ready: true`** until encounter turn logic rolls recharge (see
+ * `processActionRecharge` in encounter state runtime). Per-day uses copy **`max`**, **`remaining`**, and
+ * **`period`** from **`EffectUses`**. Spend / block rules: `applyActionCost` in the action resolver.
+ */
+function monsterSpecialResolvableEffects(action: MonsterSpecialAction): Effect[] | undefined {
+  if (!action.effects?.length) return undefined
+  let filtered = action.effects.filter((e) => e.kind !== 'targeting' && e.kind !== 'emanation')
+  const hasEmanation = action.effects.some((e) => e.kind === 'emanation')
+  /** Match spell adapter: defer interval / spatial speed multiplier while attached aura is active. */
+  if (hasEmanation) {
+    filtered = filtered.filter((e) => e.kind !== 'interval' && e.kind !== 'modifier')
+  }
+  if (filtered.length === 0) return undefined
+  const dc = action.save?.dc
+  if (typeof dc === 'number') {
+    return injectSpellSaveDcDeep(filtered, dc)
+  }
+  return filtered
+}
+
+function deriveMonsterAttachedEmanation(
+  monster: Monster,
+  action: MonsterSpecialAction,
+  index: number,
+  cost: CombatActionDefinition['cost'],
+): CombatActionDefinition['attachedEmanation'] | undefined {
+  const em = action.effects?.find((e): e is Extract<Effect, { kind: 'emanation' }> => e.kind === 'emanation')
+  if (!em || em.attachedTo !== 'self' || em.area.kind !== 'sphere') return undefined
+  const anchorMode = em.anchorMode ?? 'caster'
+  return {
+    source: {
+      kind: 'monster-action',
+      monsterId: monster.id,
+      actionId: buildMonsterActionRuntimeId(monster, action, index, cost),
+    },
+    radiusFt: em.area.size,
+    selectUnaffectedAtCast: em.selectUnaffectedAtCast ?? false,
+    anchorMode,
+    ...(anchorMode === 'place-or-object' && em.anchorChoiceFieldId
+      ? { anchorChoiceFieldId: em.anchorChoiceFieldId }
+      : {}),
+  }
+}
+
 function buildMonsterActionUsage(action: MonsterAction): CombatActionDefinition['usage'] {
   if (action.kind !== 'special' || (!action.recharge && !action.uses)) return undefined
 
@@ -278,6 +328,21 @@ function buildMonsterActionDefinition(
   }
 
   const damageWithBonus = formatAuthoredDamage(action.damage, action.damageBonus)
+  const special = action
+  const attachedEmanation = deriveMonsterAttachedEmanation(monster, special, index, cost)
+
+  const targeting: CombatActionDefinition['targeting'] =
+    attachedEmanation?.anchorMode === 'place'
+      ? { kind: 'self', ...(action.reach != null ? { rangeFt: action.reach } : {}) }
+      : attachedEmanation?.anchorMode === 'creature'
+        ? { kind: 'single-target', rangeFt: action.reach ?? 5 }
+        : attachedEmanation?.anchorMode === 'object'
+          ? { kind: 'none' }
+          : action.target === 'creatures-in-area'
+          ? { kind: 'all-enemies', ...(action.reach != null ? { rangeFt: action.reach } : {}) }
+          : action.target === 'creatures-entered-during-move'
+            ? { kind: 'entered-during-move' }
+            : { kind: 'single-target', rangeFt: action.reach ?? 5 }
 
   return {
     id: `${monster.id}-special-${index}-${cost.bonusAction ? 'bonus' : 'action'}`,
@@ -289,7 +354,9 @@ function buildMonsterActionDefinition(
         ? 'attack-roll'
         : action.save?.dc != null
           ? 'saving-throw'
-          : 'log-only',
+          : monsterSpecialResolvableEffects(special)?.length
+            ? 'effects'
+            : 'log-only',
     damage: damageWithBonus,
     damageType: action.damageType,
     attackProfile:
@@ -308,14 +375,18 @@ function buildMonsterActionDefinition(
             halfDamageOnSave: action.halfDamageOnSave,
           }
         : undefined,
-    targeting:
-      action.target === 'creatures-in-area'
-        ? { kind: 'all-enemies', ...(action.reach != null ? { rangeFt: action.reach } : {}) }
-        : action.target === 'creatures-entered-during-move'
-          ? { kind: 'entered-during-move' }
-          : { kind: 'single-target', rangeFt: action.reach ?? 5 },
+    targeting,
     movement: action.movement,
     usage: buildMonsterActionUsage(action),
+    effects: monsterSpecialResolvableEffects(special),
+    attachedEmanation,
+    ...(attachedEmanation?.anchorMode === 'place'
+      ? {
+          areaTemplate: { kind: 'sphere' as const, radiusFt: attachedEmanation.radiusFt },
+          areaPlacement: 'remote' as const,
+        }
+      : {}),
+    saveDc: typeof action.save?.dc === 'number' ? action.save.dc : undefined,
     onHitEffects: action.attackBonus != null ? action.onSuccess : undefined,
     onFailEffects: action.onFail,
     onSuccessEffects: action.onSuccess,

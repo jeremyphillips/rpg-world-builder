@@ -43,10 +43,21 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
     components: { verbal: true },
     resolution: {
       caveats: [
-        '30-foot Emanation, HP max floor, and 0 HP stabilization are not fully automated.',
+        'HP max cannot be reduced for allies in the aura, ally at 0 HP regaining 1 HP at turn start, and spatial overlap checks are not fully automated.',
       ],
     },
     effects: [
+      {
+        kind: 'emanation',
+        attachedTo: 'self',
+        area: { kind: 'sphere', size: 30 },
+      },
+      {
+        kind: 'targeting',
+        target: 'creatures-in-area',
+        targetType: 'creature',
+        area: { kind: 'sphere', size: 30 },
+      },
       { kind: 'modifier', target: 'resistance', mode: 'add', value: 'necrotic' as const },
       { kind: 'note', text: 'HP max cannot be reduced for creatures in aura.', category: 'under-modeled' as const },
       { kind: 'note', text: 'Ally at 0 HP regains 1 HP at start of turn.', category: 'under-modeled' as const },

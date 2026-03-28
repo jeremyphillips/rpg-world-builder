@@ -214,7 +214,7 @@ Condition consequences model the mechanical rules of each `EffectConditionId` as
 
 **Integration points:**
 
-- `shared.ts` `createCombatantTurnResources` — uses `canTakeActions`/`canTakeReactions` to disable actions for incapacitated, paralyzed, stunned, unconscious, and petrified. Uses `getSpeedConsequences` to zero movement for grappled, restrained, paralyzed, stunned, unconscious, and petrified.
+- `shared.ts` `createCombatantTurnResources` — uses `canTakeActions`/`canTakeReactions` to disable actions for incapacitated, paralyzed, stunned, unconscious, and petrified. Uses `getSpeedConsequences` to zero movement for grappled, restrained, paralyzed, stunned, unconscious, and petrified. When called with optional **`{ encounterState, battlefieldSpell }`** (spell **`spellLookup`** + optional **`suppressSameSideHostile`**), initial **`movementRemaining`** uses **`getEffectiveGroundMovementBudgetFt`** so attached-aura spatial speed modifiers apply at turn start (same overlap rules as movement; see **`battlefield-spatial-movement-modifiers.ts`**).
 - `action-resolver.ts` `resolveRollModifier` — combines spell/effect `RollModifierMarker` entries with condition-derived attack modifiers. Blinded, poisoned, prone, restrained, invisible, frightened, paralyzed, stunned, unconscious, and petrified now affect attack rolls.
 - `action-resolver.ts` saving-throw resolution — checks `autoFailsSave` before rolling. Paralyzed, stunned, unconscious, and petrified combatants auto-fail Str/Dex saves. Restrained combatants roll Dex saves at disadvantage.
 - `action-resolver.ts` attack-roll resolution — natural 20 = auto-hit + critical hit (doubled damage dice). Natural 1 = auto-miss.
@@ -343,6 +343,7 @@ type ConcentrationState = {
 
 - `collectPresentableEffects` derives a "Concentrating" presentable effect from `combatant.concentration`, mapped to the `concentrating` entry in `COMBAT_STATE_UI_MAP` (`critical-now` section, `info` tone).
 - Preview cards (`AllyCombatantActivePreviewCard`, `OpponentCombatantActivePreviewCard`, `CombatTargetPreviewCard`) show a "Concentrating" chip when `combatant.concentration` is set.
+- When passed **`SpatialBattlefieldPresentationOptions`** (`encounterState` + **`battlefieldSpell`**), `collectPresentableEffects` can add a derived **`speed_halved`** row from **`combatantHasSpatialSpeedReduction`** (same overlap logic as movement). Encounter header **`baseMovementFt`** uses **`getEffectiveGroundMovementBudgetFt`** when the catalog spell lookup is available.
 
 To add new linked effects to concentration cleanup, include their identifiers in `linkedMarkerIds` when calling `setConcentration`.
 
@@ -354,6 +355,12 @@ Ongoing effects are resolved via `RuntimeTurnHook`s on `CombatantInstance`:
 - **State ongoing effects** (e.g., Flaming Sphere) are also registered as turn hooks from `state.ongoingEffects`.
 
 Turn hooks fire at `turn-start` or `turn-end` and apply their nested effects (damage, saves, conditions) to the combatant. The hook includes `sourceId` to trace back to the originating spell or action.
+
+**Attached aura interval resolution (tactical):** For spells with **`emanation`** + **`interval`** whose payload should apply when a creature **ends its turn inside** the moving aura, **`advanceEncounterTurn`** accepts **`AdvanceEncounterTurnOptions.battlefieldInterval`** (`spellLookup`, optional **`suppressSameSideHostile`**, optional **`monstersById`**, **`rng`**). At the **end** of the active combatant’s turn, **`resolveIntervalEffectsForCombatantAtTurnBoundary`** runs: it loads nested effects from the spell definition, checks **current** overlap with **`BattlefieldEffectInstance`** (sphere), respects **`unaffectedCombatantIds`**, and applies saves/damage when appropriate. This is generic — Spirit Guardians is the primary consumer. End-to-end overview: [resource/emanation.md](../resource/emanation.md).
+
+**Movement entry (tactical):** After **`moveCombatant`**, **`resolveAttachedAuraSpatialEntryAfterMovement`** can apply **`interval.spatialTriggers`** (e.g. `enter`) when a creature **enters** an attached aura mid-turn, using the same spell lookup and suppression options.
+
+**Spatial speed (tactical):** Speed multipliers authored on the spell as **`modifier`** (`target: 'speed'`, `mode: 'multiply'`) are evaluated **spatially** — see **`battlefield-spatial-movement-modifiers.ts`**, **`combatantHasSpatialSpeedReduction`** for UI, and [space.md](./space.md) §3 Movement. They are not applied as static stat modifiers at cast for emanation spells.
 
 To add a new ongoing effect pattern:
 

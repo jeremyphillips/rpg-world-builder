@@ -104,7 +104,96 @@ const MONSTER_WEAPON_TEST = {
   lore: {},
 } as unknown as Monster
 
+/** Exercises `buildMonsterActionUsage` via `buildMonsterExecutableActions` only (helper stays private). */
+const MONSTER_USAGE_MATRIX = {
+  id: 'usage-matrix-monster',
+  name: 'Usage Matrix',
+  mechanics: {
+    hitPoints: { count: 1, die: 8 },
+    armorClass: { kind: 'fixed', value: 10 },
+    movement: { ground: 30 },
+    proficiencyBonus: 2,
+    actions: [
+      {
+        kind: 'natural',
+        name: 'Claw',
+        attackType: 'claw',
+        attackBonus: 3,
+        damage: '1d4',
+        damageType: 'slashing',
+      },
+      {
+        kind: 'special',
+        name: 'Recharge Breath',
+        description: 'Recharge 5–6.',
+        recharge: { min: 5, max: 6 },
+      },
+      {
+        kind: 'special',
+        name: 'Limited Hex',
+        description: '2/day.',
+        uses: { count: 2, period: 'day' as const },
+      },
+      {
+        kind: 'special',
+        name: 'Recharge And Uses',
+        description: 'Both recharge and daily uses.',
+        recharge: { min: 6, max: 6 },
+        uses: { count: 1, period: 'day' as const },
+      },
+      {
+        kind: 'special',
+        name: 'No Usage',
+        description: 'At will.',
+      },
+    ],
+    bonusActions: [],
+  },
+  lore: {},
+} as unknown as Monster
+
 describe('combat simulation monster action helpers', () => {
+  describe('buildMonsterExecutableActions usage (special recharge / uses)', () => {
+    it('maps natural actions to undefined usage', () => {
+      const actions = buildMonsterExecutableActions(MONSTER_USAGE_MATRIX, {})
+      const claw = actions.find((a) => a.label === 'Claw')
+      expect(claw?.usage).toBeUndefined()
+    })
+
+    it('maps recharge-only special actions', () => {
+      const actions = buildMonsterExecutableActions(MONSTER_USAGE_MATRIX, {})
+      const breath = actions.find((a) => a.label === 'Recharge Breath')
+      expect(breath?.usage).toEqual({
+        recharge: { min: 5, max: 6, ready: true },
+        uses: undefined,
+      })
+    })
+
+    it('maps uses-only special actions', () => {
+      const actions = buildMonsterExecutableActions(MONSTER_USAGE_MATRIX, {})
+      const hex = actions.find((a) => a.label === 'Limited Hex')
+      expect(hex?.usage).toEqual({
+        recharge: undefined,
+        uses: { max: 2, remaining: 2, period: 'day' },
+      })
+    })
+
+    it('maps special actions with both recharge and uses', () => {
+      const actions = buildMonsterExecutableActions(MONSTER_USAGE_MATRIX, {})
+      const both = actions.find((a) => a.label === 'Recharge And Uses')
+      expect(both?.usage).toEqual({
+        recharge: { min: 6, max: 6, ready: true },
+        uses: { max: 1, remaining: 1, period: 'day' },
+      })
+    })
+
+    it('maps at-will specials without recharge or uses to undefined usage', () => {
+      const actions = buildMonsterExecutableActions(MONSTER_USAGE_MATRIX, {})
+      const atWill = actions.find((a) => a.label === 'No Usage')
+      expect(atWill?.usage).toBeUndefined()
+    })
+  })
+
   it('preserves authored damage bonuses for natural and special display entries', () => {
     const attacks = buildMonsterAttackEntries(TEST_MONSTER, {})
 

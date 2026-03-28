@@ -16,6 +16,9 @@ import type {
 } from './types'
 import { createCombatTurnResources } from './types'
 import type { EncounterState } from './types'
+import type { BattlefieldSpellContext } from './battlefield-spatial-movement-modifiers'
+import { getEffectiveGroundMovementBudgetFt } from './battlefield-spatial-movement-modifiers'
+import { getCombatantBaseMovement } from './combatant-movement-helpers'
 
 export function indexCombatants(combatants: CombatantInstance[]): Record<string, CombatantInstance> {
   return Object.fromEntries(combatants.map((combatant) => [combatant.instanceId, combatant]))
@@ -168,15 +171,11 @@ export function createEmptyTurnContext(): CombatantTurnContext {
   return {
     totalDamageTaken: 0,
     damageTakenByType: {},
+    movementSpentThisTurn: 0,
   }
 }
 
-export function getCombatantBaseMovement(combatant: CombatantInstance): number {
-  const speeds = Object.values(combatant.stats.speeds ?? {}).filter(
-    (speed): speed is number => typeof speed === 'number' && speed > 0,
-  )
-  return speeds.length > 0 ? Math.max(...speeds) : 0
-}
+export { getCombatantBaseMovement } from './combatant-movement-helpers'
 
 export function getTrackedPartCount(combatant: CombatantInstance, part: 'head' | 'limb'): number {
   return combatant.trackedParts?.find((trackedPart) => trackedPart.part === part)?.currentCount ?? 0
@@ -200,9 +199,17 @@ export function hasState(combatant: CombatantInstance, label: string): boolean {
   return combatant.states.some((m) => markerMatches(m, label))
 }
 
-export function createCombatantTurnResources(combatant: CombatantInstance): CombatantTurnResources {
+export function createCombatantTurnResources(
+  combatant: CombatantInstance,
+  opts?: { encounterState?: EncounterState; battlefieldSpell?: BattlefieldSpellContext },
+): CombatantTurnResources {
+  const baseMovement =
+    opts?.encounterState && opts.battlefieldSpell?.spellLookup
+      ? getEffectiveGroundMovementBudgetFt(combatant, opts.encounterState, opts.battlefieldSpell)
+      : getCombatantBaseMovement(combatant)
+
   const resources = createCombatTurnResources(
-    getCombatantBaseMovement(combatant),
+    baseMovement,
     getCombatantExtraOpportunityAttackReactions(combatant),
   )
 

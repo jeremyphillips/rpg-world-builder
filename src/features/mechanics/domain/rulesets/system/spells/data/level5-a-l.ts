@@ -47,10 +47,21 @@ export const SPELLS_LEVEL_5_A_L: readonly SpellEntry[] = [
     components: { verbal: true, somatic: true },
     resolution: {
       caveats: [
-        'Barrier passage and spell end on forced movement are not fully enforced.',
+        'Living/non-Construct/Undead passage barriers, Ranged/Reach through the shell, and spell end when forced movement would push a creature through are not fully enforced.',
       ],
     },
     effects: [
+      {
+        kind: 'emanation',
+        attachedTo: 'self',
+        area: { kind: 'sphere', size: 10 },
+      },
+      {
+        kind: 'targeting',
+        target: 'creatures-in-area',
+        targetType: 'creature',
+        area: { kind: 'sphere', size: 10 },
+      },
       {
         kind: 'note',
         text: '10-foot Emanation blocks non-Construct/Undead from passing or reaching through. Spells and Ranged/Reach attacks pass through. Spell ends if you move and force an affected creature through the barrier.',

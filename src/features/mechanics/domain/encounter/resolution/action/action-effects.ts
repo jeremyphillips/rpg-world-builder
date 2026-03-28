@@ -714,6 +714,7 @@ export function applyActionEffects(
             rng: options.rng,
             initiativeMode: effect.initiativeMode,
             casterInstanceId: actor.instanceId,
+            monstersById: options.monstersById,
           })
           if (effect.mapMonsterIdFromTargetRemains || effect.inheritGridCellFromTarget) {
             nextState = applyGridSpawnReplacementFromTarget(
