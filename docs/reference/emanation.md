@@ -11,7 +11,7 @@ This document is the **navigation hub** for how **emanations** and **persistent 
 In this codebase, “emanation” refers to a chain of concepts:
 
 1. **Authored content:** a root effect with **`kind: 'emanation'`** (`EmanationEffect` in [`effects.types.ts`](../../src/features/mechanics/domain/effects/effects.types.ts)).
-2. **Combat adapter output:** optional **`CombatActionDefinition.attachedEmanation`** built by the spell or monster combat adapter (radius, `selectUnaffectedAtCast`, and a **`AttachedBattlefieldEffectSource`** identity).
+2. **Combat adapter output:** optional **`CombatActionDefinition.attachedEmanation`** built by the spell or monster combat adapter (radius, `selectUnaffectedAtCast`, **`anchorMode`**, and a **`AttachedBattlefieldEffectSource`** identity).
 3. **Runtime state:** **`BattlefieldEffectInstance`** rows on **`EncounterState.attachedAuraInstances`**, keyed by caster + source, with a spatial **`BattlefieldEffectAnchor`** and shared interval/overlap/speed resolution.
 
 **Source vs caster vs anchor**
@@ -20,15 +20,16 @@ In this codebase, “emanation” refers to a chain of concepts:
 | --- | --- |
 | **`AttachedBattlefieldEffectSource`** | Which authored rules package the effect comes from (`spell` / `monster-action` / `monster-trait`). |
 | **`casterCombatantId`** | Combatant who cast/owns the row (concentration for spells, synthetic “actor” for `applyActionEffects`, same-side suppression where used). |
-| **`BattlefieldEffectAnchor`** | Where the sphere is centered on the grid (`creature` / `place` / `object`). Spell and monster action/trait resolution **today** default to **`{ kind: 'creature', combatantId: caster }`**. |
+| **`BattlefieldEffectAnchor`** | Where the sphere is centered on the grid. **`kind`:** **`place`** (fixed cell), **`object`** (obstacle id + snapshot cell), **`creature`** (combatant id — caster, explicit target, or trait host). Authored **`EmanationEffect.anchorMode`** (optional, defaults to **`caster`**) is copied to **`attachedEmanation.anchorMode`** and drives cast-time selection + resolver mapping. |
 
 ## 2. Authored content shape
 
 Author **`EmanationEffect`** with:
 
-- **`attachedTo: 'self'`** — required by the type; adapters only promote to **`attachedEmanation`** when this is satisfied and the area is a sphere.
+- **`attachedTo: 'self'`** — required by the type; adapters only promote to **`attachedEmanation`** when this is satisfied and the area is a sphere. (The type name is legacy; semantic anchor is **`anchorMode`**, not “self-only.”)
 - **`area: { kind: 'sphere', size: <feet> }`**
-- **`selectUnaffectedAtCast: boolean`** — `true` only for Spirit Guardians–style “creatures that ignore this aura”; see [effects.md](../reference/effects.md#emanation).
+- **`anchorMode`** (optional) — **`caster`** \| **`place`** \| **`creature`** \| **`object`**. Omitted → adapters treat as **`caster`** (sphere follows the casting combatant).
+- **`selectUnaffectedAtCast`** (optional) — omit or **`false`** unless the rules match Spirit Guardians–style “creatures that **ignore** this harmful aura.” Adapters default omitted to **`false`**. See [effects.md](../reference/effects.md#emanation).
 
 **Adapter gate**
 
@@ -57,7 +58,7 @@ Defined in [`attached-battlefield-source.ts`](../../src/features/mechanics/domai
 
 - **Adapter:** [`buildSpellCombatActions`](../../src/features/encounter/helpers/spell-combat-adapter.ts) attaches **`attachedEmanation`** when **`deriveAttachedEmanation`** succeeds. Root **`targeting`** plus **`deriveSpellHostility`** determine whether combat targeting is **`self`** (non-hostile auras) vs **`all-enemies`** (hostile emanations); see **`buildSpellTargeting`** and [`spell-hostility.ts`](../../src/features/encounter/helpers/spell-hostility.ts).
 - **Resolvable effects:** `targeting` and `emanation` are stripped from immediate resolution; **`interval`** / **`modifier`** may be deferred for specific spells (e.g. Spirit Guardians) while the grid aura is active.
-- **Resolve:** [`resolveCombatAction`](../../src/features/mechanics/domain/encounter/resolution/action/action-resolver.ts) calls **`addAttachedAuraInstance`** with **`anchor: { kind: 'creature', combatantId: selection.actorId }`**, **`unaffectedCombatantIds`** from selection, and optional **`saveDc`**.
+- **Resolve:** [`resolveCombatAction`](../../src/features/mechanics/domain/encounter/resolution/action/action-resolver.ts) calls **`addAttachedAuraInstance`** with an **`anchor`** derived from **`attachedEmanation.anchorMode`** and [`ResolveCombatActionSelection`](../../src/features/mechanics/domain/encounter/resolution/action-resolution.types.ts): **`place`** ← **`aoeOriginCellId`**; **`creature`** ← **`targetId`**; **`object`** ← **`objectId`** (+ obstacle lookup / snapshot cell); **`caster`** (default) ← **`{ kind: 'creature', combatantId: selection.actorId }`**. **`unaffectedCombatantIds`** and optional **`saveDc`** are passed through as today.
 - **Concentration:** spell-sourced rows are removed when concentration on that spell ends (same file family as `removeAttachedAurasForSpell`).
 
 ## 5. Monster special actions
@@ -88,10 +89,13 @@ All sources share the same pipeline once **`BattlefieldEffectInstance`** exists.
 
 ## 8. Encounter UI (high level)
 
-- **Selection:** If the selected action has **`attachedEmanation`**, the drawer can show **`AttachedEmanationSetupPanel`** for **`selectUnaffectedAtCast`** and bind **`unaffectedCombatantIds`** ([`EncounterActiveRoute.tsx`](../../src/features/encounter/routes/EncounterActiveRoute.tsx), [`CombatantActionDrawer.tsx`](../../src/features/encounter/components/active/drawers/CombatantActionDrawer.tsx)). Self-centered emanations **do not** use the normal AoE point-and-place step for template placement (see comments in `CombatantActionDrawer`).
-- **Grid:** Active instances are resolved to **`originCellId` + radius** in [`EncounterRuntimeContext.tsx`](../../src/features/encounter/routes/EncounterRuntimeContext.tsx) and passed into [`selectGridViewModel`](../../src/features/encounter/space/space.selectors.ts) as **`persistentAttachedAuras`**; cell styling uses **`persistentAttachedAura`** via [`cellVisualState.ts`](../../src/features/encounter/components/active/grid/cellVisualState.ts).
-
-Place- or object-anchored persistent effects are **not** fully wired through cast UI; see **Gaps** below.
+- **Selection:** Readiness and resolve wiring live in [`action-resolution-requirements.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-resolution-requirements.ts) and encounter runtime context.
+  - **`anchorMode === 'place'`** — uses the shared **AoE origin** flow (**`aoe-place`**): user confirms a grid point; **`aoeOriginCellId`** is required to resolve. Same pipeline as other area templates on the action, not [`SingleCellPlacementPanel`](../../src/features/encounter/components/active/drawers/drawer-modes/SingleCellPlacementPanel.tsx) (that panel is for spawn / single-cell requirements from **`getActionRequirements`**).
+  - **`anchorMode === 'object'`** — grid **object-anchor** selection; **`objectId`** on the resolve payload.
+  - **`anchorMode === 'creature'`** — standard combatant target selection (**`targetId`**).
+  - **`anchorMode === 'caster'`** (default) — anchor follows the caster; no separate anchor pick beyond normal hostile/target rules.
+  - **`AttachedEmanationSetupPanel`** (unaffected creatures) when **`selectUnaffectedAtCast`** is true — typically **caster**-anchored harmful auras (e.g. Spirit Guardians). **Place**-anchored spells usually omit this (`false`); if both **place** and **`selectUnaffectedAtCast`** were ever authored, the drawer can show unaffected setup **alongside** AoE placement ([`CombatantActionDrawer.tsx`](../../src/features/encounter/components/active/drawers/CombatantActionDrawer.tsx)).
+- **Grid:** Active instances are resolved to **`originCellId` + radius** in [`EncounterRuntimeContext.tsx`](../../src/features/encounter/routes/EncounterRuntimeContext.tsx) via **`resolveBattlefieldEffectOriginCellId`**, then passed into [`selectGridViewModel`](../../src/features/encounter/space/space.selectors.ts) as **`persistentAttachedAuras`**; cell styling uses **`persistentAttachedAura`** via [`cellVisualState.ts`](../../src/features/encounter/components/active/grid/cellVisualState.ts).
 
 ## 9. End-to-end flow (diagram)
 
@@ -108,17 +112,29 @@ flowchart LR
   instance --> grid
 ```
 
-## 10. Gaps before full integration
+## 10. Current coverage and high-impact modeling next
 
-These items block “full” integration of every SRD-style emanation scenario in UI and resolve without caveats:
+**In place today**
 
-| Gap | Description |
-| --- | --- |
-| **Anchor authoring** | [`CombatActionDefinition.attachedEmanation`](../../src/features/mechanics/domain/encounter/resolution/combat-action.types.ts) does not carry anchor mode. [`action-resolver.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-resolver.ts) always sets **`anchor: { kind: 'creature', combatantId: actor }`**. Place, object, or “target creature” anchors from content are not selectable at cast time yet. |
-| **UI routing** | Today, **`attachedEmanation`** implies the caster-centered drawer path (unaffected setup, no AoE origin for the persistent row). Place-anchored persistent auras would need a **branch** (e.g. require **`aoeOriginCellId`** from [`ResolveCombatActionSelection`](../../src/features/mechanics/domain/encounter/resolution/action-resolution.types.ts) and map to **`anchor: { kind: 'place', cellId }`**). |
-| **Single-cell vs AoE** | [`SingleCellPlacementPanel`](../../src/features/encounter/components/active/drawers/drawer-modes/SingleCellPlacementPanel.tsx) is driven by **`getActionRequirements`** spawn/single-cell rules ([`action-requirement-model.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-requirement-model.ts)), not by emanation. Point-based spells typically use **AoE origin** placement, not that panel. |
-| **Content** | Spells that are **not** caster-centered (e.g. sphere at a point, object-centered 15 ft) remain documented in **`resolution.caveats`** / notes until adapters map player selection → **`BattlefieldEffectInstance.anchor`**. |
-| **Polish (non-blocking)** | Per-spell labels on the grid, pre-cast footprint preview, monster-action duration tied to attached row removal analogous to concentration — optional follow-ups once anchor wiring exists. |
+- **`attachedEmanation.anchorMode`** on [`CombatActionDefinition`](../../src/features/mechanics/domain/encounter/resolution/combat-action.types.ts) and authored **`EmanationEffect.anchorMode`**.
+- Cast-time selection + resolver mapping for **`caster`**, **`place`**, **`creature`**, and **`object`** anchors ([`action-resolver.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-resolver.ts), [`battlefield-effect-anchor.ts`](../../src/features/mechanics/domain/encounter/state/battlefield-effect-anchor.ts)).
+- Example **place**-anchored authored spell: **Darkness** (sphere at a point) — validates content → adapter → UI → resolver → runtime → grid for non-caster anchoring ([`darkness-place-anchor.test.ts`](../../src/features/mechanics/domain/encounter/tests/darkness-place-anchor.test.ts)).
+- **Single-cell vs AoE** remains a separate concept: [`SingleCellPlacementPanel`](../../src/features/encounter/components/active/drawers/drawer-modes/SingleCellPlacementPanel.tsx) is for **`getActionRequirements`** spawn/single-cell rules ([`action-requirement-model.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-requirement-model.ts)), not emanation. Point-based emanations use the **AoE origin** path.
+
+**Highest impact before “full” SRD-style emanation support**
+
+| Priority | Modeling | Why it matters |
+| --- | --- | --- |
+| **1** | **Object anchor lifecycle** — obstacle moves, removal, carried vs fixed object; snapshot vs live cell in [`resolveBattlefieldEffectOriginCellId`](../../src/features/mechanics/domain/encounter/state/battlefield-effect-anchor.ts). | Completes the anchor matrix (place/creature/caster already exercised); unlocks “cast on object” spheres without a new pipeline. |
+| **2** | **Mobile / re-anchorable zones** — bonus or magic action to move the area (e.g. Moonbeam, Flaming Sphere patterns) on the **same** `BattlefieldEffectInstance`. | Many emanations are not static after cast; same data model should accept anchor updates with explicit action + range rules. |
+| **3** | **Zone semantics: obscurement, light, vision** — sphere membership driving heavily obscured, advantage/disadvantage, darkvision limits, light/dispel overlap. | Footprint alone is insufficient for Darkness, fog, and similar; largest *play* gap once anchors work. |
+| **4** | **Cast-time beneficiary semantics** — distinguish Spirit Guardians **“unaffected”** from **chosen allies / willing targets** (may need more than `selectUnaffectedAtCast`: a small enum or structured field + UI copy). | Avoids misusing one boolean for different SRD patterns (Pass without Trace, Holy Aura, etc.). |
+| **5** | **Deferral cleanup** — stop stripping **`interval`** / **`modifier`** where the shared battlefield modules can apply them ([`battlefield-interval-resolution.ts`](../../src/features/mechanics/domain/encounter/state/battlefield-interval-resolution.ts), spatial entry, speed). | Finishes automation for spells already modeled in data (e.g. Spirit Guardians) using existing infrastructure. |
+
+**Polish (non-blocking)**
+
+- Per-spell labels on the grid, pre-cast footprint preview, monster-action duration tied to attached-row removal analogous to concentration.
+- Broader **content** pass: spells whose rules still exceed the engine should keep honest **`resolution.caveats`** until the rows above land.
 
 ## See also
 
