@@ -1,7 +1,7 @@
 /**
  * Observer-relative **guessed location** when an observer cannot **visually** perceive a subject’s
- * occupant (`canPerceiveTargetOccupantForCombat`). This is **not** a second visibility engine and does
- * **not** satisfy requires-sight targeting — see {@link canSeeForTargeting}.
+ * occupant ({@link canSeeForTargeting}). This is **not** a second visibility engine and does
+ * **not** satisfy requires-sight targeting.
  *
  * **Boundary:** `CombatantStealthRuntime` / `hiddenFromObserverIds` remain hide bookkeeping only; awareness
  * can coexist (e.g. hidden from an observer who still heard a noise at a cell).
@@ -9,7 +9,6 @@
 
 import { getCellForCombatant } from '@/features/encounter/space'
 
-import { canPerceiveTargetOccupantForCombat } from './combatant-pair-visibility'
 import { updateEncounterCombatant } from './mutations'
 import { canSeeForTargeting } from './visibility-seams'
 import type { CombatantAwarenessRuntime } from './types/combatant.types'
@@ -124,7 +123,7 @@ export function applyNoiseAwarenessForSubject(
   let next = state
   for (const observerId of observerIds) {
     if (observerId === subjectId) continue
-    if (canPerceiveTargetOccupantForCombat(next, observerId, subjectId)) continue
+    if (canSeeForTargeting(next, observerId, subjectId)) continue
     next = setGuessedCellForObserver(next, subjectId, observerId, cellId)
   }
   return next
@@ -144,7 +143,7 @@ export function reconcileAwarenessGuessesWithPerception(state: EncounterState): 
     const nextGuesses = { ...guesses }
     let changed = false
     for (const observerId of Object.keys(nextGuesses)) {
-      if (canPerceiveTargetOccupantForCombat(next, observerId, subjectId)) {
+      if (canSeeForTargeting(next, observerId, subjectId)) {
         delete nextGuesses[observerId]
         changed = true
       }

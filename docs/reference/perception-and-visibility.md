@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This layer answers **who can see what** on the tactical battlefield for **rules resolution** and **presentation**. It separates:
+This layer answers **who can see what** on the tactical battlefield for **rules resolution** and **presentation**. Deferred non-visual awareness / sound roadmap: [Sound and awareness (roadmap)](./sound-and-awareness.md). It separates:
 
 - **Objective** environment at a grid cell (`EncounterWorldCellEnvironment`)
 - **Derived** viewer-relative perception at a cell (`EncounterViewerPerceptionCell`)

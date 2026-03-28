@@ -1,5 +1,7 @@
 # Awareness and guessed position (sound seam)
 
+For deferred sound/hearing work and open questions, see [Sound and awareness (roadmap)](./sound-and-awareness.md).
+
 ## Purpose
 
 This pass adds a **small, explicit** observer-relative model for **estimated grid location** when an observer **does not** visually perceive a subject’s **occupant** (`canPerceiveTargetOccupantForCombat`). It closes part of the gap between:

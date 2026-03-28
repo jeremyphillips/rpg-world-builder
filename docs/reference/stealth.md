@@ -173,4 +173,4 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth-attack
 - **Richer observer sets** — e.g. allies in range, line-of-sight, or “aware” subsets instead of only all opposing combatants passing eligibility.
 - Further **skill/item** bonuses on snapshots if not already covered by **`CombatantSkillRuntimeSnapshot`**.
 
-See also [Perception and visibility](./perception-and-visibility.md).
+See also [Perception and visibility](./perception-and-visibility.md) and [Sound and awareness (roadmap)](./sound-and-awareness.md) (future hearing / awareness; current guessed-cell behavior remains in [Awareness and guessed position](./awareness-and-guessed-position.md)).
