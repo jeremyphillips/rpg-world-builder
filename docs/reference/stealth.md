@@ -29,13 +29,17 @@ Other modules (**`action-resolver.ts`**, **`useEncounterState`**) call exported 
 
 ## Hide attempt eligibility
 
-**`getStealthHideAttemptDenialReason`** delegates to **`getHideAttemptEligibilityDenialReason`** in [`sight-hide-rules.ts`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts): **occupant** perception (`canPerceiveTargetOccupantForCombat`) plus a **single** merged-world rules layer, **`cellWorldSupportsHideAttemptWorldBasis`**, at the hider’s cell.
+**`getStealthHideAttemptDenialReason`** delegates to **`getHideAttemptEligibilityDenialReason`** in [`sight-hide-rules.ts`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts): **occupant** perception (`canPerceiveTargetOccupantForCombat`) plus a **merged-world** hide basis **per observer–hider pair** when a tactical grid exists.
 
-That world basis includes:
+**Concealment and feature-flag branches** still use the **hider’s merged cell** only (same as before):
 
-- **Baseline concealment** — [`cellWorldSupportsHideConcealment`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts): heavy obscurement; **non-magical** light obscurement; darkness lighting; **magical darkness** (`magicalDarkness` on merged world). **Not** universal dim light, and **not** magically tagged light obscurement alone — those need flags below.
-- **Terrain cover (baseline)** — merged **`terrainCover`**: **three-quarters** or **full** (total cover) counts; **half cover** only with **`allowHalfCoverForHide`**. Cell-local (baseline + zones), not per-observer geometry.
-- **Feature-flag branches** (same resolver OR-merge as authored/temporary): **`allowDimLightHide`** — `lightingLevel === 'dim'` only; **`allowMagicalConcealmentHide`** — `visibilityObscured === 'light'` **and** merged **`world.magical`** (spell-tagged zone; see environment merge in [`environment.resolve.ts`](../../src/features/mechanics/domain/encounter/environment/environment.resolve.ts)). Natural (non-magical) light obscurement remains baseline without any flag.
+- **Baseline concealment** — [`cellWorldSupportsHideConcealment`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts): heavy obscurement; **non-magical** light obscurement; darkness lighting; **magical darkness**. Dim-only and magical light obscurement need the feat/runtime flags below.
+- **Feature-flag branches** (OR-merge): **`allowDimLightHide`**, **`allowMagicalConcealmentHide`** — see [`environment.resolve.ts`](../../src/features/mechanics/domain/encounter/environment/environment.resolve.ts) for `world.magical`.
+
+**Terrain cover for hide** (when concealment/flags do not already allow the attempt):
+
+- **With grid** — [`pairSupportsHideWorldBasisFromObserver`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts) uses [`resolveTerrainCoverGradeForHideFromObserver`](../../src/features/mechanics/domain/encounter/state/observer-hide-terrain-cover.ts): **maximum** merged `terrainCover` along the same **supercover segment** as line-of-sight (`traceLineOfSightCells` in [`space.sight.ts`](../../src/features/encounter/space/space.sight.ts)), from the **observer’s cell** through the **hider’s cell** (observer endpoint excluded from the max; hider cell included). Half cover only counts with **`allowHalfCoverForHide`**; three-quarters/full baseline.
+- **Without grid / placements** — **fallback:** [`cellWorldSupportsHideAttemptWorldBasis`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts) on the hider’s cell only (cell-local `terrainCover`), so behavior matches the legacy permissive tactical gap.
 
 **Combatant-sourced feature flags:** **`getCombatantHideEligibilityExtensionOptions`** ([`combatant-hide-eligibility.ts`](../../src/features/mechanics/domain/encounter/state/combatant-hide-eligibility.ts)) merges **one boolean seam** from:
 
@@ -51,13 +55,13 @@ That world basis includes:
 
 That output feeds **`resolveHideEligibilityForCombatant`** after call-site / persisted layers.
 
-**Optional overrides:** **`hideEligibility`** on **`StealthRulesOptions`** / **`GetHideAttemptEligibilityDenialReasonOptions`** — for tests or tools; normal encounter flow does **not** need to pass flags when they exist on the combatant. **`resolveHideEligibilityForCombatant`** precedence: **hide-attempt** — call-site → **`stealth.hideEligibility`** → **combatant-derived**; **stealth-sustain** — **`stealth.hideEligibility`** → call-site → **combatant-derived**.
+**Optional overrides:** **`hideEligibility`** on **`StealthRulesOptions`** / **`GetHideAttemptEligibilityDenialReasonOptions`** — for tests or tools; normal encounter flow does **not** need to pass flags when they exist on the combatant. **`resolveHideEligibilityForCombatant`** precedence: **hide-attempt** — call-site → **`stealth.hideEligibility`** → **combatant-derived**; **stealth-sustain** — **`stealth.hideEligibility`** → call-site → **combatant-derived**. Reconciliation passes **`hideEligibilityResolveMode: 'stealth-sustain'`** on **`GetHideAttemptEligibilityDenialReasonOptions`**.
 
-**Entry and sustain share one basis:** **`cellWorldSupportsHideAttemptWorldBasis`** — used by **`getHideAttemptEligibilityDenialReason`** (with **`resolveHideEligibilityForCombatant`**, mode **`hide-attempt`**) and by **`reconcileStealthBreakWhenNoConcealmentInCell`** (mode **`stealth-sustain`**). No parallel “baseline-only” sustain path.
+**Entry and sustain share one eligibility check:** **`getHideAttemptEligibilityDenialReason`** (pair-aware cover when gridded). **`reconcileStealthBreakWhenNoConcealmentInCell`** removes individual **`hiddenFromObserverIds`** entries when that observer would now fail eligibility — not a single global “cell no longer supports hide” clear (unless every observer fails).
 
 Eligibility answers **whether a hide attempt may be attempted** vs a given observer. It does **not** roll Stealth or compare to passive Perception.
 
-**Out of scope:** observer-specific cover geometry; richer feat catalog wiring for dim/magical (flags exist — content can set **`skillRuntime`** / effects); deeper modeling of magical concealment beyond **`world.magical` + light obscurement** — see [TODO / future work](#todo--future-work).
+**Remaining gaps:** richer feat catalog wiring; deeper magical concealment than **`world.magical` + light obscurement** — see [TODO / future work](#todo--future-work).
 
 ---
 
@@ -65,7 +69,7 @@ Eligibility answers **whether a hide attempt may be attempted** vs a given obser
 
 **Flow:**
 
-1. **Candidate observers:** **`resolveDefaultHideObservers`** lists other-side combatants for whom **`getStealthHideAttemptDenialReason`** is **`null`** (hide **eligibility** only — concealment / not hiding in plain sight). Baseline observer set is **the opposing side**; distance, cover, and sense-specific filters are **not** applied yet (see TODOs).
+1. **Candidate observers:** **`resolveDefaultHideObservers`** lists other-side combatants for whom **`getStealthHideAttemptDenialReason`** is **`null`** (hide **eligibility** only — includes **observer-relative** terrain cover when gridded). Baseline observer set is **the opposing side**; distance and sense-specific filters beyond shared perception are **not** applied yet (see TODOs).
 2. **No eligible observers:** if the candidate list is **empty**, **`resolveCombatAction`** logs the outcome and performs **no d20 Stealth roll** (nothing to compare against). Eligibility is evaluated **before** rolling.
 3. **Stealth total:** when there is at least one candidate, **`action-resolver.ts`** rolls **d20 + Stealth modifier** for **`resolutionMode === 'hide'`**. Modifier comes from **`hideProfile.stealthModifier`** or **`getStealthCheckModifier(actor)`** (runtime snapshot: Dex + proficiency when threaded — see [`passive-perception.ts`](../../src/features/mechanics/domain/encounter/state/passive-perception.ts)).
 4. **Comparison:** **`resolveHideWithPassivePerception(state, hiderId, stealthTotal, options)`** compares that total to each **candidate** observer’s **passive Perception** via **`getPassivePerceptionScore(observer)`**.
@@ -148,7 +152,7 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth-attack
 | `reconcileStealthAfterMovementOrEnvironmentChange` | Full sequence: concealment loss + perceived-again pruning. |
 | `applyEncounterEnvironmentBaselinePatchAndReconcileStealth` | Baseline patch + full reconcile. |
 | `reconcileStealthHiddenForPerceivedObservers` | Align hidden-from with perception. |
-| `reconcileStealthBreakWhenNoConcealmentInCell` | Clear stealth if merged world no longer supports hide basis (same as entry). |
+| `reconcileStealthBreakWhenNoConcealmentInCell` | Prune per-observer hidden state when eligibility fails (same checks as entry; `stealth-sustain` mode). |
 | `breakStealthOnAttack` | Clear attacker stealth after attack roll (global reveal). |
 | `ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE` | Contract flag (`false`) — attack modifiers must not read `stealth`. |
 | `isHiddenFromObserver` | Read helper (bookkeeping only). |
@@ -157,7 +161,7 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth-attack
 
 ## TODO / future work
 
-- **Observer-relative cover** — cover from line-of-sight geometry per observer (today cover is cell-local merged world only).
+- **Finer cover than merged `terrainCover` per cell** — e.g. edge/corner rules, size, true 3D LOS.
 - **Observer-relative or partial break** on attack (vs global `breakStealthOnAttack`).
 - **Guessed location / sound** awareness for unseen targets (not occupant perception).
 - **Active opposed** Stealth vs **rolled** Perception (contested check path; keep passive baseline as fallback).

@@ -14,7 +14,8 @@ export type EncounterAtmosphereTag = (typeof ATMOSPHERE_TAGS)[number]['id']
 
 /**
  * Terrain cover grade at a grid cell after baseline + zone merge (see `resolveWorldEnvironmentForCell`).
- * Used for hide eligibility and other rules — not viewer-relative ray-traced cover from a token.
+ * For **hide**, gridded encounters also use observer-relative max cover along the LoS segment
+ * (`resolveTerrainCoverGradeForHideFromObserver`); this field remains the per-cell merged value.
  */
 export type TerrainCoverGrade = 'none' | 'half' | 'three-quarters' | 'full'
 

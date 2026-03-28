@@ -367,6 +367,40 @@ describe('stealth-rules', () => {
     expect(afterReconcile.combatantsById.orc?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 
+  it('reconcileStealthBreakWhenNoConcealmentInCell prunes only observers who lose observer-relative cover basis', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const wiz = testPc('wiz', 'Wizard', 20)
+    const bard = testPc('bard', 'Bard', 20)
+    const orc = testEnemy('orc', 'Orc', 20)
+    const base = createEncounterState([wiz, bard, orc], { rng: () => 0.5, space })
+    const state = {
+      ...base,
+      placements: [
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+        { combatantId: 'orc', cellId: 'c-2-0' },
+        { combatantId: 'bard', cellId: 'c-4-0' },
+      ],
+      environmentZones: [
+        {
+          id: 'z-tq',
+          kind: 'patch',
+          sourceKind: 'terrain-feature',
+          area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
+          overrides: { terrainCover: 'three-quarters' },
+        },
+      ],
+      combatantsById: {
+        ...base.combatantsById,
+        orc: {
+          ...base.combatantsById.orc!,
+          stealth: { hiddenFromObserverIds: ['wiz', 'bard'] },
+        },
+      },
+    }
+    const out = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
+    expect(out.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+  })
+
   it('reconcileStealthBreakWhenNoConcealmentInCell clears stealth when feature-qualified cover is lost', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)

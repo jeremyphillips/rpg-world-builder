@@ -113,6 +113,7 @@ export {
   cellWorldSupportsHideAttemptWorldBasis,
   cellWorldSupportsHideConcealment,
   getHideAttemptEligibilityDenialReason,
+  pairSupportsHideWorldBasisFromObserver,
   resolveHideEligibilityForCombatant,
   type GetHideAttemptEligibilityDenialReasonOptions,
   type SightBasedCheckDenialReason,
@@ -120,6 +121,11 @@ export {
   type HideEligibilityExtensionOptions,
   type HideEligibilityFeatureFlags,
 } from './sight-hide-rules'
+export {
+  maxTerrainCoverGrade,
+  resolveTerrainCoverGradeForHideFromObserver,
+  terrainCoverGradeSupportsHideAttempt,
+} from './observer-hide-terrain-cover'
 export {
   applyStealthHideSuccess,
   breakStealthOnAttack,

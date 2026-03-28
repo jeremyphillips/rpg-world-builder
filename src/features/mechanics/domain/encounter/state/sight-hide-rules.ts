@@ -3,6 +3,10 @@ import { resolveWorldEnvironmentFromEncounterState } from '@/features/mechanics/
 import type { EncounterWorldCellEnvironment } from '@/features/mechanics/domain/encounter/environment/environment.types'
 
 import { getCombatantHideEligibilityExtensionOptions } from './combatant-hide-eligibility'
+import {
+  resolveTerrainCoverGradeForHideFromObserver,
+  terrainCoverGradeSupportsHideAttempt,
+} from './observer-hide-terrain-cover'
 import { canPerceiveTargetOccupantForCombat } from './combatant-pair-visibility'
 import type { CombatantHideEligibilityExtension } from './types/combatant.types'
 import type { EncounterState } from './types'
@@ -114,6 +118,41 @@ export function cellWorldSupportsHideAttemptWorldBasis(
 }
 
 /**
+ * Hide **world basis** for a specific observer/hider pair when a tactical grid exists: concealment
+ * and dim/magical flags use the **hider’s merged cell**; **terrain cover** uses
+ * {@link resolveTerrainCoverGradeForHideFromObserver} (max `terrainCover` along the supercover segment
+ * from observer → hider, excluding the observer endpoint). When `space` / placements are missing,
+ * callers should use {@link cellWorldSupportsHideAttemptWorldBasis} on the hider cell only (fallback).
+ */
+export function pairSupportsHideWorldBasisFromObserver(
+  state: EncounterState,
+  observerId: string,
+  hiderId: string,
+  hideEligibility?: HideEligibilityExtensionOptions,
+): boolean {
+  if (!state.space || !state.placements) return false
+  const hiderCell = getCellForCombatant(state.placements, hiderId)
+  if (!hiderCell) return false
+  const world = resolveWorldEnvironmentFromEncounterState(state, hiderCell)
+  if (!world) return false
+  const flags = hideEligibility?.featureFlags
+
+  if (cellWorldSupportsHideConcealment(world)) return true
+  if (flags?.allowDimLightHide === true && world.lightingLevel === 'dim') return true
+  if (
+    flags?.allowMagicalConcealmentHide === true &&
+    world.magical &&
+    world.visibilityObscured === 'light'
+  ) {
+    return true
+  }
+
+  const observerGrade = resolveTerrainCoverGradeForHideFromObserver(state, observerId, hiderId)
+  const effectiveGrade = observerGrade !== undefined ? observerGrade : world.terrainCover
+  return terrainCoverGradeSupportsHideAttempt(effectiveGrade, hideEligibility)
+}
+
+/**
  * Resolves which hide-extension flags apply for a combatant. Precedence:
  *
  * - **`hide-attempt`:** call-site `options.hideEligibility` (tests/DM override) → persisted
@@ -144,6 +183,11 @@ export type HideAttemptEligibilityDenialReason =
 export type GetHideAttemptEligibilityDenialReasonOptions = {
   capabilities?: EncounterViewerPerceptionCapabilities
   hideEligibility?: HideEligibilityExtensionOptions
+  /**
+   * Which eligibility snapshot {@link resolveHideEligibilityForCombatant} merges. Default **`hide-attempt`**.
+   * Use **`stealth-sustain`** when re-checking hide basis during stealth reconciliation.
+   */
+  hideEligibilityResolveMode?: 'hide-attempt' | 'stealth-sustain'
 }
 
 /**
@@ -156,9 +200,10 @@ export type GetHideAttemptEligibilityDenialReasonOptions = {
  *   hiding in plain sight is denied.
  * - If the observer **cannot** perceive the occupant (heavy obscurement, magical darkness, invisibility, etc.),
  *   the attempt is allowed from a sight perspective.
- * - If the observer **can** perceive the occupant **but** the cell supports hide (e.g. dim, light obscured,
- *   three-quarters cover), a Hide attempt is allowed. **Resolution** vs passive Perception is handled in
- *   `stealth-rules.ts` / `resolveHideWithPassivePerception` after the Stealth total is rolled (not here).
+ * - If the observer **can** perceive the occupant **but** hide basis still passes (concealment / flags /
+ *   **observer-relative** terrain cover along the supercover segment when a grid exists), a Hide attempt
+ *   is allowed. **Resolution** vs passive Perception is handled in `stealth-rules.ts` /
+ *   `resolveHideWithPassivePerception` after the Stealth total is rolled (not here).
  *
  * **Missing tactical grid / hider placement:** permissive — returns `null` (allow attempt) so behavior
  * matches the pair-visibility fallback when geometry is absent.
@@ -181,9 +226,13 @@ export function getHideAttemptEligibilityDenialReason(
   }
 
   const world = resolveWorldEnvironmentFromEncounterState(state, hiderCell)
-  const effectiveHideEligibility = resolveHideEligibilityForCombatant(state, hiderId, options, 'hide-attempt')
+  const eligibilityMode = options?.hideEligibilityResolveMode ?? 'hide-attempt'
+  const effectiveHideEligibility = resolveHideEligibilityForCombatant(state, hiderId, options, eligibilityMode)
   const hasWorldHideBasis =
-    world != null && cellWorldSupportsHideAttemptWorldBasis(world, effectiveHideEligibility)
+    world != null &&
+    (!state.space || !state.placements
+      ? cellWorldSupportsHideAttemptWorldBasis(world, effectiveHideEligibility)
+      : pairSupportsHideWorldBasisFromObserver(state, observerId, hiderId, effectiveHideEligibility))
 
   const observerSeesOccupant = canPerceiveTargetOccupantForCombat(state, observerId, hiderId, options)
 
