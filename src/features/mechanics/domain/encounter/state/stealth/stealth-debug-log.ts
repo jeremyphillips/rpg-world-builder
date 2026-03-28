@@ -5,15 +5,13 @@
 import { appendEncounterNote, getEncounterCombatantLabel } from '../effects/logging'
 import type { EncounterState } from '../types'
 
-/** Machine-readable reason ids in `details` (semicolon-separated key=value). */
+/** `reason=` id is stable for filtering; other keys use display labels (see {@link getEncounterCombatantLabel}). */
 export const STEALTH_DEBUG_REASON = {
   hideSuccess: 'hide-success',
   observerCanPerceiveTarget: 'observer-can-perceive-target',
-  /** Legacy: was used when concealment-basis loss pruned hidden-from entries. Retained for any old log lines. */
-  lostHideBasis: 'lost-hide-basis',
   /**
-   * Diagnostic only: hide eligibility basis for a **new** Hide attempt is gone vs this observer, but they
-   * still cannot perceive the subject — observer-relative hidden is sustained until perception or explicit reveal.
+   * Diagnostic only (combat log): pair hide world basis is gone vs this observer but they still cannot
+   * perceive the occupant — does not reflect a stealth state change.
    */
   hideBasisLostContext: 'hide-basis-lost-context',
   movementReconcile: 'movement-reconcile',
@@ -23,6 +21,11 @@ export const STEALTH_DEBUG_REASON = {
 
 function rosterLabels(state: EncounterState, ids: string[]): string {
   return ids.map((id) => getEncounterCombatantLabel(state, id)).join(', ')
+}
+
+/** Semicolon-separated key=value for log `details`; values are human-facing labels (not raw instance ids). */
+function stealthNoteDetails(reason: string, fields: Record<string, string>): string {
+  return [`reason=${reason}`, ...Object.entries(fields).map(([k, v]) => `${k}=${v}`)].join('; ')
 }
 
 /** After a successful Hide vs passive Perception, when at least one observer is beaten. */
@@ -37,7 +40,9 @@ export function appendStealthHideSuccessAppliedNote(
   return appendEncounterNote(state, `${hider} is hidden from: ${observers}.`, {
     actorId: hiderId,
     targetIds: beatenObserverIds,
-    details: `reason=${STEALTH_DEBUG_REASON.hideSuccess}; observers=${beatenObserverIds.join(',')}`,
+    details: stealthNoteDetails(STEALTH_DEBUG_REASON.hideSuccess, {
+      observers: rosterLabels(state, beatenObserverIds),
+    }),
   })
 }
 
@@ -56,32 +61,15 @@ export function appendStealthPrunedObserverCanPerceiveNote(
     {
       actorId: subjectId,
       targetIds: removedObserverIds,
-      details: `reason=${STEALTH_DEBUG_REASON.observerCanPerceiveTarget}; subject=${subjectId}; observers=${removedObserverIds.join(',')}`,
+      details: stealthNoteDetails(STEALTH_DEBUG_REASON.observerCanPerceiveTarget, {
+        subject: getEncounterCombatantLabel(state, subjectId),
+        observers: rosterLabels(state, removedObserverIds),
+      }),
     },
   )
 }
 
-/** @deprecated No longer emitted by reconcile — concealment-basis loss alone does not prune hidden-from. */
-export function appendStealthPrunedLostHideBasisNote(
-  state: EncounterState,
-  subjectId: string,
-  removedObserverIds: string[],
-): EncounterState {
-  if (removedObserverIds.length === 0) return state
-  const subject = getEncounterCombatantLabel(state, subjectId)
-  const names = rosterLabels(state, removedObserverIds)
-  return appendEncounterNote(
-    state,
-    `${subject} no longer hidden from ${names} (lost hide basis — cover/concealment vs observer).`,
-    {
-      actorId: subjectId,
-      targetIds: removedObserverIds,
-      details: `reason=${STEALTH_DEBUG_REASON.lostHideBasis}; subject=${subjectId}; observers=${removedObserverIds.join(',')}`,
-    },
-  )
-}
-
-/** Hide basis for a new attempt is gone vs these observers, but they still cannot perceive — hidden retained. */
+/** Diagnostic combat log: hide world basis gone for a new attempt vs these observers, but they still cannot perceive. */
 export function appendStealthHideBasisLostContextNote(
   state: EncounterState,
   subjectId: string,
@@ -96,12 +84,15 @@ export function appendStealthHideBasisLostContextNote(
     {
       actorId: subjectId,
       targetIds: observerIds,
-      details: `reason=${STEALTH_DEBUG_REASON.hideBasisLostContext}; subject=${subjectId}; observers=${observerIds.join(',')}`,
+      details: stealthNoteDetails(STEALTH_DEBUG_REASON.hideBasisLostContext, {
+        subject: getEncounterCombatantLabel(state, subjectId),
+        observers: rosterLabels(state, observerIds),
+      }),
     },
   )
 }
 
-/** Combatant moved on the grid; stealth reconciliation (cover + perception) runs next in the pipeline. */
+/** Combatant moved on the grid; movement pipeline runs perception-based stealth reconcile next. */
 export function appendStealthMovementRecheckHeaderNote(
   state: EncounterState,
   moverId: string,
@@ -114,7 +105,11 @@ export function appendStealthMovementRecheckHeaderNote(
     `${mover} moves ${fromCellId} → ${toCellId}. Hidden-from-observer state rechecked (perception-based reveal; hide basis may be noted as context when still unseen).`,
     {
       actorId: moverId,
-      details: `reason=${STEALTH_DEBUG_REASON.movementReconcile}; mover=${moverId}; from=${fromCellId}; to=${toCellId}`,
+      details: stealthNoteDetails(STEALTH_DEBUG_REASON.movementReconcile, {
+        mover: getEncounterCombatantLabel(state, moverId),
+        from: fromCellId,
+        to: toCellId,
+      }),
     },
   )
 }

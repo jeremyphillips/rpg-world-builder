@@ -63,7 +63,7 @@ describe('resolveCombatAction — Hide vs passive Perception', () => {
     expect(resolved.combatantsById.orc?.stealth?.hiddenFromObserverIds).toContain('wiz')
     const last = resolved.log[resolved.log.length - 1]
     expect(last?.details).toContain('Stealth')
-    expect(last?.details).toContain('Beat passive Perception: wiz')
+    expect(last?.details).toContain('Beat passive Perception: Wizard')
   })
 
   it('does not hide when Stealth ties passive Perception (tie → observer wins)', () => {
@@ -233,8 +233,8 @@ describe('resolveCombatAction — Hide vs passive Perception', () => {
     expect(resolved.combatantsById.orc?.stealth?.hiddenFromObserverIds?.sort()).toEqual(['wiz'])
     expect(resolved.combatantsById.orc?.stealth?.hiddenFromObserverIds).not.toContain('ally')
     const last = resolved.log[resolved.log.length - 1]
-    expect(last?.details).toContain('Beat passive Perception: wiz')
-    expect(last?.details).toContain('ally')
+    expect(last?.details).toContain('Beat passive Perception: Wizard')
+    expect(last?.details).toContain('Did not beat: Ally')
   })
 
   it('consumes the standard Action resource when Hide resolves', () => {

@@ -321,11 +321,11 @@ export function reconcileStealthHiddenForPerceivedObservers(
  * still requires eligibility ({@link getHideAttemptEligibilityDenialReason}); **sustain** does not drop
  * entries solely because eligibility for a **new** Hide attempt would fail after the world changes.
  *
- * **Deterministic order:**
- * 1. {@link reconcileStealthHiddenForPerceivedObservers} — drop observer ids when that observer can
- *    perceive the subject’s occupant (observer-relative pruning).
- * 2. Optional combat-log notes when hide basis for a new attempt is lost vs an observer who still
- *    cannot perceive (diagnostic only; does not mutate stealth).
+ * **Pipeline (only):**
+ * 1. {@link reconcileStealthHiddenForPerceivedObservers} — remove hidden-from entries when the observer
+ *    can perceive the subject’s occupant (the sole movement/environment **state** change for stealth).
+ * 2. Append hide-basis **diagnostic** combat-log lines when pair hide world basis is gone but the observer
+ *    still cannot perceive (via `appendStealthHideBasisLostContextNote`; **no** stealth mutation).
  *
  * **Integration:** `reconcileBattlefieldEffectAnchors` (after zone sync), `updateEncounterEnvironmentBaseline`,
  * and `useEncounterState` `handleMoveCombatant` (after `moveCombatant` + battlefield anchor pass) end with
@@ -335,19 +335,17 @@ export function reconcileStealthAfterMovementOrEnvironmentChange(
   state: EncounterState,
   options?: StealthRulesOptions,
 ): EncounterState {
-  let next = reconcileStealthHiddenForPerceivedObservers(state, options)
-  next = appendHideBasisLostContextNotesAfterPerceptionReconcile(next, options)
-  return next
+  const afterPerception = reconcileStealthHiddenForPerceivedObservers(state, options)
+  return appendStealthHideBasisDiagnosticsAfterPerception(afterPerception, options)
 }
 
 /**
- * After perception-based pruning, append a note when the hider no longer has pair hide **world basis**
- * (cover/concealment along the observer→hider seam) while that observer still cannot perceive the
- * occupant. `getHideAttemptEligibilityDenialReason` cannot express that case (it only denies when the
- * observer already sees the occupant without basis), so we use {@link pairSupportsHideWorldBasisFromObserver}
- * directly for this diagnostic.
+ * Combat-log **diagnostics** only: pair hide world basis is absent while the observer still cannot
+ * perceive the occupant — does **not** remove hidden-from entries. Uses {@link pairSupportsHideWorldBasisFromObserver}
+ * because {@link getHideAttemptEligibilityDenialReason} only encodes “sees occupant without basis,” not
+ * “no basis but still unseen.”
  */
-function appendHideBasisLostContextNotesAfterPerceptionReconcile(
+function appendStealthHideBasisDiagnosticsAfterPerception(
   state: EncounterState,
   options?: StealthRulesOptions,
 ): EncounterState {
@@ -395,22 +393,6 @@ export function applyEncounterEnvironmentBaselinePatchAndReconcileStealth(
   options?: StealthRulesOptions,
 ): EncounterState {
   return reconcileStealthAfterMovementOrEnvironmentChange(updateEncounterEnvironmentBaseline(state, patch), options)
-}
-
-/**
- * **Legacy name / tests:** Previously pruned `hiddenFromObserverIds` when hide eligibility (sustain mode)
- * failed. **Policy:** losing concealment/cover basis for a **new** Hide attempt does **not** remove
- * observer-relative hidden state; {@link reconcileStealthAfterMovementOrEnvironmentChange} uses
- * {@link reconcileStealthHiddenForPerceivedObservers} plus optional diagnostic notes instead.
- *
- * Kept as a stable no-op so callers and tests can assert that basis loss alone does not mutate stealth.
- */
-export function reconcileStealthBreakWhenNoConcealmentInCell(
-  state: EncounterState,
-  _hiderId: string,
-  _options?: StealthRulesOptions,
-): EncounterState {
-  return state
 }
 
 function clearStealthForCombatant(state: EncounterState, combatantId: string): EncounterState {

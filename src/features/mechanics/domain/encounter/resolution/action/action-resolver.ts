@@ -422,7 +422,9 @@ function resolveCombatActionInternal(
       if (outcome.kind === 'no-eligible-observers') {
         summary = `${getEncounterCombatantLabel(state, actor.instanceId)} attempts to hide but has no eligible observers (concealment / eligibility).`
       } else {
-        details += ` Beat passive Perception: ${outcome.beatenObserverIds.join(', ') || 'none'}. Did not beat: ${outcome.failedObserverIds.join(', ') || 'none'}.`
+        const beatLabels = outcome.beatenObserverIds.map((id) => getEncounterCombatantLabel(nextState, id))
+        const failLabels = outcome.failedObserverIds.map((id) => getEncounterCombatantLabel(nextState, id))
+        details += ` Beat passive Perception: ${beatLabels.join(', ') || 'none'}. Did not beat: ${failLabels.join(', ') || 'none'}.`
         summary = `${getEncounterCombatantLabel(state, actor.instanceId)} attempts to hide (Stealth ${stealthTotal}).`
       }
       nextState = appendEncounterLogEvent(nextState, {

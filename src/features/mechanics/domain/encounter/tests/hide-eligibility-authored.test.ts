@@ -9,7 +9,6 @@ import {
   createEncounterState,
   getCombatantHideEligibilityExtensionOptions,
   getHideAttemptEligibilityDenialReason,
-  reconcileStealthBreakWhenNoConcealmentInCell,
   resolveHideWithPassivePerception,
 } from '@/features/mechanics/domain/encounter/state'
 
@@ -132,8 +131,7 @@ describe('hide eligibility from authored character feats (runtime)', () => {
 
     const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
     expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
-    const after = reconcileStealthBreakWhenNoConcealmentInCell(beat.state, 'rogue')
-    expect(after.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
+    expect(beat.state.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 })
 
@@ -191,8 +189,7 @@ describe('temporary runtime hide permissions (same resolver seam)', () => {
     )
     const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
     expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
-    const after = reconcileStealthBreakWhenNoConcealmentInCell(beat.state, 'rogue')
-    expect(after.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
+    expect(beat.state.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 
   it('authored skulker OR-merges with temporary grant (both true)', () => {
@@ -257,7 +254,6 @@ describe('temporary runtime hide permissions (same resolver seam)', () => {
     expect(getHideAttemptEligibilityDenialReason(state, 'rogue', 'wiz')).toBe(null)
     const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
     expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowDimLightHide).toBe(true)
-    const after = reconcileStealthBreakWhenNoConcealmentInCell(beat.state, 'rogue')
-    expect(after.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
+    expect(beat.state.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 })

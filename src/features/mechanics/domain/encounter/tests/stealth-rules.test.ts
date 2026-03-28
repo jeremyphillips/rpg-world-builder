@@ -11,7 +11,6 @@ import {
   getStealthHideAttemptDenialReason,
   isHiddenFromObserver,
   reconcileStealthAfterMovementOrEnvironmentChange,
-  reconcileStealthBreakWhenNoConcealmentInCell,
   reconcileStealthHiddenForPerceivedObservers,
   resolveDefaultHideObservers,
   resolveHideWithPassivePerception,
@@ -150,39 +149,7 @@ describe('stealth-rules', () => {
     expect(cleared.combatantsById.orc?.stealth).toBeUndefined()
   })
 
-  it('reconcileStealthBreakWhenNoConcealmentInCell keeps stealth when three-quarters cover remains (baseline)', () => {
-    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
-    const w = testPc('wiz', 'Wizard', 20)
-    const o = testEnemy('orc', 'Orc', 20)
-    const base = createEncounterState([w, o], { rng: () => 0.5, space })
-    const state = {
-      ...base,
-      placements: [
-        { combatantId: 'wiz', cellId: 'c-0-0' },
-        { combatantId: 'orc', cellId: 'c-1-0' },
-      ],
-      environmentZones: [
-        {
-          id: 'z-cover',
-          kind: 'patch',
-          sourceKind: 'terrain-feature',
-          area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
-          overrides: { terrainCover: 'three-quarters' },
-        },
-      ],
-      combatantsById: {
-        ...base.combatantsById,
-        orc: {
-          ...base.combatantsById.orc!,
-          stealth: { hiddenFromObserverIds: ['wiz'] },
-        },
-      },
-    }
-    const out = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
-    expect(out.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
-  })
-
-  it('reconcileStealthBreakWhenNoConcealmentInCell does not clear stealth on lost hide basis alone; perception reconcile removes', () => {
+  it('lost hide basis alone does not exist as a reconcile path; perception reconcile removes hidden-from when observer can perceive', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)
     const o = testEnemy('orc', 'Orc', 20)
@@ -201,9 +168,8 @@ describe('stealth-rules', () => {
         },
       },
     }
-    const afterBasis = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
-    expect(afterBasis.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
-    const pruned = reconcileStealthHiddenForPerceivedObservers(afterBasis)
+    expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+    const pruned = reconcileStealthHiddenForPerceivedObservers(state)
     expect(pruned.combatantsById.orc?.stealth).toBeUndefined()
     const pruneNote = pruned.log.find((e) => e.details?.includes(STEALTH_DEBUG_REASON.observerCanPerceiveTarget))
     expect(pruneNote?.summary).toMatch(/revealed to|pruned|perceive/i)
@@ -237,7 +203,7 @@ describe('stealth-rules', () => {
     expect(entry?.summary).toMatch(/perception/i)
   })
 
-  it('reconcileStealthBreakWhenNoConcealmentInCell does not clear half-cover stealth without persisted hideEligibility; perception reconcile does', () => {
+  it('half-cover without feat: hidden-from remains in state until perception-driven reconcile clears it', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)
     const o = testEnemy('orc', 'Orc', 20)
@@ -265,13 +231,12 @@ describe('stealth-rules', () => {
         },
       },
     }
-    const afterBasis = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
-    expect(afterBasis.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
-    const afterPerception = reconcileStealthHiddenForPerceivedObservers(afterBasis)
+    expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+    const afterPerception = reconcileStealthHiddenForPerceivedObservers(state)
     expect(afterPerception.combatantsById.orc?.stealth).toBeUndefined()
   })
 
-  it('reconcileStealthBreakWhenNoConcealmentInCell keeps half-cover stealth when hideEligibility was persisted', () => {
+  it('half-cover with persisted hideEligibility: hidden-from list unchanged (no basis-only removal)', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)
     const o = testEnemy('orc', 'Orc', 20)
@@ -302,11 +267,10 @@ describe('stealth-rules', () => {
         },
       },
     }
-    const out = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
-    expect(out.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+    expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
   })
 
-  it('reconcileStealthBreakWhenNoConcealmentInCell does not clear dim-only stealth without persisted allowDimLightHide; perception reconcile does', () => {
+  it('dim-only without dim flag: hidden-from remains until perception-driven reconcile clears it', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)
     const o = testEnemy('orc', 'Orc', 20)
@@ -334,13 +298,12 @@ describe('stealth-rules', () => {
         },
       },
     }
-    const afterBasis = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
-    expect(afterBasis.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
-    const afterPerception = reconcileStealthHiddenForPerceivedObservers(afterBasis)
+    expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+    const afterPerception = reconcileStealthHiddenForPerceivedObservers(state)
     expect(afterPerception.combatantsById.orc?.stealth).toBeUndefined()
   })
 
-  it('reconcileStealthBreakWhenNoConcealmentInCell keeps dim stealth when hideEligibility allowDimLightHide was persisted', () => {
+  it('dim with persisted allowDimLightHide: hidden-from list unchanged', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)
     const o = testEnemy('orc', 'Orc', 20)
@@ -371,11 +334,10 @@ describe('stealth-rules', () => {
         },
       },
     }
-    const out = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
-    expect(out.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+    expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
   })
 
-  it('reconcileStealthBreakWhenNoConcealmentInCell keeps difficult-terrain stealth when allowDifficultTerrainHide was persisted', () => {
+  it('difficult terrain with persisted flag: hidden-from list unchanged', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)
     const o = testEnemy('orc', 'Orc', 20)
@@ -406,11 +368,10 @@ describe('stealth-rules', () => {
         },
       },
     }
-    const out = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
-    expect(out.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+    expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
   })
 
-  it('resolveHideWithPassivePerception persists hideEligibility so reconcile does not drop half-cover hidden state', () => {
+  it('resolveHideWithPassivePerception persists hideEligibility; movement reconcile does not drop half-cover hidden state', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)
     const o = testEnemy('orc', 'Orc', 20)
@@ -441,11 +402,10 @@ describe('stealth-rules', () => {
     const hideOpts = { hideEligibility: { featureFlags: { allowHalfCoverForHide: true } } }
     const beat = resolveHideWithPassivePerception(state, 'orc', 11, hideOpts)
     expect(beat.state.combatantsById.orc?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
-    const afterReconcile = reconcileStealthBreakWhenNoConcealmentInCell(beat.state, 'orc')
-    expect(afterReconcile.combatantsById.orc?.stealth?.hiddenFromObserverIds).toContain('wiz')
+    expect(beat.state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 
-  it('resolveHideWithPassivePerception + reconcile use combatant-derived hide flags (skillRuntime)', () => {
+  it('resolveHideWithPassivePerception uses combatant-derived hide flags (skillRuntime)', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)
     const o = testEnemy('orc', 'Orc', 20)
@@ -482,11 +442,10 @@ describe('stealth-rules', () => {
     }
     const beat = resolveHideWithPassivePerception(state, 'orc', 11)
     expect(beat.state.combatantsById.orc?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
-    const afterReconcile = reconcileStealthBreakWhenNoConcealmentInCell(beat.state, 'orc')
-    expect(afterReconcile.combatantsById.orc?.stealth?.hiddenFromObserverIds).toContain('wiz')
+    expect(beat.state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 
-  it('reconcileStealthBreakWhenNoConcealmentInCell does not prune observer-relative hidden state on cover-basis mismatch alone', () => {
+  it('observer-relative hidden-from list is not pruned by a legacy basis-break path (only perception reconcile prunes)', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const wiz = testPc('wiz', 'Wizard', 20)
     const bard = testPc('bard', 'Bard', 20)
@@ -516,8 +475,7 @@ describe('stealth-rules', () => {
         },
       },
     }
-    const out = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
-    expect(out.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz', 'bard'])
+    expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz', 'bard'])
   })
 
   it('lost terrain cover alone does not clear stealth; reconcileStealthHiddenForPerceivedObservers reveals when observer can perceive', () => {
@@ -552,9 +510,8 @@ describe('stealth-rules', () => {
       },
     }
     const zonesRemoved = { ...withHalfCoverZone, environmentZones: [] as typeof withHalfCoverZone.environmentZones }
-    const afterNoOp = reconcileStealthBreakWhenNoConcealmentInCell(zonesRemoved, 'orc')
-    expect(afterNoOp.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
-    const afterPerception = reconcileStealthHiddenForPerceivedObservers(afterNoOp)
+    expect(zonesRemoved.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+    const afterPerception = reconcileStealthHiddenForPerceivedObservers(zonesRemoved)
     expect(afterPerception.combatantsById.orc?.stealth).toBeUndefined()
   })
 

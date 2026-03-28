@@ -105,9 +105,8 @@ These keep stored **`hiddenFromObserverIds`** aligned with the **shared percepti
 
 | Helper | Purpose |
 |--------|---------|
-| **`reconcileStealthAfterMovementOrEnvironmentChange`** | **`reconcileStealthHiddenForPerceivedObservers`**, then optional **hide-basis context** notes (no stealth mutation). Use after movement, placement, zone, or baseline changes. |
+| **`reconcileStealthAfterMovementOrEnvironmentChange`** | **`reconcileStealthHiddenForPerceivedObservers`**, then optional **`appendStealthHideBasisLostContextNote`** diagnostics (combat log only — no stealth mutation). Use after movement, placement, zone, or baseline changes. |
 | **`reconcileStealthHiddenForPerceivedObservers`** | Drop an observer from the subject’s list when that observer **can** perceive the subject’s occupant (observer-relative; partial lists preserved). |
-| **`reconcileStealthBreakWhenNoConcealmentInCell`** | **No-op** (stable export): concealment-basis loss alone no longer prunes hidden-from; tests may still call it to assert non-mutation. |
 | **`applyEncounterEnvironmentBaselinePatchAndReconcileStealth`** | **`updateEncounterEnvironmentBaseline`** + full reconcile (baseline-only callers; avoids circular imports). |
 
 **Runtime integration (deterministic order):**
@@ -163,10 +162,10 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth/stealt
 | `applyStealthHideSuccess` | Merge **observerIds** (manual / future active contest); optional **`hideEligibility`** for tests/DM tooling. |
 | `resolveHideEligibilityForCombatant` | Effective extension flags for hide attempt vs sustain (`stealth/sight-hide-rules.ts`). |
 | `resolveDefaultHideObservers` | Candidate observers (eligibility only). |
-| `reconcileStealthAfterMovementOrEnvironmentChange` | Perceived-again pruning + optional hide-basis diagnostic notes. |
+| `reconcileStealthAfterMovementOrEnvironmentChange` | Perceived-again pruning + optional hide-basis diagnostic notes (see `stealth-debug-log.ts`). |
 | `applyEncounterEnvironmentBaselinePatchAndReconcileStealth` | Baseline patch + full reconcile. |
 | `reconcileStealthHiddenForPerceivedObservers` | Align hidden-from with perception. |
-| `reconcileStealthBreakWhenNoConcealmentInCell` | No-op placeholder; basis-loss pruning removed in favor of perception-driven reconcile. |
+| `appendStealthHideBasisLostContextNote` | Combat-log diagnostic when hide world basis is gone but observers still cannot perceive (does not change stealth). |
 | `breakStealthOnAttack` | Clear attacker stealth after attack roll (global reveal). |
 | `ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE` | Contract flag (`false`) — attack modifiers must not read `stealth`. |
 | `isHiddenFromObserver` | Read helper (bookkeeping only). |

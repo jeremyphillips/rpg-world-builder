@@ -138,7 +138,6 @@ export {
   isHiddenFromObserver,
   applyEncounterEnvironmentBaselinePatchAndReconcileStealth,
   reconcileStealthAfterMovementOrEnvironmentChange,
-  reconcileStealthBreakWhenNoConcealmentInCell,
   reconcileStealthHiddenForPerceivedObservers,
   resolveDefaultHideObservers,
   resolveHideWithPassivePerception,
@@ -149,9 +148,9 @@ export {
 export {
   STEALTH_DEBUG_REASON,
   appendStealthBrokenOnAttackNote,
+  appendStealthHideBasisLostContextNote,
   appendStealthHideSuccessAppliedNote,
   appendStealthMovementRecheckHeaderNote,
-  appendStealthPrunedLostHideBasisNote,
   appendStealthPrunedObserverCanPerceiveNote,
 } from './stealth/stealth-debug-log'
 export {
