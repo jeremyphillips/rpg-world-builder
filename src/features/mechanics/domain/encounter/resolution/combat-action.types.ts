@@ -75,6 +75,13 @@ export interface CombatActionTargetingProfile {
    * in the resolver.
    */
   requiresSight?: boolean
+  /**
+   * When **`requiresSight`** is false/undefined: whether an observer may target using **guessed cell**
+   * awareness on the subject (`CombatantAwarenessRuntime`) when they cannot **`canSeeForTargeting`** the
+   * occupant. Defaults **true** — “fully unknown” location fails; **false** forces sight-only (same as
+   * requiring visible occupant) without setting **`requiresSight`**.
+   */
+  allowGuessedLocationWhenUnseen?: boolean
 }
 
 export interface CombatActionMovementProfile {

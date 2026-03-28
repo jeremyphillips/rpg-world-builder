@@ -12,6 +12,7 @@ import {
   isActiveCombatant,
   isDefeatedCombatant,
 } from '../../state/combatant-participation'
+import { getGuessedCellForObserver } from '../../state/awareness-rules'
 import { canSeeForTargeting } from '../../state/visibility-seams'
 import { gridDistanceFt, getCellForCombatant, isWithinRange } from '@/features/encounter/space'
 import type { CombatActionAreaTemplate } from '../combat-action.types'
@@ -24,6 +25,10 @@ import type { CombatActionAreaTemplate } from '../combat-action.types'
  *
  * When `requiresSight` is set, validation uses {@link canSeeForTargeting} → `canPerceiveTargetOccupantForCombat`
  * (same occupant-perception seam as attack rolls; not a parallel visibility engine).
+ *
+ * When **`requiresSight`** is **not** set, creature-targeting kinds still require **either** visible occupant
+ * **or** (by default) a **guessed cell** for this observer on the subject — see {@link getGuessedCellForObserver}.
+ * Guessed position does **not** satisfy **`requiresSight`** and is not “can see.”
  */
 
 /** Chebyshev distance from origin cell to combatant cell; used as first-pass sphere/cube approximation. */
@@ -102,6 +107,33 @@ function shouldSuppressSameSideHostile(options?: ActionTargetingResolveOptions):
   return options?.suppressSameSideHostileActions !== false
 }
 
+function shouldApplyLocationAwarenessGate(kind: CombatActionTargetingProfile['kind'] | undefined): boolean {
+  return (
+    kind === 'single-target' ||
+    kind === 'single-creature' ||
+    kind === 'dead-creature' ||
+    kind === 'entered-during-move'
+  )
+}
+
+/**
+ * For actions **without** `requiresSight`: allow targeting when the actor can see the occupant **or**
+ * (unless `allowGuessedLocationWhenUnseen === false`) has a guessed cell on the subject for this observer.
+ */
+export function targetingLocationAwarenessAllows(
+  state: EncounterState,
+  actor: CombatantInstance,
+  target: CombatantInstance,
+  action: CombatActionDefinition,
+): boolean {
+  const allowGuess = action.targeting?.allowGuessedLocationWhenUnseen !== false
+  const canSee = canSeeForTargeting(state, actor.instanceId, target.instanceId)
+  if (allowGuess) {
+    return canSee || getGuessedCellForObserver(state, target.instanceId, actor.instanceId) != null
+  }
+  return canSee
+}
+
 /**
  * When a new round starts, `advanceEncounterTurn` re-rolls initiative from living combatants only,
  * so dead bodies drop out of `initiativeOrder` while remaining in `combatantsById`. Dead-creature
@@ -161,6 +193,17 @@ export function isValidActionTarget(
   }
 
   if (
+    shouldApplyLocationAwarenessGate(kind) &&
+    !action.targeting?.requiresSight &&
+    kind !== 'self' &&
+    kind !== 'all-enemies' &&
+    kind !== 'none' &&
+    !targetingLocationAwarenessAllows(state, actor, combatant, action)
+  ) {
+    return false
+  }
+
+  if (
     action.targeting?.rangeFt != null &&
     kind !== 'self' &&
     kind !== 'none' &&
@@ -207,14 +250,6 @@ export function getActionTargetInvalidReason(
 
   if (hasBattlefieldAbsenceConsequence(combatant, 'banished')) return 'Target is banished'
 
-  if (kind === 'dead-creature') {
-    if (!canTargetAsDeadCreature(combatant)) {
-      if (combatant.stats.currentHitPoints !== 0) return 'Requires dead creature'
-      return 'Remains destroyed'
-    }
-    return null
-  }
-
   if (!passesCreatureTypeFilter(combatant, action.targeting?.creatureTypeFilter)) return 'Invalid creature type'
 
   if (isHostileAction(action) && cannotTargetWithHostileAction(actor, combatant.instanceId)) {
@@ -229,6 +264,25 @@ export function getActionTargetInvalidReason(
     !canSeeForTargeting(state, actor.instanceId, combatant.instanceId)
   ) {
     return 'Target not visible'
+  }
+
+  if (
+    shouldApplyLocationAwarenessGate(kind) &&
+    !action.targeting?.requiresSight &&
+    kind !== 'self' &&
+    kind !== 'all-enemies' &&
+    kind !== 'none' &&
+    !targetingLocationAwarenessAllows(state, actor, combatant, action)
+  ) {
+    return 'Target location unknown'
+  }
+
+  if (kind === 'dead-creature') {
+    if (!canTargetAsDeadCreature(combatant)) {
+      if (combatant.stats.currentHitPoints !== 0) return 'Requires dead creature'
+      return 'Remains destroyed'
+    }
+    return null
   }
 
   if (kind === 'none') return 'No target required'

@@ -150,8 +150,10 @@ export {
   clearGuessedCellForObserver,
   getGuessedCellForObserver,
   reconcileAwarenessGuessesWithPerception,
+  resolveTargetLocationAwareness,
   setGuessedCellForObserver,
   type NoiseAwarenessKind,
+  type TargetLocationAwarenessResolution,
 } from './awareness-rules'
 export {
   getCombatantAbilityScore,

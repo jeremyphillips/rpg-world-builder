@@ -29,7 +29,7 @@ A subject can be **hidden** from an observer **and** still have a **guessed cell
 - **`awareness?: CombatantAwarenessRuntime`** on the **subject** combatant.
 - **`guessedCellByObserverId?: Record<string, string>`** — observer combatant id → **grid cell id** (string id from placements / space).
 
-Mutations and rules live in **`awareness-rules.ts`**. Helpers include **`getGuessedCellForObserver`**, **`setGuessedCellForObserver`**, **`clearGuessedCellForObserver`**, **`applyNoiseAwarenessForSubject`**, **`reconcileAwarenessGuessesWithPerception`**.
+Mutations and rules live in **`awareness-rules.ts`**. Helpers include **`getGuessedCellForObserver`**, **`setGuessedCellForObserver`**, **`clearGuessedCellForObserver`**, **`applyNoiseAwarenessForSubject`**, **`reconcileAwarenessGuessesWithPerception`**, **`resolveTargetLocationAwareness`** (classifies **visible** vs **guessed-location** vs **unknown** for an observer–subject pair).
 
 ---
 
@@ -53,15 +53,25 @@ Mutations and rules live in **`awareness-rules.ts`**. Helpers include **`getGues
 
 ## Targeting and attacks
 
-- **Requires-sight** targeting continues to use **`canSeeForTargeting`** only. Guessed position **does not** make a target valid for sight-required actions.
-- **Attack-at-guessed-location** (e.g. attacking a square) is **out of scope** for this pass — the model is groundwork and runtime/debug state until targeting supports it.
+**`isValidActionTarget`** / **`getActionTargetInvalidReason`** (`action-targeting.ts`) integrate guessed position **without** conflating it with sight:
+
+| Action targeting | Location requirement |
+|------------------|----------------------|
+| **`requiresSight: true`** | **`canSeeForTargeting`** only. Guessed cell **does not** help. Failure: **`Target not visible`**. |
+| **`requiresSight`** false/omitted (creature-targeting kinds: **`single-target`**, **`single-creature`**, **`dead-creature`**, **`entered-during-move`**) | **Visible occupant** **or** (by default) a **guessed cell** for this observer on the subject. If neither: **`Target location unknown`**. |
+| **`allowGuessedLocationWhenUnseen: false`** on **`CombatActionTargetingProfile`** | Same as forcing **sight-only** without setting **`requiresSight`** — useful for special cases; guessed cell does not help. |
+
+- **Range** (`rangeFt`) still uses **actual** combatant placements — guessed cell does **not** substitute distance (the creature is still at its real cell; awareness only answers “do you know to swing there”).
+- **Attack-roll advantage/disadvantage** still comes only from **`resolveCombatantPairVisibilityForAttackRoll`** / the shared visibility seam — guessed targeting does **not** add extra visibility modifiers (avoid double-counting unseen-target rules).
+
+**Not** implemented: selecting **only** a grid square with no creature token (true attack-a-square); **wrong-square** miss rules when the guess is stale; decoys.
 
 ---
 
 ## Remaining TODOs (broader systems)
 
 - **Full hearing / sound propagation** — range, walls, stealth-at-a-distance, sense-specific rules.
-- **Attack-at-guessed-location** — legal targets, disadvantage, automatic miss, area vs creature.
+- **Attack-a-square / wrong-square resolution** — miss when the creature moved after the guess; uncertainty tiers (“heard but not pinpointed”).
 - **Richer sensory capabilities** — threading **`EncounterViewerPerceptionCapabilities`** and blindsight-like behavior with hidden + guessed position.
 - **Deeper world / geometry** — 3D, occlusion, and movement noise categories wired from **`moveCombatant`** and action types.
 - **History / timeline** of awareness — not stored; only current guessed cell per observer pair.

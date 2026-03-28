@@ -3,15 +3,20 @@ import { describe, expect, it } from 'vitest'
 import {
   addConditionToCombatant,
   addStateToCombatant,
+  applyNoiseAwarenessForSubject,
   createEncounterState,
   canPerceiveTargetOccupantForCombat,
   canSeeForTargeting,
   lineOfEffectClear,
   lineOfSightClear,
+  resolveTargetLocationAwareness,
 } from '../state'
 import { getActionTargetInvalidReason, isValidActionTarget } from '../resolution/action/action-targeting'
 import type { CombatActionDefinition } from '../resolution/combat-action.types'
 import type { CombatantInstance } from '../state'
+import type { EncounterState } from '../state/types'
+
+import { createSquareGridSpace } from '@/features/encounter/space/createSquareGridSpace'
 
 import {
   encounterAttackerOutsideDefenderHeavilyObscured,
@@ -19,6 +24,30 @@ import {
   testEnemy,
   testPc,
 } from './encounter-visibility-test-fixtures'
+
+/** Wizard c-0-0, orc c-1-0 (5 ft); heavy obscurement on orc cell only — in melee range but occupant unseen. */
+function encounterAdjacentHeavyObscuredOrc(): EncounterState {
+  const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+  const wiz = testPc('wiz', 'Wizard', 20)
+  const orc = testEnemy('orc', 'Orc', 20)
+  const base = createEncounterState([wiz, orc], { rng: () => 0.5, space })
+  return {
+    ...base,
+    placements: [
+      { combatantId: 'wiz', cellId: 'c-0-0' },
+      { combatantId: 'orc', cellId: 'c-1-0' },
+    ],
+    environmentZones: [
+      {
+        id: 'z-heavy',
+        kind: 'patch',
+        sourceKind: 'manual',
+        area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
+        overrides: { visibilityObscured: 'heavy' },
+      },
+    ],
+  }
+}
 
 function pc(id: string, label: string, hp: number, extra?: Partial<CombatantInstance>): CombatantInstance {
   return {
@@ -190,5 +219,72 @@ describe('isValidActionTarget + requiresSight (shared occupant seam)', () => {
     expect(getActionTargetInvalidReason(state, orc, state.combatantsById.wiz!, spellWithSight)).toBe(
       'Target not visible',
     )
+  })
+})
+
+const meleeWeaponAttack: CombatActionDefinition = {
+  id: 'test-melee',
+  label: 'Melee',
+  kind: 'weapon-attack',
+  cost: { action: true },
+  resolutionMode: 'attack-roll',
+  targeting: { kind: 'single-target', rangeFt: 5 },
+}
+
+describe('isValidActionTarget + guessed location (not sight)', () => {
+  it('weapon attack without requiresSight: unseen + no guess fails (fully unknown)', () => {
+    const state = encounterAdjacentHeavyObscuredOrc()
+    const w = state.combatantsById.wiz!
+    const orc = state.combatantsById.orc!
+    expect(canSeeForTargeting(state, 'wiz', 'orc')).toBe(false)
+    expect(isValidActionTarget(state, orc, w, meleeWeaponAttack)).toBe(false)
+    expect(getActionTargetInvalidReason(state, orc, w, meleeWeaponAttack)).toBe('Target location unknown')
+  })
+
+  it('weapon attack: guessed cell allows target when occupant unseen (attack visibility unchanged elsewhere)', () => {
+    const base = encounterAdjacentHeavyObscuredOrc()
+    const state = applyNoiseAwarenessForSubject(base, 'orc', { kind: 'attack' })
+    const w = state.combatantsById.wiz!
+    const orc = state.combatantsById.orc!
+    expect(resolveTargetLocationAwareness(state, 'wiz', 'orc').kind).toBe('guessed-location')
+    expect(isValidActionTarget(state, orc, w, meleeWeaponAttack)).toBe(true)
+  })
+
+  it('requiresSight still fails when only guessed location exists (guessed is not visible)', () => {
+    const base = encounterAdjacentHeavyObscuredOrc()
+    const state = applyNoiseAwarenessForSubject(base, 'orc', { kind: 'attack' })
+    const w = state.combatantsById.wiz!
+    const orc = state.combatantsById.orc!
+    const spellWithSight: CombatActionDefinition = {
+      id: 'test',
+      label: 'Test',
+      kind: 'spell',
+      cost: { action: true },
+      resolutionMode: 'effects',
+      targeting: { kind: 'single-target', requiresSight: true, rangeFt: 120 },
+    }
+    expect(isValidActionTarget(state, orc, w, spellWithSight)).toBe(false)
+    expect(getActionTargetInvalidReason(state, orc, w, spellWithSight)).toBe('Target not visible')
+  })
+
+  it('allowGuessedLocationWhenUnseen: false forces sight-only without requiresSight flag', () => {
+    const base = encounterAdjacentHeavyObscuredOrc()
+    const state = applyNoiseAwarenessForSubject(base, 'orc', { kind: 'attack' })
+    const w = state.combatantsById.wiz!
+    const orc = state.combatantsById.orc!
+    const noGuessTargeting: CombatActionDefinition = {
+      ...meleeWeaponAttack,
+      targeting: { ...meleeWeaponAttack.targeting!, allowGuessedLocationWhenUnseen: false },
+    }
+    expect(isValidActionTarget(state, orc, w, noGuessTargeting)).toBe(false)
+    expect(getActionTargetInvalidReason(state, orc, w, noGuessTargeting)).toBe('Target location unknown')
+  })
+
+  it('no tactical grid: permissive occupant sight still allows weapon target (unchanged)', () => {
+    const w = pc('w', 'Wizard', 20)
+    const g = enemy('g', 'Goblin', 10)
+    const state = createEncounterState([w, g], { rng: () => 0.5 })
+    expect(canSeeForTargeting(state, 'w', 'g')).toBe(true)
+    expect(isValidActionTarget(state, g, w, meleeWeaponAttack)).toBe(true)
   })
 })

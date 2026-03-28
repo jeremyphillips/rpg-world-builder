@@ -77,6 +77,7 @@ Hide **attempt** eligibility (not a full Stealth contest) is in **`getHideAttemp
 **`CombatantInstance.awareness`** (`CombatantAwarenessRuntime`) holds **observer-relative** **`guessedCellByObserverId`** — a last attributed **grid cell** for observers who **do not** currently **`canPerceiveTargetOccupantForCombat`** the subject’s occupant. Rules live in **`awareness-rules.ts`**.
 
 - **Does not** satisfy **`canSeeForTargeting`** or requires-sight checks.
+- **Creature targeting** (`isValidActionTarget` in **`action-targeting.ts`**): for actions **without** **`requiresSight`**, a valid target needs **visible occupant** **or** (by default) a **guessed cell** — not **fully unknown**. **`requiresSight: true`** still uses only the visibility seam.
 - **Coexists** with **`stealth`**: a subject can be **hidden** from an observer and still have a guessed cell for that observer.
 - **Clears** when the observer **can** perceive the occupant (**`reconcileAwarenessGuessesWithPerception`**, also run at the end of **`reconcileStealthHiddenForPerceivedObservers`**).
 - **Noise entry point:** **`applyNoiseAwarenessForSubject`** (e.g. after an attack resolves — see **`action-resolver.ts`**).

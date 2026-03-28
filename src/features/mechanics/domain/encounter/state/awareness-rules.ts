@@ -11,10 +11,20 @@ import { getCellForCombatant } from '@/features/encounter/space'
 
 import { canPerceiveTargetOccupantForCombat } from './combatant-pair-visibility'
 import { updateEncounterCombatant } from './mutations'
+import { canSeeForTargeting } from './visibility-seams'
 import type { CombatantAwarenessRuntime } from './types/combatant.types'
 import type { EncounterState } from './types'
 
 export type NoiseAwarenessKind = 'attack' | 'movement' | 'other'
+
+/**
+ * How an observer can **place** a subject for rules that need a tactical location without conflating
+ * with **sight** (`canSeeForTargeting`). Used by combat targeting — see `action-targeting.ts`.
+ */
+export type TargetLocationAwarenessResolution =
+  | { kind: 'visible' }
+  | { kind: 'guessed-location'; cellId: string }
+  | { kind: 'unknown' }
 
 export function getGuessedCellForObserver(
   state: EncounterState,
@@ -22,6 +32,23 @@ export function getGuessedCellForObserver(
   observerId: string,
 ): string | undefined {
   return state.combatantsById[subjectId]?.awareness?.guessedCellByObserverId?.[observerId]
+}
+
+/**
+ * **Visibility wins:** if the observer can perceive the subject’s occupant, the mode is **visible** —
+ * guessed cell is ignored for classification (reconcile still clears redundant guesses elsewhere).
+ */
+export function resolveTargetLocationAwareness(
+  state: EncounterState,
+  observerId: string,
+  subjectId: string,
+): TargetLocationAwarenessResolution {
+  if (canSeeForTargeting(state, observerId, subjectId)) {
+    return { kind: 'visible' }
+  }
+  const cellId = getGuessedCellForObserver(state, subjectId, observerId)
+  if (cellId) return { kind: 'guessed-location', cellId }
+  return { kind: 'unknown' }
 }
 
 export function setGuessedCellForObserver(
