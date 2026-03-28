@@ -7,9 +7,9 @@ import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbi
 import {
   buildActiveMonsterEffects,
   buildMonsterTurnHooks,
-  DEFAULT_MANUAL_MONSTER_TRIGGER_CONTEXT,
   type CombatantInstance,
 } from '@/features/mechanics/domain/encounter'
+import { DEFAULT_MANUAL_MONSTER_TRIGGER_CONTEXT } from '@/features/mechanics/domain/encounter/runtime/monster-runtime.types'
 import {
   buildMonsterAttackEntries,
   buildMonsterExecutableActions,

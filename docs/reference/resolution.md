@@ -497,7 +497,7 @@ const result = resolveStatDetailed('armor_class', base.context, allEffects)
 Healing spells are authored with `hit-points` effects and resolved through the `effects` action resolution mode. The spell adapter injects the caster's spellcasting ability modifier when `abilityModifier` is `true`, and the action effects engine rolls the dice and applies healing via `applyHealingToCombatant`.
 
 ```typescript
-import { buildSpellCombatActions, getCharacterSpellcastingStats } from '@/features/encounter/helpers'
+import { buildSpellCombatActions, getCharacterSpellcastingStats } from '@/features/encounter/helpers/spells'
 
 const stats = getCharacterSpellcastingStats(character, ruleset)
 const actions = buildSpellCombatActions({
