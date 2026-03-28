@@ -20,7 +20,8 @@ function hasSeeInvisibilityState(c: CombatantInstance): boolean {
 
 /**
  * Shared pair-level seam: whether `observer` can **perceive the target combatant as an occupant**
- * for combat (attack rolls, and spell/ability targeting that requires sight).
+ * for combat (attack rolls, spell/ability targeting that requires sight, opportunity attacks, sight-based
+ * checks, and Hide eligibility — see `sight-hide-rules.ts`).
  *
  * This is **not** the same as perceiving only that a cell exists: in heavy obscurement or magical
  * darkness, `canPerceiveCell` may stay true while `canPerceiveOccupants` is false — attacks and

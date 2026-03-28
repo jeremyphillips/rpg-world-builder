@@ -98,6 +98,14 @@ export {
   type OpportunityAttackLegalityDenialReason,
 } from './opportunity-attack'
 export {
+  canVisuallyPerceiveSubjectForRules,
+  getSightBasedCheckLegalityDenialReason,
+  cellWorldSupportsHideConcealment,
+  getHideAttemptEligibilityDenialReason,
+  type SightBasedCheckDenialReason,
+  type HideAttemptEligibilityDenialReason,
+} from './sight-hide-rules'
+export {
   combatantHasBattlefieldAbsenceEngineState,
   findNearestUnoccupiedPassableCell,
   markerCausesBattlefieldAbsence,

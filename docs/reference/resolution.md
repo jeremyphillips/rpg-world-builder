@@ -158,6 +158,8 @@ Targeting validation is centralized so the resolver and UI share a single source
 
 **Opportunity attacks** (`opportunity-attack.ts`): **Leave reach** (spatial) is `didHostileMoverLeaveMeleeReachOfReactor` — compare distances before/after `moveCombatant`. **Sight** for OA uses the same occupant seam: `canReactorPerceiveDepartingOccupantForOpportunityAttack` → `canPerceiveTargetOccupantForCombat` on **pre-move** state (combat semantics, `viewerRole: 'pc'`). Full legality is `getOpportunityAttackLegalityDenialReason` (hostile, active, reaction budget, leave-reach, then sight). Disengage / no-OA movement flags are not modeled yet.
 
+**Sight-based checks & Hide** (`sight-hide-rules.ts`): `canVisuallyPerceiveSubjectForRules` / `getSightBasedCheckLegalityDenialReason` delegate to `canPerceiveTargetOccupantForCombat`. Hide **attempt** eligibility uses the same occupant seam plus **world** concealment at the hider’s cell (`cellWorldSupportsHideConcealment` from `resolveWorldEnvironmentFromEncounterState`): denied when the observer perceives the hider’s occupant **and** the cell has no concealment (`observer-sees-without-concealment`). No grid → permissive (allow attempt), matching pair-visibility fallback.
+
 **Encounter UI readiness** (`action-resolution-requirements.ts`, `encounter/domain/interaction/encounter-resolve-selection.ts`):
 
 Pure helpers describe what must be true before the encounter action drawer enables **Resolve**, independent of the resolver pipeline:
