@@ -21,6 +21,9 @@ import type { CombatActionAreaTemplate } from '../combat-action.types'
  * - `single-creature` — living combatant (`isActiveCombatant`): ally buffs / features that target one living creature.
  * - `dead-creature` — {@link canTargetAsDeadCreature}: 0 HP with corpse-like remains (not dust/disintegrated).
  * - `single-target` — varies by hostile/willing; still excludes defeated combatants via `isDefeatedCombatant` below.
+ *
+ * When `requiresSight` is set, validation uses {@link canSeeForTargeting} → `canPerceiveTargetOccupantForCombat`
+ * (same occupant-perception seam as attack rolls; not a parallel visibility engine).
  */
 
 /** Chebyshev distance from origin cell to combatant cell; used as first-pass sphere/cube approximation. */

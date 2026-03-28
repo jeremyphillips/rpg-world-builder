@@ -99,7 +99,7 @@ When a **`spawn`** effect creates new combatants that **replace** an existing to
 - **Line geometry:** The segment runs between **cell centers** of the source and target cells `(x+0.5, y+0.5)`. The set of cells visited is a **grid supercover** using an **Amanatides & Woo–style DDA** (each unit cell the segment intersects). When a ray hits a **corner** between two cells, the tie branch steps **diagonally** so both grid steps are included.
 - **Blocking:** `cellBlocksSight(space, cellId)` is the **only** resolver for opaque sight blockers; it reads `EncounterCell.blocksSight`. **Intermediate** cells on the path may block; **source and target cells do not** block their own endpoints (occupants on those squares do not apply blocking in this first pass).
 - **API:** `hasLineOfSight(space, fromCellId, toCellId)`; `traceLineOfSightCells` is mainly for tests and debugging.
-- **Targeting:** `canSeeForTargeting` in `visibility-seams.ts` composes condition-based sight (e.g. blinded, invisible) with `lineOfSightClear`, which calls `hasLineOfSight` when `EncounterSpace` and placements exist. **Cover** and **obscurement** are out of scope here; future `deriveCoverLevel` would sit beside LoS, not inside it.
+- **Targeting:** `canSeeForTargeting` delegates to `canPerceiveTargetOccupantForCombat` (`combatant-pair-visibility.ts`): condition-based sight (e.g. blinded, invisible), `lineOfSightClear` → `hasLineOfSight` when a grid exists, then **occupant** visibility from `perception.resolve.ts` (heavy obscurement, magical darkness, etc.). **Cover** for attack modifiers is still separate; binary LoS here does not replace perception’s “can you see the creature in that cell?”
 
 ### Movement
 

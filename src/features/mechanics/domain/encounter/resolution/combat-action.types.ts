@@ -63,8 +63,11 @@ export interface CombatActionTargetingProfile {
    */
   requiresWilling?: boolean
   /**
-   * From spell targeting metadata: “creature you can see.” Validated via {@link canSeeForTargeting}
-   * (blinded, invisible vs See Invisibility, LOS/LoE stubs). Ignored for `self` and `all-enemies` in the resolver.
+   * From spell targeting metadata: “creature you can see.” Validated via {@link canSeeForTargeting} (delegates
+   * to `canPerceiveTargetOccupantForCombat` in `combatant-pair-visibility.ts`) — same seam as attack-roll
+   * visibility: **occupant** perception (not cell-only), including world/perception (heavy obscurement,
+   * magical darkness) after blinded / invisible vs See Invisibility / LOS. Ignored for `self` and `all-enemies`
+   * in the resolver.
    */
   requiresSight?: boolean
 }
