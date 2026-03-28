@@ -104,9 +104,6 @@ export type EncounterEnvironmentExtended = {
   notes?: string
 }
 
-/** @deprecated Prefer {@link EncounterEnvironmentExtended}; name retained briefly for any stray imports. */
-export type EncounterEnvironment = EncounterEnvironmentExtended
-
 /** What ties a zone to the battle (spell instance, effect id, etc.). */
 export type EncounterEnvironmentOverrideSourceKind =
   | 'battlefield-effect'
@@ -152,17 +149,10 @@ export type WorldObscurationPresentationCause =
 export type EncounterEnvironmentZoneKind = 'patch' | 'emanation' | 'hazard'
 
 /**
- * Geometry for zone coverage. Prefer `sphere-ft` (matches battlefield AoE: Chebyshev distance in feet).
- * @deprecated `grid-cell-radius` — prefer `sphere-ft` with an explicit radius in feet.
+ * Geometry for zone coverage. Prefer **`sphere-ft`** (matches battlefield AoE: Chebyshev distance in feet).
  */
 export type EncounterEnvironmentAreaLink =
   | { kind: 'grid-cell-ids'; cellIds: string[] }
-  | {
-      /** @deprecated Prefer `sphere-ft`. */
-      kind: 'grid-cell-radius'
-      centerCellId: string
-      radiusCells: number
-    }
   | { kind: 'sphere-ft'; originCellId: string; radiusFt: number }
   | { kind: 'unattached'; note?: string }
 
@@ -207,9 +197,6 @@ export type EncounterEnvironmentZone = {
   visibilityObscurationCause?: WorldObscurationPresentationCause
 }
 
-/** @deprecated Use {@link EncounterEnvironmentZone}. */
-export type EncounterEnvironmentZoneOverride = EncounterEnvironmentZone
-
 /**
  * **World / environment state** at one grid cell after baseline + zone layering.
  * Not viewer perception and not UI render state — consumers project for display/senses later.
@@ -236,6 +223,3 @@ export type EncounterWorldCellEnvironment = {
    */
   obscurationPresentationCauses: readonly WorldObscurationPresentationCause[]
 }
-
-/** @deprecated Use {@link EncounterWorldCellEnvironment}. */
-export type EncounterCellEnvironmentResolved = EncounterWorldCellEnvironment

@@ -32,8 +32,9 @@ Domain contract for **baseline** encounter defaults, **localized environment zon
 
 - **`grid-cell-ids`** — explicit membership.  
 - **`sphere-ft`** — preferred; matches battlefield AoE: Chebyshev distance in feet vs `originCellId` (`gridDistanceFt` ≤ `radiusFt`).  
-- **`grid-cell-radius`** — deprecated; converted to feet via `radiusCells × cellFeet` when `space` is provided.  
 - **`unattached`** — covers no cells.
+
+The old **`grid-cell-radius`** variant has been removed; use **`sphere-ft`** with an explicit radius in feet.
 
 Use `cellIdInEnvironmentArea(space, area, cellId)` for membership (requires `EncounterSpace` for sphere-like shapes).
 

@@ -20,10 +20,6 @@ export const DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE: EncounterEnvironmentBaselin
   atmosphereTags: [],
 }
 
-function cellFeet(space: EncounterSpace): number {
-  return space.scale.kind === 'grid' ? space.scale.cellFeet : 5
-}
-
 /**
  * Deterministic merge order: priority ascending, then id ascending.
  * Later zones in this order win for scalar field overrides.
@@ -54,13 +50,6 @@ export function cellIdInEnvironmentArea(
       if (dist === undefined) return false
       return dist <= area.radiusFt
     }
-    case 'grid-cell-radius': {
-      if (!space) return false
-      const dist = gridDistanceFt(space, area.centerCellId, cellId)
-      if (dist === undefined) return false
-      const radiusFt = area.radiusCells * cellFeet(space)
-      return dist <= radiusFt
-    }
     case 'unattached':
       return false
   }
@@ -74,7 +63,6 @@ export function cellIdInEnvironmentAreaLink(area: EncounterEnvironmentAreaLink, 
     case 'grid-cell-ids':
       return area.cellIds.includes(cellId)
     case 'sphere-ft':
-    case 'grid-cell-radius':
       return false
     case 'unattached':
       return false
