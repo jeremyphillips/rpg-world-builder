@@ -653,6 +653,9 @@ function resolveCombatActionInternal(
         area: { kind: 'sphere', size: action.attachedEmanation.radiusFt },
         unaffectedCombatantIds: [...ids],
         ...(typeof action.saveDc === 'number' ? { saveDc: action.saveDc } : {}),
+        ...(action.attachedEmanation.environmentZoneProfile
+          ? { environmentZoneProfile: action.attachedEmanation.environmentZoneProfile }
+          : {}),
       })
     }
   }

@@ -88,9 +88,16 @@ export type EncounterEnvironment = EncounterEnvironmentExtended
 /** What ties a zone to the battle (spell instance, effect id, etc.). */
 export type EncounterEnvironmentOverrideSourceKind =
   | 'battlefield-effect'
+  | 'attached-aura'
   | 'spell'
   | 'manual'
   | 'terrain-feature'
+
+/**
+ * When set on a persistent `BattlefieldEffectInstance`, reconciliation builds/updates a matching
+ * {@link EncounterEnvironmentZone} from that row. Extend with new literals as more world projections ship.
+ */
+export type AttachedEnvironmentZoneProfile = 'magical-darkness'
 
 /** Domain category for a localized environment zone (distinct from {@link EncounterEnvironmentOverrideSourceKind}). */
 export type EncounterEnvironmentZoneKind = 'patch' | 'emanation' | 'hazard'

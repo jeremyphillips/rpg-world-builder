@@ -15,6 +15,7 @@ import type { MonsterSizeCategory, MonsterType } from '@/features/content/monste
 import type { EffectNoteCategory } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { AreaOfEffectTemplate } from './area.types';
 import type { TargetingEffectTarget } from './targeting.types';
+import type { AttachedEnvironmentZoneProfile } from '../encounter/environment/environment.types';
 
 export type { FormulaDefinition, FormulaEffect } from '../resolution/engines/formula.engine';
 export type { AreaOfEffectTemplate } from './area.types';
@@ -504,6 +505,11 @@ export type EmanationEffect = EffectBase<'emanation'> & {
    * Required when `anchorMode === 'place-or-object'`: enum `casterOptions` field id (`value` `place` | `object`).
    */
   anchorChoiceFieldId?: string;
+  /**
+   * When set, spell combat adapter copies to `CombatActionDefinition.attachedEmanation` and runtime
+   * syncs a matching `EncounterEnvironmentZone` from the attached aura row.
+   */
+  environmentZoneProfile?: AttachedEnvironmentZoneProfile;
 };
 
 export type NoteEffect = EffectBase<'note'> & {

@@ -1,10 +1,10 @@
 /**
- * TODO(environment): When spells like *Darkness* need world-state coverage, add or sync
- * `EncounterState.environmentZones` (see `resolveWorldEnvironmentForCell`) alongside
- * `attachedAuraInstances` / `resolveBattlefieldEffectOriginCellId` as appropriate.
+ * Attached aura rows are the source of truth; {@link reconcileBattlefieldEffectAnchors} projects
+ * matching `environmentZones` when `environmentZoneProfile` is set on an instance.
  */
 import type { AttachedBattlefieldEffectSource } from './attached-battlefield-source'
 import { attachedBattlefieldSourceEquals } from './attached-battlefield-source'
+import { reconcileBattlefieldEffectAnchors } from './battlefield-effect-anchor-reconciliation'
 import type { BattlefieldEffectInstance, EncounterState } from './types'
 
 export function addAttachedAuraInstance(
@@ -12,10 +12,10 @@ export function addAttachedAuraInstance(
   instance: BattlefieldEffectInstance,
 ): EncounterState {
   const prev = state.attachedAuraInstances ?? []
-  return {
+  return reconcileBattlefieldEffectAnchors({
     ...state,
     attachedAuraInstances: [...prev.filter((a) => a.id !== instance.id), instance],
-  }
+  })
 }
 
 export function removeAttachedAurasForSource(
@@ -29,7 +29,10 @@ export function removeAttachedAurasForSource(
       !(a.casterCombatantId === casterCombatantId && attachedBattlefieldSourceEquals(a.source, source)),
   )
   if (next.length === prev.length) return state
-  return { ...state, attachedAuraInstances: next }
+  return reconcileBattlefieldEffectAnchors({
+    ...state,
+    attachedAuraInstances: next.length > 0 ? next : undefined,
+  })
 }
 
 export function removeAttachedAurasForSpell(

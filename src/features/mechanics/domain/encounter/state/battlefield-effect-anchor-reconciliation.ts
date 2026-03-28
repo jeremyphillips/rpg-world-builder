@@ -1,5 +1,6 @@
 import { findGridObstacleById, moveGridObstacleToCell } from '@/features/encounter/space/space.helpers'
 
+import { reconcileEnvironmentZonesFromAttachedAuras } from '../environment/environment-zones-battlefield-sync'
 import { dropConcentration } from './concentration-mutations'
 import { resolveBattlefieldEffectOriginCellId } from './battlefield-effect-anchor'
 import type { BattlefieldEffectInstance, EncounterState } from './types'
@@ -21,7 +22,9 @@ import type { BattlefieldEffectInstance, EncounterState } from './types'
  */
 export function reconcileBattlefieldEffectAnchors(state: EncounterState): EncounterState {
   const auras = state.attachedAuraInstances
-  if (!auras?.length) return state
+  if (!auras?.length) {
+    return reconcileEnvironmentZonesFromAttachedAuras(state)
+  }
 
   const { space, placements } = state
   const kept: BattlefieldEffectInstance[] = []
@@ -52,7 +55,9 @@ export function reconcileBattlefieldEffectAnchors(state: EncounterState): Encoun
     removed.length === 0 &&
     kept.length === auras.length &&
     kept.every((k, i) => k === auras[i])
-  if (unchanged) return state
+  if (unchanged) {
+    return reconcileEnvironmentZonesFromAttachedAuras(state)
+  }
 
   let next: EncounterState = {
     ...state,
@@ -71,7 +76,7 @@ export function reconcileBattlefieldEffectAnchors(state: EncounterState): Encoun
     next = dropConcentration(next, r.casterCombatantId)
   }
 
-  return next
+  return reconcileEnvironmentZonesFromAttachedAuras(next)
 }
 
 /**

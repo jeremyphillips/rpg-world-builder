@@ -1,4 +1,5 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
+import type { AttachedEnvironmentZoneProfile } from '../environment/environment.types'
 import type { AttachedBattlefieldEffectSource } from '../state/attached-battlefield-source'
 import type { AbilityId } from '@/features/mechanics/domain/character'
 import type { BreakdownToken } from '../../resolution/resolvers/stat-resolver'
@@ -173,5 +174,10 @@ export interface CombatActionDefinition {
      * `object`, selecting between point-in-space vs grid obstacle anchor at cast time.
      */
     anchorChoiceFieldId?: string
+    /**
+     * When set, copied onto the persisted battlefield effect row so environment zone reconciliation can
+     * project world coverage (e.g. magical darkness) from authored metadata.
+     */
+    environmentZoneProfile?: AttachedEnvironmentZoneProfile
   }
 }

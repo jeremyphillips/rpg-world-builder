@@ -3,6 +3,7 @@ import type { CombatantInstance } from './combatant.types'
 import type { CombatLogEvent } from './combat-log.types'
 import type { EncounterSpace, CombatantPosition } from '@/features/encounter/space'
 import type {
+  AttachedEnvironmentZoneProfile,
   EncounterEnvironmentBaseline,
   EncounterEnvironmentZone,
 } from '../../environment/environment.types'
@@ -22,6 +23,8 @@ export type BattlefieldEffectInstance = {
   unaffectedCombatantIds: string[]
   /** Save DC at cast/use time for nested save payloads (intervals, spatial entry). */
   saveDc?: number
+  /** When set, `reconcileEnvironmentZonesFromAttachedAuras` keeps a matching environment zone in sync. */
+  environmentZoneProfile?: AttachedEnvironmentZoneProfile
 }
 
 /** @deprecated Use {@link BattlefieldEffectInstance}. */

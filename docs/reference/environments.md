@@ -15,7 +15,8 @@ Domain contract for **baseline** encounter defaults, **localized environment zon
    **Lighting and visibility stay separate.** Valid combinations include bright light + heavy obscurement, darkness + clear visibility, dim + light obscurement.
 
 2. **Localized zones — `EncounterEnvironmentZone[]`**  
-   Patches, emanations, hazards (see `kind`). Each zone has `id`, optional `priority`, `sourceKind` / `sourceId`, `area` (`EncounterEnvironmentAreaLink`), partial `overrides` (including optional `setting`), and optional `magical` flags (`magical`, `magicalDarkness`, `blocksDarkvision`).
+   Patches, emanations, hazards (see `kind`). Each zone has `id`, optional `priority`, `sourceKind` / `sourceId`, `area` (`EncounterEnvironmentAreaLink`), partial `overrides` (including optional `setting`), and optional `magical` flags (`magical`, `magicalDarkness`, `blocksDarkvision`).  
+   **`sourceKind: 'attached-aura'`** — rows **reconciled** from `BattlefieldEffectInstance` when `environmentZoneProfile` is set (see Phase 4 below). Other kinds include `manual`, `spell`, `terrain-feature`, `battlefield-effect`.
 
 3. **Encounter state**  
    `EncounterState.environmentBaseline` and `EncounterState.environmentZones` (optional on older snapshots; `createEncounterState` sets defaults). Baseline is initialized from setup when the encounter starts and **may change during play**; it is not an immutable snapshot.
@@ -89,10 +90,25 @@ Baseline rules: no special senses unless `EncounterViewerPerceptionCapabilities`
 
 DM role continues to bypass veils and masking in projection (`viewerRole: 'dm'`).
 
+## Source-driven environment zones (Phase 4)
+
+**Gameplay sources** (attached battlefield effects, concentration, obstacle moves) own lifecycle; **`environmentZones`** are a **derived world-state layer**, not authored independently for those sources.
+
+| Piece | Role |
+|--------|------|
+| `BattlefieldEffectInstance.environmentZoneProfile` | Optional profile (e.g. `magical-darkness`) copied from spell `emanation.environmentZoneProfile` → `CombatActionDefinition.attachedEmanation` → persisted instance on cast. |
+| `environmentZoneIdForAttachedAuraInstance(instanceId)` | Stable zone id: `attached-aura-env:${instanceId}` — upsert replaces the row; no duplicate zones per aura. |
+| `reconcileEnvironmentZonesFromAttachedAuras(state)` | Rebuilds **only** `sourceKind === 'attached-aura'` zones from current `attachedAuraInstances` + `resolveBattlefieldEffectOriginCellId`; preserves unrelated zones (`manual`, etc.). |
+| `reconcileBattlefieldEffectAnchors` | Ends with environment zone reconciliation so anchor moves (creature, place, object) and removals stay in sync with coverage. |
+| `addAttachedAuraInstance` / `removeAttachedAurasForSource` | Run anchor reconciliation so new/removals immediately refresh zones. |
+
+**Why reconciliation:** concentration drop, invalid anchors, obstacle deletion, and spell end all remove or move the **source** row first; zones must follow or stale magical darkness would remain in world state without touching perception/render directly.
+
+**Current authored profile:** *Darkness* sets `environmentZoneProfile: 'magical-darkness'` on its `emanation` effect (`level2-a-f.ts`). Additional spells/traits add new profile literals and `buildZoneForProfile` cases as needed.
+
 ## Non-goals
 
 - Domain modules do not own React types; projection bridges to grid-facing flags.  
-- Spell/action resolution does not yet create `environmentZones` rows (see TODO in `attached-aura-mutations.ts`).  
 - **Deferred:** wiring setup/edit UI (`environmentSetup` in React) to call `updateEncounterEnvironmentBaseline` when the encounter is already active — not implemented here.
 
 ## Related types
@@ -101,6 +117,6 @@ DM role continues to bypass veils and masking in projection (`viewerRole: 'dm'`)
 
 ## Remaining integration TODOs
 
-- **Spell / aura environment zones** — spawn `EncounterEnvironmentZone` with `sphere-ft` from cast placement / `resolveBattlefieldEffectOriginCellId` where appropriate.  
+- **More `AttachedEnvironmentZoneProfile` values** — e.g. non-magical heavily obscured areas, spell-specific light patches; extend `EmanationEffect.environmentZoneProfile` + `buildZoneForProfile`.  
 - **Combatant capabilities** — wire `EncounterViewerPerceptionCapabilities` from combatant stats (darkvision range, blindsight, Devil’s Sight, etc.) into `selectGridViewModel`’s perception input.  
 - **Richer sense-specific perception** — blindsight/truesight range, stealth/invisibility (out of scope for current projection).
