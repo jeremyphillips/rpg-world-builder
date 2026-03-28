@@ -1,6 +1,6 @@
 /**
- * Grid presentation only. Encounter environment semantics (lighting, visibility, atmosphere) are defined
- * in `features/mechanics/domain/encounter/environment` and resolved per cell — not re-derived here.
+ * Grid presentation only. Tactical overlays come from the grid view model; viewer visibility comes from
+ * `cell.perception` (domain projection). Do not infer perception rules here.
  */
 import { Fragment, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 
@@ -14,7 +14,7 @@ import { AppAvatar } from '@/ui/primitives'
 import { resolveImageUrl } from '@/shared/lib/media'
 import type { GridViewModel, GridCellViewModel } from '../../../space/space.selectors'
 import { DEFEATED_PARTICIPATION_OPACITY } from '../../../domain/presentation-defeated'
-import { getCellVisualState } from './cellVisualState'
+import { getCellVisualState, mergePerceptionIntoCellVisualState } from './cellVisualState'
 import { getCellVisualSx } from './cellVisualStyles'
 
 const BASE_CELL_SIZE = 48
@@ -99,6 +99,24 @@ function resolveCellCursor(params: {
 
   if (clickable) return 'pointer'
   return 'default'
+}
+
+function shouldRenderOccupantToken(
+  cell: GridCellViewModel,
+  viewerCombatantId: string | undefined,
+): boolean {
+  if (!cell.occupantRendersToken) return false
+  if (!cell.perception) return true
+  switch (cell.perception.occupantTokenVisibility) {
+    case 'all':
+      return true
+    case 'none':
+      return false
+    case 'self-only':
+      return cell.occupantId === viewerCombatantId
+    default:
+      return true
+  }
 }
 
 export function EncounterGrid({
@@ -215,6 +233,10 @@ export function EncounterGrid({
 
   const popoverOpen = Boolean(popoverAnchor) && Boolean(hoveredOccupantId)
 
+  const battlefieldRender = grid.perception?.battlefieldRender
+  const viewerCellId = grid.perception?.viewerCellId
+  const viewerCombatantId = grid.perception?.viewerCombatantId
+
   return (
     <Box
       onPointerDown={handlePointerDown}
@@ -241,6 +263,7 @@ export function EncounterGrid({
       >
         <Box
           sx={{
+            position: 'relative',
             display: 'inline-grid',
             gridTemplateColumns: `repeat(${grid.columns}, ${cellSizePx}px)`,
             gridTemplateRows: `repeat(${grid.rows}, ${cellSizePx}px)`,
@@ -254,7 +277,8 @@ export function EncounterGrid({
           {grid.cells.map((cell) => {
             const isWall = cell.kind === 'wall' || cell.kind === 'blocking'
             const clickable = !isWall && Boolean(onCellClick)
-            const hasPopover = Boolean(cell.occupantRendersToken && renderTokenPopover)
+            const showOccupantToken = shouldRenderOccupantToken(cell, viewerCombatantId)
+            const hasPopover = Boolean(showOccupantToken && renderTokenPopover)
             const tokenSrc = resolveImageUrl(cell.occupantPortraitImageKey)
             const isHoverCell = hoveredCellId === cell.cellId
             const ring = tokenRingColor(cell, palette)
@@ -270,11 +294,14 @@ export function EncounterGrid({
               clickable,
             })
 
-            const visual = getCellVisualState(cell, {
+            const tacticalVisual = getCellVisualState(cell, {
               hoveredCellId,
               movementHighlightActive,
               hasMovementRemaining,
             })
+            const visual = mergePerceptionIntoCellVisualState(tacticalVisual, cell.perception)
+            const liftAboveBlindVeil =
+              Boolean(battlefieldRender?.useBlindVeil) && viewerCellId != null && cell.cellId === viewerCellId
             const cellVisualSx = getCellVisualSx(theme, visual)
 
             const legalTarget = cell.isLegalTargetForSelectedAction
@@ -301,10 +328,11 @@ export function EncounterGrid({
                   justifyContent: 'center',
                   cursor: cellCursor,
                   position: 'relative',
+                  zIndex: liftAboveBlindVeil ? 4 : 1,
                   ...cellVisualSx,
                 }}
               >
-                {cell.occupantRendersToken && (
+                {showOccupantToken && (
                   <Box
                     onPointerEnter={() => onCellHover?.(cell.cellId)}
                     onMouseEnter={
@@ -340,7 +368,7 @@ export function EncounterGrid({
                     />
                   </Box>
                 )}
-                {cell.obstacleLabel && (
+                {cell.obstacleLabel && cell.perception?.showObstacleGlyph !== false && (
                   <Typography
                     variant="caption"
                     component="span"
@@ -380,6 +408,19 @@ export function EncounterGrid({
 
             return <Fragment key={cell.cellId}>{cellBox}</Fragment>
           })}
+          {battlefieldRender?.useBlindVeil ? (
+            <Box
+              aria-hidden
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 2,
+                pointerEvents: 'none',
+                bgcolor: alpha('#000000', battlefieldRender.blindVeilOpacity),
+                borderRadius: 1,
+              }}
+            />
+          ) : null}
         </Box>
       </Box>
 

@@ -15,6 +15,13 @@ import type { BattlefieldSpellContext } from '@/features/mechanics/domain/encoun
 import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/encounter/state/battlefield-spatial-movement-modifiers'
 import { createEmptyTurnContext } from '@/features/mechanics/domain/encounter/state/shared'
 import { isAreaGridAction } from '../helpers/area-grid-action'
+import {
+  buildCellPerceptionRenderState,
+  buildGridPerceptionSlice,
+  type EncounterBattlefieldRenderState,
+  type EncounterGridCellRenderState,
+  type GridPerceptionInput,
+} from '@/features/mechanics/domain/encounter/environment/perception.render.projection'
 
 // ---------------------------------------------------------------------------
 // State-level selectors
@@ -116,6 +123,8 @@ export type GridCellViewModel = {
   occupantIsDefeated: boolean
   /** False when a placement exists but the creature is absent from the grid (banished, off-grid, …). */
   occupantRendersToken: boolean
+  /** Viewer-relative render projection (perception layer); undefined when perception opts omitted. */
+  perception?: EncounterGridCellRenderState
 }
 
 export type GridViewModel = {
@@ -123,6 +132,12 @@ export type GridViewModel = {
   rows: number
   cellFeet: number
   cells: GridCellViewModel[]
+  /** Battlefield-level perception presentation + viewer anchor for token self-filter. */
+  perception?: {
+    battlefieldRender: EncounterBattlefieldRenderState
+    viewerCellId: string
+    viewerCombatantId: string
+  }
 }
 
 export function isValidAoeOriginCell(
@@ -191,10 +206,13 @@ export function selectGridViewModel(
     } | null
     /** Ongoing attached auras (center follows source combatant). */
     persistentAttachedAuras?: Array<{ originCellId: string; areaRadiusFt: number }>
+    perception?: GridPerceptionInput
   },
 ): GridViewModel | undefined {
   const { space, placements } = state
   if (!space || !placements) return undefined
+
+  const perceptionSlice = buildGridPerceptionSlice(state, opts?.perception)
 
   const cellFeet = space.scale.kind === 'grid' ? space.scale.cellFeet : 5
   const activeId = state.activeCombatantId
@@ -292,6 +310,10 @@ export function selectGridViewModel(
       }
     }
 
+    if (perceptionSlice?.suppressAoeTemplateOverlay && aoeInTemplate) {
+      aoeInTemplate = false
+    }
+
     let placementCastRange: boolean | undefined
     let placementInvalidHover: boolean | undefined
     let placementSelected: boolean | undefined
@@ -324,6 +346,11 @@ export function selectGridViewModel(
           break
         }
       }
+    }
+
+    let cellPerception: EncounterGridCellRenderState | undefined
+    if (perceptionSlice && opts?.perception) {
+      cellPerception = buildCellPerceptionRenderState(state, perceptionSlice, cell.id, opts.perception)
     }
 
     return {
@@ -364,6 +391,7 @@ export function selectGridViewModel(
           }
         : {}),
       ...(persistentAttachedAura ? { persistentAttachedAura: true } : {}),
+      ...(cellPerception ? { perception: cellPerception } : {}),
     }
   })
 
@@ -372,6 +400,15 @@ export function selectGridViewModel(
     rows: space.height,
     cellFeet,
     cells,
+    ...(perceptionSlice
+      ? {
+          perception: {
+            battlefieldRender: perceptionSlice.battlefieldRender,
+            viewerCellId: perceptionSlice.viewerCellId,
+            viewerCombatantId: perceptionSlice.viewerCombatantId,
+          },
+        }
+      : {}),
   }
 }
 

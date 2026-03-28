@@ -76,10 +76,22 @@ No event log, history, or undo — callers append combat log notes if needed.
 
 Baseline rules: no special senses unless `EncounterViewerPerceptionCapabilities` sets flags; DM role skips restrictions.
 
+## Render projection (Phase 3)
+
+**Rules stay in perception; UI consumes projection only.**
+
+| Module | Role |
+|--------|------|
+| `perception.render.projection.ts` | Maps `EncounterViewerPerceptionCell` + `EncounterViewerBattlefieldPerception` → `EncounterGridCellRenderState` / `EncounterBattlefieldRenderState` (presentation flags, not domain merge). |
+| `space.selectors.ts` (`selectGridViewModel`) | When `perception` input is passed, attaches per-cell render state and battlefield veil flags to the grid view model. |
+| `cellVisualState.ts` / `cellVisualStyles.ts` | Maps `PerceptionPresentationFillKind` → `CellBaseFillKind` (`visibility-*`) and `baseFillSx` — **presentation only**; not a rules source. |
+| `EncounterGrid.tsx` | Applies merged cell visuals, blind veil overlay (viewer cell lifted above veil), token visibility from `occupantTokenVisibility`, obstacle glyphs from `showObstacleGlyph`. |
+
+DM role continues to bypass veils and masking in projection (`viewerRole: 'dm'`).
+
 ## Non-goals
 
-- No token hiding or grid rendering in these modules — consume perception types in UI later.  
-- Grid UI (`EncounterGrid`) must not define perception rules ad hoc; use resolvers.  
+- Domain modules do not own React types; projection bridges to grid-facing flags.  
 - Spell/action resolution does not yet create `environmentZones` rows (see TODO in `attached-aura-mutations.ts`).  
 - **Deferred:** wiring setup/edit UI (`environmentSetup` in React) to call `updateEncounterEnvironmentBaseline` when the encounter is already active — not implemented here.
 
@@ -87,8 +99,8 @@ Baseline rules: no special senses unless `EncounterViewerPerceptionCapabilities`
 
 - **`EncounterEnvironmentExtended`** — optional narrative/campaign schema; not the tactical baseline.
 
-## Next phases (rendering / integration)
+## Remaining integration TODOs
 
-- **Grid / veil / token visibility** — map `EncounterViewerPerceptionCell` + `EncounterViewerBattlefieldPerception` to presentation; do not use `CellBaseFillKind` as the perception source of truth.  
-- **Spell integration** — spawn `EncounterEnvironmentZone` with `sphere-ft` from cast placement / `resolveBattlefieldEffectOriginCellId` patterns where appropriate.  
-- **Senses** — wire `EncounterViewerPerceptionCapabilities` from combatant stats (darkvision range, blindsight, etc.).
+- **Spell / aura environment zones** — spawn `EncounterEnvironmentZone` with `sphere-ft` from cast placement / `resolveBattlefieldEffectOriginCellId` where appropriate.  
+- **Combatant capabilities** — wire `EncounterViewerPerceptionCapabilities` from combatant stats (darkvision range, blindsight, Devil’s Sight, etc.) into `selectGridViewModel`’s perception input.  
+- **Richer sense-specific perception** — blindsight/truesight range, stealth/invisibility (out of scope for current projection).

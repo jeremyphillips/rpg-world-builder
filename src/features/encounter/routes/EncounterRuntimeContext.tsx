@@ -164,6 +164,11 @@ function useEncounterRuntimeValue() {
     suppressSameSideHostile,
   })
 
+  const viewerContext: EncounterViewerContext = useMemo(
+    () => ({ viewerRole: 'dm' as const, controlledCombatantIds: [] }),
+    [],
+  )
+
   const handleStartEncounter = useCallback(
     (opts?: Parameters<typeof handleStartEncounterBase>[0]) => {
       handleStartEncounterBase(opts)
@@ -368,6 +373,10 @@ function useEncounterRuntimeValue() {
       aoe: aoeGridOverlay,
       placementPick: singleCellPlacementGridOverlay,
       persistentAttachedAuras,
+      perception:
+        activeCombatantId != null
+          ? { viewerCombatantId: activeCombatantId, viewerRole: viewerContext.viewerRole }
+          : undefined,
     })
   }, [
     encounterState,
@@ -379,6 +388,8 @@ function useEncounterRuntimeValue() {
     singleCellPlacementGridOverlay,
     interactionMode,
     persistentAttachedAuras,
+    activeCombatantId,
+    viewerContext.viewerRole,
   ])
 
   // turnResources was consumed by the now-commented-out footer.
@@ -433,11 +444,6 @@ function useEncounterRuntimeValue() {
     if (!nextCombatant) return null
     return getCombatantDisplayLabel(nextCombatant, encounterCombatantRoster)
   }, [encounterState, encounterCombatantRoster])
-
-  const viewerContext: EncounterViewerContext = useMemo(
-    () => ({ viewerRole: 'dm' as const, controlledCombatantIds: [] }),
-    [],
-  )
 
   const capabilities = useMemo(
     () => (encounterState ? deriveEncounterCapabilities(encounterState, viewerContext) : null),
