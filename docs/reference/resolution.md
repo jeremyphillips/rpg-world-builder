@@ -156,6 +156,8 @@ Targeting validation is centralized so the resolver and UI share a single source
 
 **LOS / visibility seams** (`visibility-seams.ts` re-exports; see `visibility-los.ts`, `combatant-pair-visibility.ts`): `lineOfSightClear` / `lineOfEffectClear` delegate to `hasLineOfSight` when `EncounterSpace` and placements exist; otherwise they stay **clear** for backwards compatibility. `canSeeForTargeting` is the public entry for “can I select this target for a sight-required action?” and shares `canPerceiveTargetOccupantForCombat` with attack-roll resolution. **Binary** LoS geometry is in `space.sight.ts`; **obscurement / darkness** affecting whether the **occupant** is perceived are resolved in `perception.resolve.ts`, not as a second ad hoc targeting layer.
 
+**Opportunity attacks** (`opportunity-attack.ts`): **Leave reach** (spatial) is `didHostileMoverLeaveMeleeReachOfReactor` — compare distances before/after `moveCombatant`. **Sight** for OA uses the same occupant seam: `canReactorPerceiveDepartingOccupantForOpportunityAttack` → `canPerceiveTargetOccupantForCombat` on **pre-move** state (combat semantics, `viewerRole: 'pc'`). Full legality is `getOpportunityAttackLegalityDenialReason` (hostile, active, reaction budget, leave-reach, then sight). Disengage / no-OA movement flags are not modeled yet.
+
 **Encounter UI readiness** (`action-resolution-requirements.ts`, `encounter/domain/interaction/encounter-resolve-selection.ts`):
 
 Pure helpers describe what must be true before the encounter action drawer enables **Resolve**, independent of the resolver pipeline:

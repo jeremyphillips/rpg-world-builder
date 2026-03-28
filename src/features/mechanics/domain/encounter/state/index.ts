@@ -88,6 +88,16 @@ export {
   getAttackVisibilityRollModifiersFromPair,
 } from './visibility-seams'
 export {
+  DEFAULT_OPPORTUNITY_ATTACK_REACH_FT,
+  getDefaultMeleeReachFtForOpportunityAttack,
+  reactorHasReactionBudgetForOpportunityAttack,
+  didHostileMoverLeaveMeleeReachOfReactor,
+  canReactorPerceiveDepartingOccupantForOpportunityAttack,
+  getOpportunityAttackLegalityDenialReason,
+  getCombatantIdsEligibleForOpportunityAttackAgainstMover,
+  type OpportunityAttackLegalityDenialReason,
+} from './opportunity-attack'
+export {
   combatantHasBattlefieldAbsenceEngineState,
   findNearestUnoccupiedPassableCell,
   markerCausesBattlefieldAbsence,
