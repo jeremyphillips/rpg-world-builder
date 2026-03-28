@@ -1,4 +1,9 @@
 import {
+  stealthHiddenSnapshot,
+  isStealthRuntimeTraceEnabled,
+  stealthTraceLog,
+} from '../../debug/stealth-runtime-trace'
+import {
   applyDamageToCombatant,
   appendEncounterLogEvent,
   appendEncounterNote,
@@ -271,6 +276,18 @@ function resolveCombatActionInternal(
   const state = reconcileStealthHiddenForPerceivedObservers(initialState, {
     perceptionCapabilities: options.perceptionCapabilities,
   })
+  if (isStealthRuntimeTraceEnabled()) {
+    const before = stealthHiddenSnapshot(initialState)
+    const after = stealthHiddenSnapshot(state)
+    if (JSON.stringify(before) !== JSON.stringify(after)) {
+      stealthTraceLog('reconcileStealthHiddenForPerceivedObservers (start of resolveCombatAction)', {
+        actorId: selection.actorId,
+        actionId: selection.actionId,
+        before,
+        after,
+      })
+    }
+  }
   actor = state.combatantsById[selection.actorId]!
 
   const targets = getActionTargets(state, actor, selection, action, targetingOptions)
@@ -392,6 +409,13 @@ function resolveCombatActionInternal(
       const hideResolved = resolveHideWithPassivePerception(nextState, actor.instanceId, stealthTotal, hidePerceptionOpts)
       nextState = hideResolved.state
       const { outcome } = hideResolved
+      if (isStealthRuntimeTraceEnabled()) {
+        stealthTraceLog('after resolveHideWithPassivePerception', {
+          hiderId: actor.instanceId,
+          outcome,
+          stealthSnapshot: stealthHiddenSnapshot(nextState),
+        })
+      }
       let details = `Stealth: ${stealthRollDetail} + ${stealthMod} = ${stealthTotal}.`
       let summary: string
       if (outcome.kind === 'no-eligible-observers') {

@@ -3,10 +3,19 @@ import { describe, expect, it } from 'vitest'
 import { deriveEncounterPerceptionUiFeedback } from './encounter-perception-ui.feedback'
 
 describe('deriveEncounterPerceptionUiFeedback', () => {
+  it('selected-combatant mode uses same POV copy as active-combatant (not DM overview)', () => {
+    const f = deriveEncounterPerceptionUiFeedback({
+      simulatorViewerMode: 'selected-combatant',
+      presentationViewerDisplayLabel: 'Rogue',
+      gridPerception: undefined,
+    })
+    expect(f.povLine).toBe('Viewing as: Rogue')
+  })
+
   it('active-combatant mode shows Viewing as label', () => {
     const f = deriveEncounterPerceptionUiFeedback({
       simulatorViewerMode: 'active-combatant',
-      activeCombatantDisplayLabel: 'Wizard',
+      presentationViewerDisplayLabel: 'Wizard',
       gridPerception: {
         battlefieldRender: {
           useBlindVeil: false,
@@ -25,7 +34,7 @@ describe('deriveEncounterPerceptionUiFeedback', () => {
   it('shows magical darkness line only when battlefieldRender.useBlindVeil is true', () => {
     const f = deriveEncounterPerceptionUiFeedback({
       simulatorViewerMode: 'active-combatant',
-      activeCombatantDisplayLabel: 'Wizard',
+      presentationViewerDisplayLabel: 'Wizard',
       gridPerception: {
         battlefieldRender: {
           useBlindVeil: true,
@@ -44,7 +53,7 @@ describe('deriveEncounterPerceptionUiFeedback', () => {
   it('DM mode never shows magical darkness restriction messaging', () => {
     const f = deriveEncounterPerceptionUiFeedback({
       simulatorViewerMode: 'dm',
-      activeCombatantDisplayLabel: 'Wizard',
+      presentationViewerDisplayLabel: 'Wizard',
       gridPerception: {
         battlefieldRender: {
           useBlindVeil: true,
@@ -61,15 +70,15 @@ describe('deriveEncounterPerceptionUiFeedback', () => {
     expect(f.visibilityHint).toBeNull()
   })
 
-  it('turn-style label change follows active combatant display label', () => {
+  it('turn-style label change follows presentation viewer display label', () => {
     const a = deriveEncounterPerceptionUiFeedback({
       simulatorViewerMode: 'active-combatant',
-      activeCombatantDisplayLabel: 'Goblin',
+      presentationViewerDisplayLabel: 'Goblin',
       gridPerception: undefined,
     })
     const b = deriveEncounterPerceptionUiFeedback({
       simulatorViewerMode: 'active-combatant',
-      activeCombatantDisplayLabel: 'Wizard',
+      presentationViewerDisplayLabel: 'Wizard',
       gridPerception: undefined,
     })
     expect(a.povLine).toBe('Viewing as: Goblin')

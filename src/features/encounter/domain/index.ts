@@ -117,6 +117,10 @@ export type {
   EncounterPerceptionUiFeedback,
   DeriveEncounterPerceptionUiFeedbackArgs,
 } from './perception/encounter-perception-ui.feedback'
+export {
+  deriveEncounterPresentationGridPerceptionInput,
+} from './perception/derive-encounter-presentation-grid-perception'
+export type { DeriveEncounterPresentationGridPerceptionInputArgs } from './perception/derive-encounter-presentation-grid-perception'
 export type {
   CombatantPreviewMode,
   CombatantPreviewKind,

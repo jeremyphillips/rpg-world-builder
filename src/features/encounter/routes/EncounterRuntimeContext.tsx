@@ -32,6 +32,8 @@ import {
   deriveEncounterCapabilities,
   deriveEncounterHeaderModel,
   deriveEncounterPerceptionUiFeedback,
+  deriveEncounterPresentationGridPerceptionInput,
+  type EncounterSimulatorViewerMode,
   type EncounterViewerContext,
 } from '../domain'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
@@ -172,14 +174,36 @@ function useEncounterRuntimeValue() {
     suppressSameSideHostile,
   })
 
+  /** Presentation POV for grid/sidebar/header — not tied to turn/action ownership. */
+  const [simulatorViewerMode, setSimulatorViewerMode] = useState<EncounterSimulatorViewerMode>('active-combatant')
+  const [presentationSelectedCombatantId, setPresentationSelectedCombatantId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!encounterState) {
+      setSimulatorViewerMode('active-combatant')
+      setPresentationSelectedCombatantId(null)
+    }
+  }, [encounterState])
+
   const viewerContext: EncounterViewerContext = useMemo(
     () => ({
       viewerRole: 'dm' as const,
-      /** Simulator: grid perception follows the active combatant unless switched to DM omniscience. */
-      simulatorViewerMode: 'active-combatant' as const,
+      simulatorViewerMode,
+      presentationSelectedCombatantId,
       controlledCombatantIds: [],
     }),
-    [],
+    [simulatorViewerMode, presentationSelectedCombatantId],
+  )
+
+  const presentationGridPerceptionInput = useMemo(
+    () =>
+      deriveEncounterPresentationGridPerceptionInput({
+        encounterState,
+        simulatorViewerMode,
+        activeCombatantId,
+        presentationSelectedCombatantId,
+      }),
+    [encounterState, simulatorViewerMode, activeCombatantId, presentationSelectedCombatantId],
   )
 
   const handleStartEncounter = useCallback(
@@ -387,9 +411,6 @@ function useEncounterRuntimeValue() {
     if (!encounterState) return undefined
     const rangeForRing =
       aoeGridOverlay || singleCellPlacementGridOverlay ? null : selectedActionRangeFt
-    /** `pc` = apply visibility rules; `dm` = omniscient grid (debug). */
-    const perceptionViewerRole =
-      viewerContext.simulatorViewerMode === 'dm' ? ('dm' as const) : ('pc' as const)
     return selectGridViewModel(encounterState, {
       selectedTargetId: selectedActionTargetId || null,
       selectedActionRangeFt: rangeForRing,
@@ -401,14 +422,7 @@ function useEncounterRuntimeValue() {
       aoe: aoeGridOverlay,
       placementPick: singleCellPlacementGridOverlay,
       persistentAttachedAuras,
-      perception:
-        activeCombatantId != null
-          ? {
-              viewerCombatantId: activeCombatantId,
-              viewerRole: perceptionViewerRole,
-              debugOverrides: viewerContext.debugPerceptionOverrides,
-            }
-          : undefined,
+      perception: presentationGridPerceptionInput,
     })
   }, [
     encounterState,
@@ -420,31 +434,14 @@ function useEncounterRuntimeValue() {
     singleCellPlacementGridOverlay,
     interactionMode,
     persistentAttachedAuras,
-    activeCombatantId,
-    viewerContext.simulatorViewerMode,
-    viewerContext.debugPerceptionOverrides,
+    presentationGridPerceptionInput,
   ])
 
   const combatantViewerPresentationKindById = useMemo(() => {
     if (!encounterState) return {}
     const ids = Object.keys(encounterState.combatantsById)
-    const perceptionViewerRole =
-      viewerContext.simulatorViewerMode === 'dm' ? ('dm' as const) : ('pc' as const)
-    const perceptionInput =
-      activeCombatantId != null
-        ? {
-            viewerCombatantId: activeCombatantId,
-            viewerRole: perceptionViewerRole,
-            debugOverrides: viewerContext.debugPerceptionOverrides,
-          }
-        : undefined
-    return buildCombatantViewerPresentationKindById(encounterState, perceptionInput, ids)
-  }, [
-    encounterState,
-    activeCombatantId,
-    viewerContext.simulatorViewerMode,
-    viewerContext.debugPerceptionOverrides,
-  ])
+    return buildCombatantViewerPresentationKindById(encounterState, presentationGridPerceptionInput, ids)
+  }, [encounterState, presentationGridPerceptionInput])
 
   // turnResources was consumed by the now-commented-out footer.
   // activeCombatant.turnResources is still accessible directly via the context.
@@ -507,21 +504,27 @@ function useEncounterRuntimeValue() {
     return combatantViewerPresentationKindById[nextCombatantId] ?? 'visible'
   }, [nextCombatantId, combatantViewerPresentationKindById])
 
+  const presentationViewerDisplayLabel = useMemo(() => {
+    if (!encounterState || !activeCombatant) return null
+    const vid = presentationGridPerceptionInput?.viewerCombatantId
+    if (vid && encounterState.combatantsById[vid]) {
+      return getCombatantDisplayLabel(encounterState.combatantsById[vid], encounterCombatantRoster)
+    }
+    return getCombatantDisplayLabel(activeCombatant, encounterCombatantRoster)
+  }, [encounterState, activeCombatant, encounterCombatantRoster, presentationGridPerceptionInput])
+
   const perceptionUiFeedback = useMemo(
     () =>
       activeCombatant
         ? deriveEncounterPerceptionUiFeedback({
             simulatorViewerMode: viewerContext.simulatorViewerMode,
-            activeCombatantDisplayLabel: getCombatantDisplayLabel(
-              activeCombatant,
-              encounterCombatantRoster,
-            ),
+            presentationViewerDisplayLabel,
             gridPerception: gridViewModel?.perception,
           })
         : null,
     [
       activeCombatant,
-      encounterCombatantRoster,
+      presentationViewerDisplayLabel,
       gridViewModel?.perception,
       viewerContext.simulatorViewerMode,
     ],
@@ -660,6 +663,13 @@ function useEncounterRuntimeValue() {
 
   return {
     viewerContext,
+    /** Presentation POV (grid/sidebar/header); not turn ownership. */
+    simulatorViewerMode,
+    setSimulatorViewerMode,
+    presentationSelectedCombatantId,
+    setPresentationSelectedCombatantId,
+    presentationGridPerceptionInput,
+    presentationViewerCombatantId: presentationGridPerceptionInput?.viewerCombatantId ?? null,
     capabilities,
     campaignId,
     monstersById,

@@ -15,7 +15,8 @@ export type EncounterPerceptionUiFeedback = {
 
 export type DeriveEncounterPerceptionUiFeedbackArgs = {
   simulatorViewerMode: EncounterSimulatorViewerMode
-  activeCombatantDisplayLabel: string | null
+  /** Label for the combatant whose POV the grid uses (may differ from the active combatant). */
+  presentationViewerDisplayLabel: string | null
   gridPerception: GridViewModel['perception'] | undefined
 }
 
@@ -26,8 +27,8 @@ export type DeriveEncounterPerceptionUiFeedbackArgs = {
 export function deriveEncounterPerceptionUiFeedback(
   args: DeriveEncounterPerceptionUiFeedbackArgs,
 ): EncounterPerceptionUiFeedback {
-  const { simulatorViewerMode, activeCombatantDisplayLabel, gridPerception } = args
-  const label = (activeCombatantDisplayLabel?.trim() || 'Active combatant').trim()
+  const { simulatorViewerMode, presentationViewerDisplayLabel, gridPerception } = args
+  const label = (presentationViewerDisplayLabel?.trim() || 'Active combatant').trim()
 
   if (simulatorViewerMode === 'dm') {
     return {
