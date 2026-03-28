@@ -104,6 +104,7 @@ export {
   cellWorldSupportsHideAttemptWorldBasis,
   cellWorldSupportsHideConcealment,
   getHideAttemptEligibilityDenialReason,
+  resolveHideEligibilityForCombatant,
   type GetHideAttemptEligibilityDenialReasonOptions,
   type SightBasedCheckDenialReason,
   type HideAttemptEligibilityDenialReason,

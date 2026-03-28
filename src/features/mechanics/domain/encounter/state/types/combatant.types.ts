@@ -303,6 +303,17 @@ export type CombatantTurnStatus = {
 }
 
 /**
+ * Hide eligibility extension flags persisted on stealth — same semantic shape as
+ * `HideEligibilityExtensionOptions` / `cellWorldSupportsHideAttemptWorldBasis` in `sight-hide-rules.ts`
+ * (import cycle avoided by duplicating the minimal surface here).
+ */
+export type CombatantHideEligibilityExtension = {
+  featureFlags?: {
+    allowHalfCoverForHide?: boolean
+  }
+}
+
+/**
  * Observer-relative stealth bookkeeping on the **subject** (hider). Not a substitute for perception
  * (`canPerceiveTargetOccupantForCombat` remains the sight seam); stealth layers rules that need
  * hidden-state semantics. Extend with metadata later without reshaping `CombatantInstance`.
@@ -313,6 +324,12 @@ export interface CombatantStealthRuntime {
    * reconciliation with perception in `stealth-rules.ts`.
    */
   hiddenFromObserverIds: string[]
+  /**
+   * Eligibility extension flags in effect for this hider (e.g. from successful hide resolution or
+   * manual application). **Stealth sustain** merges persisted values before call-site `StealthRulesOptions`
+   * so feat-style hide matches reconciliation after the hide succeeds.
+   */
+  hideEligibility?: CombatantHideEligibilityExtension
 }
 
 export interface CombatantInstance {

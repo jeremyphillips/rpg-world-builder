@@ -3,6 +3,7 @@ import { resolveWorldEnvironmentFromEncounterState } from '@/features/mechanics/
 import type { EncounterWorldCellEnvironment } from '@/features/mechanics/domain/encounter/environment/environment.types'
 
 import { canPerceiveTargetOccupantForCombat } from './combatant-pair-visibility'
+import type { CombatantHideEligibilityExtension } from './types/combatant.types'
 import type { EncounterState } from './types'
 import type { EncounterViewerPerceptionCapabilities } from '../environment/perception.types'
 
@@ -67,24 +68,10 @@ export function cellTerrainCoverSupportsHideBaseline(world: EncounterWorldCellEn
   return g === 'three-quarters' || g === 'full'
 }
 
-/**
- * Optional hooks for future feat/subclass/magic rules. **Omit** or leave flags unset for baseline behavior.
- *
- * **Not implemented here** (reserved fields / docs only until wired from combatant state):
- * dim-light-only hide, Skulker-style light obscurement, magical concealment grants — add predicates
- * in one place when those features exist.
- */
-export type HideEligibilityFeatureFlags = {
-  /**
-   * When true, treat **half** cover as sufficient for hide eligibility (baseline requires three-quarters
-   * or full). Intended for future feat/class wiring from runtime combatant state.
-   */
-  allowHalfCoverForHide?: boolean
-}
+/** Same document shape as {@link CombatantHideEligibilityExtension} on `CombatantStealthRuntime`. */
+export type HideEligibilityExtensionOptions = CombatantHideEligibilityExtension
 
-export type HideEligibilityExtensionOptions = {
-  featureFlags?: HideEligibilityFeatureFlags
-}
+export type HideEligibilityFeatureFlags = NonNullable<CombatantHideEligibilityExtension['featureFlags']>
 
 /**
  * Single rules-layer gate: does merged **world** state at the hider’s cell support attempting Hide
@@ -103,6 +90,23 @@ export function cellWorldSupportsHideAttemptWorldBasis(
     return true
   }
   return false
+}
+
+/**
+ * Resolves which hide-extension flags apply for a combatant. **Hide attempts** prefer call-site
+ * `options.hideEligibility` when set (current resolver/context); **stealth sustain** prefers values
+ * persisted on `stealth.hideEligibility` so reconciliation matches the basis that allowed hiding.
+ */
+export function resolveHideEligibilityForCombatant(
+  state: EncounterState,
+  combatantId: string,
+  options: { hideEligibility?: HideEligibilityExtensionOptions } | undefined,
+  mode: 'hide-attempt' | 'stealth-sustain',
+): HideEligibilityExtensionOptions | undefined {
+  const persisted = state.combatantsById[combatantId]?.stealth?.hideEligibility
+  const callSite = options?.hideEligibility
+  if (mode === 'stealth-sustain') return persisted ?? callSite
+  return callSite ?? persisted
 }
 
 export type HideAttemptEligibilityDenialReason =
@@ -150,8 +154,9 @@ export function getHideAttemptEligibilityDenialReason(
   }
 
   const world = resolveWorldEnvironmentFromEncounterState(state, hiderCell)
+  const effectiveHideEligibility = resolveHideEligibilityForCombatant(state, hiderId, options, 'hide-attempt')
   const hasWorldHideBasis =
-    world != null && cellWorldSupportsHideAttemptWorldBasis(world, options?.hideEligibility)
+    world != null && cellWorldSupportsHideAttemptWorldBasis(world, effectiveHideEligibility)
 
   const observerSeesOccupant = canPerceiveTargetOccupantForCombat(state, observerId, hiderId, options)
 
