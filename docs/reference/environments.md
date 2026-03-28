@@ -1,6 +1,6 @@
 # Encounter environment (layered model)
 
-Domain contract for **baseline** encounter defaults, **localized environment zones**, and **resolved world state per grid cell**. Viewer perception and UI rendering are separate layers that may project from this data later.
+Domain contract for **baseline** encounter defaults, **localized environment zones**, **resolved world state per grid cell**, and **viewer perception** (derived). UI rendering is still a separate layer.
 
 ## Layers
 
@@ -22,6 +22,9 @@ Domain contract for **baseline** encounter defaults, **localized environment zon
 
 4. **Resolved world cell — `EncounterWorldCellEnvironment`**  
    Pure **world/environment** state at a cell — not viewer perception, not render state. Produced by `resolveWorldEnvironmentForCell` / `buildResolvedWorldEnvironmentCellMap` / `resolveWorldEnvironmentFromEncounterState`.
+
+5. **Viewer perception — `EncounterViewerPerceptionCell` / `EncounterViewerBattlefieldPerception`**  
+   Derived from world state at viewer + target cells, viewer role, and optional `EncounterViewerPerceptionCapabilities`. Magical darkness is **viewer-dependent** (bypass senses, DM view). Not React/UI types — see `perception.types.ts` / `perception.resolve.ts`.
 
 ## Area linkage (`EncounterEnvironmentAreaLink`)
 
@@ -62,10 +65,21 @@ No event log, history, or undo — callers append combat log notes if needed.
 
 `DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE` matches the runtime default (outdoors, bright, normal terrain, no obscurement, no atmosphere tags).
 
+## Viewer perception API (see `perception.resolve.ts`)
+
+| Function | Purpose |
+|----------|---------|
+| `resolveViewerPerceptionForCell(...)` | Per target cell, given viewer/target world state |
+| `resolveViewerBattlefieldPerception(...)` | Veil + boundary flags from viewer’s cell |
+| `resolveViewerPerceptionForCellFromState` / `resolveViewerBattlefieldPerceptionFromState` | Convenience when using `EncounterState` + placements |
+| `effectiveMagicalDarknessBypass(capabilities)` | Devil’s Sight / truesight / explicit bypass (not darkvision alone) |
+
+Baseline rules: no special senses unless `EncounterViewerPerceptionCapabilities` sets flags; DM role skips restrictions.
+
 ## Non-goals
 
-- No viewer perception or token hiding in this module.  
-- Grid UI (`EncounterGrid`) must not define environment semantics; use resolved world state or projections.  
+- No token hiding or grid rendering in these modules — consume perception types in UI later.  
+- Grid UI (`EncounterGrid`) must not define perception rules ad hoc; use resolvers.  
 - Spell/action resolution does not yet create `environmentZones` rows (see TODO in `attached-aura-mutations.ts`).  
 - **Deferred:** wiring setup/edit UI (`environmentSetup` in React) to call `updateEncounterEnvironmentBaseline` when the encounter is already active — not implemented here.
 
@@ -73,8 +87,8 @@ No event log, history, or undo — callers append combat log notes if needed.
 
 - **`EncounterEnvironmentExtended`** — optional narrative/campaign schema; not the tactical baseline.
 
-## Next phases
+## Next phases (rendering / integration)
 
-- **Viewer perception** — project from `EncounterWorldCellEnvironment` + creature senses.  
-- **Darkness / veil rendering** — separate render projection; do not use `CellBaseFillKind` as environment source of truth.  
-- **Spell integration** — spawn `EncounterEnvironmentZone` with `sphere-ft` from cast placement / `resolveBattlefieldEffectOriginCellId` patterns where appropriate.
+- **Grid / veil / token visibility** — map `EncounterViewerPerceptionCell` + `EncounterViewerBattlefieldPerception` to presentation; do not use `CellBaseFillKind` as the perception source of truth.  
+- **Spell integration** — spawn `EncounterEnvironmentZone` with `sphere-ft` from cast placement / `resolveBattlefieldEffectOriginCellId` patterns where appropriate.  
+- **Senses** — wire `EncounterViewerPerceptionCapabilities` from combatant stats (darkvision range, blindsight, etc.).
