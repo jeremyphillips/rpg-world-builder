@@ -36,7 +36,14 @@ That world basis includes:
 - **Concealment** — same as before: dim/darkness lighting, light/heavy obscurement, magical darkness (`cellWorldSupportsHideConcealment`).
 - **Terrain cover (baseline)** — merged **`terrainCover`** on [`EncounterWorldCellEnvironment`](../../src/features/mechanics/domain/encounter/environment/environment.types.ts): **three-quarters** or **full** (total cover) counts toward eligibility; **half cover does not** by itself. Cover here is **cell-local** (baseline + environment zones), not per-observer line-of-sight geometry.
 
-**Combatant-sourced feature flags:** **`getCombatantHideEligibilityExtensionOptions`** ([`combatant-hide-eligibility.ts`](../../src/features/mechanics/domain/encounter/state/combatant-hide-eligibility.ts)) reads **`stats.skillRuntime.hideEligibilityFeatureFlags`** (set at combatant build time; **TODO:** effect/marker-driven grants). That output feeds **`resolveHideEligibilityForCombatant`** after call-site / persisted layers.
+**Combatant-sourced feature flags:** **`getCombatantHideEligibilityExtensionOptions`** ([`combatant-hide-eligibility.ts`](../../src/features/mechanics/domain/encounter/state/combatant-hide-eligibility.ts)) reads **`stats.skillRuntime.hideEligibilityFeatureFlags`**, which **`buildCharacterCombatantInstance`** / **`buildMonsterCombatantInstance`** populate from authored data:
+
+- **Characters:** persisted **`Character.feats`** (string ids) → **`CharacterDetailDto.feats`** → **`deriveHideEligibilityFeatureFlagsFromCharacterDetail`** ([`derive-hide-eligibility-from-authored.ts`](../../src/features/encounter/helpers/derive-hide-eligibility-from-authored.ts)) → feat ids in **`FEAT_IDS_ALLOW_HALF_COVER_FOR_HIDE`** ([`hide-eligibility-feat-sources.ts`](../../src/features/mechanics/domain/encounter/state/hide-eligibility-feat-sources.ts)) set **`allowHalfCoverForHide`** (e.g. **`skulker`**).
+- **Monsters:** optional **`mechanics.hideEligibilityFeatureFlags`** on the stat block (homebrew / special creatures).
+
+**TODO:** effect/marker-driven temporary grants merged into **`getCombatantHideEligibilityExtensionOptions`**.
+
+That output feeds **`resolveHideEligibilityForCombatant`** after call-site / persisted layers.
 
 **Optional overrides:** **`hideEligibility`** on **`StealthRulesOptions`** / **`GetHideAttemptEligibilityDenialReasonOptions`** — for tests or tools; normal encounter flow does **not** need to pass flags when they exist on the combatant. **`resolveHideEligibilityForCombatant`** precedence: **hide-attempt** — call-site → **`stealth.hideEligibility`** → **combatant-derived**; **stealth-sustain** — **`stealth.hideEligibility`** → call-site → **combatant-derived**.
 
@@ -46,7 +53,7 @@ Dim light / light obscurement behavior still follows **`cellWorldSupportsHideCon
 
 Eligibility answers **whether a hide attempt may be attempted** vs a given observer. It does **not** roll Stealth or compare to passive Perception.
 
-**Not implemented:** observer-specific cover (cover relative to each enemy’s token), dim-light hiding without meeting concealment or cover rules, Skulker, subclass-specific permissions, or magical concealment exceptions — see [TODO / future work](#todo--future-work).
+**Not implemented:** observer-specific cover (cover relative to each enemy’s token), dim-light-only hide without **`cellWorldSupportsHideConcealment`** / cover / feat flags, broader subclass permissions beyond the feat-id map, or magical concealment exceptions — see [TODO / future work](#todo--future-work).
 
 ---
 
@@ -90,7 +97,7 @@ These keep stored **`hiddenFromObserverIds`** aligned with the **shared percepti
 
 **Pure baseline patch:** **`updateEncounterEnvironmentBaseline`** does **not** run stealth (keeps tests and imports simple). For runtime lighting/obscurement changes that should affect hidden state, use **`applyEncounterEnvironmentBaselinePatchAndReconcileStealth`**.
 
-**TODO:** wire **`skillRuntime.hideEligibilityFeatureFlags`** from character/feats in **`combatant-builders`** / loaders; **also** merge effect/marker-driven grants into **`getCombatantHideEligibilityExtensionOptions`**. **Also:** observer-relative cover rays; sense-specific exceptions; richer “who counts as an observer” than passive hide resolution.
+**TODO:** merge effect/marker-driven grants into **`getCombatantHideEligibilityExtensionOptions`**; feat **display** names from a content catalog (today DTO uses id as name); observer-relative cover rays; sense-specific exceptions; richer “who counts as an observer” than passive hide resolution.
 
 ---
 
@@ -146,7 +153,7 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth-attack
 
 ## TODO / future work
 
-- **Authoring** — populate **`skillRuntime.hideEligibilityFeatureFlags`** from character sheet / feats in **`combatant-builders`**; **dynamic** grants from effects/markers in **`getCombatantHideEligibilityExtensionOptions`**.
+- **Dynamic grants** — temporary hide permissions from effects/markers in **`getCombatantHideEligibilityExtensionOptions`** (builders already thread static feat ids / monster fields).
 - **Observer-relative or partial break** on attack (vs global `breakStealthOnAttack`).
 - **Guessed location / sound** awareness for unseen targets (not occupant perception).
 - **Active opposed** Stealth vs **rolled** Perception (contested check path; keep passive baseline as fallback).

@@ -23,6 +23,7 @@ import {
   type RuntimeTurnHook,
 } from '@/features/mechanics/domain/encounter'
 
+import { deriveHideEligibilityFeatureFlagsFromCharacterDetail } from './derive-hide-eligibility-from-authored'
 import { getCombatantPortraitImageKey } from './getCombatantPortraitImageKey'
 
 const CONDITION_IDS: ReadonlySet<string> = new Set<EffectConditionId>(EFFECT_CONDITION_IDS)
@@ -149,6 +150,8 @@ export function buildCharacterCombatantInstance(args: {
 }): CombatantInstance {
   const { runtimeId, side, sourceKind, character, combatStats, attacks, extraActions = [], turnHooks } = args
 
+  const hideEligibilityFromFeats = deriveHideEligibilityFeatureFlagsFromCharacterDetail(character)
+
   return {
     instanceId: runtimeId,
     side,
@@ -177,6 +180,7 @@ export function buildCharacterCombatantInstance(args: {
         proficiencyBonus: combatStats.proficiencyBonus,
         perceptionProficiencyLevel: skillProficiencyLevelFromCharacterDetail(character, 'perception'),
         stealthProficiencyLevel: skillProficiencyLevelFromCharacterDetail(character, 'stealth'),
+        ...(hideEligibilityFromFeats != null ? { hideEligibilityFeatureFlags: hideEligibilityFromFeats } : {}),
       },
     },
     attacks,
@@ -313,6 +317,9 @@ export function buildMonsterCombatantInstance(args: {
         ),
         ...(monster.mechanics.senses?.passivePerception != null
           ? { passivePerception: monster.mechanics.senses.passivePerception }
+          : {}),
+        ...(monster.mechanics.hideEligibilityFeatureFlags != null
+          ? { hideEligibilityFeatureFlags: monster.mechanics.hideEligibilityFeatureFlags }
           : {}),
       },
     },

@@ -15,7 +15,9 @@ function hasAnyHideEligibilityFeatureFlags(
  * Single seam for feat/trait-driven hide rules; entry and sustain both consume the output via
  * {@link resolveHideEligibilityForCombatant} in `sight-hide-rules.ts`.
  *
- * **Source of truth (this pass):** `skillRuntime.hideEligibilityFeatureFlags` set at combatant build time.
+ * **Source of truth:** `skillRuntime.hideEligibilityFeatureFlags` from combatant builders —
+ * characters: authored **`CharacterDetailDto.feats`** → `deriveHideEligibilityFeatureFlagsFromCharacterDetail`;
+ * monsters: optional **`mechanics.hideEligibilityFeatureFlags`** on stat blocks.
  * **TODO:** merge in effect/marker-driven grants when those paths exist.
  */
 export function getCombatantHideEligibilityExtensionOptions(

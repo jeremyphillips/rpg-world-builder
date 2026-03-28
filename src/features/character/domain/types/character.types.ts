@@ -118,6 +118,8 @@ export type Character = {
   }
 
   proficiencies?: CharacterProficiencies
+  /** Optional feat / content ids (e.g. `skulker`); used by encounter combatant builders for hide permissions. */
+  feats?: string[]
   spells?: string[]
   equipment?: Equipment
   wealth?: Wealth

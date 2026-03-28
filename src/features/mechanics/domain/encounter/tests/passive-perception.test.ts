@@ -249,8 +249,24 @@ describe('combatant builders thread Perception / Stealth runtime', () => {
     expect(c.stats.skillRuntime?.proficiencyBonus).toBe(3)
     expect(c.stats.skillRuntime?.perceptionProficiencyLevel).toBe(1)
     expect(c.stats.skillRuntime?.stealthProficiencyLevel).toBe(1)
+    expect(c.stats.skillRuntime?.hideEligibilityFeatureFlags).toBeUndefined()
     expect(getPassivePerceptionScore(c)).toBe(10 + 2 + 3)
     expect(getStealthCheckModifier(c)).toBe(3 + 3)
+  })
+
+  it('buildCharacterCombatantInstance sets hideEligibilityFeatureFlags from authored feats (skulker)', () => {
+    const c = buildCharacterCombatantInstance({
+      runtimeId: 'r1',
+      side: 'party',
+      sourceKind: 'pc',
+      character: minimalCharacter({
+        feats: [{ id: 'skulker', name: 'Skulker' }],
+      }),
+      combatStats: mockCombatStats(3),
+      attacks: [],
+      turnHooks: [],
+    })
+    expect(c.stats.skillRuntime?.hideEligibilityFeatureFlags?.allowHalfCoverForHide).toBe(true)
   })
 
   const minimalMonster = (): Monster =>
@@ -293,5 +309,27 @@ describe('combatant builders thread Perception / Stealth runtime', () => {
     expect(getPassivePerceptionScore(m)).toBe(13)
     // Dex 14 → +2; stealth expertise 2×PB → +4; total +6
     expect(getStealthCheckModifier(m)).toBe(6)
+  })
+
+  it('buildMonsterCombatantInstance threads mechanics.hideEligibilityFeatureFlags into skillRuntime', () => {
+    const base = minimalMonster()
+    const monster = {
+      ...base,
+      mechanics: {
+        ...base.mechanics,
+        hideEligibilityFeatureFlags: { allowHalfCoverForHide: true },
+      },
+    } as typeof base
+    const m = buildMonsterCombatantInstance({
+      runtimeId: 'm1',
+      monster,
+      attacks: [],
+      initiativeModifier: 2,
+      armorClass: 15,
+      currentHitPoints: 7,
+      activeEffects: [],
+      turnHooks: [],
+    })
+    expect(m.stats.skillRuntime?.hideEligibilityFeatureFlags?.allowHalfCoverForHide).toBe(true)
   })
 })

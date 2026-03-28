@@ -98,6 +98,7 @@ export {
   type OpportunityAttackLegalityDenialReason,
 } from './opportunity-attack'
 export { getCombatantHideEligibilityExtensionOptions } from './combatant-hide-eligibility'
+export { FEAT_IDS_ALLOW_HALF_COVER_FOR_HIDE, featGrantsAllowHalfCoverForHide } from './hide-eligibility-feat-sources'
 export {
   canVisuallyPerceiveSubjectForRules,
   getSightBasedCheckLegalityDenialReason,
