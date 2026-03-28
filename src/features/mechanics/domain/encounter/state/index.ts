@@ -118,7 +118,11 @@ export {
   type HideResolutionOutcome,
   type StealthRulesOptions,
 } from './stealth-rules'
-export { getPassivePerceptionScore, getStealthCheckModifier } from './passive-perception'
+export {
+  getCombatantAbilityScore,
+  getPassivePerceptionScore,
+  getStealthCheckModifier,
+} from './passive-perception'
 export {
   combatantHasBattlefieldAbsenceEngineState,
   findNearestUnoccupiedPassableCell,

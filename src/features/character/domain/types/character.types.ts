@@ -130,7 +130,7 @@ export type PlayerCharacter = Character & {
 
 export type NonPlayerCharacter = Character & {
   type: 'npc'
-  source?: 'generated' | 'platform'
+  source?: 'homebrew' | 'system'
   id: string
 }
 

@@ -32,6 +32,26 @@ export interface CombatantAttackEntry {
   range?: CombatantAttackRange
 }
 
+/** 0 = none, 1 = proficient, 2 = expertise (same semantics as character `ProficiencyLevel`). */
+export type CombatantSkillProficiencyLevel = 0 | 1 | 2
+
+/**
+ * Minimal Perception / Stealth runtime seam for encounter rules (no generalized skill engine).
+ * Populated by character/monster combatant builders; stealth rules read only this plus ability scores.
+ */
+export type CombatantSkillRuntimeSnapshot = {
+  /** Ruleset or creature proficiency bonus; used as `bonus × proficiencyLevel` for skills when deriving modifiers. */
+  proficiencyBonus?: number
+  /** Wisdom (Perception): proficiency level for passive Perception derivation. */
+  perceptionProficiencyLevel?: CombatantSkillProficiencyLevel
+  /** Dexterity (Stealth): proficiency level for Stealth check modifier derivation. */
+  stealthProficiencyLevel?: CombatantSkillProficiencyLevel
+  /** Authoritative passive Perception when authored (e.g. monster senses). Takes precedence over derivation. */
+  passivePerception?: number
+  /** When set, Stealth check uses this total modifier instead of Dex + proficiency contribution. */
+  stealthCheckModifierOverride?: number
+}
+
 export interface CombatantStatBlock {
   armorClass: number
   maxHitPoints: number
@@ -41,10 +61,9 @@ export interface CombatantStatBlock {
   abilityScores?: Partial<Record<AbilityKey, number>>
   savingThrowModifiers?: Partial<Record<AbilityKey, number>>
   speeds?: Partial<Record<'ground' | 'climb' | 'fly' | 'swim' | 'burrow', number>>
-  /**
-   * When set (e.g. from monster senses), used for hide vs passive Perception. Otherwise derived from
-   * Wisdom in {@link getPassivePerceptionScore}.
-   */
+  /** Perception / Stealth proficiency thread; preferred source for passive Perception and Stealth modifiers. */
+  skillRuntime?: CombatantSkillRuntimeSnapshot
+  /** Legacy/explicit passive Perception on stats (e.g. tests). Precedence: `skillRuntime.passivePerception` then this field. */
   passivePerception?: number
 }
 
