@@ -110,7 +110,10 @@ describe('stealth-rules', () => {
     const pruneNote = pruned.log.find(
       (e) => e.type === 'note' && e.details?.includes(STEALTH_DEBUG_REASON.observerCanPerceiveTarget),
     )
-    expect(pruneNote?.summary).toMatch(/revealed to|pruned/i)
+    expect(pruneNote?.summary).toMatch(/Perception trace|revealed to|pruned/i)
+    expect(pruneNote?.details).toContain(`traceKind=${STEALTH_DEBUG_REASON.observerPerceivePruneBreakdown}`)
+    expect(pruneNote?.details).toContain('intrinsicSee=true')
+    expect(pruneNote?.details).toContain('worldOccupants=true')
   })
 
   it('reconcileStealthHiddenForPerceivedObservers does not append a note when hidden state is unchanged', () => {

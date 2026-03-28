@@ -19,6 +19,253 @@ function hasSeeInvisibilityState(c: CombatantInstance): boolean {
 }
 
 /**
+ * Introspection-only snapshot of {@link canPerceiveTargetOccupantForCombat} (same gates, same order).
+ * For combat-log diagnostics; does not change perception rules.
+ */
+export type PerceiveTargetOccupantBreakdown = {
+  observerCellId: string | null
+  subjectCellId: string | null
+  missingCombatant: boolean
+  intrinsicCanSeeObserver: boolean
+  targetInvisible: boolean
+  observerHasSeeInvisibility: boolean
+  invisibleGateBlocks: boolean
+  noGridPermissive: boolean
+  lineOfSightClear: boolean | null
+  lineOfEffectClear: boolean | null
+  targetCellId: string | null
+  viewerPerceptionResolved: boolean
+  canPerceiveCell: boolean | null
+  canPerceiveOccupants: boolean | null
+  maskedByMagicalDarkness: boolean | null
+  maskedByDarkness: boolean | null
+  final: boolean
+}
+
+export type PerceiveTargetOccupantEvaluation = {
+  canPerceive: boolean
+  breakdown: PerceiveTargetOccupantBreakdown
+}
+
+/**
+ * Same result as {@link canPerceiveTargetOccupantForCombat}, plus a step-by-step breakdown for logging.
+ */
+export function evaluatePerceiveTargetOccupantForCombat(
+  state: EncounterState,
+  observerId: string,
+  targetCombatantId: string,
+  options?: { capabilities?: EncounterViewerPerceptionCapabilities },
+): PerceiveTargetOccupantEvaluation {
+  const observer = state.combatantsById[observerId]
+  const target = state.combatantsById[targetCombatantId]
+  const hasGrid = Boolean(state.space && state.placements)
+  const observerCellId =
+    hasGrid && state.placements ? getCellForCombatant(state.placements, observerId) : null
+  const subjectCellId =
+    hasGrid && state.placements ? getCellForCombatant(state.placements, targetCombatantId) : null
+
+  const base = (partial: Partial<PerceiveTargetOccupantBreakdown>): PerceiveTargetOccupantBreakdown => ({
+    observerCellId,
+    subjectCellId,
+    missingCombatant: partial.missingCombatant ?? false,
+    intrinsicCanSeeObserver: partial.intrinsicCanSeeObserver ?? false,
+    targetInvisible: partial.targetInvisible ?? false,
+    observerHasSeeInvisibility: partial.observerHasSeeInvisibility ?? false,
+    invisibleGateBlocks: partial.invisibleGateBlocks ?? false,
+    noGridPermissive: partial.noGridPermissive ?? false,
+    lineOfSightClear: partial.lineOfSightClear ?? null,
+    lineOfEffectClear: partial.lineOfEffectClear ?? null,
+    targetCellId: partial.targetCellId ?? null,
+    viewerPerceptionResolved: partial.viewerPerceptionResolved ?? false,
+    canPerceiveCell: partial.canPerceiveCell ?? null,
+    canPerceiveOccupants: partial.canPerceiveOccupants ?? null,
+    maskedByMagicalDarkness: partial.maskedByMagicalDarkness ?? null,
+    maskedByDarkness: partial.maskedByDarkness ?? null,
+    final: partial.final ?? false,
+  })
+
+  if (!observer || !target) {
+    return {
+      canPerceive: false,
+      breakdown: base({ missingCombatant: true, final: false }),
+    }
+  }
+
+  const intrinsicCanSeeObserver = canSee(observer)
+  const targetInvisible = hasInvisibleCondition(target)
+  const observerHasSeeInvisibility = hasSeeInvisibilityState(observer)
+  const invisibleGateBlocks = targetInvisible && !observerHasSeeInvisibility
+
+  if (!intrinsicCanSeeObserver) {
+    return {
+      canPerceive: false,
+      breakdown: base({
+        intrinsicCanSeeObserver: false,
+        targetInvisible,
+        observerHasSeeInvisibility,
+        invisibleGateBlocks: false,
+        final: false,
+      }),
+    }
+  }
+
+  if (invisibleGateBlocks) {
+    return {
+      canPerceive: false,
+      breakdown: base({
+        intrinsicCanSeeObserver: true,
+        targetInvisible,
+        observerHasSeeInvisibility,
+        invisibleGateBlocks: true,
+        final: false,
+      }),
+    }
+  }
+
+  if (!state.space || !state.placements) {
+    return {
+      canPerceive: true,
+      breakdown: base({
+        intrinsicCanSeeObserver: true,
+        targetInvisible,
+        observerHasSeeInvisibility,
+        invisibleGateBlocks: false,
+        noGridPermissive: true,
+        final: true,
+      }),
+    }
+  }
+
+  const los = lineOfSightClear(observerId, targetCombatantId, state)
+  if (!los) {
+    return {
+      canPerceive: false,
+      breakdown: base({
+        intrinsicCanSeeObserver: true,
+        targetInvisible,
+        observerHasSeeInvisibility,
+        invisibleGateBlocks: false,
+        lineOfSightClear: false,
+        final: false,
+      }),
+    }
+  }
+
+  const loe = lineOfEffectClear(observerId, targetCombatantId, state)
+  if (!loe) {
+    return {
+      canPerceive: false,
+      breakdown: base({
+        intrinsicCanSeeObserver: true,
+        targetInvisible,
+        observerHasSeeInvisibility,
+        invisibleGateBlocks: false,
+        lineOfSightClear: true,
+        lineOfEffectClear: false,
+        final: false,
+      }),
+    }
+  }
+
+  const targetCellId = getCellForCombatant(state.placements, targetCombatantId)
+  if (!targetCellId) {
+    return {
+      canPerceive: true,
+      breakdown: base({
+        intrinsicCanSeeObserver: true,
+        targetInvisible,
+        observerHasSeeInvisibility,
+        invisibleGateBlocks: false,
+        lineOfSightClear: true,
+        lineOfEffectClear: true,
+        targetCellId: null,
+        viewerPerceptionResolved: false,
+        final: true,
+      }),
+    }
+  }
+
+  const perception = resolveViewerPerceptionForCellFromState(state, observerId, targetCellId, {
+    viewerRole: 'pc',
+    capabilities: options?.capabilities,
+  })
+  if (!perception) {
+    return {
+      canPerceive: true,
+      breakdown: base({
+        intrinsicCanSeeObserver: true,
+        targetInvisible,
+        observerHasSeeInvisibility,
+        invisibleGateBlocks: false,
+        lineOfSightClear: true,
+        lineOfEffectClear: true,
+        targetCellId,
+        viewerPerceptionResolved: false,
+        final: true,
+      }),
+    }
+  }
+
+  const final = perception.canPerceiveOccupants
+  return {
+    canPerceive: final,
+    breakdown: base({
+      intrinsicCanSeeObserver: true,
+      targetInvisible,
+      observerHasSeeInvisibility,
+      invisibleGateBlocks: false,
+      lineOfSightClear: true,
+      lineOfEffectClear: true,
+      targetCellId,
+      viewerPerceptionResolved: true,
+      canPerceiveCell: perception.canPerceiveCell,
+      canPerceiveOccupants: perception.canPerceiveOccupants,
+      maskedByMagicalDarkness: perception.maskedByMagicalDarkness,
+      maskedByDarkness: perception.maskedByDarkness,
+      final,
+    }),
+  }
+}
+
+/** Compact pipe-separated fragment for stealth prune diagnostics (stable token shape for log search). */
+export function formatPerceiveTargetOccupantBreakdownCompact(b: PerceiveTargetOccupantBreakdown): string {
+  if (b.missingCombatant) return 'missingCombatant=true'
+  const parts: string[] = []
+  parts.push(`intrinsicSee=${b.intrinsicCanSeeObserver}`)
+  parts.push(`invGate=${b.invisibleGateBlocks ? 'blocked' : 'pass'}`)
+  if (b.noGridPermissive) {
+    parts.push('noGridPermissive=true')
+    parts.push(`final=${b.final}`)
+    return parts.join('|')
+  }
+  if (b.lineOfSightClear === false) {
+    parts.push('LOS=false')
+    parts.push(`final=${b.final}`)
+    return parts.join('|')
+  }
+  if (b.lineOfEffectClear === false) {
+    parts.push('LOS=true')
+    parts.push('LOE=false')
+    parts.push(`final=${b.final}`)
+    return parts.join('|')
+  }
+  parts.push('LOS=true')
+  parts.push('LOE=true')
+  parts.push(`subjectCell=${b.targetCellId ?? 'none'}`)
+  if (!b.viewerPerceptionResolved) {
+    parts.push('battlefieldPerception=null')
+    parts.push(`final=${b.final}`)
+    return parts.join('|')
+  }
+  parts.push(`worldCell=${b.canPerceiveCell}`)
+  parts.push(`worldOccupants=${b.canPerceiveOccupants}`)
+  parts.push(`magDark=${b.maskedByMagicalDarkness}`)
+  parts.push(`heavyOrDark=${b.maskedByDarkness}`)
+  parts.push(`final=${b.final}`)
+  return parts.join('|')
+}
+
+/**
  * Shared pair-level seam: whether `observer` can **perceive the target combatant as an occupant**
  * for combat (attack rolls, spell/ability targeting that requires sight, opportunity attacks, sight-based
  * checks, and Hide eligibility — see `sight-hide-rules.ts`).
@@ -39,36 +286,7 @@ export function canPerceiveTargetOccupantForCombat(
   targetCombatantId: string,
   options?: { capabilities?: EncounterViewerPerceptionCapabilities },
 ): boolean {
-  const observer = state.combatantsById[observerId]
-  const target = state.combatantsById[targetCombatantId]
-  if (!observer || !target) return false
-
-  if (!canSee(observer)) return false
-  if (hasInvisibleCondition(target) && !hasSeeInvisibilityState(observer)) {
-    return false
-  }
-
-  if (!state.space || !state.placements) {
-    return true
-  }
-
-  if (!lineOfSightClear(observerId, targetCombatantId, state)) return false
-  if (!lineOfEffectClear(observerId, targetCombatantId, state)) return false
-
-  const targetCellId = getCellForCombatant(state.placements, targetCombatantId)
-  if (!targetCellId) {
-    return true
-  }
-
-  const perception = resolveViewerPerceptionForCellFromState(state, observerId, targetCellId, {
-    viewerRole: 'pc',
-    capabilities: options?.capabilities,
-  })
-  if (!perception) {
-    return true
-  }
-
-  return perception.canPerceiveOccupants
+  return evaluatePerceiveTargetOccupantForCombat(state, observerId, targetCombatantId, options).canPerceive
 }
 
 /**

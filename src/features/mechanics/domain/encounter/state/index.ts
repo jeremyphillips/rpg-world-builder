@@ -84,8 +84,12 @@ export {
   lineOfEffectClear,
   canSeeForTargeting,
   canPerceiveTargetOccupantForCombat,
+  evaluatePerceiveTargetOccupantForCombat,
+  formatPerceiveTargetOccupantBreakdownCompact,
   resolveCombatantPairVisibilityForAttackRoll,
   getAttackVisibilityRollModifiersFromPair,
+  type PerceiveTargetOccupantBreakdown,
+  type PerceiveTargetOccupantEvaluation,
 } from './visibility/visibility-seams'
 export {
   DEFAULT_OPPORTUNITY_ATTACK_REACH_FT,

@@ -15,7 +15,11 @@ import type { EncounterEnvironmentBaselinePatch } from '@/features/mechanics/dom
 
 import { reconcileAwarenessGuessesWithPerception } from '../awareness/awareness-rules'
 import { getPassivePerceptionScore } from '../awareness/passive-perception'
-import { canPerceiveTargetOccupantForCombat } from '../visibility/combatant-pair-visibility'
+import {
+  canPerceiveTargetOccupantForCombat,
+  evaluatePerceiveTargetOccupantForCombat,
+  type PerceiveTargetOccupantEvaluation,
+} from '../visibility/combatant-pair-visibility'
 import { updateEncounterEnvironmentBaseline } from '../environment/environment-baseline-mutations'
 import { updateEncounterCombatant } from '../mutations/mutations'
 import { getCombatantHideEligibilityExtensionOptions } from './combatant-hide-eligibility'
@@ -298,6 +302,16 @@ export function reconcileStealthHiddenForPerceivedObservers(
 
     const removedObserverIds = stealth.hiddenFromObserverIds.filter((id) => !filtered.includes(id))
 
+    const perceiveByObserverId: Record<string, PerceiveTargetOccupantEvaluation> = {}
+    for (const observerId of removedObserverIds) {
+      perceiveByObserverId[observerId] = evaluatePerceiveTargetOccupantForCombat(
+        next,
+        observerId,
+        combatant.instanceId,
+        cap,
+      )
+    }
+
     next = updateEncounterCombatant(next, combatant.instanceId, (c) => ({
       ...c,
       stealth:
@@ -308,7 +322,12 @@ export function reconcileStealthHiddenForPerceivedObservers(
               hiddenFromObserverIds: filtered,
             },
     }))
-    next = appendStealthPrunedObserverCanPerceiveNote(next, combatant.instanceId, removedObserverIds)
+    next = appendStealthPrunedObserverCanPerceiveNote(
+      next,
+      combatant.instanceId,
+      removedObserverIds,
+      perceiveByObserverId,
+    )
   }
 
   return reconcileAwarenessGuessesWithPerception(next)

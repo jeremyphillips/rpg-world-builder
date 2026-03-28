@@ -4,6 +4,10 @@
  */
 import { appendEncounterNote, getEncounterCombatantLabel } from '../effects/logging'
 import type { EncounterState } from '../types'
+import {
+  formatPerceiveTargetOccupantBreakdownCompact,
+  type PerceiveTargetOccupantEvaluation,
+} from '../visibility/combatant-pair-visibility'
 
 /** `reason=` id is stable for filtering; other keys use display labels (see {@link getEncounterCombatantLabel}). */
 export const STEALTH_DEBUG_REASON = {
@@ -17,6 +21,8 @@ export const STEALTH_DEBUG_REASON = {
   movementReconcile: 'movement-reconcile',
   environmentChange: 'environment-change',
   attackBreak: 'attack-break',
+  /** Pair perception step trace when hidden-from is pruned (same pipeline as canPerceiveTargetOccupantForCombat). */
+  observerPerceivePruneBreakdown: 'observer-perceive-prune-breakdown',
 } as const
 
 function rosterLabels(state: EncounterState, ids: string[]): string {
@@ -51,22 +57,50 @@ export function appendStealthPrunedObserverCanPerceiveNote(
   state: EncounterState,
   subjectId: string,
   removedObserverIds: string[],
+  perceiveByObserverId?: Record<string, PerceiveTargetOccupantEvaluation>,
 ): EncounterState {
   if (removedObserverIds.length === 0) return state
   const subject = getEncounterCombatantLabel(state, subjectId)
   const names = rosterLabels(state, removedObserverIds)
-  return appendEncounterNote(
-    state,
-    `${subject} revealed to ${names} (observer can perceive target — hidden-from list pruned).`,
-    {
-      actorId: subjectId,
-      targetIds: removedObserverIds,
-      details: stealthNoteDetails(STEALTH_DEBUG_REASON.observerCanPerceiveTarget, {
-        subject: getEncounterCombatantLabel(state, subjectId),
-        observers: rosterLabels(state, removedObserverIds),
-      }),
-    },
-  )
+
+  let summary = `${subject} revealed to ${names} (observer can perceive target — hidden-from list pruned).`
+  if (perceiveByObserverId) {
+    const traceParts = removedObserverIds.map((oid) => {
+      const ev = perceiveByObserverId[oid]
+      const obs = getEncounterCombatantLabel(state, oid)
+      return `${obs}: ${formatPerceiveTargetOccupantBreakdownCompact(ev.breakdown)}`
+    })
+    summary += ` Perception trace: ${traceParts.join(' · ')}`
+  }
+
+  const detailFields: Record<string, string> = {
+    subject: getEncounterCombatantLabel(state, subjectId),
+    observers: rosterLabels(state, removedObserverIds),
+  }
+  if (perceiveByObserverId) {
+    detailFields.traceKind = STEALTH_DEBUG_REASON.observerPerceivePruneBreakdown
+    detailFields.perceive = removedObserverIds
+      .map((oid) => {
+        const ev = perceiveByObserverId[oid]
+        const obs = getEncounterCombatantLabel(state, oid)
+        if (!ev) return `${obs}→(no evaluation)`
+        return `${obs}→${formatPerceiveTargetOccupantBreakdownCompact(ev.breakdown)}`
+      })
+      .join(' || ')
+    detailFields.perceiveIds = removedObserverIds
+      .map((oid) => {
+        const ev = perceiveByObserverId[oid]
+        if (!ev) return `${oid}:missing`
+        return `${oid}:${formatPerceiveTargetOccupantBreakdownCompact(ev.breakdown)}`
+      })
+      .join('||')
+  }
+
+  return appendEncounterNote(state, summary, {
+    actorId: subjectId,
+    targetIds: removedObserverIds,
+    details: stealthNoteDetails(STEALTH_DEBUG_REASON.observerCanPerceiveTarget, detailFields),
+  })
 }
 
 /** Diagnostic combat log: hide world basis gone for a new attempt vs these observers, but they still cannot perceive. */

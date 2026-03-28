@@ -7,6 +7,10 @@ export { lineOfSightClear, lineOfEffectClear } from './visibility-los'
 export {
   canSeeForTargeting,
   canPerceiveTargetOccupantForCombat,
+  evaluatePerceiveTargetOccupantForCombat,
+  formatPerceiveTargetOccupantBreakdownCompact,
   resolveCombatantPairVisibilityForAttackRoll,
   getAttackVisibilityRollModifiersFromPair,
+  type PerceiveTargetOccupantBreakdown,
+  type PerceiveTargetOccupantEvaluation,
 } from './combatant-pair-visibility'
