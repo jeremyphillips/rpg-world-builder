@@ -3,18 +3,18 @@ import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import { getActionTargetInvalidReason } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
 
-import { isAreaGridAction, isSelfCenteredAreaAction } from './actions'
-import type { GridInteractionMode } from '../domain/interaction/encounter-interaction.types'
+import { isAreaGridAction, isSelfCenteredAreaAction } from '../actions'
+import type { GridInteractionMode } from '../../domain/interaction/encounter-interaction.types'
 import {
   getSingleCellPlacementRequirement,
   validateSingleCellPlacement,
 } from '@/features/mechanics/domain/encounter/resolution/action/action-requirement-model'
-import { getCellById, getCellForCombatant, gridDistanceFt } from '../space/space.helpers'
+import { getCellById, getCellForCombatant, gridDistanceFt } from '../../space/space.helpers'
 import {
   actionUsesGridCreatureTargeting,
   getMoveRejectionReason,
   isValidAoeOriginCell,
-} from '../space/space.selectors'
+} from '../../space/space.selectors'
 
 export type AoeStep = 'none' | 'placing' | 'confirm'
 

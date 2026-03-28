@@ -18,7 +18,7 @@ import {
   type MonsterFormContext,
   type RuntimeTurnHook,
 } from '@/features/mechanics/domain/encounter'
-import { formatAuthoredDamage } from './combatants'
+import { formatAuthoredDamage } from '../combatants'
 import { injectSpellSaveDcDeep } from '@/features/mechanics/domain/encounter/state/auras/battlefield-attached-aura-shared'
 import { buildMonsterActionRuntimeId } from './monster-action-runtime-ids'
 

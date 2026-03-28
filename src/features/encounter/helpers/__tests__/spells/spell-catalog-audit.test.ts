@@ -8,7 +8,7 @@ import {
   spellHasTopLevelDamageAndSave,
   spellMissingDeliveryMethodAttackCandidate,
   summarizeSpellAudit,
-} from './spell-resolution-audit'
+} from '../../spells/spell-resolution-audit'
 
 /**
  * Lightweight catalog audit — run with: `pnpm vitest run spell-catalog-audit`

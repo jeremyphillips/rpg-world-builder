@@ -529,7 +529,7 @@ Multi-instance **auto-hit** spells authored with a single root `damage` effect a
 
 **Spell level vs cantrips:** Authored `spell.level` is **0** for cantrips. For formulas that need a positive spell tier when slot level is not modeled, use `effectiveSpellLevelForScaling` in `spells/shared.ts` (**0 → 1**). Cantrip damage scaling by **character** level uses effect `levelScaling` / `cantripDamageScaling`, not that helper.
 
-Behavioral tests in `spell-helpers.test.ts` lock in representative routing; catalog-wide stranded counts are for manual or PR reporting, not CI thresholds.
+Behavioral tests in [`build-spell-combat-actions.test.ts`](../../src/features/encounter/helpers/__tests__/spells/build-spell-combat-actions.test.ts) lock in representative routing; catalog-wide stranded counts are for manual or PR reporting, not CI thresholds.
 
 **Equipment snapshot:** `CombatantInstance.equipment` mirrors character loadout (armor, weapons, shield) when built from PCs. **`patchCombatantEquipmentSnapshot`** merges a partial snapshot and removes `statModifiers` whose `eligibility.requiresUnarmored` no longer holds (e.g. Mage Armor after donning armor). Set `armor_class` modifiers with that eligibility store `armorClassBeforeApply` so AC can be restored. Encounter UI must invoke this (or rebuild combatants) when loadout changes—there is no automatic sync from the character sheet yet.
 

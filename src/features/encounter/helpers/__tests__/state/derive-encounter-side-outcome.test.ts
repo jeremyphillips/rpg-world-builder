@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
 
-import { deriveEncounterSideOutcome } from './derive-encounter-side-outcome'
+import { deriveEncounterSideOutcome } from '../../state'
 
 function minimalEncounter(overrides: Partial<EncounterState>): EncounterState {
   return {

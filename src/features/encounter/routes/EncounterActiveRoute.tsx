@@ -27,7 +27,7 @@ import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/
 import { buildInitialCasterOptionsForAction } from '@/features/mechanics/domain/spells/caster-options'
 
 import { buildEncounterActionToastPayload } from '../helpers/actions'
-import { deriveEncounterSideOutcome } from '../helpers/derive-encounter-side-outcome'
+import { deriveEncounterSideOutcome } from '../helpers/state'
 import { EncounterGameOverModal } from '../components/active/modals/EncounterGameOverModal'
 import { canResolveCombatActionSelection, selectValidActionIdsForTarget } from '../domain'
 import {
@@ -51,7 +51,7 @@ import {
   useCloseCombatantActionDrawerOnActiveCombatantChange,
 } from '../components'
 import type { CombatantActionDrawerProps } from '../components/active/drawers/CombatantActionDrawer'
-import { deriveGridHoverStatusMessage } from '../helpers/deriveGridHoverStatus'
+import { deriveGridHoverStatusMessage } from '../helpers/ui'
 import { campaignEncounterSetupPath } from './encounterPaths'
 import { useEncounterRuntime } from './EncounterRuntimeContext'
 

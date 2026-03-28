@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { filterLogByMode } from '@/features/encounter/domain'
-import { toCombatLogEntry } from '@/features/encounter/helpers/combat-log-bridge'
+import { toCombatLogEntry } from '@/features/encounter/helpers/logs'
 import { createSquareGridSpace } from '@/features/encounter/space/createSquareGridSpace'
 import {
   appendStealthMovementRecheckHeaderNote,
