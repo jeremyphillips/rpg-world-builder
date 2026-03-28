@@ -22,7 +22,7 @@ import {
   isAreaGridAction,
   resolveAttachedEmanationAnchorModeFromSelection,
   type AoeStep,
-} from '../../../helpers/area-grid-action'
+} from '../../../helpers/actions'
 import { AoePlacementPanel } from './drawer-modes/AoePlacementPanel'
 import { CasterOptionsDrawerPanel } from './drawer-modes/CasterOptionsDrawerPanel'
 import {

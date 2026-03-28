@@ -3,7 +3,7 @@ import type { SpawnEffect, SpawnPlacement } from '@/features/mechanics/domain/ef
 import type { CombatantPosition, EncounterSpace } from '@/features/encounter/space'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt } from '@/features/encounter/space'
 import { hasLineOfSight } from '@/features/encounter/space/space.sight'
-import { isAreaGridAction } from '@/features/encounter/helpers/area-grid-action'
+import { isAreaGridAction } from '@/features/encounter/helpers/actions'
 import { areaTemplateRadiusFt } from './action-targeting'
 
 // ---------------------------------------------------------------------------

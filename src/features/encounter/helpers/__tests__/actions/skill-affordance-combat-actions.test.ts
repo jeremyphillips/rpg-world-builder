@@ -5,7 +5,7 @@ import { deriveActionPresentation } from '@/features/encounter/domain/actions/ac
 import { getSystemSkillProficiency } from '@/features/mechanics/domain/rulesets/system/skillProficiencies'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 
-import { buildCombatActionForSkillAffordance, buildSkillAffordanceCombatActions } from './skill-affordance-combat-actions'
+import { buildCombatActionForSkillAffordance, buildSkillAffordanceCombatActions } from '../../actions'
 
 describe('buildSkillAffordanceCombatActions', () => {
   const stealthSkill = getSystemSkillProficiency(DEFAULT_SYSTEM_RULESET_ID, 'stealth')!

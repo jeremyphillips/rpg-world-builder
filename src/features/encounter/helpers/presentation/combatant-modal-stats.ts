@@ -3,8 +3,8 @@ import type { Monster } from '@/features/content/monsters/domain/types'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
 import { getAbilityScoreValue } from '@/features/mechanics/domain/character/abilities/abilityScoreMap'
 
-import type { PreviewStat } from '../domain'
-import { formatSigned } from './combatants'
+import type { PreviewStat } from '../../domain'
+import { formatSigned } from '../combatants'
 import { getPreviewStatTooltip } from './combatant-card-tooltips'
 
 type ArmorCatalog = Parameters<typeof calculateMonsterArmorClass>[1]

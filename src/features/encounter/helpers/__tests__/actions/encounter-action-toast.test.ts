@@ -4,7 +4,7 @@ import type { CombatLogEvent } from '@/features/mechanics/domain/encounter'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
 
-import { buildEncounterActionToastPayload } from './encounter-action-toast'
+import { buildEncounterActionToastPayload } from '../../actions'
 
 function minimalCombatant(overrides: Partial<CombatantInstance>): CombatantInstance {
   return {

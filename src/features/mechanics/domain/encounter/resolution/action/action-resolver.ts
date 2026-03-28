@@ -41,7 +41,7 @@ import {
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection, ResolveCombatActionOptions } from '../action-resolution.types'
-import { resolveAttachedEmanationAnchorModeFromSelection } from '@/features/encounter/helpers/area-grid-action'
+import { resolveAttachedEmanationAnchorModeFromSelection } from '@/features/encounter/helpers/actions'
 import { findGridObstacleById } from '@/features/encounter/space/space.helpers'
 import { formatCasterOptionSummary } from '../../../spells/caster-options'
 import {

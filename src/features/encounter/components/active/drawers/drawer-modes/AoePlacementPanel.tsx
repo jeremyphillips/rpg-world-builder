@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography'
 
 import { areaTemplateRadiusFt } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
-import { isSelfCenteredAreaAction, type AoeStep } from '../../../../helpers/area-grid-action'
+import { isSelfCenteredAreaAction, type AoeStep } from '../../../../helpers/actions'
 
 import { formatAreaTemplateLabel, formatSpellRangeLine } from './aoePlacementFormat'
 

@@ -4,13 +4,13 @@ import {
   type SpatialBattlefieldPresentationOptions,
 } from '@/features/mechanics/domain/encounter'
 import { isDefeatedCombatant } from '@/features/mechanics/domain/encounter/state/combatants/combatant-participation'
-import type { CombatStatePriority } from '../domain/effects/presentable-effects.types'
+import type { CombatStatePriority } from '../../domain/effects/presentable-effects.types'
 
 import {
   buildEncounterDefensePreviewChips,
   resolvePresentationForSemanticKey,
   type PreviewChip,
-} from '../domain'
+} from '../../domain'
 import { CONCENTRATING_BADGE_TOOLTIP, tooltipForConditionMarkerLabel } from './combatant-card-tooltips'
 import { formatTurnDuration } from './format-turn-duration'
 

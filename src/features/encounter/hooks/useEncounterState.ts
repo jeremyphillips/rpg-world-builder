@@ -37,7 +37,7 @@ import type {
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import { buildSummonAllyMonsterCombatant } from '../helpers/combatants'
-import type { AoeStep } from '../helpers/area-grid-action'
+import type { AoeStep } from '../helpers/actions'
 
 import type { OpponentRosterEntry } from '../types'
 import type { EncounterSpace, InitialPlacementOptions } from '../space'

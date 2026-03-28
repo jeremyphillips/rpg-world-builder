@@ -7,7 +7,7 @@ import type {
   SpatialBattlefieldPresentationOptions,
 } from '@/features/mechanics/domain/encounter'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter/resolution/combat-action.types'
-import type { AoeStep } from '../../../helpers/area-grid-action'
+import type { AoeStep } from '../../../helpers/actions'
 import {
   collectPresentableEffects,
   enrichPresentableEffects,

@@ -15,7 +15,7 @@ import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
-import { buildMonsterModalStats } from '../helpers/combatant-modal-stats'
+import { buildMonsterModalStats } from '../helpers/presentation'
 import {
   ATMOSPHERE_TAGS,
   DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE,
@@ -52,7 +52,7 @@ import {
   type GridSizePreset,
 } from '../components'
 import { areaTemplateRadiusFt } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
-import { isAreaGridAction } from '../helpers/area-grid-action'
+import { isAreaGridAction } from '../helpers/actions'
 import { getCellForCombatant } from '../space/space.helpers'
 import { buildCombatantViewerPresentationKindById } from '../space/grid-occupant-render-visibility'
 import { selectGridViewModel } from '../space/space.selectors'

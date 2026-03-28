@@ -14,7 +14,7 @@ import {
 import type { BattlefieldSpellContext } from '@/features/mechanics/domain/encounter/state/battlefield/battlefield-spatial-movement-modifiers'
 import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/encounter/state/battlefield/battlefield-spatial-movement-modifiers'
 import { createEmptyTurnContext } from '@/features/mechanics/domain/encounter/state/shared'
-import { isAreaGridAction } from '../helpers/area-grid-action'
+import { isAreaGridAction } from '../helpers/actions'
 import type { ViewerCombatantPresentationKind } from '@/features/encounter/domain'
 import {
   buildCellPerceptionRenderState,

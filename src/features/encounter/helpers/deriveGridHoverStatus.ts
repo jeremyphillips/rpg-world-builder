@@ -3,7 +3,7 @@ import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 import { getActionTargetInvalidReason } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
 
-import { isAreaGridAction, isSelfCenteredAreaAction } from './area-grid-action'
+import { isAreaGridAction, isSelfCenteredAreaAction } from './actions'
 import type { GridInteractionMode } from '../domain/interaction/encounter-interaction.types'
 import {
   getSingleCellPlacementRequirement,

@@ -26,7 +26,7 @@ import {
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import { buildInitialCasterOptionsForAction } from '@/features/mechanics/domain/spells/caster-options'
 
-import { buildEncounterActionToastPayload } from '../helpers/encounter-action-toast'
+import { buildEncounterActionToastPayload } from '../helpers/actions'
 import { deriveEncounterSideOutcome } from '../helpers/derive-encounter-side-outcome'
 import { EncounterGameOverModal } from '../components/active/modals/EncounterGameOverModal'
 import { canResolveCombatActionSelection, selectValidActionIdsForTarget } from '../domain'
@@ -34,7 +34,7 @@ import {
   isAreaGridAction,
   isSelfCenteredAreaAction,
   resolveAttachedEmanationAnchorModeFromSelection,
-} from '../helpers/area-grid-action'
+} from '../helpers/actions'
 import { findGridObstacleAtCell, formatGridCellLabel, getCellForCombatant } from '../space/space.helpers'
 import {
   actionUsesGridCreatureTargeting,
