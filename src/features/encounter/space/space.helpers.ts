@@ -116,3 +116,18 @@ export function findGridObstacleById(
 ): GridObstacle | undefined {
   return space?.obstacles?.find((o) => o.id === objectId)
 }
+
+/** Move an existing grid obstacle to another valid cell (e.g. carried object / GM adjustment). Returns a new space, or `null` if the obstacle or target cell is invalid. */
+export function moveGridObstacleToCell(
+  space: EncounterSpace,
+  obstacleId: string,
+  cellId: string,
+): EncounterSpace | null {
+  if (!getCellById(space, cellId)) return null
+  const obstacles = space.obstacles ?? []
+  const idx = obstacles.findIndex((o) => o.id === obstacleId)
+  if (idx < 0) return null
+  const nextObs = [...obstacles]
+  nextObs[idx] = { ...nextObs[idx]!, cellId }
+  return { ...space, obstacles: nextObs }
+}

@@ -12,7 +12,12 @@ export type BattlefieldEffectAnchor =
 
 /**
  * Resolves the grid cell that currently defines the center of the effect's sphere.
- * Returns undefined when spatial data is missing or the anchor cannot be placed (e.g. object without snapshot).
+ * Returns undefined when spatial data is missing or the anchor cannot be placed.
+ *
+ * **Object anchors:** Prefer the **live** obstacle position from {@link EncounterSpace.obstacles} so the
+ * origin tracks when the obstacle moves. If the obstacle id is no longer present, the anchor cannot be
+ * resolved (cast-time `snapshotCellId` is not used as a stale fallback — see
+ * {@link reconcileBattlefieldEffectAnchors}).
  */
 export function resolveBattlefieldEffectOriginCellId(
   space: EncounterSpace | undefined,
@@ -26,11 +31,11 @@ export function resolveBattlefieldEffectOriginCellId(
     case 'place':
       return getCellById(space, anchor.cellId) ? anchor.cellId : undefined
     case 'object': {
-      if (anchor.snapshotCellId && getCellById(space, anchor.snapshotCellId)) {
-        return anchor.snapshotCellId
-      }
       const live = findGridObstacleById(space, anchor.objectId)
-      return live && getCellById(space, live.cellId) ? live.cellId : undefined
+      if (live && getCellById(space, live.cellId)) {
+        return live.cellId
+      }
+      return undefined
     }
     default:
       return undefined

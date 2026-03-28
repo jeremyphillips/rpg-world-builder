@@ -47,6 +47,7 @@ import {
   resolveIntervalEffectsForCombatantAtTurnBoundary,
   type BattlefieldIntervalResolutionOptions,
 } from './battlefield-interval-resolution'
+import { reconcileBattlefieldEffectAnchors } from './battlefield-effect-anchor-reconciliation'
 
 function resetCombatantTurnState(
   state: EncounterState,
@@ -230,7 +231,7 @@ export function mergeCombatantsIntoEncounter(
   )
   const mergedAuras = [...(state.attachedAuraInstances ?? []), ...traitAuras]
 
-  return {
+  return reconcileBattlefieldEffectAnchors({
     ...state,
     combatantsById,
     partyCombatantIds: Array.from(partyIds),
@@ -239,7 +240,7 @@ export function mergeCombatantsIntoEncounter(
     turnIndex,
     activeCombatantId: state.activeCombatantId,
     attachedAuraInstances: mergedAuras,
-  }
+  })
 }
 
 /**
@@ -498,14 +499,16 @@ function advanceEncounterTurnOnce(
     options.rng ?? Math.random,
   )
 
-  return executeTurnHooks(
-    processMarkerBoundary(
-      processRuntimeEffectBoundary(withRecharge, withRecharge.activeCombatantId, 'start'),
+  return reconcileBattlefieldEffectAnchors(
+    executeTurnHooks(
+      processMarkerBoundary(
+        processRuntimeEffectBoundary(withRecharge, withRecharge.activeCombatantId, 'start'),
+        withRecharge.activeCombatantId,
+        'start',
+      ),
       withRecharge.activeCombatantId,
       'start',
     ),
-    withRecharge.activeCombatantId,
-    'start',
   )
 }
 

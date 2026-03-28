@@ -30,6 +30,10 @@ export type { AttachedBattlefieldEffectSource } from './attached-battlefield-sou
 export type { BattlefieldEffectAnchor } from './battlefield-effect-anchor'
 export { resolveBattlefieldEffectOriginCellId } from './battlefield-effect-anchor'
 export {
+  reconcileBattlefieldEffectAnchors,
+  moveGridObstacleInEncounterState,
+} from './battlefield-effect-anchor-reconciliation'
+export {
   attachedAuraInstanceId,
   attachedBattlefieldSourceEquals,
   concentrationLinkedMarkerIdForSpellAttachedEmanation,

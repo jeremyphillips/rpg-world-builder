@@ -1,7 +1,7 @@
 import type { CombatActionDefinition } from '@/features/mechanics/domain/encounter'
 import { isHostileAction, isValidActionTarget } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
 import type { EncounterState } from '@/features/mechanics/domain/encounter/state/types'
-import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
+import { getCombatantDisplayLabel, reconcileBattlefieldEffectAnchors } from '@/features/mechanics/domain/encounter/state'
 import type { CombatantPosition, EncounterCell, EncounterSpace, GridObstacleKind } from './space.types'
 import { gridObstacleDisplayName } from './placeRandomGridObstacle'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from './space.helpers'
@@ -395,10 +395,10 @@ export function placeCombatant(
   if (cell.kind === 'wall' || cell.kind === 'blocking') return state
 
   const filtered = state.placements.filter((p) => p.combatantId !== combatantId)
-  return {
+  return reconcileBattlefieldEffectAnchors({
     ...state,
     placements: [...filtered, { combatantId, cellId }],
-  }
+  })
 }
 
 // ---------------------------------------------------------------------------
