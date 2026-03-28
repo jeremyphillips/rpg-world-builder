@@ -38,17 +38,20 @@ Eligibility answers **whether a hide attempt may be attempted** vs a given obser
 
 **Flow:**
 
-1. **Eligibility:** for each other-side combatant, **`resolveDefaultHideObservers`** returns ids where **`getStealthHideAttemptDenialReason` is `null`** (candidate observers for this attempt).
-2. **Stealth total:** the **action resolver** rolls **d20 + Stealth modifier** when **`resolutionMode === 'hide'`** (`action-resolver.ts`). Modifier comes from **`hideProfile.stealthModifier`** or **`getStealthCheckModifier`** (`passive-perception.ts`, Dex-based until skill proficiencies are modeled).
-3. **Comparison:** **`resolveHideWithPassivePerception(state, hiderId, stealthTotal, options)`** compares that total to each **candidate** observer’s **passive Perception** via **`getPassivePerceptionScore`** (`passive-perception.ts`).
-4. **Threshold:** **`stealthBeatsPassivePerception(total, passive)`** — **Stealth must be strictly greater than** passive Perception (**`>`**). A **tie** does **not** hide you from that observer (observer wins ties).
-5. **Storage:** For each candidate, **beat** → add observer id to **`hiddenFromObserverIds`**; **fail or tie** → remove that id if present. Non-candidate ids already on the list are left unchanged.
+1. **Candidate observers:** **`resolveDefaultHideObservers`** lists other-side combatants for whom **`getStealthHideAttemptDenialReason`** is **`null`** (hide **eligibility** only — concealment / not hiding in plain sight). Baseline observer set is **the opposing side**; distance, cover, and sense-specific filters are **not** applied yet (see TODOs).
+2. **No eligible observers:** if the candidate list is **empty**, **`resolveCombatAction`** logs the outcome and performs **no d20 Stealth roll** (nothing to compare against). Eligibility is evaluated **before** rolling.
+3. **Stealth total:** when there is at least one candidate, **`action-resolver.ts`** rolls **d20 + Stealth modifier** for **`resolutionMode === 'hide'`**. Modifier comes from **`hideProfile.stealthModifier`** or **`getStealthCheckModifier(actor)`** (runtime snapshot: Dex + proficiency when threaded — see [`passive-perception.ts`](../../src/features/mechanics/domain/encounter/state/passive-perception.ts)).
+4. **Comparison:** **`resolveHideWithPassivePerception(state, hiderId, stealthTotal, options)`** compares that total to each **candidate** observer’s **passive Perception** via **`getPassivePerceptionScore(observer)`**.
+5. **Threshold:** **`stealthBeatsPassivePerception(total, passive)`** — Stealth must be **strictly greater than** passive Perception (**`>`**). A **tie** (**`==`**) does **not** count as hidden from that observer (observer wins ties). This matches the strict-greater tests in **`action-resolution.hide.test.ts`** and **`stealth-rules.test.ts`**.
+6. **Storage (partial success):** For each **candidate**, **beat** → observer id is **on** **`hiddenFromObserverIds`**; **fail or tie** → that id is **removed** if it was only in the candidate set. Observer ids **not** in the candidate list for this attempt are **unchanged** (so prior hidden-from state can persist for observers you did not re-contest).
 
-**Passive Perception source:** **`CombatantStatBlock.passivePerception`** when set (e.g. monsters from **`mechanics.senses.passivePerception`** in [`combatant-builders.ts`](../../src/features/encounter/helpers/combatant-builders.ts)). Otherwise **`10 + Wisdom modifier`** from **`stats.abilityScores`**. TODO: skill proficiency / expertise on characters.
+**Passive Perception source:** authoritative runtime seam **`getPassivePerceptionScore`** — prefers **`stats.skillRuntime`** (explicit passive, PB × Perception proficiency, etc.) and legacy **`stats.passivePerception`**, then derived **`10 + Wisdom`** as in [`passive-perception.ts`](../../src/features/mechanics/domain/encounter/state/passive-perception.ts). Populated from character/monster builders ([`combatant-builders.ts`](../../src/features/encounter/helpers/combatant-builders.ts)).
 
 **Standard Hide action:** **`DEFAULT_HIDE_COMBAT_ACTION`** in [`combat-action.types.ts`](../../src/features/mechanics/domain/encounter/resolution/combat-action.types.ts) (`resolutionMode: 'hide'`, `targeting: self`).
 
-**Not implemented this pass:** active **opposed** Stealth vs rolled Perception (only passive). **`applyStealthHideSuccess`** remains for tests/manual/DM tooling and future active-contest output.
+**Separation of concerns:** **Eligibility** (can you try?) ≠ **resolution** (did your Stealth beat their passive?) ≠ **visibility** (can they see your occupant right now?) ≠ **stored hidden state** (runtime bookkeeping). Rules do **not** conflate “currently unseen” with “hidden.”
+
+**Not implemented:** active **opposed** Stealth vs **rolled** Perception (passive-only baseline). **`applyStealthHideSuccess`** remains for tests/manual/DM tooling and future active-contest output.
 
 ---
 
@@ -96,10 +99,10 @@ Other code paths that mutate grid placement without going through that hook shou
 
 ## TODO / future work
 
-- **Active opposed** Stealth vs **rolled** Perception (not passive-only).
-- Cover / three-quarters cover and feature exceptions (Skulker, magical concealment).
-- Sense-specific break and bypass threading consistent with **`EncounterViewerPerceptionCapabilities`**.
-- Richer **observer sets** (not only “other side” + eligibility).
-- Stealth **skill** proficiency / expertise on **`getStealthCheckModifier`** and Perception on **`getPassivePerceptionScore`**.
+- **Active opposed** Stealth vs **rolled** Perception (contested check path; keep passive baseline as fallback).
+- **Cover / light obscurement / three-quarters cover** and feature exceptions (e.g. Skulker, magical concealment) in eligibility or observer filtering.
+- **Sense-specific** break and bypass threading consistent with **`EncounterViewerPerceptionCapabilities`** (blindsight vs hidden, etc.).
+- **Richer observer sets** — e.g. allies in range, line-of-sight, or “aware” subsets instead of only all opposing combatants passing eligibility.
+- Further **skill/item** bonuses on snapshots if not already covered by **`CombatantSkillRuntimeSnapshot`**.
 
 See also [Perception and visibility](./perception-and-visibility.md).
