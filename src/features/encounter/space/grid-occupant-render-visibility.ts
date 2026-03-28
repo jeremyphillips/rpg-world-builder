@@ -21,18 +21,20 @@ import type { EncounterState } from '@/features/mechanics/domain/encounter/state
 export type { ViewerCombatantPresentationKind }
 
 /**
- * Presentation precedence (explicit; rules unchanged):
+ * Presentation precedence (presentation layer only; does not change mechanics or reconciliation):
  *
  * 1. **DM viewer** → `visible` (omniscient tactical presentation).
  * 2. **Self** → `visible`.
- * 3. **`!canPerceiveTargetOccupantForCombat`** → **`out-of-sight`** — LOS, darkness, obscurement,
- *    conditions, invisibility, etc. This wins over stealth presentation when both could apply:
- *    the primary reason the occupant is not shown is sensory/geometry, not the Hide list alone.
- * 4. **`isHiddenFromObserver`** → **`hidden`** — only when occupant **would** be perceivable via the
- *    pair seam (Hide / stealth bookkeeping while not blocked by step 3).
+ * 3. **`isHiddenFromObserver`** → **`hidden`** — observer-relative Hide / `hiddenFromObserverIds`
+ *    surfaces first so successful Hide is distinct in UI even when pair perception would also fail
+ *    (e.g. blocked LOS + still on hidden list).
+ * 4. **`!canPerceiveTargetOccupantForCombat`** → **`out-of-sight`** — generic geometry / lighting /
+ *    conditions / invisibility without stealth hidden-from-observer for this pair.
  * 5. Else → **`visible`**.
  *
- * Reconciliation timing is unchanged; this function only reads current state.
+ * **Strict POV token rendering:** {@link shouldRenderOccupantTokenForEncounterViewer} still renders
+ * a normal token only when kind is `visible` (both `hidden` and `out-of-sight` suppress). Future
+ * relaxed POV can branch on kind without changing `canPerceiveTargetOccupantForCombat` or stealth rules.
  */
 export function deriveViewerCombatantPresentationKind(
   state: EncounterState,
@@ -46,10 +48,10 @@ export function deriveViewerCombatantPresentationKind(
   const { viewerCombatantId, viewerRole, occupantCombatantId, capabilities } = params
   if (viewerRole === 'dm') return 'visible'
   if (viewerCombatantId === occupantCombatantId) return 'visible'
+  if (isHiddenFromObserver(state, viewerCombatantId, occupantCombatantId)) return 'hidden'
   if (!canPerceiveTargetOccupantForCombat(state, viewerCombatantId, occupantCombatantId, { capabilities })) {
     return 'out-of-sight'
   }
-  if (isHiddenFromObserver(state, viewerCombatantId, occupantCombatantId)) return 'hidden'
   return 'visible'
 }
 

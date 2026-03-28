@@ -110,6 +110,47 @@ describe('deriveViewerCombatantPresentationKind', () => {
       }),
     ).toBe('hidden')
   })
+
+  it('prefers hidden over out-of-sight when stealth lists observer even if pair perception fails', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const s = createEncounterState(
+      [
+        createCombatant({
+          instanceId: 'orc',
+          label: 'Orc',
+          side: 'enemies',
+          initiativeModifier: 1,
+          dexterityScore: 10,
+          armorClass: 12,
+          conditions: [{ label: 'invisible' }],
+          stealth: { hiddenFromObserverIds: ['wiz'] },
+        }),
+        createCombatant({
+          instanceId: 'wiz',
+          label: 'Wizard',
+          side: 'party',
+          initiativeModifier: 2,
+          dexterityScore: 14,
+          armorClass: 14,
+        }),
+      ],
+      { rng: () => 0.5, space },
+    )
+    const withGrid = {
+      ...s,
+      placements: [
+        { combatantId: 'orc', cellId: 'c-2-2' },
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+      ],
+    }
+    expect(
+      deriveViewerCombatantPresentationKind(withGrid, {
+        viewerCombatantId: 'wiz',
+        viewerRole: 'pc',
+        occupantCombatantId: 'orc',
+      }),
+    ).toBe('hidden')
+  })
 })
 
 describe('shouldRenderOccupantTokenForEncounterViewer', () => {
