@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/resolveCombatantAvatarSrc'
+import type { ViewerCombatantVisibilityPresentation } from '@/features/encounter/domain'
 import type { CombatantInstance, SpatialBattlefieldPresentationOptions } from '@/features/mechanics/domain/encounter'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/encounter/state'
 import {
@@ -25,6 +26,7 @@ type OpponentCombatantActivePreviewCardProps = {
   showChips?: boolean
   onClick?: () => void
   spatialPresentation?: SpatialBattlefieldPresentationOptions
+  viewerVisibilityPresentation?: ViewerCombatantVisibilityPresentation
 }
 
 export function OpponentCombatantActivePreviewCard({
@@ -37,6 +39,7 @@ export function OpponentCombatantActivePreviewCard({
   showChips = true,
   onClick,
   spatialPresentation,
+  viewerVisibilityPresentation = 'normal',
 }: OpponentCombatantActivePreviewCardProps) {
   const isDefeated = isDefeatedCombatant(combatant)
   const onBattlefield = hasBattlefieldPresence(combatant)
@@ -109,6 +112,7 @@ export function OpponentCombatantActivePreviewCard({
     isSelected,
     isDefeated,
     hasBattlefieldPresence: onBattlefield,
+    viewerVisibilityPresentation,
     onClick,
   }
 

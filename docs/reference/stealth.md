@@ -7,6 +7,7 @@
 - **Guessed position / sound awareness** (`CombatantInstance.awareness`, **`awareness/awareness-rules.ts`**) stores **observer-relative** last attributed **grid cells** when an observer does **not** see the occupant. It is **not** stealth and **not** sight — see [Awareness and guessed position](./awareness-and-guessed-position.md).
 - **Targeting** continues to use **`canSeeForTargeting`**. **Attack-roll modifiers** continue to use **`resolveCombatantPairVisibilityForAttackRoll`**. Stealth rules live in **`stealth/stealth-rules.ts`** and layer semantics (lifecycle, future advantage hooks) without duplicating LOS/perception math.
 - **Encounter grid (active viewer):** normal **tokens** are suppressed when **`shouldRenderOccupantTokenForEncounterViewer`** is false — it combines **`canPerceiveTargetOccupantForCombat`** with **`isHiddenFromObserver`** so Hide has a visible tactical effect without a parallel UI visibility engine. DM view (`viewerRole: 'dm'`) still shows all tokens. **Guessed-position** UI on the grid is deferred; see [Perception and visibility — render projection](./perception-and-visibility.md#render-projection).
+- **Initiative sidebar / turn order / header:** the same seam feeds **`buildCombatantViewerVisibilityPresentationById`**. Unseen combatants **remain** in the list with **Unseen** styling (dim + badge); they are not removed from initiative. This is presentation-only and does not reveal extra tactical detail beyond “you are not currently perceiving them.”
 
 ---
 

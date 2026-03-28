@@ -53,6 +53,8 @@ export type EncounterActiveHeaderProps = {
   onResetEncounter: () => void
   /** Grid POV + magical darkness status (from `deriveEncounterPerceptionUiFeedback`). */
   perceptionFeedback?: EncounterPerceptionUiFeedback | null
+  /** Next in initiative is not perceived by the active viewer (same seam as grid/sidebar). */
+  nextCombatantUnseenFromViewer?: boolean
 }
 
 export function EncounterActiveHeader({
@@ -74,6 +76,7 @@ export function EncounterActiveHeader({
   onEditEncounter,
   onResetEncounter,
   perceptionFeedback,
+  nextCombatantUnseenFromViewer = false,
 }: EncounterActiveHeaderProps) {
   const move = turnResources?.movementRemaining ?? 0
   const headerRootRef = useRef<HTMLDivElement>(null)
@@ -186,9 +189,20 @@ export function EncounterActiveHeader({
             </Stack>
           )}
           {nextCombatantLabel && (
-            <Typography variant="body2" color="text.secondary" noWrap>
-              Next: <strong>{nextCombatantLabel}</strong>
-            </Typography>
+            <Stack
+              direction="row"
+              spacing={0.75}
+              alignItems="center"
+              justifyContent={{ md: 'center' }}
+              sx={{ flexWrap: 'wrap', rowGap: 0.5 }}
+            >
+              <Typography variant="body2" color="text.secondary" noWrap>
+                Next: <strong>{nextCombatantLabel}</strong>
+              </Typography>
+              {nextCombatantUnseenFromViewer && (
+                <AppBadge label="Unseen" tone="default" variant="outlined" size="small" />
+              )}
+            </Stack>
           )}
           {turnResources && (
             <Stack

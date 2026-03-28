@@ -4,7 +4,10 @@ import { createSquareGridSpace } from '@/features/encounter/space/createSquareGr
 import { createEncounterState } from '@/features/mechanics/domain/encounter/state'
 import { createCombatant } from '@/features/mechanics/domain/encounter/tests/action-resolution.test-helpers'
 
-import { shouldRenderOccupantTokenForEncounterViewer } from './grid-occupant-render-visibility'
+import {
+  buildCombatantViewerVisibilityPresentationById,
+  shouldRenderOccupantTokenForEncounterViewer,
+} from './grid-occupant-render-visibility'
 
 function baseGridState() {
   const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
@@ -167,5 +170,70 @@ describe('shouldRenderOccupantTokenForEncounterViewer', () => {
         occupantCombatantId: 'orc',
       }),
     ).toBe(true)
+  })
+})
+
+describe('buildCombatantViewerVisibilityPresentationById', () => {
+  it('marks all normal when perception input omitted', () => {
+    const s = baseGridState()
+    const withGrid = {
+      ...s,
+      placements: [
+        { combatantId: 'orc', cellId: 'c-2-2' },
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+      ],
+    }
+    const map = buildCombatantViewerVisibilityPresentationById(withGrid, undefined, ['orc', 'wiz'])
+    expect(map.orc).toBe('normal')
+    expect(map.wiz).toBe('normal')
+  })
+
+  it('DM input leaves everyone normal', () => {
+    const s = baseGridState()
+    const withStealth = {
+      ...s,
+      combatantsById: {
+        ...s.combatantsById,
+        orc: {
+          ...s.combatantsById.orc!,
+          stealth: { hiddenFromObserverIds: ['wiz'] },
+        },
+      },
+      placements: [
+        { combatantId: 'orc', cellId: 'c-2-2' },
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+      ],
+    }
+    const map = buildCombatantViewerVisibilityPresentationById(
+      withStealth,
+      { viewerCombatantId: 'wiz', viewerRole: 'dm' },
+      ['orc', 'wiz'],
+    )
+    expect(map.orc).toBe('normal')
+  })
+
+  it('PC viewer gets unseen-from-viewer for hidden subject', () => {
+    const s = baseGridState()
+    const withStealth = {
+      ...s,
+      combatantsById: {
+        ...s.combatantsById,
+        orc: {
+          ...s.combatantsById.orc!,
+          stealth: { hiddenFromObserverIds: ['wiz'] },
+        },
+      },
+      placements: [
+        { combatantId: 'orc', cellId: 'c-2-2' },
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+      ],
+    }
+    const map = buildCombatantViewerVisibilityPresentationById(
+      withStealth,
+      { viewerCombatantId: 'wiz', viewerRole: 'pc' },
+      ['orc', 'wiz'],
+    )
+    expect(map.orc).toBe('unseen-from-viewer')
+    expect(map.wiz).toBe('normal')
   })
 })

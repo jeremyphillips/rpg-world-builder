@@ -37,6 +37,8 @@ Attack rolls use **`resolveCombatantPairVisibilityForAttackRoll`** → roll modi
 
 **Grid occupant tokens (active viewer):** `selectGridViewModel` (when `GridPerceptionInput` is passed) sets **`viewerPerceivesOccupantToken`** per occupied cell via **`shouldRenderOccupantTokenForEncounterViewer`** (`encounter/space/grid-occupant-render-visibility.ts`). That helper composes **`canPerceiveTargetOccupantForCombat`** with **`isHiddenFromObserver`** (stealth bookkeeping). **`EncounterGrid`** suppresses normal token rendering when **`viewerPerceivesOccupantToken === false`**, after **`occupantRendersToken`** and before cell-level **`occupantTokenVisibility`** (blind veil, darkness, etc.). **DM / `viewerRole: 'dm'`** skips suppression (omniscience). Combatants remain in encounter state, placements, and initiative; only presentation is suppressed. **Guessed-position markers** are not drawn in this pass — only normal tokens; the seam leaves room to show a placeholder later when awareness provides a cell.
 
+**Bookkeeping UI (initiative sidebar, turn order modal, next-actor header):** **`buildCombatantViewerVisibilityPresentationById`** maps each combatant id to **`normal`** | **`unseen-from-viewer`** using the **same** perception input as the grid (`viewerCombatantId`, `viewerRole` from simulator POV, optional debug overrides). Unlike the grid, **unseen** entries **stay visible**: preview cards and turn-order rows use dimmed opacity plus an **Unseen** badge; names and initiative order remain for usability. **`EncounterActiveHeader`** shows an **Unseen** badge next to “Next: …” when the next combatant in order is unseen from the active viewer. **DM simulator mode** keeps **normal** presentation for all rows (omniscient POV).
+
 ---
 
 ## Key distinctions

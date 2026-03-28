@@ -23,6 +23,7 @@ export function CombatantPreviewCard({
   isSelected = false,
   isDefeated = false,
   hasBattlefieldPresence = true,
+  viewerVisibilityPresentation = 'normal',
   primaryAction,
   secondaryActions,
   onClick,
@@ -43,13 +44,22 @@ export function CombatantPreviewCard({
 
   const avatarNode = avatar ?? <AppAvatar name={title} size="sm" />
 
+  const chipsWithVisibility =
+    viewerVisibilityPresentation === 'unseen-from-viewer'
+      ? [{ id: 'viewer-unseen', label: 'Unseen', tone: 'neutral' as const }, ...(chips ?? [])]
+      : chips
+
   const content = (
     <EntitySummaryCard
       avatar={avatarNode}
       title={title}
       subtitle={subtitle}
       stats={stats}
-      chips={chips && chips.length > 0 ? <CombatantPreviewChipRow chips={chips} maxVisible={4} /> : undefined}
+      chips={
+        chipsWithVisibility && chipsWithVisibility.length > 0 ? (
+          <CombatantPreviewChipRow chips={chipsWithVisibility} maxVisible={4} />
+        ) : undefined
+      }
       isCurrentTurn={isCurrentTurn}
       secondaryActions={secondaryActions}
       primaryAction={primaryAction}
@@ -65,6 +75,7 @@ export function CombatantPreviewCard({
         opacity: getCombatantPreviewCardOpacity({
           isDefeated,
           hasBattlefieldPresence,
+          unseenFromActiveViewer: viewerVisibilityPresentation === 'unseen-from-viewer',
         }),
         overflow: 'hidden',
       }}

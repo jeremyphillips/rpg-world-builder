@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography'
 
 import { AppBadge } from '@/ui/primitives'
 import type { AppBadgeTone } from '@/ui/types'
-import type { TurnOrderStatus } from '../../../domain'
+import type { TurnOrderStatus, ViewerCombatantVisibilityPresentation } from '../../../domain'
 import { getTurnOrderRowOpacity } from '../../../domain/presentation-participation'
 
 export type TurnOrderEntry = {
@@ -14,6 +14,8 @@ export type TurnOrderEntry = {
   status: TurnOrderStatus
   /** Banished / off-grid — dim row while still in initiative (not defeated). */
   isBattlefieldAbsent?: boolean
+  /** Active viewer POV — same seam as grid token suppression. */
+  visibilityPresentation?: ViewerCombatantVisibilityPresentation
 }
 
 type TurnOrderListProps = {
@@ -55,6 +57,7 @@ function TurnOrderRow({
         opacity: getTurnOrderRowOpacity({
           status: entry.status,
           isBattlefieldAbsent: entry.isBattlefieldAbsent ?? false,
+          isUnseenFromViewer: entry.visibilityPresentation === 'unseen-from-viewer',
         }),
       }}
     >
@@ -80,6 +83,9 @@ function TurnOrderRow({
           <Typography variant="caption" color="text.secondary">
             {entry.initiativeTotal}
           </Typography>
+          {entry.visibilityPresentation === 'unseen-from-viewer' && (
+            <AppBadge label="Unseen" tone="default" size="small" variant="outlined" />
+          )}
           <AppBadge
             label={STATUS_LABEL[entry.status]}
             tone={STATUS_TONE[entry.status]}

@@ -52,6 +52,7 @@ import {
 import { areaTemplateRadiusFt } from '@/features/mechanics/domain/encounter/resolution/action/action-targeting'
 import { isAreaGridAction } from '../helpers/area-grid-action'
 import { getCellForCombatant } from '../space/space.helpers'
+import { buildCombatantViewerVisibilityPresentationById } from '../space/grid-occupant-render-visibility'
 import { selectGridViewModel } from '../space/space.selectors'
 import { createSquareGridSpace } from '../space/createSquareGridSpace'
 import { placeRandomGridObstacle } from '../space/placeRandomGridObstacle'
@@ -424,6 +425,27 @@ function useEncounterRuntimeValue() {
     viewerContext.debugPerceptionOverrides,
   ])
 
+  const combatantVisibilityPresentationById = useMemo(() => {
+    if (!encounterState) return {}
+    const ids = Object.keys(encounterState.combatantsById)
+    const perceptionViewerRole =
+      viewerContext.simulatorViewerMode === 'dm' ? ('dm' as const) : ('pc' as const)
+    const perceptionInput =
+      activeCombatantId != null
+        ? {
+            viewerCombatantId: activeCombatantId,
+            viewerRole: perceptionViewerRole,
+            debugOverrides: viewerContext.debugPerceptionOverrides,
+          }
+        : undefined
+    return buildCombatantViewerVisibilityPresentationById(encounterState, perceptionInput, ids)
+  }, [
+    encounterState,
+    activeCombatantId,
+    viewerContext.simulatorViewerMode,
+    viewerContext.debugPerceptionOverrides,
+  ])
+
   // turnResources was consumed by the now-commented-out footer.
   // activeCombatant.turnResources is still accessible directly via the context.
 
@@ -465,17 +487,27 @@ function useEncounterRuntimeValue() {
     [encounterState],
   )
 
-  const nextCombatantLabel = useMemo(() => {
+  const nextCombatantId = useMemo(() => {
     if (!encounterState) return null
     const nextIdx = encounterState.turnIndex + 1
-    const nextId = nextIdx < encounterState.initiativeOrder.length
+    return nextIdx < encounterState.initiativeOrder.length
       ? encounterState.initiativeOrder[nextIdx]
       : encounterState.initiativeOrder[0] ?? null
-    if (!nextId) return null
-    const nextCombatant = encounterState.combatantsById[nextId]
+  }, [encounterState])
+
+  const nextCombatantLabel = useMemo(() => {
+    if (!encounterState || !nextCombatantId) return null
+    const nextCombatant = encounterState.combatantsById[nextCombatantId]
     if (!nextCombatant) return null
     return getCombatantDisplayLabel(nextCombatant, encounterCombatantRoster)
-  }, [encounterState, encounterCombatantRoster])
+  }, [encounterState, encounterCombatantRoster, nextCombatantId])
+
+  const nextCombatantUnseenFromViewer = useMemo(
+    () =>
+      nextCombatantId != null &&
+      combatantVisibilityPresentationById[nextCombatantId] === 'unseen-from-viewer',
+    [nextCombatantId, combatantVisibilityPresentationById],
+  )
 
   const perceptionUiFeedback = useMemo(
     () =>
@@ -621,6 +653,7 @@ function useEncounterRuntimeValue() {
         onEditEncounter={() => setEditModalOpen(true)}
         onResetEncounter={handleResetEncounter}
         perceptionFeedback={perceptionUiFeedback}
+        nextCombatantUnseenFromViewer={nextCombatantUnseenFromViewer}
       />
     ) : undefined
 
@@ -708,6 +741,7 @@ function useEncounterRuntimeValue() {
     handleOpponentModalApply,
     canStartEncounter,
     gridViewModel,
+    combatantVisibilityPresentationById,
     setupHeader,
     activeHeader,
     activeFooter,
@@ -766,6 +800,7 @@ function EncounterRuntimeModals() {
     removeOpponentCombatant,
     addOpponentCopy,
     encounterState,
+    combatantVisibilityPresentationById,
   } = useEncounterRuntime()
 
   return (
@@ -832,6 +867,7 @@ function EncounterRuntimeModals() {
           open={turnOrderModalOpen}
           onClose={() => setTurnOrderModalOpen(false)}
           encounterState={encounterState}
+          combatantVisibilityPresentationById={combatantVisibilityPresentationById}
         />
       )}
     </>
