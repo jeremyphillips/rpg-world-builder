@@ -22,6 +22,7 @@ import {
 import type {
   EndTurnEmphasis,
   EncounterPerceptionUiFeedback,
+  EncounterSimulatorViewerMode,
   ViewerCombatantPresentationKind,
 } from '../../../domain'
 import {
@@ -30,6 +31,7 @@ import {
   turnResourceBucketHeaderBadge,
 } from '../../../domain'
 import { EncounterActiveCombatantIdentity } from './EncounterActiveCombatantIdentity'
+import { EncounterPresentationPovField } from './EncounterPresentationPovField'
 import { AppTooltipWrap } from '@/ui/primitives'
 import IconButton from '@mui/material/IconButton'
 import EditIcon from '@mui/icons-material/Edit'
@@ -55,7 +57,10 @@ export type EncounterActiveHeaderProps = {
   onEndTurn: () => void
   onEditEncounter: () => void
   onResetEncounter: () => void
-  /** Grid POV + magical darkness status (from `deriveEncounterPerceptionUiFeedback`). */
+  /** Presentation POV for grid/sidebar/header (not turn ownership). */
+  simulatorViewerMode: EncounterSimulatorViewerMode
+  onSimulatorViewerModeChange: (mode: EncounterSimulatorViewerMode) => void
+  /** Magical darkness / blind veil hints from `deriveEncounterPerceptionUiFeedback` (not the main POV line). */
   perceptionFeedback?: EncounterPerceptionUiFeedback | null
   /** Next combatant’s viewer presentation (strict POV); null when N/A. */
   nextCombatantPresentationKind?: ViewerCombatantPresentationKind | null
@@ -79,6 +84,8 @@ export function EncounterActiveHeader({
   onEndTurn,
   onEditEncounter,
   onResetEncounter,
+  simulatorViewerMode,
+  onSimulatorViewerModeChange,
   perceptionFeedback,
   nextCombatantPresentationKind = null,
 }: EncounterActiveHeaderProps) {
@@ -161,37 +168,36 @@ export function EncounterActiveHeader({
           <Typography variant="caption" color="text.primary" sx={{ fontWeight: 600, letterSpacing: '0.06em' }}>
             Round {roundNumber} · Turn {turnIndex + 1}/{turnCount}
           </Typography>
-          {perceptionFeedback && (
-            <Stack
-              spacing={0.5}
-              alignItems={{ md: 'center' }}
-              role="status"
-              aria-live="polite"
-              aria-atomic="true"
-              sx={{ maxWidth: '100%' }}
-            >
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, lineHeight: 1.35 }}>
-                {perceptionFeedback.povLine}
-              </Typography>
-              {perceptionFeedback.magicalDarknessLine && (
-                <AppTooltipWrap
-                  tooltip={
-                    perceptionFeedback.visibilityHint ??
-                    'Visibility rules follow the active combatant’s position.'
-                  }
-                >
-                  <Box component="span" sx={{ display: 'inline-flex', maxWidth: '100%' }}>
-                    <AppBadge
-                      label={perceptionFeedback.magicalDarknessLine}
-                      tone="warning"
-                      variant="outlined"
-                      size="small"
-                    />
-                  </Box>
-                </AppTooltipWrap>
-              )}
-            </Stack>
-          )}
+          <Stack
+            spacing={0.5}
+            alignItems={{ md: 'center' }}
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            sx={{ maxWidth: '100%', width: '100%' }}
+          >
+            <EncounterPresentationPovField
+              simulatorViewerMode={simulatorViewerMode}
+              onSimulatorViewerModeChange={onSimulatorViewerModeChange}
+            />
+            {perceptionFeedback?.magicalDarknessLine && (
+              <AppTooltipWrap
+                tooltip={
+                  perceptionFeedback.visibilityHint ??
+                  'Visibility rules follow the presentation viewer’s position.'
+                }
+              >
+                <Box component="span" sx={{ display: 'inline-flex', maxWidth: '100%' }}>
+                  <AppBadge
+                    label={perceptionFeedback.magicalDarknessLine}
+                    tone="warning"
+                    variant="outlined"
+                    size="small"
+                  />
+                </Box>
+              </AppTooltipWrap>
+            )}
+          </Stack>
           {nextCombatantLabel && (
             <Stack
               direction="row"

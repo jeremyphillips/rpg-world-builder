@@ -185,6 +185,20 @@ function useEncounterRuntimeValue() {
     }
   }, [encounterState])
 
+  /**
+   * Last grid/sidebar target selection seeds `presentationSelectedCombatantId` for “Selected combatant” POV.
+   * Clearing the action target does not clear this — user can still view as that combatant until another selection.
+   */
+  useEffect(() => {
+    if (!encounterState || !selectedActionTargetId) return
+    if (!encounterState.combatantsById[selectedActionTargetId]) return
+    setPresentationSelectedCombatantId(selectedActionTargetId)
+  }, [encounterState, selectedActionTargetId])
+
+  const handleSimulatorViewerModeChange = useCallback((mode: EncounterSimulatorViewerMode) => {
+    setSimulatorViewerMode(mode)
+  }, [])
+
   const viewerContext: EncounterViewerContext = useMemo(
     () => ({
       viewerRole: 'dm' as const,
@@ -653,6 +667,8 @@ function useEncounterRuntimeValue() {
         onEndTurn={handleNextTurn}
         onEditEncounter={() => setEditModalOpen(true)}
         onResetEncounter={handleResetEncounter}
+        simulatorViewerMode={simulatorViewerMode}
+        onSimulatorViewerModeChange={handleSimulatorViewerModeChange}
         perceptionFeedback={perceptionUiFeedback}
         nextCombatantPresentationKind={nextCombatantPresentationKind}
       />
