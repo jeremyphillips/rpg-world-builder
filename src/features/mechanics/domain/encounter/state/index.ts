@@ -125,6 +125,7 @@ export {
   getPassivePerceptionScore,
   getStealthCheckModifier,
 } from './passive-perception'
+export { ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE } from './stealth-attack-integration'
 export {
   combatantHasBattlefieldAbsenceEngineState,
   findNearestUnoccupiedPassableCell,

@@ -412,8 +412,6 @@ function resolveCombatActionInternal(
     const attackBonus = action.attackProfile?.attackBonus
     if (target == null || attackBonus == null) return { state: nextState, createdMarkerIds: [] }
 
-    nextState = breakStealthOnAttack(nextState, actor.instanceId)
-
     const attackRange = deriveAttackRange(action)
     const { rollMod, attackerMarkers, defenderMarkers, pairVisibility } = resolveRollModifier(
       actor,
@@ -427,6 +425,8 @@ function resolveCombatActionInternal(
     const isNaturalOne = rawRoll === 1
     const hit = isNaturalTwenty || (!isNaturalOne && totalRoll >= target.stats.armorClass)
     const isCritical = isNaturalTwenty
+
+    nextState = breakStealthOnAttack(nextState, actor.instanceId)
 
     const hitSuffix = isCritical ? ' (critical hit)' : ''
     const missSuffix = isNaturalOne ? ' (natural 1)' : ''

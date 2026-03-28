@@ -4,6 +4,7 @@ import { resolveViewerPerceptionForCellFromState } from '@/features/mechanics/do
 import { resolveRollModifier } from '@/features/mechanics/domain/encounter/resolution/action/action-resolver'
 import {
   addConditionToCombatant,
+  ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE,
   canPerceiveTargetOccupantForCombat,
   createEncounterState,
   resolveCombatantPairVisibilityForAttackRoll,
@@ -54,5 +55,23 @@ describe('combatant pair visibility (occupant)', () => {
     expect(rollMod).toBe('disadvantage')
     expect(pairVisibility?.attackerCanSeeDefenderOccupant).toBe(false)
     expect(pairVisibility?.defenderCanSeeAttackerOccupant).toBe(true)
+  })
+
+  it('attack roll pair visibility ignores stealth hidden state (no double-stacked modifiers)', () => {
+    expect(ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE).toBe(false)
+    const state = encounterAttackerOutsideDefenderHeavilyObscured()
+    const wiz = state.combatantsById.wiz!
+    const orc = state.combatantsById.orc!
+    const orcWithStealth: typeof orc = {
+      ...orc,
+      stealth: { hiddenFromObserverIds: ['wiz'] },
+    }
+    const withStealth: typeof state = {
+      ...state,
+      combatantsById: { ...state.combatantsById, orc: orcWithStealth },
+    }
+    const basePair = resolveCombatantPairVisibilityForAttackRoll(state, 'wiz', 'orc')
+    const withHiddenPair = resolveCombatantPairVisibilityForAttackRoll(withStealth, 'wiz', 'orc')
+    expect(withHiddenPair).toEqual(basePair)
   })
 })

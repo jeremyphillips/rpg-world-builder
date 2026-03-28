@@ -78,9 +78,30 @@ These keep stored **`hiddenFromObserverIds`** aligned with the **shared percepti
 
 ---
 
+## Combat: attacks, targeting, and hidden state
+
+**Design rule:** hidden state **does not** replace the shared visibility/perception seam. It **layers** bookkeeping (who you beat on Hide) on top; **attack rolls** and **sight targeting** still use **`canPerceiveTargetOccupantForCombat`** / **`canSeeForTargeting`** only.
+
+| Concern | Source of truth | Uses `stealth` / `hiddenFromObserverIds`? |
+|--------|-----------------|-------------------------------------------|
+| Unseen attacker / unseen target (adv/dis on attack) | **`resolveCombatantPairVisibilityForAttackRoll`** → **`getAttackVisibilityRollModifiersFromPair`** | **No** — avoids double-counting when obscurement already denies occupant perception. |
+| “Creature you can see” / sight-required targets | **`canSeeForTargeting`** | **No** |
+| Hide vs passive Perception, hidden-from lists | **`stealth-rules.ts`**, **`resolveHideWithPassivePerception`** | **Yes** |
+| Align hidden lists when perception changes | **`reconcileStealthHiddenForPerceivedObservers`** | **Yes** |
+
+Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth-attack-integration.ts`) is **`false`** — attack-roll code must stay free of stealth-based modifier branches.
+
+**Gameplay benefit today:** “Hidden from observer X” lines up with hide resolution and reconciliation. **Combat advantage** from being hard to see flows through the **same** unseen-attacker / unseen-target rules as other cases (e.g. heavy obscurement), not a parallel “hidden = advantage” engine.
+
+**Not modeled:** guessed location, sound-only detection, partial reveal per observer, Skulker-style exceptions.
+
+---
+
 ## Break on attack (baseline)
 
-**`breakStealthOnAttack`** clears the attacker’s **`stealth`** when they **make** an attack (wired at the start of the attack-roll branch in **`action-resolver.ts`**). This is an intentional **baseline**; it may later be refined (per-observer reveal, features, “location revealed” vs full state, certain spells).
+**`breakStealthOnAttack`** clears the attacker’s entire **`stealth`** wrapper **after** the attack **d20 roll** is computed in **`action-resolver.ts`** (immediately after hit/miss is determined, before logging). That ordering keeps “reveal on attack” after the roll step; modifiers still come **only** from pair visibility (not from reading `stealth`).
+
+**Semantics:** **global** reveal — all **`hiddenFromObserverIds`** cleared for the attacker. **TODO:** observer-relative reveal, location-only reveal, or feature-specific behavior.
 
 ---
 
@@ -99,13 +120,16 @@ These keep stored **`hiddenFromObserverIds`** aligned with the **shared percepti
 | `applyEncounterEnvironmentBaselinePatchAndReconcileStealth` | Baseline patch + full reconcile. |
 | `reconcileStealthHiddenForPerceivedObservers` | Align hidden-from with perception. |
 | `reconcileStealthBreakWhenNoConcealmentInCell` | Clear stealth if cell has no concealment. |
-| `breakStealthOnAttack` | Clear attacker stealth (baseline). |
+| `breakStealthOnAttack` | Clear attacker stealth after attack roll (global reveal). |
+| `ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE` | Contract flag (`false`) — attack modifiers must not read `stealth`. |
 | `isHiddenFromObserver` | Read helper (bookkeeping only). |
 
 ---
 
 ## TODO / future work
 
+- **Observer-relative or partial break** on attack (vs global `breakStealthOnAttack`).
+- **Guessed location / sound** awareness for unseen targets (not occupant perception).
 - **Active opposed** Stealth vs **rolled** Perception (contested check path; keep passive baseline as fallback).
 - **Cover / light obscurement / three-quarters cover** and feature exceptions (e.g. Skulker, magical concealment) in eligibility or observer filtering.
 - **Sense-specific** break and bypass threading consistent with **`EncounterViewerPerceptionCapabilities`** (blindsight vs hidden, etc.).

@@ -76,6 +76,13 @@ export function canPerceiveTargetOccupantForCombat(
  * unseen-target (attacker → defender) and unseen-attacker (defender → attacker) modifiers.
  *
  * Uses the same permissive tactical fallback as {@link canPerceiveTargetOccupantForCombat}.
+ *
+ * **Stealth / hidden state:** this function does **not** read `CombatantInstance.stealth` or
+ * `hiddenFromObserverIds`. Unseen attacker/target modifiers come **only** from occupant perception
+ * (world + conditions + LoS/LoE). That avoids double-counting: when hide resolution marks someone
+ * hidden, `reconcileStealthHiddenForPerceivedObservers` keeps hidden state aligned with this same
+ * seam before actions, and heavy obscurement / darkness already yields unseen-attacker advantage when
+ * the defender cannot perceive the attacker’s occupant.
  */
 export function resolveCombatantPairVisibilityForAttackRoll(
   state: EncounterState,
@@ -92,7 +99,10 @@ export function resolveCombatantPairVisibilityForAttackRoll(
   }
 }
 
-/** Roll modifiers from pair visibility (single array merged into {@link resolveD20RollMode}). */
+/**
+ * Roll modifiers from pair visibility (single array merged into {@link resolveD20RollMode}).
+ * Does **not** consult stealth hidden state — see {@link resolveCombatantPairVisibilityForAttackRoll}.
+ */
 export function getAttackVisibilityRollModifiersFromPair(vis: {
   attackerCanSeeDefenderOccupant: boolean
   defenderCanSeeAttackerOccupant: boolean

@@ -287,8 +287,11 @@ function clearStealthForCombatant(state: EncounterState, combatantId: string): E
 }
 
 /**
- * **Baseline simplification (current pass):** clear the attacker’s stealth when they **make** an attack.
- * May later be refined (partial reveals per observer, features, “location revealed” only, spells).
+ * Clear the attacker’s **entire** `stealth` wrapper **after** the attack **roll** is resolved in
+ * `action-resolver.ts` (modifiers use occupant visibility only — see `combatant-pair-visibility.ts`).
+ *
+ * **Semantics:** global reveal — **not** observer-relative. **TODO:** per-observer reveal or
+ * location-only reveal for certain features/spells.
  */
 export function breakStealthOnAttack(state: EncounterState, attackerId: string): EncounterState {
   return clearStealthForCombatant(state, attackerId)

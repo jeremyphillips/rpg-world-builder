@@ -70,6 +70,8 @@ Hide **attempt** eligibility (not a full Stealth contest) is in **`getHideAttemp
 
 **Hidden state** is **not** the same as “not currently visible”: perception answers sight; **`CombatantInstance.stealth`** (`CombatantStealthRuntime` wrapper) stores **who the subject is hidden from**. Rules and mutations are centralized in **`stealth-rules.ts`**; reconciliation helpers keep hidden-from lists aligned when perception or concealment changes. See [Stealth and hidden state](./stealth.md).
 
+**Attack rolls and targeting** still use **`resolveCombatantPairVisibilityForAttackRoll`** / **`canSeeForTargeting`** only — they do **not** read `hiddenFromObserverIds`. That avoids a second visibility engine and double-stacked advantage: when heavy obscurement (or similar) already makes a defender unable to perceive the attacker’s occupant, unseen-attacker advantage applies through the shared seam; **`breakStealthOnAttack`** clears stealth **after** the attack d20 is rolled. Details: **`stealth-attack-integration.ts`**, [Stealth — combat section](./stealth.md#combat-attacks-targeting-and-hidden-state).
+
 ---
 
 ## Current rules supported
