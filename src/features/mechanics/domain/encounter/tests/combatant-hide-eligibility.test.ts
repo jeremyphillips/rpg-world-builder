@@ -84,4 +84,18 @@ describe('getCombatantHideEligibilityExtensionOptions', () => {
       mergeHideEligibilityFeatureFlagsOr({ allowHalfCoverForHide: undefined }, temp),
     ).toEqual({ allowHalfCoverForHide: true })
   })
+
+  it('returns extension when only allowDimLightHide is set on snapshot', () => {
+    const c = testEnemy('o', 'Orc', 20)
+    const withDim = {
+      ...c,
+      stats: {
+        ...c.stats,
+        skillRuntime: { hideEligibilityFeatureFlags: { allowDimLightHide: true } },
+      },
+    }
+    expect(getCombatantHideEligibilityExtensionOptions(withDim)).toEqual({
+      featureFlags: { allowDimLightHide: true },
+    })
+  })
 })

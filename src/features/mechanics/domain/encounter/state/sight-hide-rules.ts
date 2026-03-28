@@ -45,14 +45,23 @@ export function getSightBasedCheckLegalityDenialReason(
 }
 
 /**
- * World-only: does this cell provide **concealment** sufficient to attempt a Hide action (dim/darkness,
- * light/heavy obscurement, or magical darkness), independent of any viewer?
+ * **Baseline** hide concealment (no {@link CombatantHideEligibilityExtension} flags): what counts for
+ * everyone without dim-light or magical-concealment exceptions.
+ *
+ * Includes: heavy obscurement; **non-magical** light obscurement; darkness lighting; {@link EncounterWorldCellEnvironment.magicalDarkness}.
+ *
+ * **Excluded** (require feature flags on the hider — see {@link cellWorldSupportsHideAttemptWorldBasis}):
+ * - **Dim light only** (`lightingLevel === 'dim'`) — needs **`allowDimLightHide`**.
+ * - **Magical light obscurement** (`visibilityObscured === 'light'` with merged **`world.magical`**) — needs
+ *   **`allowMagicalConcealmentHide`**. Natural light obscurement uses the same `visibilityObscured` field but
+ *   **`magical` is false** after zone merge.
  *
  * Uses merged {@link EncounterWorldCellEnvironment} — not render/UI state.
  */
 export function cellWorldSupportsHideConcealment(world: EncounterWorldCellEnvironment): boolean {
-  if (world.visibilityObscured === 'light' || world.visibilityObscured === 'heavy') return true
-  if (world.lightingLevel === 'dim' || world.lightingLevel === 'darkness') return true
+  if (world.visibilityObscured === 'heavy') return true
+  if (world.visibilityObscured === 'light' && !world.magical) return true
+  if (world.lightingLevel === 'darkness') return true
   if (world.magicalDarkness) return true
   return false
 }
@@ -85,9 +94,20 @@ export function cellWorldSupportsHideAttemptWorldBasis(
   world: EncounterWorldCellEnvironment,
   hideEligibility?: HideEligibilityExtensionOptions,
 ): boolean {
+  const flags = hideEligibility?.featureFlags
   if (cellWorldSupportsHideConcealment(world)) return true
   if (cellTerrainCoverSupportsHideBaseline(world)) return true
-  if (hideEligibility?.featureFlags?.allowHalfCoverForHide === true && world.terrainCover === 'half') {
+  if (flags?.allowHalfCoverForHide === true && world.terrainCover === 'half') {
+    return true
+  }
+  if (flags?.allowDimLightHide === true && world.lightingLevel === 'dim') {
+    return true
+  }
+  if (
+    flags?.allowMagicalConcealmentHide === true &&
+    world.magical &&
+    world.visibilityObscured === 'light'
+  ) {
     return true
   }
   return false
@@ -98,9 +118,9 @@ export function cellWorldSupportsHideAttemptWorldBasis(
  *
  * - **`hide-attempt`:** call-site `options.hideEligibility` (tests/DM override) → persisted
  *   `stealth.hideEligibility` → **combatant-derived** {@link getCombatantHideEligibilityExtensionOptions}
- *   (`stats.skillRuntime.hideEligibilityFeatureFlags`).
- * - **`stealth-sustain`:** persisted `stealth.hideEligibility` → call-site → **combatant-derived** (so
- *   reconciliation matches entry when flags live on the combatant and need not be re-threaded).
+ *   (snapshot + temporary effects/markers).
+ * - **`stealth-sustain`:** persisted `stealth.hideEligibility` → call-site → **combatant-derived** (snapshot +
+ *   temporary effects/markers — so reconciliation matches entry when flags live on the combatant).
  */
 export function resolveHideEligibilityForCombatant(
   state: EncounterState,

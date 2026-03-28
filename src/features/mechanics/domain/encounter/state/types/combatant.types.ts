@@ -45,6 +45,13 @@ export type CombatantSkillProficiencyLevel = 0 | 1 | 2
  */
 export type CombatantHideEligibilityFeatureFlagsRuntime = {
   allowHalfCoverForHide?: boolean
+  /** Dim light alone (`lightingLevel === 'dim'`) counts as hide basis only when set — not universal. */
+  allowDimLightHide?: boolean
+  /**
+   * Magically tagged **light** obscurement (`visibilityObscured === 'light'` and merged `world.magical`).
+   * Natural (non-magical) light obscurement remains baseline for everyone; see `sight-hide-rules.ts`.
+   */
+  allowMagicalConcealmentHide?: boolean
 }
 
 export type CombatantSkillRuntimeSnapshot = {
@@ -324,6 +331,8 @@ export type CombatantTurnStatus = {
 export type CombatantHideEligibilityExtension = {
   featureFlags?: {
     allowHalfCoverForHide?: boolean
+    allowDimLightHide?: boolean
+    allowMagicalConcealmentHide?: boolean
   }
 }
 

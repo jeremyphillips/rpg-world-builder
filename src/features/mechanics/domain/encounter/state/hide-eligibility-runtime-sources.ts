@@ -10,13 +10,20 @@ import type {
  */
 export const RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_HALF_COVER_ID = 'hide-eligibility:allow-half-cover'
 
+/** OR-merges **`allowDimLightHide`** (dim-only lighting basis). */
+export const RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_DIM_LIGHT_ID = 'hide-eligibility:allow-dim-light'
+
+/** OR-merges **`allowMagicalConcealmentHide`** (magical light obscurement basis). */
+export const RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_MAGICAL_CONCEALMENT_ID =
+  'hide-eligibility:allow-magical-concealment'
+
 /**
  * Boolean hide-eligibility flags combine with **union (OR)** semantics across:
  * - `stats.skillRuntime.hideEligibilityFeatureFlags` (authored / builder snapshot)
  * - `activeEffects` (including nested payloads — auras, state `ongoingEffects`, etc.)
  * - `conditions` and `states` runtime markers (see `RUNTIME_MARKER_*` constants)
  *
- * If any source sets `allowHalfCoverForHide: true`, the merged result is true.
+ * If any source sets a flag to **true**, the merged result has that flag true.
  */
 export function mergeHideEligibilityFeatureFlagsOr(
   ...parts: (CombatantHideEligibilityFeatureFlagsRuntime | undefined | null)[]
@@ -25,6 +32,8 @@ export function mergeHideEligibilityFeatureFlagsOr(
   for (const p of parts) {
     if (!p) continue
     if (p.allowHalfCoverForHide === true) merged.allowHalfCoverForHide = true
+    if (p.allowDimLightHide === true) merged.allowDimLightHide = true
+    if (p.allowMagicalConcealmentHide === true) merged.allowMagicalConcealmentHide = true
   }
   if (!hasAnyHideEligibilityFeatureFlags(merged)) return undefined
   return merged
@@ -34,7 +43,11 @@ export function hasAnyHideEligibilityFeatureFlags(
   flags: CombatantHideEligibilityFeatureFlagsRuntime | undefined,
 ): boolean {
   if (flags == null) return false
-  return flags.allowHalfCoverForHide === true
+  return (
+    flags.allowHalfCoverForHide === true ||
+    flags.allowDimLightHide === true ||
+    flags.allowMagicalConcealmentHide === true
+  )
 }
 
 /** Depth-first walk: roots plus nested effects that can carry mechanical payloads on the stack. */
@@ -80,22 +93,33 @@ export function extractHideEligibilityFeatureFlagsFromEffects(
 ): CombatantHideEligibilityFeatureFlagsRuntime {
   const merged: CombatantHideEligibilityFeatureFlagsRuntime = {}
   for (const e of flatEffects) {
-    if (e.kind === 'hide-eligibility-grant' && e.featureFlags.allowHalfCoverForHide === true) {
-      merged.allowHalfCoverForHide = true
-    }
+    if (e.kind !== 'hide-eligibility-grant') continue
+    const f = e.featureFlags
+    if (f.allowHalfCoverForHide === true) merged.allowHalfCoverForHide = true
+    if (f.allowDimLightHide === true) merged.allowDimLightHide = true
+    if (f.allowMagicalConcealmentHide === true) merged.allowMagicalConcealmentHide = true
   }
   return merged
+}
+
+function markerGrantsFlag(
+  m: RuntimeMarker,
+  id: string,
+): boolean {
+  return m.id === id || m.classification?.includes(id) === true
 }
 
 export function extractHideEligibilityFeatureFlagsFromRuntimeMarkers(
   markers: RuntimeMarker[],
 ): CombatantHideEligibilityFeatureFlagsRuntime {
   const merged: CombatantHideEligibilityFeatureFlagsRuntime = {}
-  const tag = RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_HALF_COVER_ID
+  const half = RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_HALF_COVER_ID
+  const dim = RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_DIM_LIGHT_ID
+  const mag = RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_MAGICAL_CONCEALMENT_ID
   for (const m of markers) {
-    if (m.id === tag || m.classification?.includes(tag)) {
-      merged.allowHalfCoverForHide = true
-    }
+    if (markerGrantsFlag(m, half)) merged.allowHalfCoverForHide = true
+    if (markerGrantsFlag(m, dim)) merged.allowDimLightHide = true
+    if (markerGrantsFlag(m, mag)) merged.allowMagicalConcealmentHide = true
   }
   return merged
 }

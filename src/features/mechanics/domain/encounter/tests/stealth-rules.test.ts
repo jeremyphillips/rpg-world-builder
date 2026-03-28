@@ -224,6 +224,73 @@ describe('stealth-rules', () => {
     expect(out.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
   })
 
+  it('reconcileStealthBreakWhenNoConcealmentInCell clears dim-only stealth without persisted allowDimLightHide', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const w = testPc('wiz', 'Wizard', 20)
+    const o = testEnemy('orc', 'Orc', 20)
+    const base = createEncounterState([w, o], { rng: () => 0.5, space })
+    const state = {
+      ...base,
+      placements: [
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+        { combatantId: 'orc', cellId: 'c-1-0' },
+      ],
+      environmentZones: [
+        {
+          id: 'z-dim',
+          kind: 'patch',
+          sourceKind: 'manual',
+          area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
+          overrides: { lightingLevel: 'dim' },
+        },
+      ],
+      combatantsById: {
+        ...base.combatantsById,
+        orc: {
+          ...base.combatantsById.orc!,
+          stealth: { hiddenFromObserverIds: ['wiz'] },
+        },
+      },
+    }
+    const out = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
+    expect(out.combatantsById.orc?.stealth).toBeUndefined()
+  })
+
+  it('reconcileStealthBreakWhenNoConcealmentInCell keeps dim stealth when hideEligibility allowDimLightHide was persisted', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const w = testPc('wiz', 'Wizard', 20)
+    const o = testEnemy('orc', 'Orc', 20)
+    const base = createEncounterState([w, o], { rng: () => 0.5, space })
+    const state = {
+      ...base,
+      placements: [
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+        { combatantId: 'orc', cellId: 'c-1-0' },
+      ],
+      environmentZones: [
+        {
+          id: 'z-dim',
+          kind: 'patch',
+          sourceKind: 'manual',
+          area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
+          overrides: { lightingLevel: 'dim' },
+        },
+      ],
+      combatantsById: {
+        ...base.combatantsById,
+        orc: {
+          ...base.combatantsById.orc!,
+          stealth: {
+            hiddenFromObserverIds: ['wiz'],
+            hideEligibility: { featureFlags: { allowDimLightHide: true } },
+          },
+        },
+      },
+    }
+    const out = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
+    expect(out.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+  })
+
   it('resolveHideWithPassivePerception persists hideEligibility so reconcile does not drop half-cover hidden state', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)

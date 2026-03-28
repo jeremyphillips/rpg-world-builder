@@ -101,6 +101,8 @@ export { getCombatantHideEligibilityExtensionOptions } from './combatant-hide-el
 export { FEAT_IDS_ALLOW_HALF_COVER_FOR_HIDE, featGrantsAllowHalfCoverForHide } from './hide-eligibility-feat-sources'
 export {
   RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_HALF_COVER_ID,
+  RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_DIM_LIGHT_ID,
+  RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_MAGICAL_CONCEALMENT_ID,
   mergeHideEligibilityFeatureFlagsOr,
   resolveTemporaryHideEligibilityFeatureFlagsFromCombatantRuntime,
 } from './hide-eligibility-runtime-sources'

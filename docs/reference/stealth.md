@@ -13,7 +13,7 @@
 - **`stealth?: CombatantStealthRuntime`** on the **subject** combatant — always an **object wrapper** (not a bare `hiddenFromObserverIds` on `CombatantInstance`) so metadata can grow without reshaping combatants.
 - Stored fields:
   - **`hiddenFromObserverIds: string[]`** — combatant ids of observers for whom the subject is treated as hidden (subject to reconciliation below).
-  - **`hideEligibility?: CombatantHideEligibilityExtension`** — optional extension flags (e.g. **`allowHalfCoverForHide`**) persisted when hide resolution applies them so **stealth sustain** uses the **same** world-basis rules as hide entry. Type: [`combatant.types.ts`](../../src/features/mechanics/domain/encounter/state/types/combatant.types.ts). See **`resolveHideEligibilityForCombatant`** in [`sight-hide-rules.ts`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts).
+  - **`hideEligibility?: CombatantHideEligibilityExtension`** — optional extension flags (e.g. **`allowHalfCoverForHide`**, **`allowDimLightHide`**, **`allowMagicalConcealmentHide`**) persisted when hide resolution applies them so **stealth sustain** uses the **same** world-basis rules as hide entry. Type: [`combatant.types.ts`](../../src/features/mechanics/domain/encounter/state/types/combatant.types.ts). See **`resolveHideEligibilityForCombatant`** in [`sight-hide-rules.ts`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts).
 
 ---
 
@@ -33,8 +33,9 @@ Other modules (**`action-resolver.ts`**, **`useEncounterState`**) call exported 
 
 That world basis includes:
 
-- **Concealment** — same as before: dim/darkness lighting, light/heavy obscurement, magical darkness (`cellWorldSupportsHideConcealment`).
-- **Terrain cover (baseline)** — merged **`terrainCover`** on [`EncounterWorldCellEnvironment`](../../src/features/mechanics/domain/encounter/environment/environment.types.ts): **three-quarters** or **full** (total cover) counts toward eligibility; **half cover does not** by itself. Cover here is **cell-local** (baseline + environment zones), not per-observer line-of-sight geometry.
+- **Baseline concealment** — [`cellWorldSupportsHideConcealment`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts): heavy obscurement; **non-magical** light obscurement; darkness lighting; **magical darkness** (`magicalDarkness` on merged world). **Not** universal dim light, and **not** magically tagged light obscurement alone — those need flags below.
+- **Terrain cover (baseline)** — merged **`terrainCover`**: **three-quarters** or **full** (total cover) counts; **half cover** only with **`allowHalfCoverForHide`**. Cell-local (baseline + zones), not per-observer geometry.
+- **Feature-flag branches** (same resolver OR-merge as authored/temporary): **`allowDimLightHide`** — `lightingLevel === 'dim'` only; **`allowMagicalConcealmentHide`** — `visibilityObscured === 'light'` **and** merged **`world.magical`** (spell-tagged zone; see environment merge in [`environment.resolve.ts`](../../src/features/mechanics/domain/encounter/environment/environment.resolve.ts)). Natural (non-magical) light obscurement remains baseline without any flag.
 
 **Combatant-sourced feature flags:** **`getCombatantHideEligibilityExtensionOptions`** ([`combatant-hide-eligibility.ts`](../../src/features/mechanics/domain/encounter/state/combatant-hide-eligibility.ts)) merges **one boolean seam** from:
 
@@ -44,21 +45,19 @@ That world basis includes:
 
 2. **Temporary runtime** — same flags, **union (OR)** with the snapshot (see below), from [`hide-eligibility-runtime-sources.ts`](../../src/features/mechanics/domain/encounter/state/hide-eligibility-runtime-sources.ts):
    - **`activeEffects`:** structured **`kind: 'hide-eligibility-grant'`** effects ([`HideEligibilityGrantEffect`](../../src/features/mechanics/domain/effects/effects.types.ts)) on the combatant stack, including nested payloads (e.g. **`aura.effects`**, **`state.ongoingEffects`**). Spell application can attach these via **`applyActionEffects`** in [`action-effects.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-effects.ts).
-   - **`conditions` / `states`:** **`RuntimeMarker`** rows whose **`id`** or **`classification`** includes **`RUNTIME_MARKER_HIDE_ELIGIBILITY_ALLOW_HALF_COVER_ID`** (`hide-eligibility:allow-half-cover`).
+   - **`conditions` / `states`:** **`RuntimeMarker`** ids/classifications: `hide-eligibility:allow-half-cover`, `hide-eligibility:allow-dim-light`, `hide-eligibility:allow-magical-concealment` (see exports in [`hide-eligibility-runtime-sources.ts`](../../src/features/mechanics/domain/encounter/state/hide-eligibility-runtime-sources.ts)).
 
-**Merge rule:** for each boolean (e.g. **`allowHalfCoverForHide`**), **true if any** source is true — authored snapshot **or** any qualifying active effect **or** marker. No second stealth-permission system; everything resolves through this resolver.
+**Merge rule:** for each boolean, **true if any** source is true — authored snapshot **or** any qualifying active effect **or** marker.
 
 That output feeds **`resolveHideEligibilityForCombatant`** after call-site / persisted layers.
 
 **Optional overrides:** **`hideEligibility`** on **`StealthRulesOptions`** / **`GetHideAttemptEligibilityDenialReasonOptions`** — for tests or tools; normal encounter flow does **not** need to pass flags when they exist on the combatant. **`resolveHideEligibilityForCombatant`** precedence: **hide-attempt** — call-site → **`stealth.hideEligibility`** → **combatant-derived**; **stealth-sustain** — **`stealth.hideEligibility`** → call-site → **combatant-derived**.
 
-Dim light / light obscurement behavior still follows **`cellWorldSupportsHideConcealment`** — not a table-wide “always hide in dim for everyone” rule beyond that helper.
-
 **Entry and sustain share one basis:** **`cellWorldSupportsHideAttemptWorldBasis`** — used by **`getHideAttemptEligibilityDenialReason`** (with **`resolveHideEligibilityForCombatant`**, mode **`hide-attempt`**) and by **`reconcileStealthBreakWhenNoConcealmentInCell`** (mode **`stealth-sustain`**). No parallel “baseline-only” sustain path.
 
 Eligibility answers **whether a hide attempt may be attempted** vs a given observer. It does **not** roll Stealth or compare to passive Perception.
 
-**Not implemented:** observer-specific cover (cover relative to each enemy’s token), dim-light-only hide without **`cellWorldSupportsHideConcealment`** / cover / feat flags, broader subclass permissions beyond the feat-id map, or magical concealment exceptions — see [TODO / future work](#todo--future-work).
+**Out of scope:** observer-specific cover geometry; richer feat catalog wiring for dim/magical (flags exist — content can set **`skillRuntime`** / effects); deeper modeling of magical concealment beyond **`world.magical` + light obscurement** — see [TODO / future work](#todo--future-work).
 
 ---
 
@@ -102,7 +101,7 @@ These keep stored **`hiddenFromObserverIds`** aligned with the **shared percepti
 
 **Pure baseline patch:** **`updateEncounterEnvironmentBaseline`** does **not** run stealth (keeps tests and imports simple). For runtime lighting/obscurement changes that should affect hidden state, use **`applyEncounterEnvironmentBaselinePatchAndReconcileStealth`**.
 
-**TODO (still):** feat **display** names from a content catalog (today DTO uses id as name); observer-relative cover rays; sense-specific exceptions; richer “who counts as an observer” than passive hide resolution; **magical concealment** and **dim-light-only** exceptions beyond current `cellWorldSupportsHideConcealment` + flags.
+**TODO (still):** feat **display** names from a content catalog (today DTO uses id as name); observer-relative cover rays; sense-specific exceptions; richer “who counts as an observer” than passive hide resolution.
 
 ---
 
@@ -158,13 +157,13 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth-attack
 
 ## TODO / future work
 
-- **Magical concealment / dim-shadow** — explicit flags or world rules beyond **`allowHalfCoverForHide`** and `cellWorldSupportsHideConcealment` / cover (plug new booleans into the same **`CombatantHideEligibilityFeatureFlagsRuntime`** seam when modeled).
 - **Observer-relative cover** — cover from line-of-sight geometry per observer (today cover is cell-local merged world only).
 - **Observer-relative or partial break** on attack (vs global `breakStealthOnAttack`).
 - **Guessed location / sound** awareness for unseen targets (not occupant perception).
 - **Active opposed** Stealth vs **rolled** Perception (contested check path; keep passive baseline as fallback).
 - **Cell-local cover** is merged on the world cell; **per-observer** cover from geometry is still TODO.
-- **Skulker / dim-shadow / magical concealment** exceptions — plug in via **`hideEligibility`** / **`HideEligibilityFeatureFlags`** and `cellWorldSupportsHideAttemptWorldBasis` when modeled.
+- **Broader stealth feature catalog** — more **`CombatantHideEligibilityFeatureFlagsRuntime`** booleans and content wiring beyond dim / magical / half-cover.
+- **Deeper magical concealment** — e.g. per-spell nuance not captured by **`world.magical` + visibilityObscured** alone.
 - **Sense-specific** break and bypass threading consistent with **`EncounterViewerPerceptionCapabilities`** (blindsight vs hidden, etc.).
 - **Richer observer sets** — e.g. allies in range, line-of-sight, or “aware” subsets instead of only all opposing combatants passing eligibility.
 - Further **skill/item** bonuses on snapshots if not already covered by **`CombatantSkillRuntimeSnapshot`**.

@@ -70,7 +70,7 @@ describe('hide attempt eligibility', () => {
     expect(getHideAttemptEligibilityDenialReason(heavy, 'orc', 'wiz')).toBe(null)
   })
 
-  it('allows hide in dim light while observer may still perceive occupant (concealment present)', () => {
+  it('denies hide in dim-only lighting when observer perceives occupant (no universal dim basis)', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
     const w = testPc('wiz', 'Wizard', 20)
     const o = testEnemy('orc', 'Orc', 20)
@@ -91,7 +91,90 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe(null)
+    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+  })
+
+  it('allowDimLightHide permits dim-only cell when observer still perceives occupant', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const w = testPc('wiz', 'Wizard', 20)
+    const o = testEnemy('orc', 'Orc', 20)
+    const base = createEncounterState([w, o], { rng: () => 0.5, space })
+    const state = {
+      ...base,
+      placements: [
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+        { combatantId: 'orc', cellId: 'c-1-0' },
+      ],
+      environmentZones: [
+        {
+          id: 'z-dim',
+          kind: 'patch',
+          sourceKind: 'manual',
+          area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
+          overrides: { lightingLevel: 'dim' },
+        },
+      ],
+    }
+    expect(
+      getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz', {
+        hideEligibility: { featureFlags: { allowDimLightHide: true } },
+      }),
+    ).toBe(null)
+  })
+
+  it('denies hide in magical light obscurement when observer perceives occupant (no universal magical basis)', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const w = testPc('wiz', 'Wizard', 20)
+    const o = testEnemy('orc', 'Orc', 20)
+    const base = createEncounterState([w, o], { rng: () => 0.5, space })
+    const state = {
+      ...base,
+      placements: [
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+        { combatantId: 'orc', cellId: 'c-1-0' },
+      ],
+      environmentZones: [
+        {
+          id: 'z-mag-lo',
+          kind: 'patch',
+          sourceKind: 'spell',
+          area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
+          overrides: { visibilityObscured: 'light' },
+          magical: { magical: true },
+        },
+      ],
+    }
+    expect(canPerceiveTargetOccupantForCombat(state, 'wiz', 'orc')).toBe(true)
+    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+  })
+
+  it('allowMagicalConcealmentHide permits magically tagged light obscurement', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const w = testPc('wiz', 'Wizard', 20)
+    const o = testEnemy('orc', 'Orc', 20)
+    const base = createEncounterState([w, o], { rng: () => 0.5, space })
+    const state = {
+      ...base,
+      placements: [
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+        { combatantId: 'orc', cellId: 'c-1-0' },
+      ],
+      environmentZones: [
+        {
+          id: 'z-mag-lo',
+          kind: 'patch',
+          sourceKind: 'spell',
+          area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
+          overrides: { visibilityObscured: 'light' },
+          magical: { magical: true },
+        },
+      ],
+    }
+    expect(
+      getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz', {
+        hideEligibility: { featureFlags: { allowMagicalConcealmentHide: true } },
+      }),
+    ).toBe(null)
   })
 
   it('allows hide when cell has light obscurement even if occupant is still perceivable (concealment gate)', () => {
@@ -124,6 +207,23 @@ describe('hide attempt eligibility', () => {
     const o = testEnemy('o', 'Orc', 20)
     const noGrid = createEncounterState([w, o], { rng: () => 0.5 })
     expect(getHideAttemptEligibilityDenialReason(noGrid, 'o', 'w')).toBe(null)
+  })
+
+  it('cellWorldSupportsHideConcealment: dim-only is not baseline concealment', () => {
+    expect(
+      cellWorldSupportsHideConcealment({
+        setting: 'outdoors',
+        lightingLevel: 'dim',
+        terrainMovement: 'normal',
+        visibilityObscured: 'none',
+        atmosphereTags: [],
+        magicalDarkness: false,
+        blocksDarkvision: false,
+        magical: false,
+        terrainCover: 'none',
+        appliedZoneIds: [],
+      }),
+    ).toBe(false)
   })
 
   it('cellWorldSupportsHideConcealment reflects heavy obscurement and darkness', () => {
@@ -270,6 +370,38 @@ describe('hide attempt eligibility', () => {
       }),
     ).toBe(null)
     expect(getStealthHideAttemptDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+  })
+
+  it('combatant skillRuntime.hideEligibilityFeatureFlags allows dim-only hide without call-site options', () => {
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const w = testPc('wiz', 'Wizard', 20)
+    const o = testEnemy('orc', 'Orc', 20)
+    const orcWithDim = {
+      ...o,
+      stats: {
+        ...o.stats,
+        skillRuntime: { hideEligibilityFeatureFlags: { allowDimLightHide: true } },
+      },
+    }
+    const base = createEncounterState([w, orcWithDim], { rng: () => 0.5, space })
+    const state = {
+      ...base,
+      placements: [
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+        { combatantId: 'orc', cellId: 'c-1-0' },
+      ],
+      environmentZones: [
+        {
+          id: 'z-dim',
+          kind: 'patch',
+          sourceKind: 'manual',
+          area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
+          overrides: { lightingLevel: 'dim' },
+        },
+      ],
+    }
+    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe(null)
+    expect(getStealthHideAttemptDenialReason(state, 'orc', 'wiz')).toBe(null)
   })
 
   it('combatant skillRuntime.hideEligibilityFeatureFlags allows half cover without call-site options', () => {

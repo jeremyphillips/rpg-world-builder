@@ -24,6 +24,11 @@ const hideEligibilityGrantHalfCover = {
   featureFlags: { allowHalfCoverForHide: true },
 }
 
+const hideEligibilityGrantDimLight = {
+  kind: 'hide-eligibility-grant' as const,
+  featureFlags: { allowDimLightHide: true },
+}
+
 function minimalCharacter(overrides: Partial<CharacterDetailDto> = {}): CharacterDetailDto {
   return {
     id: 'c1',
@@ -209,5 +214,50 @@ describe('temporary runtime hide permissions (same resolver seam)', () => {
     expect(
       getHideAttemptEligibilityDenialReason(encounterAttackerOutsideDefenderMagicalDarknessCell(), 'orc', 'wiz'),
     ).toBe(null)
+  })
+
+  it('dim-only: temporary grant enables hide entry and sustain (same seam as half cover)', () => {
+    const wiz = testEnemy('wiz', 'Wizard', 20)
+    const rogueBase = buildCharacterCombatantInstance({
+      runtimeId: 'rogue',
+      side: 'party',
+      sourceKind: 'pc',
+      character: minimalCharacter({ feats: [] }),
+      combatStats: mockCombatStats(3),
+      attacks: [],
+      turnHooks: [],
+    })
+    const rogue = { ...rogueBase, activeEffects: [hideEligibilityGrantDimLight] }
+    const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
+    const base = createEncounterState([rogue, wiz], { rng: () => 0.5, space })
+    const state = {
+      ...base,
+      placements: [
+        { combatantId: 'rogue', cellId: 'c-1-0' },
+        { combatantId: 'wiz', cellId: 'c-0-0' },
+      ],
+      environmentZones: [
+        {
+          id: 'z-dim',
+          kind: 'patch',
+          sourceKind: 'manual',
+          area: { kind: 'grid-cell-ids', cellIds: ['c-1-0'] },
+          overrides: { lightingLevel: 'dim' },
+        },
+      ],
+      combatantsById: {
+        ...base.combatantsById,
+        wiz: {
+          ...base.combatantsById.wiz!,
+          stats: { ...base.combatantsById.wiz!.stats, passivePerception: 10 },
+        },
+        rogue,
+      },
+    }
+    expect(getHideAttemptEligibilityDenialReason(state, 'rogue', 'wiz')).toBe(null)
+    const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
+    expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowDimLightHide).toBe(true)
+    const after = reconcileStealthBreakWhenNoConcealmentInCell(beat.state, 'rogue')
+    expect(after.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
 })

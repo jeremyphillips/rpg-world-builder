@@ -543,6 +543,8 @@ export type RegenerationEffect = EffectBase<'regeneration'> & {
 export type HideEligibilityGrantEffect = EffectBase<'hide-eligibility-grant'> & {
   featureFlags: {
     allowHalfCoverForHide?: boolean;
+    allowDimLightHide?: boolean;
+    allowMagicalConcealmentHide?: boolean;
   };
 };
 

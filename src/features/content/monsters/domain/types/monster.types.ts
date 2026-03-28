@@ -104,6 +104,8 @@ export interface MonsterFields {
      */
     hideEligibilityFeatureFlags?: {
       allowHalfCoverForHide?: boolean;
+      allowDimLightHide?: boolean;
+      allowMagicalConcealmentHide?: boolean;
     };
   };
 
