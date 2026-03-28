@@ -72,6 +72,17 @@ Hide **attempt** eligibility (not a full Stealth contest) is in **`getHideAttemp
 
 **Attack rolls and targeting** still use **`resolveCombatantPairVisibilityForAttackRoll`** / **`canSeeForTargeting`** only — they do **not** read `hiddenFromObserverIds`. That avoids a second visibility engine and double-stacked advantage: when heavy obscurement (or similar) already makes a defender unable to perceive the attacker’s occupant, unseen-attacker advantage applies through the shared seam; **`breakStealthOnAttack`** clears stealth **after** the attack d20 is rolled. Details: **`stealth-attack-integration.ts`**, [Stealth — combat section](./stealth.md#combat-attacks-targeting-and-hidden-state).
 
+### Guessed position / sound awareness (not sight)
+
+**`CombatantInstance.awareness`** (`CombatantAwarenessRuntime`) holds **observer-relative** **`guessedCellByObserverId`** — a last attributed **grid cell** for observers who **do not** currently **`canPerceiveTargetOccupantForCombat`** the subject’s occupant. Rules live in **`awareness-rules.ts`**.
+
+- **Does not** satisfy **`canSeeForTargeting`** or requires-sight checks.
+- **Coexists** with **`stealth`**: a subject can be **hidden** from an observer and still have a guessed cell for that observer.
+- **Clears** when the observer **can** perceive the occupant (**`reconcileAwarenessGuessesWithPerception`**, also run at the end of **`reconcileStealthHiddenForPerceivedObservers`**).
+- **Noise entry point:** **`applyNoiseAwarenessForSubject`** (e.g. after an attack resolves — see **`action-resolver.ts`**).
+
+Full detail: [Awareness and guessed position](./awareness-and-guessed-position.md).
+
 ---
 
 ## Current rules supported
@@ -96,7 +107,7 @@ Perception resolution accepts **`viewerRole: 'dm' | 'pc'`** (e.g. `ResolveViewer
 
 ### No full senses engine yet
 
-**`EncounterViewerPerceptionCapabilities`** is optional and partially threaded (e.g. `ResolveCombatActionOptions.perceptionCapabilities` for check effects). Flags include darkvision range, blindsight, truesight, Devil’s Sight, magical darkness bypass. There is **not** a complete per-sense pipeline or automatic derivation from every stat and item.
+**`EncounterViewerPerceptionCapabilities`** is optional and partially threaded (e.g. `ResolveCombatActionOptions.perceptionCapabilities` for check effects). Flags include darkvision range, blindsight, truesight, Devil’s Sight, magical darkness bypass. There is **not** a complete per-sense pipeline or automatic derivation from every stat and item. **Guessed-cell** awareness ([Awareness and guessed position](./awareness-and-guessed-position.md)) is a separate, lightweight seam — not a replacement for hearing range or sound propagation.
 
 ---
 

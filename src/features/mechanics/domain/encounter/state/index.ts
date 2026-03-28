@@ -146,6 +146,14 @@ export {
   type StealthRulesOptions,
 } from './stealth-rules'
 export {
+  applyNoiseAwarenessForSubject,
+  clearGuessedCellForObserver,
+  getGuessedCellForObserver,
+  reconcileAwarenessGuessesWithPerception,
+  setGuessedCellForObserver,
+  type NoiseAwarenessKind,
+} from './awareness-rules'
+export {
   getCombatantAbilityScore,
   getPassivePerceptionScore,
   getStealthCheckModifier,

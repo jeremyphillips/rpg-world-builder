@@ -349,6 +349,18 @@ export type CombatantHideEligibilityExtension = {
 }
 
 /**
+ * Observer-relative **non-visual** location hints (e.g. sound). Does **not** grant sight or satisfy
+ * requires-sight targeting — see `awareness-rules.ts` and `canSeeForTargeting`.
+ */
+export interface CombatantAwarenessRuntime {
+  /**
+   * Observer combatant id → **grid cell id** this observer currently attributes to the subject.
+   * Cleared for a pair when the observer can **perceive the subject’s occupant** (vision supersedes).
+   */
+  guessedCellByObserverId?: Record<string, string>
+}
+
+/**
  * Observer-relative stealth bookkeeping on the **subject** (hider). Not a substitute for perception
  * (`canPerceiveTargetOccupantForCombat` remains the sight seam); stealth layers rules that need
  * hidden-state semantics. Extend with metadata later without reshaping `CombatantInstance`.
@@ -430,6 +442,11 @@ export interface CombatantInstance {
    * Owned and mutated only via `stealth-rules.ts`.
    */
   stealth?: CombatantStealthRuntime
+  /**
+   * Sound / guessed-cell awareness (observer-relative). Owned and mutated via `awareness-rules.ts`.
+   * Independent of `stealth` — a subject may be hidden and still have guessed cells for some observers.
+   */
+  awareness?: CombatantAwarenessRuntime
   conditions: RuntimeMarker[]
   states: RuntimeMarker[]
 }

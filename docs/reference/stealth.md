@@ -4,6 +4,7 @@
 
 - **Perception** (`canPerceiveTargetOccupantForCombat`, `canSeeForTargeting`, pair visibility for attack rolls) answers whether an observer **currently** sees a subject’s **occupant**. That seam is **unchanged** and remains the authority for sight.
 - **Hidden state** (`CombatantInstance.stealth`) records **observer-relative** stealth bookkeeping **on top of** perception. It is **not** a second visibility engine.
+- **Guessed position / sound awareness** (`CombatantInstance.awareness`, **`awareness-rules.ts`**) stores **observer-relative** last attributed **grid cells** when an observer does **not** see the occupant. It is **not** stealth and **not** sight — see [Awareness and guessed position](./awareness-and-guessed-position.md).
 - **Targeting** continues to use **`canSeeForTargeting`**. **Attack-roll modifiers** continue to use **`resolveCombatantPairVisibilityForAttackRoll`**. Stealth rules live in **`stealth-rules.ts`** and layer semantics (lifecycle, future advantage hooks) without duplicating LOS/perception math.
 
 ---
@@ -61,7 +62,7 @@ That output feeds **`resolveHideEligibilityForCombatant`** after call-site / per
 
 Eligibility answers **whether a hide attempt may be attempted** vs a given observer. It does **not** roll Stealth or compare to passive Perception.
 
-**Remaining gaps:** richer **content** wiring (feats → new flags); deeper magical concealment than **`world.magical` + light obscurement**; underwater / extreme-cold atmosphere tags as hide bases; hearing and guessed-position — see [TODO / future work](#todo--future-work).
+**Remaining gaps:** richer **content** wiring (feats → new flags); deeper magical concealment than **`world.magical` + light obscurement**; underwater / extreme-cold atmosphere tags as hide bases; deeper **hearing** / propagation beyond the narrow guessed-cell seam — see [Awareness and guessed position](./awareness-and-guessed-position.md) and [TODO / future work](#todo--future-work).
 
 ---
 
@@ -163,7 +164,7 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth-attack
 
 - **Finer cover than merged `terrainCover` per cell** — e.g. edge/corner rules, size, true 3D LOS.
 - **Observer-relative or partial break** on attack (vs global `breakStealthOnAttack`).
-- **Guessed location / sound** awareness for unseen targets (not occupant perception).
+- **Narrow guessed-cell / noise seam** — implemented in **`awareness-rules.ts`** (see [Awareness and guessed position](./awareness-and-guessed-position.md)); full hearing propagation and attack-at-square remain TODO.
 - **Active opposed** Stealth vs **rolled** Perception (contested check path; keep passive baseline as fallback).
 - **Cell-local cover** is merged on the world cell; **per-observer** cover from geometry is still TODO.
 - **Broader stealth feature catalog** — additional flags (e.g. other **`EncounterAtmosphereTag`** ids, slip-only terrain), content/feat wiring for **`allowDifficultTerrainHide`** / **`allowHighWindHide`**, subclass-specific rules.

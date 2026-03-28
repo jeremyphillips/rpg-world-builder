@@ -12,6 +12,7 @@
 
 import type { EncounterEnvironmentBaselinePatch } from '@/features/mechanics/domain/encounter/environment/environment.types'
 
+import { reconcileAwarenessGuessesWithPerception } from './awareness-rules'
 import { getPassivePerceptionScore } from './passive-perception'
 import { canPerceiveTargetOccupantForCombat } from './combatant-pair-visibility'
 import { updateEncounterEnvironmentBaseline } from './environment-baseline-mutations'
@@ -205,7 +206,8 @@ export function resolveHideWithPassivePerception(
 /**
  * **Reconciliation:** remove observer ids from each subject’s `hiddenFromObserverIds` when that
  * observer **can** now perceive the subject’s occupant — keeps stealth aligned with the shared
- * perception seam.
+ * perception seam. Also runs {@link reconcileAwarenessGuessesWithPerception} so sound-only guesses
+ * drop when vision applies.
  */
 export function reconcileStealthHiddenForPerceivedObservers(
   state: EncounterState,
@@ -214,7 +216,7 @@ export function reconcileStealthHiddenForPerceivedObservers(
   const cap = perceptionCapabilitiesOnly(options)
   let next = state
 
-  for (const combatant of Object.values(state.combatantsById)) {
+  for (const combatant of Object.values(next.combatantsById)) {
     const stealth = combatant.stealth
     if (!stealth?.hiddenFromObserverIds?.length) continue
 
@@ -236,7 +238,7 @@ export function reconcileStealthHiddenForPerceivedObservers(
     }))
   }
 
-  return next
+  return reconcileAwarenessGuessesWithPerception(next)
 }
 
 /**

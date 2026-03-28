@@ -14,6 +14,7 @@ import {
   addAttachedAuraInstance,
   getAttackVisibilityRollModifiersFromPair,
   resolveCombatantPairVisibilityForAttackRoll,
+  applyNoiseAwarenessForSubject,
   breakStealthOnAttack,
   getStealthCheckModifier,
   reconcileStealthHiddenForPerceivedObservers,
@@ -427,6 +428,7 @@ function resolveCombatActionInternal(
     const isCritical = isNaturalTwenty
 
     nextState = breakStealthOnAttack(nextState, actor.instanceId)
+    nextState = applyNoiseAwarenessForSubject(nextState, actor.instanceId, { kind: 'attack' })
 
     const hitSuffix = isCritical ? ' (critical hit)' : ''
     const missSuffix = isNaturalOne ? ' (natural 1)' : ''
