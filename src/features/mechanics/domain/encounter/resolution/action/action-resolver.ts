@@ -25,6 +25,7 @@ import {
   reconcileStealthHiddenForPerceivedObservers,
   resolveDefaultHideObservers,
   resolveHideWithPassivePerception,
+  appendStealthBrokenOnAttackNote,
 } from '../../state'
 import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
 import {
@@ -451,7 +452,11 @@ function resolveCombatActionInternal(
     const hit = isNaturalTwenty || (!isNaturalOne && totalRoll >= target.stats.armorClass)
     const isCritical = isNaturalTwenty
 
+    const hadStealthBeforeAttack = nextState.combatantsById[actor.instanceId]?.stealth != null
     nextState = breakStealthOnAttack(nextState, actor.instanceId)
+    if (hadStealthBeforeAttack) {
+      nextState = appendStealthBrokenOnAttackNote(nextState, actor.instanceId)
+    }
     nextState = applyNoiseAwarenessForSubject(nextState, actor.instanceId, { kind: 'attack' })
 
     const hitSuffix = isCritical ? ' (critical hit)' : ''

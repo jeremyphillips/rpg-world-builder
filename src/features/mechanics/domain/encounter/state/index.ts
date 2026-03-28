@@ -147,6 +147,14 @@ export {
   type StealthRulesOptions,
 } from './stealth/stealth-rules'
 export {
+  STEALTH_DEBUG_REASON,
+  appendStealthBrokenOnAttackNote,
+  appendStealthHideSuccessAppliedNote,
+  appendStealthMovementRecheckHeaderNote,
+  appendStealthPrunedLostHideBasisNote,
+  appendStealthPrunedObserverCanPerceiveNote,
+} from './stealth/stealth-debug-log'
+export {
   applyNoiseAwarenessForSubject,
   clearGuessedCellForObserver,
   getGuessedCellForObserver,

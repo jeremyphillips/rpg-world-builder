@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { createSquareGridSpace } from '@/features/encounter/space/createSquareGridSpace'
 import {
+  appendStealthMovementRecheckHeaderNote,
   applyStealthHideSuccess,
   breakStealthOnAttack,
   createEncounterState,
@@ -14,6 +15,7 @@ import {
   resolveDefaultHideObservers,
   resolveHideWithPassivePerception,
   stealthBeatsPassivePerception,
+  STEALTH_DEBUG_REASON,
 } from '@/features/mechanics/domain/encounter/state'
 import {
   encounterAttackerOutsideDefenderHeavilyObscured,
@@ -101,8 +103,32 @@ describe('stealth-rules', () => {
       { combatantId: 'wiz', cellId: 'c-0-0' },
       { combatantId: 'orc', cellId: 'c-1-0' },
     ] }
+    const logLenBefore = state.log.length
     const pruned = reconcileStealthHiddenForPerceivedObservers(state)
     expect(pruned.combatantsById.orc?.stealth).toBeUndefined()
+    expect(pruned.log.length).toBeGreaterThan(logLenBefore)
+    const pruneNote = pruned.log.find(
+      (e) => e.type === 'note' && e.details?.includes(STEALTH_DEBUG_REASON.observerCanPerceiveTarget),
+    )
+    expect(pruneNote?.summary).toMatch(/revealed to|pruned/i)
+  })
+
+  it('reconcileStealthHiddenForPerceivedObservers does not append a note when hidden state is unchanged', () => {
+    const heavy = encounterAttackerOutsideDefenderHeavilyObscured()
+    const state = {
+      ...heavy,
+      combatantsById: {
+        ...heavy.combatantsById,
+        orc: {
+          ...heavy.combatantsById.orc!,
+          stealth: { hiddenFromObserverIds: ['wiz'] },
+        },
+      },
+    }
+    const logLenBefore = state.log.length
+    const next = reconcileStealthHiddenForPerceivedObservers(state)
+    expect(next.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
+    expect(next.log.length).toBe(logLenBefore)
   })
 
   it('breakStealthOnAttack clears stealth wrapper', () => {
@@ -176,6 +202,35 @@ describe('stealth-rules', () => {
     }
     const out = reconcileStealthBreakWhenNoConcealmentInCell(state, 'orc')
     expect(out.combatantsById.orc?.stealth).toBeUndefined()
+    const lostBasis = out.log.find((e) => e.details?.includes(STEALTH_DEBUG_REASON.lostHideBasis))
+    expect(lostBasis?.summary).toMatch(/no longer hidden|lost hide basis/i)
+  })
+
+  it('resolveHideWithPassivePerception appends hide-success note when beating at least one observer', () => {
+    const heavy = encounterAttackerOutsideDefenderHeavilyObscured()
+    const logLen = heavy.log.length
+    const beat = resolveHideWithPassivePerception(heavy, 'orc', 25, {})
+    expect(beat.outcome.kind).toBe('resolved')
+    if (beat.outcome.kind === 'resolved') {
+      expect(beat.outcome.beatenObserverIds.length).toBeGreaterThan(0)
+    }
+    expect(beat.state.log.length).toBeGreaterThan(logLen)
+    const hideNote = beat.state.log.find(
+      (e) => e.type === 'note' && e.details?.includes(STEALTH_DEBUG_REASON.hideSuccess),
+    )
+    expect(hideNote?.summary).toMatch(/hidden from:/i)
+  })
+
+  it('appendStealthMovementRecheckHeaderNote records movement-reconcile reason', () => {
+    const w = testPc('wiz', 'Wizard', 20)
+    const o = testEnemy('orc', 'Orc', 20)
+    const base = createEncounterState([w, o], { rng: () => 0.5 })
+    const s = { ...base, log: [] as (typeof base)['log'] }
+    const next = appendStealthMovementRecheckHeaderNote(s, 'orc', 'c-1-0', 'c-2-0')
+    const entry = next.log[next.log.length - 1]
+    expect(entry?.details).toContain(STEALTH_DEBUG_REASON.movementReconcile)
+    expect(entry?.summary).toContain('c-1-0')
+    expect(entry?.summary).toContain('c-2-0')
   })
 
   it('reconcileStealthBreakWhenNoConcealmentInCell clears half-cover stealth without persisted hideEligibility', () => {

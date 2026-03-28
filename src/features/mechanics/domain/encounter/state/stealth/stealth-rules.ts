@@ -29,6 +29,11 @@ import { getCellForCombatant } from '@/features/encounter/space/space.helpers'
 import type { CombatantStealthRuntime } from '../types/combatant.types'
 import type { EncounterState } from '../types'
 import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
+import {
+  appendStealthHideSuccessAppliedNote,
+  appendStealthPrunedLostHideBasisNote,
+  appendStealthPrunedObserverCanPerceiveNote,
+} from './stealth-debug-log'
 
 export type { HideEligibilityExtensionOptions, HideEligibilityFeatureFlags }
 
@@ -238,7 +243,7 @@ export function resolveHideWithPassivePerception(
     nextIds.add(oid)
   }
 
-  const nextState = updateEncounterCombatant(state, hiderId, (c) => ({
+  let nextState = updateEncounterCombatant(state, hiderId, (c) => ({
     ...c,
     stealth:
       nextIds.size === 0
@@ -250,6 +255,10 @@ export function resolveHideWithPassivePerception(
               resolveHideEligibilityForCombatant(state, hiderId, options, 'hide-attempt') ?? c.stealth?.hideEligibility,
           },
   }))
+
+  if (beatenObserverIds.length > 0) {
+    nextState = appendStealthHideSuccessAppliedNote(nextState, hiderId, beatenObserverIds)
+  }
 
   return {
     state: nextState,
@@ -285,6 +294,8 @@ export function reconcileStealthHiddenForPerceivedObservers(
 
     if (filtered.length === stealth.hiddenFromObserverIds.length) continue
 
+    const removedObserverIds = stealth.hiddenFromObserverIds.filter((id) => !filtered.includes(id))
+
     next = updateEncounterCombatant(next, combatant.instanceId, (c) => ({
       ...c,
       stealth:
@@ -295,6 +306,7 @@ export function reconcileStealthHiddenForPerceivedObservers(
               hiddenFromObserverIds: filtered,
             },
     }))
+    next = appendStealthPrunedObserverCanPerceiveNote(next, combatant.instanceId, removedObserverIds)
   }
 
   return reconcileAwarenessGuessesWithPerception(next)
@@ -377,11 +389,20 @@ export function reconcileStealthBreakWhenNoConcealmentInCell(
   })
 
   if (nextIds.length === hidden.length) return state
-  if (nextIds.length === 0) return clearStealthForCombatant(state, hiderId)
-  return updateEncounterCombatant(state, hiderId, (c) => ({
+
+  const removedObserverIds = hidden.filter((id) => !nextIds.includes(id))
+
+  if (nextIds.length === 0) {
+    let next = clearStealthForCombatant(state, hiderId)
+    next = appendStealthPrunedLostHideBasisNote(next, hiderId, removedObserverIds)
+    return next
+  }
+  let next = updateEncounterCombatant(state, hiderId, (c) => ({
     ...c,
     stealth: { ...c.stealth!, hiddenFromObserverIds: nextIds },
   }))
+  next = appendStealthPrunedLostHideBasisNote(next, hiderId, removedObserverIds)
+  return next
 }
 
 function clearStealthForCombatant(state: EncounterState, combatantId: string): EncounterState {

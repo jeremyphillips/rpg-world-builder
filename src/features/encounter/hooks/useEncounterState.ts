@@ -17,6 +17,7 @@ import {
   reconcileBattlefieldEffectAnchors,
   resolveCombatAction,
   removeStateFromCombatant,
+  appendStealthMovementRecheckHeaderNote,
   triggerManualHook,
   type CombatantInstance,
   type CombatLogEvent,
@@ -40,7 +41,7 @@ import type { AoeStep } from '../helpers/area-grid-action'
 
 import type { OpponentRosterEntry } from '../types'
 import type { EncounterSpace, InitialPlacementOptions } from '../space'
-import { moveCombatant } from '../space'
+import { getCellForCombatant, moveCombatant } from '../space'
 
 type UseEncounterStateArgs = {
   selectedCombatantIds: string[]
@@ -452,6 +453,7 @@ export function useEncounterState({
     if (!encounterState || !activeCombatantId) return
     setEncounterState((prev) => {
       if (!prev) return prev
+      const fromCellId = getCellForCombatant(prev.placements!, activeCombatantId)
       const afterMove = moveCombatant(
         prev,
         activeCombatantId,
@@ -461,8 +463,21 @@ export function useEncounterState({
           : undefined,
       )
       if (afterMove === prev) return prev
+      const toCellId = getCellForCombatant(afterMove.placements!, activeCombatantId)
+      const hadStealthBookkeeping = Object.values(afterMove.combatantsById).some(
+        (c) => (c.stealth?.hiddenFromObserverIds?.length ?? 0) > 0,
+      )
+      let afterMoveWithLog = afterMove
+      if (hadStealthBookkeeping && fromCellId && toCellId) {
+        afterMoveWithLog = appendStealthMovementRecheckHeaderNote(
+          afterMove,
+          activeCombatantId,
+          fromCellId,
+          toCellId,
+        )
+      }
       const startLen = prev.log.length
-      let next = reconcileBattlefieldEffectAnchors(afterMove)
+      let next = reconcileBattlefieldEffectAnchors(afterMoveWithLog)
       if (spellsById != null) {
         next = resolveAttachedAuraSpatialEntryAfterMovement(prev, next, {
           spellLookup: (id) => spellsById[id],
