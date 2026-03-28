@@ -68,6 +68,37 @@ describe('reconcileEnvironmentZonesFromAttachedAuras', () => {
     expect(cell.magicalDarkness).toBe(true)
   })
 
+  it('creates a fog zone: heavy obscured, no lighting forced to darkness, not magical darkness', () => {
+    const instanceId = 'attached-emanation-fog-wiz'
+    const state = reconcileEnvironmentZonesFromAttachedAuras(
+      baseState({
+        placements: [{ combatantId: 'wiz', cellId: 'c-2-2' }],
+        attachedAuraInstances: [
+          {
+            id: instanceId,
+            casterCombatantId: 'wiz',
+            source: { kind: 'spell', spellId: 'fog-cloud' },
+            anchor: { kind: 'creature', combatantId: 'wiz' },
+            area: { kind: 'sphere', size: 20 },
+            unaffectedCombatantIds: [],
+            environmentZoneProfile: 'fog',
+          },
+        ],
+      }),
+    )
+    const zid = environmentZoneIdForAttachedAuraInstance(instanceId)
+    const zone = state.environmentZones?.find((z) => z.id === zid)
+    expect(zone).toBeDefined()
+    expect(zone?.overrides.visibilityObscured).toBe('heavy')
+    expect(zone?.overrides.lightingLevel).toBeUndefined()
+    expect(zone?.magical?.magicalDarkness).toBeFalsy()
+    const cell = resolveWorldEnvironmentFromEncounterState(state, 'c-2-2')
+    expect(cell.magicalDarkness).toBe(false)
+    expect(cell.visibilityObscured).toBe('heavy')
+    expect(cell.lightingLevel).toBe('bright')
+    expect(cell.obscurationPresentationCauses).toContain('fog')
+  })
+
   it('removes managed zones when the aura row is gone', () => {
     const instanceId = 'attached-emanation-darkness-wiz'
     const withZone = reconcileEnvironmentZonesFromAttachedAuras(

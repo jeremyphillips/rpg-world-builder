@@ -16,18 +16,12 @@ import type {
   EncounterViewerPerceptionCapabilities,
   EncounterViewerPerceptionCell,
 } from './perception.types'
+import type { EncounterWorldCellEnvironment } from '../environment/environment.types'
+import { resolvePresentationVisibilityFill } from './visibility.presentation'
+import type { VisibilityFillKind } from './visibility.types'
 
 /** Who can see token(s) in a cell from the current viewer’s perspective. */
 export type OccupantTokenVisibility = 'all' | 'none' | 'self-only'
-
-/**
- * Presentation-only cell tints — mirrored into `CellBaseFillKind` in the grid layer (not rules).
- */
-export type PerceptionPresentationFillKind =
-  | 'visibility-dim'
-  | 'visibility-darkness'
-  | 'visibility-magical-darkness'
-  | 'visibility-hidden'
 
 /**
  * Per-cell presentation derived from perception — not world state, not domain perception types.
@@ -40,7 +34,7 @@ export type EncounterGridCellRenderState = {
    * When set, may replace tactical `paper` / `persistent-attached-aura` base fills (see `mergePerceptionIntoCellVisualState`).
    * Presentation-only; does not change encounter state.
    */
-  perceptionBaseFillKind: PerceptionPresentationFillKind | null
+  perceptionBaseFillKind: VisibilityFillKind | null
   /** Echo of domain flag — AoE/darkness template edge may be hidden when true. */
   suppressTemplateBoundary: boolean
 }
@@ -113,11 +107,13 @@ export function projectBattlefieldRenderState(
 
 export function projectGridCellRenderState(params: {
   perception: EncounterViewerPerceptionCell
+  /** Merged world at the target cell — drives source-aware visibility presentation. */
+  targetWorld: EncounterWorldCellEnvironment
   battlefield: EncounterBattlefieldRenderState
   viewerRole: 'dm' | 'pc'
   isViewerCell: boolean
 }): EncounterGridCellRenderState {
-  const { perception, battlefield, viewerRole, isViewerCell } = params
+  const { perception, targetWorld, battlefield, viewerRole, isViewerCell } = params
 
   if (viewerRole === 'dm') {
     return {
@@ -137,7 +133,7 @@ export function projectGridCellRenderState(params: {
   const showObstacleGlyph =
     perception.canPerceiveObjects && !(battlefield.useBlindVeil && !isViewerCell)
 
-  const perceptionBaseFillKind = resolvePerceptionPresentationFill(perception)
+  const perceptionBaseFillKind = resolvePresentationVisibilityFill(perception, targetWorld)
 
   return {
     occupantTokenVisibility,
@@ -156,17 +152,6 @@ function resolveOccupantTokenVisibility(
   if (blindVeil && isViewerCell) return 'self-only'
   if (blindVeil) return 'none'
   return 'all'
-}
-
-/** Maps world + perception to presentation fills (grid maps these to `CellBaseFillKind`). */
-export function resolvePerceptionPresentationFill(
-  perception: EncounterViewerPerceptionCell,
-): PerceptionPresentationFillKind | null {
-  if (!perception.canPerceiveCell) return 'visibility-hidden'
-  if (perception.maskedByMagicalDarkness) return 'visibility-magical-darkness'
-  if (perception.maskedByDarkness) return 'visibility-darkness'
-  if (perception.worldVisibilityObscured === 'light') return 'visibility-dim'
-  return null
 }
 
 /**
@@ -220,6 +205,7 @@ export function buildCellPerceptionRenderState(
 
   return projectGridCellRenderState({
     perception,
+    targetWorld,
     battlefield: slice.battlefieldRender,
     viewerRole: input.viewerRole,
     isViewerCell: targetCellId === slice.viewerCellId,

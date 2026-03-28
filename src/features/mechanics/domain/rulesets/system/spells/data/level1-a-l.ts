@@ -795,6 +795,13 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
       ],
     },
     effects: [
+      {
+        kind: 'emanation',
+        attachedTo: 'self',
+        area: { kind: 'sphere', size: 20 },
+        anchorMode: 'place',
+        environmentZoneProfile: 'fog',
+      },
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 20 } },
       { kind: 'state', stateId: 'heavily-obscured', notes: 'The sphere is Heavily Obscured.' },
       {

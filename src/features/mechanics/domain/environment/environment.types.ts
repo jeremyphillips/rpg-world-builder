@@ -119,7 +119,7 @@ export type EncounterEnvironmentOverrideSourceKind =
  * When set on a persistent `BattlefieldEffectInstance`, reconciliation builds/updates a matching
  * {@link EncounterEnvironmentZone} from that row. Extend with new literals as more world projections ship.
  */
-export type AttachedEnvironmentZoneProfile = 'magical-darkness'
+export type AttachedEnvironmentZoneProfile = 'magical-darkness' | 'fog'
 
 /**
  * Presentation-only obscuration causes collected at world merge (baseline + zones).

@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
+import type { EncounterWorldCellEnvironment } from '../../environment/environment.types'
 import type { EncounterViewerBattlefieldPerception } from '../perception.types'
 import type { EncounterViewerPerceptionCell } from '../perception.types'
 import {
   projectBattlefieldRenderState,
   projectGridCellRenderState,
-  resolvePerceptionPresentationFill,
 } from '../perception.render.projection'
+import { resolvePresentationVisibilityFill } from '../visibility.presentation'
 
 function baseBattlefield(overrides: Partial<EncounterViewerBattlefieldPerception> = {}): EncounterViewerBattlefieldPerception {
   return {
@@ -31,6 +32,27 @@ function basePerception(overrides: Partial<EncounterViewerPerceptionCell> = {}):
     worldVisibilityObscured: 'none',
     appliedZoneIds: [],
     ...overrides,
+  }
+}
+
+/** Minimal merged world aligned with perception for projection tests. */
+function targetWorldFromPerception(
+  p: EncounterViewerPerceptionCell,
+  extra: Partial<EncounterWorldCellEnvironment> = {},
+): EncounterWorldCellEnvironment {
+  return {
+    setting: 'outdoors',
+    lightingLevel: p.worldLightingLevel,
+    terrainMovement: 'normal',
+    visibilityObscured: p.worldVisibilityObscured,
+    atmosphereTags: [],
+    magicalDarkness: p.maskedByMagicalDarkness,
+    blocksDarkvision: false,
+    magical: p.maskedByMagicalDarkness,
+    terrainCover: 'none',
+    appliedZoneIds: p.appliedZoneIds,
+    obscurationPresentationCauses: [],
+    ...extra,
   }
 }
 
@@ -71,6 +93,7 @@ describe('projectGridCellRenderState', () => {
     const p = basePerception({ canPerceiveOccupants: false })
     const r = projectGridCellRenderState({
       perception: p,
+      targetWorld: targetWorldFromPerception(p),
       battlefield: battlefieldBlind,
       viewerRole: 'dm',
       isViewerCell: false,
@@ -84,6 +107,7 @@ describe('projectGridCellRenderState', () => {
     const p = basePerception()
     const r = projectGridCellRenderState({
       perception: p,
+      targetWorld: targetWorldFromPerception(p),
       battlefield: battlefieldBlind,
       viewerRole: 'pc',
       isViewerCell: true,
@@ -96,6 +120,7 @@ describe('projectGridCellRenderState', () => {
     const p = basePerception()
     const r = projectGridCellRenderState({
       perception: p,
+      targetWorld: targetWorldFromPerception(p),
       battlefield: battlefieldBlind,
       viewerRole: 'pc',
       isViewerCell: false,
@@ -112,44 +137,61 @@ describe('projectGridCellRenderState', () => {
     })
     const r = projectGridCellRenderState({
       perception: p,
+      targetWorld: targetWorldFromPerception(p),
       battlefield: battlefieldNormal,
       viewerRole: 'pc',
       isViewerCell: false,
     })
-    expect(r.perceptionBaseFillKind).toBe('visibility-magical-darkness')
+    expect(r.perceptionBaseFillKind).toBe('magical-darkness')
     expect(r.occupantTokenVisibility).toBe('none')
+  })
+
+  it('fog cause with heavy obscurement maps to fog fill, not darkness', () => {
+    const p = basePerception({
+      canPerceiveOccupants: false,
+      canPerceiveObjects: false,
+      maskedByDarkness: true,
+      maskedByMagicalDarkness: false,
+      worldVisibilityObscured: 'heavy',
+      worldLightingLevel: 'bright',
+    })
+    const tw = targetWorldFromPerception(p, {
+      obscurationPresentationCauses: ['fog'],
+      lightingLevel: 'bright',
+      visibilityObscured: 'heavy',
+    })
+    const r = projectGridCellRenderState({
+      perception: p,
+      targetWorld: tw,
+      battlefield: battlefieldNormal,
+      viewerRole: 'pc',
+      isViewerCell: false,
+    })
+    expect(r.perceptionBaseFillKind).toBe('fog')
   })
 })
 
-describe('resolvePerceptionPresentationFill', () => {
-  it('maps obscured cell to visibility-hidden before other masks', () => {
-    expect(
-      resolvePerceptionPresentationFill(
-        basePerception({
-          canPerceiveCell: false,
-          maskedByMagicalDarkness: true,
-        }),
-      ),
-    ).toBe('visibility-hidden')
+describe('resolvePresentationVisibilityFill', () => {
+  it('maps obscured cell to hidden before other masks', () => {
+    const p = basePerception({
+      canPerceiveCell: false,
+      maskedByMagicalDarkness: true,
+    })
+    expect(resolvePresentationVisibilityFill(p, targetWorldFromPerception(p))).toBe('hidden')
   })
 
   it('maps magical darkness tint when cell is perceivable', () => {
-    expect(
-      resolvePerceptionPresentationFill(
-        basePerception({ maskedByMagicalDarkness: true }),
-      ),
-    ).toBe('visibility-magical-darkness')
+    const p = basePerception({ maskedByMagicalDarkness: true })
+    expect(resolvePresentationVisibilityFill(p, targetWorldFromPerception(p))).toBe('magical-darkness')
   })
 
   it('maps non-magical darkness before dim', () => {
-    expect(
-      resolvePerceptionPresentationFill(basePerception({ maskedByDarkness: true })),
-    ).toBe('visibility-darkness')
+    const p = basePerception({ maskedByDarkness: true })
+    expect(resolvePresentationVisibilityFill(p, targetWorldFromPerception(p))).toBe('darkness')
   })
 
   it('maps light obscurement to dim', () => {
-    expect(
-      resolvePerceptionPresentationFill(basePerception({ worldVisibilityObscured: 'light' })),
-    ).toBe('visibility-dim')
+    const p = basePerception({ worldVisibilityObscured: 'light' })
+    expect(resolvePresentationVisibilityFill(p, targetWorldFromPerception(p))).toBe('dim')
   })
 })

@@ -1,4 +1,5 @@
 import type { EncounterGridCellRenderState } from '@/features/mechanics/domain/perception/perception.render.projection'
+import type { VisibilityFillKind } from '@/features/mechanics/domain/perception/visibility.types'
 
 import type { GridCellViewModel } from '../../../space/selectors/space.selectors'
 
@@ -6,7 +7,7 @@ import type { GridCellViewModel } from '../../../space/selectors/space.selectors
  * Resolved base fill / overlay intent (top-down precedence). Used by {@link getCellVisualSx}.
  * `aoe-cast-range` is first-class: cast-range band when no higher-priority tint applies (style map may use paper-equivalent fill).
  *
- * `visibility-*` kinds are **presentation-only** tints from viewer perception projection — not tactical rules.
+ * {@link VisibilityFillKind} values are **presentation-only** tints from viewer perception projection — not tactical rules.
  */
 export type CellBaseFillKind =
   | 'blocked'
@@ -19,10 +20,7 @@ export type CellBaseFillKind =
   | 'aoe-cast-range'
   | 'persistent-attached-aura'
   | 'paper'
-  | 'visibility-dim'
-  | 'visibility-darkness'
-  | 'visibility-magical-darkness'
-  | 'visibility-hidden'
+  | VisibilityFillKind
 
 /**
  * Movement emphasis on top of base fill. Mutually exclusive branches match legacy EncounterGrid behavior.

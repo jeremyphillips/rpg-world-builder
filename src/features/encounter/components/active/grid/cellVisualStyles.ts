@@ -29,13 +29,15 @@ function baseFillSx(theme: Theme, kind: CellBaseFillKind): SystemStyleObject<The
       return { bgcolor: alpha(palette.secondary.main, 0.3) }
     case 'paper':
       return { bgcolor: palette.background.paper }
-    case 'visibility-dim':
+    case 'dim':
       return { bgcolor: alpha(palette.common.black, 0.18) }
-    case 'visibility-darkness':
+    case 'fog':
+      return { bgcolor: alpha(palette.grey[700], 0.42) }
+    case 'darkness':
       return { bgcolor: alpha(palette.common.black, 0.45) }
-    case 'visibility-magical-darkness':
+    case 'magical-darkness':
       return { bgcolor: alpha(palette.common.black, 0.62) }
-    case 'visibility-hidden':
+    case 'hidden':
       return { bgcolor: alpha(palette.common.black, 0.88) }
     default: {
       const _exhaustive: never = kind

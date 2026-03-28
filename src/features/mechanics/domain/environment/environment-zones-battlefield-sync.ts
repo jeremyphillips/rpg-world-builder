@@ -41,6 +41,20 @@ function buildZoneForProfile(
       visibilityObscurationCause: 'magical-darkness',
     }
   }
+  if (instance.environmentZoneProfile === 'fog') {
+    return {
+      id: environmentZoneIdForAttachedAuraInstance(instance.id),
+      kind: 'patch',
+      priority: 0,
+      sourceKind: 'attached-aura',
+      sourceId: instance.id,
+      area: { kind: 'sphere-ft', originCellId, radiusFt: instance.area.size },
+      overrides: {
+        visibilityObscured: 'heavy',
+      },
+      visibilityObscurationCause: 'fog',
+    }
+  }
   const _exhaustive: never = instance.environmentZoneProfile
   return _exhaustive
 }
