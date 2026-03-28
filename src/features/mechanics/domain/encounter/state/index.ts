@@ -113,8 +113,12 @@ export {
   reconcileStealthBreakWhenNoConcealmentInCell,
   reconcileStealthHiddenForPerceivedObservers,
   resolveDefaultHideObservers,
+  resolveHideWithPassivePerception,
+  stealthBeatsPassivePerception,
+  type HideResolutionOutcome,
   type StealthRulesOptions,
 } from './stealth-rules'
+export { getPassivePerceptionScore, getStealthCheckModifier } from './passive-perception'
 export {
   combatantHasBattlefieldAbsenceEngineState,
   findNearestUnoccupiedPassableCell,

@@ -34,6 +34,7 @@ export function createCombatant(args: {
   conditions?: Array<{ label: string }>
   states?: Array<{ label: string }>
   equipment?: { armorEquipped?: string | null }
+  passivePerception?: number
 }): CombatantInstance {
   return {
     instanceId: args.instanceId,
@@ -64,6 +65,7 @@ export function createCombatant(args: {
       },
       savingThrowModifiers: args.savingThrowModifiers,
       speeds: { ground: 30 },
+      ...(args.passivePerception != null ? { passivePerception: args.passivePerception } : {}),
     },
     attacks: [],
     actions: args.actions ?? [],

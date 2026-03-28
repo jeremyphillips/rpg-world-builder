@@ -283,6 +283,9 @@ export function buildMonsterCombatantInstance(args: {
           }
         : undefined,
       speeds: monster.mechanics.movement,
+      ...(monster.mechanics.senses?.passivePerception != null
+        ? { passivePerception: monster.mechanics.senses.passivePerception }
+        : {}),
     },
     attacks,
     actions,

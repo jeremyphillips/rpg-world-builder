@@ -11,7 +11,7 @@ export type CombatActionKind =
   | 'spell'
   | 'combat-effect'
 
-export type CombatActionResolutionMode = 'attack-roll' | 'saving-throw' | 'effects' | 'log-only'
+export type CombatActionResolutionMode = 'attack-roll' | 'saving-throw' | 'effects' | 'log-only' | 'hide'
 
 export interface CombatActionCost {
   action?: boolean
@@ -38,6 +38,11 @@ export interface CombatActionSaveProfile {
   ability: AbilityId
   dc: number
   halfDamageOnSave?: boolean
+}
+
+/** When `resolutionMode === 'hide'`, Stealth modifier for the d20 roll (omit to use dex-based default from resolver). */
+export type CombatActionHideProfile = {
+  stealthModifier?: number
 }
 
 export interface CombatActionTargetingProfile {
@@ -127,6 +132,8 @@ export interface CombatActionDefinition {
   damage?: string
   damageType?: string
   saveProfile?: CombatActionSaveProfile
+  /** When `resolutionMode === 'hide'`: rolled Stealth total = d20 + modifier from profile or dex-based default. */
+  hideProfile?: CombatActionHideProfile
   targeting?: CombatActionTargetingProfile
   movement?: CombatActionMovementProfile
   usage?: CombatActionUsage
@@ -183,4 +190,14 @@ export interface CombatActionDefinition {
      */
     environmentZoneProfile?: AttachedEnvironmentZoneProfile
   }
+}
+
+/** Standard Hide action: `resolutionMode: 'hide'` rolls Stealth and resolves vs passive Perception in the resolver. */
+export const DEFAULT_HIDE_COMBAT_ACTION: CombatActionDefinition = {
+  id: 'combat-hide',
+  label: 'Hide',
+  kind: 'combat-effect',
+  cost: { action: true },
+  resolutionMode: 'hide',
+  targeting: { kind: 'self' },
 }

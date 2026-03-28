@@ -13,6 +13,7 @@
 import { getCellForCombatant } from '@/features/encounter/space'
 import { resolveWorldEnvironmentFromEncounterState } from '@/features/mechanics/domain/encounter/environment/environment.resolve'
 
+import { getPassivePerceptionScore } from './passive-perception'
 import { canPerceiveTargetOccupantForCombat } from './combatant-pair-visibility'
 import { updateEncounterCombatant } from './mutations'
 import {
@@ -27,6 +28,25 @@ import type { EncounterViewerPerceptionCapabilities } from '../environment/perce
 export type StealthRulesOptions = {
   perceptionCapabilities?: EncounterViewerPerceptionCapabilities
 }
+
+/**
+ * Hide vs passive Perception: **strictly greater than** beats the observer (5e-style tie: observer wins).
+ * `stealthTotal === passivePerception` does **not** count as hidden from that observer.
+ */
+export function stealthBeatsPassivePerception(stealthTotal: number, passivePerception: number): boolean {
+  return stealthTotal > passivePerception
+}
+
+export type HideResolutionOutcome =
+  | { kind: 'no-eligible-observers' }
+  | {
+      kind: 'resolved'
+      stealthTotal: number
+      /** Observers for whom eligibility passed and Stealth beat passive Perception. */
+      beatenObserverIds: string[]
+      /** Eligible observers who did not lose the comparison (including ties). */
+      failedObserverIds: string[]
+    }
 
 function perceptionOpts(options?: StealthRulesOptions): { capabilities?: EncounterViewerPerceptionCapabilities } | undefined {
   return options?.perceptionCapabilities != null ? { capabilities: options.perceptionCapabilities } : undefined
@@ -46,11 +66,10 @@ export function getStealthHideAttemptDenialReason(
 }
 
 /**
- * Records runtime hidden state **after** the caller has already determined a successful hide outcome.
- *
- * This is **not** opposed Stealth vs passive Perception — those are not implemented yet. The explicit
- * `observerIds` parameter is the seam for a future contest resolver to pass “who you beat / who you are
- * hidden from.” Callers may instead use {@link resolveDefaultHideObservers} for a non-contested default.
+ * Records runtime hidden state **after** the caller has already determined outcome (e.g. manual DM
+ * adjudication or tests). Prefer {@link resolveHideWithPassivePerception} for standard hide resolution
+ * vs passive Perception. The explicit `observerIds` parameter remains the seam for future **active**
+ * opposed-roll outputs.
  */
 export function applyStealthHideSuccess(
   state: EncounterState,
@@ -72,8 +91,9 @@ export function applyStealthHideSuccess(
 }
 
 /**
- * Non-contested default: other-side combatants for whom hide attempt eligibility passes (delegates to
- * {@link getStealthHideAttemptDenialReason} === null). Not a full observer-set contest.
+ * Candidate observers for a hide attempt: other-side combatants for whom hide **eligibility** passes
+ * (`getStealthHideAttemptDenialReason` === null). Used by **`resolveHideWithPassivePerception`** before
+ * comparing Stealth to **`getPassivePerceptionScore`**. Does not filter by distance or cover (future work).
  */
 export function resolveDefaultHideObservers(
   state: EncounterState,
@@ -87,6 +107,74 @@ export function resolveDefaultHideObservers(
     if (oid === hiderId) return false
     return getStealthHideAttemptDenialReason(state, hiderId, oid, options) === null
   })
+}
+
+/**
+ * Resolves a completed **Stealth total** (d20 + modifiers from the action/resolver — not rolled here)
+ * against each **eligible** observer’s passive Perception. Updates `stealth.hiddenFromObserverIds`:
+ * eligible observers who are **beaten** are added; eligible observers who **fail** the comparison are
+ * removed. Observers not in the eligible set keep any prior entry unchanged.
+ *
+ * **Threshold:** {@link stealthBeatsPassivePerception} — Stealth must be **strictly greater** than
+ * passive Perception to be hidden from that observer.
+ */
+export function resolveHideWithPassivePerception(
+  state: EncounterState,
+  hiderId: string,
+  stealthTotal: number,
+  options?: StealthRulesOptions,
+): { state: EncounterState; outcome: HideResolutionOutcome } {
+  const candidates = resolveDefaultHideObservers(state, hiderId, options)
+  if (candidates.length === 0) {
+    return { state, outcome: { kind: 'no-eligible-observers' } }
+  }
+
+  const beatenObserverIds: string[] = []
+  const failedObserverIds: string[] = []
+
+  for (const oid of candidates) {
+    const observer = state.combatantsById[oid]
+    if (!observer) continue
+    const passive = getPassivePerceptionScore(observer)
+    if (stealthBeatsPassivePerception(stealthTotal, passive)) {
+      beatenObserverIds.push(oid)
+    } else {
+      failedObserverIds.push(oid)
+    }
+  }
+
+  const hider = state.combatantsById[hiderId]
+  if (!hider) {
+    return { state, outcome: { kind: 'no-eligible-observers' } }
+  }
+
+  const prev = hider.stealth?.hiddenFromObserverIds ?? []
+  const candidateSet = new Set(candidates)
+  const nextIds = new Set(prev.filter((id) => !candidateSet.has(id)))
+  for (const oid of beatenObserverIds) {
+    nextIds.add(oid)
+  }
+
+  const nextState = updateEncounterCombatant(state, hiderId, (c) => ({
+    ...c,
+    stealth:
+      nextIds.size === 0
+        ? undefined
+        : {
+            ...c.stealth,
+            hiddenFromObserverIds: [...nextIds],
+          },
+  }))
+
+  return {
+    state: nextState,
+    outcome: {
+      kind: 'resolved',
+      stealthTotal,
+      beatenObserverIds,
+      failedObserverIds,
+    },
+  }
 }
 
 /**

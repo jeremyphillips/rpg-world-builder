@@ -69,7 +69,8 @@ export type HideAttemptEligibilityDenialReason =
  * - If the observer **cannot** perceive the occupant (heavy obscurement, magical darkness, invisibility, etc.),
  *   the attempt is allowed from a sight perspective.
  * - If the observer **can** perceive the occupant **but** the cell has concealment (e.g. dim, light obscured),
- *   a Hide attempt is allowed (contested Stealth vs passive Perception is out of scope here).
+ *   a Hide attempt is allowed. **Resolution** vs passive Perception is handled in `stealth-rules.ts` /
+ *   `resolveHideWithPassivePerception` after the Stealth total is rolled (not here).
  *
  * **Missing tactical grid / hider placement:** permissive — returns `null` (allow attempt) so behavior
  * matches the pair-visibility fallback when geometry is absent.

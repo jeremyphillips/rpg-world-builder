@@ -15,7 +15,9 @@ import {
   getAttackVisibilityRollModifiersFromPair,
   resolveCombatantPairVisibilityForAttackRoll,
   breakStealthOnAttack,
+  getStealthCheckModifier,
   reconcileStealthHiddenForPerceivedObservers,
+  resolveHideWithPassivePerception,
 } from '../../state'
 import type { EncounterViewerPerceptionCapabilities } from '../../environment/perception.types'
 import {
@@ -368,7 +370,32 @@ function resolveCombatActionInternal(
     return { state: finalState, createdMarkerIds: allMarkerIds }
   }
 
-  if (action.resolutionMode === 'attack-roll') {
+  if (action.resolutionMode === 'hide') {
+    const stealthMod = action.hideProfile?.stealthModifier ?? getStealthCheckModifier(actor)
+    const { rawRoll, detail: stealthRollDetail } = rollD20WithRollMode(resolveD20RollMode([]), rng)
+    const stealthTotal = rawRoll + stealthMod
+    const hideResolved = resolveHideWithPassivePerception(nextState, actor.instanceId, stealthTotal, {
+      perceptionCapabilities: options.perceptionCapabilities,
+    })
+    nextState = hideResolved.state
+    const { outcome } = hideResolved
+    let details = `Stealth: ${stealthRollDetail} + ${stealthMod} = ${stealthTotal}.`
+    let summary: string
+    if (outcome.kind === 'no-eligible-observers') {
+      summary = `${getEncounterCombatantLabel(state, actor.instanceId)} attempts to hide but has no eligible observers (concealment / eligibility).`
+    } else {
+      details += ` Beat passive Perception: ${outcome.beatenObserverIds.join(', ') || 'none'}. Did not beat: ${outcome.failedObserverIds.join(', ') || 'none'}.`
+      summary = `${getEncounterCombatantLabel(state, actor.instanceId)} attempts to hide (Stealth ${stealthTotal}).`
+    }
+    nextState = appendEncounterLogEvent(nextState, {
+      type: 'action-resolved',
+      actorId: actor.instanceId,
+      round: state.roundNumber,
+      turn: state.turnIndex + 1,
+      summary,
+      details,
+    })
+  } else if (action.resolutionMode === 'attack-roll') {
     const attackBonus = action.attackProfile?.attackBonus
     if (target == null || attackBonus == null) return { state: nextState, createdMarkerIds: [] }
 

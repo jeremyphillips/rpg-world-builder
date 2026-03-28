@@ -100,7 +100,7 @@ Perception resolution accepts **`viewerRole: 'dm' | 'pc'`** (e.g. `ResolveViewer
 
 ## Known limitations
 
-- **Opposed Stealth vs Perception** — not fully modeled; **`applyStealthHideSuccess`** accepts explicit observer ids for a future contest seam (see [stealth.md](./stealth.md)).
+- **Active opposed Stealth vs rolled Perception** — hide vs **passive** Perception is implemented; active opposed rolls are still TODO (see [stealth.md](./stealth.md)).
 - **No observer aggregation API** — “who can see this creature” as a derived set is not a first-class helper yet (hidden-from is stored per subject).
 - **Limited capability threading** — capabilities must be passed where supported; not every call site accepts or forwards them yet.
 

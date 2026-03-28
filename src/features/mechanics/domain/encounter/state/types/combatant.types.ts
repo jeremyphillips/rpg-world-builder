@@ -41,6 +41,11 @@ export interface CombatantStatBlock {
   abilityScores?: Partial<Record<AbilityKey, number>>
   savingThrowModifiers?: Partial<Record<AbilityKey, number>>
   speeds?: Partial<Record<'ground' | 'climb' | 'fly' | 'swim' | 'burrow', number>>
+  /**
+   * When set (e.g. from monster senses), used for hide vs passive Perception. Otherwise derived from
+   * Wisdom in {@link getPassivePerceptionScore}.
+   */
+  passivePerception?: number
 }
 
 export interface RuntimeMarkerDuration {

@@ -5,11 +5,14 @@ import {
   applyStealthHideSuccess,
   breakStealthOnAttack,
   createEncounterState,
+  getPassivePerceptionScore,
   getStealthHideAttemptDenialReason,
   isHiddenFromObserver,
   reconcileStealthBreakWhenNoConcealmentInCell,
   reconcileStealthHiddenForPerceivedObservers,
   resolveDefaultHideObservers,
+  resolveHideWithPassivePerception,
+  stealthBeatsPassivePerception,
 } from '@/features/mechanics/domain/encounter/state'
 import {
   encounterAttackerOutsideDefenderHeavilyObscured,
@@ -126,5 +129,54 @@ describe('stealth-rules', () => {
     const heavy = encounterAttackerOutsideDefenderHeavilyObscured()
     const ids = resolveDefaultHideObservers(heavy, 'orc')
     expect(ids).toContain('wiz')
+  })
+
+  it('resolveHideWithPassivePerception: beats observer when Stealth > passive only', () => {
+    const heavy = encounterAttackerOutsideDefenderHeavilyObscured()
+    const wiz = heavy.combatantsById.wiz!
+    const withPp = {
+      ...heavy,
+      combatantsById: {
+        ...heavy.combatantsById,
+        wiz: { ...wiz, stats: { ...wiz.stats, passivePerception: 10 } },
+      },
+    }
+    const beat = resolveHideWithPassivePerception(withPp, 'orc', 11)
+    expect(beat.outcome.kind).toBe('resolved')
+    if (beat.outcome.kind === 'resolved') {
+      expect(beat.outcome.beatenObserverIds).toContain('wiz')
+      expect(beat.outcome.failedObserverIds).toEqual([])
+    }
+    expect(beat.state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toContain('wiz')
+  })
+
+  it('resolveHideWithPassivePerception: fails when Stealth equals passive (tie)', () => {
+    const heavy = encounterAttackerOutsideDefenderHeavilyObscured()
+    const wiz = heavy.combatantsById.wiz!
+    const withPp = {
+      ...heavy,
+      combatantsById: {
+        ...heavy.combatantsById,
+        wiz: { ...wiz, stats: { ...wiz.stats, passivePerception: 10 } },
+      },
+    }
+    const fail = resolveHideWithPassivePerception(withPp, 'orc', 10)
+    expect(fail.outcome.kind).toBe('resolved')
+    if (fail.outcome.kind === 'resolved') {
+      expect(fail.outcome.beatenObserverIds).toEqual([])
+      expect(fail.outcome.failedObserverIds).toContain('wiz')
+    }
+    expect(fail.state.combatantsById.orc?.stealth).toBeUndefined()
+  })
+
+  it('getPassivePerceptionScore uses authored stat when set', () => {
+    const w = testPc('w', 'Wizard', 20)
+    const c = { ...w, stats: { ...w.stats, passivePerception: 14 } }
+    expect(getPassivePerceptionScore(c)).toBe(14)
+  })
+
+  it('stealthBeatsPassivePerception documents strict greater-than', () => {
+    expect(stealthBeatsPassivePerception(11, 10)).toBe(true)
+    expect(stealthBeatsPassivePerception(10, 10)).toBe(false)
   })
 })

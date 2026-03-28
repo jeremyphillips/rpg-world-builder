@@ -30,17 +30,25 @@ Other modules (**`action-resolver.ts`**, **`useEncounterState`**) call exported 
 
 **`getStealthHideAttemptDenialReason`** delegates to **`getHideAttemptEligibilityDenialReason`** in [`sight-hide-rules.ts`](../../src/features/mechanics/domain/encounter/state/sight-hide-rules.ts) (occupant perception + merged **world** concealment at the hider’s cell). Dim light / light obscurement behavior follows that helper — not a new universal “always hide in dim” rule.
 
+Eligibility answers **whether a hide attempt may be attempted** vs a given observer. It does **not** roll Stealth or compare to passive Perception.
+
 ---
 
-## Successful hide **application** vs contested resolution
+## Hide resolution vs passive Perception (baseline)
 
-- **`applyStealthHideSuccess(state, hiderId, observerIds)`** records runtime hidden state **after** the caller has already decided the hide **succeeded**.
-- This pass **does not** implement:
-  - Opposed Stealth vs Perception
-  - Passive Perception resolution
-  - Full observer-set **contest** orchestration
+**Flow:**
 
-**Explicit `observerIds`** is the seam for a **future** contest resolver to pass “who you are hidden from.” **`resolveDefaultHideObservers`** is a **non-contested** convenience (other-side combatants passing eligibility only).
+1. **Eligibility:** for each other-side combatant, **`resolveDefaultHideObservers`** returns ids where **`getStealthHideAttemptDenialReason` is `null`** (candidate observers for this attempt).
+2. **Stealth total:** the **action resolver** rolls **d20 + Stealth modifier** when **`resolutionMode === 'hide'`** (`action-resolver.ts`). Modifier comes from **`hideProfile.stealthModifier`** or **`getStealthCheckModifier`** (`passive-perception.ts`, Dex-based until skill proficiencies are modeled).
+3. **Comparison:** **`resolveHideWithPassivePerception(state, hiderId, stealthTotal, options)`** compares that total to each **candidate** observer’s **passive Perception** via **`getPassivePerceptionScore`** (`passive-perception.ts`).
+4. **Threshold:** **`stealthBeatsPassivePerception(total, passive)`** — **Stealth must be strictly greater than** passive Perception (**`>`**). A **tie** does **not** hide you from that observer (observer wins ties).
+5. **Storage:** For each candidate, **beat** → add observer id to **`hiddenFromObserverIds`**; **fail or tie** → remove that id if present. Non-candidate ids already on the list are left unchanged.
+
+**Passive Perception source:** **`CombatantStatBlock.passivePerception`** when set (e.g. monsters from **`mechanics.senses.passivePerception`** in [`combatant-builders.ts`](../../src/features/encounter/helpers/combatant-builders.ts)). Otherwise **`10 + Wisdom modifier`** from **`stats.abilityScores`**. TODO: skill proficiency / expertise on characters.
+
+**Standard Hide action:** **`DEFAULT_HIDE_COMBAT_ACTION`** in [`combat-action.types.ts`](../../src/features/mechanics/domain/encounter/resolution/combat-action.types.ts) (`resolutionMode: 'hide'`, `targeting: self`).
+
+**Not implemented this pass:** active **opposed** Stealth vs rolled Perception (only passive). **`applyStealthHideSuccess`** remains for tests/manual/DM tooling and future active-contest output.
 
 ---
 
@@ -73,8 +81,12 @@ Other code paths that mutate grid placement without going through that hook shou
 | Export | Role |
 |--------|------|
 | `getStealthHideAttemptDenialReason` | Hide **attempt** eligibility (delegates). |
-| `applyStealthHideSuccess` | Merge **observerIds** into hidden-from set. |
-| `resolveDefaultHideObservers` | Non-contested default observer list. |
+| `getPassivePerceptionScore` | Passive Perception for hide comparison. |
+| `getStealthCheckModifier` | Dex-based Stealth modifier for the Hide action roll. |
+| `resolveHideWithPassivePerception` | Apply hide outcome vs passive Perception (after total is known). |
+| `stealthBeatsPassivePerception` | Strict **`>`** threshold helper. |
+| `applyStealthHideSuccess` | Merge **observerIds** (manual / future active contest). |
+| `resolveDefaultHideObservers` | Candidate observers (eligibility only). |
 | `reconcileStealthHiddenForPerceivedObservers` | Align hidden-from with perception. |
 | `reconcileStealthBreakWhenNoConcealmentInCell` | Clear stealth if cell has no concealment. |
 | `breakStealthOnAttack` | Clear attacker stealth (baseline). |
@@ -84,9 +96,10 @@ Other code paths that mutate grid placement without going through that hook shou
 
 ## TODO / future work
 
-- Opposed Stealth vs passive Perception and full contest pipeline feeding **`applyStealthHideSuccess`**.
+- **Active opposed** Stealth vs **rolled** Perception (not passive-only).
 - Cover / three-quarters cover and feature exceptions (Skulker, magical concealment).
 - Sense-specific break and bypass threading consistent with **`EncounterViewerPerceptionCapabilities`**.
-- Observer-set aggregates (“all creatures that have you hidden from them”) as thin helpers over **`hiddenFromObserverIds`**.
+- Richer **observer sets** (not only “other side” + eligibility).
+- Stealth **skill** proficiency / expertise on **`getStealthCheckModifier`** and Perception on **`getPassivePerceptionScore`**.
 
 See also [Perception and visibility](./perception-and-visibility.md).
