@@ -31,6 +31,7 @@ function baseFillSx(theme: Theme, kind: CellBaseFillKind): SystemStyleObject<The
       return { bgcolor: palette.background.paper }
     case 'dim':
       return { bgcolor: alpha(palette.common.black, 0.18) }
+    // Opaque non-darkness cloud obscurement (VisibilityFillKind.fog — not literal fog only; see AttachedEnvironmentZoneProfile).
     case 'fog':
       return { bgcolor: alpha(palette.grey[700], 0.42) }
     case 'darkness':

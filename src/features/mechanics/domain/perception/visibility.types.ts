@@ -27,5 +27,9 @@ export type ResolvedCellVisibility = {
 
 /**
  * Grid / UI tint ids — mapped from {@link ResolvedCellVisibility} by presentation layer only.
+ *
+ * - **`fog`** — Smoky / non-black veil for primary cause `fog` (and smoke/dust where mapped to this fill).
+ *   Same interpretation as {@link AttachedEnvironmentZoneProfile} `'fog'`: opaque non-darkness cloud
+ *   obscurement, not “only literal fog.”
  */
 export type VisibilityFillKind = 'dim' | 'fog' | 'darkness' | 'magical-darkness' | 'hidden'

@@ -118,12 +118,27 @@ export type EncounterEnvironmentOverrideSourceKind =
 /**
  * When set on a persistent `BattlefieldEffectInstance`, reconciliation builds/updates a matching
  * {@link EncounterEnvironmentZone} from that row. Extend with new literals as more world projections ship.
+ *
+ * - **`magical-darkness`** — Zone merge sets darkness lighting, heavy obscured, and magical darkness flags
+ *   (see `buildZoneForProfile`).
+ *
+ * - **`fog`** — Shared profile for **opaque, non-darkness cloud obscurement**: heavy obscured, no forced
+ *   darkness lighting, no magical-darkness behavior. The identifier is **not** a claim that every effect is
+ *   literal fog; it names one mechanical + presentation path (shared smoky / non-black cloud tint). Examples:
+ *   Fog Cloud, Stinking Cloud.
+ *
+ *   **Revisit** adding a separate profile (e.g. a different id or merge branch) only if an effect needs
+ *   different environment merge rules, different precedence in visibility resolution, a distinct grid tint, or
+ *   profile-specific side effects that belong in zone/profile code rather than spell-specific logic.
  */
 export type AttachedEnvironmentZoneProfile = 'magical-darkness' | 'fog'
 
 /**
  * Presentation-only obscuration causes collected at world merge (baseline + zones).
  * Not combat rules — feeds visibility presentation resolution.
+ *
+ * - **`fog`** — Aligns with {@link AttachedEnvironmentZoneProfile} `'fog'`: opaque non-darkness cloud
+ *   obscurement (same semantics as that profile id — not literal fog only).
  */
 export type WorldObscurationPresentationCause =
   | 'environment'

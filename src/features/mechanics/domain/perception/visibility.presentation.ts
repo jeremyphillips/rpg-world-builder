@@ -34,6 +34,7 @@ export function mapResolvedVisibilityToFillKind(resolved: ResolvedCellVisibility
 
   if (primaryCause === 'magical-darkness') return 'magical-darkness'
   if (primaryCause === 'darkness') return 'darkness'
+  // `fog` fill: shared smoky tint for fog cause and (for now) smoke/dust — see VisibilityFillKind / AttachedEnvironmentZoneProfile 'fog'.
   if (primaryCause === 'fog' || primaryCause === 'smoke' || primaryCause === 'dust') return 'fog'
   if (primaryCause === 'environment') {
     if (obscured === 'heavy') return 'darkness'

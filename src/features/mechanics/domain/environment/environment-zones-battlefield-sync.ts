@@ -41,6 +41,10 @@ function buildZoneForProfile(
       visibilityObscurationCause: 'magical-darkness',
     }
   }
+  /**
+   * `fog` profile: opaque non-darkness cloud obscurement — see {@link AttachedEnvironmentZoneProfile}.
+   * Heavy obscured only; no lighting override; no magical darkness flags.
+   */
   if (instance.environmentZoneProfile === 'fog') {
     return {
       id: environmentZoneIdForAttachedAuraInstance(instance.id),

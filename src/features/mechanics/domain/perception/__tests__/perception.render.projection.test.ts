@@ -194,4 +194,21 @@ describe('resolvePresentationVisibilityFill', () => {
     const p = basePerception({ worldVisibilityObscured: 'light' })
     expect(resolvePresentationVisibilityFill(p, targetWorldFromPerception(p))).toBe('dim')
   })
+
+  it('overlapping fog-profile cause with magical darkness still maps to magical-darkness presentation', () => {
+    const p = basePerception({
+      canPerceiveOccupants: false,
+      canPerceiveObjects: false,
+      maskedByMagicalDarkness: true,
+      worldVisibilityObscured: 'heavy',
+      worldLightingLevel: 'darkness',
+    })
+    const tw = targetWorldFromPerception(p, {
+      magicalDarkness: true,
+      lightingLevel: 'darkness',
+      visibilityObscured: 'heavy',
+      obscurationPresentationCauses: ['fog', 'magical-darkness'],
+    })
+    expect(resolvePresentationVisibilityFill(p, tw)).toBe('magical-darkness')
+  })
 })

@@ -404,6 +404,13 @@ export const SPELLS_LEVEL_3_M_Z: readonly SpellEntry[] = [
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
     components: { verbal: true, somatic: true, material: { description: 'a rotten egg' } },
     effects: [
+      {
+        kind: 'emanation',
+        attachedTo: 'self',
+        area: { kind: 'sphere', size: 20 },
+        anchorMode: 'place',
+        environmentZoneProfile: 'fog',
+      },
       { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 20 } },
       {
         kind: 'save',
