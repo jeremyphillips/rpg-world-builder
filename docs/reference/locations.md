@@ -14,6 +14,40 @@ Persistence models live under `server/shared/models/`: `CampaignLocation`, `Camp
 
 ---
 
+## Shared grid domain (`shared/domain/grid/`)
+
+**Single public entry:** import from `shared/domain/grid` (barrel: `index.ts`).
+
+The grid domain provides geometry-aware types and helpers shared by locations and (in future) other grid consumers.
+
+| File | Contents |
+|------|----------|
+| `gridCellIds.ts` | `GridPoint = { x, y }`, `makeGridCellId(x, y)` → `"x,y"`, `parseGridCellId`. |
+| `gridGeometry.ts` | `GRID_GEOMETRY_IDS = ['square', 'hex'] as const`, `GridGeometryId`. |
+| `gridDefinition.ts` | `GridDefinition = { geometry, columns, rows }` — bounded rect for both geometries. |
+| `gridPresets.ts` | `GRID_SIZE_PRESETS` — named column×row preset sizes. |
+| `gridHelpers.ts` | Geometry-aware pure helpers (see below). |
+
+### Grid helpers
+
+All accept a `GridDefinition` and branch on `geometry` internally:
+
+| Helper | Square behavior | Hex behavior |
+|--------|----------------|--------------|
+| `isCellInBounds(grid, point)` | `0 ≤ x < cols`, `0 ≤ y < rows` | Same bounds check |
+| `listGridPoints(grid)` | Row-major enumeration | Same enumeration |
+| `getNeighborPoints(grid, point)` | 4 neighbors (N/E/S/W) | 6 neighbors (odd-q offset table) |
+| `getNeighborCellIds(grid, cellId)` | String variant of above | String variant of above |
+| `getGridDistance(grid, a, b)` | Chebyshev (`max(|dx|,|dy|)`) | Axial distance (internal offset→axial conversion) |
+
+**Hex coordinate model:** first-pass hex uses bounded x/y with odd-q offset interpretation (odd columns shifted down by half a row). Axial conversion is internal only — the public API surface stays `GridPoint`-based.
+
+### Grid cell styles (`src/ui/patterns/grid/gridCellStyles.ts`)
+
+Shared MUI styling tokens consumed by both `GridEditor` and `HexGridEditor` to keep border colors, selected shadow, etc. in visual parity.
+
+---
+
 ## Shared domain (`shared/domain/locations/`)
 
 **Single public entry:** import from `shared/domain/locations` (barrel: `index.ts`). Do not assume old flat filenames still exist at the folder root except the two listed below.
@@ -31,7 +65,7 @@ Persistence models live under `server/shared/models/`: `CampaignLocation`, `Camp
 
 | Folder | Responsibility |
 |--------|----------------|
-| `scale/` | Scale **business policy** (who may parent whom), **field policy** (categories, cell units, which form fields apply per scale), **rules** (valid scale id, rank, world check), **parent validation** (`validateParentChildScales` for hierarchy). |
+| `scale/` | Scale **business policy** (who may parent whom), **field policy** (categories, cell units, **grid geometries**, which form fields apply per scale), **rules** (valid scale id, rank, world check), **parent validation** (`validateParentChildScales` for hierarchy). |
 | `map/` | Map **constants** (kinds, cell units by kind, object kinds), **types** (`LocationMapBase`, grid, cells, cell authoring), **helpers** (`mapKindForLocationScale`, `getDefaultMapKindForScale` — derives map kind during save/bootstrap, `isCellUnitAllowedForScale`), **placement policy** (what can be placed / linked on cells by scale), **validation** (grid, cells, map input, cell authoring structure). |
 | `transitions/` | Transition **kinds** (`LOCATION_TRANSITION_KIND_IDS`) and **shared types** (`LocationTransitionBase`, `from` / `to` shapes). |
 
@@ -47,13 +81,13 @@ Under `shared/domain/locations/__tests__/`, mirroring source: e.g. `__tests__/sc
 
 - **Constants & types:** `location.constants.ts`, `location.types.ts`.
 - **Hierarchy helpers (server-facing but pure rank/ancestor construction):** `server/features/content/locations/domain/locations.hierarchy.ts` — imports scale vocabulary and re-exports `validateParentChildScales` from shared (`scale/locationParent.validation.ts` via barrel).
-- **Field / UX policy:** `scale/locationScaleField.policy.ts` — per-scale allowed categories, cell units, fixed/hidden fields; used by client form registry and server normalization (e.g. category/cell unit). Parent eligibility remains in `locationScale.policy.ts`.
+- **Field / UX policy:** `scale/locationScaleField.policy.ts` — per-scale allowed categories, cell units, **grid geometries**, fixed/hidden fields; used by client form registry and server normalization (e.g. category/cell unit/geometry). Parent eligibility remains in `locationScale.policy.ts`.
 - **Server:** `locations.service.ts` enforces create/update rules (scale, parent, categories, etc.) using shared validators and DB lookups.
 
 ### Map layer
 
 - **Authoring vocabulary:** `map/locationMap.constants.ts` (`LOCATION_MAP_KIND_IDS`, `LOCATION_CELL_UNIT_IDS`, object kinds).
-- **Shapes:** `map/locationMap.types.ts` (`LocationMapGrid`, `LocationMapCell`, `LocationMapCellAuthoringEntry`, …).
+- **Shapes:** `map/locationMap.types.ts` (`LocationMapGrid` — includes optional `geometry?: GridGeometryId`, `LocationMapCell`, `LocationMapCellAuthoringEntry`, …).
 - **Pure validation:** `map/locationMap.validation.ts`, `map/locationMapCellAuthoring.validation.ts` — no database; safe for client and server.
 - **Placement rules (gameplay policy):** `map/locationMapPlacement.policy.ts` — e.g. which object kinds / link rules apply on a host scale (complements field policy).
 - **Client:** default map bootstrap, grid drafting, cell authoring mappers under `src/features/content/locations/domain/maps/`; display icons under `domain/map/`; repo helpers `locationMapRepo.ts`.
@@ -88,7 +122,7 @@ Under `shared/domain/locations/__tests__/`, mirroring source: e.g. `__tests__/sc
 | `domain/forms/` | Form types, registry (`locationForm.registry.ts`), mappers, sanitize, dependent-field policy / UI rules. |
 | `domain/repo/` | `locationRepo`, `locationMapRepo` — API/data access for lists and maps. |
 | `domain/maps/` | `bootstrapDefaultLocationMap` (client-side default map creation/update), grid layout draft helpers, cell entry mappers. Uses `getDefaultMapKindForScale` from shared domain to derive map kind. |
-| `components/` | `LocationGridAuthoringSection` (interactive grid preview with computed cell sizing for canvas fit), cell modal, cards. |
+| `components/` | `LocationGridAuthoringSection` (interactive grid preview; dispatches to `GridEditor` or `HexGridEditor` based on scale geometry), cell modal, cards. |
 | `components/workspace/` | Map-first editor workspace shell — see section below. |
 | `hooks/` | Campaign data, parent picker options, default world scale, dependent field effects. |
 
@@ -131,6 +165,51 @@ Imports of shared vocabulary should prefer **`@/shared/domain/locations`** for s
 
 ---
 
+## Grid geometry (hex support)
+
+Grid geometry is derived from `LOCATION_SCALE_FIELD_POLICY` — there is no user-facing geometry selector in the form. The policy defines `allowedGeometries` and `defaultGeometry` per scale:
+
+| Scale | Allowed | Default |
+|-------|---------|---------|
+| world, region, subregion | `['hex']` | `hex` |
+| city | `['square', 'hex']` | `hex` |
+| district, site | `['square', 'hex']` | `square` |
+| building, floor, room | `['square']` | `square` |
+
+**How geometry flows:**
+
+1. **Create route:** geometry is derived from `getDefaultGeometryForScale(scale)` when scale is selected. The dependent field sanitization (`sanitizeLocationFormValues`) auto-corrects geometry when scale changes.
+2. **Edit route:** geometry is seeded from the persisted map (`def.grid.geometry`). For legacy maps without a stored geometry, falls back to `getDefaultGeometryForScale(loc.scale)`.
+3. **Bootstrap:** `bootstrapDefaultLocationMap` threads geometry into the `grid` object saved to the database via `normalizeGridGeometryForScale`.
+4. **Rendering:** `LocationGridAuthoringSection` accepts a `gridGeometry` prop and renders `HexGridEditor` (hex) or `GridEditor` (square).
+
+**Persistence:** `LocationMapGrid.geometry` is optional on the shared type and on the Mongoose schema (`enum: ['square', 'hex']`, not required). Legacy maps without the field work unchanged — they render using the scale policy default.
+
+### Shared grid renderers (`src/ui/patterns/grid/`)
+
+| Component | Use |
+|-----------|-----|
+| `GridEditor` | Square grid — CSS grid layout, `aspectRatio: 1` cells. Used by encounters and square-scale locations. |
+| `HexGridEditor` | Hex grid — CSS `clip-path` hexagons, absolute positioning with odd-q offset layout. Used by hex-scale locations only. |
+| `gridCellStyles.ts` | Shared MUI styling tokens (border colors, selected shadow) consumed by both renderers. |
+
+Both renderers share the same callback shapes (`onCellClick`, `renderCellContent`, etc.) and cell identity convention (`makeGridCellId(x, y)` → `"x,y"`).
+
+### What stays square-only
+
+- **Encounters / interiors:** `createSquareGridSpace`, `GridViewModel`, `EncounterActiveRoute` — no hex integration yet.
+- **GridEditor:** unchanged; not overloaded with hex logic.
+
+### What is deferred
+
+- Hex object placement / cell-entry authoring changes
+- Hex drag-paint exclude-cell tools
+- Full hex zoom/pan calibration
+- Server-side geometry validation against scale policy
+- Hex distance / neighbor logic in encounter mechanics
+
+---
+
 ## Pointers for the next agent
 
 1. **Extend scale rules:** edit `scale/locationScale.policy.ts` and `scale/locationParent.validation.ts`; keep `locationScaleField.policy.ts` in sync for categories/cell units/UI.
@@ -141,3 +220,5 @@ Imports of shared vocabulary should prefer **`@/shared/domain/locations`** for s
 6. **Workspace layout changes:** modify components under `components/workspace/`; constants in `locationEditor.constants.ts`. Do not add workspace layout logic to the generic content template system.
 7. **Zoom/pan enhancements:** extend `useCanvasZoom` / `useCanvasPan` in `src/ui/hooks/`; both location and encounter features consume them. `ZoomControl` supports `positioning` prop (`'fixed'` default, `'absolute'` for container-relative).
 8. **Focus-mode routes:** add new full-width routes by extending the regex in `src/app/layouts/auth/auth-main-path.ts`.
+9. **Hex geometry extensions:** geometry policy lives in `locationScaleField.policy.ts` (`allowedGeometries`, `defaultGeometry`). Grid math helpers are in `shared/domain/grid/gridHelpers.ts`. Rendering is in `HexGridEditor.tsx`. Do not add hex logic to encounter systems without a dedicated plan.
+10. **Grid styling parity:** both `GridEditor` and `HexGridEditor` import border/shadow tokens from `src/ui/patterns/grid/gridCellStyles.ts`. Keep this file updated when changing cell visuals.

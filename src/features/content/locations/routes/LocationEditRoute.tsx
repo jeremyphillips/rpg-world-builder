@@ -28,6 +28,7 @@ import {
   applyScaleToLocationFormUiPolicy,
   buildLocationFormUiPolicy,
   getAllowedCellUnitOptionsForScale,
+  getDefaultGeometryForScale,
   isLocationScaleSelected,
   useLocationFormCampaignData,
   useLocationFormDependentFieldEffects,
@@ -145,7 +146,6 @@ export default function LocationEditRoute() {
     () => getAllowedCellUnitOptionsForScale(scaleForFormRules),
     [scaleForFormRules],
   );
-
   useLocationFormDependentFieldEffects(
     scaleForFormRules,
     locations,
@@ -157,6 +157,7 @@ export default function LocationEditRoute() {
   const gridPreset = watch('gridPreset');
   const gridColumns = watch('gridColumns');
   const gridRows = watch('gridRows');
+  const gridGeometry = watch('gridGeometry') || getDefaultGeometryForScale(scaleForFormRules);
 
   useEffect(() => {
     const cols = Number(gridColumns);
@@ -186,6 +187,7 @@ export default function LocationEditRoute() {
         setValue('gridColumns', String(def.grid.width));
         setValue('gridRows', String(def.grid.height));
         setValue('gridCellUnit', String(def.grid.cellUnit));
+        setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale(loc!.scale));
         setGridDraft({
           selectedCellId: null,
           excludedCellIds: def.layout?.excludedCellIds ?? [],
@@ -360,6 +362,7 @@ export default function LocationEditRoute() {
               <LocationGridAuthoringSection
                 gridColumns={gridColumns}
                 gridRows={gridRows}
+                gridGeometry={gridGeometry}
                 draft={gridDraft}
                 setDraft={setGridDraft}
                 locations={locations}
@@ -458,6 +461,7 @@ export default function LocationEditRoute() {
               <LocationGridAuthoringSection
                 gridColumns={gridColumns}
                 gridRows={gridRows}
+                gridGeometry={gridGeometry}
                 draft={gridDraft}
                 setDraft={setGridDraft}
                 locations={locations}

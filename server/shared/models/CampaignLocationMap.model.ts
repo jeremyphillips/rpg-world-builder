@@ -5,6 +5,7 @@ const gridSchema = new Schema(
     width: { type: Number, required: true },
     height: { type: Number, required: true },
     cellUnit: { type: Schema.Types.Mixed, required: true },
+    geometry: { type: String, enum: ['square', 'hex'] },
   },
   { _id: false },
 );

@@ -3,6 +3,7 @@ import {
   LOCATION_MAP_KIND_IDS,
   LOCATION_MAP_OBJECT_KIND_IDS,
 } from './locationMap.constants';
+import type { GridGeometryId } from '../../grid/gridGeometry';
 
 export type LocationMapKindId = (typeof LOCATION_MAP_KIND_IDS)[number];
 
@@ -18,6 +19,8 @@ export type LocationMapGrid = {
   width: number;
   height: number;
   cellUnit: LocationCellUnitId | string | number;
+  /** Grid geometry; omitted on legacy maps defaults to 'square'. */
+  geometry?: GridGeometryId;
 };
 
 /** Optional authoring layout layered on the bounding grid (e.g. excluded cells). */

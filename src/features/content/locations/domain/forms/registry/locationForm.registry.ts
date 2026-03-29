@@ -225,6 +225,7 @@ export const LOCATION_FORM_FIELDS = [
 
 /** Fields filtered when map bootstrap UI is hidden (e.g. system patch editor). */
 export const LOCATION_GRID_BOOTSTRAP_FIELD_NAMES = new Set<string>([
+  'gridGeometry',
   'gridPreset',
   'gridColumns',
   'gridRows',

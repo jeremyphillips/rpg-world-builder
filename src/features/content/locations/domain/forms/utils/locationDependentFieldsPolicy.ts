@@ -13,6 +13,7 @@ import {
   isCellUnitAllowedForScale,
   normalizeCategoryForScale,
   normalizeGridCellUnitForScale,
+  normalizeGridGeometryForScale,
 } from '@/shared/domain/locations';
 import type { LocationMapKindId } from '@/shared/domain/locations';
 import { getAllowedParentLocationOptions } from '@/shared/domain/locations';
@@ -106,6 +107,12 @@ export function sanitizeLocationFormValues(
   const nextUnit = normalizeGridCellUnitForScale(curUnit, scale);
   if (nextUnit !== curUnit) {
     patch.gridCellUnit = nextUnit;
+  }
+
+  const curGeometry = String(values.gridGeometry ?? '').trim();
+  const nextGeometry = normalizeGridGeometryForScale(curGeometry, scale);
+  if (nextGeometry !== curGeometry) {
+    patch.gridGeometry = nextGeometry;
   }
 
   return patch;

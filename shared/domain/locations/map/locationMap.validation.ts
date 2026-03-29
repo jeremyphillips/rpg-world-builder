@@ -10,6 +10,7 @@ import {
 } from './locationMap.constants';
 import type { LocationMapKindId } from './locationMap.types';
 import { validateCellEntriesStructure } from './locationMapCellAuthoring.validation';
+import { GRID_GEOMETRY_IDS } from '../../grid/gridGeometry';
 
 export type LocationMapValidationError = {
   path: string;
@@ -82,6 +83,22 @@ export function validateCellUnitForKind(
         path: 'grid.cellUnit',
         code: 'INVALID_CELL_UNIT',
         message: `cellUnit for "${kind}" must be one of: ${allowed.join(', ')}`,
+      },
+    ];
+  }
+  return [];
+}
+
+const GEOMETRY_SET = new Set<string>(GRID_GEOMETRY_IDS);
+
+export function validateGridGeometry(geometry: unknown): LocationMapValidationError[] {
+  if (geometry === undefined || geometry === null) return [];
+  if (typeof geometry !== 'string' || !GEOMETRY_SET.has(geometry)) {
+    return [
+      {
+        path: 'grid.geometry',
+        code: 'INVALID_GEOMETRY',
+        message: `grid.geometry must be one of: ${GRID_GEOMETRY_IDS.join(', ')}`,
       },
     ];
   }
@@ -229,6 +246,7 @@ export function validateLocationMapInput(payload: {
   }
 
   errors.push(...validateCellUnitForKind(payload.kind, g.cellUnit));
+  errors.push(...validateGridGeometry(g.geometry));
 
   const w = g.width as number;
   const h = g.height as number;

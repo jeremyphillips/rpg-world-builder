@@ -8,6 +8,7 @@ import { LOCATION_SCALE_ORDER } from '../location.constants';
 import type { LocationCategoryId, LocationScaleId } from '../location.types';
 import { LOCATION_CELL_UNIT_IDS } from '../map/locationMap.constants';
 import { isValidLocationScaleId, isWorldScale } from './locationScale.rules';
+import type { GridGeometryId } from '../../grid/gridGeometry';
 
 export type LocationCellUnitId = (typeof LOCATION_CELL_UNIT_IDS)[number];
 
@@ -35,6 +36,12 @@ export type LocationScaleFieldPolicy = {
    * keep false for all scales until the API allows exceptions.
    */
   isScaleEditableOnEdit?: boolean;
+  /** Grid geometries permitted for the location's default map at this scale. */
+  allowedGeometries: readonly GridGeometryId[];
+  /** Default geometry for new maps at this scale. */
+  defaultGeometry?: GridGeometryId;
+  /** Hide geometry control when there is only one valid geometry. */
+  hideGridGeometry?: boolean;
   /* Future: allowedMapKinds, defaultMapKind, linkedLocationPolicy, objectPlacementPolicy — see locationMapPlacement.policy.ts today. */
 };
 
@@ -43,6 +50,10 @@ const block = ['block'] as const;
 const fiveFt = ['5ft'] as const;
 const mileBlock = ['mile', 'block'] as const;
 const block5 = ['block', '5ft'] as const;
+
+const hexOnly = ['hex'] as const;
+const squareOnly = ['square'] as const;
+const squareHex = ['square', 'hex'] as const;
 
 /**
  * Single source of truth for scale-specific category + cell-unit rules.
@@ -56,6 +67,9 @@ export const LOCATION_SCALE_FIELD_POLICY = {
     hideParent: true,
     hideGridCellUnit: true,
     isScaleEditableOnEdit: false,
+    allowedGeometries: hexOnly,
+    defaultGeometry: 'hex',
+    hideGridGeometry: true,
   },
   region: {
     allowedCategories: ['wilderness', 'landmark'],
@@ -63,11 +77,17 @@ export const LOCATION_SCALE_FIELD_POLICY = {
     fixedCellUnit: 'mile',
     hideGridCellUnit: true,
     isScaleEditableOnEdit: false,
+    allowedGeometries: hexOnly,
+    defaultGeometry: 'hex',
+    hideGridGeometry: true,
   },
   subregion: {
     allowedCategories: ['wilderness', 'landmark', 'settlement'],
     allowedCellUnits: mileBlock,
     isScaleEditableOnEdit: false,
+    allowedGeometries: hexOnly,
+    defaultGeometry: 'hex',
+    hideGridGeometry: true,
   },
   city: {
     allowedCategories: ['settlement'],
@@ -76,6 +96,8 @@ export const LOCATION_SCALE_FIELD_POLICY = {
     fixedCellUnit: 'block',
     hideGridCellUnit: true,
     isScaleEditableOnEdit: false,
+    allowedGeometries: squareHex,
+    defaultGeometry: 'hex',
   },
   district: {
     allowedCategories: ['district'],
@@ -84,11 +106,15 @@ export const LOCATION_SCALE_FIELD_POLICY = {
     fixedCellUnit: 'block',
     hideGridCellUnit: true,
     isScaleEditableOnEdit: false,
+    allowedGeometries: squareHex,
+    defaultGeometry: 'square',
   },
   site: {
     allowedCategories: ['landmark', 'structure', 'dungeon'],
     allowedCellUnits: block5,
     isScaleEditableOnEdit: false,
+    allowedGeometries: squareHex,
+    defaultGeometry: 'square',
   },
   building: {
     allowedCategories: ['structure'],
@@ -97,6 +123,9 @@ export const LOCATION_SCALE_FIELD_POLICY = {
     fixedCellUnit: '5ft',
     hideGridCellUnit: true,
     isScaleEditableOnEdit: false,
+    allowedGeometries: squareOnly,
+    defaultGeometry: 'square',
+    hideGridGeometry: true,
   },
   floor: {
     allowedCategories: ['interior'],
@@ -105,6 +134,9 @@ export const LOCATION_SCALE_FIELD_POLICY = {
     fixedCellUnit: '5ft',
     hideGridCellUnit: true,
     isScaleEditableOnEdit: false,
+    allowedGeometries: squareOnly,
+    defaultGeometry: 'square',
+    hideGridGeometry: true,
   },
   room: {
     allowedCategories: ['interior'],
@@ -113,6 +145,9 @@ export const LOCATION_SCALE_FIELD_POLICY = {
     fixedCellUnit: '5ft',
     hideGridCellUnit: true,
     isScaleEditableOnEdit: false,
+    allowedGeometries: squareOnly,
+    defaultGeometry: 'square',
+    hideGridGeometry: true,
   },
 } as const satisfies Record<LocationScaleId, LocationScaleFieldPolicy>;
 
@@ -124,6 +159,9 @@ const FALLBACK_POLICY: LocationScaleFieldPolicy = {
   hideParent: true,
   hideGridCellUnit: true,
   isScaleEditableOnEdit: false,
+  allowedGeometries: ['square'],
+  defaultGeometry: 'square',
+  hideGridGeometry: true,
 };
 
 export function getLocationScaleFieldPolicy(scale: string): LocationScaleFieldPolicy {
@@ -254,3 +292,54 @@ export const getAllowedCategoryOptionsForScale = getCategoryOptionsForScaleUi;
 
 /** Label/value rows for cell-unit `<Select>` — stable name for client imports. */
 export const getAllowedCellUnitOptionsForScale = getCellUnitOptionsForScaleUi;
+
+// ---------------------------------------------------------------------------
+// Grid geometry accessors
+// ---------------------------------------------------------------------------
+
+export function getAllowedGeometriesForScale(scale: string): readonly GridGeometryId[] {
+  return getLocationScaleFieldPolicy(scale).allowedGeometries;
+}
+
+export function getDefaultGeometryForScale(scale: string): GridGeometryId {
+  const p = getLocationScaleFieldPolicy(scale);
+  return p.defaultGeometry ?? 'square';
+}
+
+export function shouldShowGridGeometryFieldForScale(scale: string): boolean {
+  const p = getLocationScaleFieldPolicy(scale);
+  if (p.hideGridGeometry) return false;
+  return p.allowedGeometries.length > 0;
+}
+
+export function isGridGeometryFieldReadOnlyForScale(scale: string): boolean {
+  const p = getLocationScaleFieldPolicy(scale);
+  return p.allowedGeometries.length <= 1;
+}
+
+const GEOMETRY_LABELS: Record<GridGeometryId, string> = {
+  square: 'Square',
+  hex: 'Hex',
+};
+
+export function getGeometryOptionsForScaleUi(
+  scale: string,
+): { value: string; label: string }[] {
+  const p = getLocationScaleFieldPolicy(scale);
+  return p.allowedGeometries.map((g) => ({
+    value: g,
+    label: GEOMETRY_LABELS[g] ?? g,
+  }));
+}
+
+/** Label/value rows for geometry `<Select>` — stable name for client imports. */
+export const getAllowedGeometryOptionsForScale = getGeometryOptionsForScaleUi;
+
+/** Grid geometry after applying scale policy. */
+export function normalizeGridGeometryForScale(geometry: string, scale: string): GridGeometryId {
+  const p = getLocationScaleFieldPolicy(scale);
+  const allowed = p.allowedGeometries as readonly string[];
+  const t = String(geometry ?? '').trim();
+  if (t && allowed.includes(t)) return t as GridGeometryId;
+  return p.defaultGeometry ?? 'square';
+}

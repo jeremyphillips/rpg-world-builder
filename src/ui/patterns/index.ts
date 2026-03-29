@@ -101,6 +101,9 @@ export { default as ImageUploadField } from './form/ImageUploadField'
 export { default as GridEditor } from './grid/GridEditor'
 export type { GridCell, GridEditorProps } from './grid/GridEditor'
 
+export { default as HexGridEditor } from './grid/HexGridEditor'
+export type { HexGridCell, HexGridEditorProps } from './grid/HexGridEditor'
+
 export { default as FormActions } from './form/FormActions'
 
 export { ZoomControl } from './ZoomControl/ZoomControl'

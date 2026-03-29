@@ -40,6 +40,10 @@ export {
   type LocationFormUiPolicyBase,
 } from './utils/locationFormUiRules';
 export {
+  getDefaultGeometryForScale,
+  normalizeGridGeometryForScale,
+} from '@/shared/domain/locations';
+export {
   getLocationFormPatchForScaleChange,
   sanitizeLocationDraftForScale,
   sanitizeLocationFormValues,

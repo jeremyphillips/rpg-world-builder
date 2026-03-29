@@ -7,6 +7,8 @@ export type LocationFormValues = ContentFormValues & {
   scale: string;
   category: string;
   parentId: string;
+  /** Grid geometry — 'square' or 'hex'. */
+  gridGeometry: string;
   /** Preset key — fills columns/rows when set */
   gridPreset: string;
   gridColumns: string;

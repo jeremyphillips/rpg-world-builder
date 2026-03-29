@@ -1,8 +1,9 @@
 /**
  * Creates or updates the default LocationMap from location form bootstrap fields.
  */
-import { isCellUnitAllowedForScale, getDefaultMapKindForScale } from '@/shared/domain/locations';
+import { isCellUnitAllowedForScale, getDefaultMapKindForScale, normalizeGridGeometryForScale } from '@/shared/domain/locations';
 import type { LocationScaleId } from '@/shared/domain/locations';
+import type { GridGeometryId } from '@/shared/domain/grid/gridGeometry';
 import type { LocationFormValues } from '@/features/content/locations/domain/forms/types/locationForm.types';
 import {
   createLocationMap,
@@ -45,6 +46,10 @@ export async function bootstrapDefaultLocationMap(
   const cols = Number(values.gridColumns);
   const rows = Number(values.gridRows);
   const cellUnit = String(values.gridCellUnit).trim();
+  const geometry: GridGeometryId = normalizeGridGeometryForScale(
+    values.gridGeometry ?? '',
+    scale,
+  );
   const mapKind = getDefaultMapKindForScale(scale);
 
   if (!isCellUnitAllowedForScale(cellUnit, scale)) {
@@ -54,7 +59,7 @@ export async function bootstrapDefaultLocationMap(
   const maps = await listLocationMaps(campaignId, locationId);
   const defaultMap = maps.find((m) => m.isDefault) ?? maps[0];
 
-  const grid = { width: cols, height: rows, cellUnit };
+  const grid = { width: cols, height: rows, cellUnit, geometry };
   const excludedCellIds = pruneExcludedCellIdsForGrid(
     options?.excludedCellIds ?? [],
     cols,
@@ -86,8 +91,9 @@ export async function bootstrapDefaultLocationMap(
 
 export function pickMapGridFormValues(
   values: LocationFormValues,
-): Pick<LocationFormValues, 'gridPreset' | 'gridColumns' | 'gridRows' | 'gridCellUnit'> {
+): Pick<LocationFormValues, 'gridGeometry' | 'gridPreset' | 'gridColumns' | 'gridRows' | 'gridCellUnit'> {
   return {
+    gridGeometry: values.gridGeometry,
     gridPreset: values.gridPreset,
     gridColumns: values.gridColumns,
     gridRows: values.gridRows,

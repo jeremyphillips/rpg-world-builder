@@ -5,6 +5,8 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 
 import GridEditor, { type GridCell } from '@/ui/patterns/grid/GridEditor';
+import HexGridEditor from '@/ui/patterns/grid/HexGridEditor';
+import type { GridGeometryId } from '@/shared/domain/grid/gridGeometry';
 import {
   getLocationMapObjectKindIcon,
   getLocationScaleMapIcon,
@@ -30,6 +32,7 @@ const CANVAS_INSET_PX = 48 // breathing room so grid doesn't touch canvas edges
 type LocationGridAuthoringSectionProps = {
   gridColumns: string;
   gridRows: string;
+  gridGeometry?: GridGeometryId | string;
   draft: LocationGridDraftState;
   setDraft: Dispatch<SetStateAction<LocationGridDraftState>>;
   /** Campaign locations (for cell modal link picker). */
@@ -44,6 +47,7 @@ type LocationGridAuthoringSectionProps = {
 export function LocationGridAuthoringSection({
   gridColumns,
   gridRows,
+  gridGeometry = 'square',
   draft,
   setDraft,
   locations,
@@ -110,19 +114,32 @@ export function LocationGridAuthoringSection({
     });
   }, [validPreview, cols, rows, setDraft]);
 
-  const gridWidthPx = useMemo(() => {
-    if (!validPreview) return 0
+  const isHex = gridGeometry === 'hex'
+
+  const gridSizePx = useMemo(() => {
+    if (!validPreview) return { width: 0, hexCellPx: 0 }
     const vw = typeof window !== 'undefined' ? window.innerWidth : 1200
     const vh = typeof window !== 'undefined' ? window.innerHeight : 800
     const canvasH = vh - LOCATION_EDITOR_HEADER_HEIGHT_PX - CANVAS_INSET_PX * 2
     const canvasW = vw - LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX - CANVAS_INSET_PX * 2
+
+    if (isHex) {
+      const hexRatio = Math.sqrt(3) / 2
+      const maxHexW_fromW = (canvasW - 0.25) / (0.75 * (cols - 1) + 1)
+      const maxHexH = canvasH / ((rows - 1) + 1 + 0.5)
+      const maxHexW_fromH = maxHexH / hexRatio
+      const hexCellPx = Math.max(MIN_CELL_PX, Math.floor(Math.min(maxHexW_fromW, maxHexW_fromH)))
+      const width = Math.ceil(0.75 * hexCellPx * (cols - 1) + hexCellPx)
+      return { width, hexCellPx }
+    }
+
     const vertGaps = Math.max(0, rows - 1) * GRID_GAP_PX
     const horzGaps = Math.max(0, cols - 1) * GRID_GAP_PX
     const cellFromH = (canvasH - vertGaps) / rows
     const cellFromW = (canvasW - horzGaps) / cols
     const cellSize = Math.max(MIN_CELL_PX, Math.floor(Math.min(cellFromH, cellFromW)))
-    return cellSize * cols + horzGaps
-  }, [validPreview, cols, rows]);
+    return { width: cellSize * cols + horzGaps, hexCellPx: 0 }
+  }, [validPreview, cols, rows, isHex]);
 
   const locationById = useMemo(
     () => new Map(locations.map((l) => [l.id, l])),
@@ -211,18 +228,27 @@ export function LocationGridAuthoringSection({
     );
   };
 
+  const sharedGridProps = {
+    columns: cols,
+    rows: rows,
+    selectedCellId: draft.selectedCellId,
+    excludedCellIds: draft.excludedCellIds,
+    onCellClick,
+    renderCellContent: renderMapCellIcons,
+  }
+
   return (
     <>
       <Paper variant="outlined" sx={{ p: 1 }}>
-        <Box sx={{ width: gridWidthPx }}>
-          <GridEditor
-            columns={cols}
-            rows={rows}
-            selectedCellId={draft.selectedCellId}
-            excludedCellIds={draft.excludedCellIds}
-            onCellClick={onCellClick}
-            renderCellContent={renderMapCellIcons}
-          />
+        <Box sx={{ width: gridSizePx.width }}>
+          {isHex ? (
+            <HexGridEditor
+              {...sharedGridProps}
+              hexSize={gridSizePx.hexCellPx || undefined}
+            />
+          ) : (
+            <GridEditor {...sharedGridProps} />
+          )}
         </Box>
       </Paper>
 

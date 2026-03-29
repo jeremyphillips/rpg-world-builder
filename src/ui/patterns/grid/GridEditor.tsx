@@ -1,6 +1,17 @@
 import { useMemo, type ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
+import {
+  GRID_CELL_BG_COLOR,
+  GRID_CELL_BG_COLOR_EXCLUDED,
+  GRID_CELL_BG_COLOR_HOVER,
+  GRID_CELL_BG_COLOR_SELECTED,
+  GRID_CELL_BORDER_COLOR,
+  GRID_CELL_BORDER_COLOR_EXCLUDED,
+  GRID_CELL_BORDER_COLOR_HOVER,
+  GRID_CELL_BORDER_COLOR_SELECTED,
+  gridCellSelectedShadow,
+} from './gridCellStyles'
 
 export type GridCell = {
   cellId: string
@@ -88,13 +99,17 @@ export default function GridEditor({
               minHeight: 0,
               border: 1,
               borderRadius: 0.5,
-              borderColor: excluded ? 'text.disabled' : 'divider',
+              borderColor: selected
+                ? GRID_CELL_BORDER_COLOR_SELECTED
+                : excluded
+                  ? GRID_CELL_BORDER_COLOR_EXCLUDED
+                  : GRID_CELL_BORDER_COLOR,
               borderStyle: excluded && !selected ? 'dashed' : 'solid',
               bgcolor: selected
-                ? 'action.selected'
+                ? GRID_CELL_BG_COLOR_SELECTED
                 : excluded
-                  ? 'action.disabledBackground'
-                  : 'background.paper',
+                  ? GRID_CELL_BG_COLOR_EXCLUDED
+                  : GRID_CELL_BG_COLOR,
               backgroundImage: excluded
                 ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
                 : undefined,
@@ -107,16 +122,19 @@ export default function GridEditor({
               lineHeight: 1.2,
               color: excluded ? 'text.secondary' : 'text.primary',
               boxShadow: selected
-                ? (theme) => `inset 0 0 0 2px ${theme.palette.primary.main}`
+                ? (theme) => gridCellSelectedShadow(theme)
                 : undefined,
               '&:hover': disabled
                 ? undefined
                 : {
+                    borderColor: selected
+                      ? GRID_CELL_BORDER_COLOR_SELECTED
+                      : GRID_CELL_BORDER_COLOR_HOVER,
                     bgcolor: selected
-                      ? 'action.selected'
+                      ? GRID_CELL_BG_COLOR_SELECTED
                       : excluded
-                        ? 'action.disabledBackground'
-                        : 'action.hover',
+                        ? GRID_CELL_BG_COLOR_EXCLUDED
+                        : GRID_CELL_BG_COLOR_HOVER,
                   },
             }}
           >

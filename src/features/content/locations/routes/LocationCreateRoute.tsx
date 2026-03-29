@@ -19,6 +19,7 @@ import {
   applyScaleToLocationFormUiPolicy,
   buildLocationFormUiPolicy,
   getAllowedCellUnitOptionsForScale,
+  getDefaultGeometryForScale,
   isLocationScaleSelected,
   useLocationFormCampaignData,
   useLocationFormDefaultWorldScale,
@@ -98,6 +99,11 @@ export default function LocationCreateRoute() {
   const gridColumns = watch('gridColumns');
   const gridRows = watch('gridRows');
   const locationNameDraft = watch('name');
+
+  const gridGeometry = useMemo(
+    () => getDefaultGeometryForScale(scale),
+    [scale],
+  );
 
   useEffect(() => {
     const cols = Number(gridColumns);
@@ -208,6 +214,7 @@ export default function LocationCreateRoute() {
               <LocationGridAuthoringSection
                 gridColumns={gridColumns}
                 gridRows={gridRows}
+                gridGeometry={gridGeometry}
                 draft={gridDraft}
                 setDraft={setGridDraft}
                 locations={locations}
