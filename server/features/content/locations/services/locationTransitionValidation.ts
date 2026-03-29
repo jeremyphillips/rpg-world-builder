@@ -1,6 +1,6 @@
 import { CampaignLocation } from '../../../../shared/models/CampaignLocation.model';
 import { CampaignLocationMap } from '../../../../shared/models/CampaignLocationMap.model';
-import { cellIdExistsOnMap } from '../domain/locationMaps.validation';
+import { cellIdExistsOnMap } from '../../../../../shared/domain/locations/locationMap.validation';
 import {
   LOCATION_TRANSITION_KIND_IDS,
   type LocationTransitionKindId,

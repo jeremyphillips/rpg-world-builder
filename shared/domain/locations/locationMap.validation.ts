@@ -1,12 +1,17 @@
+/**
+ * Pure location map payload validation (grid, cells, layout, cell authoring).
+ * Shared by server API and optionally client-side checks.
+ */
 import {
   CELL_UNITS_BY_KIND,
   LOCATION_MAP_GRID_MAX_HEIGHT,
   LOCATION_MAP_GRID_MAX_WIDTH,
   LOCATION_MAP_KIND_IDS,
-  type LocationMapKindId,
-} from '../../../../../shared/domain/locations';
+} from './locationMap.constants';
+import type { LocationMapKindId } from './locationMap.types';
+import { validateCellEntriesStructure } from './locationMapCellAuthoring.validation';
 
-export type MapValidationError = {
+export type LocationMapValidationError = {
   path: string;
   code: string;
   message: string;
@@ -16,8 +21,11 @@ function isPositiveInteger(n: unknown): n is number {
   return typeof n === 'number' && Number.isInteger(n) && n > 0;
 }
 
-export function validateGridDimensions(width: unknown, height: unknown): MapValidationError[] {
-  const errors: MapValidationError[] = [];
+export function validateGridDimensions(
+  width: unknown,
+  height: unknown,
+): LocationMapValidationError[] {
+  const errors: LocationMapValidationError[] = [];
   if (!isPositiveInteger(width)) {
     errors.push({
       path: 'grid.width',
@@ -47,7 +55,7 @@ export function validateGridDimensions(width: unknown, height: unknown): MapVali
   return errors;
 }
 
-export function validateMapKind(kind: unknown): MapValidationError[] {
+export function validateMapKind(kind: unknown): LocationMapValidationError[] {
   if (typeof kind !== 'string' || !LOCATION_MAP_KIND_IDS.includes(kind as LocationMapKindId)) {
     return [
       {
@@ -60,7 +68,10 @@ export function validateMapKind(kind: unknown): MapValidationError[] {
   return [];
 }
 
-export function validateCellUnitForKind(kind: string, cellUnit: unknown): MapValidationError[] {
+export function validateCellUnitForKind(
+  kind: string,
+  cellUnit: unknown,
+): LocationMapValidationError[] {
   const allowed = CELL_UNITS_BY_KIND[kind as LocationMapKindId];
   if (!allowed) {
     return [{ path: 'grid.cellUnit', code: 'INVALID_KIND', message: 'Unknown map kind' }];
@@ -77,14 +88,20 @@ export function validateCellUnitForKind(kind: string, cellUnit: unknown): MapVal
   return [];
 }
 
-export type MapCellInput = { cellId: string; x: number; y: number; terrain?: string; label?: string };
+export type MapCellInput = {
+  cellId: string;
+  x: number;
+  y: number;
+  terrain?: string;
+  label?: string;
+};
 
 export function validateLocationMapCells(
   cells: unknown,
   width: number,
   height: number,
-): MapValidationError[] {
-  const errors: MapValidationError[] = [];
+): LocationMapValidationError[] {
+  const errors: LocationMapValidationError[] = [];
   if (cells === undefined || cells === null) return errors;
   if (!Array.isArray(cells)) {
     return [{ path: 'cells', code: 'INVALID', message: 'cells must be an array' }];
@@ -154,8 +171,8 @@ export function validateLocationMapCells(
   return errors;
 }
 
-export function validateLocationMapLayout(layout: unknown): MapValidationError[] {
-  const errors: MapValidationError[] = [];
+export function validateLocationMapLayout(layout: unknown): LocationMapValidationError[] {
+  const errors: LocationMapValidationError[] = [];
   if (layout === undefined || layout === null) return errors;
   if (typeof layout !== 'object') {
     return [{ path: 'layout', code: 'INVALID', message: 'layout must be an object' }];
@@ -191,8 +208,9 @@ export function validateLocationMapInput(payload: {
   grid: { width: number; height: number; cellUnit: unknown };
   cells?: unknown;
   layout?: unknown;
-}): MapValidationError[] {
-  const errors: MapValidationError[] = [];
+  cellEntries?: unknown;
+}): LocationMapValidationError[] {
+  const errors: LocationMapValidationError[] = [];
   if (typeof payload.name !== 'string' || payload.name.trim().length === 0) {
     errors.push({ path: 'name', code: 'REQUIRED', message: 'name is required' });
   }
@@ -217,6 +235,8 @@ export function validateLocationMapInput(payload: {
   errors.push(...validateLocationMapCells(payload.cells, w, h));
 
   errors.push(...validateLocationMapLayout(payload.layout));
+
+  errors.push(...validateCellEntriesStructure(payload.cellEntries, w, h));
 
   return errors;
 }

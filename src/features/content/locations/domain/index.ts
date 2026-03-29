@@ -13,6 +13,7 @@ export {
   bootstrapDefaultLocationMap,
   pickMapGridFormValues,
 } from './maps/bootstrapDefaultLocationMap';
+export { cellDraftToCellEntries, cellEntriesToDraft } from './maps/cellAuthoringMappers';
 export {
   getLocationMapObjectKindIcon,
   getLocationScaleMapIcon,

@@ -1,6 +1,6 @@
 /**
  * Single entry point for location feature validation helpers (re-exports + naming).
- * Pure domain checks live under ../domain; persistence-aware checks live in *Validation.ts modules.
+ * Pure map/scale checks re-export from shared domain; persistence-aware checks live in *Validation.ts modules.
  */
 
 export {
@@ -19,8 +19,12 @@ export {
   validateLocationMapCells,
   validateLocationMapInput,
   validateMapKind,
-} from '../domain/locationMaps.validation';
-export type { MapValidationError } from '../domain/locationMaps.validation';
+} from '../../../../../shared/domain/locations/locationMap.validation';
+export { validateCellEntriesStructure } from '../../../../../shared/domain/locations/locationMapCellAuthoring.validation';
+
+export type { LocationMapValidationError } from '../../../../../shared/domain/locations/locationMap.validation';
+export type MapValidationError =
+  import('../../../../../shared/domain/locations/locationMap.validation').LocationMapValidationError;
 
 export {
   validateLocationTransitionInput,

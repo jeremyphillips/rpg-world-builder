@@ -1,10 +1,7 @@
-import type { LocationMapObjectKindId } from '@/shared/domain/locations';
+import type { LocationMapCellObjectEntry } from '@/shared/domain/locations';
 
-export type LocationCellObjectDraft = {
-  id: string;
-  kind: LocationMapObjectKindId;
-  label?: string;
-};
+/** Same shape as persisted map cell objects. */
+export type LocationCellObjectDraft = LocationMapCellObjectEntry;
 
 export type LocationGridDraftState = {
   selectedCellId: string | null;

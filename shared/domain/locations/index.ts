@@ -6,5 +6,8 @@ export * from './locationMap.constants';
 export * from './locationMap.helpers';
 export * from './locationMapPlacement.policy';
 export * from './locationMap.types';
+export * from './locationMapCellAuthoring.validation';
+export * from './locationMap.validation';
+export * from './locationParent.validation';
 export * from './locationTransition.constants';
 export * from './locationTransition.types';

@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import {
-  validateGridDimensions,
-  validateLocationMapInput,
-  validateLocationMapCells,
   validateCellUnitForKind,
-} from './locationMaps.validation';
+  validateGridDimensions,
+  validateLocationMapCells,
+  validateLocationMapInput,
+} from '../../../../../shared/domain/locations/locationMap.validation';
 import { LOCATION_MAP_GRID_MAX_WIDTH } from '../../../../../shared/domain/locations';
 
 describe('locationMaps.validation', () => {

@@ -27,6 +27,24 @@ const layoutSchema = new Schema(
   { _id: false },
 );
 
+const mapCellObjectEntrySchema = new Schema(
+  {
+    id: { type: String, required: true },
+    kind: { type: String, required: true },
+    label: { type: String },
+  },
+  { _id: false },
+);
+
+const mapCellAuthoringEntrySchema = new Schema(
+  {
+    cellId: { type: String, required: true },
+    linkedLocationId: { type: String },
+    objects: { type: [mapCellObjectEntrySchema], default: undefined },
+  },
+  { _id: false },
+);
+
 const campaignLocationMapSchema = new Schema(
   {
     campaignId: { type: String, required: true, index: true },
@@ -42,6 +60,7 @@ const campaignLocationMapSchema = new Schema(
     layout: { type: layoutSchema },
     isDefault: { type: Boolean },
     cells: { type: [mapCellSchema], default: [] },
+    cellEntries: { type: [mapCellAuthoringEntrySchema], default: undefined },
   },
   { timestamps: true },
 );

@@ -33,6 +33,19 @@ export type LocationMapCell = {
   label?: string;
 };
 
+/** Authoring payload for a single grid cell (map-owned; persisted on LocationMap). */
+export type LocationMapCellObjectEntry = {
+  id: string;
+  kind: LocationMapObjectKindId;
+  label?: string;
+};
+
+export type LocationMapCellAuthoringEntry = {
+  cellId: string;
+  linkedLocationId?: string;
+  objects?: LocationMapCellObjectEntry[];
+};
+
 /** Map fields shared by client and API (no campaign scope). */
 export type LocationMapBase = {
   id: string;
@@ -43,4 +56,6 @@ export type LocationMapBase = {
   layout?: LocationMapLayout;
   isDefault?: boolean;
   cells?: LocationMapCell[];
+  /** Sparse cell authoring: links + simple objects (optional). */
+  cellEntries?: LocationMapCellAuthoringEntry[];
 };

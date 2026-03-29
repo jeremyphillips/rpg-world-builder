@@ -14,6 +14,7 @@ import {
   toLocationInput,
   validateGridBootstrap,
   bootstrapDefaultLocationMap,
+  cellDraftToCellEntries,
   applyScaleToLocationFormUiPolicy,
   buildLocationFormUiPolicy,
   getAllowedCellUnitOptionsForScale,
@@ -134,7 +135,13 @@ export default function LocationCreateRoute() {
           created.name,
           created.scale as LocationScaleId,
           values,
-          { excludedCellIds: gridDraft.excludedCellIds },
+          {
+            excludedCellIds: gridDraft.excludedCellIds,
+            cellEntries: cellDraftToCellEntries(
+              gridDraft.linkedLocationByCellId,
+              gridDraft.objectsByCellId,
+            ),
+          },
         );
         navigate(`/campaigns/${campaignId}/world/locations/${created.id}`, { replace: true });
       } catch (e) {
@@ -145,7 +152,13 @@ export default function LocationCreateRoute() {
         setSaving(false);
       }
     },
-    [campaignId, navigate, gridDraft.excludedCellIds],
+    [
+      campaignId,
+      navigate,
+      gridDraft.excludedCellIds,
+      gridDraft.linkedLocationByCellId,
+      gridDraft.objectsByCellId,
+    ],
   );
 
   const handleBack = useCallback(() => {

@@ -1,4 +1,12 @@
-import type { LocationMapCell, LocationMapKindId } from '../../../../../shared/domain/locations';
+import type {
+  LocationMapCell,
+  LocationMapCellAuthoringEntry,
+  LocationMapKindId,
+} from '../../../../../shared/domain/locations';
+import {
+  canLinkLocationScaleFromHostScale,
+  canPlaceObjectKindOnHostScale,
+} from '../../../../../shared/domain/locations/locationMapPlacement.policy';
 import { mapKindForLocationScale } from '../../../../../shared/domain/locations/locationMap.helpers';
 import { CampaignLocationMap } from '../../../../shared/models/CampaignLocationMap.model';
 import { CampaignLocation } from '../../../../shared/models/CampaignLocation.model';
@@ -15,6 +23,7 @@ export type LocationMapDoc = {
   layout?: { excludedCellIds?: string[] };
   isDefault?: boolean;
   cells?: LocationMapCell[];
+  cellEntries?: LocationMapCellAuthoringEntry[];
   createdAt: string;
   updatedAt: string;
 };
@@ -32,9 +41,83 @@ function toDoc(doc: Record<string, unknown>): LocationMapDoc {
     layout: doc.layout as LocationMapDoc['layout'],
     isDefault: doc.isDefault as boolean | undefined,
     cells: doc.cells as LocationMapDoc['cells'],
+    cellEntries: doc.cellEntries as LocationMapDoc['cellEntries'],
     createdAt: String(doc.createdAt),
     updatedAt: String(doc.updatedAt),
   };
+}
+
+async function validateCellAuthoringPolicy(
+  campaignId: string,
+  hostLocationId: string,
+  hostScale: string,
+  cellEntries: LocationMapCellAuthoringEntry[] | undefined,
+): Promise<ValidationError[]> {
+  const errors: ValidationError[] = [];
+  if (!cellEntries || cellEntries.length === 0) return errors;
+
+  const linkedIds = new Set<string>();
+  for (const e of cellEntries) {
+    const lid = e.linkedLocationId?.trim();
+    if (lid) linkedIds.add(lid);
+  }
+
+  const byId = new Map<string, Record<string, unknown>>();
+  if (linkedIds.size > 0) {
+    const docs = await CampaignLocation.find({
+      campaignId,
+      locationId: { $in: [...linkedIds] },
+    }).lean();
+    for (const d of docs) {
+      const row = d as Record<string, unknown>;
+      byId.set(String(row.locationId), row);
+    }
+  }
+
+  for (let i = 0; i < cellEntries.length; i++) {
+    const e = cellEntries[i];
+    const lid = e.linkedLocationId?.trim();
+    if (lid) {
+      if (lid === hostLocationId) {
+        errors.push({
+          path: `cellEntries[${i}].linkedLocationId`,
+          code: 'INVALID',
+          message: 'A cell cannot link to the map’s own location',
+        });
+      } else {
+        const target = byId.get(lid);
+        if (!target) {
+          errors.push({
+            path: `cellEntries[${i}].linkedLocationId`,
+            code: 'NOT_FOUND',
+            message: `Linked location "${lid}" was not found in this campaign`,
+          });
+        } else {
+          const targetScale = String(target.scale);
+          if (!canLinkLocationScaleFromHostScale(hostScale, targetScale)) {
+            errors.push({
+              path: `cellEntries[${i}].linkedLocationId`,
+              code: 'INVALID',
+              message: 'Linked location scale is not allowed for this map',
+            });
+          }
+        }
+      }
+    }
+    const objs = e.objects ?? [];
+    for (let j = 0; j < objs.length; j++) {
+      const k = objs[j].kind;
+      if (!canPlaceObjectKindOnHostScale(hostScale, k)) {
+        errors.push({
+          path: `cellEntries[${i}].objects[${j}].kind`,
+          code: 'INVALID',
+          message: `Object kind "${k}" is not allowed for this location scale`,
+        });
+      }
+    }
+  }
+
+  return errors;
 }
 
 function generateMapId(name: string): string {
@@ -142,9 +225,21 @@ export async function createLocationMap(
     },
     cells: body.cells,
     layout: body.layout,
+    cellEntries: body.cellEntries,
   };
   const vErr = validateLocationMapInput(validationPayload);
   if (vErr.length > 0) return { errors: vErr };
+
+  const cellEntriesPayload = Array.isArray(body.cellEntries)
+    ? (body.cellEntries as LocationMapCellAuthoringEntry[])
+    : undefined;
+  const policyErr = await validateCellAuthoringPolicy(
+    campaignId,
+    locationId,
+    locationScale,
+    cellEntriesPayload,
+  );
+  if (policyErr.length > 0) return { errors: policyErr };
 
   const mapId =
     (body.mapId as string | undefined)?.trim() ||
@@ -182,6 +277,7 @@ export async function createLocationMap(
       : {}),
     isDefault,
     cells: (body.cells as LocationMapDoc['cells']) ?? [],
+    ...(Array.isArray(body.cellEntries) ? { cellEntries: body.cellEntries } : {}),
   });
 
   if (isDefault) {
@@ -204,6 +300,7 @@ function mergeMapPayload(
   grid: { width: number; height: number; cellUnit: unknown };
   cells?: unknown;
   layout?: unknown;
+  cellEntries?: unknown;
 } {
   const eg = existing.grid as Record<string, unknown>;
   let grid: { width: number; height: number; cellUnit: unknown };
@@ -227,12 +324,19 @@ function mergeMapPayload(
   } else if (existing.layout !== undefined) {
     layout = existing.layout;
   }
+  let cellEntries: unknown;
+  if (body.cellEntries !== undefined) {
+    cellEntries = body.cellEntries;
+  } else if (existing.cellEntries !== undefined) {
+    cellEntries = existing.cellEntries;
+  }
   return {
     name: body.name !== undefined ? String(body.name).trim() : (existing.name as string),
     kind: body.kind !== undefined ? String(body.kind) : (existing.kind as string),
     grid,
     cells: body.cells !== undefined ? body.cells : existing.cells,
     layout,
+    cellEntries,
   };
 }
 
@@ -279,12 +383,24 @@ export async function updateLocationMap(
   const vErr = validateLocationMapInput(merged);
   if (vErr.length > 0) return { errors: vErr };
 
+  const mergedCellEntries = Array.isArray(merged.cellEntries)
+    ? (merged.cellEntries as LocationMapCellAuthoringEntry[])
+    : undefined;
+  const policyErr = await validateCellAuthoringPolicy(
+    campaignId,
+    locationId,
+    locationScale,
+    mergedCellEntries,
+  );
+  if (policyErr.length > 0) return { errors: policyErr };
+
   const $set: Record<string, unknown> = {};
   if (body.name !== undefined) $set.name = merged.name;
   if (body.kind !== undefined) $set.kind = merged.kind;
   if (body.grid !== undefined) $set.grid = merged.grid;
   if (body.cells !== undefined) $set.cells = body.cells ?? [];
   if (body.layout !== undefined) $set.layout = body.layout;
+  if (body.cellEntries !== undefined) $set.cellEntries = body.cellEntries ?? [];
   if (body.isDefault !== undefined) $set.isDefault = body.isDefault;
 
   if (Object.keys($set).length === 0) {

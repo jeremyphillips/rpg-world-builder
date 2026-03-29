@@ -22,6 +22,8 @@ import {
   listLocationMaps,
   validateGridBootstrap,
   bootstrapDefaultLocationMap,
+  cellDraftToCellEntries,
+  cellEntriesToDraft,
   pickMapGridFormValues,
   applyScaleToLocationFormUiPolicy,
   buildLocationFormUiPolicy,
@@ -174,8 +176,7 @@ export default function LocationEditRoute() {
         setGridDraft({
           selectedCellId: null,
           excludedCellIds: def.layout?.excludedCellIds ?? [],
-          linkedLocationByCellId: {},
-          objectsByCellId: {},
+          ...cellEntriesToDraft(def.cellEntries),
           cellModalCellId: null,
         });
       } else {
@@ -230,7 +231,13 @@ export default function LocationEditRoute() {
           updated.name,
           updated.scale as LocationScaleId,
           values,
-          { excludedCellIds: gridDraft.excludedCellIds },
+          {
+            excludedCellIds: gridDraft.excludedCellIds,
+            cellEntries: cellDraftToCellEntries(
+              gridDraft.linkedLocationByCellId,
+              gridDraft.objectsByCellId,
+            ),
+          },
         );
         reset({
           ...locationToFormValues(updated),
@@ -245,7 +252,17 @@ export default function LocationEditRoute() {
         setSaving(false);
       }
     },
-    [campaignId, locationId, reset, setSaving, setSuccess, setErrors, gridDraft.excludedCellIds],
+    [
+      campaignId,
+      locationId,
+      reset,
+      setSaving,
+      setSuccess,
+      setErrors,
+      gridDraft.excludedCellIds,
+      gridDraft.linkedLocationByCellId,
+      gridDraft.objectsByCellId,
+    ],
   );
 
   const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
