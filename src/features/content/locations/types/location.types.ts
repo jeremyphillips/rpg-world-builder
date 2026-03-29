@@ -1,37 +1,20 @@
 import type { AccessPolicy } from '@/shared/domain/accessPolicy';
+import type {
+  LocationConnection,
+  LocationConnectionKindId,
+  LocationLabel,
+  LocationScaleId,
+} from '@/shared/domain/locations';
 
 /**
  * User-authored location (normalized). `scale` is required for hierarchy and UI.
  * Use `category` for high-level classification (not `kind`).
  */
-export type LocationScale =
-  | 'world'
-  | 'region'
-  | 'subregion'
-  | 'city'
-  | 'district'
-  | 'site'
-  | 'building'
-  | 'floor'
-  | 'room';
+export type LocationScale = LocationScaleId;
 
-export type LocationConnectionKind =
-  | 'road'
-  | 'river'
-  | 'door'
-  | 'stairs'
-  | 'hall'
-  | 'secret'
-  | 'portal';
+export type LocationConnectionKind = LocationConnectionKindId;
 
-export type LocationConnection = {
-  toId: string;
-  kind: LocationConnectionKind;
-  bidirectional?: boolean;
-  locked?: boolean;
-  dc?: number;
-  keyItemId?: string;
-};
+export type { LocationConnection, LocationConnectionKindId, LocationLabel, LocationScaleId };
 
 export type Location = {
   id: string;
@@ -45,7 +28,7 @@ export type Location = {
   parentId?: string;
   ancestorIds?: string[];
   sortOrder?: number;
-  label?: { short?: string; number?: string };
+  label?: LocationLabel;
   aliases?: string[];
   tags?: string[];
   connections?: LocationConnection[];

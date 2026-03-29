@@ -103,6 +103,63 @@ export async function createLocationMap(req: CampaignScopedRequest, res: Respons
   res.status(201).json({ map: result.map });
 }
 
+export async function updateLocationMap(req: CampaignScopedRequest, res: Response) {
+  const campaignId = pid(req, 'id');
+  const locationId = pid(req, 'locationId');
+  const mapId = pid(req, 'mapId');
+  const location = await locationsService.getLocationById(campaignId, locationId);
+  if (!location) {
+    res.status(404).json({ error: 'Location not found' });
+    return;
+  }
+  if (!canViewContent(req.viewerContext!, location.accessPolicy)) {
+    res.status(404).json({ error: 'Location not found' });
+    return;
+  }
+  const map = await locationMapsService.getLocationMapById(campaignId, mapId);
+  if (!map || map.locationId !== locationId) {
+    res.status(404).json({ error: 'Location map not found' });
+    return;
+  }
+  const result = await locationMapsService.updateLocationMap(campaignId, mapId, req.body);
+  if (!result) {
+    res.status(404).json({ error: 'Location map not found' });
+    return;
+  }
+  if ('errors' in result) {
+    res.status(400).json({ errors: result.errors });
+    return;
+  }
+  res.json({ map: result.map });
+}
+
+export async function deleteLocationMap(req: CampaignScopedRequest, res: Response) {
+  const campaignId = pid(req, 'id');
+  const locationId = pid(req, 'locationId');
+  const mapId = pid(req, 'mapId');
+  const location = await locationsService.getLocationById(campaignId, locationId);
+  if (!location) {
+    res.status(404).json({ error: 'Location not found' });
+    return;
+  }
+  if (!canViewContent(req.viewerContext!, location.accessPolicy)) {
+    res.status(404).json({ error: 'Location not found' });
+    return;
+  }
+  const map = await locationMapsService.getLocationMapById(campaignId, mapId);
+  if (!map || map.locationId !== locationId) {
+    res.status(404).json({ error: 'Location map not found' });
+    return;
+  }
+  const result = await locationMapsService.deleteLocationMap(campaignId, mapId);
+  if ('errors' in result) {
+    const isNotFound = result.errors.some((e) => e.code === 'NOT_FOUND');
+    res.status(isNotFound ? 404 : 400).json({ errors: result.errors });
+    return;
+  }
+  res.json({ ok: true });
+}
+
 export async function listMapTransitions(req: CampaignScopedRequest, res: Response) {
   const campaignId = pid(req, 'id');
   const mapId = pid(req, 'mapId');
@@ -128,10 +185,64 @@ export async function createMapTransition(req: CampaignScopedRequest, res: Respo
     res.status(404).json({ error: 'Location map not found' });
     return;
   }
+  const location = await locationsService.getLocationById(campaignId, map.locationId);
+  if (!location || !canViewContent(req.viewerContext!, location.accessPolicy)) {
+    res.status(404).json({ error: 'Location map not found' });
+    return;
+  }
   const result = await locationTransitionsService.createLocationTransition(campaignId, mapId, req.body);
   if ('errors' in result) {
     res.status(400).json({ errors: result.errors });
     return;
   }
   res.status(201).json({ transition: result.transition });
+}
+
+export async function updateMapTransition(req: CampaignScopedRequest, res: Response) {
+  const campaignId = pid(req, 'id');
+  const mapId = pid(req, 'mapId');
+  const transitionId = pid(req, 'transitionId');
+  const map = await locationMapsService.getLocationMapById(campaignId, mapId);
+  if (!map) {
+    res.status(404).json({ error: 'Location map not found' });
+    return;
+  }
+  const location = await locationsService.getLocationById(campaignId, map.locationId);
+  if (!location || !canViewContent(req.viewerContext!, location.accessPolicy)) {
+    res.status(404).json({ error: 'Location map not found' });
+    return;
+  }
+  const result = await locationTransitionsService.updateLocationTransition(campaignId, mapId, transitionId, req.body);
+  if (!result) {
+    res.status(404).json({ error: 'Transition not found' });
+    return;
+  }
+  if ('errors' in result) {
+    res.status(400).json({ errors: result.errors });
+    return;
+  }
+  res.json({ transition: result.transition });
+}
+
+export async function deleteMapTransition(req: CampaignScopedRequest, res: Response) {
+  const campaignId = pid(req, 'id');
+  const mapId = pid(req, 'mapId');
+  const transitionId = pid(req, 'transitionId');
+  const map = await locationMapsService.getLocationMapById(campaignId, mapId);
+  if (!map) {
+    res.status(404).json({ error: 'Location map not found' });
+    return;
+  }
+  const location = await locationsService.getLocationById(campaignId, map.locationId);
+  if (!location || !canViewContent(req.viewerContext!, location.accessPolicy)) {
+    res.status(404).json({ error: 'Location map not found' });
+    return;
+  }
+  const result = await locationTransitionsService.deleteLocationTransition(campaignId, transitionId);
+  if ('errors' in result) {
+    const isNotFound = result.errors.some((e) => e.code === 'NOT_FOUND');
+    res.status(isNotFound ? 404 : 400).json({ errors: result.errors });
+    return;
+  }
+  res.json({ ok: true });
 }

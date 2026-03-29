@@ -1,26 +1,12 @@
-export type LocationMapKind = 'world-grid' | 'area-grid' | 'encounter-grid';
+import type {
+  LocationMapBase,
+  LocationMapCell,
+  LocationMapGrid,
+  LocationMapKindId,
+} from '@/shared/domain/locations';
 
-export type LocationMapGrid = {
-  width: number;
-  height: number;
-  cellUnit: string | number;
-};
+export type LocationMapKind = LocationMapKindId;
 
-export type LocationMapCell = {
-  cellId: string;
-  x: number;
-  y: number;
-  terrain?: string;
-  label?: string;
-};
+export type { LocationMapCell, LocationMapGrid, LocationMapKindId };
 
-export type LocationMap = {
-  id: string;
-  campaignId: string;
-  locationId: string;
-  name: string;
-  kind: LocationMapKind;
-  grid: LocationMapGrid;
-  isDefault?: boolean;
-  cells?: LocationMapCell[];
-};
+export type LocationMap = LocationMapBase & { campaignId: string };

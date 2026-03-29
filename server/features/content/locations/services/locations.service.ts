@@ -6,6 +6,7 @@ import {
   type HierarchyValidationError,
 } from '../domain/locations.hierarchy';
 import { countMapsForLocation } from './locationMaps.service';
+import { countTransitionsReferencingLocation } from './locationTransitions.queries';
 
 export type LocationDoc = {
   id: string;
@@ -228,6 +229,15 @@ export async function assertLocationCanDelete(
       path: 'locationId',
       code: 'HAS_MAPS',
       message: 'Cannot delete location while it has maps',
+    });
+  }
+
+  const transitionCount = await countTransitionsReferencingLocation(campaignId, locationId);
+  if (transitionCount > 0) {
+    errors.push({
+      path: 'locationId',
+      code: 'HAS_TRANSITIONS',
+      message: 'Cannot delete location while transitions target it',
     });
   }
 

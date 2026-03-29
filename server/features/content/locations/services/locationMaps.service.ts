@@ -1,25 +1,23 @@
+import type { LocationMapCell, LocationMapKindId } from '../../../../../shared/domain/locations';
 import { CampaignLocationMap } from '../../../../shared/models/CampaignLocationMap.model';
-import { CampaignLocationTransition } from '../../../../shared/models/CampaignLocationTransition.model';
 import { CampaignLocation } from '../../../../shared/models/CampaignLocation.model';
+import { validateLocationMapInput, type MapValidationError } from '../domain/locationMaps.validation';
+import { countTransitionsReferencingMap } from './locationTransitions.queries';
 
 export type LocationMapDoc = {
   id: string;
   campaignId: string;
   locationId: string;
   name: string;
-  kind: 'world-grid' | 'area-grid' | 'encounter-grid';
+  kind: LocationMapKindId;
   grid: { width: number; height: number; cellUnit: string | number };
   isDefault?: boolean;
-  cells?: Array<{ cellId: string; x: number; y: number; terrain?: string; label?: string }>;
+  cells?: LocationMapCell[];
   createdAt: string;
   updatedAt: string;
 };
 
-type ValidationError = {
-  path: string;
-  code: string;
-  message: string;
-};
+type ValidationError = MapValidationError;
 
 function toDoc(doc: Record<string, unknown>): LocationMapDoc {
   return {
@@ -36,48 +34,39 @@ function toDoc(doc: Record<string, unknown>): LocationMapDoc {
   };
 }
 
-function validateGrid(grid: unknown): ValidationError[] {
-  const errors: ValidationError[] = [];
-  if (!grid || typeof grid !== 'object') {
-    errors.push({ path: 'grid', code: 'REQUIRED', message: 'grid is required' });
-    return errors;
-  }
-  const g = grid as Record<string, unknown>;
-  if (typeof g.width !== 'number' || g.width <= 0) {
-    errors.push({ path: 'grid.width', code: 'INVALID', message: 'grid.width must be a positive number' });
-  }
-  if (typeof g.height !== 'number' || g.height <= 0) {
-    errors.push({ path: 'grid.height', code: 'INVALID', message: 'grid.height must be a positive number' });
-  }
-  if (g.cellUnit === undefined || g.cellUnit === null) {
-    errors.push({ path: 'grid.cellUnit', code: 'REQUIRED', message: 'grid.cellUnit is required' });
-  }
-  return errors;
-}
-
-function validateCreate(body: Record<string, unknown>): ValidationError[] {
-  const errors: ValidationError[] = [];
-  if (typeof body.name !== 'string' || body.name.trim().length === 0) {
-    errors.push({ path: 'name', code: 'REQUIRED', message: 'name is required' });
-  }
-  const validKinds = ['world-grid', 'area-grid', 'encounter-grid'];
-  if (typeof body.kind !== 'string' || !validKinds.includes(body.kind)) {
-    errors.push({
-      path: 'kind',
-      code: 'INVALID',
-      message: `kind must be one of: ${validKinds.join(', ')}`,
-    });
-  }
-  errors.push(...validateGrid(body.grid));
-  return errors;
-}
-
 function generateMapId(name: string): string {
   return `${name
     .trim()
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')}-${Date.now().toString(36)}`;
+}
+
+export async function validateLocationForMap(
+  campaignId: string,
+  locationId: string,
+): Promise<{ ok: true } | { errors: ValidationError[] }> {
+  const loc = await CampaignLocation.findOne({ campaignId, locationId }).lean();
+  if (!loc) {
+    return { errors: [{ path: 'locationId', code: 'NOT_FOUND', message: 'Location not found' }] };
+  }
+  const row = loc as Record<string, unknown>;
+  if (row.campaignId !== campaignId) {
+    return { errors: [{ path: 'locationId', code: 'NOT_FOUND', message: 'Location not found' }] };
+  }
+  return { ok: true };
+}
+
+async function normalizeDefaultMapForLocation(
+  campaignId: string,
+  locationId: string,
+  defaultMapId: string,
+): Promise<void> {
+  await CampaignLocationMap.updateMany(
+    { campaignId, locationId, mapId: { $ne: defaultMapId } },
+    { $set: { isDefault: false } },
+  );
+  await CampaignLocationMap.updateOne({ campaignId, mapId: defaultMapId }, { $set: { isDefault: true } });
 }
 
 export async function listMapsForLocation(campaignId: string, locationId: string): Promise<LocationMapDoc[]> {
@@ -94,20 +83,50 @@ export async function getLocationMapById(campaignId: string, mapId: string): Pro
   return doc ? toDoc(doc as Record<string, unknown>) : null;
 }
 
+export async function getLocationMapByIdOrThrow(
+  campaignId: string,
+  mapId: string,
+): Promise<{ map: LocationMapDoc } | { errors: ValidationError[] }> {
+  const doc = await CampaignLocationMap.findOne({ campaignId, mapId }).lean();
+  if (!doc) {
+    return { errors: [{ path: 'mapId', code: 'NOT_FOUND', message: 'Location map not found' }] };
+  }
+  const row = doc as Record<string, unknown>;
+  if (row.campaignId !== campaignId) {
+    return { errors: [{ path: 'mapId', code: 'NOT_FOUND', message: 'Location map not found' }] };
+  }
+  return { map: toDoc(row) };
+}
+
 export async function createLocationMap(
   campaignId: string,
   locationId: string,
   body: Record<string, unknown>,
 ): Promise<{ map: LocationMapDoc } | { errors: ValidationError[] }> {
-  const errors = validateCreate(body);
-  if (errors.length > 0) return { errors };
+  const locCheck = await validateLocationForMap(campaignId, locationId);
+  if ('errors' in locCheck) return locCheck;
 
-  const loc = await CampaignLocation.findOne({ campaignId, locationId }).lean();
-  if (!loc) {
-    return { errors: [{ path: 'locationId', code: 'NOT_FOUND', message: 'Location not found' }] };
+  if (!body.grid || typeof body.grid !== 'object') {
+    return { errors: [{ path: 'grid', code: 'REQUIRED', message: 'grid is required' }] };
   }
 
-  const name = (body.name as string).trim();
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  const kind = typeof body.kind === 'string' ? body.kind : '';
+  const grid = body.grid as Record<string, unknown>;
+
+  const validationPayload = {
+    name,
+    kind,
+    grid: {
+      width: grid.width as number,
+      height: grid.height as number,
+      cellUnit: grid.cellUnit,
+    },
+    cells: body.cells,
+  };
+  const vErr = validateLocationMapInput(validationPayload);
+  if (vErr.length > 0) return { errors: vErr };
+
   const mapId =
     (body.mapId as string | undefined)?.trim() ||
     (body.id as string | undefined)?.trim() ||
@@ -126,6 +145,12 @@ export async function createLocationMap(
     };
   }
 
+  const priorCount = await countMapsForLocation(campaignId, locationId);
+  let isDefault = body.isDefault === true;
+  if (priorCount === 0) {
+    isDefault = true;
+  }
+
   await CampaignLocationMap.create({
     campaignId,
     locationId,
@@ -133,9 +158,13 @@ export async function createLocationMap(
     name,
     kind: body.kind as LocationMapDoc['kind'],
     grid: body.grid as LocationMapDoc['grid'],
-    isDefault: body.isDefault as boolean | undefined,
-    cells: body.cells as unknown[] | undefined,
+    isDefault,
+    cells: (body.cells as LocationMapDoc['cells']) ?? [],
   });
+
+  if (isDefault) {
+    await normalizeDefaultMapForLocation(campaignId, locationId, mapId);
+  }
 
   const fresh = await CampaignLocationMap.findOne({ campaignId, mapId }).lean();
   if (!fresh) {
@@ -144,34 +173,111 @@ export async function createLocationMap(
   return { map: toDoc(fresh as Record<string, unknown>) };
 }
 
+function mergeMapPayload(
+  existing: Record<string, unknown>,
+  body: Record<string, unknown>,
+): { name: string; kind: string; grid: { width: number; height: number; cellUnit: unknown }; cells?: unknown } {
+  const eg = existing.grid as Record<string, unknown>;
+  let grid: { width: number; height: number; cellUnit: unknown };
+  if (body.grid && typeof body.grid === 'object') {
+    const bg = body.grid as Record<string, unknown>;
+    grid = {
+      width: (bg.width !== undefined ? bg.width : eg.width) as number,
+      height: (bg.height !== undefined ? bg.height : eg.height) as number,
+      cellUnit: bg.cellUnit !== undefined ? bg.cellUnit : eg.cellUnit,
+    };
+  } else {
+    grid = {
+      width: eg.width as number,
+      height: eg.height as number,
+      cellUnit: eg.cellUnit,
+    };
+  }
+  return {
+    name: body.name !== undefined ? String(body.name).trim() : (existing.name as string),
+    kind: body.kind !== undefined ? String(body.kind) : (existing.kind as string),
+    grid,
+    cells: body.cells !== undefined ? body.cells : existing.cells,
+  };
+}
+
 export async function updateLocationMap(
   campaignId: string,
   mapId: string,
   body: Record<string, unknown>,
 ): Promise<{ map: LocationMapDoc } | { errors: ValidationError[] } | null> {
-  const $set: Record<string, unknown> = {};
-  if (body.name !== undefined) $set.name = (body.name as string).trim();
-  if (body.kind !== undefined) $set.kind = body.kind;
-  if (body.grid !== undefined) {
-    const gErr = validateGrid(body.grid);
-    if (gErr.length > 0) return { errors: gErr };
-    $set.grid = body.grid;
+  if ('locationId' in body) {
+    return {
+      errors: [
+        {
+          path: 'locationId',
+          code: 'IMMUTABLE',
+          message: 'locationId cannot be changed; create a new map or delete this one',
+        },
+      ],
+    };
   }
+
+  const existing = await CampaignLocationMap.findOne({ campaignId, mapId }).lean();
+  if (!existing) return null;
+
+  const existingRow = existing as Record<string, unknown>;
+  const merged = mergeMapPayload(existingRow, body);
+
+  const vErr = validateLocationMapInput(merged);
+  if (vErr.length > 0) return { errors: vErr };
+
+  const locationId = existingRow.locationId as string;
+
+  const $set: Record<string, unknown> = {};
+  if (body.name !== undefined) $set.name = merged.name;
+  if (body.kind !== undefined) $set.kind = merged.kind;
+  if (body.grid !== undefined) $set.grid = merged.grid;
+  if (body.cells !== undefined) $set.cells = body.cells ?? [];
   if (body.isDefault !== undefined) $set.isDefault = body.isDefault;
-  if (body.cells !== undefined) $set.cells = body.cells;
 
   if (Object.keys($set).length === 0) {
-    const existing = await CampaignLocationMap.findOne({ campaignId, mapId }).lean();
-    return existing ? { map: toDoc(existing as Record<string, unknown>) } : null;
+    return { map: toDoc(existingRow) };
   }
 
   const doc = await CampaignLocationMap.findOneAndUpdate({ campaignId, mapId }, { $set }, { new: true, lean: true });
-  return doc ? { map: toDoc(doc as Record<string, unknown>) } : null;
+  if (!doc) return null;
+
+  const row = doc as Record<string, unknown>;
+  if (body.isDefault === true) {
+    await normalizeDefaultMapForLocation(campaignId, locationId, mapId);
+    const again = await CampaignLocationMap.findOne({ campaignId, mapId }).lean();
+    return { map: toDoc((again ?? doc) as Record<string, unknown>) };
+  }
+
+  return { map: toDoc(row) };
 }
 
-export async function deleteLocationMap(campaignId: string, mapId: string): Promise<boolean> {
-  await CampaignLocationTransition.deleteMany({ campaignId, fromMapId: mapId });
-  await CampaignLocationTransition.deleteMany({ campaignId, toMapId: mapId });
+export async function deleteLocationMap(
+  campaignId: string,
+  mapId: string,
+): Promise<{ ok: true } | { errors: ValidationError[] }> {
+  const existing = await CampaignLocationMap.findOne({ campaignId, mapId }).lean();
+  if (!existing) {
+    return { errors: [{ path: 'mapId', code: 'NOT_FOUND', message: 'Location map not found' }] };
+  }
+
+  const refCount = await countTransitionsReferencingMap(campaignId, mapId);
+  if (refCount > 0) {
+    return {
+      errors: [
+        {
+          path: 'mapId',
+          code: 'REFERENCED_BY_TRANSITIONS',
+          message: 'Cannot delete map while transitions reference it',
+        },
+      ],
+    };
+  }
+
   const result = await CampaignLocationMap.deleteOne({ campaignId, mapId });
-  return result.deletedCount > 0;
+  if (result.deletedCount === 0) {
+    return { errors: [{ path: 'mapId', code: 'NOT_FOUND', message: 'Location map not found' }] };
+  }
+  return { ok: true };
 }

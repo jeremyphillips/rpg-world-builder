@@ -3,19 +3,12 @@
  * Async DB validation lives in locations.service.ts.
  */
 
-export const LOCATION_SCALE_ORDER = [
-  'world',
-  'region',
-  'subregion',
-  'city',
-  'district',
-  'site',
-  'building',
-  'floor',
-  'room',
-] as const;
+import {
+  LOCATION_SCALE_ORDER,
+  type LocationScaleId,
+} from '../../../../../shared/domain/locations';
 
-export type LocationScaleId = (typeof LOCATION_SCALE_ORDER)[number];
+export { LOCATION_SCALE_ORDER, type LocationScaleId };
 
 export type HierarchyValidationError = {
   path: string;
