@@ -1,4 +1,5 @@
 import { getCellForCombatant } from '@/features/encounter/space'
+import { getEncounterViewerPerceptionCapabilitiesFromCombatant } from '@/features/mechanics/domain/perception/perception.capabilities'
 import { resolveViewerPerceptionForCellFromState } from '@/features/mechanics/domain/perception/perception.resolve'
 import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 
@@ -60,9 +61,9 @@ export function evaluatePerceiveTargetOccupantForCombat(
   const target = state.combatantsById[targetCombatantId]
   const hasGrid = Boolean(state.space && state.placements)
   const observerCellId =
-    hasGrid && state.placements ? getCellForCombatant(state.placements, observerId) : null
+    hasGrid && state.placements ? getCellForCombatant(state.placements, observerId) ?? null : null
   const subjectCellId =
-    hasGrid && state.placements ? getCellForCombatant(state.placements, targetCombatantId) : null
+    hasGrid && state.placements ? getCellForCombatant(state.placements, targetCombatantId) ?? null : null
 
   const base = (partial: Partial<PerceiveTargetOccupantBreakdown>): PerceiveTargetOccupantBreakdown => ({
     observerCellId,
@@ -185,9 +186,14 @@ export function evaluatePerceiveTargetOccupantForCombat(
     }
   }
 
+  const effectiveCapabilities =
+    options?.capabilities !== undefined
+      ? options.capabilities
+      : getEncounterViewerPerceptionCapabilitiesFromCombatant(observer)
+
   const perception = resolveViewerPerceptionForCellFromState(state, observerId, targetCellId, {
     viewerRole: 'pc',
-    capabilities: options?.capabilities,
+    capabilities: effectiveCapabilities,
   })
   if (!perception) {
     return {

@@ -1,6 +1,10 @@
 import type { CombatActionDefinition } from '../resolution'
 import type { CombatantInstance } from '../state'
-import type { CombatantRemainsKind, CombatantStealthRuntime } from '../state/types/combatant.types'
+import type {
+  CombatantRemainsKind,
+  CombatantSensesSnapshot,
+  CombatantStealthRuntime,
+} from '../state/types/combatant.types'
 
 export function createCombatant(args: {
   instanceId: string
@@ -36,6 +40,7 @@ export function createCombatant(args: {
   equipment?: { armorEquipped?: string | null }
   passivePerception?: number
   stealth?: CombatantStealthRuntime
+  senses?: CombatantSensesSnapshot
 }): CombatantInstance {
   return {
     instanceId: args.instanceId,
@@ -50,6 +55,7 @@ export function createCombatant(args: {
     ...(args.diedAtRound !== undefined ? { diedAtRound: args.diedAtRound } : {}),
     ...(args.equipment !== undefined ? { equipment: args.equipment } : {}),
     ...(args.stealth !== undefined ? { stealth: args.stealth } : {}),
+    ...(args.senses !== undefined ? { senses: args.senses } : {}),
     stats: {
       armorClass: args.armorClass,
       maxHitPoints: args.maxHitPoints ?? 12,

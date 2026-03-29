@@ -254,6 +254,14 @@ export function buildMonsterCombatantInstance(args: {
   )
 
   const darkvisionRangeFt = maxDarkvisionRangeFtFromMonsterSenses(monster)
+  const sensesSnapshot = monster.mechanics.senses
+    ? {
+        ...(monster.mechanics.senses.special != null ? { special: monster.mechanics.senses.special } : {}),
+        ...(monster.mechanics.senses.passivePerception != null
+          ? { passivePerception: monster.mechanics.senses.passivePerception }
+          : {}),
+      }
+    : undefined
 
   return {
     instanceId: runtimeId,
@@ -263,6 +271,7 @@ export function buildMonsterCombatantInstance(args: {
       sourceId: monster.id,
       label: monster.name,
     },
+    ...(sensesSnapshot && Object.keys(sensesSnapshot).length > 0 ? { senses: sensesSnapshot } : {}),
     portraitImageKey: getCombatantPortraitImageKey({ monster: { imageKey: monster.imageKey } }),
     creatureType: monster.type,
     equipment: {

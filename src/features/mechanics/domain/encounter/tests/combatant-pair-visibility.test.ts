@@ -14,6 +14,10 @@ import {
 
 import {
   encounterAttackerOutsideDefenderHeavilyObscured,
+  encounterDarknessWizard10ftFromOrc,
+  encounterDarknessWizardOutOfDarkvisionRange,
+  encounterHeavyObscuredWithDarkvisionViewer,
+  encounterMagicalDarknessWithDarkvisionViewer,
   testEnemy,
   testPc,
 } from './encounter-visibility-test-fixtures'
@@ -79,6 +83,26 @@ describe('combatant pair visibility (occupant)', () => {
     const state = addConditionToCombatant(createEncounterState([w, g], { rng: () => 0.5 }), 'g', 'invisible')
     expect(state.space).toBeUndefined()
     expect(canPerceiveTargetOccupantForCombat(state, 'w', 'g')).toBe(false)
+  })
+
+  it('darkvision from senses: ordinary darkness mitigated within range (occupant perceivable)', () => {
+    const state = encounterDarknessWizard10ftFromOrc()
+    expect(canPerceiveTargetOccupantForCombat(state, 'wiz', 'orc')).toBe(true)
+  })
+
+  it('darkvision from senses: beyond range ordinary darkness still blocks', () => {
+    const state = encounterDarknessWizardOutOfDarkvisionRange()
+    expect(canPerceiveTargetOccupantForCombat(state, 'wiz', 'orc')).toBe(false)
+  })
+
+  it('darkvision does not mitigate heavy obscurement within range', () => {
+    const state = encounterHeavyObscuredWithDarkvisionViewer()
+    expect(canPerceiveTargetOccupantForCombat(state, 'wiz', 'orc')).toBe(false)
+  })
+
+  it('darkvision does not mitigate magical darkness within range', () => {
+    const state = encounterMagicalDarknessWithDarkvisionViewer()
+    expect(canPerceiveTargetOccupantForCombat(state, 'wiz', 'orc')).toBe(false)
   })
 
   it('heavy obscurement on defender: outside cannot see in; inside fog cannot see out — attack roll adv/dis cancel', () => {
