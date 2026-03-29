@@ -187,7 +187,7 @@ export default function LocationEditRoute() {
         setValue('gridColumns', String(def.grid.width));
         setValue('gridRows', String(def.grid.height));
         setValue('gridCellUnit', String(def.grid.cellUnit));
-        setValue('gridGeometry', def.grid.geometry ?? 'square');
+        setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale(loc!.scale));
         setGridDraft({
           selectedCellId: null,
           excludedCellIds: def.layout?.excludedCellIds ?? [],
