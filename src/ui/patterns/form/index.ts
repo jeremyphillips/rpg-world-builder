@@ -7,6 +7,11 @@ export { default as FormImageUploadField } from './FormImageUploadField'
 export { default as FormDateTimeField } from './FormDateTimeField'
 export { default as FormVisibilityField } from './FormVisibilityField'
 export { default as FormJsonField } from './FormJsonField'
+export { default as OptionPickerField } from './OptionPickerField'
+export type {
+  PickerOption,
+  OptionPickerFieldProps,
+} from './OptionPickerField'
 export { default as FormActions } from './FormActions'
 export { default as DynamicField } from './DynamicField'
 export {

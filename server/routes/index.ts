@@ -17,6 +17,9 @@ import monstersRoutes from '../features/content/monsters/routes/monsters.routes'
 import spellsRoutes from '../features/content/spells/routes/spells.routes'
 import skillProficienciesRoutes from '../features/content/skillProficiencies/routes/skillProficiencies.routes'
 import equipmentRoutes from '../features/content/equipment/routes/equipment.routes'
+import locationsRoutes, {
+  locationMapTransitionsRouter,
+} from '../features/content/locations/routes/locations.routes'
 
 const campaignScopedContent = [requireAuth, requireCampaignRole('observer')]
 
@@ -29,6 +32,8 @@ export function registerRoutes(app: Express) {
   app.use('/api/campaigns/:id/spells', ...campaignScopedContent, spellsRoutes)
   app.use('/api/campaigns/:id/skill-proficiencies', ...campaignScopedContent, skillProficienciesRoutes)
   app.use('/api/campaigns/:id/equipment', ...campaignScopedContent, equipmentRoutes)
+  app.use('/api/campaigns/:id/locations', ...campaignScopedContent, locationsRoutes)
+  app.use('/api/campaigns/:id/location-maps/:mapId', ...campaignScopedContent, locationMapTransitionsRouter)
   app.use('/api/campaigns', campaignRoutes)
   app.use('/api/uploads', uploadRoutes)
   app.use('/api/notifications', notificationRoutes)

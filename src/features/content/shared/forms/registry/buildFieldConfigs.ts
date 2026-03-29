@@ -3,11 +3,14 @@
  */
 import type { RegisterOptions } from 'react-hook-form';
 import type { FieldConfig } from '@/ui/patterns';
+import type { PickerOption } from '@/ui/patterns/form/OptionPickerField';
 import type { ValidationRule, ValidationSpec } from '@/ui/patterns';
 import type { FieldSpec } from './fieldSpec.types';
 
 export type BuildFieldConfigsOptions = {
   policyCharacters?: { id: string; name: string }[];
+  /** Runtime options for `type: 'optionPicker'` fields keyed by field name */
+  optionPickerOptionsByField?: Record<string, PickerOption[]>;
 };
 
 function applyRule(rule: ValidationRule, n: number): string | null {
@@ -67,7 +70,7 @@ export const buildFieldConfigs = <
   specs: readonly FieldSpec<FormValues, InputShape, ItemShape>[],
   options: BuildFieldConfigsOptions = {}
 ): FieldConfig[] => {
-  const { policyCharacters = [] } = options;
+  const { policyCharacters = [], optionPickerOptionsByField = {} } = options;
 
   const configs: FieldConfig[] = [];
 
@@ -110,6 +113,21 @@ export const buildFieldConfigs = <
             : [],
         });
         break;
+      case 'optionPicker': {
+        const mergedOptions: PickerOption[] =
+          optionPickerOptionsByField[spec.name] ?? spec.pickerOptions ?? [];
+        configs.push({
+          ...base,
+          type: 'optionPicker',
+          options: [...mergedOptions],
+          maxItems: spec.maxItems,
+          valueMode: spec.valueMode ?? 'array',
+          emptyMessage: spec.emptyMessage,
+          noResultsMessage: spec.noResultsMessage,
+          renderSelectedAs: spec.renderSelectedAs,
+        });
+        break;
+      }
       case 'checkbox':
         configs.push({ ...base, type: 'checkbox' });
         break;

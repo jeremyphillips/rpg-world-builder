@@ -30,6 +30,8 @@ export const ROUTES = {
   WORLD: '/campaigns/:id/world',
   WORLD_LOCATIONS: '/campaigns/:id/world/locations',
   WORLD_LOCATION: '/campaigns/:id/world/locations/:locationId',
+  WORLD_LOCATION_NEW: '/campaigns/:id/world/locations/new',
+  WORLD_LOCATION_EDIT: '/campaigns/:id/world/locations/:locationId/edit',
   WORLD_NPCS: '/campaigns/:id/world/npcs',
   WORLD_NPC: '/campaigns/:id/world/npcs/:npcId',
   WORLD_MONSTERS: '/campaigns/:id/world/monsters',

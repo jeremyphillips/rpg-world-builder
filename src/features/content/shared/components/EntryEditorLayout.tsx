@@ -84,6 +84,8 @@ interface EntryEditorLayoutProps {
   policyDisabled?: boolean;
   /** Characters available for the "restricted" scope selector. */
   policyCharacters?: { id: string; name: string }[];
+  /** The title of the entry. */
+  title?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -93,6 +95,7 @@ interface EntryEditorLayoutProps {
 const MAX_BLOCKING_ENTITIES = 5;
 
 export default function EntryEditorLayout({
+  title,
   typeLabel,
   isNew,
   saving,
@@ -128,6 +131,8 @@ export default function EntryEditorLayout({
   const busy = saving || validating || deleting;
   const showDelete = canDelete && onDelete && !isNew;
   const resolvedDeleteLabel = deleteLabel ?? `Delete ${typeLabel}`;
+
+  const headline = isNew ? `Create ${typeLabel}` : `Edit ${title ?? typeLabel}`;
 
   const handleDeleteClick = useCallback(async () => {
     setDeleteError(null);
@@ -169,7 +174,7 @@ export default function EntryEditorLayout({
   return (
     <Box>
       <AppPageHeader
-        headline={isNew ? `New ${typeLabel}` : `Edit ${typeLabel}`}
+        headline={headline}
         breadcrumbData={breadcrumbs}
         actions={[
           <Button variant="text" size="small" onClick={onBack}>
@@ -180,7 +185,7 @@ export default function EntryEditorLayout({
 
       {success && (
         <AppAlert tone="success" sx={{ mb: 2 }}>
-          {typeLabel} saved successfully.
+          {headline} saved successfully.
         </AppAlert>
       )}
 
@@ -203,6 +208,8 @@ export default function EntryEditorLayout({
         </AppAlert>
       )}
 
+      {children}
+      
       {showPolicyField && policyValue && onPolicyChange && (
         <Box sx={{ mb: 3 }}>
           <VisibilityField
@@ -213,8 +220,6 @@ export default function EntryEditorLayout({
           />
         </Box>
       )}
-
-      {children}
 
       <Stack direction="row" spacing={2} sx={{ mt: 3, justifyContent: 'space-between' }}>
         <Stack direction="row" spacing={2}>

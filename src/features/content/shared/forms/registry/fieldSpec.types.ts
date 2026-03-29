@@ -1,16 +1,18 @@
 import type { Condition, ValidationSpec } from '@/ui/patterns';
+import type { PickerOption } from '@/ui/patterns/form/OptionPickerField';
 
 export type { ValidationRule, ValidationSpec } from '@/ui/patterns';
 
 /**
  * FieldSpec — single source of truth for form field config + mapping.
  *
- * Supports: text, textarea, select, checkbox, numberText, imageUpload, visibility.
+ * Supports: text, textarea, select, optionPicker, checkbox, numberText, imageUpload, visibility, json.
  */
 export type FieldSpecKind =
   | 'text'
   | 'textarea'
   | 'select'
+  | 'optionPicker'
   | 'checkbox'
   | 'checkboxGroup'
   | 'numberText'
@@ -22,8 +24,11 @@ export type FieldSpecOption = { value: string; label: string };
 
 export type FieldSpec<
   FormValues extends Record<string, unknown>,
-  _InputShape extends Record<string, unknown> = Record<string, unknown>,
-  _ItemShape extends Record<string, unknown> = Record<string, unknown>,
+  // Phantom type params for call-site inference (InputShape / ItemShape in mappers).
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for mapper typing
+  InputShape extends Record<string, unknown> = Record<string, unknown>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for mapper typing
+  ItemShape extends Record<string, unknown> = Record<string, unknown>,
 > = {
   name: keyof FormValues & string;
   label: string;
@@ -44,6 +49,18 @@ export type FieldSpec<
   defaultValue?: FormValues[keyof FormValues];
   /** For option-based fields (select, radio, checkboxGroup): use first option as default */
   defaultFromOptions?: 'first';
+  /** For kind: 'optionPicker' — static options; runtime lists often supplied via buildFieldConfigs optionPickerOptionsByField */
+  pickerOptions?: readonly PickerOption[];
+  /** For kind: 'optionPicker' — max selections (1 = single-select) */
+  maxItems?: number;
+  /** For kind: 'optionPicker' — scalar string vs string[] in form values */
+  valueMode?: 'scalar' | 'array';
+  /** For kind: 'optionPicker' */
+  emptyMessage?: string;
+  /** For kind: 'optionPicker' */
+  noResultsMessage?: string;
+  /** For kind: 'optionPicker' */
+  renderSelectedAs?: 'chip' | 'card';
   /** For kind: 'json' — min rows for textarea. */
   minRows?: number;
   /** For kind: 'json' — max rows for textarea. */

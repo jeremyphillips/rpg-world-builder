@@ -13,6 +13,16 @@ export function buildDefaultValues<T extends Record<string, unknown>>(
   for (const field of fields) {
     if (field.type === 'hidden') continue;
 
+    if (field.type === 'optionPicker') {
+      if (field.defaultValue !== undefined) {
+        out[field.name] = field.defaultValue;
+      } else {
+        const mode = field.valueMode ?? 'array';
+        out[field.name] = mode === 'scalar' ? '' : [];
+      }
+      continue;
+    }
+
     if (field.defaultValue !== undefined) {
       out[field.name] = field.defaultValue;
       continue;

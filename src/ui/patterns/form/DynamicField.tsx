@@ -10,6 +10,7 @@ import FormImageUploadField from './FormImageUploadField'
 import FormDateTimeField from './FormDateTimeField'
 import FormVisibilityField from './FormVisibilityField'
 import FormJsonField from './FormJsonField'
+import FormOptionPickerField from './FormOptionPickerField'
 
 type DynamicFieldProps = {
   field: FieldConfig;
@@ -175,6 +176,26 @@ export default function DynamicField({ field }: DynamicFieldProps) {
             helperText={field.helperText}
             minRows={field.minRows}
             maxRows={field.maxRows}
+          />
+        </FieldWithDescription>
+      );
+
+    case 'optionPicker':
+      return (
+        <FieldWithDescription field={field}>
+          <FormOptionPickerField
+            name={field.name}
+            label={field.label}
+            options={field.options}
+            valueMode={field.valueMode}
+            maxItems={field.maxItems}
+            placeholder={field.placeholder}
+            disabled={field.disabled}
+            emptyMessage={field.emptyMessage}
+            noResultsMessage={field.noResultsMessage}
+            renderSelectedAs={field.renderSelectedAs}
+            helperText={field.helperText}
+            rules={field.rules}
           />
         </FieldWithDescription>
       );

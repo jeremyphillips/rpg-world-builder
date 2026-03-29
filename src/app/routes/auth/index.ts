@@ -20,7 +20,12 @@ export { default as EncounterLayout } from '@/features/encounter/routes/Encounte
 export { default as EncounterIndexRedirect } from '@/features/encounter/routes/EncounterIndexRedirect'
 export { default as EncounterSetupRoute } from '@/features/encounter/routes/EncounterSetupRoute'
 export { default as EncounterActiveRoute } from '@/features/encounter/routes/EncounterActiveRoute'
-export { LocationsRoute, LocationRoute } from '@/features/content/locations/routes'
+export {
+  LocationListRoute,
+  LocationDetailRoute,
+  LocationCreateRoute,
+  LocationEditRoute,
+} from '@/features/content/locations/routes'
 export {
   MonsterListRoute,
   MonsterDetailRoute,

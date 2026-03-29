@@ -1,0 +1,146 @@
+import { useMemo, type ReactNode } from 'react'
+import Box from '@mui/material/Box'
+import { makeGridCellId } from '@/shared/domain/grid'
+
+export type GridCell = {
+  cellId: string
+  x: number
+  y: number
+}
+
+export type GridEditorProps = {
+  columns: number
+  rows: number
+  selectedCellId?: string | null
+  /** Cells masked out of walkable layout (authoring); distinct from selection styling. */
+  excludedCellIds?: string[]
+  onCellClick?: (cell: GridCell) => void
+  getCellLabel?: (cell: GridCell) => string | undefined
+  /** When set, rendered inside the cell instead of {@link getCellLabel} text. */
+  renderCellContent?: (cell: GridCell) => ReactNode
+  getCellClassName?: (cell: GridCell) => string | undefined
+  className?: string
+  disabled?: boolean
+}
+
+export default function GridEditor({
+  columns,
+  rows,
+  selectedCellId,
+  excludedCellIds,
+  onCellClick,
+  getCellLabel,
+  renderCellContent,
+  getCellClassName,
+  className,
+  disabled,
+}: GridEditorProps) {
+  const safeCols = Math.max(0, Math.floor(columns))
+  const safeRows = Math.max(0, Math.floor(rows))
+  const excludedSet = useMemo(
+    () => new Set(excludedCellIds ?? []),
+    [excludedCellIds],
+  )
+
+  return (
+    <Box
+      className={className}
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${safeCols}, minmax(0, 1fr))`,
+        gap: 0.5,
+        width: '100%',
+        maxWidth: '100%',
+      }}
+      role="grid"
+      aria-colcount={safeCols}
+      aria-rowcount={safeRows}
+    >
+      {Array.from({ length: safeRows * safeCols }, (_, i) => {
+        const x = i % safeCols
+        const y = Math.floor(i / safeCols)
+        const cellId = makeGridCellId(x, y)
+        const cell: GridCell = { cellId, x, y }
+        const label = getCellLabel?.(cell)
+        const custom = renderCellContent?.(cell)
+        const extraClass = getCellClassName?.(cell)
+        const selected = selectedCellId != null && selectedCellId === cellId
+        const excluded = excludedSet.has(cellId)
+
+        return (
+          <Box
+            key={cellId}
+            component="button"
+            type="button"
+            role="gridcell"
+            aria-selected={selected}
+            aria-label={
+              excluded
+                ? `Cell ${x}, ${y}, excluded from layout`
+                : `Cell ${x}, ${y}`
+            }
+            disabled={disabled}
+            onClick={() => !disabled && onCellClick?.(cell)}
+            className={extraClass}
+            sx={{
+              aspectRatio: '1',
+              minWidth: 0,
+              minHeight: 0,
+              border: 1,
+              borderRadius: 0.5,
+              borderColor: excluded ? 'text.disabled' : 'divider',
+              borderStyle: excluded && !selected ? 'dashed' : 'solid',
+              bgcolor: selected
+                ? 'action.selected'
+                : excluded
+                  ? 'action.disabledBackground'
+                  : 'background.paper',
+              backgroundImage: excluded
+                ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
+                : undefined,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 0.25,
+              cursor: disabled ? 'default' : 'pointer',
+              fontSize: '0.65rem',
+              lineHeight: 1.2,
+              color: excluded ? 'text.secondary' : 'text.primary',
+              boxShadow: selected
+                ? (theme) => `inset 0 0 0 2px ${theme.palette.primary.main}`
+                : undefined,
+              '&:hover': disabled
+                ? undefined
+                : {
+                    bgcolor: selected
+                      ? 'action.selected'
+                      : excluded
+                        ? 'action.disabledBackground'
+                        : 'action.hover',
+                  },
+            }}
+          >
+            {custom != null && custom !== false ? (
+              <Box
+                sx={{
+                  px: 0.25,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  maxWidth: '100%',
+                  minHeight: 0,
+                }}
+              >
+                {custom}
+              </Box>
+            ) : label != null && label !== '' ? (
+              <Box component="span" sx={{ px: 0.25, textAlign: 'center', wordBreak: 'break-word' }}>
+                {label}
+              </Box>
+            ) : null}
+          </Box>
+        )
+      })}
+    </Box>
+  )
+}

@@ -84,7 +84,7 @@ export {
 export { default as ConditionalFormRenderer } from './form/ConditionalFormRenderer'
 export { default as TabbedFormLayout } from './form/TabbedFormLayout'
 export { default as JsonPreviewField } from './form/JsonPreviewField'
-export type { FieldConfig, FormSection, SelectOption } from './form/form.types'
+export type { FieldConfig, FormSection, SelectOption, PickerOption } from './form/form.types'
 export { buildDefaultValues } from './form/utils/buildDefaultValues'
 export { when, evaluateCondition, type Condition } from './form/conditions'
 export {
@@ -97,6 +97,9 @@ export { default as VisibilityField } from './form/VisibilityField'
 export { DEFAULT_VISIBILITY_PUBLIC } from './form/VisibilityField'
 
 export { default as ImageUploadField } from './form/ImageUploadField'
+
+export { default as GridEditor } from './grid/GridEditor'
+export type { GridCell, GridEditorProps } from './grid/GridEditor'
 
 export { default as FormActions } from './form/FormActions'
 
