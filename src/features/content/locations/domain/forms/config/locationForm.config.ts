@@ -10,6 +10,7 @@ import {
   LOCATION_GRID_BOOTSTRAP_FIELD_NAMES,
 } from '../registry/locationForm.registry';
 import type { LocationFormValues } from '../types/locationForm.types';
+import type { LocationFormUiPolicy } from '../utils/locationFormUiRules';
 
 export type GetLocationFieldConfigsOptions = {
   policyCharacters?: { id: string; name: string }[];
@@ -19,6 +20,11 @@ export type GetLocationFieldConfigsOptions = {
   gridCellUnitOptions?: { value: string; label: string }[];
   /** When false, omits optional default-map grid bootstrap fields (system patch flow). */
   includeGridBootstrap?: boolean;
+  /**
+   * Scale/category/parent visibility and scale disabled state — from shared UI helpers.
+   * When omitted, all scales and fields are available (legacy / patch flows).
+   */
+  locationUiPolicy?: LocationFormUiPolicy;
 };
 
 export const getLocationFieldConfigs = (
@@ -29,12 +35,22 @@ export const getLocationFieldConfigs = (
     parentLocationOptions,
     gridCellUnitOptions,
     includeGridBootstrap = true,
+    locationUiPolicy,
   } = options;
 
-  const specs =
+  let specs =
     includeGridBootstrap === false
       ? LOCATION_FORM_FIELDS.filter((f) => !LOCATION_GRID_BOOTSTRAP_FIELD_NAMES.has(f.name))
-      : LOCATION_FORM_FIELDS;
+      : [...LOCATION_FORM_FIELDS];
+
+  if (locationUiPolicy) {
+    if (!locationUiPolicy.showCategoryField) {
+      specs = specs.filter((f) => f.name !== 'category');
+    }
+    if (!locationUiPolicy.showParentField) {
+      specs = specs.filter((f) => f.name !== 'parentId');
+    }
+  }
 
   const configs = buildFieldConfigs(specs, {
     policyCharacters,
@@ -51,6 +67,13 @@ export const getLocationFieldConfigs = (
           gridCellUnitOptions && gridCellUnitOptions.length > 0
             ? gridCellUnitOptions
             : f.options,
+      };
+    }
+    if (f.name === 'scale' && f.type === 'select' && locationUiPolicy) {
+      return {
+        ...f,
+        options: locationUiPolicy.scaleSelectOptions,
+        disabled: locationUiPolicy.scaleFieldDisabled,
       };
     }
     return f;

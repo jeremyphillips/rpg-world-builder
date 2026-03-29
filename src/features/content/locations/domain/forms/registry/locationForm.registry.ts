@@ -10,7 +10,6 @@ import {
   GRID_SIZE_PRESETS,
   type GridSizePreset,
 } from '@/shared/domain/grid/gridPresets';
-import { when } from '@/ui/patterns';
 import type { Location } from '@/features/content/locations/domain/types';
 import type { LocationInput } from '@/features/content/locations/domain/types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
@@ -89,22 +88,6 @@ export const LOCATION_FORM_FIELDS = [
     format: (v) => strOrEmpty(v) as LocationFormValues['parentId'],
   },
   {
-    name: 'createGrid',
-    label: 'Create a default map grid',
-    kind: 'checkbox' as const,
-    helperText: 'Optional — saves a rectangular grid on the default location map',
-    defaultValue: false as LocationFormValues['createGrid'],
-    parse: () => undefined,
-    format: () => false as LocationFormValues['createGrid'],
-    group: {
-      id: 'mapGrid',
-      label: 'Map grid',
-      helperText: 'Bounding rectangle only; irregular shapes can use layout masking later.',
-      direction: 'column' as const,
-      spacing: 2,
-    },
-  },
-  {
     name: 'gridPreset',
     label: 'Size preset',
     kind: 'select' as const,
@@ -113,10 +96,10 @@ export const LOCATION_FORM_FIELDS = [
     defaultValue: '' as LocationFormValues['gridPreset'],
     parse: () => undefined,
     format: () => '' as LocationFormValues['gridPreset'],
-    visibleWhen: when.eq('createGrid', true),
     group: {
       id: 'mapGrid',
       label: 'Map grid',
+      helperText: 'Bounding rectangle only; irregular shapes can use layout masking later.',
       direction: 'column' as const,
       spacing: 2,
     },
@@ -128,7 +111,6 @@ export const LOCATION_FORM_FIELDS = [
     defaultValue: '' as LocationFormValues['gridColumns'],
     parse: () => undefined,
     format: () => '' as LocationFormValues['gridColumns'],
-    visibleWhen: when.eq('createGrid', true),
     validation: { rules: [{ kind: 'min', value: 1, message: 'Must be at least 1' }] },
     group: {
       id: 'mapGrid',
@@ -144,7 +126,6 @@ export const LOCATION_FORM_FIELDS = [
     defaultValue: '' as LocationFormValues['gridRows'],
     parse: () => undefined,
     format: () => '' as LocationFormValues['gridRows'],
-    visibleWhen: when.eq('createGrid', true),
     validation: { rules: [{ kind: 'min', value: 1, message: 'Must be at least 1' }] },
     group: {
       id: 'mapGrid',
@@ -162,7 +143,6 @@ export const LOCATION_FORM_FIELDS = [
     defaultValue: '5ft' as LocationFormValues['gridCellUnit'],
     parse: () => undefined,
     format: () => '5ft' as LocationFormValues['gridCellUnit'],
-    visibleWhen: when.eq('createGrid', true),
     group: {
       id: 'mapGrid',
       label: 'Map grid',
@@ -233,7 +213,6 @@ export const LOCATION_FORM_FIELDS = [
 
 /** Fields filtered when map bootstrap UI is hidden (e.g. system patch editor). */
 export const LOCATION_GRID_BOOTSTRAP_FIELD_NAMES = new Set<string>([
-  'createGrid',
   'gridPreset',
   'gridColumns',
   'gridRows',

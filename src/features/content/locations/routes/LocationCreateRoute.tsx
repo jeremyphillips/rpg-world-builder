@@ -12,9 +12,14 @@ import {
   getLocationFieldConfigs,
   LOCATION_FORM_DEFAULTS,
   toLocationInput,
-  useParentLocationPickerOptions,
   validateGridBootstrap,
   bootstrapDefaultLocationMap,
+  applyScaleToLocationFormUiPolicy,
+  buildLocationFormUiPolicy,
+  getAllowedCellUnitOptionsForScale,
+  useLocationFormCampaignData,
+  useLocationFormDefaultWorldScale,
+  useLocationFormScaleEffects,
 } from '@/features/content/locations/domain';
 import {
   LocationGridAuthoringSection,
@@ -23,7 +28,6 @@ import {
 } from '@/features/content/locations/components';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import Stack from '@mui/material/Stack';
-import { CELL_UNITS_BY_KIND, mapKindForLocationScale } from '@/shared/domain/locations';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
@@ -39,7 +43,7 @@ export default function LocationCreateRoute() {
     mode: 'onBlur',
     reValidateMode: 'onChange',
   });
-  const { setValue, watch, formState: { isDirty } } = methods;
+  const { setValue, watch, getValues, formState: { isDirty } } = methods;
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<ValidationError[]>([]);
@@ -50,31 +54,54 @@ export default function LocationCreateRoute() {
   const { policyValue, handlePolicyChange } =
     useAccessPolicyField<LocationFormValues>(watch, setValue);
 
-  const parentLocationOptions = useParentLocationPickerOptions(campaignId ?? undefined);
-
   const scale = watch('scale');
-  const gridCellUnitOptions = useMemo(() => {
-    const kind = mapKindForLocationScale(scale);
-    return CELL_UNITS_BY_KIND[kind].map((u) => ({ value: u, label: u }));
-  }, [scale]);
+  const {
+    campaignHasWorldLocation,
+    parentLocationOptions,
+    loading: locationsLoading,
+    locations,
+  } = useLocationFormCampaignData(campaignId ?? undefined, scale);
+
+  const locationUiPolicy = useMemo(
+    () =>
+      applyScaleToLocationFormUiPolicy(
+        buildLocationFormUiPolicy('create', campaignHasWorldLocation),
+        scale,
+      ),
+    [campaignHasWorldLocation, scale],
+  );
+
+  const gridCellUnitOptions = useMemo(() => getAllowedCellUnitOptionsForScale(scale), [scale]);
+
+  useLocationFormScaleEffects(scale, getValues, setValue);
+  useLocationFormDefaultWorldScale(
+    campaignId,
+    locationsLoading,
+    campaignHasWorldLocation,
+    locations.length,
+    setValue,
+  );
 
   const gridPreset = watch('gridPreset');
-  const createGrid = watch('createGrid');
   const gridColumns = watch('gridColumns');
   const gridRows = watch('gridRows');
 
   useEffect(() => {
-    if (!createGrid) setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
-  }, [createGrid]);
+    const cols = Number(gridColumns);
+    const rows = Number(gridRows);
+    const valid =
+      Number.isInteger(cols) && cols > 0 && Number.isInteger(rows) && rows > 0;
+    if (!valid) setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+  }, [gridColumns, gridRows]);
 
   useEffect(() => {
-    if (!createGrid || !gridPreset) return;
+    if (!gridPreset) return;
     const p = GRID_SIZE_PRESETS[gridPreset as keyof typeof GRID_SIZE_PRESETS];
     if (p) {
       setValue('gridColumns', String(p.columns));
       setValue('gridRows', String(p.rows));
     }
-  }, [createGrid, gridPreset, setValue]);
+  }, [gridPreset, setValue]);
 
   const fieldConfigs = useMemo(
     () =>
@@ -82,8 +109,9 @@ export default function LocationCreateRoute() {
         policyCharacters,
         parentLocationOptions,
         gridCellUnitOptions,
+        locationUiPolicy,
       }),
-    [policyCharacters, parentLocationOptions, gridCellUnitOptions],
+    [policyCharacters, parentLocationOptions, gridCellUnitOptions, locationUiPolicy],
   );
 
   const handleSubmit = useCallback(
@@ -99,16 +127,14 @@ export default function LocationCreateRoute() {
       try {
         const input = toLocationInput(values);
         const created = await locationRepo.createEntry(campaignId, input);
-        if (values.createGrid) {
-          await bootstrapDefaultLocationMap(
-            campaignId,
-            created.id,
-            created.name,
-            created.scale as LocationScaleId,
-            values,
-            { excludedCellIds: gridDraft.excludedCellIds },
-          );
-        }
+        await bootstrapDefaultLocationMap(
+          campaignId,
+          created.id,
+          created.name,
+          created.scale as LocationScaleId,
+          values,
+          { excludedCellIds: gridDraft.excludedCellIds },
+        );
         navigate(`/campaigns/${campaignId}/world/locations/${created.id}`, { replace: true });
       } catch (e) {
         setErrors([
@@ -152,7 +178,6 @@ export default function LocationCreateRoute() {
           </form>
           <LocationGridAuthoringSection
             key="location-grid-authoring"
-            createGrid={createGrid}
             gridColumns={gridColumns}
             gridRows={gridRows}
             draft={gridDraft}

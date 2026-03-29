@@ -19,5 +19,8 @@ export {
 } from './validation/validateLocationChange';
 export * from './forms';
 export { useParentLocationPickerOptions } from '../hooks/useParentLocationPickerOptions';
+export { useLocationFormCampaignData } from '../hooks/useLocationFormCampaignData';
+export { useLocationFormScaleEffects } from '../hooks/useLocationFormScaleEffects';
+export { useLocationFormDefaultWorldScale } from '../hooks/useLocationFormDefaultWorldScale';
 export * from './list';
 export * from './types';

@@ -19,11 +19,15 @@ import {
   LOCATION_FORM_DEFAULTS,
   locationToFormValues,
   toLocationInput,
-  useParentLocationPickerOptions,
   listLocationMaps,
   validateGridBootstrap,
   bootstrapDefaultLocationMap,
   pickMapGridFormValues,
+  applyScaleToLocationFormUiPolicy,
+  buildLocationFormUiPolicy,
+  getAllowedCellUnitOptionsForScale,
+  useLocationFormCampaignData,
+  useLocationFormScaleEffects,
 } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
@@ -36,11 +40,7 @@ import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessP
 import { usePatchDriverState } from '@/features/content/shared/hooks/usePatchDriverState';
 import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
 import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
-import {
-  CELL_UNITS_BY_KIND,
-  mapKindForLocationScale,
-  type LocationScaleId,
-} from '@/shared/domain/locations';
+import type { LocationScaleId } from '@/shared/domain/locations';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import {
   LocationGridAuthoringSection,
@@ -55,11 +55,6 @@ export default function LocationEditRoute() {
   const { locationId } = useParams<{ locationId: string }>();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
-
-  const parentLocationOptions = useParentLocationPickerOptions(
-    campaignId ?? undefined,
-    locationId,
-  );
 
   const viewer = campaign?.viewer;
   const canDelete = Boolean(
@@ -77,7 +72,7 @@ export default function LocationEditRoute() {
     mode: 'onBlur',
     reValidateMode: 'onChange',
   });
-  const { reset, setValue, watch, formState: { isDirty } } = methods;
+  const { reset, setValue, watch, getValues, formState: { isDirty } } = methods;
 
   const {
     saving,
@@ -112,29 +107,51 @@ export default function LocationEditRoute() {
   useCampaignEntryFormReset(loc, isCampaign ?? false, reset, locationToFormValues);
   useResetEditFeedbackOnChange(watch, clearFeedback);
 
-  const scale = watch('scale');
-  const gridCellUnitOptions = useMemo(() => {
-    const kind = mapKindForLocationScale(scale);
-    return CELL_UNITS_BY_KIND[kind].map((u) => ({ value: u, label: u }));
-  }, [scale]);
+  const watchedScale = watch('scale');
+  const scaleForFormRules =
+    (loc?.source === 'system' && loc ? loc.scale : undefined) ?? watchedScale;
+
+  const {
+    campaignHasWorldLocation,
+    parentLocationOptions,
+  } = useLocationFormCampaignData(campaignId ?? undefined, scaleForFormRules, locationId);
+
+  const locationUiPolicy = useMemo(
+    () =>
+      applyScaleToLocationFormUiPolicy(
+        buildLocationFormUiPolicy('edit', campaignHasWorldLocation),
+        scaleForFormRules,
+      ),
+    [campaignHasWorldLocation, scaleForFormRules],
+  );
+
+  const gridCellUnitOptions = useMemo(
+    () => getAllowedCellUnitOptionsForScale(scaleForFormRules),
+    [scaleForFormRules],
+  );
+
+  useLocationFormScaleEffects(watchedScale, getValues, setValue);
 
   const gridPreset = watch('gridPreset');
-  const createGridWatch = watch('createGrid');
   const gridColumns = watch('gridColumns');
   const gridRows = watch('gridRows');
 
   useEffect(() => {
-    if (!createGridWatch) setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
-  }, [createGridWatch]);
+    const cols = Number(gridColumns);
+    const rows = Number(gridRows);
+    const valid =
+      Number.isInteger(cols) && cols > 0 && Number.isInteger(rows) && rows > 0;
+    if (!valid) setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+  }, [gridColumns, gridRows]);
 
   useEffect(() => {
-    if (!createGridWatch || !gridPreset) return;
+    if (!gridPreset) return;
     const p = GRID_SIZE_PRESETS[gridPreset as keyof typeof GRID_SIZE_PRESETS];
     if (p) {
       setValue('gridColumns', String(p.columns));
       setValue('gridRows', String(p.rows));
     }
-  }, [createGridWatch, gridPreset, setValue]);
+  }, [gridPreset, setValue]);
 
   useEffect(() => {
     if (!campaignId || !locationId || !loc || loc.source !== 'campaign') return;
@@ -143,7 +160,6 @@ export default function LocationEditRoute() {
       if (cancelled) return;
       const def = maps.find((m) => m.isDefault) ?? maps[0];
       if (def) {
-        setValue('createGrid', true);
         setValue('gridPreset', '');
         setValue('gridColumns', String(def.grid.width));
         setValue('gridRows', String(def.grid.height));
@@ -153,7 +169,6 @@ export default function LocationEditRoute() {
           excludedCellIds: def.layout?.excludedCellIds ?? [],
         });
       } else {
-        setValue('createGrid', false);
         setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
       }
     });
@@ -169,8 +184,9 @@ export default function LocationEditRoute() {
         parentLocationOptions,
         gridCellUnitOptions,
         includeGridBootstrap: Boolean(loc && loc.source === 'campaign'),
+        locationUiPolicy,
       }),
-    [policyCharacters, parentLocationOptions, gridCellUnitOptions, loc],
+    [policyCharacters, parentLocationOptions, gridCellUnitOptions, loc, locationUiPolicy],
   );
 
   const { policyValue, handlePolicyChange } = useAccessPolicyField<LocationFormValues>(watch, setValue);
@@ -198,16 +214,14 @@ export default function LocationEditRoute() {
       try {
         const input = toLocationInput(values);
         const updated = await locationRepo.updateEntry(campaignId, locationId, input);
-        if (values.createGrid) {
-          await bootstrapDefaultLocationMap(
-            campaignId,
-            locationId,
-            updated.name,
-            updated.scale as LocationScaleId,
-            values,
-            { excludedCellIds: gridDraft.excludedCellIds },
-          );
-        }
+        await bootstrapDefaultLocationMap(
+          campaignId,
+          locationId,
+          updated.name,
+          updated.scale as LocationScaleId,
+          values,
+          { excludedCellIds: gridDraft.excludedCellIds },
+        );
         reset({
           ...locationToFormValues(updated),
           ...pickMapGridFormValues(values),
@@ -342,7 +356,6 @@ export default function LocationEditRoute() {
           </form>
           <LocationGridAuthoringSection
             key="location-grid-authoring"
-            createGrid={createGridWatch}
             gridColumns={gridColumns}
             gridRows={gridRows}
             draft={gridDraft}

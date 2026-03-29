@@ -8,5 +8,23 @@ export {
   buildParentLocationPickerOptions,
   type BuildParentLocationPickerOptionsArgs,
 } from './utils/parentLocationPickerOptions';
+export {
+  ALL_LOCATION_SCALE_OPTIONS,
+  applyScaleToLocationFormUiPolicy,
+  buildLocationFormUiPolicy,
+  canSelectWorldScale,
+  getAllowedCellUnitOptionsForScale,
+  getAllowedLocationCategoryOptions,
+  getAllowedLocationScaleOptionsForCreate,
+  getFilteredParentLocationsForChildScale,
+  getLocationScaleOptionsForEditDisplay,
+  isLocationScaleFieldEditable,
+  shouldShowLocationCategoryField,
+  shouldShowParentLocationField,
+  type LocationFormUiMode,
+  type LocationFormUiPolicy,
+  type LocationFormUiPolicyBase,
+} from './utils/locationFormUiRules';
+export { getLocationFormPatchForScaleChange } from './utils/locationFormSanitize';
 export { locationToFormValues, toLocationInput } from './mappers/locationForm.mappers';
 export { LOCATION_DETAIL_SPECS, type LocationDetailCtx } from '../details/locationDetail.spec';

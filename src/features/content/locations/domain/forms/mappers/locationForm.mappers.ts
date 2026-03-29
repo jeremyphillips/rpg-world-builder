@@ -37,6 +37,15 @@ export const toLocationInput = (values: LocationFormValues): LocationInput => {
           number: trim(values.labelNumber) || undefined,
         }
       : undefined;
+  const scale = trim(values.scale);
+  if (scale === 'world') {
+    return {
+      ...base,
+      category: undefined,
+      parentId: undefined,
+      label,
+    };
+  }
   return {
     ...base,
     label,

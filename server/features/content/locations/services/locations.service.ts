@@ -1,6 +1,8 @@
 import { CampaignLocation } from '../../../../shared/models/CampaignLocation.model';
 import type { AccessPolicy } from '../../../../../shared/domain/accessPolicy';
+import { LOCATION_CATEGORY_IDS } from '../../../../../shared/domain/locations/location.constants';
 import type { LocationConnection } from '../../../../../shared/domain/locations';
+import { isValidLocationScaleId } from '../../../../../shared/domain/locations/locationScale.rules';
 import {
   buildAncestorIdsFromParentRow,
   type HierarchyValidationError,
@@ -261,6 +263,26 @@ function validateUpdate(body: Record<string, unknown>): ValidationError[] {
   return errors;
 }
 
+function validateCategoryField(category: unknown): ValidationError | null {
+  if (category === undefined || category === null || category === '') return null;
+  if (typeof category !== 'string') {
+    return { path: 'category', code: 'INVALID', message: 'category must be a string' };
+  }
+  const t = category.trim();
+  if (t === '') return null;
+  if (t === 'world') {
+    return { path: 'category', code: 'INVALID', message: 'category cannot be "world"' };
+  }
+  if (!(LOCATION_CATEGORY_IDS as readonly string[]).includes(t)) {
+    return {
+      path: 'category',
+      code: 'INVALID',
+      message: `category must be one of: ${LOCATION_CATEGORY_IDS.join(', ')}`,
+    };
+  }
+  return null;
+}
+
 export async function listLocationsByCampaign(campaignId: string): Promise<LocationDoc[]> {
   const docs = await CampaignLocation.find({ campaignId }).sort({ sortOrder: 1, name: 1 }).lean();
   return docs.map((d) => toDoc(d as Record<string, unknown>));
@@ -292,7 +314,44 @@ export async function createLocation(
     (body.id as string | undefined)?.trim() ||
     generateLocationId(name);
 
+  if (!isValidLocationScaleId(scale)) {
+    return { errors: [{ path: 'scale', code: 'INVALID', message: 'Invalid scale' }] };
+  }
+
+  const worldCount = await CampaignLocation.countDocuments({ campaignId, scale: 'world' });
+  if (scale === 'world' && worldCount > 0) {
+    return {
+      errors: [
+        {
+          path: 'scale',
+          code: 'WORLD_EXISTS',
+          message: 'A world location already exists for this campaign',
+        },
+      ],
+    };
+  }
+
+  const catErr = validateCategoryField(body.category);
+  if (catErr) return { errors: [catErr] };
+
+  if (
+    scale === 'world' &&
+    body.category !== undefined &&
+    body.category !== null &&
+    String(body.category).trim() !== ''
+  ) {
+    return {
+      errors: [{ path: 'category', code: 'INVALID', message: 'World locations cannot have a category' }],
+    };
+  }
+
   const resolvedParentId = resolveParentIdForCreate(body);
+
+  if (scale === 'world' && resolvedParentId) {
+    return {
+      errors: [{ path: 'parentId', code: 'INVALID', message: 'World locations cannot have a parent' }],
+    };
+  }
 
   const assignErrors = await validateParentAssignment(campaignId, locationId, scale, resolvedParentId ?? null);
   if (assignErrors.length > 0) return { errors: assignErrors };
@@ -319,7 +378,7 @@ export async function createLocation(
     locationId,
     name,
     scale,
-    category: body.category as string | undefined,
+    category: scale === 'world' ? undefined : (body.category as string | undefined),
     description: body.description as string | undefined,
     imageKey: body.imageKey as string | undefined,
     accessPolicy,
@@ -349,6 +408,41 @@ export async function updateLocation(
   if (!existing) return null;
 
   const existingRow = existing as Record<string, unknown>;
+
+  if (body.scale !== undefined) {
+    const next = (body.scale as string).trim();
+    if (next !== (existingRow.scale as string)) {
+      return {
+        errors: [
+          {
+            path: 'scale',
+            code: 'IMMUTABLE',
+            message: 'scale cannot be changed after creation',
+          },
+        ],
+      };
+    }
+  }
+
+  if (body.category !== undefined) {
+    const cErr = validateCategoryField(body.category);
+    if (cErr) return { errors: [cErr] };
+  }
+
+  const existingScale = existingRow.scale as string;
+  if (existingScale === 'world') {
+    if (body.category !== undefined && body.category !== null && String(body.category).trim() !== '') {
+      return {
+        errors: [{ path: 'category', code: 'INVALID', message: 'World locations cannot have a category' }],
+      };
+    }
+    if (body.parentId !== undefined && body.parentId !== null && String(body.parentId).trim() !== '') {
+      return {
+        errors: [{ path: 'parentId', code: 'INVALID', message: 'World locations cannot have a parent' }],
+      };
+    }
+  }
+
   const existingParentId = existingRow.parentId as string | undefined;
 
   const parentIdInBody = 'parentId' in body;

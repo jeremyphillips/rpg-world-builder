@@ -15,7 +15,6 @@ import {
 import { pruneExcludedCellIdsForGrid } from '@/features/content/locations/domain/maps/gridLayoutDraft';
 
 export function validateGridBootstrap(values: LocationFormValues): string | null {
-  if (!values.createGrid) return null;
   const cols = Number(values.gridColumns);
   const rows = Number(values.gridRows);
   if (!Number.isInteger(cols) || cols < 1) {
@@ -39,8 +38,6 @@ export async function bootstrapDefaultLocationMap(
   values: LocationFormValues,
   gridLayout?: { excludedCellIds?: string[] },
 ): Promise<void> {
-  if (!values.createGrid) return;
-
   const err = validateGridBootstrap(values);
   if (err) throw new Error(err);
 
@@ -85,12 +82,8 @@ export async function bootstrapDefaultLocationMap(
 
 export function pickMapGridFormValues(
   values: LocationFormValues,
-): Pick<
-  LocationFormValues,
-  'createGrid' | 'gridPreset' | 'gridColumns' | 'gridRows' | 'gridCellUnit'
-> {
+): Pick<LocationFormValues, 'gridPreset' | 'gridColumns' | 'gridRows' | 'gridCellUnit'> {
   return {
-    createGrid: values.createGrid,
     gridPreset: values.gridPreset,
     gridColumns: values.gridColumns,
     gridRows: values.gridRows,

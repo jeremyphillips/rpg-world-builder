@@ -13,7 +13,6 @@ import { pruneExcludedCellIdsForGrid } from '@/features/content/locations/domain
 import type { LocationGridDraftState } from './locationGridDraft.types';
 
 type LocationGridAuthoringSectionProps = {
-  createGrid: boolean;
   gridColumns: string;
   gridRows: string;
   draft: LocationGridDraftState;
@@ -22,7 +21,6 @@ type LocationGridAuthoringSectionProps = {
 };
 
 export function LocationGridAuthoringSection({
-  createGrid,
   gridColumns,
   gridRows,
   draft,
@@ -33,12 +31,11 @@ export function LocationGridAuthoringSection({
   const rows = Number(gridRows);
   const validPreview = useMemo(
     () =>
-      createGrid &&
       Number.isInteger(cols) &&
       cols > 0 &&
       Number.isInteger(rows) &&
       rows > 0,
-    [createGrid, cols, rows],
+    [cols, rows],
   );
 
   useEffect(() => {
