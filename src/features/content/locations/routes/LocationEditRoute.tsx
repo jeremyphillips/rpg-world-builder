@@ -28,12 +28,11 @@ import {
   applyScaleToLocationFormUiPolicy,
   buildLocationFormUiPolicy,
   getAllowedCellUnitOptionsForScale,
-  getAllowedGeometryOptionsForScale,
+  getDefaultGeometryForScale,
   isLocationScaleSelected,
   useLocationFormCampaignData,
   useLocationFormDependentFieldEffects,
 } from '@/features/content/locations/domain';
-import type { GridGeometryId } from '@/shared/domain/grid/gridGeometry';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer, ConfirmModal, VisibilityField } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
@@ -147,11 +146,6 @@ export default function LocationEditRoute() {
     () => getAllowedCellUnitOptionsForScale(scaleForFormRules),
     [scaleForFormRules],
   );
-  const gridGeometryOptions = useMemo(
-    () => getAllowedGeometryOptionsForScale(scaleForFormRules),
-    [scaleForFormRules],
-  );
-
   useLocationFormDependentFieldEffects(
     scaleForFormRules,
     locations,
@@ -163,7 +157,7 @@ export default function LocationEditRoute() {
   const gridPreset = watch('gridPreset');
   const gridColumns = watch('gridColumns');
   const gridRows = watch('gridRows');
-  const gridGeometry = watch('gridGeometry');
+  const gridGeometry = watch('gridGeometry') || getDefaultGeometryForScale(scaleForFormRules);
 
   useEffect(() => {
     const cols = Number(gridColumns);
@@ -214,12 +208,11 @@ export default function LocationEditRoute() {
       getLocationFieldConfigs({
         policyCharacters,
         parentLocationOptions,
-        gridGeometryOptions,
         gridCellUnitOptions,
         includeGridBootstrap: Boolean(loc && loc.source === 'campaign'),
         locationUiPolicy,
       }),
-    [policyCharacters, parentLocationOptions, gridGeometryOptions, gridCellUnitOptions, loc, locationUiPolicy],
+    [policyCharacters, parentLocationOptions, gridCellUnitOptions, loc, locationUiPolicy],
   );
 
   const showMapGridAuthoring = isLocationScaleSelected(watchedScale);
@@ -369,7 +362,7 @@ export default function LocationEditRoute() {
               <LocationGridAuthoringSection
                 gridColumns={gridColumns}
                 gridRows={gridRows}
-                gridGeometry={(gridGeometry || 'square') as GridGeometryId}
+                gridGeometry={gridGeometry}
                 draft={gridDraft}
                 setDraft={setGridDraft}
                 locations={locations}
@@ -468,7 +461,7 @@ export default function LocationEditRoute() {
               <LocationGridAuthoringSection
                 gridColumns={gridColumns}
                 gridRows={gridRows}
-                gridGeometry={(gridGeometry || 'square') as GridGeometryId}
+                gridGeometry={gridGeometry}
                 draft={gridDraft}
                 setDraft={setGridDraft}
                 locations={locations}

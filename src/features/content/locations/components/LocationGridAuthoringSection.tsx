@@ -32,7 +32,7 @@ const CANVAS_INSET_PX = 48 // breathing room so grid doesn't touch canvas edges
 type LocationGridAuthoringSectionProps = {
   gridColumns: string;
   gridRows: string;
-  gridGeometry?: GridGeometryId;
+  gridGeometry?: GridGeometryId | string;
   draft: LocationGridDraftState;
   setDraft: Dispatch<SetStateAction<LocationGridDraftState>>;
   /** Campaign locations (for cell modal link picker). */
@@ -124,9 +124,9 @@ export function LocationGridAuthoringSection({
     const canvasW = vw - LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX - CANVAS_INSET_PX * 2
 
     if (isHex) {
-      const hexRatio = 2 / Math.sqrt(3)
+      const hexRatio = Math.sqrt(3) / 2
       const maxHexW_fromW = (canvasW - 0.25) / (0.75 * (cols - 1) + 1)
-      const maxHexH = canvasH / (rows + 0.5)
+      const maxHexH = canvasH / ((rows - 1) + 1 + 0.5)
       const maxHexW_fromH = maxHexH / hexRatio
       const hexCellPx = Math.max(MIN_CELL_PX, Math.floor(Math.min(maxHexW_fromW, maxHexW_fromH)))
       const width = Math.ceil(0.75 * hexCellPx * (cols - 1) + hexCellPx)

@@ -10,7 +10,6 @@ import {
   GRID_SIZE_PRESETS,
   type GridSizePreset,
 } from '@/shared/domain/grid/gridPresets';
-import { GRID_GEOMETRY_IDS } from '@/shared/domain/grid/gridGeometry';
 import type { Location } from '@/features/content/locations/domain/types';
 import type { LocationInput } from '@/features/content/locations/domain/types';
 import { when } from '@/ui/patterns';
@@ -44,11 +43,6 @@ const GRID_PRESET_OPTIONS = [
 const GRID_CELL_UNIT_OPTIONS = LOCATION_CELL_UNIT_IDS.map((u) => ({
   value: u,
   label: u,
-}));
-
-const GRID_GEOMETRY_OPTIONS = GRID_GEOMETRY_IDS.map((g) => ({
-  value: g,
-  label: g.slice(0, 1).toUpperCase() + g.slice(1),
 }));
 
 const splitList = (v: unknown): string[] => {
@@ -101,24 +95,6 @@ export const LOCATION_FORM_FIELDS = [
     format: (v) => strOrEmpty(v) as LocationFormValues['parentId'],
   },
   {
-    name: 'gridGeometry',
-    label: 'Grid geometry',
-    kind: 'select' as const,
-    options: GRID_GEOMETRY_OPTIONS,
-    placeholder: 'Choose geometry',
-    defaultValue: 'square' as LocationFormValues['gridGeometry'],
-    parse: () => undefined,
-    format: () => 'square' as LocationFormValues['gridGeometry'],
-    visibleWhen: VISIBLE_WHEN_SCALE_SELECTED,
-    group: {
-      id: 'mapGrid',
-      label: 'Map grid',
-      helperText: 'Bounding rectangle only; irregular shapes can use layout masking later.',
-      direction: 'column' as const,
-      spacing: 2,
-    },
-  },
-  {
     name: 'gridPreset',
     label: 'Size preset',
     kind: 'select' as const,
@@ -131,6 +107,7 @@ export const LOCATION_FORM_FIELDS = [
     group: {
       id: 'mapGrid',
       label: 'Map grid',
+      helperText: 'Bounding rectangle only; irregular shapes can use layout masking later.',
       direction: 'column' as const,
       spacing: 2,
     },

@@ -1,6 +1,11 @@
 import { useMemo, type ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
+import {
+  GRID_CELL_BORDER_COLOR,
+  GRID_CELL_BORDER_COLOR_EXCLUDED,
+  gridCellSelectedShadow,
+} from './gridCellStyles'
 
 export type GridCell = {
   cellId: string
@@ -88,7 +93,7 @@ export default function GridEditor({
               minHeight: 0,
               border: 1,
               borderRadius: 0.5,
-              borderColor: excluded ? 'text.disabled' : 'divider',
+              borderColor: excluded ? GRID_CELL_BORDER_COLOR_EXCLUDED : GRID_CELL_BORDER_COLOR,
               borderStyle: excluded && !selected ? 'dashed' : 'solid',
               bgcolor: selected
                 ? 'action.selected'
@@ -107,7 +112,7 @@ export default function GridEditor({
               lineHeight: 1.2,
               color: excluded ? 'text.secondary' : 'text.primary',
               boxShadow: selected
-                ? (theme) => `inset 0 0 0 2px ${theme.palette.primary.main}`
+                ? (theme) => gridCellSelectedShadow(theme)
                 : undefined,
               '&:hover': disabled
                 ? undefined

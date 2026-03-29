@@ -11,6 +11,7 @@
 import { useMemo, type ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
+import { gridCellBorderSx, gridCellSelectedShadow } from './gridCellStyles'
 
 export type HexGridCell = {
   cellId: string
@@ -56,7 +57,7 @@ export default function HexGridEditor({
   )
 
   const hexW = hexSize
-  const hexH = hexSize * (2 / Math.sqrt(3))
+  const hexH = hexSize * (Math.sqrt(3) / 2)
 
   const colStep = hexW * 0.75
   const rowStep = hexH
@@ -64,7 +65,7 @@ export default function HexGridEditor({
   const containerW = safeCols > 0 ? colStep * (safeCols - 1) + hexW : 0
   const containerH =
     safeRows > 0
-      ? rowStep * safeRows + hexH * 0.5
+      ? rowStep * (safeRows - 1) + hexH + rowStep * 0.5
       : 0
 
   return (
@@ -135,8 +136,8 @@ export default function HexGridEditor({
                 ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
                 : undefined,
               boxShadow: selected
-                ? (theme) => `inset 0 0 0 2px ${theme.palette.primary.main}`
-                : (theme) => `inset 0 0 0 1px ${excluded ? theme.palette.text.disabled : theme.palette.divider}`,
+                ? (theme) => gridCellSelectedShadow(theme)
+                : (theme) => `inset 0 0 0 1px ${gridCellBorderSx(theme, excluded)}`,
               '&:hover': disabled
                 ? undefined
                 : {
