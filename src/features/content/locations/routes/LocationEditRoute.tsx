@@ -19,6 +19,7 @@ import {
   LOCATION_FORM_DEFAULTS,
   locationToFormValues,
   toLocationInput,
+  useParentLocationPickerOptions,
 } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
@@ -40,6 +41,11 @@ export default function LocationEditRoute() {
   const { locationId } = useParams<{ locationId: string }>();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
+
+  const parentLocationOptions = useParentLocationPickerOptions(
+    campaignId ?? undefined,
+    locationId,
+  );
 
   const viewer = campaign?.viewer;
   const canDelete = Boolean(
@@ -149,7 +155,10 @@ export default function LocationEditRoute() {
     return <AppAlert tone="danger">{error ?? 'Location not found.'}</AppAlert>;
   }
 
-  const fieldConfigs = getLocationFieldConfigs({ policyCharacters });
+  const fieldConfigs = getLocationFieldConfigs({
+    policyCharacters,
+    parentLocationOptions,
+  });
 
   if (isSystem && driver) {
     return (

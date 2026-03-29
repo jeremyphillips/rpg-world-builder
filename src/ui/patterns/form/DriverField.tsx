@@ -25,6 +25,8 @@ import { usePatchValidation } from './validation/PatchValidationContext';
 import ImageUploadField from './ImageUploadField';
 import JsonPreviewField from './JsonPreviewField';
 import VisibilityField from './VisibilityField';
+import OptionPickerField from './OptionPickerField';
+import { pickerArrayToFormValue, pickerValueToArray } from './optionPickerBridge';
 
 export type PatchDriver = {
   getValue(path: string): unknown;
@@ -89,7 +91,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
       }
       patchValidation?.clearError(field.name);
     },
-    [field.patchBinding, boundOnChange, driver, path, patchValidation],
+    [field.patchBinding, field.name, boundOnChange, driver, path, patchValidation],
   );
 
   const getValueForField = useCallback(
@@ -352,6 +354,34 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
           {FieldDescription}
         </Box>
       );
+
+    case 'optionPicker': {
+      const fieldTyped = field as Extract<FieldConfig, { type: 'optionPicker' }>;
+      const mode = fieldTyped.valueMode ?? 'array';
+      const pickerValue = pickerValueToArray(displayValue, mode);
+      return (
+        <Box>
+          <OptionPickerField
+            label={field.label}
+            options={fieldTyped.options}
+            value={pickerValue}
+            onChange={(next) => {
+              handleChange(pickerArrayToFormValue(next, mode));
+            }}
+            onBlur={handleBlur}
+            maxItems={fieldTyped.maxItems}
+            placeholder={field.placeholder}
+            disabled={field.disabled}
+            emptyMessage={fieldTyped.emptyMessage}
+            noResultsMessage={fieldTyped.noResultsMessage}
+            renderSelectedAs={fieldTyped.renderSelectedAs}
+            helperText={helperText}
+            error={hasError}
+          />
+          {FieldDescription}
+        </Box>
+      );
+    }
 
     case 'hidden': {
       const value = displayValue;

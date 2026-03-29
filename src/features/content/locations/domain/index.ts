@@ -8,5 +8,6 @@ export {
   type LocationValidationMode,
 } from './validation/validateLocationChange';
 export * from './forms';
+export { useParentLocationPickerOptions } from '../hooks/useParentLocationPickerOptions';
 export * from './list';
 export * from './types';

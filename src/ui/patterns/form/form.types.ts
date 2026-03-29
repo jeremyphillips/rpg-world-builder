@@ -1,5 +1,8 @@
 import type { RegisterOptions } from 'react-hook-form';
 import type { Condition } from './conditions';
+import type { PickerOption } from './OptionPickerField';
+
+export type { PickerOption } from './OptionPickerField';
 
 export type SelectOption = {
   label: string
@@ -103,6 +106,17 @@ export type FieldConfig =
       placeholder?: string
       minRows?: number
       maxRows?: number
+    }
+  | BaseFieldConfig & {
+      type: 'optionPicker'
+      options: PickerOption[]
+      maxItems?: number
+      placeholder?: string
+      emptyMessage?: string
+      noResultsMessage?: string
+      renderSelectedAs?: 'chip' | 'mini-card'
+      /** 'scalar' = string in form values; 'array' = string[] */
+      valueMode?: 'scalar' | 'array'
     }
   | Omit<BaseFieldConfig, 'label'> & {
       type: 'hidden'

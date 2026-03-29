@@ -13,6 +13,7 @@ import {
   getLocationFieldConfigs,
   LOCATION_FORM_DEFAULTS,
   toLocationInput,
+  useParentLocationPickerOptions,
 } from '@/features/content/locations/domain';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 
@@ -36,6 +37,8 @@ export default function LocationCreateRoute() {
   const { policyValue, handlePolicyChange } =
     useAccessPolicyField<LocationFormValues>(watch, setValue);
 
+  const parentLocationOptions = useParentLocationPickerOptions(campaignId ?? undefined);
+
   const handleSubmit = useCreateEntrySubmit<
     LocationFormValues,
     Parameters<typeof locationRepo.createEntry>[1],
@@ -54,7 +57,10 @@ export default function LocationCreateRoute() {
     navigate(`/campaigns/${campaignId}/world/locations`);
   }, [navigate, campaignId]);
 
-  const fieldConfigs = getLocationFieldConfigs({ policyCharacters });
+  const fieldConfigs = getLocationFieldConfigs({
+    policyCharacters,
+    parentLocationOptions,
+  });
 
   return (
     <FormProvider {...methods}>

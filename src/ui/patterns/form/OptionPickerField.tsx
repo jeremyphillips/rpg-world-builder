@@ -40,6 +40,10 @@ export type OptionPickerFieldProps = {
   /** Shown below the filter input (not inside the dropdown panel) */
   helperText?: string
   className?: string
+  /** When true, field shows validation error styling */
+  error?: boolean
+  /** Forwarded to the filter input (e.g. RHF blur validation) */
+  onBlur?: () => void
 }
 
 function normalize(s: string) {
@@ -68,6 +72,8 @@ export default function OptionPickerField({
   renderSelectedAs = 'chip',
   helperText,
   className,
+  error,
+  onBlur,
 }: OptionPickerFieldProps) {
   const [filter, setFilter] = useState('')
   const [open, setOpen] = useState(false)
@@ -122,7 +128,12 @@ export default function OptionPickerField({
   const renderSelectedDescription = (v: string) => resolveOption(v)?.description
 
   return (
-    <FormControl fullWidth disabled={disabled} className={className}>
+    <FormControl
+      fullWidth
+      disabled={disabled}
+      className={className}
+      error={Boolean(error)}
+    >
       <ClickAwayListener onClickAway={() => setOpen(false)}>
         <Box>
           <TextField
@@ -134,6 +145,8 @@ export default function OptionPickerField({
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             onFocus={() => !disabled && setOpen(true)}
+            onBlur={onBlur}
+            error={Boolean(error)}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
                 setOpen(false)
@@ -199,7 +212,9 @@ export default function OptionPickerField({
           )}
 
           {helperText ? (
-            <FormHelperText sx={{ mx: 0 }}>{helperText}</FormHelperText>
+            <FormHelperText error={Boolean(error)} sx={{ mx: 0 }}>
+              {helperText}
+            </FormHelperText>
           ) : null}
 
           <Stack
