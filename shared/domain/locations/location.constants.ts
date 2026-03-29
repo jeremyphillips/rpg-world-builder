@@ -4,6 +4,9 @@
  * `LOCATION_SCALE_ORDER` is the generic ranking (broader ↔ finer). Explicit parent rules
  * live in `locationScale.policy.ts` (`ALLOWED_PARENT_SCALES_BY_SCALE`); do not infer allowed
  * parents from order alone.
+ *
+ * Map cell authoring (linked locations + objects on a cell) uses `locationMapPlacement.policy.ts`
+ * — separate from parent-scale policy and from generic ordering.
  */
 
 /** Coarsest → finest; structural ordering for generic comparisons (`locationScale.rules.ts`). */

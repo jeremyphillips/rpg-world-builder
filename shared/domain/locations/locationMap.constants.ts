@@ -3,6 +3,18 @@ export const LOCATION_MAP_GRID_MAX_HEIGHT = 200;
 
 export const LOCATION_MAP_KIND_IDS = ['world-grid', 'area-grid', 'encounter-grid'] as const;
 
+/**
+ * Simple authored contents for a map cell (markers, props, openings).
+ * Placement *which* kinds are allowed on a host map is `locationMapPlacement.policy.ts`.
+ */
+export const LOCATION_MAP_OBJECT_KIND_IDS = [
+  'marker',
+  'obstacle',
+  'treasure',
+  'door',
+  'stairs',
+] as const;
+
 /** Alias for older imports; same tuple as `LOCATION_MAP_KIND_IDS`. */
 export const LOCATION_MAP_KINDS = LOCATION_MAP_KIND_IDS;
 
