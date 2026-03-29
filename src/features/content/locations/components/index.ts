@@ -10,3 +10,12 @@ export type {
   LocationCellObjectDraft,
   LocationGridDraftState,
 } from './locationGridDraft.types'
+export {
+  LocationEditorWorkspace,
+  LocationEditorHeader,
+  LocationEditorCanvas,
+  LocationEditorRightRail,
+  LocationAncestryBreadcrumbs,
+  LOCATION_EDITOR_HEADER_HEIGHT_PX,
+  LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX,
+} from './workspace'

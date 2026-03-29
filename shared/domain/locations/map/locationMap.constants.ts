@@ -31,9 +31,9 @@ export const LOCATION_CELL_UNIT_IDS = [
 type _MapKind = (typeof LOCATION_MAP_KIND_IDS)[number];
 type _CellUnit = (typeof LOCATION_CELL_UNIT_IDS)[number];
 
-/** Cell units allowed per map kind (authoring). World-scale maps use mile only. */
+/** Cell units allowed per map kind (authoring). Must be a superset of what each scale in that kind allows. */
 export const CELL_UNITS_BY_KIND: Record<_MapKind, readonly _CellUnit[]> = {
   'world-grid': ['mile'],
-  'area-grid': ['block', '100ft', '25ft'],
+  'area-grid': ['mile', 'half-mile', 'quarter-mile', 'block', '100ft', '25ft', '5ft'],
   'encounter-grid': ['25ft', '5ft'],
 };

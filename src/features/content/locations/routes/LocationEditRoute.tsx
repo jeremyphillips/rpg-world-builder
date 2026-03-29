@@ -8,7 +8,6 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import {
   locationRepo,
@@ -33,7 +32,7 @@ import {
   useLocationFormDependentFieldEffects,
 } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
-import { ConditionalFormRenderer } from '@/ui/patterns';
+import { ConditionalFormRenderer, ConfirmModal, VisibilityField } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
 import { useResetEditFeedbackOnChange } from '@/features/content/shared/hooks/useResetEditFeedbackOnChange';
@@ -47,6 +46,11 @@ import type { LocationScaleId } from '@/shared/domain/locations';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import {
   LocationGridAuthoringSection,
+  LocationEditorWorkspace,
+  LocationEditorHeader,
+  LocationEditorCanvas,
+  LocationEditorRightRail,
+  LocationAncestryBreadcrumbs,
   INITIAL_LOCATION_GRID_DRAFT,
   type LocationGridDraftState,
 } from '@/features/content/locations/components';
@@ -90,6 +94,9 @@ export default function LocationEditRoute() {
   const [gridDraft, setGridDraft] = useState<LocationGridDraftState>(
     INITIAL_LOCATION_GRID_DRAFT,
   );
+  const [rightRailOpen, setRightRailOpen] = useState(true);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const isSystem = loc?.source === 'system';
   const isCampaign = loc?.source === 'campaign';
@@ -308,100 +315,182 @@ export default function LocationEditRoute() {
     return <AppAlert tone="danger">{error ?? 'Location not found.'}</AppAlert>;
   }
 
+  const ancestryBreadcrumbs = (
+    <LocationAncestryBreadcrumbs
+      locations={locations}
+      campaignId={campaignId ?? undefined}
+      currentLocationId={locationId}
+      parentId={loc.parentId}
+    />
+  );
+
   if (isSystem && driver) {
     return (
-      <EntryEditorLayout
-        title={loc.name}
-        typeLabel="Location patch"
-        isNew={false}
-        saving={saving}
-        dirty={driver.isDirty()}
-        success={success}
-        errors={errors}
-        onSave={handlePatchSave}
-        onBack={handleBack}
-      >
-        <Stack spacing={2}>
-          <Typography variant="subtitle1" fontWeight={600}>
-            Patching: {loc.name}
-          </Typography>
-          {loc.patched && (
-            <AppBadge label="Patched" tone="warning" size="small" />
-          )}
-          <ConditionalFormRenderer
-            fields={fieldConfigs}
-            driver={{
-              kind: 'patch',
-              getValue: driver.getValue,
-              setValue: driver.setValue,
-              unsetValue: driver.unsetValue,
-            }}
-            onValidationApi={(api) => {
-              validationApiRef.current = api;
-            }}
+      <LocationEditorWorkspace
+        header={
+          <LocationEditorHeader
+            title={`Patch: ${loc.name}`}
+            ancestryBreadcrumbs={ancestryBreadcrumbs}
+            saving={saving}
+            dirty={driver.isDirty()}
+            isNew={false}
+            onSave={handlePatchSave}
+            onBack={handleBack}
+            errors={errors}
+            success={success}
+            rightRailOpen={rightRailOpen}
+            onToggleRightRail={() => setRightRailOpen((o) => !o)}
           />
-          {hasExistingPatch && (
-            <Button
-              variant="outlined"
-              color="error"
-              size="small"
-              onClick={handleRemovePatch}
-              disabled={saving}
-              sx={{ alignSelf: 'flex-start' }}
-            >
-              Remove patch
-            </Button>
-          )}
-        </Stack>
-      </EntryEditorLayout>
+        }
+        canvas={
+          <LocationEditorCanvas>
+            {showMapGridAuthoring ? (
+              <LocationGridAuthoringSection
+                gridColumns={gridColumns}
+                gridRows={gridRows}
+                draft={gridDraft}
+                setDraft={setGridDraft}
+                locations={locations}
+                campaignId={campaignId ?? undefined}
+                hostLocationId={locationId}
+                hostScale={scaleForFormRules}
+                hostName={loc.name}
+              />
+            ) : null}
+          </LocationEditorCanvas>
+        }
+        rightRail={
+          <LocationEditorRightRail open={rightRailOpen}>
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                Patching: {loc.name}
+              </Typography>
+              {loc.patched && (
+                <AppBadge label="Patched" tone="warning" size="small" />
+              )}
+              <ConditionalFormRenderer
+                fields={fieldConfigs}
+                driver={{
+                  kind: 'patch',
+                  getValue: driver.getValue,
+                  setValue: driver.setValue,
+                  unsetValue: driver.unsetValue,
+                }}
+                onValidationApi={(api) => {
+                  validationApiRef.current = api;
+                }}
+              />
+              {hasExistingPatch && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={handleRemovePatch}
+                  disabled={saving}
+                  sx={{ alignSelf: 'flex-start' }}
+                >
+                  Remove patch
+                </Button>
+              )}
+            </Stack>
+          </LocationEditorRightRail>
+        }
+      />
     );
   }
 
   return (
     <FormProvider {...methods}>
-      <EntryEditorLayout
-        title={loc.name}
-        typeLabel="Location"
-        isNew={false}
-        saving={saving}
-        dirty={isDirty}
-        success={success}
-        errors={errors}
-        formId={FORM_ID}
-        onBack={handleBack}
-        canDelete={canDelete}
-        onDelete={handleDelete}
-        validateDelete={handleValidateDelete}
-        showPolicyField
-        policyValue={policyValue}
-        onPolicyChange={handlePolicyChange}
-        policyCharacters={policyCharacters}
-      >
-        <Stack spacing={2}>
-          <form
-            key="location-form"
-            id={FORM_ID}
-            onSubmit={methods.handleSubmit(handleCampaignSubmit)}
-            noValidate
-          >
-            <ConditionalFormRenderer fields={fieldConfigs} />
-          </form>
-          {showMapGridAuthoring ? (
-            <LocationGridAuthoringSection
-              key="location-grid-authoring"
-              gridColumns={gridColumns}
-              gridRows={gridRows}
-              draft={gridDraft}
-              setDraft={setGridDraft}
-              locations={locations}
-              campaignId={campaignId ?? undefined}
-              hostLocationId={locationId}
-              hostScale={scaleForFormRules}
-              hostName={loc.name}
-            />
-          ) : null}
-        </Stack>
-      </EntryEditorLayout>
+      <LocationEditorWorkspace
+        header={
+          <LocationEditorHeader
+            title={loc.name}
+            ancestryBreadcrumbs={ancestryBreadcrumbs}
+            saving={saving}
+            dirty={isDirty}
+            isNew={false}
+            formId={FORM_ID}
+            onBack={handleBack}
+            errors={errors}
+            success={success}
+            rightRailOpen={rightRailOpen}
+            onToggleRightRail={() => setRightRailOpen((o) => !o)}
+            actions={
+              canDelete ? (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={async () => {
+                    const result = await handleValidateDelete();
+                    if (result.allowed) setDeleteConfirmOpen(true);
+                  }}
+                  disabled={saving || deleting}
+                >
+                  Delete
+                </Button>
+              ) : undefined
+            }
+          />
+        }
+        canvas={
+          <LocationEditorCanvas>
+            {showMapGridAuthoring ? (
+              <LocationGridAuthoringSection
+                gridColumns={gridColumns}
+                gridRows={gridRows}
+                draft={gridDraft}
+                setDraft={setGridDraft}
+                locations={locations}
+                campaignId={campaignId ?? undefined}
+                hostLocationId={locationId}
+                hostScale={scaleForFormRules}
+                hostName={loc.name}
+              />
+            ) : null}
+          </LocationEditorCanvas>
+        }
+        rightRail={
+          <LocationEditorRightRail open={rightRailOpen}>
+            <Stack spacing={2}>
+              <form
+                key="location-form"
+                id={FORM_ID}
+                onSubmit={methods.handleSubmit(handleCampaignSubmit)}
+                noValidate
+              >
+                <ConditionalFormRenderer fields={fieldConfigs} />
+              </form>
+              {policyValue && (
+                <VisibilityField
+                  value={policyValue}
+                  onChange={handlePolicyChange}
+                  characters={policyCharacters}
+                />
+              )}
+            </Stack>
+          </LocationEditorRightRail>
+        }
+      />
+
+      <ConfirmModal
+        open={deleteConfirmOpen}
+        headline="Delete Location"
+        description="Are you sure you want to delete this location? This action cannot be undone."
+        confirmLabel="Delete"
+        confirmColor="error"
+        loading={deleting}
+        onConfirm={async () => {
+          setDeleting(true);
+          try {
+            await handleDelete();
+          } finally {
+            setDeleting(false);
+            setDeleteConfirmOpen(false);
+          }
+        }}
+        onCancel={() => setDeleteConfirmOpen(false)}
+      />
     </FormProvider>
   );
 }

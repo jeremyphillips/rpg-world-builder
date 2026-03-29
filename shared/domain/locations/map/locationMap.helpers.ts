@@ -3,8 +3,14 @@ import type { LocationMapKindId } from './locationMap.types';
 
 type LocationScaleId = (typeof LOCATION_SCALE_ORDER)[number];
 
-const WORLD_SCALES = new Set<LocationScaleId>(['world', 'region', 'subregion']);
-const AREA_SCALES = new Set<LocationScaleId>(['city', 'district', 'site']);
+const WORLD_SCALES = new Set<LocationScaleId>(['world']);
+const AREA_SCALES = new Set<LocationScaleId>([
+  'region',
+  'subregion',
+  'city',
+  'district',
+  'site',
+]);
 
 /** Picks a default map kind from location scale for authored campaign maps. */
 export function mapKindForLocationScale(scale: string): LocationMapKindId {
