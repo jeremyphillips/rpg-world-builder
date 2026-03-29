@@ -5,6 +5,7 @@ import { useCharacter } from '@/features/character/hooks'
 import type { CombatantInstance } from '@/features/mechanics/domain/encounter'
 
 import { buildCombatantPreviewChips } from '@/features/encounter/helpers/presentation'
+import { formatEncounterHeaderSensesLine } from './formatEncounterHeaderSenses'
 import { combatToneToAppBadgeTone } from '../../shared/cards/combatant-badges'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
@@ -51,6 +52,8 @@ export function EncounterActiveCombatantIdentity({
     tone: combatToneToAppBadgeTone(c.tone),
   }))
 
+  const sensesLine = formatEncounterHeaderSensesLine(combatant)
+
   return (
     <Stack spacing={0.5} sx={{ minWidth: 0 }}>
       <Typography variant="h3" sx={{ fontWeight: 700, lineHeight: 1.3 }} noWrap>
@@ -64,6 +67,11 @@ export function EncounterActiveCombatantIdentity({
       <Typography variant="body1" color="text.secondary">
         HP: <strong>{combatant.stats.currentHitPoints}/{combatant.stats.maxHitPoints}</strong> · AC: <strong>{combatant.stats.armorClass}</strong>
       </Typography>
+      {sensesLine && (
+        <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.4 }}>
+          {sensesLine}
+        </Typography>
+      )}
       {chips.length > 0 && (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
           {chips.map((c) => (
