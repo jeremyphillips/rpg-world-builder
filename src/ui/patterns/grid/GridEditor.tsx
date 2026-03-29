@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
 
@@ -16,6 +16,8 @@ export type GridEditorProps = {
   excludedCellIds?: string[]
   onCellClick?: (cell: GridCell) => void
   getCellLabel?: (cell: GridCell) => string | undefined
+  /** When set, rendered inside the cell instead of {@link getCellLabel} text. */
+  renderCellContent?: (cell: GridCell) => ReactNode
   getCellClassName?: (cell: GridCell) => string | undefined
   className?: string
   disabled?: boolean
@@ -28,6 +30,7 @@ export default function GridEditor({
   excludedCellIds,
   onCellClick,
   getCellLabel,
+  renderCellContent,
   getCellClassName,
   className,
   disabled,
@@ -59,6 +62,7 @@ export default function GridEditor({
         const cellId = makeGridCellId(x, y)
         const cell: GridCell = { cellId, x, y }
         const label = getCellLabel?.(cell)
+        const custom = renderCellContent?.(cell)
         const extraClass = getCellClassName?.(cell)
         const selected = selectedCellId != null && selectedCellId === cellId
         const excluded = excludedSet.has(cellId)
@@ -116,7 +120,20 @@ export default function GridEditor({
                   },
             }}
           >
-            {label != null && label !== '' ? (
+            {custom != null && custom !== false ? (
+              <Box
+                sx={{
+                  px: 0.25,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  maxWidth: '100%',
+                  minHeight: 0,
+                }}
+              >
+                {custom}
+              </Box>
+            ) : label != null && label !== '' ? (
               <Box component="span" sx={{ px: 0.25, textAlign: 'center', wordBreak: 'break-word' }}>
                 {label}
               </Box>

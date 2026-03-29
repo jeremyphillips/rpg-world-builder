@@ -1,17 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import BlockIcon from '@mui/icons-material/Block';
-import CategoryIcon from '@mui/icons-material/Category';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import DoorFrontIcon from '@mui/icons-material/DoorFront';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import Inventory2Icon from '@mui/icons-material/Inventory2';
-import LinkIcon from '@mui/icons-material/Link';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import StairsIcon from '@mui/icons-material/Stairs';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -21,7 +9,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
-import IconButton from '@mui/material/IconButton';
 import InputLabel from '@mui/material/InputLabel';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -58,23 +45,6 @@ function formatAncestryDescription(loc: Location, byId: Map<string, Location>): 
     pid = p.parentId;
   }
   return segments.length ? segments.join(' → ') : undefined;
-}
-
-function objectKindIcon(kind: LocationMapObjectKindId) {
-  switch (kind) {
-    case 'marker':
-      return <RadioButtonUncheckedIcon fontSize="small" />;
-    case 'obstacle':
-      return <BlockIcon fontSize="small" />;
-    case 'treasure':
-      return <Inventory2Icon fontSize="small" />;
-    case 'door':
-      return <DoorFrontIcon fontSize="small" />;
-    case 'stairs':
-      return <StairsIcon fontSize="small" />;
-    default:
-      return <CategoryIcon fontSize="small" />;
-  }
 }
 
 export type LocationGridCellModalProps = {
@@ -212,43 +182,32 @@ export function LocationGridCellModal({
               </Typography>
             ) : null}
             {(hostName || hostScale) && (
-              <Stack direction="row" alignItems="center" gap={0.5} sx={{ mt: 1 }}>
-                <LocationOnIcon fontSize="inherit" color="action" sx={{ fontSize: 16 }} />
-                <Typography variant="caption" color="text.secondary">
-                  {hostName ? `${hostName} · ` : ''}
-                  {hostScale} map
-                </Typography>
-              </Stack>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                {hostName ? `${hostName} · ` : ''}
+                {hostScale} map
+              </Typography>
             )}
           </Box>
-          <IconButton aria-label="Close" onClick={onClose} size="small" sx={{ mt: -0.5 }}>
-            <CloseIcon />
-          </IconButton>
+          <Button aria-label="Close" onClick={onClose} size="small" sx={{ minWidth: 0 }}>
+            Close
+          </Button>
         </Stack>
       </DialogTitle>
       <DialogContent dividers>
-        <Stack spacing={0.5} sx={{ mb: 2 }}>
-          <Stack direction="row" alignItems="center" gap={0.5}>
-            <InfoOutlinedIcon color="action" fontSize="small" />
-            <Typography variant="caption" color="text.secondary">
-              {linkedLoc
-                ? `Linked: ${linkedLoc.name}`
-                : 'No location linked'}
-              {cellObjects.length > 0
-                ? ` · ${cellObjects.length} object${cellObjects.length === 1 ? '' : 's'}`
-                : ''}
-            </Typography>
-          </Stack>
-        </Stack>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+          {linkedLoc
+            ? `Linked: ${linkedLoc.name}`
+            : 'No location linked'}
+          {cellObjects.length > 0
+            ? ` · ${cellObjects.length} object${cellObjects.length === 1 ? '' : 's'}`
+            : ''}
+        </Typography>
 
         <Stack spacing={2}>
           <Box>
-            <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 1 }}>
-              <LinkIcon color="primary" fontSize="small" />
-              <Typography variant="subtitle2" fontWeight={600}>
-                Linked location
-              </Typography>
-            </Stack>
+            <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
+              Linked location
+            </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
               Choose an existing location allowed for this map. One link per cell.
             </Typography>
@@ -267,12 +226,9 @@ export function LocationGridCellModal({
           <Divider />
 
           <Box>
-            <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 1 }}>
-              <CategoryIcon color="primary" fontSize="small" />
-              <Typography variant="subtitle2" fontWeight={600}>
-                Cell objects
-              </Typography>
-            </Stack>
+            <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
+              Cell objects
+            </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
               Simple markers and props allowed on this scale.
             </Typography>
@@ -293,20 +249,15 @@ export function LocationGridCellModal({
                     }}
                   >
                     <Stack direction="row" alignItems="center" spacing={1}>
-                      <Chip
-                        size="small"
-                        icon={objectKindIcon(obj.kind)}
-                        label={obj.kind}
-                        variant="outlined"
-                      />
+                      <Chip size="small" label={obj.kind} variant="outlined" />
                       <Box sx={{ flex: 1 }} />
-                      <IconButton
+                      <Button
                         size="small"
-                        aria-label={`Remove ${obj.kind}`}
                         onClick={() => handleRemoveObject(obj.id)}
+                        aria-label={`Remove ${obj.kind}`}
                       >
-                        <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
+                        Remove
+                      </Button>
                     </Stack>
                     <TextField
                       size="small"
@@ -346,10 +297,7 @@ export function LocationGridCellModal({
                 </MenuItem>
                 {kindsAvailableToAdd.map((k) => (
                   <MenuItem key={k} value={k}>
-                    <Stack direction="row" alignItems="center" gap={1}>
-                      {objectKindIcon(k)}
-                      {k}
-                    </Stack>
+                    {k}
                   </MenuItem>
                 ))}
               </Select>
@@ -358,7 +306,7 @@ export function LocationGridCellModal({
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button variant="contained" onClick={onClose} startIcon={<CheckIcon />}>
+        <Button variant="contained" onClick={onClose}>
           Done
         </Button>
       </DialogActions>

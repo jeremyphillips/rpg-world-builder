@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';
+import { createElement, useEffect, useMemo, type Dispatch, type SetStateAction } from 'react';
 import Box from '@mui/material/Box';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Paper from '@mui/material/Paper';
@@ -7,6 +7,10 @@ import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 
 import GridEditor, { type GridCell } from '@/ui/patterns/grid/GridEditor';
+import {
+  getLocationMapObjectKindIcon,
+  getLocationScaleMapIcon,
+} from '@/features/content/locations/domain';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import {
   pruneCellKeyedRecordForGrid,
@@ -102,6 +106,11 @@ export function LocationGridAuthoringSection({
     });
   }, [validPreview, cols, rows, setDraft]);
 
+  const locationById = useMemo(
+    () => new Map(locations.map((l) => [l.id, l])),
+    [locations],
+  );
+
   if (!validPreview) return null;
 
   const onCellClick = (cell: GridCell) => {
@@ -152,6 +161,45 @@ export function LocationGridAuthoringSection({
     : false;
   const excludedCount = draft.excludedCellIds.length;
 
+  const renderMapCellIcons = (cell: GridCell) => {
+    const linkId = draft.linkedLocationByCellId[cell.cellId];
+    const objs = draft.objectsByCellId[cell.cellId];
+    const linked = linkId ? locationById.get(linkId) : undefined;
+    if (!linked && (!objs || objs.length === 0)) return null;
+    const iconSx = {
+      fontSize: 22,
+      width: 22,
+      height: 22,
+      display: 'block' as const,
+    };
+    return (
+      <Stack
+        direction="row"
+        flexWrap="wrap"
+        justifyContent="center"
+        alignItems="center"
+        gap={0.25}
+        sx={{ lineHeight: 0, maxWidth: '100%' }}
+      >
+        {linked
+          ? createElement(getLocationScaleMapIcon(linked.scale), {
+              sx: iconSx,
+              color: 'action',
+              'aria-hidden': true,
+            })
+          : null}
+        {objs?.map((o) =>
+          createElement(getLocationMapObjectKindIcon(o.kind), {
+            key: o.id,
+            sx: iconSx,
+            color: 'action',
+            'aria-hidden': true,
+          }),
+        )}
+      </Stack>
+    );
+  };
+
   return (
     <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
@@ -165,14 +213,7 @@ export function LocationGridAuthoringSection({
           selectedCellId={draft.selectedCellId}
           excludedCellIds={draft.excludedCellIds}
           onCellClick={onCellClick}
-          getCellLabel={(cell) => {
-            const link = draft.linkedLocationByCellId[cell.cellId];
-            const objs = draft.objectsByCellId[cell.cellId];
-            const bits: string[] = [];
-            if (link) bits.push('L');
-            if (objs && objs.length > 0) bits.push(String(objs.length));
-            return bits.length ? bits.join('·') : undefined;
-          }}
+          renderCellContent={renderMapCellIcons}
         />
       </Box>
       <Stack spacing={1} sx={{ mt: 1.5 }}>

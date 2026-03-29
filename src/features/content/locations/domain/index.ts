@@ -14,6 +14,13 @@ export {
   pickMapGridFormValues,
 } from './maps/bootstrapDefaultLocationMap';
 export {
+  getLocationMapObjectKindIcon,
+  getLocationScaleMapIcon,
+  LOCATION_MAP_OBJECT_KIND_ICON,
+  LOCATION_SCALE_MAP_ICON,
+  type LocationMapDisplayIconComponent,
+} from './map/locationMapDisplayIcons';
+export {
   validateLocationChange,
   type LocationValidationMode,
 } from './validation/validateLocationChange';
