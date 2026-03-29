@@ -12,6 +12,7 @@ import {
   listLocationMaps,
   updateLocationMap,
 } from '@/features/content/locations/domain/repo/locationMapRepo';
+import { pruneExcludedCellIdsForGrid } from '@/features/content/locations/domain/maps/gridLayoutDraft';
 
 export function validateGridBootstrap(values: LocationFormValues): string | null {
   if (!values.createGrid) return null;
@@ -36,6 +37,7 @@ export async function bootstrapDefaultLocationMap(
   locationName: string,
   scale: LocationScaleId,
   values: LocationFormValues,
+  gridLayout?: { excludedCellIds?: string[] },
 ): Promise<void> {
   if (!values.createGrid) return;
 
@@ -55,10 +57,17 @@ export async function bootstrapDefaultLocationMap(
   const defaultMap = maps.find((m) => m.isDefault) ?? maps[0];
 
   const grid = { width: cols, height: rows, cellUnit };
+  const excludedCellIds = pruneExcludedCellIdsForGrid(
+    gridLayout?.excludedCellIds ?? [],
+    cols,
+    rows,
+  );
+  const layout = { excludedCellIds };
 
   if (defaultMap) {
     await updateLocationMap(campaignId, locationId, defaultMap.id, {
       grid,
+      layout,
       isDefault: true,
     });
     return;
@@ -68,6 +77,7 @@ export async function bootstrapDefaultLocationMap(
     name: `${locationName} map`,
     kind,
     grid,
+    layout,
     isDefault: true,
     cells: [],
   });

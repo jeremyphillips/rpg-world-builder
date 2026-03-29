@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
 
@@ -11,6 +12,8 @@ export type GridEditorProps = {
   columns: number
   rows: number
   selectedCellId?: string | null
+  /** Cells masked out of walkable layout (authoring); distinct from selection styling. */
+  excludedCellIds?: string[]
   onCellClick?: (cell: GridCell) => void
   getCellLabel?: (cell: GridCell) => string | undefined
   getCellClassName?: (cell: GridCell) => string | undefined
@@ -22,6 +25,7 @@ export default function GridEditor({
   columns,
   rows,
   selectedCellId,
+  excludedCellIds,
   onCellClick,
   getCellLabel,
   getCellClassName,
@@ -30,6 +34,10 @@ export default function GridEditor({
 }: GridEditorProps) {
   const safeCols = Math.max(0, Math.floor(columns))
   const safeRows = Math.max(0, Math.floor(rows))
+  const excludedSet = useMemo(
+    () => new Set(excludedCellIds ?? []),
+    [excludedCellIds],
+  )
 
   return (
     <Box
@@ -53,6 +61,7 @@ export default function GridEditor({
         const label = getCellLabel?.(cell)
         const extraClass = getCellClassName?.(cell)
         const selected = selectedCellId != null && selectedCellId === cellId
+        const excluded = excludedSet.has(cellId)
 
         return (
           <Box
@@ -61,6 +70,11 @@ export default function GridEditor({
             type="button"
             role="gridcell"
             aria-selected={selected}
+            aria-label={
+              excluded
+                ? `Cell ${x}, ${y}, excluded from layout`
+                : `Cell ${x}, ${y}`
+            }
             disabled={disabled}
             onClick={() => !disabled && onCellClick?.(cell)}
             className={extraClass}
@@ -69,9 +83,17 @@ export default function GridEditor({
               minWidth: 0,
               minHeight: 0,
               border: 1,
-              borderColor: 'divider',
               borderRadius: 0.5,
-              bgcolor: selected ? 'action.selected' : 'background.paper',
+              borderColor: excluded ? 'text.disabled' : 'divider',
+              borderStyle: excluded && !selected ? 'dashed' : 'solid',
+              bgcolor: selected
+                ? 'action.selected'
+                : excluded
+                  ? 'action.disabledBackground'
+                  : 'background.paper',
+              backgroundImage: excluded
+                ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
+                : undefined,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -79,11 +101,18 @@ export default function GridEditor({
               cursor: disabled ? 'default' : 'pointer',
               fontSize: '0.65rem',
               lineHeight: 1.2,
-              color: 'text.primary',
+              color: excluded ? 'text.secondary' : 'text.primary',
+              boxShadow: selected
+                ? (theme) => `inset 0 0 0 2px ${theme.palette.primary.main}`
+                : undefined,
               '&:hover': disabled
                 ? undefined
                 : {
-                    bgcolor: selected ? 'action.selected' : 'action.hover',
+                    bgcolor: selected
+                      ? 'action.selected'
+                      : excluded
+                        ? 'action.disabledBackground'
+                        : 'action.hover',
                   },
             }}
           >

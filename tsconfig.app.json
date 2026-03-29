@@ -51,6 +51,7 @@
       "@/features/user/*": ["features/user/*"],
       "@/features/utils": ["features/utils/index.ts"],
       "@/ui/patterns": ["ui/patterns/index.ts"],
+      "@/ui/patterns/*": ["ui/patterns/*"],
       "@/ui/primitives": ["ui/primitives/index.ts"],
       "@/ui/types": ["ui/types/index.ts"],
       "@/data": ["data/index.ts"],

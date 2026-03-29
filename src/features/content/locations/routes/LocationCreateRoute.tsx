@@ -16,7 +16,13 @@ import {
   validateGridBootstrap,
   bootstrapDefaultLocationMap,
 } from '@/features/content/locations/domain';
+import {
+  LocationGridAuthoringSection,
+  INITIAL_LOCATION_GRID_DRAFT,
+  type LocationGridDraftState,
+} from '@/features/content/locations/components';
 import { ConditionalFormRenderer } from '@/ui/patterns';
+import Stack from '@mui/material/Stack';
 import { CELL_UNITS_BY_KIND, mapKindForLocationScale } from '@/shared/domain/locations';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import type { LocationScaleId } from '@/shared/domain/locations';
@@ -37,6 +43,9 @@ export default function LocationCreateRoute() {
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [gridDraft, setGridDraft] = useState<LocationGridDraftState>(
+    INITIAL_LOCATION_GRID_DRAFT,
+  );
 
   const { policyValue, handlePolicyChange } =
     useAccessPolicyField<LocationFormValues>(watch, setValue);
@@ -51,6 +60,13 @@ export default function LocationCreateRoute() {
 
   const gridPreset = watch('gridPreset');
   const createGrid = watch('createGrid');
+  const gridColumns = watch('gridColumns');
+  const gridRows = watch('gridRows');
+
+  useEffect(() => {
+    if (!createGrid) setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+  }, [createGrid]);
+
   useEffect(() => {
     if (!createGrid || !gridPreset) return;
     const p = GRID_SIZE_PRESETS[gridPreset as keyof typeof GRID_SIZE_PRESETS];
@@ -90,6 +106,7 @@ export default function LocationCreateRoute() {
             created.name,
             created.scale as LocationScaleId,
             values,
+            { excludedCellIds: gridDraft.excludedCellIds },
           );
         }
         navigate(`/campaigns/${campaignId}/world/locations/${created.id}`, { replace: true });
@@ -101,7 +118,7 @@ export default function LocationCreateRoute() {
         setSaving(false);
       }
     },
-    [campaignId, navigate],
+    [campaignId, navigate, gridDraft.excludedCellIds],
   );
 
   const handleBack = useCallback(() => {
@@ -124,9 +141,24 @@ export default function LocationCreateRoute() {
         onPolicyChange={handlePolicyChange}
         policyCharacters={policyCharacters}
       >
-        <form id={FORM_ID} onSubmit={methods.handleSubmit(handleSubmit)} noValidate>
-          <ConditionalFormRenderer fields={fieldConfigs} />
-        </form>
+        <Stack spacing={2}>
+          <form
+            key="location-form"
+            id={FORM_ID}
+            onSubmit={methods.handleSubmit(handleSubmit)}
+            noValidate
+          >
+            <ConditionalFormRenderer fields={fieldConfigs} />
+          </form>
+          <LocationGridAuthoringSection
+            key="location-grid-authoring"
+            createGrid={createGrid}
+            gridColumns={gridColumns}
+            gridRows={gridRows}
+            draft={gridDraft}
+            setDraft={setGridDraft}
+          />
+        </Stack>
       </EntryEditorLayout>
     </FormProvider>
   );
