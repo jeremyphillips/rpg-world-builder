@@ -6,12 +6,25 @@
  * {@link GridEditorProps} from `GridEditor` so the two can be swapped by
  * `LocationGridAuthoringSection` without changing callback shapes.
  *
+ * Stroke is a ring between two clipped layers: `border` on the same node as
+ * `clip-path` is laid out on the rectangle, so most of it is clipped away.
+ * Outer button = stroke color; inner = fill, inset by stroke width, same path.
+ *
  * Advanced hex tooling (drag-paint, overlays, zoom calibration) is deferred.
  */
 import { useMemo, type ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
-import { gridCellBorderSx, gridCellSelectedShadow } from './gridCellStyles'
+import {
+  GRID_CELL_BG_COLOR,
+  GRID_CELL_BG_COLOR_EXCLUDED,
+  GRID_CELL_BG_COLOR_HOVER,
+  GRID_CELL_BG_COLOR_SELECTED,
+  GRID_CELL_BORDER_COLOR,
+  GRID_CELL_BORDER_COLOR_EXCLUDED,
+  GRID_CELL_BORDER_COLOR_HOVER,
+  GRID_CELL_BORDER_COLOR_SELECTED,
+} from './gridCellStyles'
 
 export type HexGridCell = {
   cellId: string
@@ -95,6 +108,20 @@ export default function HexGridEditor({
         const px = x * colStep
         const py = y * rowStep + (isOddCol ? hexH * 0.5 : 0)
 
+        const strokePx = selected ? '2px' : '1px'
+
+        const outerRingColor = selected
+          ? GRID_CELL_BORDER_COLOR_SELECTED
+          : excluded
+            ? GRID_CELL_BORDER_COLOR_EXCLUDED
+            : GRID_CELL_BORDER_COLOR
+
+        const innerFillColor = selected
+          ? GRID_CELL_BG_COLOR_SELECTED
+          : excluded
+            ? GRID_CELL_BG_COLOR_EXCLUDED
+            : GRID_CELL_BG_COLOR
+
         return (
           <Box
             key={cellId}
@@ -116,65 +143,74 @@ export default function HexGridEditor({
               top: py,
               width: hexW,
               height: hexH,
+              boxSizing: 'border-box',
               clipPath: CLIP_HEX,
-              border: 0,
+              border: 'none',
+              borderRadius: 0,
+              appearance: 'none',
+              WebkitAppearance: 'none',
               p: 0,
               m: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               cursor: disabled ? 'default' : 'pointer',
               fontSize: '0.6rem',
               lineHeight: 1.2,
               color: excluded ? 'text.secondary' : 'text.primary',
-              bgcolor: selected
-                ? 'action.selected'
-                : excluded
-                  ? 'action.disabledBackground'
-                  : 'background.paper',
-              backgroundImage: excluded
-                ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
-                : undefined,
-              boxShadow: selected
-                ? (theme) => gridCellSelectedShadow(theme)
-                : (theme) => `inset 0 0 0 1px ${gridCellBorderSx(theme, excluded)}`,
-              '&:hover': disabled
-                ? undefined
-                : {
-                    bgcolor: selected
-                      ? 'action.selected'
-                      : excluded
-                        ? 'action.disabledBackground'
-                        : 'action.hover',
-                  },
+              bgcolor: outerRingColor,
+              '&:hover:not(:disabled)': {
+                bgcolor: selected
+                  ? GRID_CELL_BORDER_COLOR_SELECTED
+                  : GRID_CELL_BORDER_COLOR_HOVER,
+              },
+              '&:hover:not(:disabled) .hex-inner': {
+                bgcolor: selected
+                  ? GRID_CELL_BG_COLOR_SELECTED
+                  : excluded
+                    ? GRID_CELL_BG_COLOR_EXCLUDED
+                    : GRID_CELL_BG_COLOR_HOVER,
+              },
             }}
           >
-            {custom != null && custom !== false ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  maxWidth: '70%',
-                  minHeight: 0,
-                  pointerEvents: 'none',
-                }}
-              >
-                {custom}
-              </Box>
-            ) : label != null && label !== '' ? (
-              <Box
-                component="span"
-                sx={{
-                  textAlign: 'center',
-                  wordBreak: 'break-word',
-                  maxWidth: '70%',
-                  pointerEvents: 'none',
-                }}
-              >
-                {label}
-              </Box>
-            ) : null}
+            <Box
+              className="hex-inner"
+              sx={{
+                position: 'absolute',
+                inset: strokePx,
+                clipPath: CLIP_HEX,
+                bgcolor: innerFillColor,
+                backgroundImage: excluded
+                  ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
+                  : undefined,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+              }}
+            >
+              {custom != null && custom !== false ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    maxWidth: '70%',
+                    minHeight: 0,
+                  }}
+                >
+                  {custom}
+                </Box>
+              ) : label != null && label !== '' ? (
+                <Box
+                  component="span"
+                  sx={{
+                    textAlign: 'center',
+                    wordBreak: 'break-word',
+                    maxWidth: '70%',
+                  }}
+                >
+                  {label}
+                </Box>
+              ) : null}
+            </Box>
           </Box>
         )
       })}
