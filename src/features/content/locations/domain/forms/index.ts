@@ -25,6 +25,21 @@ export {
   type LocationFormUiPolicy,
   type LocationFormUiPolicyBase,
 } from './utils/locationFormUiRules';
-export { getLocationFormPatchForScaleChange } from './utils/locationFormSanitize';
+export {
+  getLocationFormPatchForScaleChange,
+  sanitizeLocationDraftForScale,
+  sanitizeLocationFormValues,
+  type LocationFormSanitizeContext,
+} from './utils/locationFormSanitize';
+export {
+  getDefaultCellUnitForScale,
+  getDefaultMapKindForScale,
+  getSanitizedCellUnitForScale,
+  isCategoryValueAllowedForScale,
+  isMapKindAllowedForScale,
+  isParentIdAllowedForScale,
+  shouldClearCategoryForScale,
+  shouldClearParentForScale,
+} from './utils/locationDependentFieldsPolicy';
 export { locationToFormValues, toLocationInput } from './mappers/locationForm.mappers';
 export { LOCATION_DETAIL_SPECS, type LocationDetailCtx } from '../details/locationDetail.spec';

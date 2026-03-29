@@ -19,7 +19,7 @@ import {
   getAllowedCellUnitOptionsForScale,
   useLocationFormCampaignData,
   useLocationFormDefaultWorldScale,
-  useLocationFormScaleEffects,
+  useLocationFormDependentFieldEffects,
 } from '@/features/content/locations/domain';
 import {
   LocationGridAuthoringSection,
@@ -73,7 +73,7 @@ export default function LocationCreateRoute() {
 
   const gridCellUnitOptions = useMemo(() => getAllowedCellUnitOptionsForScale(scale), [scale]);
 
-  useLocationFormScaleEffects(scale, getValues, setValue);
+  useLocationFormDependentFieldEffects(scale, locations, undefined, getValues, setValue);
   useLocationFormDefaultWorldScale(
     campaignId,
     locationsLoading,

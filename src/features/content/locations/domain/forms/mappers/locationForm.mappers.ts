@@ -10,6 +10,7 @@ import {
 } from '@/features/content/shared/forms/registry';
 import { LOCATION_FORM_FIELDS } from '../registry/locationForm.registry';
 import type { LocationFormValues } from '../types/locationForm.types';
+import { sanitizeLocationFormValues } from '@/features/content/locations/domain/forms/utils/locationDependentFieldsPolicy';
 
 const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 
@@ -29,15 +30,17 @@ export const locationToFormValues = (loc: Location): LocationFormValues => ({
 });
 
 export const toLocationInput = (values: LocationFormValues): LocationInput => {
-  const base = toInput(values) as LocationInput;
+  const scale = trim(values.scale);
+  const patch = sanitizeLocationFormValues(values, { scale, locations: undefined });
+  const merged = { ...values, ...patch };
+  const base = toInput(merged) as LocationInput;
   const label =
-    trim(values.labelShort) || trim(values.labelNumber)
+    trim(merged.labelShort) || trim(merged.labelNumber)
       ? {
-          short: trim(values.labelShort) || undefined,
-          number: trim(values.labelNumber) || undefined,
+          short: trim(merged.labelShort) || undefined,
+          number: trim(merged.labelNumber) || undefined,
         }
       : undefined;
-  const scale = trim(values.scale);
   if (scale === 'world') {
     return {
       ...base,

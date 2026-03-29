@@ -2,12 +2,13 @@
  * Shared UI enforcement for location create/edit — drives both routes (no duplicated conditionals).
  */
 import {
-  CELL_UNITS_BY_KIND,
   LOCATION_CATEGORY_IDS,
   LOCATION_SCALE_ORDER,
-  mapKindForLocationScale,
 } from '@/shared/domain/locations';
-import { filterLocationsEligibleAsParent } from '@/shared/domain/locations/locationScale.rules';
+import {
+  getAllowedCellUnitOptionsForScale,
+  getFilteredParentLocationsForChildScale,
+} from '@/features/content/locations/domain/forms/utils/locationDependentFieldsPolicy';
 import type { Location } from '@/features/content/locations/domain/types';
 
 export type LocationFormUiMode = 'create' | 'edit';
@@ -49,23 +50,10 @@ export function shouldShowParentLocationField(scale: string): boolean {
   return scale !== 'world';
 }
 
-export function getFilteredParentLocationsForChildScale(
-  locations: Location[],
-  childScale: string,
-  excludeLocationId?: string,
-): Location[] {
-  const eligible = filterLocationsEligibleAsParent(locations, childScale);
-  if (!excludeLocationId) return eligible;
-  return eligible.filter((l) => l.id !== excludeLocationId);
-}
+export { getFilteredParentLocationsForChildScale, getAllowedCellUnitOptionsForScale };
 
 export function isLocationScaleFieldEditable(mode: LocationFormUiMode): boolean {
   return mode === 'create';
-}
-
-export function getAllowedCellUnitOptionsForScale(scale: string): { value: string; label: string }[] {
-  const kind = mapKindForLocationScale(scale);
-  return CELL_UNITS_BY_KIND[kind].map((u) => ({ value: u, label: u }));
 }
 
 export type LocationFormUiPolicy = {

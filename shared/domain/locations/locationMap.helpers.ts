@@ -13,3 +13,12 @@ export function mapKindForLocationScale(scale: string): LocationMapKindId {
   if (AREA_SCALES.has(s)) return 'area-grid';
   return 'encounter-grid';
 }
+
+/** Canonical map kinds allowed for this location scale (single entry today; expandable). */
+export function getAllowedMapKindsForScale(scale: string): readonly LocationMapKindId[] {
+  return [mapKindForLocationScale(scale)];
+}
+
+export function getDefaultMapKindForScale(scale: string): LocationMapKindId {
+  return mapKindForLocationScale(scale);
+}

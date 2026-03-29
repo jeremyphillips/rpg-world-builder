@@ -27,7 +27,7 @@ import {
   buildLocationFormUiPolicy,
   getAllowedCellUnitOptionsForScale,
   useLocationFormCampaignData,
-  useLocationFormScaleEffects,
+  useLocationFormDependentFieldEffects,
 } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
@@ -114,6 +114,7 @@ export default function LocationEditRoute() {
   const {
     campaignHasWorldLocation,
     parentLocationOptions,
+    locations,
   } = useLocationFormCampaignData(campaignId ?? undefined, scaleForFormRules, locationId);
 
   const locationUiPolicy = useMemo(
@@ -130,7 +131,13 @@ export default function LocationEditRoute() {
     [scaleForFormRules],
   );
 
-  useLocationFormScaleEffects(watchedScale, getValues, setValue);
+  useLocationFormDependentFieldEffects(
+    scaleForFormRules,
+    locations,
+    locationId,
+    getValues,
+    setValue,
+  );
 
   const gridPreset = watch('gridPreset');
   const gridColumns = watch('gridColumns');

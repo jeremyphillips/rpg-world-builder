@@ -1,4 +1,5 @@
 import type { LocationMapCell, LocationMapKindId } from '../../../../../shared/domain/locations';
+import { mapKindForLocationScale } from '../../../../../shared/domain/locations/locationMap.helpers';
 import { CampaignLocationMap } from '../../../../shared/models/CampaignLocationMap.model';
 import { CampaignLocation } from '../../../../shared/models/CampaignLocation.model';
 import { type MapValidationError, validateLocationMapInput } from './locationValidation';
@@ -47,7 +48,7 @@ function generateMapId(name: string): string {
 export async function validateLocationForMap(
   campaignId: string,
   locationId: string,
-): Promise<{ ok: true } | { errors: ValidationError[] }> {
+): Promise<{ ok: true; scale: string } | { errors: ValidationError[] }> {
   const loc = await CampaignLocation.findOne({ campaignId, locationId }).lean();
   if (!loc) {
     return { errors: [{ path: 'locationId', code: 'NOT_FOUND', message: 'Location not found' }] };
@@ -56,7 +57,7 @@ export async function validateLocationForMap(
   if (row.campaignId !== campaignId) {
     return { errors: [{ path: 'locationId', code: 'NOT_FOUND', message: 'Location not found' }] };
   }
-  return { ok: true };
+  return { ok: true, scale: String(row.scale) };
 }
 
 /** Ensures at most one default map per location when setting `isDefault`. */
@@ -108,6 +109,7 @@ export async function createLocationMap(
 ): Promise<{ map: LocationMapDoc } | { errors: ValidationError[] }> {
   const locCheck = await validateLocationForMap(campaignId, locationId);
   if ('errors' in locCheck) return locCheck;
+  const { scale: locationScale } = locCheck;
 
   if (!body.grid || typeof body.grid !== 'object') {
     return { errors: [{ path: 'grid', code: 'REQUIRED', message: 'grid is required' }] };
@@ -116,6 +118,19 @@ export async function createLocationMap(
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const kind = typeof body.kind === 'string' ? body.kind : '';
   const grid = body.grid as Record<string, unknown>;
+
+  const expectedKind = mapKindForLocationScale(locationScale);
+  if (kind !== expectedKind) {
+    return {
+      errors: [
+        {
+          path: 'kind',
+          code: 'INVALID',
+          message: `Map kind must be "${expectedKind}" for this location scale`,
+        },
+      ],
+    };
+  }
 
   const validationPayload = {
     name,
@@ -244,10 +259,25 @@ export async function updateLocationMap(
   const existingRow = existing as Record<string, unknown>;
   const merged = mergeMapPayload(existingRow, body);
 
+  const locationId = existingRow.locationId as string;
+  const locCheck = await validateLocationForMap(campaignId, locationId);
+  if ('errors' in locCheck) return { errors: locCheck.errors };
+  const { scale: locationScale } = locCheck;
+  const expectedKind = mapKindForLocationScale(locationScale);
+  if (merged.kind !== expectedKind) {
+    return {
+      errors: [
+        {
+          path: 'kind',
+          code: 'INVALID',
+          message: `Map kind must be "${expectedKind}" for this location scale`,
+        },
+      ],
+    };
+  }
+
   const vErr = validateLocationMapInput(merged);
   if (vErr.length > 0) return { errors: vErr };
-
-  const locationId = existingRow.locationId as string;
 
   const $set: Record<string, unknown> = {};
   if (body.name !== undefined) $set.name = merged.name;

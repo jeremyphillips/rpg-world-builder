@@ -1,22 +1,19 @@
 /**
- * Centralized cleanup when scale (or grid authorship) implies stricter field values.
+ * Re-exports dependent-field sanitization (single entry for older imports).
  */
-import type { LocationFormValues } from '@/features/content/locations/domain/forms/types/locationForm.types';
-import { getAllowedCellUnitOptionsForScale } from '@/features/content/locations/domain/forms/utils/locationFormUiRules';
+export type { LocationFormSanitizeContext } from '@/features/content/locations/domain/forms/utils/locationDependentFieldsPolicy';
+export {
+  sanitizeLocationDraftForScale,
+  sanitizeLocationFormValues,
+} from '@/features/content/locations/domain/forms/utils/locationDependentFieldsPolicy';
 
+import type { LocationFormValues } from '@/features/content/locations/domain/forms/types/locationForm.types';
+import { sanitizeLocationDraftForScale } from '@/features/content/locations/domain/forms/utils/locationDependentFieldsPolicy';
+
+/** @deprecated Prefer sanitizeLocationDraftForScale */
 export function getLocationFormPatchForScaleChange(
   values: LocationFormValues,
   nextScale: string,
 ): Partial<LocationFormValues> {
-  const patch: Partial<LocationFormValues> = {};
-  if (nextScale === 'world') {
-    patch.category = '';
-    patch.parentId = '';
-  }
-  const allowed = getAllowedCellUnitOptionsForScale(nextScale);
-  const u = String(values.gridCellUnit ?? '').trim();
-  if (u && !allowed.some((o) => o.value === u)) {
-    patch.gridCellUnit = allowed[0]?.value ?? '';
-  }
-  return patch;
+  return sanitizeLocationDraftForScale(values, nextScale);
 }
