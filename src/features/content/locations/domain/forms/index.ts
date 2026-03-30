@@ -30,6 +30,9 @@ export {
   isAllowedParentScale,
   isLocationScaleFieldEditable,
   isLocationScaleSelected,
+  shouldShowCategoryChoiceInLocationSetup,
+  shouldShowCategoryEditableInCreateRail,
+  shouldShowCellUnitChoiceInLocationSetup,
   shouldShowCategoryFieldForScale,
   shouldShowGridCellUnitFieldForScale,
   shouldShowLocationCategoryField,
@@ -39,6 +42,10 @@ export {
   type LocationFormUiPolicy,
   type LocationFormUiPolicyBase,
 } from './utils/locationFormUiRules';
+export {
+  buildLocationFormValuesFromSetup,
+  type LocationCreateSetupDraft,
+} from './utils/locationCreateSetupForm';
 export {
   getDefaultGeometryForScale,
   normalizeGridGeometryForScale,

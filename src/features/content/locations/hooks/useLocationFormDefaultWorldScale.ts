@@ -12,13 +12,14 @@ export function useLocationFormDefaultWorldScale(
   campaignHasWorldLocation: boolean,
   locationCount: number,
   setValue: UseFormSetValue<LocationFormValues>,
+  enabled = true,
 ) {
   const applied = useRef(false);
   useEffect(() => {
-    if (!campaignId || locationsLoading || applied.current) return;
+    if (!enabled || !campaignId || locationsLoading || applied.current) return;
     if (locationCount === 0 && !campaignHasWorldLocation) {
       setValue('scale', 'world', { shouldDirty: false, shouldValidate: false });
       applied.current = true;
     }
-  }, [campaignId, locationsLoading, campaignHasWorldLocation, locationCount, setValue]);
+  }, [campaignId, locationsLoading, campaignHasWorldLocation, locationCount, setValue, enabled]);
 }

@@ -11,6 +11,11 @@ type LocationAncestryBreadcrumbsProps = {
   campaignId?: string
   /** The location being edited. Omit on create. */
   currentLocationId?: string
+  /**
+   * Create flow: final crumb (plain text) when there is no persisted location id yet.
+   * Ignored when `currentLocationId` is set.
+   */
+  draftLocationName?: string
   /** Direct parent id — used to walk the chain. */
   parentId?: string
 }
@@ -23,6 +28,7 @@ export function LocationAncestryBreadcrumbs({
   locations,
   campaignId,
   currentLocationId,
+  draftLocationName,
   parentId,
 }: LocationAncestryBreadcrumbsProps) {
   const trail = useMemo(() => {
@@ -40,7 +46,16 @@ export function LocationAncestryBreadcrumbs({
     return segments
   }, [locations, parentId])
 
-  if (trail.length === 0) return null
+  const finalLabel = useMemo(() => {
+    if (currentLocationId) {
+      return locations.find((l) => l.id === currentLocationId)?.name ?? ''
+    }
+    return draftLocationName?.trim() ?? ''
+  }, [currentLocationId, draftLocationName, locations])
+
+  const hasAncestors = trail.length > 0
+  const hasFinal = Boolean(finalLabel)
+  if (!hasAncestors && !hasFinal) return null
 
   return (
     <MuiBreadcrumbs
@@ -59,9 +74,9 @@ export function LocationAncestryBreadcrumbs({
           {loc.name}
         </MuiLink>
       ))}
-      {currentLocationId && (
+      {hasFinal && (
         <Typography variant="caption" color="text.secondary">
-          {locations.find((l) => l.id === currentLocationId)?.name ?? ''}
+          {finalLabel}
         </Typography>
       )}
     </MuiBreadcrumbs>

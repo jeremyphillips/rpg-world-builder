@@ -21,6 +21,8 @@ type LocationEditorHeaderProps = {
   isNew: boolean
   formId?: string
   onSave?: () => void
+  /** Hide the primary Save/Create control (e.g. create flow saves from setup modal only). */
+  hideSaveButton?: boolean
   onBack: () => void
   errors: ValidationError[]
   success: boolean
@@ -38,6 +40,7 @@ export function LocationEditorHeader({
   isNew,
   formId,
   onSave,
+  hideSaveButton = false,
   onBack,
   errors,
   success,
@@ -95,16 +98,18 @@ export function LocationEditorHeader({
           </IconButton>
         </Tooltip>
 
-        <Button
-          variant="contained"
-          size="small"
-          disabled={busy || (!dirty && !isNew)}
-          {...(formId
-            ? { type: 'submit' as const, form: formId }
-            : { onClick: onSave })}
-        >
-          {saving ? 'Saving…' : isNew ? 'Create' : 'Save'}
-        </Button>
+        {!hideSaveButton && (
+          <Button
+            variant="contained"
+            size="small"
+            disabled={busy || (!dirty && !isNew)}
+            {...(formId
+              ? { type: 'submit' as const, form: formId }
+              : { onClick: onSave })}
+          >
+            {saving ? 'Saving…' : isNew ? 'Create' : 'Save'}
+          </Button>
+        )}
       </Stack>
     </Box>
   )

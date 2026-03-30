@@ -50,6 +50,25 @@ export function isLocationScaleSelected(scale: string | undefined | null): boole
   return (LOCATION_SCALE_ORDER as readonly string[]).includes(scale);
 }
 
+/** Setup modal: show category control only when more than one allowed option exists. */
+export function shouldShowCategoryChoiceInLocationSetup(scale: string): boolean {
+  return getAllowedCategoryOptionsForScale(scale).length > 1;
+}
+
+/** Setup modal: show cell unit control only when more than one allowed option exists. */
+export function shouldShowCellUnitChoiceInLocationSetup(scale: string): boolean {
+  return getAllowedCellUnitOptionsForScale(scale).length > 1;
+}
+
+/** Create rail (post-setup): category `<Select>` only when multiple choices and not policy-fixed. */
+export function shouldShowCategoryEditableInCreateRail(scale: string): boolean {
+  return (
+    shouldShowCategoryFieldForScale(scale) &&
+    getAllowedCategoryOptionsForScale(scale).length > 1 &&
+    !isCategoryFieldReadOnlyForScale(scale)
+  );
+}
+
 /** @deprecated use {@link shouldShowCategoryFieldForScale} from shared policy */
 export function shouldShowLocationCategoryField(scale: string): boolean {
   return shouldShowCategoryFieldForScale(scale);

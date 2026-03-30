@@ -10,7 +10,10 @@ import {
   LOCATION_GRID_BOOTSTRAP_FIELD_NAMES,
 } from '../registry/locationForm.registry';
 import type { LocationFormValues } from '../types/locationForm.types';
-import type { LocationFormUiPolicy } from '../utils/locationFormUiRules';
+import {
+  type LocationFormUiPolicy,
+  shouldShowCategoryEditableInCreateRail,
+} from '../utils/locationFormUiRules';
 
 export type GetLocationFieldConfigsOptions = {
   policyCharacters?: { id: string; name: string }[];
@@ -25,6 +28,12 @@ export type GetLocationFieldConfigsOptions = {
    * When omitted, all scales and fields are available (legacy / patch flows).
    */
   locationUiPolicy?: LocationFormUiPolicy;
+  /**
+   * Location create route after setup: omit scale + grid bootstrap fields; category may be static in route.
+   */
+  createPostSetupRail?: boolean;
+  /** Required with `createPostSetupRail` for category select vs static row. */
+  scaleForRail?: string;
 };
 
 export const getLocationFieldConfigs = (
@@ -36,12 +45,34 @@ export const getLocationFieldConfigs = (
     gridCellUnitOptions,
     includeGridBootstrap = true,
     locationUiPolicy,
+    createPostSetupRail,
+    scaleForRail,
   } = options;
+
+  const CREATE_POST_SETUP_OMIT = new Set<string>([
+    'scale',
+    'gridPreset',
+    'gridColumns',
+    'gridRows',
+    'gridCellUnit',
+  ]);
 
   let specs =
     includeGridBootstrap === false
       ? LOCATION_FORM_FIELDS.filter((f) => !LOCATION_GRID_BOOTSTRAP_FIELD_NAMES.has(f.name))
       : [...LOCATION_FORM_FIELDS];
+
+  if (createPostSetupRail) {
+    specs = specs.filter((f) => !CREATE_POST_SETUP_OMIT.has(f.name));
+    if (locationUiPolicy && scaleForRail) {
+      if (
+        locationUiPolicy.showCategoryField &&
+        !shouldShowCategoryEditableInCreateRail(scaleForRail)
+      ) {
+        specs = specs.filter((f) => f.name !== 'category');
+      }
+    }
+  }
 
   if (locationUiPolicy) {
     if (!locationUiPolicy.showCategoryField) {

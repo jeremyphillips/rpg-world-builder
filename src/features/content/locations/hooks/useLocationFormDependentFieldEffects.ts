@@ -15,10 +15,12 @@ export function useLocationFormDependentFieldEffects(
   excludeLocationId: string | undefined,
   getValues: UseFormGetValues<LocationFormValues>,
   setValue: UseFormSetValue<LocationFormValues>,
+  enabled = true,
 ) {
   const prevScaleRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     const values = getValues();
     const patch = sanitizeLocationFormValues(values, {
       scale,
@@ -36,5 +38,5 @@ export function useLocationFormDependentFieldEffects(
     for (const [key, val] of Object.entries(patch)) {
       setValue(key as keyof LocationFormValues, val as never, { shouldDirty: scaleChanged });
     }
-  }, [scale, locations, excludeLocationId, getValues, setValue]);
+  }, [scale, locations, excludeLocationId, getValues, setValue, enabled]);
 }
