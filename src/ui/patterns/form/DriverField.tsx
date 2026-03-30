@@ -355,6 +355,23 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
         </Box>
       );
 
+    case 'staticLabelValue': {
+      const staticField = field as Extract<FieldConfig, { type: 'staticLabelValue' }>;
+      const raw = String(displayValue ?? '');
+      const shown = staticField.formatDisplay ? staticField.formatDisplay(raw) : raw;
+      return (
+        <Box>
+          <Typography variant="body2" component="div">
+            <Box component="span" fontWeight={600}>
+              {staticField.label}:
+            </Box>{' '}
+            {shown || '—'}
+          </Typography>
+          {FieldDescription}
+        </Box>
+      );
+    }
+
     case 'optionPicker': {
       const fieldTyped = field as Extract<FieldConfig, { type: 'optionPicker' }>;
       const mode = fieldTyped.valueMode ?? 'array';

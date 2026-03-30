@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import type { FieldConfig } from './form.types';
 import FormTextField from './FormTextField';
 import FormSelectField from './FormSelectField'
@@ -15,6 +16,26 @@ import FormOptionPickerField from './FormOptionPickerField'
 type DynamicFieldProps = {
   field: FieldConfig;
 };
+
+function StaticLabelValueField({
+  field,
+}: {
+  field: Extract<FieldConfig, { type: 'staticLabelValue' }>;
+}) {
+  const raw = useWatch({ name: field.name });
+  const text = typeof raw === 'string' ? raw : raw != null ? String(raw) : '';
+  const shown = field.formatDisplay ? field.formatDisplay(text) : text;
+  return (
+    <Stack direction="row" spacing={1} alignItems="baseline" flexWrap="wrap">
+      <Typography component="span" variant="body2" fontWeight={600}>
+        {field.label}:
+      </Typography>
+      <Typography component="span" variant="body2" color="text.primary">
+        {shown || '—'}
+      </Typography>
+    </Stack>
+  );
+}
 
 function FieldWithDescription({
   field,
@@ -197,6 +218,13 @@ export default function DynamicField({ field }: DynamicFieldProps) {
             helperText={field.helperText}
             rules={field.rules}
           />
+        </FieldWithDescription>
+      );
+
+    case 'staticLabelValue':
+      return (
+        <FieldWithDescription field={field}>
+          <StaticLabelValueField field={field as Extract<FieldConfig, { type: 'staticLabelValue' }>} />
         </FieldWithDescription>
       );
 

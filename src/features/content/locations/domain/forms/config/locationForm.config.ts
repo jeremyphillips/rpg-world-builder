@@ -93,7 +93,7 @@ export const getLocationFieldConfigs = (
     },
   });
 
-  return configs.map((f) => {
+  const withPolicyOptions = configs.map((f) => {
     if (f.name === 'category' && f.type === 'select' && locationUiPolicy) {
       return {
         ...f,
@@ -115,7 +115,52 @@ export const getLocationFieldConfigs = (
       return {
         ...f,
         options: locationUiPolicy.scaleSelectOptions,
-        disabled: locationUiPolicy.scaleFieldDisabled,
+      };
+    }
+    return f;
+  });
+
+  return withPolicyOptions.map((f) => {
+    /** Scale is always read-only key/value in metadata (same presentation as category with one option). */
+    if (f.name === 'scale' && f.type === 'select') {
+      const opts = f.options;
+      return {
+        type: 'staticLabelValue' as const,
+        name: f.name,
+        label: f.label,
+        visibleWhen: f.visibleWhen,
+        group: f.group,
+        width: f.width,
+        fieldDescription: f.fieldDescription,
+        helperText: f.helperText,
+        defaultValue: f.defaultValue,
+        required: f.required,
+        disabled: f.disabled,
+        formatDisplay: (raw: string) => {
+          const hit = opts.find((o) => o.value === raw);
+          return hit?.label ?? (raw || '—');
+        },
+      };
+    }
+    if (!locationUiPolicy) return f;
+    if (f.name === 'category' && f.type === 'select' && f.options.length <= 1) {
+      const opts = f.options;
+      return {
+        type: 'staticLabelValue' as const,
+        name: f.name,
+        label: f.label,
+        visibleWhen: f.visibleWhen,
+        group: f.group,
+        width: f.width,
+        fieldDescription: f.fieldDescription,
+        helperText: f.helperText,
+        defaultValue: f.defaultValue,
+        required: f.required,
+        disabled: f.disabled,
+        formatDisplay: (raw: string) => {
+          const hit = opts.find((o) => o.value === raw);
+          return hit?.label ?? (raw || '—');
+        },
       };
     }
     return f;
@@ -124,5 +169,5 @@ export const getLocationFieldConfigs = (
 
 export const LOCATION_FORM_DEFAULTS: LocationFormValues = buildDefaultValues<LocationFormValues>(
   getLocationFieldConfigs(),
-  { accessPolicy: DEFAULT_VISIBILITY_PUBLIC },
+  { accessPolicy: DEFAULT_VISIBILITY_PUBLIC, imageKey: '' },
 );

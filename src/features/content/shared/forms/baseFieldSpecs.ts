@@ -11,10 +11,9 @@ const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);
 const strOrEmpty = (v: unknown): string => (v != null ? String(v) : '');
 
 /**
- * Returns base field specs for name, description, imageKey, accessPolicy.
- * Typed for any content form that extends ContentFormValues.
+ * Name + description only — for content forms that reorder fields (e.g. locations: scale/category first).
  */
-export function getBaseContentFieldSpecs<
+export function getNameDescriptionFieldSpecs<
   TValues extends ContentFormValues,
   TInput extends ContentInput & Record<string, unknown>,
   TItem extends Record<string, unknown>,
@@ -39,6 +38,20 @@ export function getBaseContentFieldSpecs<
       parse: (v) => (trim(v) || undefined) as TInput['description'],
       format: (v) => strOrEmpty(v) as TValues['description'],
     },
+  ];
+}
+
+/**
+ * Returns base field specs for name, description, imageKey, accessPolicy.
+ * Typed for any content form that extends ContentFormValues.
+ */
+export function getBaseContentFieldSpecs<
+  TValues extends ContentFormValues,
+  TInput extends ContentInput & Record<string, unknown>,
+  TItem extends Record<string, unknown>,
+>(): FieldSpec<TValues, TInput, TItem>[] {
+  return [
+    ...getNameDescriptionFieldSpecs<TValues, TInput, TItem>(),
     {
       name: 'imageKey' as keyof TValues & string,
       label: 'Image',

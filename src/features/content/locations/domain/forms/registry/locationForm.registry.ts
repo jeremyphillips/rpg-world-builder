@@ -13,8 +13,8 @@ import {
 } from '@/shared/domain/grid/gridPresets';
 import type { Location } from '@/features/content/locations/domain/types';
 import type { LocationInput } from '@/features/content/locations/domain/types';
-import { when } from '@/ui/patterns';
-import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
+import { DEFAULT_VISIBILITY_PUBLIC, when } from '@/ui/patterns';
+import { getNameDescriptionFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import type { FieldSpec } from '@/features/content/shared/forms/registry';
 import type { LocationFormValues } from '../types/locationForm.types';
 
@@ -22,6 +22,7 @@ import type { LocationFormValues } from '../types/locationForm.types';
 const VISIBLE_WHEN_SCALE_SELECTED = when.in('scale', [...ALL_LOCATION_SCALE_IDS]);
 
 const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
+const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);
 const strOrEmpty = (v: unknown): string => (v != null ? String(v) : '');
 
 /** Default registry options — create uses surface-only via `getAllowedLocationScaleOptionsForCreate`; edit overrides with full scale list. */
@@ -47,20 +48,7 @@ const GRID_CELL_UNIT_OPTIONS = LOCATION_CELL_UNIT_IDS.map((u) => ({
   label: u,
 }));
 
-const splitList = (v: unknown): string[] => {
-  if (typeof v !== 'string' || !trim(v)) return [];
-  return trim(v)
-    .split(/[,;\n]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-};
-
 export const LOCATION_FORM_FIELDS = [
-  ...getBaseContentFieldSpecs<
-    LocationFormValues,
-    LocationInput & Record<string, unknown>,
-    Location & Record<string, unknown>
-  >(),
   {
     name: 'scale',
     label: 'Scale',
@@ -82,6 +70,20 @@ export const LOCATION_FORM_FIELDS = [
     visibleWhen: VISIBLE_WHEN_SCALE_SELECTED,
     parse: (v) => (trim(v) || undefined) as LocationInput['category'],
     format: (v) => strOrEmpty(v) as LocationFormValues['category'],
+  },
+  ...getNameDescriptionFieldSpecs<
+    LocationFormValues,
+    LocationInput & Record<string, unknown>,
+    Location & Record<string, unknown>
+  >(),
+  {
+    name: 'accessPolicy',
+    label: 'Visibility',
+    kind: 'visibility' as const,
+    skipInForm: true,
+    defaultValue: DEFAULT_VISIBILITY_PUBLIC as LocationFormValues['accessPolicy'],
+    parse: (v) => (v ?? DEFAULT_VISIBILITY_PUBLIC) as LocationInput['accessPolicy'],
+    format: (v) => (v ?? DEFAULT_VISIBILITY_PUBLIC) as LocationFormValues['accessPolicy'],
   },
   {
     name: 'parentId',

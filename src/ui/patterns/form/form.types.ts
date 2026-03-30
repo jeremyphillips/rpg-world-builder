@@ -118,6 +118,12 @@ export type FieldConfig =
       /** 'scalar' = string in form values; 'array' = string[] */
       valueMode?: 'scalar' | 'array'
     }
+  | BaseFieldConfig & {
+      /** Read-only row: `{label}: {value}` — value from form field `name`. */
+      type: 'staticLabelValue'
+      /** Optional formatter for the watched raw value (e.g. capitalize category label). */
+      formatDisplay?: (raw: string) => string
+    }
   | Omit<BaseFieldConfig, 'label'> & {
       type: 'hidden'
       label?: string
