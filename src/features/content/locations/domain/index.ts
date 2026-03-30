@@ -15,11 +15,15 @@ export {
 } from './maps/bootstrapDefaultLocationMap';
 export { cellDraftToCellEntries, cellEntriesToDraft } from './maps/cellAuthoringMappers';
 export {
+  getLocationMapIconByName,
+  LOCATION_MAP_ICON_COMPONENT_BY_NAME,
+  type LocationMapDisplayIconComponent,
+} from './map/locationMapIconNameMap';
+export {
   getLocationMapObjectKindIcon,
   getLocationScaleMapIcon,
   LOCATION_MAP_OBJECT_KIND_ICON,
   LOCATION_SCALE_MAP_ICON,
-  type LocationMapDisplayIconComponent,
 } from './map/locationMapDisplayIcons';
 export {
   validateLocationChange,
