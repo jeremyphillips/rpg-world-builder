@@ -14,15 +14,21 @@ export function LocationEditorWorkspace({
   rightRail,
 }: LocationEditorWorkspaceProps) {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+    <Box 
+      sx={{ 
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        height: `calc(100vh - ${LOCATION_EDITOR_HEADER_HEIGHT_PX}px)`,
+      }}
+    >
       {header}
       <Box
         sx={{
           display: 'flex',
           flex: 1,
-          minHeight: 0,
           overflow: 'hidden',
-          maxHeight: `calc(100vh - ${LOCATION_EDITOR_HEADER_HEIGHT_PX}px)`,
+          height: '100%',
         }}
       >
         {canvas}

@@ -31,6 +31,7 @@ import {
   LocationEditorHeader,
   LocationEditorCanvas,
   LocationEditorRightRail,
+  LocationEditorMapRailTabs,
   INITIAL_LOCATION_GRID_DRAFT,
   type LocationGridDraftState,
 } from '@/features/content/locations/components';
@@ -227,23 +228,28 @@ export default function LocationCreateRoute() {
         }
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
-            <Stack spacing={2}>
-              <form
-                key="location-form"
-                id={FORM_ID}
-                onSubmit={methods.handleSubmit(handleSubmit)}
-                noValidate
-              >
-                <ConditionalFormRenderer fields={fieldConfigs} />
-              </form>
-              {policyValue && (
-                <VisibilityField
-                  value={policyValue}
-                  onChange={handlePolicyChange}
-                  characters={policyCharacters}
-                />
-              )}
-            </Stack>
+            <LocationEditorMapRailTabs
+              selectedCellId={gridDraft.selectedCellId}
+              metadata={
+                <Stack spacing={2}>
+                  <form
+                    key="location-form"
+                    id={FORM_ID}
+                    onSubmit={methods.handleSubmit(handleSubmit)}
+                    noValidate
+                  >
+                    <ConditionalFormRenderer fields={fieldConfigs} />
+                  </form>
+                  {policyValue && (
+                    <VisibilityField
+                      value={policyValue}
+                      onChange={handlePolicyChange}
+                      characters={policyCharacters}
+                    />
+                  )}
+                </Stack>
+              }
+            />
           </LocationEditorRightRail>
         }
       />

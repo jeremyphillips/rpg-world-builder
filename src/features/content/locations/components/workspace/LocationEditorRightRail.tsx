@@ -32,8 +32,10 @@ export function LocationEditorRightRail({
           width,
           flex: 1,
           minHeight: 0,
-          overflowY: 'auto',
-          p: 2.5,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          p: 0,
           boxSizing: 'border-box',
         }}
       >

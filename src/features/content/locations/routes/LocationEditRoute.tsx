@@ -52,6 +52,7 @@ import {
   LocationEditorHeader,
   LocationEditorCanvas,
   LocationEditorRightRail,
+  LocationEditorMapRailTabs,
   LocationAncestryBreadcrumbs,
   INITIAL_LOCATION_GRID_DRAFT,
   type LocationGridDraftState,
@@ -376,38 +377,43 @@ export default function LocationEditRoute() {
         }
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
-            <Stack spacing={2}>
-              <Typography variant="subtitle1" fontWeight={600}>
-                Patching: {loc.name}
-              </Typography>
-              {loc.patched && (
-                <AppBadge label="Patched" tone="warning" size="small" />
-              )}
-              <ConditionalFormRenderer
-                fields={fieldConfigs}
-                driver={{
-                  kind: 'patch',
-                  getValue: driver.getValue,
-                  setValue: driver.setValue,
-                  unsetValue: driver.unsetValue,
-                }}
-                onValidationApi={(api) => {
-                  validationApiRef.current = api;
-                }}
-              />
-              {hasExistingPatch && (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  size="small"
-                  onClick={handleRemovePatch}
-                  disabled={saving}
-                  sx={{ alignSelf: 'flex-start' }}
-                >
-                  Remove patch
-                </Button>
-              )}
-            </Stack>
+            <LocationEditorMapRailTabs
+              selectedCellId={gridDraft.selectedCellId}
+              metadata={
+                <Stack spacing={2}>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    Patching: {loc.name}
+                  </Typography>
+                  {loc.patched && (
+                    <AppBadge label="Patched" tone="warning" size="small" />
+                  )}
+                  <ConditionalFormRenderer
+                    fields={fieldConfigs}
+                    driver={{
+                      kind: 'patch',
+                      getValue: driver.getValue,
+                      setValue: driver.setValue,
+                      unsetValue: driver.unsetValue,
+                    }}
+                    onValidationApi={(api) => {
+                      validationApiRef.current = api;
+                    }}
+                  />
+                  {hasExistingPatch && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={handleRemovePatch}
+                      disabled={saving}
+                      sx={{ alignSelf: 'flex-start' }}
+                    >
+                      Remove patch
+                    </Button>
+                  )}
+                </Stack>
+              }
+            />
           </LocationEditorRightRail>
         }
       />
@@ -475,23 +481,28 @@ export default function LocationEditRoute() {
         }
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
-            <Stack spacing={2}>
-              <form
-                key="location-form"
-                id={FORM_ID}
-                onSubmit={methods.handleSubmit(handleCampaignSubmit)}
-                noValidate
-              >
-                <ConditionalFormRenderer fields={fieldConfigs} />
-              </form>
-              {policyValue && (
-                <VisibilityField
-                  value={policyValue}
-                  onChange={handlePolicyChange}
-                  characters={policyCharacters}
-                />
-              )}
-            </Stack>
+            <LocationEditorMapRailTabs
+              selectedCellId={gridDraft.selectedCellId}
+              metadata={
+                <Stack spacing={2}>
+                  <form
+                    key="location-form"
+                    id={FORM_ID}
+                    onSubmit={methods.handleSubmit(handleCampaignSubmit)}
+                    noValidate
+                  >
+                    <ConditionalFormRenderer fields={fieldConfigs} />
+                  </form>
+                  {policyValue && (
+                    <VisibilityField
+                      value={policyValue}
+                      onChange={handlePolicyChange}
+                      characters={policyCharacters}
+                    />
+                  )}
+                </Stack>
+              }
+            />
           </LocationEditorRightRail>
         }
       />
