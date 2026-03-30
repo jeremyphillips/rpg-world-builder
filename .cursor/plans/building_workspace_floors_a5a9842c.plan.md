@@ -4,19 +4,19 @@ overview: "Add a contained, reviewable first-pass building-centric location edit
 todos:
   - id: helpers
     content: "Add buildingWorkspaceFloors.ts: types, listFloorChildren, sort, nextSortOrder, tab label from index"
-    status: pending
+    status: completed
   - id: refresh-locations
     content: Add refreshKey (or equivalent) to useLocationFormCampaignData for post-create refetch
-    status: pending
+    status: completed
   - id: floor-strip
     content: Build BuildingFloorStrip.tsx + export from components index
-    status: pending
+    status: completed
   - id: edit-route-building
     content: "Branch LocationEditRoute for campaign building: activeFloorId, map effect, canvas wrapper, empty state, grid host ids, add-floor + save handlers"
-    status: pending
+    status: completed
   - id: verify-save
     content: Verify createEntry fields for floor child + save path (building update + floor bootstrap) and adjust category/required fields to match API
-    status: pending
+    status: completed
 isProject: false
 ---
 

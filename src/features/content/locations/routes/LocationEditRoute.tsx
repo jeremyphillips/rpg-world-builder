@@ -15,6 +15,7 @@ import {
   validateLocationChange,
   type LocationContentItem,
   type LocationFormValues,
+  type LocationInput,
   getLocationFieldConfigs,
   LOCATION_FORM_DEFAULTS,
   locationToFormValues,
@@ -29,7 +30,10 @@ import {
   buildLocationFormUiPolicy,
   getAllowedCellUnitOptionsForScale,
   getDefaultGeometryForScale,
+  getDefaultCellUnitForScale,
   isLocationScaleSelected,
+  listFloorChildren,
+  nextSortOrder,
   useLocationFormCampaignData,
   useLocationFormDependentFieldEffects,
 } from '@/features/content/locations/domain';
@@ -54,6 +58,7 @@ import {
   LocationEditorRightRail,
   LocationEditorMapRailTabs,
   LocationAncestryBreadcrumbs,
+  BuildingFloorStrip,
   INITIAL_LOCATION_GRID_DRAFT,
   type LocationGridDraftState,
 } from '@/features/content/locations/components';
@@ -100,6 +105,9 @@ export default function LocationEditRoute() {
   const [rightRailOpen, setRightRailOpen] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [activeFloorId, setActiveFloorId] = useState<string | null>(null);
+  const [addingFloor, setAddingFloor] = useState(false);
+  const [locationListRefreshKey, setLocationListRefreshKey] = useState(0);
 
   const { zoom, zoomControlProps, wheelContainerRef, bindResetPan } = useCanvasZoom();
   const { pan, isDragging, pointerHandlers, resetPan } = useCanvasPan();
@@ -107,6 +115,9 @@ export default function LocationEditRoute() {
 
   const isSystem = loc?.source === 'system';
   const isCampaign = loc?.source === 'campaign';
+  const isBuildingWorkspace = Boolean(
+    loc && loc.source === 'campaign' && loc.scale === 'building',
+  );
 
   const {
     initialPatch,
@@ -132,7 +143,33 @@ export default function LocationEditRoute() {
     campaignHasWorldLocation,
     parentLocationOptions,
     locations,
-  } = useLocationFormCampaignData(campaignId ?? undefined, scaleForFormRules, locationId);
+  } = useLocationFormCampaignData(
+    campaignId ?? undefined,
+    scaleForFormRules,
+    locationId,
+    locationListRefreshKey,
+  );
+
+  const floorChildren = useMemo(() => {
+    if (!locationId || !loc || loc.source !== 'campaign' || loc.scale !== 'building') {
+      return [];
+    }
+    return listFloorChildren(locations, locationId);
+  }, [locations, locationId, loc]);
+
+  useEffect(() => {
+    if (!isBuildingWorkspace) return;
+    if (floorChildren.length === 0) {
+      setActiveFloorId(null);
+      return;
+    }
+    setActiveFloorId((prev) => {
+      if (prev && floorChildren.some((f) => f.id === prev)) return prev;
+      return floorChildren[0].id;
+    });
+  }, [isBuildingWorkspace, floorChildren]);
+
+  const mapAuthoringScaleForUi = isBuildingWorkspace ? 'floor' : scaleForFormRules;
 
   const locationUiPolicy = useMemo(
     () =>
@@ -144,8 +181,8 @@ export default function LocationEditRoute() {
   );
 
   const gridCellUnitOptions = useMemo(
-    () => getAllowedCellUnitOptionsForScale(scaleForFormRules),
-    [scaleForFormRules],
+    () => getAllowedCellUnitOptionsForScale(mapAuthoringScaleForUi),
+    [mapAuthoringScaleForUi],
   );
   useLocationFormDependentFieldEffects(
     scaleForFormRules,
@@ -158,7 +195,8 @@ export default function LocationEditRoute() {
   const gridPreset = watch('gridPreset');
   const gridColumns = watch('gridColumns');
   const gridRows = watch('gridRows');
-  const gridGeometry = watch('gridGeometry') || getDefaultGeometryForScale(scaleForFormRules);
+  const gridGeometry =
+    watch('gridGeometry') || getDefaultGeometryForScale(mapAuthoringScaleForUi);
 
   useEffect(() => {
     const cols = Number(gridColumns);
@@ -179,6 +217,7 @@ export default function LocationEditRoute() {
 
   useEffect(() => {
     if (!campaignId || !locationId || !loc || loc.source !== 'campaign') return;
+    if (loc.scale === 'building') return;
     let cancelled = false;
     listLocationMaps(campaignId, locationId).then((maps) => {
       if (cancelled) return;
@@ -204,19 +243,65 @@ export default function LocationEditRoute() {
     };
   }, [campaignId, locationId, loc, setValue]);
 
+  useEffect(() => {
+    if (!campaignId || !locationId || !loc || loc.source !== 'campaign') return;
+    if (loc.scale !== 'building') return;
+    if (!activeFloorId) {
+      setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+      return;
+    }
+    let cancelled = false;
+    listLocationMaps(campaignId, activeFloorId).then((maps) => {
+      if (cancelled) return;
+      const def = maps.find((m) => m.isDefault) ?? maps[0];
+      if (def) {
+        setValue('gridPreset', '');
+        setValue('gridColumns', String(def.grid.width));
+        setValue('gridRows', String(def.grid.height));
+        setValue('gridCellUnit', String(def.grid.cellUnit));
+        setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale('floor'));
+        setGridDraft({
+          selectedCellId: null,
+          excludedCellIds: def.layout?.excludedCellIds ?? [],
+          ...cellEntriesToDraft(def.cellEntries),
+          cellModalCellId: null,
+        });
+      } else {
+        setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [campaignId, activeFloorId, locationId, loc, setValue]);
+
   const fieldConfigs = useMemo(
     () =>
       getLocationFieldConfigs({
         policyCharacters,
         parentLocationOptions,
         gridCellUnitOptions,
-        includeGridBootstrap: Boolean(loc && loc.source === 'campaign'),
+        includeGridBootstrap: Boolean(
+          loc &&
+            loc.source === 'campaign' &&
+            (!isBuildingWorkspace || Boolean(activeFloorId)),
+        ),
         locationUiPolicy,
       }),
-    [policyCharacters, parentLocationOptions, gridCellUnitOptions, loc, locationUiPolicy],
+    [
+      policyCharacters,
+      parentLocationOptions,
+      gridCellUnitOptions,
+      loc,
+      locationUiPolicy,
+      isBuildingWorkspace,
+      activeFloorId,
+    ],
   );
 
-  const showMapGridAuthoring = isLocationScaleSelected(watchedScale);
+  const showMapGridAuthoring = isBuildingWorkspace
+    ? Boolean(activeFloorId)
+    : isLocationScaleSelected(watchedScale);
 
   const { policyValue, handlePolicyChange } = useAccessPolicyField<LocationFormValues>(watch, setValue);
 
@@ -231,7 +316,59 @@ export default function LocationEditRoute() {
 
   const handleCampaignSubmit = useCallback(
     async (values: LocationFormValues) => {
-      if (!campaignId || !locationId) return;
+      if (!campaignId || !locationId || !loc) return;
+      if (loc.source === 'campaign' && loc.scale === 'building') {
+        if (!activeFloorId) {
+          setErrors([
+            {
+              path: '',
+              code: 'VALIDATION',
+              message: 'Add a floor before saving.',
+            },
+          ]);
+          return;
+        }
+        const err = validateGridBootstrap(values);
+        if (err) {
+          setErrors([{ path: '', code: 'VALIDATION', message: err }]);
+          return;
+        }
+        setSaving(true);
+        setSuccess(false);
+        setErrors([]);
+        try {
+          const input = toLocationInput(values);
+          const updated = await locationRepo.updateEntry(campaignId, locationId, input);
+          const floorName =
+            locations.find((l) => l.id === activeFloorId)?.name ?? 'Floor';
+          await bootstrapDefaultLocationMap(
+            campaignId,
+            activeFloorId,
+            floorName,
+            'floor',
+            values,
+            {
+              excludedCellIds: gridDraft.excludedCellIds,
+              cellEntries: cellDraftToCellEntries(
+                gridDraft.linkedLocationByCellId,
+                gridDraft.objectsByCellId,
+              ),
+            },
+          );
+          reset({
+            ...locationToFormValues(updated),
+            ...pickMapGridFormValues(values),
+          });
+          setSuccess(true);
+        } catch (e) {
+          setErrors([
+            { path: '', code: 'SAVE_FAILED', message: (e as Error).message },
+          ]);
+        } finally {
+          setSaving(false);
+        }
+        return;
+      }
       const err = validateGridBootstrap(values);
       if (err) {
         setErrors([{ path: '', code: 'VALIDATION', message: err }]);
@@ -273,6 +410,9 @@ export default function LocationEditRoute() {
     [
       campaignId,
       locationId,
+      loc,
+      activeFloorId,
+      locations,
       reset,
       setSaving,
       setSuccess,
@@ -282,6 +422,74 @@ export default function LocationEditRoute() {
       gridDraft.objectsByCellId,
     ],
   );
+
+  const handleAddFloor = useCallback(async () => {
+    if (!campaignId || !locationId || !loc || loc.source !== 'campaign' || loc.scale !== 'building') {
+      return;
+    }
+    if (addingFloor) return;
+    setAddingFloor(true);
+    setErrors([]);
+    try {
+      const sort = nextSortOrder(floorChildren);
+      const floorIndex = floorChildren.length + 1;
+      const input: LocationInput = {
+        name: `Floor ${floorIndex}`,
+        scale: 'floor',
+        parentId: locationId,
+        category: 'interior',
+        sortOrder: sort,
+      };
+      const created = await locationRepo.createEntry(campaignId, input);
+      const v = getValues();
+      const hasGrid =
+        Number(v.gridColumns) > 0 && Number(v.gridRows) > 0;
+      const preset = GRID_SIZE_PRESETS.medium;
+      const bootstrapValues: LocationFormValues = {
+        ...LOCATION_FORM_DEFAULTS,
+        ...v,
+        name: created.name,
+        scale: 'floor',
+        parentId: locationId,
+        category: 'interior',
+        gridPreset: hasGrid ? v.gridPreset : '',
+        gridColumns: hasGrid ? v.gridColumns : String(preset.columns),
+        gridRows: hasGrid ? v.gridRows : String(preset.rows),
+        gridCellUnit: v.gridCellUnit || getDefaultCellUnitForScale('floor'),
+        gridGeometry: getDefaultGeometryForScale('floor'),
+      };
+      await bootstrapDefaultLocationMap(
+        campaignId,
+        created.id,
+        created.name,
+        'floor',
+        bootstrapValues,
+        {
+          excludedCellIds: INITIAL_LOCATION_GRID_DRAFT.excludedCellIds,
+          cellEntries: cellDraftToCellEntries(
+            INITIAL_LOCATION_GRID_DRAFT.linkedLocationByCellId,
+            INITIAL_LOCATION_GRID_DRAFT.objectsByCellId,
+          ),
+        },
+      );
+      setLocationListRefreshKey((k) => k + 1);
+      setActiveFloorId(created.id);
+    } catch (e) {
+      setErrors([
+        { path: '', code: 'SAVE_FAILED', message: (e as Error).message },
+      ]);
+    } finally {
+      setAddingFloor(false);
+    }
+  }, [
+    campaignId,
+    locationId,
+    loc,
+    addingFloor,
+    floorChildren,
+    getValues,
+    setErrors,
+  ]);
 
   const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
     useSystemPatchActions({
@@ -331,6 +539,13 @@ export default function LocationEditRoute() {
       parentId={loc.parentId}
     />
   );
+
+  const activeFloorName =
+    activeFloorId && locations.find((l) => l.id === activeFloorId)?.name;
+  const mapHostLocationId = isBuildingWorkspace ? activeFloorId ?? '' : locationId!;
+  const mapHostScale = isBuildingWorkspace ? 'floor' : scaleForFormRules;
+  const mapHostName = activeFloorName ?? loc.name;
+  const buildingNeedsFloor = isBuildingWorkspace && floorChildren.length === 0;
 
   if (isSystem && driver) {
     return (
@@ -436,6 +651,7 @@ export default function LocationEditRoute() {
             success={success}
             rightRailOpen={rightRailOpen}
             onToggleRightRail={() => setRightRailOpen((o) => !o)}
+            saveDisabled={isBuildingWorkspace && !activeFloorId}
             actions={
               canDelete ? (
                 <Button
@@ -455,29 +671,97 @@ export default function LocationEditRoute() {
           />
         }
         canvas={
-          <LocationEditorCanvas
-            zoom={zoom}
-            pan={pan}
-            panHandlers={pointerHandlers}
-            isDragging={isDragging}
-            wheelContainerRef={wheelContainerRef}
-            zoomControlProps={zoomControlProps}
-          >
-            {showMapGridAuthoring ? (
-              <LocationGridAuthoringSection
-                gridColumns={gridColumns}
-                gridRows={gridRows}
-                gridGeometry={gridGeometry}
-                draft={gridDraft}
-                setDraft={setGridDraft}
-                locations={locations}
-                campaignId={campaignId ?? undefined}
-                hostLocationId={locationId}
-                hostScale={scaleForFormRules}
-                hostName={loc.name}
+          isBuildingWorkspace ? (
+            <Box
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }}
+            >
+              <BuildingFloorStrip
+                floors={floorChildren}
+                activeFloorId={activeFloorId}
+                onSelectFloor={setActiveFloorId}
+                onAddFloor={handleAddFloor}
+                adding={addingFloor}
+                disabled={saving}
               />
-            ) : null}
-          </LocationEditorCanvas>
+              <Box
+                sx={{
+                  flex: 1,
+                  minHeight: 0,
+                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <LocationEditorCanvas
+                  zoom={zoom}
+                  pan={pan}
+                  panHandlers={pointerHandlers}
+                  isDragging={isDragging}
+                  wheelContainerRef={wheelContainerRef}
+                  zoomControlProps={zoomControlProps}
+                >
+                  {buildingNeedsFloor ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        px: 2,
+                        minHeight: 120,
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary" textAlign="center">
+                        No floors yet. Use &quot;Add floor&quot; above to create the first map.
+                      </Typography>
+                    </Box>
+                  ) : showMapGridAuthoring ? (
+                    <LocationGridAuthoringSection
+                      gridColumns={gridColumns}
+                      gridRows={gridRows}
+                      gridGeometry={gridGeometry}
+                      draft={gridDraft}
+                      setDraft={setGridDraft}
+                      locations={locations}
+                      campaignId={campaignId ?? undefined}
+                      hostLocationId={mapHostLocationId}
+                      hostScale={mapHostScale}
+                      hostName={mapHostName}
+                    />
+                  ) : null}
+                </LocationEditorCanvas>
+              </Box>
+            </Box>
+          ) : (
+            <LocationEditorCanvas
+              zoom={zoom}
+              pan={pan}
+              panHandlers={pointerHandlers}
+              isDragging={isDragging}
+              wheelContainerRef={wheelContainerRef}
+              zoomControlProps={zoomControlProps}
+            >
+              {showMapGridAuthoring ? (
+                <LocationGridAuthoringSection
+                  gridColumns={gridColumns}
+                  gridRows={gridRows}
+                  gridGeometry={gridGeometry}
+                  draft={gridDraft}
+                  setDraft={setGridDraft}
+                  locations={locations}
+                  campaignId={campaignId ?? undefined}
+                  hostLocationId={locationId}
+                  hostScale={scaleForFormRules}
+                  hostName={loc.name}
+                />
+              ) : null}
+            </LocationEditorCanvas>
+          )
         }
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
@@ -485,6 +769,11 @@ export default function LocationEditRoute() {
               selectedCellId={gridDraft.selectedCellId}
               metadata={
                 <Stack spacing={2}>
+                  {isBuildingWorkspace && activeFloorId ? (
+                    <Typography variant="caption" color="text.secondary">
+                      Map and cells: {activeFloorName ?? 'Floor'} (save updates this floor).
+                    </Typography>
+                  ) : null}
                   <form
                     key="location-form"
                     id={FORM_ID}

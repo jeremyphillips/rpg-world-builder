@@ -30,6 +30,8 @@ type LocationEditorHeaderProps = {
   onToggleRightRail: () => void
   /** Extra actions rendered before the save button (e.g. delete). */
   actions?: ReactNode
+  /** When true, Save/Create stays disabled regardless of dirty (e.g. building with no floor yet). */
+  saveDisabled?: boolean
 }
 
 export function LocationEditorHeader({
@@ -47,6 +49,7 @@ export function LocationEditorHeader({
   rightRailOpen,
   onToggleRightRail,
   actions,
+  saveDisabled = false,
 }: LocationEditorHeaderProps) {
   const busy = saving
 
@@ -90,8 +93,6 @@ export function LocationEditorHeader({
       )}
 
       <Stack direction="row" spacing={0.5} alignItems="center">
-        {actions}
-
         <Tooltip title={rightRailOpen ? 'Hide settings' : 'Show settings'}>
           <IconButton size="small" onClick={onToggleRightRail}>
             {rightRailOpen ? <ViewSidebarIcon fontSize="small" /> : <ViewSidebarOutlinedIcon fontSize="small" />}
@@ -101,8 +102,8 @@ export function LocationEditorHeader({
         {!hideSaveButton && (
           <Button
             variant="contained"
-            size="small"
-            disabled={busy || (!dirty && !isNew)}
+            size="medium"
+            disabled={busy || saveDisabled || (!dirty && !isNew)}
             {...(formId
               ? { type: 'submit' as const, form: formId }
               : { onClick: onSave })}
@@ -110,6 +111,8 @@ export function LocationEditorHeader({
             {saving ? 'Saving…' : isNew ? 'Create' : 'Save'}
           </Button>
         )}
+        {actions}
+        
       </Stack>
     </Box>
   )

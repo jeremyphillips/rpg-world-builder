@@ -5,6 +5,8 @@ export { LocationEditorRightRail } from './LocationEditorRightRail'
 export { LocationEditorMapRailTabs } from './LocationEditorMapRailTabs'
 export { LocationCreateSetupModal } from './LocationCreateSetupModal'
 export type { LocationCreateSetupModalProps } from './LocationCreateSetupModal'
+export { BuildingFloorStrip } from './BuildingFloorStrip'
+export type { BuildingFloorStripProps } from './BuildingFloorStrip'
 export { LocationAncestryBreadcrumbs } from './LocationAncestryBreadcrumbs'
 export {
   LOCATION_EDITOR_HEADER_HEIGHT_PX,

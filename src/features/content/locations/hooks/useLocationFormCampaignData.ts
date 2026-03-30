@@ -12,6 +12,8 @@ export function useLocationFormCampaignData(
   campaignId: string | undefined,
   childScale: string,
   excludeLocationId?: string,
+  /** Increment to refetch campaign locations (e.g. after creating a child floor). */
+  refreshKey?: number,
 ) {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -36,7 +38,7 @@ export function useLocationFormCampaignData(
     return () => {
       cancelled = true;
     };
-  }, [campaignId]);
+  }, [campaignId, refreshKey]);
 
   const campaignLocations = useMemo(
     () => (campaignId ? locations : []),
