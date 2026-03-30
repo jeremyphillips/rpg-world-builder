@@ -59,8 +59,8 @@ Add a thin module (suggested path): `[src/features/content/locations/domain/buil
 
 - `**BuildingWorkspaceFloorItem`**: `{ id: string; name: string; sortOrder: number; locationId: string }` — `locationId` === `id` (single id field is enough if you prefer one property).
 - `**listFloorChildren(locations, buildingId)`**: filter `parentId === buildingId && scale === 'floor'`, sort by `sortOrder` ascending (then `name` as tiebreaker).
-- `**floorTabLabel(index: number)**`: `Floor ${index}` with **1-based** index from sorted order (not from `sortOrder` if data is messy — **display index** = position in sorted list for this pass, unless you explicitly want `sortOrder` to drive the label; spec says "Floor 1, 2, 3" from order/index — **use sorted array index + 1** for labels).
-- `**nextSortOrder(floors)**`: `max(sortOrder)+1` or `1` if empty (align with server `[listChildLocations` sort](server/features/content/locations/services/locations.service.ts) expectations).
+- `**floorTabLabel(index: number)`**: `Floor ${index}` with **1-based** index from sorted order (not from `sortOrder` if data is messy — **display index** = position in sorted list for this pass, unless you explicitly want `sortOrder` to drive the label; spec says "Floor 1, 2, 3" from order/index — **use sorted array index + 1** for labels).
+- `**nextSortOrder(floors)`**: `max(sortOrder)+1` or `1` if empty (align with server `[listChildLocations` sort](server/features/content/locations/services/locations.service.ts) expectations).
 
 Optional: `**resolveDefaultMapId(campaignId, floorId)**` — thin async helper wrapping `listLocationMaps` if needed for future; first pass may only need **bootstrap** after create.
 
@@ -70,20 +70,20 @@ New component: `[src/features/content/locations/components/workspace/BuildingFlo
 
 - Props: `floors`, `activeFloorId`, `onSelectFloor(id)`, `onAddFloor`, `adding?: boolean`, `disabled?: boolean`.
 - Render sorted floors as **toggle buttons** or **MUI Tabs**-like row; **active** state clearly styled.
-- Trailing `**+ Add floor**` control (Button or text button); **no** modal.
-- Container: **not full width** — e.g. `alignSelf: 'center'`, `maxWidth`, horizontal padding; `**position: 'sticky'`, `top: 0`, `zIndex**` if the canvas column ever scrolls; otherwise `**flexShrink: 0**` keeps it visible above the canvas.
+- Trailing `**+ Add floor`** control (Button or text button); **no** modal.
+- Container: **not full width** — e.g. `alignSelf: 'center'`, `maxWidth`, horizontal padding; `**position: 'sticky'`, `top: 0`, `zIndex`** if the canvas column ever scrolls; otherwise `**flexShrink: 0**` keeps it visible above the canvas.
 - Export from `[src/features/content/locations/components/index.ts](src/features/content/locations/components/index.ts)`.
 
 ## C. `LocationEditorWorkspace` composition (minimal change)
 
-**Prefer no change** to `[LocationEditorWorkspace.tsx](src/features/content/locations/components/workspace/LocationEditorWorkspace.tsx)`: in `LocationEditRoute`, wrap `**canvas**` in a column `Box` (`flex: 1`, `minHeight: 0`, `display: 'flex'`, `flexDirection: 'column'`) when `loc.scale === 'building'`:
+**Prefer no change** to `[LocationEditorWorkspace.tsx](src/features/content/locations/components/workspace/LocationEditorWorkspace.tsx)`: in `LocationEditRoute`, wrap `**canvas`** in a column `Box` (`flex: 1`, `minHeight: 0`, `display: 'flex'`, `flexDirection: 'column'`) when `loc.scale === 'building'`:
 
 1. `BuildingFloorStrip` (shrink 0)
 2. `LocationEditorCanvas` (`flex: 1`, `minHeight: 0`) — existing zoom/pan behavior unchanged
 
 ## D. `LocationEditRoute` branching (campaign, `scale === 'building'`)
 
-Scope **new UX** to `**loc.source === 'campaign' && loc.scale === 'building'**`. Keep the existing **system patch** branch as-is (single map / no floor strip) unless you later need parity.
+Scope **new UX** to `**loc.source === 'campaign' && loc.scale === 'building'`**. Keep the existing **system patch** branch as-is (single map / no floor strip) unless you later need parity.
 
 **State**
 
@@ -100,7 +100,7 @@ Scope **new UX** to `**loc.source === 'campaign' && loc.scale === 'building'**`.
 
 **Map + gridDraft load effect** (replace/supplement the effect at ~lines 180–205)
 
-- When **building**: run `listLocationMaps(campaignId, activeFloorId)` only when `activeFloorId` is set; set form grid fields + `gridDraft` from default map (same logic as today, but `**loc.scale` for geometry defaults** should use `**'floor'**` where relevant).
+- When **building**: run `listLocationMaps(campaignId, activeFloorId)` only when `activeFloorId` is set; set form grid fields + `gridDraft` from default map (same logic as today, but `**loc.scale` for geometry defaults** should use `**'floor'`** where relevant).
 - When **not building**: keep current effect keyed on `locationId`.
 - On **floor switch**: reload map for the new `activeFloorId` (accept **first-pass** behavior: **discard unsaved edits** on switch — document; no multi-floor dirty merge).
 
@@ -108,7 +108,7 @@ Scope **new UX** to `**loc.source === 'campaign' && loc.scale === 'building'**`.
 
 - If **building** and **no** floors: render empty state inside the canvas area (Typography + hint to use **+ Add floor**); **do not** render `LocationGridAuthoringSection`.
 
-`**showMapGridAuthoring**`
+`**showMapGridAuthoring`**
 
 - For building: require `activeFloorId` (and optionally a successful map presence — after add floor, bootstrap creates map).
 
@@ -123,7 +123,7 @@ Scope **new UX** to `**loc.source === 'campaign' && loc.scale === 'building'**`.
 
 ## E. Add floor (no modal)
 
-Handler `**handleAddFloor**` (building branch only):
+Handler `**handleAddFloor`** (building branch only):
 
 1. Compute `nextSortOrder` from `floorChildren`.
 2. `**locationRepo.createEntry(campaignId, { name: \`Floor ${nextIndex} or derived from count+1, scale: 'floor', parentId: buildingId, sortOrder, category: … })`** — set **category** to` **interior`** (fixed for floor per policy) if required by API; mirror other create flows (e.g. `[LocationCreateRoute](src/features/content/locations/routes/LocationCreateRoute.tsx)` / setup) for required fields.

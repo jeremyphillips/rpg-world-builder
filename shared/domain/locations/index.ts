@@ -12,3 +12,4 @@ export * from './map/locationMapPlacement.policy';
 export * from './map/locationMap.types';
 export * from './map/locationMapCellAuthoring.validation';
 export * from './map/locationMap.validation';
+export * from './zones';

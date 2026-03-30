@@ -4,6 +4,12 @@ import type { LocationMapKindId } from './locationMap.types';
 type LocationScaleId = (typeof LOCATION_SCALE_ORDER)[number];
 
 const WORLD_SCALES = new Set<LocationScaleId>(['world']);
+/**
+ * Scales that use the coarse **area-grid** map kind for campaign maps.
+ * TODO(refactor): `region` / `subregion` / `district` remain here for legacy map-kind routing;
+ * geographic expression is moving toward **MapZone** (`zones/`) on parent maps — revisit when
+ * link-based region/district locations are migrated.
+ */
 const AREA_SCALES = new Set<LocationScaleId>([
   'region',
   'subregion',

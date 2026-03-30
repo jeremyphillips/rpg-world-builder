@@ -5,6 +5,13 @@
  * - `LOCATION_SCALE_ORDER` / `locationScale.rules.ts` — generic structural ordering only.
  * - `locationScale.policy.ts` — parent/child assignment when saving a location.
  * - This module — what may be *linked from* or *placed on* a map cell for a *host* location/map.
+ * - `zones/mapZone.policy.ts` — painted **MapZone** kinds per host scale (area tool); not links.
+ *
+ * Migration note (phase 1): **region**, **subregion**, and **district** still appear as *linked*
+ * target scales below because persisted data and UI depend on current behavior. Long-term they
+ * should give way to **MapZone** on parent maps (`MAP_ZONE_KIND_IDS`) rather than standalone
+ * linked locations. Phase 2+ will tighten this map and migrate consumers; do not expand new
+ * features around those scales as permanent linked targets without checking MapZone direction.
  *
  * Future extensions (max links per cell, map-kind overrides, category exceptions) should live
  * here or in adjacent `locationMap*.policy.ts` files — keep maps explicit.

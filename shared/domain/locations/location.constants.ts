@@ -7,6 +7,11 @@
  *
  * Map cell authoring (linked locations + objects on a cell) uses `locationMapPlacement.policy.ts`
  * — separate from parent-scale policy and from generic ordering.
+ *
+ * MapZone (see `zones/`): long-term, **region**, **subregion**, and **district** are intended to
+ * move from “first-class linked location targets” toward **painted named zones** on parent maps.
+ * They remain in `LOCATION_SCALE_ORDER` for legacy ranking, persisted locations, and UI until
+ * migration phases complete — do not infer product intent from order alone.
  */
 
 /** Coarsest → finest; structural ordering for generic comparisons (`locationScale.rules.ts`). */
