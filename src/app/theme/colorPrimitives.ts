@@ -70,6 +70,50 @@ export const colorPrimitives = {
     500: '#9A6B45', // placeholder — scrutinize
   },
 
+  /**
+   * Overlay / chroma accents (region presets, UI hints). Not terrain — use `mapGreen` /
+   * `mapBlue` etc. for cell-fill geography.
+   */
+  blue: {
+    100: '#93C5FD', // placeholder — scrutinize (region presets use 300 only today)
+    200: '#60A5FA', // placeholder — scrutinize
+    300: '#2563EB',
+    400: '#1D4ED8', // placeholder — scrutinize
+    500: '#1E40AF', // placeholder — scrutinize
+  },
+
+  green: {
+    100: '#86EFAC', // placeholder — scrutinize (region presets use 300 only today)
+    200: '#4ADE80', // placeholder — scrutinize
+    300: '#22C55E',
+    400: '#16A34A', // placeholder — scrutinize
+    500: '#15803D', // placeholder — scrutinize
+  },
+
+  purple: {
+    100: '#E9D5FF', // placeholder — scrutinize (region presets use 300 only today)
+    200: '#C084FC', // placeholder — scrutinize
+    300: '#A855F7',
+    400: '#9333EA', // placeholder — scrutinize
+    500: '#7E22CE', // placeholder — scrutinize
+  },
+
+  teal: {
+    100: '#99F6E4', // placeholder — scrutinize (region presets use 300 only today)
+    200: '#2DD4BF', // placeholder — scrutinize
+    300: '#14B8A6',
+    400: '#0D9488', // placeholder — scrutinize
+    500: '#0F766E', // placeholder — scrutinize
+  },
+
+  orange: {
+    100: '#FED7AA', // placeholder — scrutinize (region presets use 300 only today)
+    200: '#FB923C', // placeholder — scrutinize
+    300: '#F97316',
+    400: '#EA580C', // placeholder — scrutinize
+    500: '#C2410C', // placeholder — scrutinize
+  },
+
   white: '#FFFFFF',
   black: '#000000',
 } as const

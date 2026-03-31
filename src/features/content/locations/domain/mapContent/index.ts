@@ -5,4 +5,5 @@ export * from './locationPlacedObject.types';
 export * from './locationScaleMapContent.policy';
 export * from './locationMapIconNames';
 export * from './locationMapSwatchColors.types';
+export * from './locationMapRegionColors.types';
 export * from './locationMapPresentation.constants';

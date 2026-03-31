@@ -1,4 +1,8 @@
-import type { LocationCellFillKindMeta, LocationMapSwatchColorKey } from '@/features/content/locations/domain/mapContent';
+import type {
+  LocationCellFillKindMeta,
+  LocationMapRegionColorKey,
+  LocationMapSwatchColorKey,
+} from '@/features/content/locations/domain/mapContent';
 
 import { colorPrimitives } from './colorPrimitives';
 
@@ -30,4 +34,38 @@ export function getMapSwatchColor(key: LocationMapSwatchColorKey): string {
 /** Resolved swatch hex for cell-fill metadata (optional `swatchColor` overrides theme key). */
 export function resolveCellFillSwatchColor(meta: LocationCellFillKindMeta): string {
   return meta.swatchColor ?? getMapSwatchColor(meta.swatchColorKey);
+}
+
+// --- Region overlay preset colors (distinct from terrain swatches) ---
+
+/**
+ * Curated region overlay preset colors — keyed for named regions; not terrain fills.
+ * Tune opacity/borders in a future map UI style layer; here we store solid presets only.
+ */
+export const baseMapRegionColors: Record<LocationMapRegionColorKey, string> = {
+  regionRed: colorPrimitives.red[300],
+  regionBlue: colorPrimitives.blue[300],
+  regionGreen: colorPrimitives.green[300],
+  regionPurple: colorPrimitives.purple[300],
+  regionGold: colorPrimitives.gold[300],
+  regionTeal: colorPrimitives.teal[300],
+  regionOrange: colorPrimitives.orange[300],
+  regionGray: colorPrimitives.gray[200],
+};
+
+export const lightMapRegionColors = baseMapRegionColors;
+export const darkMapRegionColors = baseMapRegionColors;
+
+export const mapRegionColors = baseMapRegionColors;
+
+export function getMapRegionColor(key: LocationMapRegionColorKey): string {
+  return mapRegionColors[key];
+}
+
+/** Preset region color, with optional stored hex override (e.g. future per-region customization). */
+export function resolveMapRegionColor(
+  presetKey: LocationMapRegionColorKey,
+  colorOverride?: string | null,
+): string {
+  return colorOverride ?? getMapRegionColor(presetKey);
 }
