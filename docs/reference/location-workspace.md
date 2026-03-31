@@ -59,7 +59,7 @@ The workspace is composed of feature-owned components:
 | `LocationEditorCanvas` | Flex-filling canvas region with zoom/pan transform wrapper. Hosts `LocationGridAuthoringSection` as child content and renders `ZoomControl` (fixed positioned). |
 | `LocationEditorRightRail` | Collapsible right rail (default open). Uses CSS width transition with `overflow: hidden` outer and scrollable inner. |
 | `LocationEditorRailSectionTabs` | Right-rail tabs: **Location** (location metadata forms), **Map** (place palette and other map-authoring options), **Selection** (inspector). Section state is separate from toolbar mode. |
-| `LocationEditorSelectionPanel` | Selection section dispatcher: cell inspector (`LocationCellAuthoringPanel`) plus placeholder branches for future path/region/object inspectors. |
+| `LocationEditorSelectionPanel` | Selection section dispatcher: cell / object / path / edge inspectors from authored map data; region remains a placeholder. |
 | `LocationAncestryBreadcrumbs` | Builds a breadcrumb trail from `parentId` chain; used in the header. |
 | `BuildingFloorStrip` | **Building edit only:** floor tabs + add-floor control above the canvas (see **Building scale** below). |
 | `locationEditor.constants.ts` | Shared pixel constants: `LOCATION_EDITOR_HEADER_HEIGHT_PX`, `LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX`, `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` (map toolbar), plus paint-tray width when the paint tool is active. |

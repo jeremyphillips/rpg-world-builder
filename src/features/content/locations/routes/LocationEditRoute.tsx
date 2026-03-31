@@ -77,7 +77,6 @@ import {
   LocationEditorRightRail,
   LocationEditorRailSectionTabs,
   LocationEditorSelectionPanel,
-  deriveLocationMapSelection,
   shouldAutoSwitchRailToMapForMode,
   LocationAncestryBreadcrumbs,
   BuildingFloorStrip,
@@ -304,6 +303,7 @@ export default function LocationEditRoute() {
           setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale(loc!.scale));
           const authoring = normalizeLocationMapAuthoringFields(def);
           const next = {
+            mapSelection: { type: 'none' as const },
             selectedCellId: null,
             excludedCellIds: def.layout?.excludedCellIds ?? [],
             ...cellEntriesToDraft(authoring.cellEntries),
@@ -348,6 +348,7 @@ export default function LocationEditRoute() {
           setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale('floor'));
           const authoring = normalizeLocationMapAuthoringFields(def);
           const next = {
+            mapSelection: { type: 'none' as const },
             selectedCellId: null,
             excludedCellIds: def.layout?.excludedCellIds ?? [],
             ...cellEntriesToDraft(authoring.cellEntries),
@@ -424,11 +425,6 @@ export default function LocationEditRoute() {
 
   const mapEditor = useLocationMapEditorState();
   const { setMode: setMapEditorMode } = mapEditor;
-
-  const mapSelection = useMemo(
-    () => deriveLocationMapSelection(gridDraft.selectedCellId),
-    [gridDraft.selectedCellId],
-  );
 
   const handleMapEditorModeChange = useCallback(
     (mode: LocationMapEditorMode) => {
@@ -980,7 +976,9 @@ export default function LocationEditRoute() {
 
   const systemSelectionPanel = (
     <LocationEditorSelectionPanel
-      selection={mapSelection}
+      selection={gridDraft.mapSelection}
+      pathEntries={gridDraft.pathEntries}
+      edgeEntries={gridDraft.edgeEntries}
       cellPanelProps={{
         selectedCellId: gridDraft.selectedCellId,
         hostLocationId: locationId,
@@ -998,7 +996,9 @@ export default function LocationEditRoute() {
 
   const campaignSelectionPanel = (
     <LocationEditorSelectionPanel
-      selection={mapSelection}
+      selection={gridDraft.mapSelection}
+      pathEntries={gridDraft.pathEntries}
+      edgeEntries={gridDraft.edgeEntries}
       cellPanelProps={{
         selectedCellId: gridDraft.selectedCellId,
         hostLocationId: mapHostLocationId,

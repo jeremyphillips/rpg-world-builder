@@ -1,4 +1,9 @@
-import { useMemo, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import {
+  useMemo,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
 import {
@@ -25,7 +30,7 @@ export type GridEditorProps = {
   selectedCellId?: string | null
   /** Cells masked out of walkable layout (authoring); distinct from selection styling. */
   excludedCellIds?: string[]
-  onCellClick?: (cell: GridCell) => void
+  onCellClick?: (cell: GridCell, event: ReactMouseEvent<HTMLElement>) => void
   /** Optional whole-cell background (e.g. terrain fill); selection / excluded still win. */
   getCellBackgroundColor?: (cell: GridCell) => string | undefined
   onCellPointerDown?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void
@@ -102,7 +107,7 @@ export default function GridEditor({
                 : `Cell ${x}, ${y}`
             }
             disabled={disabled}
-            onClick={() => !disabled && onCellClick?.(cell)}
+            onClick={(e) => !disabled && onCellClick?.(cell, e)}
             onPointerDown={(e) => {
               onCellPointerDown?.(e, cell)
             }}

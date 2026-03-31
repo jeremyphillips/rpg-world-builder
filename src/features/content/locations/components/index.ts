@@ -33,7 +33,4 @@ export {
   LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX,
 } from './workspace'
 export type { LocationEditorRailSection, LocationMapSelection } from './workspace'
-export {
-  deriveLocationMapSelection,
-  shouldAutoSwitchRailToMapForMode,
-} from './workspace'
+export { shouldAutoSwitchRailToMapForMode } from './workspace'

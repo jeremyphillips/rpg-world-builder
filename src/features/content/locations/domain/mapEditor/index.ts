@@ -4,3 +4,4 @@ export * from './placeObjectBridge';
 export * from './resolvePlacedKindToAction';
 export * from './resolveEraseTarget';
 export * from './useLocationMapEditorState';
+export * from './locationMapSelectionHitTest';

@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type Dispatch,
+  type MouseEvent as ReactMouseEvent,
   type SetStateAction,
 } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
@@ -56,7 +57,16 @@ import {
   squareEdgeSegmentPxFromEdgeId,
 } from './squareGridMapOverlayGeometry';
 import { edgeEntriesToSegmentGeometrySquare } from '@/shared/domain/locations/map/locationMapEdgeGeometry.helpers';
-import { pathEntryToPolylineGeometry } from '@/shared/domain/locations/map/locationMapPathPolyline.helpers';
+import {
+  pathEntriesToPolylineGeometry,
+  pathEntryToPolylineGeometry,
+} from '@/shared/domain/locations/map/locationMapPathPolyline.helpers';
+import {
+  DEFAULT_EDGE_PICK_HALF_WIDTH_PX,
+  DEFAULT_PATH_PICK_TOLERANCE_PX,
+  resolveNearestEdgeHit,
+  resolveNearestPathHit,
+} from '@/features/content/locations/domain/mapEditor/locationMapSelectionHitTest';
 import { hexCellCenterPx, hexOverlayDimensions, resolveNearestHexCell } from './hexGridMapOverlayGeometry';
 import { polylinePoint2DToSmoothSvgPath } from './pathOverlayRendering';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
@@ -209,6 +219,28 @@ export function LocationGridAuthoringSection({
           nextSel = null;
         }
       }
+
+      let nextMapSelection = prev.mapSelection;
+      const ms = prev.mapSelection;
+      if (ms.type === 'cell') {
+        if (nextSel == null || ms.cellId !== nextSel) {
+          nextMapSelection = { type: 'none' };
+        }
+      } else if (ms.type === 'object') {
+        const objs = prunedObjs[ms.cellId];
+        if (!objs?.some((o) => o.id === ms.objectId)) {
+          nextMapSelection = { type: 'none' };
+        }
+      } else if (ms.type === 'path') {
+        if (!prunedPaths.some((p) => p.id === ms.pathId)) {
+          nextMapSelection = { type: 'none' };
+        }
+      } else if (ms.type === 'edge') {
+        if (!prunedEdges.some((e) => e.edgeId === ms.edgeId)) {
+          nextMapSelection = { type: 'none' };
+        }
+      }
+
       const sameLen = prunedExcluded.length === prev.excludedCellIds.length;
       const sameIds =
         sameLen && prunedExcluded.every((id, i) => id === prev.excludedCellIds[i]);
@@ -220,6 +252,8 @@ export function LocationGridAuthoringSection({
         JSON.stringify(prunedFill) === JSON.stringify(prev.cellFillByCellId);
       const pathsSame = JSON.stringify(prunedPaths) === JSON.stringify(prev.pathEntries);
       const edgesSame = JSON.stringify(prunedEdges) === JSON.stringify(prev.edgeEntries);
+      const mapSelSame =
+        JSON.stringify(nextMapSelection) === JSON.stringify(prev.mapSelection);
       if (
         sameIds &&
         nextSel === prev.selectedCellId &&
@@ -227,12 +261,14 @@ export function LocationGridAuthoringSection({
         objsSame &&
         fillSame &&
         pathsSame &&
-        edgesSame
+        edgesSame &&
+        mapSelSame
       ) {
         return prev;
       }
       return {
         ...prev,
+        mapSelection: nextMapSelection,
         excludedCellIds: prunedExcluded,
         selectedCellId: nextSel,
         linkedLocationByCellId: prunedLinks,
@@ -349,7 +385,7 @@ export function LocationGridAuthoringSection({
     }
 
     const centerFn = (cellId: string) => cellCenterPx(cellId);
-    const result: { kind: LocationMapPathKindId; d: string }[] = [];
+    const result: { pathId: string; kind: LocationMapPathKindId; d: string }[] = [];
 
     for (let i = 0; i < chains.length; i++) {
       let cells = chains[i].cells;
@@ -361,7 +397,11 @@ export function LocationGridAuthoringSection({
         centerFn,
       );
       if (!poly) continue;
-      result.push({ kind: poly.kind, d: polylinePoint2DToSmoothSvgPath(poly.points) });
+      result.push({
+        pathId: chains[i].id,
+        kind: poly.kind,
+        d: polylinePoint2DToSmoothSvgPath(poly.points),
+      });
     }
 
     if (extendIdx < 0 && extendCell && placePathAnchorCellId) {
@@ -375,6 +415,7 @@ export function LocationGridAuthoringSection({
       );
       if (previewPoly) {
         result.push({
+          pathId: '__preview__',
           kind: previewPoly.kind,
           d: polylinePoint2DToSmoothSvgPath(previewPoly.points),
         });
@@ -676,7 +717,7 @@ export function LocationGridAuthoringSection({
     ],
   );
 
-  const onCellClick = (cell: GridCell) => {
+  const onCellClick = (cell: GridCell, e: ReactMouseEvent<HTMLElement>) => {
     if (hasDragMoved?.()) return;
     if (mapEditorMode === 'place') {
       if (placeObjectStrokeMode) return;
@@ -691,8 +732,83 @@ export function LocationGridAuthoringSection({
     if (mapEditorMode === 'paint' || mapEditorMode === 'clear-fill') {
       return;
     }
+    if (mapEditorMode !== 'select') {
+      return;
+    }
+    if (!gridContainerRef.current) {
+      setDraft((d) => ({
+        ...d,
+        mapSelection: { type: 'cell', cellId: cell.cellId },
+        selectedCellId: cell.cellId,
+      }));
+      onCellFocusRail?.();
+      return;
+    }
+    const rect = gridContainerRef.current.getBoundingClientRect();
+    const gx = e.clientX - rect.left;
+    const gy = e.clientY - rect.top;
+
+    const target = e.target as HTMLElement;
+    const objWrap = target.closest('[data-map-object-id]');
+    if (objWrap) {
+      const objectId = objWrap.getAttribute('data-map-object-id');
+      const cellId =
+        objWrap.getAttribute('data-map-object-cell-id') ?? cell.cellId;
+      if (objectId) {
+        setDraft((d) => ({
+          ...d,
+          mapSelection: { type: 'object', cellId, objectId },
+          selectedCellId: cellId,
+        }));
+        onCellFocusRail?.();
+        return;
+      }
+    }
+
+    if (!isHex && squareGridGeometry) {
+      const edgeGeoms = edgeEntriesToSegmentGeometrySquare(
+        draft.edgeEntries,
+        squareGridGeometry.cellPx,
+      );
+      const edgeHit = resolveNearestEdgeHit(
+        gx,
+        gy,
+        edgeGeoms,
+        DEFAULT_EDGE_PICK_HALF_WIDTH_PX,
+      );
+      if (edgeHit) {
+        setDraft((d) => ({
+          ...d,
+          mapSelection: { type: 'edge', edgeId: edgeHit.edgeId },
+          selectedCellId: null,
+        }));
+        onCellFocusRail?.();
+        return;
+      }
+    }
+
+    const pathPolys = pathEntriesToPolylineGeometry(draft.pathEntries, (cid) =>
+      cellCenterPx(cid),
+    );
+    const pathHit = resolveNearestPathHit(
+      gx,
+      gy,
+      pathPolys,
+      DEFAULT_PATH_PICK_TOLERANCE_PX,
+    );
+    if (pathHit) {
+      setDraft((d) => ({
+        ...d,
+        mapSelection: { type: 'path', pathId: pathHit.pathId },
+        selectedCellId: null,
+      }));
+      onCellFocusRail?.();
+      return;
+    }
+
     setDraft((d) => ({
       ...d,
+      mapSelection: { type: 'cell', cellId: cell.cellId },
       selectedCellId: cell.cellId,
     }));
     onCellFocusRail?.();
@@ -731,20 +847,35 @@ export function LocationGridAuthoringSection({
         sx={{ lineHeight: 0, maxWidth: '100%' }}
       >
         {linked
-          ? createElement(getLocationScaleMapIcon(linked.scale), {
+          ? (
+              <Box
+                component="span"
+                data-map-linked-cell={cell.cellId}
+                sx={{ display: 'inline-flex', lineHeight: 0 }}
+              >
+                {createElement(getLocationScaleMapIcon(linked.scale), {
+                  sx: iconSx,
+                  color: 'action',
+                  'aria-hidden': true,
+                })}
+              </Box>
+            )
+          : null}
+        {objs?.map((o) => (
+          <Box
+            key={o.id}
+            component="span"
+            data-map-object-id={o.id}
+            data-map-object-cell-id={cell.cellId}
+            sx={{ display: 'inline-flex', lineHeight: 0 }}
+          >
+            {createElement(getLocationMapObjectKindIcon(o.kind), {
               sx: iconSx,
               color: 'action',
               'aria-hidden': true,
-            })
-          : null}
-        {objs?.map((o) =>
-          createElement(getLocationMapObjectKindIcon(o.kind), {
-            key: o.id,
-            sx: iconSx,
-            color: 'action',
-            'aria-hidden': true,
-          }),
-        )}
+            })}
+          </Box>
+        ))}
       </Stack>
     );
   };
@@ -1001,13 +1132,19 @@ export function LocationGridAuthoringSection({
                   />
                 );
               })()}
-            {pathSvgData.map((p, i) => (
+            {pathSvgData.map((p) => (
               <path
-                key={`path-${p.kind}-${i}`}
+                key={`path-${p.pathId}`}
                 d={p.d}
                 fill="none"
                 stroke={pathOverlayStroke}
-                strokeWidth={2.5}
+                strokeWidth={
+                  p.pathId !== '__preview__' &&
+                  draft.mapSelection.type === 'path' &&
+                  draft.mapSelection.pathId === p.pathId
+                    ? 4.5
+                    : 2.5
+                }
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -1015,6 +1152,9 @@ export function LocationGridAuthoringSection({
             {committedEdgeSegmentGeometry.map((g) => {
               const st = edgeOverlayStrokeProps[g.kind];
               const seg = g.segment;
+              const selected =
+                draft.mapSelection.type === 'edge' &&
+                draft.mapSelection.edgeId === g.edgeId;
               return (
                 <line
                   key={g.edgeId}
@@ -1023,7 +1163,7 @@ export function LocationGridAuthoringSection({
                   x2={seg.x2}
                   y2={seg.y2}
                   stroke={st.stroke}
-                  strokeWidth={st.strokeWidth}
+                  strokeWidth={selected ? st.strokeWidth + 4 : st.strokeWidth}
                   strokeLinecap="square"
                   {...('strokeDasharray' in st && st.strokeDasharray != null
                     ? { strokeDasharray: st.strokeDasharray }
@@ -1049,13 +1189,19 @@ export function LocationGridAuthoringSection({
             }}
             aria-hidden
           >
-            {pathSvgData.map((p, i) => (
+            {pathSvgData.map((p) => (
               <path
-                key={`path-${p.kind}-${i}`}
+                key={`path-${p.pathId}`}
                 d={p.d}
                 fill="none"
                 stroke={pathOverlayStroke}
-                strokeWidth={2.5}
+                strokeWidth={
+                  p.pathId !== '__preview__' &&
+                  draft.mapSelection.type === 'path' &&
+                  draft.mapSelection.pathId === p.pathId
+                    ? 4.5
+                    : 2.5
+                }
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />

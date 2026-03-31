@@ -4,24 +4,17 @@ import type { LocationMapEditorMode } from '@/features/content/locations/domain/
 export type LocationEditorRailSection = 'location' | 'map' | 'selection';
 
 /**
- * Inspector selection for map-authored entities. This slice only derives `none` | `cell`
- * from `gridDraft.selectedCellId`; other variants are structural placeholders for future slices.
+ * Inspector selection for map-authored entities. Stored on {@link LocationGridDraftState#mapSelection}
+ * and updated from Select-mode hit-testing (objects, edges, paths, cells).
  */
 export type LocationMapSelection =
   | { type: 'none' }
   | { type: 'cell'; cellId: string }
-  | { type: 'region'; regionId: string }
+  | { type: 'object'; cellId: string; objectId: string }
   | { type: 'path'; pathId: string }
-  | { type: 'object'; cellId: string; objectId: string };
-
-export function deriveLocationMapSelection(
-  selectedCellId: string | null,
-): LocationMapSelection {
-  if (selectedCellId == null || selectedCellId.trim() === '') {
-    return { type: 'none' };
-  }
-  return { type: 'cell', cellId: selectedCellId };
-}
+  | { type: 'edge'; edgeId: string }
+  /** Reserved until region authoring exists. */
+  | { type: 'region'; regionId: string };
 
 /** Event-driven auto-switch: opening Place mode should focus the Map rail section (place palette). */
 export function shouldAutoSwitchRailToMapForMode(mode: LocationMapEditorMode): boolean {

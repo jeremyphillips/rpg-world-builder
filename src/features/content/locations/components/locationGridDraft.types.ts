@@ -5,10 +5,14 @@ import type {
   LocationMapPathAuthoringEntry,
 } from '@/shared/domain/locations';
 
+import type { LocationMapSelection } from './workspace/locationEditorRail.types';
+
 /** Same shape as persisted map cell objects. */
 export type LocationCellObjectDraft = LocationMapCellObjectEntry;
 
 export type LocationGridDraftState = {
+  /** Map inspector selection (not persisted); orthogonal to {@link selectedCellId} for cell chrome. */
+  mapSelection: LocationMapSelection;
   selectedCellId: string | null;
   excludedCellIds: string[];
   /** At most one linked campaign location id per cell. */
@@ -24,6 +28,7 @@ export type LocationGridDraftState = {
 };
 
 export const INITIAL_LOCATION_GRID_DRAFT: LocationGridDraftState = {
+  mapSelection: { type: 'none' },
   selectedCellId: null,
   excludedCellIds: [],
   linkedLocationByCellId: {},
