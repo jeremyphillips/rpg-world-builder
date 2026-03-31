@@ -67,6 +67,10 @@ type LocationGridAuthoringSectionProps = {
   onPlaceCellClick?: (cellId: string) => void;
   /** Erase mode: remove highest-priority feature at cell (edge → object → path → link). */
   onEraseCellClick?: (cellId: string) => void;
+  /** Place mode: first cell chosen for path segment (two-click flow). */
+  placePathAnchorCellId?: string | null;
+  /** Place mode: first cell chosen for edge feature (two-click flow). */
+  placeEdgeAnchorCellId?: string | null;
 };
 
 export function LocationGridAuthoringSection({
@@ -86,6 +90,8 @@ export function LocationGridAuthoringSection({
   leftChromeWidthPx = 0,
   onPlaceCellClick,
   onEraseCellClick,
+  placePathAnchorCellId = null,
+  placeEdgeAnchorCellId = null,
 }: LocationGridAuthoringSectionProps) {
   const cols = Number(gridColumns);
   const rows = Number(gridRows);
@@ -198,6 +204,49 @@ export function LocationGridAuthoringSection({
   const locationById = useMemo(
     () => new Map(locations.map((l) => [l.id, l])),
     [locations],
+  );
+
+  const pathEndpointCells = useMemo(() => {
+    const s = new Set<string>();
+    for (const seg of draft.pathSegments) {
+      s.add(seg.startCellId.trim());
+      s.add(seg.endCellId.trim());
+    }
+    return s;
+  }, [draft.pathSegments]);
+
+  const edgeEndpointCells = useMemo(() => {
+    const s = new Set<string>();
+    const re = /^between:([^|]+)\|([^|]+)$/;
+    for (const e of draft.edgeFeatures) {
+      const m = re.exec(e.edgeId);
+      if (m) {
+        s.add(m[1].trim());
+        s.add(m[2].trim());
+      }
+    }
+    return s;
+  }, [draft.edgeFeatures]);
+
+  const getCellClassName = useCallback(
+    (cell: GridCell) => {
+      const id = cell.cellId;
+      if (placePathAnchorCellId && id === placePathAnchorCellId) {
+        return 'location-map-place-anchor-path';
+      }
+      if (placeEdgeAnchorCellId && id === placeEdgeAnchorCellId) {
+        return 'location-map-place-anchor-edge';
+      }
+      if (pathEndpointCells.has(id)) return 'location-map-path-endpoint';
+      if (edgeEndpointCells.has(id)) return 'location-map-edge-endpoint';
+      return undefined;
+    },
+    [
+      placePathAnchorCellId,
+      placeEdgeAnchorCellId,
+      pathEndpointCells,
+      edgeEndpointCells,
+    ],
   );
 
   const getCellBackgroundColor = useCallback(
@@ -349,10 +398,28 @@ export function LocationGridAuthoringSection({
     onCellPointerEnter: paintOrClear ? handlePaintPointerEnter : undefined,
     onCellPointerUp: paintOrClear ? handlePaintPointerUp : undefined,
     renderCellContent: renderMapCellIcons,
+    getCellClassName,
   };
 
   return (
-    <Paper variant="outlined" sx={{ p: 1 }}>
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 1,
+        '& .location-map-place-anchor-path': {
+          boxShadow: (t) => `inset 0 0 0 3px ${t.palette.primary.main}`,
+        },
+        '& .location-map-place-anchor-edge': {
+          boxShadow: (t) => `inset 0 0 0 3px ${t.palette.secondary.main}`,
+        },
+        '& .location-map-path-endpoint': {
+          boxShadow: (t) => `inset 0 0 0 2px ${t.palette.info.main}`,
+        },
+        '& .location-map-edge-endpoint': {
+          boxShadow: (t) => `inset 0 0 0 1px dashed ${t.palette.divider}`,
+        },
+      }}
+    >
       <Box sx={{ width: gridSizePx.width }}>
         {isHex ? (
           <HexGridEditor

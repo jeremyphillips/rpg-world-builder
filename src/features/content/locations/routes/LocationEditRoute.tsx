@@ -77,7 +77,7 @@ import {
   BuildingFloorStrip,
   INITIAL_LOCATION_GRID_DRAFT,
   gridDraftPersistableEquals,
-  LocationMapEditorCityLinkModal,
+  LocationMapEditorLinkedLocationModal,
   LocationMapEditorPaintTray,
   LocationMapEditorPlacePanel,
   LocationMapEditorToolbar,
@@ -416,8 +416,12 @@ export default function LocationEditRoute() {
     mapEditor.setEdgeAnchorCellId(null);
   }, [gridColumns, gridRows, mapEditor.setPathAnchorCellId, mapEditor.setEdgeAnchorCellId]);
 
-  const cityLinkSelectOptions = useMemo(() => {
+  /** Options for the pending linked-location modal (city / building / site per resolver). */
+  const linkModalSelectOptions = useMemo(() => {
     if (!campaignId || !loc || loc.source !== 'campaign') return [];
+    const p = mapEditor.pendingPlacement;
+    if (!p || p.type !== 'linked-location') return [];
+    const targetScale = p.linkedScale;
     const campaignLocations = locations.filter((l) => l.source === 'campaign');
     const host = {
       id: mapHostLocationIdResolved || '__host__',
@@ -430,9 +434,16 @@ export default function LocationEditRoute() {
       campaignId,
       excludeLocationId: mapHostLocationIdResolved || undefined,
     })
-      .filter((l) => l.scale === 'city')
+      .filter((l) => l.scale === targetScale)
       .map((l) => ({ value: l.id, label: l.name }));
-  }, [campaignId, loc, locations, mapHostLocationIdResolved, mapHostScaleResolved]);
+  }, [
+    campaignId,
+    loc,
+    locations,
+    mapHostLocationIdResolved,
+    mapHostScaleResolved,
+    mapEditor.pendingPlacement,
+  ]);
 
   const showMapEditorChrome = showMapGridAuthoring;
 
@@ -958,6 +969,8 @@ export default function LocationEditRoute() {
                     leftChromeWidthPx={leftMapChromeWidthPx}
                     onPlaceCellClick={handlePlaceCell}
                     onEraseCellClick={handleEraseCell}
+                    placePathAnchorCellId={mapEditor.pathAnchorCellId}
+                    placeEdgeAnchorCellId={mapEditor.edgeAnchorCellId}
                   />
                 ) : null}
               </LocationEditorCanvas>
@@ -1152,6 +1165,8 @@ export default function LocationEditRoute() {
                         leftChromeWidthPx={leftMapChromeWidthPx}
                         onPlaceCellClick={handlePlaceCell}
                         onEraseCellClick={handleEraseCell}
+                        placePathAnchorCellId={mapEditor.pathAnchorCellId}
+                        placeEdgeAnchorCellId={mapEditor.edgeAnchorCellId}
                       />
                     ) : null}
                   </LocationEditorCanvas>
@@ -1210,6 +1225,8 @@ export default function LocationEditRoute() {
                       leftChromeWidthPx={leftMapChromeWidthPx}
                       onPlaceCellClick={handlePlaceCell}
                       onEraseCellClick={handleEraseCell}
+                      placePathAnchorCellId={mapEditor.pathAnchorCellId}
+                      placeEdgeAnchorCellId={mapEditor.edgeAnchorCellId}
                     />
                   ) : null}
                 </LocationEditorCanvas>
@@ -1272,10 +1289,10 @@ export default function LocationEditRoute() {
         }
       />
 
-      <LocationMapEditorCityLinkModal
+      <LocationMapEditorLinkedLocationModal
         open={mapEditor.pendingPlacement != null}
         pending={mapEditor.pendingPlacement}
-        options={cityLinkSelectOptions}
+        options={linkModalSelectOptions}
         onConfirm={(linkedLocationId) => {
           const p = mapEditor.pendingPlacement;
           if (!p || p.type !== 'linked-location') return;

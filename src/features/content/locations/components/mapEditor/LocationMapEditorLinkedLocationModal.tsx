@@ -7,12 +7,39 @@ import { AppModal } from '@/ui/patterns';
 import FormSelectField from '@/ui/patterns/form/FormSelectField';
 import type { SelectOption } from '@/ui/patterns/form/FormSelectField';
 import type { LocationMapPendingPlacement } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
+import type { LocationScaleId } from '@/shared/domain/locations';
 
-type CityLinkForm = {
+function linkedTargetNoun(scale: LocationScaleId): string {
+  switch (scale) {
+    case 'city':
+      return 'city';
+    case 'building':
+      return 'building';
+    case 'site':
+      return 'site';
+    default:
+      return 'location';
+  }
+}
+
+function linkedTargetLabel(scale: LocationScaleId): string {
+  switch (scale) {
+    case 'city':
+      return 'City';
+    case 'building':
+      return 'Building';
+    case 'site':
+      return 'Site';
+    default:
+      return 'Location';
+  }
+}
+
+type LinkedLocationPickForm = {
   linkedLocationId: string;
 };
 
-type LocationMapEditorCityLinkModalProps = {
+export type LocationMapEditorLinkedLocationModalProps = {
   open: boolean;
   pending: LocationMapPendingPlacement;
   options: SelectOption[];
@@ -20,14 +47,14 @@ type LocationMapEditorCityLinkModalProps = {
   onCancel: () => void;
 };
 
-export function LocationMapEditorCityLinkModal({
+export function LocationMapEditorLinkedLocationModal({
   open,
   pending,
   options,
   onConfirm,
   onCancel,
-}: LocationMapEditorCityLinkModalProps) {
-  const methods = useForm<CityLinkForm>({
+}: LocationMapEditorLinkedLocationModalProps) {
+  const methods = useForm<LinkedLocationPickForm>({
     defaultValues: { linkedLocationId: '' },
   });
 
@@ -42,9 +69,11 @@ export function LocationMapEditorCityLinkModal({
     methods.reset({ linkedLocationId: '' });
   });
 
+  const linkedScale: LocationScaleId | undefined =
+    pending?.type === 'linked-location' ? pending.linkedScale : undefined;
   const title =
-    pending?.type === 'linked-location'
-      ? 'Link city to cell'
+    pending?.type === 'linked-location' && linkedScale
+      ? `Link ${linkedTargetNoun(linkedScale)} to cell`
       : 'Link location';
 
   return (
@@ -67,12 +96,21 @@ export function LocationMapEditorCityLinkModal({
       <FormProvider {...methods}>
         <Stack spacing={2} sx={{ pt: 1 }}>
           <Typography variant="body2" color="text.secondary">
-            Choose a campaign city to place on this cell. Only locations allowed by link policy are
-            listed.
+            {linkedScale ? (
+              <>
+                Choose a campaign {linkedTargetNoun(linkedScale)} to place on this cell. Only
+                locations allowed by link policy are listed.
+              </>
+            ) : (
+              <>
+                Choose a campaign location to place on this cell. Only locations allowed by link
+                policy are listed.
+              </>
+            )}
           </Typography>
           <FormSelectField
             name="linkedLocationId"
-            label="City"
+            label={linkedScale ? linkedTargetLabel(linkedScale) : 'Location'}
             options={options}
             required
             size="small"

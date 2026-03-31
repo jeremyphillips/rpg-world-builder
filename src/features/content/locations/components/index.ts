@@ -7,7 +7,7 @@ export {
   LocationMapEditorToolbar,
   LocationMapEditorPaintTray,
   LocationMapEditorPlacePanel,
-  LocationMapEditorCityLinkModal,
+  LocationMapEditorLinkedLocationModal,
 } from './mapEditor';
 export {
   INITIAL_LOCATION_GRID_DRAFT,
