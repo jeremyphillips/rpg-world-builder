@@ -57,7 +57,9 @@ The workspace is composed of feature-owned components:
 | `LocationEditorWorkspace` | Outer flex column: header slot + body row (canvas + right rail). Body row capped at `calc(100vh - headerHeight)`. |
 | `LocationEditorHeader` | Sticky header: title, ancestry breadcrumbs, global save button, right-rail toggle, optional actions (e.g. delete). |
 | `LocationEditorCanvas` | Flex-filling canvas region with zoom/pan transform wrapper. Hosts `LocationGridAuthoringSection` as child content and renders `ZoomControl` (fixed positioned). |
-| `LocationEditorRightRail` | Collapsible right rail (default open) containing all form fields. Uses CSS width transition with `overflow: hidden` outer and scrollable inner. |
+| `LocationEditorRightRail` | Collapsible right rail (default open). Uses CSS width transition with `overflow: hidden` outer and scrollable inner. |
+| `LocationEditorRailSectionTabs` | Right-rail tabs: **Location** (location metadata forms), **Map** (place palette and other map-authoring options), **Selection** (inspector). Section state is separate from toolbar mode. |
+| `LocationEditorSelectionPanel` | Selection section dispatcher: cell inspector (`LocationCellAuthoringPanel`) plus placeholder branches for future path/region/object inspectors. |
 | `LocationAncestryBreadcrumbs` | Builds a breadcrumb trail from `parentId` chain; used in the header. |
 | `BuildingFloorStrip` | **Building edit only:** floor tabs + add-floor control above the canvas (see **Building scale** below). |
 | `locationEditor.constants.ts` | Shared pixel constants: `LOCATION_EDITOR_HEADER_HEIGHT_PX`, `LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX`, `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` (map toolbar), plus paint-tray width when the paint tool is active. |
@@ -80,8 +82,8 @@ When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEd
 
 | Mode | Purpose |
 |------|---------|
-| `select` | Default: click cells to select and focus the cell rail; map pan works from the grid (pointer events not consumed for placement). |
-| `place` | Place **objects**, **paths**, **edges**, or **linked locations** (per scale). Choice of *what* to place comes from the **Place** panel in the right rail (`LocationMapEditorPlacePanel`), driven by `getGroupedPlacePaletteForScale` and `activePlace` in `useLocationMapEditorState`. |
+| `select` | Default: click cells to select and focus the **Selection** rail section; map pan works from the grid (pointer events not consumed for placement). |
+| `place` | Place **objects**, **paths**, **edges**, or **linked locations** (per scale). Choice of *what* to place comes from the **Place** panel in the **Map** section of the right rail (`LocationMapEditorPlacePanel`), driven by `getGroupedPlacePaletteForScale` and `activePlace` in `useLocationMapEditorState`. |
 | `paint` | Paint **cell fills**; **active** swatch from `LocationMapEditorPaintTray` + `activePaint`. Stroke gestures on cells (pointer down / enter / up) update `cellFillByCellId`. |
 | `clear-fill` | Stroke to clear terrain fill on cells without removing links/objects/paths/edges. |
 | `erase` | Click a cell to remove the highest-priority feature there (`resolveEraseTargetAtCell`: edge → object → path → link). For **edge features**, pointer resolution targets the nearest boundary directly via `onEraseEdge`, bypassing cell-level priority. |
@@ -95,7 +97,7 @@ When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEd
 | Component | Role |
 |-----------|------|
 | `LocationMapEditorPaintTray` | Shown when `mode === 'paint'`; swatches from `getPaintPaletteItemsForScale`. |
-| `LocationMapEditorPlacePanel` | Shown when `mode === 'place'`; cards for objects / paths / edges (and link flows resolved by `resolvePlacedKindToAction`). |
+| `LocationMapEditorPlacePanel` | Shown in the right-rail **Map** section when `mode === 'place'`; cards for objects / paths / edges (and link flows resolved by `resolvePlacedKindToAction`). |
 | `LocationGridAuthoringSection` | Renders `GridEditor` or `HexGridEditor`, applies fills, icons, map-editor pointer behavior, and SVG overlays for paths (both geometries) and edges (square only). |
 
 ---

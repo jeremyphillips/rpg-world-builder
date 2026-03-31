@@ -64,18 +64,21 @@ import {
   type LocationScaleId,
 } from '@/shared/domain/locations';
 import { applyEdgeStrokeToDraft } from '@/features/content/locations/domain/mapEditor/edgeAuthoring';
+import type { LocationMapEditorMode } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import { getNeighborPoints } from '@/shared/domain/grid/gridHelpers';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import {
   LocationGridAuthoringSection,
-  LocationCellAuthoringPanel,
   LocationEditorWorkspace,
   LocationEditorHeader,
   LocationEditorCanvas,
   LocationEditorRightRail,
-  LocationEditorMapRailTabs,
+  LocationEditorRailSectionTabs,
+  LocationEditorSelectionPanel,
+  deriveLocationMapSelection,
+  shouldAutoSwitchRailToMapForMode,
   LocationAncestryBreadcrumbs,
   BuildingFloorStrip,
   INITIAL_LOCATION_GRID_DRAFT,
@@ -88,6 +91,7 @@ import {
   LOCATION_EDITOR_TOOLBAR_WIDTH_PX,
   type LocationCellObjectDraft,
   type LocationGridDraftState,
+  type LocationEditorRailSection,
 } from '@/features/content/locations/components';
 
 const FORM_ID = 'location-edit-form';
@@ -150,8 +154,8 @@ export default function LocationEditRoute() {
     () => !gridDraftPersistableEquals(gridDraft, gridDraftBaseline),
     [gridDraft, gridDraftBaseline],
   );
-  /** 0 = Metadata, 1 = Cell — switched when user selects a map cell */
-  const [mapRailTab, setMapRailTab] = useState(0);
+  /** Right-rail section: separate from toolbar `mapEditor.mode` and from map selection. */
+  const [railSection, setRailSection] = useState<LocationEditorRailSection>('location');
   const [rightRailOpen, setRightRailOpen] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -419,6 +423,26 @@ export default function LocationEditRoute() {
   }, [isBuildingWorkspace, activeFloorId, locationId]);
 
   const mapEditor = useLocationMapEditorState();
+  const { setMode: setMapEditorMode } = mapEditor;
+
+  const mapSelection = useMemo(
+    () => deriveLocationMapSelection(gridDraft.selectedCellId),
+    [gridDraft.selectedCellId],
+  );
+
+  const handleMapEditorModeChange = useCallback(
+    (mode: LocationMapEditorMode) => {
+      setMapEditorMode(mode);
+      if (shouldAutoSwitchRailToMapForMode(mode)) {
+        setRailSection('map');
+      }
+    },
+    [setMapEditorMode],
+  );
+
+  const focusSelectionRailSection = useCallback(() => {
+    setRailSection('selection');
+  }, []);
 
   const paintPaletteItems = useMemo(
     () => getPaintPaletteItemsForScale(mapHostScaleResolved),
@@ -911,8 +935,6 @@ export default function LocationEditRoute() {
     }));
   }, []);
 
-  const focusCellRailTab = useCallback(() => setMapRailTab(1), []);
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -939,6 +961,58 @@ export default function LocationEditRoute() {
   const mapHostScale = isBuildingWorkspace ? 'floor' : scaleForFormRules;
   const mapHostName = activeFloorName ?? loc.name;
   const buildingNeedsFloor = isBuildingWorkspace && floorChildren.length === 0;
+
+  const mapAuthoringPanel = (
+    <Stack spacing={2}>
+      {mapEditor.mode === 'place' ? (
+        <LocationMapEditorPlacePanel
+          items={placePaletteItems}
+          activePlace={mapEditor.activePlace}
+          onSelectPlace={mapEditor.setActivePlace}
+        />
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          Choose Place in the toolbar to add objects, paths, and edges to the map.
+        </Typography>
+      )}
+    </Stack>
+  );
+
+  const systemSelectionPanel = (
+    <LocationEditorSelectionPanel
+      selection={mapSelection}
+      cellPanelProps={{
+        selectedCellId: gridDraft.selectedCellId,
+        hostLocationId: locationId,
+        hostScale: scaleForFormRules,
+        hostName: loc.name,
+        campaignId: campaignId ?? undefined,
+        locations,
+        linkedLocationByCellId: gridDraft.linkedLocationByCellId,
+        objectsByCellId: gridDraft.objectsByCellId,
+        onUpdateLinkedLocation: handleUpdateLinkedLocation,
+        onUpdateCellObjects: handleUpdateCellObjects,
+      }}
+    />
+  );
+
+  const campaignSelectionPanel = (
+    <LocationEditorSelectionPanel
+      selection={mapSelection}
+      cellPanelProps={{
+        selectedCellId: gridDraft.selectedCellId,
+        hostLocationId: mapHostLocationId,
+        hostScale: mapHostScale,
+        hostName: mapHostName,
+        campaignId: campaignId ?? undefined,
+        locations,
+        linkedLocationByCellId: gridDraft.linkedLocationByCellId,
+        objectsByCellId: gridDraft.objectsByCellId,
+        onUpdateLinkedLocation: handleUpdateLinkedLocation,
+        onUpdateCellObjects: handleUpdateCellObjects,
+      }}
+    />
+  );
 
   if (isSystem && driver) {
     return (
@@ -972,7 +1046,7 @@ export default function LocationEditRoute() {
               <>
                 <LocationMapEditorToolbar
                   mode={mapEditor.mode}
-                  onModeChange={mapEditor.setMode}
+                  onModeChange={handleMapEditorModeChange}
                 />
                 {mapEditor.mode === 'paint' && (
                   <LocationMapEditorPaintTray
@@ -1004,7 +1078,7 @@ export default function LocationEditRoute() {
                     hostLocationId={locationId}
                     hostScale={scaleForFormRules}
                     hostName={loc.name}
-                    onCellFocusRail={focusCellRailTab}
+                    onCellFocusRail={focusSelectionRailSection}
                     mapEditorMode={mapEditor.mode}
                     activePaint={mapEditor.activePaint}
                     leftChromeWidthPx={leftMapChromeWidthPx}
@@ -1025,18 +1099,11 @@ export default function LocationEditRoute() {
         }
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
-            <LocationEditorMapRailTabs
-              tabIndex={mapRailTab}
-              onTabChange={setMapRailTab}
-              metadata={
+            <LocationEditorRailSectionTabs
+              section={railSection}
+              onSectionChange={setRailSection}
+              locationPanel={
                 <Stack spacing={2}>
-                  {mapEditor.mode === 'place' && (
-                    <LocationMapEditorPlacePanel
-                      items={placePaletteItems}
-                      activePlace={mapEditor.activePlace}
-                      onSelectPlace={mapEditor.setActivePlace}
-                    />
-                  )}
                   <Typography variant="subtitle1" fontWeight={600}>
                     Patching: {loc.name}
                   </Typography>
@@ -1069,20 +1136,8 @@ export default function LocationEditRoute() {
                   )}
                 </Stack>
               }
-              cellPanel={
-                <LocationCellAuthoringPanel
-                  selectedCellId={gridDraft.selectedCellId}
-                  hostLocationId={locationId}
-                  hostScale={scaleForFormRules}
-                  hostName={loc.name}
-                  campaignId={campaignId ?? undefined}
-                  locations={locations}
-                  linkedLocationByCellId={gridDraft.linkedLocationByCellId}
-                  objectsByCellId={gridDraft.objectsByCellId}
-                  onUpdateLinkedLocation={handleUpdateLinkedLocation}
-                  onUpdateCellObjects={handleUpdateCellObjects}
-                />
-              }
+              mapPanel={mapAuthoringPanel}
+              selectionPanel={systemSelectionPanel}
             />
           </LocationEditorRightRail>
         }
@@ -1159,7 +1214,7 @@ export default function LocationEditRoute() {
                   <>
                     <LocationMapEditorToolbar
                       mode={mapEditor.mode}
-                      onModeChange={mapEditor.setMode}
+                      onModeChange={handleMapEditorModeChange}
                     />
                     {mapEditor.mode === 'paint' && (
                       <LocationMapEditorPaintTray
@@ -1205,7 +1260,7 @@ export default function LocationEditRoute() {
                         hostLocationId={mapHostLocationId}
                         hostScale={mapHostScale}
                         hostName={mapHostName}
-                        onCellFocusRail={focusCellRailTab}
+                        onCellFocusRail={focusSelectionRailSection}
                         mapEditorMode={mapEditor.mode}
                         activePaint={mapEditor.activePaint}
                         leftChromeWidthPx={leftMapChromeWidthPx}
@@ -1238,7 +1293,7 @@ export default function LocationEditRoute() {
                 <>
                   <LocationMapEditorToolbar
                     mode={mapEditor.mode}
-                    onModeChange={mapEditor.setMode}
+                    onModeChange={handleMapEditorModeChange}
                   />
                   {mapEditor.mode === 'paint' && (
                     <LocationMapEditorPaintTray
@@ -1270,7 +1325,7 @@ export default function LocationEditRoute() {
                       hostLocationId={locationId}
                       hostScale={scaleForFormRules}
                       hostName={loc.name}
-                      onCellFocusRail={focusCellRailTab}
+                      onCellFocusRail={focusSelectionRailSection}
                       mapEditorMode={mapEditor.mode}
                       activePaint={mapEditor.activePaint}
                       leftChromeWidthPx={leftMapChromeWidthPx}
@@ -1292,18 +1347,11 @@ export default function LocationEditRoute() {
         }
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
-            <LocationEditorMapRailTabs
-              tabIndex={mapRailTab}
-              onTabChange={setMapRailTab}
-              metadata={
+            <LocationEditorRailSectionTabs
+              section={railSection}
+              onSectionChange={setRailSection}
+              locationPanel={
                 <Stack spacing={2}>
-                  {mapEditor.mode === 'place' && (
-                    <LocationMapEditorPlacePanel
-                      items={placePaletteItems}
-                      activePlace={mapEditor.activePlace}
-                      onSelectPlace={mapEditor.setActivePlace}
-                    />
-                  )}
                   {isBuildingWorkspace && activeFloorId ? (
                     <Typography variant="caption" color="text.secondary">
                       Map and cells: {activeFloorName ?? 'Floor'} (save updates this floor).
@@ -1326,20 +1374,8 @@ export default function LocationEditRoute() {
                   )}
                 </Stack>
               }
-              cellPanel={
-                <LocationCellAuthoringPanel
-                  selectedCellId={gridDraft.selectedCellId}
-                  hostLocationId={mapHostLocationId}
-                  hostScale={mapHostScale}
-                  hostName={mapHostName}
-                  campaignId={campaignId ?? undefined}
-                  locations={locations}
-                  linkedLocationByCellId={gridDraft.linkedLocationByCellId}
-                  objectsByCellId={gridDraft.objectsByCellId}
-                  onUpdateLinkedLocation={handleUpdateLinkedLocation}
-                  onUpdateCellObjects={handleUpdateCellObjects}
-                />
-              }
+              mapPanel={mapAuthoringPanel}
+              selectionPanel={campaignSelectionPanel}
             />
           </LocationEditorRightRail>
         }
