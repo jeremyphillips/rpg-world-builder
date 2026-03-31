@@ -6,6 +6,8 @@ export type { LocationCellAuthoringPanelProps } from './LocationCellAuthoringPan
 export {
   LocationMapEditorToolbar,
   LocationMapEditorPaintTray,
+  LocationMapEditorDrawTray,
+  LocationMapEditorDrawPanel,
   LocationMapEditorPlacePanel,
   LocationMapEditorLinkedLocationModal,
 } from './mapEditor';
@@ -22,7 +24,8 @@ export {
   LocationEditorHeader,
   LocationEditorCanvas,
   LocationEditorRightRail,
-  LocationEditorMapRailTabs,
+  LocationEditorRailSectionTabs,
+  LocationEditorSelectionPanel,
   LocationCreateSetupFormDialog,
   BuildingFloorStrip,
   LocationAncestryBreadcrumbs,
@@ -30,4 +33,7 @@ export {
   LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX,
   LOCATION_EDITOR_TOOLBAR_WIDTH_PX,
   LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX,
+  LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX,
 } from './workspace'
+export type { LocationEditorRailSection, LocationMapSelection } from './workspace'
+export { shouldAutoSwitchRailToMapForMode } from './workspace'

@@ -57,16 +57,18 @@ The workspace is composed of feature-owned components:
 | `LocationEditorWorkspace` | Outer flex column: header slot + body row (canvas + right rail). Body row capped at `calc(100vh - headerHeight)`. |
 | `LocationEditorHeader` | Sticky header: title, ancestry breadcrumbs, global save button, right-rail toggle, optional actions (e.g. delete). |
 | `LocationEditorCanvas` | Flex-filling canvas region with zoom/pan transform wrapper. Hosts `LocationGridAuthoringSection` as child content and renders `ZoomControl` (fixed positioned). |
-| `LocationEditorRightRail` | Collapsible right rail (default open) containing all form fields. Uses CSS width transition with `overflow: hidden` outer and scrollable inner. |
+| `LocationEditorRightRail` | Collapsible right rail (default open). Uses CSS width transition with `overflow: hidden` outer and scrollable inner. |
+| `LocationEditorRailSectionTabs` | Right-rail tabs: **Location** (location metadata forms), **Map** (active tool palette / hints for place, draw, paint, erase, select), **Selection** (inspector). Section state is separate from toolbar mode. |
+| `LocationEditorSelectionPanel` | Selection section dispatcher: cell / object / path / edge inspectors from authored map data; region remains a placeholder. |
 | `LocationAncestryBreadcrumbs` | Builds a breadcrumb trail from `parentId` chain; used in the header. |
 | `BuildingFloorStrip` | **Building edit only:** floor tabs + add-floor control above the canvas (see **Building scale** below). |
-| `locationEditor.constants.ts` | Shared pixel constants: `LOCATION_EDITOR_HEADER_HEIGHT_PX`, `LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX`, `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` (map toolbar), plus paint-tray width when the paint tool is active. |
+| `locationEditor.constants.ts` | Shared pixel constants: `LOCATION_EDITOR_HEADER_HEIGHT_PX`, `LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX`, `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` (map toolbar), plus `LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX` and `LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX` when those tools are active. |
 
 ---
 
 ## Map editor toolbar and related UI
 
-When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEditRoute.tsx`), the canvas column includes **map editor chrome** to the left of `LocationEditorCanvas`: a vertical toolbar and, depending on mode, a slim paint tray.
+When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEditRoute.tsx`), the canvas column includes **map editor chrome** to the left of `LocationEditorCanvas`: a vertical toolbar and, depending on mode, a slim **paint** swatch column and/or **draw** kind column.
 
 ### `LocationMapEditorToolbar`
 
@@ -80,22 +82,24 @@ When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEd
 
 | Mode | Purpose |
 |------|---------|
-| `select` | Default: click cells to select and focus the cell rail; map pan works from the grid (pointer events not consumed for placement). |
-| `place` | Place **objects**, **paths**, **edges**, or **linked locations** (per scale). Choice of *what* to place comes from the **Place** panel in the right rail (`LocationMapEditorPlacePanel`), driven by `getGroupedPlacePaletteForScale` and `activePlace` in `useLocationMapEditorState`. |
-| `paint` | Paint **cell fills**; **active** swatch from `LocationMapEditorPaintTray` + `activePaint`. Stroke gestures on cells (pointer down / enter / up) update `cellFillByCellId`. |
-| `clear-fill` | Stroke to clear terrain fill on cells without removing links/objects/paths/edges. |
-| `erase` | Click a cell to remove the highest-priority feature there (`resolveEraseTargetAtCell`: edge → object → path → link). For **edge features**, pointer resolution targets the nearest boundary directly via `onEraseEdge`, bypassing cell-level priority. |
+| `select` | Default: inspect/select authored content; map pan works from the grid when appropriate. |
+| `paint` | **Fill-like** authoring: paint **cell fills** (`cellFillByCellId`). Active swatch from `LocationMapEditorPaintTray` + `activePaint`. Region painting is intended to extend this tool later. |
+| `place` | **Discrete** placement only: **linked content** (child locations) and **map objects** (props), per `LOCATION_SCALE_MAP_CONTENT_POLICY`. Palette: `getPlacePaletteItemsForScale` → `LocationMapEditorPlacePanel`; selection `activePlace` (`linked-content` \| `map-object`). Resolver: `resolvePlacedKindToAction`. |
+| `draw` | **Line/boundary** authoring: **paths** and **edges** (per policy). Palette: `getGroupedDrawPaletteForScale` → toolbar `LocationMapEditorDrawTray` + Map rail `LocationMapEditorDrawPanel`; selection `activeDraw` (`path` \| `edge`). Path segments use `pathAnchorCellId`; edges use boundary-paint in `LocationGridAuthoringSection`. Resolver: `resolveDrawSelectionToAction`. |
+| `erase` | **Removal**: click uses `resolveEraseTargetAtCell` (edge → object → path → link → **cell fill**). Stroke-drag in erase mode clears terrain fill like the former clear-fill tool. Edge hits can use `onEraseEdge` for direct boundary targeting. |
 
-**State hook:** `useLocationMapEditorState` (`domain/mapEditor/useLocationMapEditorState.ts`) holds `mode`, `activePaint`, `activePlace`, `pathAnchorCellId` for path chain building, and `pendingPlacement` for the linked-location modal. Switching away from **place** clears anchors and pending placement. Edge placement uses **boundary-paint** with transient stroke state managed in refs inside `LocationGridAuthoringSection` (see **Edge authoring** below) — no persistent editor state hook is needed for edge strokes.
+**State hook:** `useLocationMapEditorState` holds `mode`, `activePaint`, `activePlace`, `activeDraw`, `pathAnchorCellId` (for **Draw → path**), and `pendingPlacement` for the linked-location modal. Leaving **place** clears place selection and pending placement; leaving **draw** clears draw selection and path anchor.
 
-**Layout:** `LocationEditRoute` sets `leftMapChromeWidthPx` to `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` plus `LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX` only while `mode === 'paint'`. That value is passed to `LocationGridAuthoringSection` as `leftChromeWidthPx` so the grid width accounts for left chrome.
+**Layout:** `LocationEditRoute` sets `leftMapChromeWidthPx` to `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` plus paint and/or draw tray widths when those modes are active. Passed to `LocationGridAuthoringSection` as `leftChromeWidthPx`.
 
 ### Related components
 
 | Component | Role |
 |-----------|------|
 | `LocationMapEditorPaintTray` | Shown when `mode === 'paint'`; swatches from `getPaintPaletteItemsForScale`. |
-| `LocationMapEditorPlacePanel` | Shown when `mode === 'place'`; cards for objects / paths / edges (and link flows resolved by `resolvePlacedKindToAction`). |
+| `LocationMapEditorDrawTray` | Shown when `mode === 'draw'`; compact kind buttons from `getGroupedDrawPaletteForScale`. |
+| `LocationMapEditorPlacePanel` | Map rail when `mode === 'place'`; groups **Linked content** vs **Map objects** (`getPlacePaletteItemsForScale`). |
+| `LocationMapEditorDrawPanel` | Map rail when `mode === 'draw'`; groups **Paths** vs **Edges** when both exist. |
 | `LocationGridAuthoringSection` | Renders `GridEditor` or `HexGridEditor`, applies fills, icons, map-editor pointer behavior, and SVG overlays for paths (both geometries) and edges (square only). |
 
 ---
@@ -106,7 +110,7 @@ Paths (roads, rivers) use a **cell-chain** interaction model that works on both 
 
 **Interaction flow:**
 
-1. Select a path tool (road or river) from the Place panel.
+1. Select a path tool (road or river) from the **Draw** tool (toolbar + Map rail).
 2. **Click first cell** — sets the anchor; cell receives a primary-color inset ring highlight.
 3. **Hover adjacent cell** — a smooth curve preview extends the current chain to include the hovered cell. Non-adjacent cells show no preview.
 4. **Click adjacent cell** — extends the current authored path chain (same kind) when the anchor is the chain end; otherwise starts a new chain. The anchor moves to the clicked cell so the next click extends further.
@@ -117,7 +121,7 @@ Paths (roads, rivers) use a **cell-chain** interaction model that works on both 
 
 **Hex click-gap handling:** hex cells use CSS `clip-path` for hexagonal shapes, which can leave narrow dead zones between cells. `resolveNearestHexCell` (in `hexGridMapOverlayGeometry.ts`) resolves pointer positions to the nearest hex center, used by both the fallback click handler and the hover resolver to ensure clicks and previews work even when the pointer lands between cells.
 
-**Adjacency:** consecutive cells in an authored path chain are geometry-aware. Both the client (`handlePlaceCell` in `LocationEditRoute.tsx`, `pathSvgData` memo) and the server-side validation (`validatePathEntriesStructure` in `locationMapFeatures.validation.ts`) use `getNeighborPoints` from `shared/domain/grid/gridHelpers.ts`, which handles both square orthogonal neighbors and hex offset-column neighbors.
+**Adjacency:** consecutive cells in an authored path chain are geometry-aware. Both the client (`handleAuthoringCellClick` in **Draw** mode in `LocationEditRoute.tsx`, `pathSvgData` memo) and the server-side validation (`validatePathEntriesStructure` in `locationMapFeatures.validation.ts`) use `getNeighborPoints` from `shared/domain/grid/gridHelpers.ts`, which handles both square orthogonal neighbors and hex offset-column neighbors.
 
 **Persistence:** paths are stored on the map as `pathEntries`: each entry has an `id`, a `kind` (`road` | `river`), and ordered `cellIds` for that chain. This is the canonical authored model; SVG smoothing is a render concern.
 
@@ -132,7 +136,7 @@ Paths (roads, rivers) use a **cell-chain** interaction model that works on both 
 | `shared/domain/locations/map/locationMapFeatures.validation.ts` | `validatePathEntriesStructure` (accepts `geometry` param) |
 | `shared/domain/locations/map/locationMapPathAuthoring.helpers.ts` | `removePathChainSegment` (erase one step along a chain) |
 
-**Palette filtering:** `LocationEditRoute` filters `placePaletteItems` by geometry. Hex grids allow `object` and `path` categories. Edge tools are hidden on hex because hex edge authoring is not yet implemented (see **Open issues**).
+**Palette filtering:** `LocationEditRoute` builds **place** items from `getPlacePaletteItemsForScale` (objects/links only). **Draw** items come from `getGroupedDrawPaletteForScale`; on **hex** geometry, only **path** kinds are shown (edges are square-first; see **Open issues**).
 
 ---
 
@@ -181,11 +185,11 @@ Edge authoring (walls, windows, doors) is implemented for **square grids only**.
 
 **Direction:** hex edge authoring would require hex-specific boundary resolution (6 edges per cell with 3 orientations), hit-testing against hex edge geometry, and a hex edge SVG overlay. The `EdgeOrientation` type already includes placeholder values for hex (`'hex-a' | 'hex-b' | 'hex-c'`).
 
-### 2. Canvas pan vs reliable clicks (place mode)
+### 2. Canvas pan vs reliable clicks (place / draw path)
 
 Map pan is implemented with `useCanvasPan` on the canvas wrapper. Three layers of hardening are now in place:
 
-1. **`suppressCanvasPanOnCells`** — in **place** mode, cell `pointerdown`/`pointerup` events call `stopPropagation` so the canvas pan handler never starts a drag from cell clicks.
+1. **`suppressCanvasPanOnCells`** — in **place** mode and **draw → path** mode, cell `pointerdown`/`pointerup` events call `stopPropagation` so the canvas pan handler never starts a drag from cell clicks.
 2. **Window-level `pointerup` safety net** — `useCanvasPan` registers a `window` `pointerup` listener that clears drag state even when a child stops propagation, preventing stranded `isDragging` / grabbing cursor.
 3. **`hasDragMoved` guard** — `LocationGridAuthoringSection` checks `hasDragMoved()` before dispatching `onCellClick`, matching the pattern used by `EncounterGrid`. This blocks accidental cell actions from drag gestures that started outside cells.
 
@@ -227,7 +231,7 @@ Both hooks are used at the route level; derived values are passed down to canvas
 1. **Workspace layout changes:** modify components under `components/workspace/`; constants in `locationEditor.constants.ts`. Do not add workspace layout logic to the generic content template system.
 2. **Zoom/pan enhancements:** extend `useCanvasZoom` / `useCanvasPan` in `src/ui/hooks/`; both location and encounter features consume them. `ZoomControl` supports `positioning` prop (`'fixed'` default, `'absolute'` for container-relative).
 3. **Focus-mode routes:** add new full-width routes by extending the regex in `src/app/layouts/auth/auth-main-path.ts`.
-4. **Path authoring:** persisted model is `pathEntries` on `LocationMap` (ordered `cellIds` per chain). Chain-building UX lives in `LocationEditRoute.tsx` (`handlePlaceCell`); smooth curve rendering in `pathOverlayRendering.ts` (`pathEntriesToSvgPaths`); hex geometry helpers in `hexGridMapOverlayGeometry.ts`. The `pathSvgData` memo in `LocationGridAuthoringSection` unifies committed and preview curves. Tests in `pathOverlayRendering.test.ts` and `hexGridMapOverlayGeometry.test.ts`.
+4. **Path authoring:** persisted model is `pathEntries` on `LocationMap` (ordered `cellIds` per chain). Chain-building UX lives in `LocationEditRoute.tsx` (`handleAuthoringCellClick` in **Draw** mode); smooth curve rendering in `pathOverlayRendering.ts` (`pathEntriesToSvgPaths`); hex geometry helpers in `hexGridMapOverlayGeometry.ts`. The `pathSvgData` memo in `LocationGridAuthoringSection` unifies committed and preview curves. Tests in `pathOverlayRendering.test.ts` and `hexGridMapOverlayGeometry.test.ts`.
 5. **Edge authoring:** edge logic lives under `domain/mapEditor/edgeAuthoring.ts` with tests in `edgeAuthoring.test.ts`; grid integration in `LocationGridAuthoringSection.tsx`. Before changing behavior, read **Edge authoring** and **Open issues** above (hex edge gap).
 6. **Path preview performance:** if the chain preview feels sluggish, consider caching the committed chain curve and only recomputing the tail segments on hover. See **Open issues §3**.
 

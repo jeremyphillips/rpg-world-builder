@@ -39,8 +39,10 @@ import {
   nextSortOrder,
   useLocationFormCampaignData,
   useLocationFormDependentFieldEffects,
-  getGroupedPlacePaletteForScale,
+  getGroupedDrawPaletteForScale,
   getPaintPaletteItemsForScale,
+  getPlacePaletteItemsForScale,
+  resolveDrawSelectionToAction,
   resolvePlacedKindToAction,
   resolveEraseTargetAtCell,
   useLocationMapEditorState,
@@ -64,18 +66,20 @@ import {
   type LocationScaleId,
 } from '@/shared/domain/locations';
 import { applyEdgeStrokeToDraft } from '@/features/content/locations/domain/mapEditor/edgeAuthoring';
+import type { LocationMapEditorMode } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import { getNeighborPoints } from '@/shared/domain/grid/gridHelpers';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import {
   LocationGridAuthoringSection,
-  LocationCellAuthoringPanel,
   LocationEditorWorkspace,
   LocationEditorHeader,
   LocationEditorCanvas,
   LocationEditorRightRail,
-  LocationEditorMapRailTabs,
+  LocationEditorRailSectionTabs,
+  LocationEditorSelectionPanel,
+  shouldAutoSwitchRailToMapForMode,
   LocationAncestryBreadcrumbs,
   BuildingFloorStrip,
   INITIAL_LOCATION_GRID_DRAFT,
@@ -83,11 +87,15 @@ import {
   LocationMapEditorLinkedLocationModal,
   LocationMapEditorPaintTray,
   LocationMapEditorPlacePanel,
+  LocationMapEditorDrawTray,
+  LocationMapEditorDrawPanel,
   LocationMapEditorToolbar,
+  LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX,
   LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX,
   LOCATION_EDITOR_TOOLBAR_WIDTH_PX,
   type LocationCellObjectDraft,
   type LocationGridDraftState,
+  type LocationEditorRailSection,
 } from '@/features/content/locations/components';
 
 const FORM_ID = 'location-edit-form';
@@ -150,8 +158,8 @@ export default function LocationEditRoute() {
     () => !gridDraftPersistableEquals(gridDraft, gridDraftBaseline),
     [gridDraft, gridDraftBaseline],
   );
-  /** 0 = Metadata, 1 = Cell — switched when user selects a map cell */
-  const [mapRailTab, setMapRailTab] = useState(0);
+  /** Right-rail section: separate from toolbar `mapEditor.mode` and from map selection. */
+  const [railSection, setRailSection] = useState<LocationEditorRailSection>('location');
   const [rightRailOpen, setRightRailOpen] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -300,6 +308,7 @@ export default function LocationEditRoute() {
           setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale(loc!.scale));
           const authoring = normalizeLocationMapAuthoringFields(def);
           const next = {
+            mapSelection: { type: 'none' as const },
             selectedCellId: null,
             excludedCellIds: def.layout?.excludedCellIds ?? [],
             ...cellEntriesToDraft(authoring.cellEntries),
@@ -344,6 +353,7 @@ export default function LocationEditRoute() {
           setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale('floor'));
           const authoring = normalizeLocationMapAuthoringFields(def);
           const next = {
+            mapSelection: { type: 'none' as const },
             selectedCellId: null,
             excludedCellIds: def.layout?.excludedCellIds ?? [],
             ...cellEntriesToDraft(authoring.cellEntries),
@@ -419,32 +429,54 @@ export default function LocationEditRoute() {
   }, [isBuildingWorkspace, activeFloorId, locationId]);
 
   const mapEditor = useLocationMapEditorState();
+  const { setMode: setMapEditorMode } = mapEditor;
+
+  const handleMapEditorModeChange = useCallback(
+    (mode: LocationMapEditorMode) => {
+      setMapEditorMode(mode);
+      if (shouldAutoSwitchRailToMapForMode(mode)) {
+        setRailSection('map');
+      }
+    },
+    [setMapEditorMode],
+  );
+
+  const focusSelectionRailSection = useCallback(() => {
+    setRailSection('selection');
+  }, []);
 
   const paintPaletteItems = useMemo(
     () => getPaintPaletteItemsForScale(mapHostScaleResolved),
     [mapHostScaleResolved],
   );
 
-  const placePaletteItems = useMemo(() => {
-    const all = getGroupedPlacePaletteForScale(mapHostScaleResolved);
+  const placePaletteItems = useMemo(
+    () => getPlacePaletteItemsForScale(mapHostScaleResolved),
+    [mapHostScaleResolved],
+  );
+
+  const drawPaletteItems = useMemo(() => {
+    const all = getGroupedDrawPaletteForScale(mapHostScaleResolved);
     if (gridGeometry === 'hex') {
-      return all.filter((i) => i.category === 'object' || i.category === 'path');
+      return all.filter((i) => i.category === 'path');
     }
     return all;
   }, [mapHostScaleResolved, gridGeometry]);
 
-  /** Path/link/object placement also needs this: otherwise canvas pan steals pointerdown and clicks often miss cells. */
-  const mapPlaceSuppressesCanvasPanOnCells = mapEditor.mode === 'place';
+  /** Path / object placement: pointer capture on cells so pan does not steal clicks. */
+  const mapPlaceSuppressesCanvasPanOnCells =
+    mapEditor.mode === 'place' ||
+    (mapEditor.mode === 'draw' && mapEditor.activeDraw?.category === 'path');
 
   const mapPlaceObjectDragStrokeEnabled =
-    mapEditor.mode === 'place' && mapEditor.activePlace?.category === 'object';
+    mapEditor.mode === 'place' && mapEditor.activePlace?.category === 'map-object';
 
   useEffect(() => {
     mapEditor.setPathAnchorCellId(null);
   }, [gridColumns, gridRows, mapEditor.setPathAnchorCellId]);
 
   useEffect(() => {
-    if (mapEditor.mode !== 'place') return;
+    if (mapEditor.mode !== 'draw') return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       mapEditor.setPathAnchorCellId(null);
@@ -486,7 +518,8 @@ export default function LocationEditRoute() {
 
   const leftMapChromeWidthPx = showMapEditorChrome
     ? LOCATION_EDITOR_TOOLBAR_WIDTH_PX +
-      (mapEditor.mode === 'paint' ? LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX : 0)
+      (mapEditor.mode === 'paint' ? LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX : 0) +
+      (mapEditor.mode === 'draw' ? LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX : 0)
     : 0;
 
   const { policyValue, handlePolicyChange } = useAccessPolicyField<LocationFormValues>(watch, setValue);
@@ -781,6 +814,11 @@ export default function LocationEditRoute() {
             ),
           };
         }
+        if (target.type === 'fill') {
+          const nextFill = { ...prev.cellFillByCellId };
+          delete nextFill[cellId];
+          return { ...prev, cellFillByCellId: nextFill };
+        }
         const nextLinks = { ...prev.linkedLocationByCellId };
         delete nextLinks[target.cellId];
         return { ...prev, linkedLocationByCellId: nextLinks };
@@ -789,37 +827,41 @@ export default function LocationEditRoute() {
     [gridColumns, gridRows],
   );
 
-  const handlePlaceCell = useCallback(
+  const handleAuthoringCellClick = useCallback(
     (cellId: string) => {
-      const ap = mapEditor.activePlace;
-      if (!ap) return;
-      const res = resolvePlacedKindToAction(ap, mapHostScaleResolved);
-      if (res.type === 'unsupported') return;
-      if (res.type === 'link') {
-        mapEditor.setPendingPlacement({
-          type: 'linked-location',
-          objectKind: res.objectKind,
-          hostScale: mapHostScaleResolved,
-          linkedScale: res.linkedScale,
-          targetCellId: cellId,
-        });
+      if (mapEditor.mode === 'place' && mapEditor.activePlace) {
+        const ap = mapEditor.activePlace;
+        const res = resolvePlacedKindToAction(ap, mapHostScaleResolved);
+        if (res.type === 'unsupported') return;
+        if (res.type === 'link') {
+          mapEditor.setPendingPlacement({
+            type: 'linked-location',
+            objectKind: res.objectKind,
+            hostScale: mapHostScaleResolved,
+            linkedScale: res.linkedScale,
+            targetCellId: cellId,
+          });
+          return;
+        }
+        if (res.type === 'object') {
+          if (!canPlaceObjectKindOnHostScale(mapHostScaleResolved, res.objectKind)) return;
+          setGridDraft((prev) => {
+            const existing = prev.objectsByCellId[cellId] ?? [];
+            return {
+              ...prev,
+              objectsByCellId: {
+                ...prev.objectsByCellId,
+                [cellId]: [...existing, { id: crypto.randomUUID(), kind: res.objectKind }],
+              },
+            };
+          });
+        }
         return;
       }
-      if (res.type === 'object') {
-        if (!canPlaceObjectKindOnHostScale(mapHostScaleResolved, res.objectKind)) return;
-        setGridDraft((prev) => {
-          const existing = prev.objectsByCellId[cellId] ?? [];
-          return {
-            ...prev,
-            objectsByCellId: {
-              ...prev.objectsByCellId,
-              [cellId]: [...existing, { id: crypto.randomUUID(), kind: res.objectKind }],
-            },
-          };
-        });
-        return;
-      }
-      if (res.type === 'path') {
+
+      if (mapEditor.mode === 'draw' && mapEditor.activeDraw?.category === 'path') {
+        const res = resolveDrawSelectionToAction(mapEditor.activeDraw);
+        if (res.type !== 'path') return;
         const anchor = mapEditor.pathAnchorCellId;
         if (!anchor) {
           mapEditor.setPathAnchorCellId(cellId);
@@ -876,13 +918,12 @@ export default function LocationEditRoute() {
           };
         });
         mapEditor.setPathAnchorCellId(cellId);
-        return;
       }
-      // Edge placement is handled by the boundary-paint stroke system in
-      // LocationGridAuthoringSection, not the cell-click flow.
     },
     [
+      mapEditor.mode,
       mapEditor.activePlace,
+      mapEditor.activeDraw,
       mapEditor.pathAnchorCellId,
       mapEditor.setPendingPlacement,
       mapEditor.setPathAnchorCellId,
@@ -911,8 +952,6 @@ export default function LocationEditRoute() {
     }));
   }, []);
 
-  const focusCellRailTab = useCallback(() => setMapRailTab(1), []);
-
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -939,6 +978,78 @@ export default function LocationEditRoute() {
   const mapHostScale = isBuildingWorkspace ? 'floor' : scaleForFormRules;
   const mapHostName = activeFloorName ?? loc.name;
   const buildingNeedsFloor = isBuildingWorkspace && floorChildren.length === 0;
+
+  const mapAuthoringPanel = (
+    <Stack spacing={2}>
+      {mapEditor.mode === 'place' ? (
+        <LocationMapEditorPlacePanel
+          items={placePaletteItems}
+          activePlace={mapEditor.activePlace}
+          onSelectPlace={mapEditor.setActivePlace}
+        />
+      ) : mapEditor.mode === 'draw' ? (
+        <LocationMapEditorDrawPanel
+          items={drawPaletteItems}
+          activeDraw={mapEditor.activeDraw}
+          onSelectDraw={mapEditor.setActiveDraw}
+        />
+      ) : mapEditor.mode === 'paint' ? (
+        <Typography variant="body2" color="text.secondary">
+          Use the swatch column next to the toolbar to pick terrain, then drag across cells to paint. Region painting
+          can extend this tool later.
+        </Typography>
+      ) : mapEditor.mode === 'erase' ? (
+        <Typography variant="body2" color="text.secondary">
+          Click a cell to remove the topmost feature (edge, object, path segment, link, or terrain fill). Drag across
+          cells to strip terrain fill in bulk.
+        </Typography>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          Use the toolbar to choose a tool. Open Selection to inspect cells, paths, edges, and runs.
+        </Typography>
+      )}
+    </Stack>
+  );
+
+  const systemSelectionPanel = (
+    <LocationEditorSelectionPanel
+      selection={gridDraft.mapSelection}
+      pathEntries={gridDraft.pathEntries}
+      edgeEntries={gridDraft.edgeEntries}
+      cellPanelProps={{
+        selectedCellId: gridDraft.selectedCellId,
+        hostLocationId: locationId,
+        hostScale: scaleForFormRules,
+        hostName: loc.name,
+        campaignId: campaignId ?? undefined,
+        locations,
+        linkedLocationByCellId: gridDraft.linkedLocationByCellId,
+        objectsByCellId: gridDraft.objectsByCellId,
+        onUpdateLinkedLocation: handleUpdateLinkedLocation,
+        onUpdateCellObjects: handleUpdateCellObjects,
+      }}
+    />
+  );
+
+  const campaignSelectionPanel = (
+    <LocationEditorSelectionPanel
+      selection={gridDraft.mapSelection}
+      pathEntries={gridDraft.pathEntries}
+      edgeEntries={gridDraft.edgeEntries}
+      cellPanelProps={{
+        selectedCellId: gridDraft.selectedCellId,
+        hostLocationId: mapHostLocationId,
+        hostScale: mapHostScale,
+        hostName: mapHostName,
+        campaignId: campaignId ?? undefined,
+        locations,
+        linkedLocationByCellId: gridDraft.linkedLocationByCellId,
+        objectsByCellId: gridDraft.objectsByCellId,
+        onUpdateLinkedLocation: handleUpdateLinkedLocation,
+        onUpdateCellObjects: handleUpdateCellObjects,
+      }}
+    />
+  );
 
   if (isSystem && driver) {
     return (
@@ -972,13 +1083,20 @@ export default function LocationEditRoute() {
               <>
                 <LocationMapEditorToolbar
                   mode={mapEditor.mode}
-                  onModeChange={mapEditor.setMode}
+                  onModeChange={handleMapEditorModeChange}
                 />
                 {mapEditor.mode === 'paint' && (
                   <LocationMapEditorPaintTray
                     items={paintPaletteItems}
                     activePaint={mapEditor.activePaint}
                     onSelectSwatch={mapEditor.setActivePaint}
+                  />
+                )}
+                {mapEditor.mode === 'draw' && (
+                  <LocationMapEditorDrawTray
+                    items={drawPaletteItems}
+                    activeDraw={mapEditor.activeDraw}
+                    onSelectDraw={mapEditor.setActiveDraw}
                   />
                 )}
               </>
@@ -1004,14 +1122,14 @@ export default function LocationEditRoute() {
                     hostLocationId={locationId}
                     hostScale={scaleForFormRules}
                     hostName={loc.name}
-                    onCellFocusRail={focusCellRailTab}
+                    onCellFocusRail={focusSelectionRailSection}
                     mapEditorMode={mapEditor.mode}
                     activePaint={mapEditor.activePaint}
                     leftChromeWidthPx={leftMapChromeWidthPx}
-                    onPlaceCellClick={handlePlaceCell}
+                    onPlaceCellClick={handleAuthoringCellClick}
                     onEraseCellClick={handleEraseCell}
                     placePathAnchorCellId={mapEditor.pathAnchorCellId}
-                    activePlace={mapEditor.activePlace}
+                    activeDraw={mapEditor.activeDraw}
                     onEdgeStrokeCommit={handleEdgeStrokeCommit}
                     onEraseEdge={handleEraseEdge}
                     suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
@@ -1025,18 +1143,11 @@ export default function LocationEditRoute() {
         }
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
-            <LocationEditorMapRailTabs
-              tabIndex={mapRailTab}
-              onTabChange={setMapRailTab}
-              metadata={
+            <LocationEditorRailSectionTabs
+              section={railSection}
+              onSectionChange={setRailSection}
+              locationPanel={
                 <Stack spacing={2}>
-                  {mapEditor.mode === 'place' && (
-                    <LocationMapEditorPlacePanel
-                      items={placePaletteItems}
-                      activePlace={mapEditor.activePlace}
-                      onSelectPlace={mapEditor.setActivePlace}
-                    />
-                  )}
                   <Typography variant="subtitle1" fontWeight={600}>
                     Patching: {loc.name}
                   </Typography>
@@ -1069,20 +1180,8 @@ export default function LocationEditRoute() {
                   )}
                 </Stack>
               }
-              cellPanel={
-                <LocationCellAuthoringPanel
-                  selectedCellId={gridDraft.selectedCellId}
-                  hostLocationId={locationId}
-                  hostScale={scaleForFormRules}
-                  hostName={loc.name}
-                  campaignId={campaignId ?? undefined}
-                  locations={locations}
-                  linkedLocationByCellId={gridDraft.linkedLocationByCellId}
-                  objectsByCellId={gridDraft.objectsByCellId}
-                  onUpdateLinkedLocation={handleUpdateLinkedLocation}
-                  onUpdateCellObjects={handleUpdateCellObjects}
-                />
-              }
+              mapPanel={mapAuthoringPanel}
+              selectionPanel={systemSelectionPanel}
             />
           </LocationEditorRightRail>
         }
@@ -1159,13 +1258,20 @@ export default function LocationEditRoute() {
                   <>
                     <LocationMapEditorToolbar
                       mode={mapEditor.mode}
-                      onModeChange={mapEditor.setMode}
+                      onModeChange={handleMapEditorModeChange}
                     />
                     {mapEditor.mode === 'paint' && (
                       <LocationMapEditorPaintTray
                         items={paintPaletteItems}
                         activePaint={mapEditor.activePaint}
                         onSelectSwatch={mapEditor.setActivePaint}
+                      />
+                    )}
+                    {mapEditor.mode === 'draw' && (
+                      <LocationMapEditorDrawTray
+                        items={drawPaletteItems}
+                        activeDraw={mapEditor.activeDraw}
+                        onSelectDraw={mapEditor.setActiveDraw}
                       />
                     )}
                   </>
@@ -1205,14 +1311,14 @@ export default function LocationEditRoute() {
                         hostLocationId={mapHostLocationId}
                         hostScale={mapHostScale}
                         hostName={mapHostName}
-                        onCellFocusRail={focusCellRailTab}
+                        onCellFocusRail={focusSelectionRailSection}
                         mapEditorMode={mapEditor.mode}
                         activePaint={mapEditor.activePaint}
                         leftChromeWidthPx={leftMapChromeWidthPx}
-                        onPlaceCellClick={handlePlaceCell}
+                        onPlaceCellClick={handleAuthoringCellClick}
                         onEraseCellClick={handleEraseCell}
                         placePathAnchorCellId={mapEditor.pathAnchorCellId}
-                        activePlace={mapEditor.activePlace}
+                        activeDraw={mapEditor.activeDraw}
                         onEdgeStrokeCommit={handleEdgeStrokeCommit}
                         onEraseEdge={handleEraseEdge}
                         suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
@@ -1238,13 +1344,20 @@ export default function LocationEditRoute() {
                 <>
                   <LocationMapEditorToolbar
                     mode={mapEditor.mode}
-                    onModeChange={mapEditor.setMode}
+                    onModeChange={handleMapEditorModeChange}
                   />
                   {mapEditor.mode === 'paint' && (
                     <LocationMapEditorPaintTray
                       items={paintPaletteItems}
                       activePaint={mapEditor.activePaint}
                       onSelectSwatch={mapEditor.setActivePaint}
+                    />
+                  )}
+                  {mapEditor.mode === 'draw' && (
+                    <LocationMapEditorDrawTray
+                      items={drawPaletteItems}
+                      activeDraw={mapEditor.activeDraw}
+                      onSelectDraw={mapEditor.setActiveDraw}
                     />
                   )}
                 </>
@@ -1270,14 +1383,14 @@ export default function LocationEditRoute() {
                       hostLocationId={locationId}
                       hostScale={scaleForFormRules}
                       hostName={loc.name}
-                      onCellFocusRail={focusCellRailTab}
+                      onCellFocusRail={focusSelectionRailSection}
                       mapEditorMode={mapEditor.mode}
                       activePaint={mapEditor.activePaint}
                       leftChromeWidthPx={leftMapChromeWidthPx}
-                      onPlaceCellClick={handlePlaceCell}
+                      onPlaceCellClick={handleAuthoringCellClick}
                       onEraseCellClick={handleEraseCell}
                       placePathAnchorCellId={mapEditor.pathAnchorCellId}
-                      activePlace={mapEditor.activePlace}
+                      activeDraw={mapEditor.activeDraw}
                       onEdgeStrokeCommit={handleEdgeStrokeCommit}
                       onEraseEdge={handleEraseEdge}
                       suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
@@ -1292,18 +1405,11 @@ export default function LocationEditRoute() {
         }
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
-            <LocationEditorMapRailTabs
-              tabIndex={mapRailTab}
-              onTabChange={setMapRailTab}
-              metadata={
+            <LocationEditorRailSectionTabs
+              section={railSection}
+              onSectionChange={setRailSection}
+              locationPanel={
                 <Stack spacing={2}>
-                  {mapEditor.mode === 'place' && (
-                    <LocationMapEditorPlacePanel
-                      items={placePaletteItems}
-                      activePlace={mapEditor.activePlace}
-                      onSelectPlace={mapEditor.setActivePlace}
-                    />
-                  )}
                   {isBuildingWorkspace && activeFloorId ? (
                     <Typography variant="caption" color="text.secondary">
                       Map and cells: {activeFloorName ?? 'Floor'} (save updates this floor).
@@ -1326,20 +1432,8 @@ export default function LocationEditRoute() {
                   )}
                 </Stack>
               }
-              cellPanel={
-                <LocationCellAuthoringPanel
-                  selectedCellId={gridDraft.selectedCellId}
-                  hostLocationId={mapHostLocationId}
-                  hostScale={mapHostScale}
-                  hostName={mapHostName}
-                  campaignId={campaignId ?? undefined}
-                  locations={locations}
-                  linkedLocationByCellId={gridDraft.linkedLocationByCellId}
-                  objectsByCellId={gridDraft.objectsByCellId}
-                  onUpdateLinkedLocation={handleUpdateLinkedLocation}
-                  onUpdateCellObjects={handleUpdateCellObjects}
-                />
-              }
+              mapPanel={mapAuthoringPanel}
+              selectionPanel={campaignSelectionPanel}
             />
           </LocationEditorRightRail>
         }

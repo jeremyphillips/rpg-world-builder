@@ -13,15 +13,13 @@ import type {
 
 function selectionKey(sel: LocationMapActivePlaceSelection): string | null {
   if (!sel) return null;
-  if (sel.category === 'object') return `object:${sel.kind}`;
-  if (sel.category === 'path') return `path:${sel.kind}`;
-  return `edge:${sel.kind}`;
+  if (sel.category === 'linked-content') return `linked:${sel.kind}`;
+  return `object:${sel.kind}`;
 }
 
 function itemKey(item: MapPlacePaletteItem): string {
-  if (item.category === 'object') return `object:${item.kind}`;
-  if (item.category === 'path') return `path:${item.kind}`;
-  return `edge:${item.kind}`;
+  if (item.category === 'linked-content') return `linked:${item.kind}`;
+  return `object:${item.kind}`;
 }
 
 type LocationMapEditorPlacePanelProps = {
@@ -35,9 +33,12 @@ export function LocationMapEditorPlacePanel({
   activePlace,
   onSelectPlace,
 }: LocationMapEditorPlacePanelProps) {
-  const objectItems = items.filter((i): i is Extract<MapPlacePaletteItem, { category: 'object' }> => i.category === 'object');
-  const pathItems = items.filter((i): i is Extract<MapPlacePaletteItem, { category: 'path' }> => i.category === 'path');
-  const edgeItems = items.filter((i): i is Extract<MapPlacePaletteItem, { category: 'edge' }> => i.category === 'edge');
+  const linkedItems = items.filter(
+    (i): i is Extract<MapPlacePaletteItem, { category: 'linked-content' }> => i.category === 'linked-content',
+  );
+  const objectItems = items.filter(
+    (i): i is Extract<MapPlacePaletteItem, { category: 'map-object' }> => i.category === 'map-object',
+  );
 
   const activeKey = selectionKey(activePlace);
 
@@ -45,16 +46,12 @@ export function LocationMapEditorPlacePanel({
     const key = itemKey(item);
     const selected = activeKey === key;
     const Icon =
-      item.category === 'object' && item.iconName
-        ? getLocationMapIconByName(item.iconName)
-        : getLocationMapIconByName('marker');
+      item.iconName ? getLocationMapIconByName(item.iconName) : getLocationMapIconByName('marker');
     const onClick = () => {
-      if (item.category === 'object') {
-        onSelectPlace({ category: 'object', kind: item.kind });
-      } else if (item.category === 'path') {
-        onSelectPlace({ category: 'path', kind: item.kind });
+      if (item.category === 'linked-content') {
+        onSelectPlace({ category: 'linked-content', kind: item.kind });
       } else {
-        onSelectPlace({ category: 'edge', kind: item.kind });
+        onSelectPlace({ category: 'map-object', kind: item.kind });
       }
     };
     return (
@@ -102,7 +99,7 @@ export function LocationMapEditorPlacePanel({
     );
   }
 
-  const hasGroups = objectItems.length > 0 && (pathItems.length > 0 || edgeItems.length > 0);
+  const hasGroups = linkedItems.length > 0 && objectItems.length > 0;
 
   if (!hasGroups) {
     return (
@@ -120,10 +117,26 @@ export function LocationMapEditorPlacePanel({
       <Typography variant="subtitle2" fontWeight={600}>
         Place on map
       </Typography>
+      {linkedItems.length > 0 ? (
+        <Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+            Linked content
+          </Typography>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+              gap: 1,
+            }}
+          >
+            {linkedItems.map((item) => renderCard(item))}
+          </Box>
+        </Box>
+      ) : null}
       {objectItems.length > 0 ? (
         <Box>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-            Objects
+            Map objects
           </Typography>
           <Box
             sx={{
@@ -133,48 +146,6 @@ export function LocationMapEditorPlacePanel({
             }}
           >
             {objectItems.map((item) => renderCard(item))}
-          </Box>
-        </Box>
-      ) : null}
-      {pathItems.length > 0 ? (
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-            Paths
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, lineHeight: 1.4 }}>
-            Click two neighboring cells (up/down/left/right) to place one segment. The dashed line is
-            a preview; the solid line is saved on the second click. Press Esc to cancel the first
-            click. Switch to Select when you are done placing.
-          </Typography>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-              gap: 1,
-            }}
-          >
-            {pathItems.map((item) => renderCard(item))}
-          </Box>
-        </Box>
-      ) : null}
-      {edgeItems.length > 0 ? (
-        <Box>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-            Edges (walls / windows / doors)
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, lineHeight: 1.4 }}>
-            Hover near a cell boundary to preview. Click or drag across boundaries to place
-            connected edge segments. Release to commit. Dragging locks to a straight line;
-            hold Shift to change direction mid-stroke. Use Erase mode to remove individual edges.
-          </Typography>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-              gap: 1,
-            }}
-          >
-            {edgeItems.map((item) => renderCard(item))}
           </Box>
         </Box>
       ) : null}

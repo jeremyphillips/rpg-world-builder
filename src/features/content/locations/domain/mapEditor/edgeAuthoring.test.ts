@@ -7,6 +7,7 @@ import {
   applyEdgeStrokeToDraft,
   areEdgesAdjacent,
   getSquareEdgeOrientation,
+  getSquareEdgeOrientationFromEdgeId,
   resolveEdgeTargetFromGridPosition,
   resolveNearestCellEdgeSide,
   shouldAcceptStrokeEdge,
@@ -334,5 +335,23 @@ describe('shouldAcceptStrokeEdge', () => {
     // This IS sequential along the boundary — it would draw the wall one cell to the right.
     // This is expected behavior for drawing a horizontal wall across columns.
     expect(result.accept).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getSquareEdgeOrientationFromEdgeId (shared with edge-run selection)
+// ---------------------------------------------------------------------------
+
+describe('getSquareEdgeOrientationFromEdgeId', () => {
+  it('classifies vertical cell neighbors (N/S boundary) as horizontal axis', () => {
+    expect(getSquareEdgeOrientationFromEdgeId('between:0,0|0,1')).toBe('horizontal');
+  });
+
+  it('classifies horizontal cell neighbors (E/W boundary) as vertical axis', () => {
+    expect(getSquareEdgeOrientationFromEdgeId('between:0,0|1,0')).toBe('vertical');
+  });
+
+  it('returns null for non-adjacent cells', () => {
+    expect(getSquareEdgeOrientationFromEdgeId('between:0,0|2,0')).toBeNull();
   });
 });

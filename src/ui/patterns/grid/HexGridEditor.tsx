@@ -12,7 +12,12 @@
  *
  * Advanced hex tooling (drag-paint, overlays, zoom calibration) is deferred.
  */
-import { useMemo, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
+import {
+  useMemo,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
 import {
@@ -37,7 +42,7 @@ export type HexGridEditorProps = {
   rows: number
   selectedCellId?: string | null
   excludedCellIds?: string[]
-  onCellClick?: (cell: HexGridCell) => void
+  onCellClick?: (cell: HexGridCell, event: ReactMouseEvent<HTMLElement>) => void
   getCellBackgroundColor?: (cell: HexGridCell) => string | undefined
   onCellPointerDown?: (e: ReactPointerEvent<HTMLElement>, cell: HexGridCell) => void
   onCellPointerEnter?: (e: ReactPointerEvent<HTMLElement>, cell: HexGridCell) => void
@@ -145,7 +150,7 @@ export default function HexGridEditor({
                 : `Hex ${x}, ${y}`
             }
             disabled={disabled}
-            onClick={() => !disabled && onCellClick?.(cell)}
+            onClick={(e) => !disabled && onCellClick?.(cell, e)}
             onPointerDown={(e) => {
               onCellPointerDown?.(e, cell)
             }}

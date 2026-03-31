@@ -6,7 +6,7 @@
  * - pointer-to-edge resolution (which boundary is nearest?)
  * - stroke application with replace/no-op rules
  */
-import { makeGridCellId } from '@/shared/domain/grid/gridCellIds';
+import { makeGridCellId, parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import {
   edgeKeyFromCellAndSide,
   type SquareCellSide,
@@ -195,10 +195,29 @@ export function getSquareEdgeOrientation(side: SquareCellSide): EdgeOrientation 
 /**
  * Parse the two cell IDs from a canonical `between:cellA|cellB` edge ID.
  */
-function parseEdgeCells(edgeId: string): [string, string] | null {
+export function parseSquareEdgeCells(edgeId: string): [string, string] | null {
   const m = BETWEEN_RE.exec(edgeId);
   if (!m) return null;
   return [m[1].trim(), m[2].trim()];
+}
+
+/**
+ * Orientation of the boundary segment for a square edge id (same model as stroke authoring).
+ * Vertical cell neighbors (N/S) → horizontal segment; horizontal neighbors (E/W) → vertical segment.
+ */
+export function getSquareEdgeOrientationFromEdgeId(edgeId: string): EdgeOrientation | null {
+  const cells = parseSquareEdgeCells(edgeId);
+  if (!cells) return null;
+  const [a, b] = cells;
+  const pa = parseGridCellId(a);
+  const pb = parseGridCellId(b);
+  if (!pa || !pb) return null;
+  const dx = Math.abs(pa.x - pb.x);
+  const dy = Math.abs(pa.y - pb.y);
+  if (dx + dy !== 1) return null;
+  if (dx === 0 && dy === 1) return 'horizontal';
+  if (dx === 1 && dy === 0) return 'vertical';
+  return null;
 }
 
 /**
@@ -220,8 +239,8 @@ function cellsAreNeighbors(a: string, b: string): boolean {
  * along the same boundary that meet at a corner point).
  */
 export function areEdgesAdjacent(edgeIdA: string, edgeIdB: string): boolean {
-  const a = parseEdgeCells(edgeIdA);
-  const b = parseEdgeCells(edgeIdB);
+  const a = parseSquareEdgeCells(edgeIdA);
+  const b = parseSquareEdgeCells(edgeIdB);
   if (!a || !b) return false;
   for (const ca of a) {
     for (const cb of b) {
@@ -236,8 +255,8 @@ export function areEdgesAdjacent(edgeIdA: string, edgeIdB: string): boolean {
  * a row boundary (the max y of the two cells); vertical edges (E/W) share a
  * column boundary (the max x). Returns null if the edge can't be parsed.
  */
-function edgeBoundaryIndex(edgeId: string, orientation: EdgeOrientation): number | null {
-  const cells = parseEdgeCells(edgeId);
+export function squareEdgeBoundaryIndex(edgeId: string, orientation: EdgeOrientation): number | null {
+  const cells = parseSquareEdgeCells(edgeId);
   if (!cells) return null;
   const [a, b] = cells;
   const pa = a.split(',').map(Number);
@@ -254,8 +273,8 @@ function edgeBoundaryIndex(edgeId: string, orientation: EdgeOrientation): number
  * the x (column) of the leftmost cell; for vertical it's the y (row) of the
  * topmost cell. Used to verify the candidate is the next segment in line.
  */
-function edgeRunningIndex(edgeId: string, orientation: EdgeOrientation): number | null {
-  const cells = parseEdgeCells(edgeId);
+export function squareEdgeRunningIndex(edgeId: string, orientation: EdgeOrientation): number | null {
+  const cells = parseSquareEdgeCells(edgeId);
   if (!cells) return null;
   const [a, b] = cells;
   const pa = a.split(',').map(Number);
@@ -295,14 +314,14 @@ export function shouldAcceptStrokeEdge(
   }
 
   // Same axis — require collinear (same boundary line) and sequential
-  const lastBoundary = edgeBoundaryIndex(lastTarget.edgeId, effectiveAxis);
-  const candBoundary = edgeBoundaryIndex(candidate.edgeId, effectiveAxis);
+  const lastBoundary = squareEdgeBoundaryIndex(lastTarget.edgeId, effectiveAxis);
+  const candBoundary = squareEdgeBoundaryIndex(candidate.edgeId, effectiveAxis);
   if (lastBoundary == null || candBoundary == null || lastBoundary !== candBoundary) {
     return { accept: false, newAxis: effectiveAxis };
   }
 
-  const lastRun = edgeRunningIndex(lastTarget.edgeId, effectiveAxis);
-  const candRun = edgeRunningIndex(candidate.edgeId, effectiveAxis);
+  const lastRun = squareEdgeRunningIndex(lastTarget.edgeId, effectiveAxis);
+  const candRun = squareEdgeRunningIndex(candidate.edgeId, effectiveAxis);
   if (lastRun == null || candRun == null || Math.abs(lastRun - candRun) !== 1) {
     return { accept: false, newAxis: effectiveAxis };
   }

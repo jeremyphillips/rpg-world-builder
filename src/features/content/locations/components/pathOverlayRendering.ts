@@ -72,6 +72,85 @@ export function chainToSmoothSvgPath(
   return parts.join(' ');
 }
 
+/**
+ * Cubic Bézier (four control points P0–P3) at parameter t ∈ [0, 1].
+ * Matches SVG cubic segment from P0 to P3 with off-curve P1, P2.
+ */
+function cubicBezierPoint(
+  p0: Point2D,
+  p1: Point2D,
+  p2: Point2D,
+  p3: Point2D,
+  t: number,
+): Point2D {
+  const u = 1 - t;
+  const u2 = u * u;
+  const u3 = u2 * u;
+  const t2 = t * t;
+  const t3 = t2 * t;
+  return {
+    x: u3 * p0.x + 3 * u2 * t * p1.x + 3 * u * t2 * p2.x + t3 * p3.x,
+    y: u3 * p0.y + 3 * u2 * t * p1.y + 3 * u * t2 * p2.y + t3 * p3.y,
+  };
+}
+
+export type SampleSmoothPathForPickingOptions = {
+  /** Catmull-Rom tension; must match {@link chainToSmoothSvgPath} (default 0.5). */
+  alpha?: number;
+  /** Samples per cubic segment (inclusive of endpoints); higher = tighter pick curve. */
+  samplesPerBezierSegment?: number;
+};
+
+/**
+ * Dense polyline that approximates the same smooth Catmull-Rom curve as {@link chainToSmoothSvgPath}.
+ * Used for map picking so distance-to-stroke aligns with the visible SVG stroke, not the raw centerline.
+ * Canonical authored data is unchanged; this is render-aware pick geometry only.
+ */
+export function sampleSmoothPathCenterlineForPicking(
+  points: readonly Point2D[],
+  options?: SampleSmoothPathForPickingOptions,
+): Point2D[] {
+  const alpha = options?.alpha ?? 0.5;
+  const n = Math.max(2, Math.floor(options?.samplesPerBezierSegment ?? 10));
+  if (points.length < 2) {
+    return [];
+  }
+  if (points.length === 2) {
+    return [points[0], points[1]];
+  }
+  const pts = points.map((p) => ({ cx: p.x, cy: p.y }));
+  const extended = [
+    mirrorPoint(pts[0], pts[1]),
+    ...pts,
+    mirrorPoint(pts[pts.length - 1], pts[pts.length - 2]),
+  ];
+  const out: Point2D[] = [];
+  const eps = 1e-9;
+  const pushPoint = (p: Point2D) => {
+    const last = out[out.length - 1];
+    if (!last || (last.x - p.x) ** 2 + (last.y - p.y) ** 2 > eps) {
+      out.push(p);
+    }
+  };
+  for (let i = 0; i < extended.length - 3; i++) {
+    const p0 = extended[i];
+    const p1 = extended[i + 1];
+    const p2 = extended[i + 2];
+    const p3 = extended[i + 3];
+    const cp = catmullRomToBezier(p0, p1, p2, p3, alpha);
+    const start = { x: p1.cx, y: p1.cy };
+    const c1 = { x: cp.cp1x, y: cp.cp1y };
+    const c2 = { x: cp.cp2x, y: cp.cp2y };
+    const end = { x: p2.cx, y: p2.cy };
+    for (let s = 0; s <= n; s++) {
+      const t = s / n;
+      const pt = cubicBezierPoint(start, c1, c2, end, t);
+      pushPoint(pt);
+    }
+  }
+  return out;
+}
+
 function mirrorPoint(anchor: Point, other: Point): Point {
   return { cx: 2 * anchor.cx - other.cx, cy: 2 * anchor.cy - other.cy };
 }

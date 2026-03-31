@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getPaintPaletteItemsForScale,
-  getPlaceObjectPaletteItemsForScale,
+  getPlacePaletteItemsForScale,
 } from './locationMapEditorPalette.helpers';
 
 describe('locationMapEditorPalette.helpers', () => {
@@ -22,10 +22,13 @@ describe('locationMapEditorPalette.helpers', () => {
     expect(items[0].swatchColorKey).toBe('cellFillMountains');
   });
 
-  it('getPlaceObjectPaletteItemsForScale maps policy + placed-object meta', () => {
-    const items = getPlaceObjectPaletteItemsForScale('world');
+  it('getPlacePaletteItemsForScale maps policy + linked-content vs map-object', () => {
+    const items = getPlacePaletteItemsForScale('world');
     expect(items.map((i) => i.kind)).toEqual(['city']);
     expect(items[0].label).toBe('City');
-    expect(items[0].linkedScale).toBe('city');
+    expect(items[0].category).toBe('linked-content');
+    if (items[0].category === 'linked-content') {
+      expect(items[0].linkedScale).toBe('city');
+    }
   });
 });

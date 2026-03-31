@@ -68,4 +68,19 @@ describe('resolveEraseTargetAtCell', () => {
       cellId: cell,
     });
   });
+
+  it('then cell fill when higher-priority targets are absent', () => {
+    const cell = '1,2';
+    const draft = {
+      pathEntries: [],
+      edgeEntries: [],
+      objectsByCellId: {},
+      linkedLocationByCellId: {},
+      cellFillByCellId: { [cell]: 'plains' },
+    };
+    expect(resolveEraseTargetAtCell(cell, draft, cols, rows)).toEqual({
+      type: 'fill',
+      cellId: cell,
+    });
+  });
 });

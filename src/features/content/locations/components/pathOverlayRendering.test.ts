@@ -3,11 +3,39 @@ import { describe, expect, it } from 'vitest';
 
 import type { LocationMapPathAuthoringEntry } from '@/shared/domain/locations/map/locationMap.types';
 
+import { distancePointToSegmentSquared } from '@/features/content/locations/domain/mapEditor/locationMapSelectionHitTest';
+
 import {
   chainToSmoothSvgPath,
   pathEntriesToSvgPaths,
   polylinePoint2DToSmoothSvgPath,
+  sampleSmoothPathCenterlineForPicking,
 } from './pathOverlayRendering';
+
+function distSqToPolyline(
+  px: number,
+  py: number,
+  pts: readonly { x: number; y: number }[],
+): number {
+  if (pts.length < 2) {
+    return Number.POSITIVE_INFINITY;
+  }
+  let best = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    const d = distancePointToSegmentSquared(px, py, {
+      x1: a.x,
+      y1: a.y,
+      x2: b.x,
+      y2: b.y,
+    });
+    if (d < best) {
+      best = d;
+    }
+  }
+  return best;
+}
 
 function pathEntry(id: string, kind: 'road' | 'river', cellIds: string[]): LocationMapPathAuthoringEntry {
   return { id, kind, cellIds };
@@ -45,6 +73,45 @@ describe('chainToSmoothSvgPath', () => {
     ]);
     const cCount = (d.match(/C/g) ?? []).length;
     expect(cCount).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('sampleSmoothPathCenterlineForPicking', () => {
+  it('returns endpoints only for a 2-point chain', () => {
+    const pts = [
+      { x: 0, y: 0 },
+      { x: 100, y: 50 },
+    ];
+    expect(sampleSmoothPathCenterlineForPicking(pts)).toEqual(pts);
+  });
+
+  it('densifies 3+ point chains beyond raw centerline vertex count', () => {
+    const pts = [
+      { x: 0, y: 0 },
+      { x: 50, y: 80 },
+      { x: 100, y: 0 },
+    ];
+    const sampled = sampleSmoothPathCenterlineForPicking(pts, { samplesPerBezierSegment: 6 });
+    expect(sampled.length).toBeGreaterThan(pts.length);
+  });
+
+  it('samples bulge away from the raw centerline where the smooth curve deviates', () => {
+    const centerline = [
+      { x: 0, y: 0 },
+      { x: 50, y: 100 },
+      { x: 100, y: 0 },
+    ];
+    const smooth = sampleSmoothPathCenterlineForPicking(centerline, { samplesPerBezierSegment: 16 });
+    let maxRawSq = 0;
+    for (const p of smooth) {
+      const dRaw = distSqToPolyline(p.x, p.y, centerline);
+      if (dRaw > maxRawSq) {
+        maxRawSq = dRaw;
+      }
+      const dSmooth = distSqToPolyline(p.x, p.y, smooth);
+      expect(dSmooth).toBeLessThanOrEqual(1e-6);
+    }
+    expect(maxRawSq).toBeGreaterThan(1);
   });
 });
 
