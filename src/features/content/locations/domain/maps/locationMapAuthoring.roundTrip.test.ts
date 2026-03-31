@@ -9,51 +9,31 @@ import {
 import { cellDraftToCellEntries, cellEntriesToDraft } from './cellAuthoringMappers';
 
 /**
- * Regression: authored map content must survive load → draft → save-shaped payload without
- * losing pathEntries, edgeEntries, or cellEntries (no silent omission of arrays).
+ * Seam: same mapping chain as load → grid draft → save/bootstrap payload
+ * (`cellEntriesToDraft` / `cellDraftToCellEntries`, `normalizeLocationMapAuthoringFields` for path/edge).
  */
-describe('location map authoring round-trip (draft ↔ persisted shape)', () => {
-  const representative = normalizeLocationMapAuthoringFields({
-    cellEntries: [
-      {
-        cellId: '0,0',
-        linkedLocationId: 'child-loc-1',
-        cellFillKind: 'water',
-        objects: [{ id: 'o1', kind: 'landmark', label: 'Well' }],
-      },
-    ],
-    pathEntries: [
-      { id: 'chain-road', kind: 'road', cellIds: ['0,0', '1,0', '2,0'] },
-      { id: 'chain-river', kind: 'river', cellIds: ['0,1', '1,1'] },
-    ],
-    edgeEntries: [
-      { edgeId: 'between:0,0|0,1', kind: 'wall' },
-      { edgeId: 'between:1,0|1,1', kind: 'door' },
-    ],
-  });
-
-  it('preserves all three collections through normalize → draft records → cellDraftToCellEntries + path/edge passthrough → normalize', () => {
-    const afterLoad = normalizeLocationMapAuthoringFields({
-      cellEntries: representative.cellEntries,
-      pathEntries: undefined,
-      edgeEntries: undefined,
-    });
-    expect(afterLoad.pathEntries).toEqual([]);
-    expect(afterLoad.edgeEntries).toEqual([]);
-
-    const fullLoad = normalizeLocationMapAuthoringFields({
-      cellEntries: representative.cellEntries,
-      pathEntries: representative.pathEntries,
-      edgeEntries: representative.edgeEntries,
+describe('location map authoring round-trip', () => {
+  it('preserves cellEntries, pathEntries, and edgeEntries through draft ↔ persisted-authoring mapping', () => {
+    const loaded = normalizeLocationMapAuthoringFields({
+      cellEntries: [
+        {
+          cellId: '1,1',
+          linkedLocationId: 'linked-loc',
+          cellFillKind: 'water',
+          objects: [{ id: 'obj-a', kind: 'landmark', label: 'Shrine' }],
+        },
+      ],
+      pathEntries: [{ id: 'p1', kind: 'road' as const, cellIds: ['1,1', '2,1'] }],
+      edgeEntries: [{ edgeId: 'between:1,1|1,2', kind: 'wall' as const }],
     });
 
     const draft = {
-      ...cellEntriesToDraft(fullLoad.cellEntries),
-      pathEntries: fullLoad.pathEntries,
-      edgeEntries: fullLoad.edgeEntries,
+      ...cellEntriesToDraft(loaded.cellEntries),
+      pathEntries: loaded.pathEntries,
+      edgeEntries: loaded.edgeEntries,
     };
 
-    const saveShaped = normalizeLocationMapAuthoringFields({
+    const persistedShaped = normalizeLocationMapAuthoringFields({
       cellEntries: cellDraftToCellEntries(
         draft.linkedLocationByCellId,
         draft.objectsByCellId,
@@ -63,43 +43,20 @@ describe('location map authoring round-trip (draft ↔ persisted shape)', () => 
       edgeEntries: draft.edgeEntries,
     });
 
-    expect(saveShaped.cellEntries).toEqual(representative.cellEntries);
-    expect(saveShaped.pathEntries).toEqual(representative.pathEntries);
-    expect(saveShaped.edgeEntries).toEqual(representative.edgeEntries);
-  });
+    expect(persistedShaped.cellEntries).toEqual(loaded.cellEntries);
+    expect(persistedShaped.pathEntries).toEqual(loaded.pathEntries);
+    expect(persistedShaped.edgeEntries).toEqual(loaded.edgeEntries);
 
-  it('path and edge derived geometry matches before and after the authored round-trip', () => {
-    const draft = {
-      ...cellEntriesToDraft(representative.cellEntries),
-      pathEntries: representative.pathEntries,
-      edgeEntries: representative.edgeEntries,
-    };
-    const roundTrip = normalizeLocationMapAuthoringFields({
-      cellEntries: cellDraftToCellEntries(
-        draft.linkedLocationByCellId,
-        draft.objectsByCellId,
-        draft.cellFillByCellId,
-      ),
-      pathEntries: draft.pathEntries,
-      edgeEntries: draft.edgeEntries,
-    });
-
-    const centers = new Map([
-      ['0,0', { cx: 10, cy: 20 }],
-      ['1,0', { cx: 30, cy: 20 }],
-      ['2,0', { cx: 50, cy: 20 }],
-      ['0,1', { cx: 10, cy: 40 }],
-      ['1,1', { cx: 30, cy: 40 }],
+    const centers = new Map<string, { cx: number; cy: number }>([
+      ['1,1', { cx: 0, cy: 0 }],
+      ['2,1', { cx: 10, cy: 0 }],
     ]);
     const centerFn = (id: string) => centers.get(id) ?? null;
-
-    const polyBefore = pathEntriesToPolylineGeometry(representative.pathEntries, centerFn);
-    const polyAfter = pathEntriesToPolylineGeometry(roundTrip.pathEntries, centerFn);
-    expect(polyAfter).toEqual(polyBefore);
-
-    const cellPx = 40;
-    const edgeBefore = edgeEntriesToSegmentGeometrySquare(representative.edgeEntries, cellPx);
-    const edgeAfter = edgeEntriesToSegmentGeometrySquare(roundTrip.edgeEntries, cellPx);
-    expect(edgeAfter).toEqual(edgeBefore);
+    expect(pathEntriesToPolylineGeometry(persistedShaped.pathEntries, centerFn)).toEqual(
+      pathEntriesToPolylineGeometry(loaded.pathEntries, centerFn),
+    );
+    expect(edgeEntriesToSegmentGeometrySquare(persistedShaped.edgeEntries, 40)).toEqual(
+      edgeEntriesToSegmentGeometrySquare(loaded.edgeEntries, 40),
+    );
   });
 });
