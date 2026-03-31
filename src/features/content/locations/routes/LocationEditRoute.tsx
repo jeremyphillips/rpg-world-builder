@@ -296,8 +296,8 @@ export default function LocationEditRoute() {
             selectedCellId: null,
             excludedCellIds: def.layout?.excludedCellIds ?? [],
             ...cellEntriesToDraft(def.cellEntries),
-            pathEntries: def.pathEntries,
-            edgeEntries: def.edgeEntries,
+            pathEntries: Array.isArray(def.pathEntries) ? def.pathEntries : [],
+            edgeEntries: Array.isArray(def.edgeEntries) ? def.edgeEntries : [],
           };
           setGridDraft(next);
           setGridDraftBaseline(structuredClone(next));
@@ -339,8 +339,8 @@ export default function LocationEditRoute() {
             selectedCellId: null,
             excludedCellIds: def.layout?.excludedCellIds ?? [],
             ...cellEntriesToDraft(def.cellEntries),
-            pathEntries: def.pathEntries,
-            edgeEntries: def.edgeEntries,
+            pathEntries: Array.isArray(def.pathEntries) ? def.pathEntries : [],
+            edgeEntries: Array.isArray(def.edgeEntries) ? def.edgeEntries : [],
           };
           setGridDraft(next);
           setGridDraftBaseline(structuredClone(next));

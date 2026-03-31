@@ -5,12 +5,21 @@ import {
 
 import type { LocationGridDraftState } from './locationGridDraft.types';
 
+/** Draft snapshots may omit path/edge arrays (older persisted client state, partial spreads). */
+function pathEntriesForCompare(d: LocationGridDraftState) {
+  return Array.isArray(d.pathEntries) ? d.pathEntries : [];
+}
+
+function edgeEntriesForCompare(d: LocationGridDraftState) {
+  return Array.isArray(d.edgeEntries) ? d.edgeEntries : [];
+}
+
 function sortPathEntriesForCompare(d: LocationGridDraftState) {
-  return [...d.pathEntries].sort((x, y) => x.id.localeCompare(y.id));
+  return [...pathEntriesForCompare(d)].sort((x, y) => x.id.localeCompare(y.id));
 }
 
 function sortEdgeEntriesForCompare(d: LocationGridDraftState) {
-  return [...d.edgeEntries].sort((x, y) => x.edgeId.localeCompare(y.edgeId));
+  return [...edgeEntriesForCompare(d)].sort((x, y) => x.edgeId.localeCompare(y.edgeId));
 }
 
 function stableStringify(value: unknown): string {

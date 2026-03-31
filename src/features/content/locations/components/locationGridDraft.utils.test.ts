@@ -62,4 +62,15 @@ describe('gridDraftPersistableEquals', () => {
     };
     expect(gridDraftPersistableEquals(a, b)).toBe(false);
   });
+
+  it('does not throw when pathEntries or edgeEntries are missing (partial draft)', () => {
+    const full = { ...INITIAL_LOCATION_GRID_DRAFT };
+    const partial = {
+      ...INITIAL_LOCATION_GRID_DRAFT,
+      pathEntries: undefined as unknown as typeof full.pathEntries,
+      edgeEntries: undefined as unknown as typeof full.edgeEntries,
+    };
+    expect(() => gridDraftPersistableEquals(full, partial)).not.toThrow();
+    expect(gridDraftPersistableEquals(full, partial)).toBe(true);
+  });
 });
