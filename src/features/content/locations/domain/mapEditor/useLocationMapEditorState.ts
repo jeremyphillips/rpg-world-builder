@@ -12,7 +12,7 @@ export function useLocationMapEditorState() {
   const [activePlace, setActivePlace] = useState<LocationMapActivePlaceSelection>(null);
   const [activePaint, setActivePaint] = useState<LocationMapActivePaintSelection>(null);
   const [pendingPlacement, setPendingPlacement] = useState<LocationMapPendingPlacement>(null);
-  /** First cell for two-click path segment placement; cleared when leaving place mode. */
+  /** First cell for two-click path segment placement; cleared after each segment or when leaving place mode. */
   const [pathAnchorCellId, setPathAnchorCellId] = useState<string | null>(null);
   /** First cell for two-click edge placement; cleared when leaving place mode. */
   const [edgeAnchorCellId, setEdgeAnchorCellId] = useState<string | null>(null);

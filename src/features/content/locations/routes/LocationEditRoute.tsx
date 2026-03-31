@@ -389,10 +389,19 @@ export default function LocationEditRoute() {
     ? Boolean(activeFloorId)
     : isLocationScaleSelected(watchedScale);
 
+  /**
+   * Map vocabulary (paint / place palettes, placement resolver) for the **floor grid**.
+   * Building *locations* use `scale: 'building'` on the entity, but authored map content policy
+   * lives under `floor` (walls, doors, floor objects). `LOCATION_SCALE_MAP_CONTENT_POLICY.building`
+   * is empty — always resolve building maps to `floor` so Place options are not blank.
+   */
   const mapHostScaleResolved = useMemo((): LocationScaleId => {
     if (isBuildingWorkspace) return 'floor';
-    return (String(scaleForFormRules || '').trim() || 'world') as LocationScaleId;
-  }, [isBuildingWorkspace, scaleForFormRules]);
+    if (loc?.scale === 'building') return 'floor';
+    const raw = (String(scaleForFormRules || '').trim() || 'world') as LocationScaleId;
+    if (raw === 'building') return 'floor';
+    return raw;
+  }, [isBuildingWorkspace, loc?.scale, scaleForFormRules]);
 
   const mapHostLocationIdResolved = useMemo(() => {
     if (isBuildingWorkspace) return activeFloorId ?? '';
@@ -411,10 +420,27 @@ export default function LocationEditRoute() {
     [mapHostScaleResolved],
   );
 
+  /** Path/link/object placement also needs this: otherwise canvas pan steals pointerdown and clicks often miss cells. */
+  const mapPlaceSuppressesCanvasPanOnCells = mapEditor.mode === 'place';
+
+  const mapPlaceObjectDragStrokeEnabled =
+    mapEditor.mode === 'place' && mapEditor.activePlace?.category === 'object';
+
   useEffect(() => {
     mapEditor.setPathAnchorCellId(null);
     mapEditor.setEdgeAnchorCellId(null);
   }, [gridColumns, gridRows, mapEditor.setPathAnchorCellId, mapEditor.setEdgeAnchorCellId]);
+
+  useEffect(() => {
+    if (mapEditor.mode !== 'place') return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      mapEditor.setPathAnchorCellId(null);
+      mapEditor.setEdgeAnchorCellId(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [mapEditor.mode, mapEditor.setPathAnchorCellId, mapEditor.setEdgeAnchorCellId]);
 
   /** Options for the pending linked-location modal (city / building / site per resolver). */
   const linkModalSelectOptions = useMemo(() => {
@@ -821,7 +847,9 @@ export default function LocationEditRoute() {
             },
           ],
         }));
-        mapEditor.setPathAnchorCellId(cellId);
+        // Clear anchor after each segment (like edges) so the preview stops; place another
+        // segment with two fresh clicks. Esc also clears a pending first click.
+        mapEditor.setPathAnchorCellId(null);
         return;
       }
       if (res.type === 'edge') {
@@ -971,6 +999,8 @@ export default function LocationEditRoute() {
                     onEraseCellClick={handleEraseCell}
                     placePathAnchorCellId={mapEditor.pathAnchorCellId}
                     placeEdgeAnchorCellId={mapEditor.edgeAnchorCellId}
+                    suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
+                    placeObjectDragStrokeEnabled={mapPlaceObjectDragStrokeEnabled}
                   />
                 ) : null}
               </LocationEditorCanvas>
@@ -1167,6 +1197,8 @@ export default function LocationEditRoute() {
                         onEraseCellClick={handleEraseCell}
                         placePathAnchorCellId={mapEditor.pathAnchorCellId}
                         placeEdgeAnchorCellId={mapEditor.edgeAnchorCellId}
+                        suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
+                        placeObjectDragStrokeEnabled={mapPlaceObjectDragStrokeEnabled}
                       />
                     ) : null}
                   </LocationEditorCanvas>
@@ -1227,6 +1259,8 @@ export default function LocationEditRoute() {
                       onEraseCellClick={handleEraseCell}
                       placePathAnchorCellId={mapEditor.pathAnchorCellId}
                       placeEdgeAnchorCellId={mapEditor.edgeAnchorCellId}
+                      suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
+                      placeObjectDragStrokeEnabled={mapPlaceObjectDragStrokeEnabled}
                     />
                   ) : null}
                 </LocationEditorCanvas>

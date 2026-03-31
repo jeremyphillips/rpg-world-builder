@@ -141,6 +141,11 @@ export function LocationMapEditorPlacePanel({
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
             Paths
           </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, lineHeight: 1.4 }}>
+            Click two neighboring cells (up/down/left/right) to place one segment. The dashed line is
+            a preview; the solid line is saved on the second click. Press Esc to cancel the first
+            click. Switch to Select when you are done placing.
+          </Typography>
           <Box
             sx={{
               display: 'grid',

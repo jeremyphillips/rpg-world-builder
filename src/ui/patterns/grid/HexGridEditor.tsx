@@ -137,6 +137,7 @@ export default function HexGridEditor({
             component="button"
             type="button"
             role="gridcell"
+            data-cell-id={cellId}
             aria-selected={selected}
             aria-label={
               excluded
