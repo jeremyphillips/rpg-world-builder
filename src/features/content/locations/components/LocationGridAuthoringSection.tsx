@@ -11,6 +11,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import { alpha, useTheme } from '@mui/material/styles';
 
 import GridEditor, { type GridCell } from '@/ui/patterns/grid/GridEditor';
 import HexGridEditor from '@/ui/patterns/grid/HexGridEditor';
@@ -41,6 +42,17 @@ import type { LocationGridDraftState } from './locationGridDraft.types';
 const GRID_GAP_PX = 4; // MUI spacing(0.5) — matches GridEditor gap
 const MIN_CELL_PX = 24;
 const CANVAS_INSET_PX = 48; // breathing room so grid doesn't touch canvas edges
+
+/** Pixel center of a square grid cell for SVG overlays (matches GridEditor gap + square cells). */
+function squareCellCenterPx(
+  cellId: string,
+  cellPx: number,
+): { cx: number; cy: number } | null {
+  const p = parseGridCellId(cellId);
+  if (!p) return null;
+  const step = cellPx + GRID_GAP_PX;
+  return { cx: p.x * step + cellPx / 2, cy: p.y * step + cellPx / 2 };
+}
 
 type LocationGridAuthoringSectionProps = {
   gridColumns: string;
@@ -93,6 +105,7 @@ export function LocationGridAuthoringSection({
   placePathAnchorCellId = null,
   placeEdgeAnchorCellId = null,
 }: LocationGridAuthoringSectionProps) {
+  const theme = useTheme();
   const cols = Number(gridColumns);
   const rows = Number(gridRows);
   const validPreview = useMemo(
@@ -200,6 +213,17 @@ export function LocationGridAuthoringSection({
     const cellSize = Math.max(MIN_CELL_PX, Math.floor(Math.min(cellFromH, cellFromW)));
     return { width: cellSize * cols + horzGaps, hexCellPx: 0 };
   }, [validPreview, cols, rows, isHex, leftChromeWidthPx]);
+
+  const squareGridGeometry = useMemo(() => {
+    if (!validPreview || isHex || gridSizePx.width <= 0) return null;
+    const horzGaps = Math.max(0, cols - 1) * GRID_GAP_PX;
+    const vertGaps = Math.max(0, rows - 1) * GRID_GAP_PX;
+    const cellPx = (gridSizePx.width - horzGaps) / cols;
+    const height = rows * cellPx + vertGaps;
+    return { cellPx, width: gridSizePx.width, height };
+  }, [validPreview, isHex, cols, rows, gridSizePx.width]);
+
+  const pathOverlayStroke = alpha(theme.palette.info.main, 0.85);
 
   const locationById = useMemo(
     () => new Map(locations.map((l) => [l.id, l])),
@@ -387,6 +411,12 @@ export function LocationGridAuthoringSection({
 
   const paintOrClear = mapEditorMode === 'paint' || mapEditorMode === 'clear-fill';
 
+  const mapToolCrosshair =
+    mapEditorMode === 'place' ||
+    mapEditorMode === 'erase' ||
+    mapEditorMode === 'paint' ||
+    mapEditorMode === 'clear-fill';
+
   const sharedGridProps = {
     columns: cols,
     rows: rows,
@@ -406,6 +436,13 @@ export function LocationGridAuthoringSection({
       variant="outlined"
       sx={{
         p: 1,
+        ...(mapToolCrosshair
+          ? {
+              '& [role="gridcell"]': {
+                cursor: 'crosshair',
+              },
+            }
+          : {}),
         '& .location-map-place-anchor-path': {
           boxShadow: (t) => `inset 0 0 0 3px ${t.palette.primary.main}`,
         },
@@ -420,15 +457,51 @@ export function LocationGridAuthoringSection({
         },
       }}
     >
-      <Box sx={{ width: gridSizePx.width }}>
-        {isHex ? (
-          <HexGridEditor
-            {...sharedGridProps}
-            hexSize={gridSizePx.hexCellPx || undefined}
-          />
-        ) : (
-          <GridEditor {...sharedGridProps} />
-        )}
+      <Box sx={{ position: 'relative', width: gridSizePx.width }}>
+        {squareGridGeometry && draft.pathSegments.length > 0 ? (
+          <Box
+            component="svg"
+            width={squareGridGeometry.width}
+            height={squareGridGeometry.height}
+            sx={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              pointerEvents: 'none',
+              zIndex: 0,
+              display: 'block',
+            }}
+            aria-hidden
+          >
+            {draft.pathSegments.map((seg) => {
+              const a = squareCellCenterPx(seg.startCellId, squareGridGeometry.cellPx);
+              const b = squareCellCenterPx(seg.endCellId, squareGridGeometry.cellPx);
+              if (!a || !b) return null;
+              return (
+                <line
+                  key={seg.id}
+                  x1={a.cx}
+                  y1={a.cy}
+                  x2={b.cx}
+                  y2={b.cy}
+                  stroke={pathOverlayStroke}
+                  strokeWidth={2.5}
+                  strokeLinecap="round"
+                />
+              );
+            })}
+          </Box>
+        ) : null}
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          {isHex ? (
+            <HexGridEditor
+              {...sharedGridProps}
+              hexSize={gridSizePx.hexCellPx || undefined}
+            />
+          ) : (
+            <GridEditor {...sharedGridProps} />
+          )}
+        </Box>
       </Box>
     </Paper>
   );
