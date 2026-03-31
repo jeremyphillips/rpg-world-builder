@@ -93,7 +93,7 @@ In [locationMapFeatures.validation.ts](shared/domain/locations/map/locationMapFe
 
 - `**hexGridMapOverlayGeometry.test.ts`**: hex cell center pixel calculations for even/odd columns, overlay dimensions.
 - `**pathOverlayRendering.test.ts`**: chain building (single segment, linear chain, branch splits, multiple kinds), smooth SVG path output (2-point straight line, 3+ point curve contains `C` commands).
-- `**locationMapFeatures.validation.test.ts**` (extend existing): hex-adjacent path segments pass validation; non-adjacent hex pairs fail.
+- `**locationMapFeatures.validation.test.ts`** (extend existing): hex-adjacent path segments pass validation; non-adjacent hex pairs fail.
 
 ### Rendering style
 

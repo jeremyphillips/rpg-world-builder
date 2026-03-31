@@ -136,6 +136,11 @@ export default function LocationEditRoute() {
   const [gridDraft, setGridDraft] = useState<LocationGridDraftState>(
     INITIAL_LOCATION_GRID_DRAFT,
   );
+  /** Always latest draft — react-hook-form submit can call a stale closure; ref avoids saving without path/edge edits. */
+  const gridDraftRef = useRef(gridDraft);
+  useEffect(() => {
+    gridDraftRef.current = gridDraft;
+  }, [gridDraft]);
   /** Last saved / server-hydrated persistable map state (enables Save when only the grid changed). */
   const [gridDraftBaseline, setGridDraftBaseline] = useState<LocationGridDraftState>(() =>
     structuredClone(INITIAL_LOCATION_GRID_DRAFT),
@@ -515,6 +520,7 @@ export default function LocationEditRoute() {
         setSuccess(false);
         setErrors([]);
         try {
+          const draft = gridDraftRef.current;
           const input = toLocationInput(values);
           const updated = await locationRepo.updateEntry(campaignId, locationId, input);
           const floorName =
@@ -526,21 +532,21 @@ export default function LocationEditRoute() {
             'floor',
             values,
             {
-              excludedCellIds: gridDraft.excludedCellIds,
+              excludedCellIds: draft.excludedCellIds,
               cellEntries: cellDraftToCellEntries(
-                gridDraft.linkedLocationByCellId,
-                gridDraft.objectsByCellId,
-                gridDraft.cellFillByCellId,
+                draft.linkedLocationByCellId,
+                draft.objectsByCellId,
+                draft.cellFillByCellId,
               ),
-              pathEntries: gridDraft.pathEntries,
-              edgeEntries: gridDraft.edgeEntries,
+              pathEntries: Array.isArray(draft.pathEntries) ? draft.pathEntries : [],
+              edgeEntries: Array.isArray(draft.edgeEntries) ? draft.edgeEntries : [],
             },
           );
           reset({
             ...locationToFormValues(updated),
             ...pickMapGridFormValues(values),
           });
-          setGridDraftBaseline(structuredClone(gridDraft));
+          setGridDraftBaseline(structuredClone(gridDraftRef.current));
           setSuccess(true);
         } catch (e) {
           setErrors([
@@ -560,6 +566,7 @@ export default function LocationEditRoute() {
       setSuccess(false);
       setErrors([]);
       try {
+        const draft = gridDraftRef.current;
         const input = toLocationInput(values);
         const updated = await locationRepo.updateEntry(campaignId, locationId, input);
         await bootstrapDefaultLocationMap(
@@ -569,21 +576,21 @@ export default function LocationEditRoute() {
           updated.scale as LocationScaleId,
           values,
           {
-            excludedCellIds: gridDraft.excludedCellIds,
+            excludedCellIds: draft.excludedCellIds,
             cellEntries: cellDraftToCellEntries(
-              gridDraft.linkedLocationByCellId,
-              gridDraft.objectsByCellId,
-              gridDraft.cellFillByCellId,
+              draft.linkedLocationByCellId,
+              draft.objectsByCellId,
+              draft.cellFillByCellId,
             ),
-            pathEntries: gridDraft.pathEntries,
-            edgeEntries: gridDraft.edgeEntries,
+            pathEntries: Array.isArray(draft.pathEntries) ? draft.pathEntries : [],
+            edgeEntries: Array.isArray(draft.edgeEntries) ? draft.edgeEntries : [],
           },
         );
         reset({
           ...locationToFormValues(updated),
           ...pickMapGridFormValues(values),
         });
-        setGridDraftBaseline(structuredClone(gridDraft));
+        setGridDraftBaseline(structuredClone(gridDraftRef.current));
         setSuccess(true);
       } catch (e) {
         setErrors([
@@ -603,12 +610,6 @@ export default function LocationEditRoute() {
       setSaving,
       setSuccess,
       setErrors,
-      gridDraft.excludedCellIds,
-      gridDraft.linkedLocationByCellId,
-      gridDraft.objectsByCellId,
-      gridDraft.cellFillByCellId,
-      gridDraft.pathEntries,
-      gridDraft.edgeEntries,
     ],
   );
 

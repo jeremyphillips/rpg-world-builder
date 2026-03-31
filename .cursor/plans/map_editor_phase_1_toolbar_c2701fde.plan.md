@@ -98,11 +98,11 @@ This avoids replacing `[LocationGridDraftState](src/features/content/locations/c
 | **building** / **site** (city)    | Ideal: link flows (`linkedLocationId`) with modals filtered by `linkedScale` (reuse option filtering pattern from `[LocationCellAuthoringPanel](src/features/content/locations/components/LocationCellAuthoringPanel.tsx)`). If timeboxed: **gate** with resolver returning `unsupported` for Phase 1 except **city@world**, and disable or toast for others — only if you must ship minimal; otherwise implement the same modal pattern for building/site using campaign locations filtered by scale + policy. |
 
 
-**Unresolved links:** When `**resolvePlacedKindToAction`** returns `**link-modal**`, set `**LocationMapPendingPlacement**` to `{ type: 'linked-location', ... }` and **do not** write `linkedLocationByCellId` until modal confirm.
+**Unresolved links:** When `**resolvePlacedKindToAction`** returns `**link-modal`**, set `**LocationMapPendingPlacement**` to `{ type: 'linked-location', ... }` and **do not** write `linkedLocationByCellId` until modal confirm.
 
 ## 5) City link modal (world + city placement)
 
-- Local state: `**pendingPlacement: LocationMapPendingPlacement`** (non-null) + `AppModal` open when user clicked a target cell and the resolver returned `**link-modal**` (Phase 1: typically **city** @ **world**, encoded in `pendingPlacement` as `type: 'linked-location'` with `linkedScale: 'city'`, `hostScale: 'world'`).
+- Local state: `**pendingPlacement: LocationMapPendingPlacement`** (non-null) + `AppModal` open when user clicked a target cell and the resolver returned `**link-modal`** (Phase 1: typically **city** @ **world**, encoded in `pendingPlacement` as `type: 'linked-location'` with `linkedScale: 'city'`, `hostScale: 'world'`).
 - Form: wrap modal body in `FormProvider` + local `useForm`; `[FormSelectField](src/ui/patterns/form/FormSelectField.tsx)` for city id.
 - Options: start from `getAllowedLinkedLocationOptions(host, locations, { campaignId, excludeLocationId })` and **filter** `loc.scale === 'city'`. **“Published”** is not modeled on `[ContentItem](src/features/content/shared/domain/types/content.types.ts)` today — **document assumption** in code: e.g. “all campaign cities allowed by link policy” until a `published` (or equivalent) field exists; optionally exclude entries missing a default map if you add a cheap predicate.
 
@@ -178,16 +178,16 @@ Phase 1 scope above is **implemented in tree** (toolbar, paint/clear-fill, place
 
 ### B. Parity and product gaps from Phase 1 notes
 
-3. **Hex maps** — `LocationGridAuthoringSection` only draws path/edge SVG overlays for **square** geometry; add hex line geometry + same place preview behavior or hide path/edge tools on hex until ready.
-4. **`table` vs `marker`** — Decide per plan §4: extend `LOCATION_MAP_OBJECT_KIND_IDS` with `table` or map to `marker` + label; align validation and icons.
-5. **Building/site link modals** — Same modal pattern as city@world where policy allows; gate behind resolver until implemented.
+1. **Hex maps** — `LocationGridAuthoringSection` only draws path/edge SVG overlays for **square** geometry; add hex line geometry + same place preview behavior or hide path/edge tools on hex until ready.
+2. `**table` vs `marker`** — Decide per plan §4: extend `LOCATION_MAP_OBJECT_KIND_IDS` with `table` or map to `marker` + label; align validation and icons.
+3. **Building/site link modals** — Same modal pattern as city@world where policy allows; gate behind resolver until implemented.
 
 ### C. Editor power
 
-6. **Undo/redo** — Batch stroke updates (`cellFillByCellId`, paint stroke) into one undo step; optional for place-object drag stroke.
-7. **Erase mode refinement** — Already have `resolveEraseTargetAtCell`; ensure ordering matches product (edge → object → path → link) and UX feedback.
+1. **Undo/redo** — Batch stroke updates (`cellFillByCellId`, paint stroke) into one undo step; optional for place-object drag stroke.
+2. **Erase mode refinement** — Already have `resolveEraseTargetAtCell`; ensure ordering matches product (edge → object → path → link) and UX feedback.
 
 ### D. System route parity
 
-8. **`LocationEditRoute` system branch** — Mirror map editor chrome when `showMapGridAuthoring` or document intentional omission.
+1. `**LocationEditRoute` system branch** — Mirror map editor chrome when `showMapGridAuthoring` or document intentional omission.
 

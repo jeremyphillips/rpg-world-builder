@@ -234,6 +234,16 @@ export async function createLocationMap(
     };
   }
 
+  const pathEntriesNorm = Array.isArray(body.pathEntries)
+    ? (body.pathEntries as LocationMapPathAuthoringEntry[])
+    : [];
+  const edgeEntriesNorm = Array.isArray(body.edgeEntries)
+    ? (body.edgeEntries as LocationMapEdgeAuthoringEntry[])
+    : [];
+  const cellEntriesNorm = Array.isArray(body.cellEntries)
+    ? (body.cellEntries as LocationMapCellAuthoringEntry[])
+    : [];
+
   const validationPayload = {
     name,
     kind,
@@ -248,8 +258,8 @@ export async function createLocationMap(
     cells: body.cells,
     layout: body.layout,
     cellEntries: body.cellEntries,
-    pathEntries: Array.isArray(body.pathEntries) ? body.pathEntries : [],
-    edgeEntries: Array.isArray(body.edgeEntries) ? body.edgeEntries : [],
+    pathEntries: pathEntriesNorm,
+    edgeEntries: edgeEntriesNorm,
   };
   const vErr = validateLocationMapInput(validationPayload);
   if (vErr.length > 0) return { errors: vErr };
@@ -304,9 +314,9 @@ export async function createLocationMap(
       : {}),
     isDefault,
     cells: (body.cells as LocationMapDoc['cells']) ?? [],
-    ...(Array.isArray(body.cellEntries) ? { cellEntries: body.cellEntries } : {}),
-    ...(Array.isArray(body.pathEntries) ? { pathEntries: body.pathEntries } : {}),
-    ...(Array.isArray(body.edgeEntries) ? { edgeEntries: body.edgeEntries } : {}),
+    cellEntries: cellEntriesNorm,
+    pathEntries: pathEntriesNorm,
+    edgeEntries: edgeEntriesNorm,
   });
 
   if (isDefault) {
@@ -450,6 +460,14 @@ export async function updateLocationMap(
   );
   if (policyErr.length > 0) return { errors: policyErr };
 
+  /** Persist merged path/edge whenever any authoring field is patched so Mongo gets canonical arrays (not only when each key appears on req.body). */
+  const touchesAuthoring =
+    body.grid !== undefined ||
+    body.layout !== undefined ||
+    body.cellEntries !== undefined ||
+    body.pathEntries !== undefined ||
+    body.edgeEntries !== undefined;
+
   const $set: Record<string, unknown> = {};
   if (body.name !== undefined) $set.name = merged.name;
   if (body.kind !== undefined) $set.kind = merged.kind;
@@ -457,15 +475,24 @@ export async function updateLocationMap(
   if (body.cells !== undefined) $set.cells = body.cells ?? [];
   if (body.layout !== undefined) $set.layout = body.layout;
   if (body.cellEntries !== undefined) $set.cellEntries = body.cellEntries ?? [];
-  if (body.pathEntries !== undefined) $set.pathEntries = body.pathEntries ?? [];
-  if (body.edgeEntries !== undefined) $set.edgeEntries = body.edgeEntries ?? [];
+  if (touchesAuthoring) {
+    $set.pathEntries = Array.isArray(merged.pathEntries) ? merged.pathEntries : [];
+    $set.edgeEntries = Array.isArray(merged.edgeEntries) ? merged.edgeEntries : [];
+  }
   if (body.isDefault !== undefined) $set.isDefault = body.isDefault;
 
   if (Object.keys($set).length === 0) {
     return { map: toDoc(existingRow) };
   }
 
-  const doc = await CampaignLocationMap.findOneAndUpdate({ campaignId, mapId }, { $set }, { new: true, lean: true });
+  // Native collection update: Mongoose findOneAndUpdate can drop or mishandle $set on array paths
+  // (pathEntries / edgeEntries); the driver sends the update verbatim to MongoDB.
+  const updateResult = await CampaignLocationMap.collection.updateOne(
+    { campaignId, mapId },
+    { $set: { ...$set, updatedAt: new Date() } },
+  );
+  if (updateResult.matchedCount === 0) return null;
+  const doc = await CampaignLocationMap.findOne({ campaignId, mapId }).lean();
   if (!doc) return null;
 
   const row = doc as Record<string, unknown>;
