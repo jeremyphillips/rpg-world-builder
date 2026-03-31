@@ -35,8 +35,7 @@ export function LocationMapEditorToolbar({ mode, onModeChange }: LocationMapEdit
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        py: 0.5,
+        alignItems: 'stretch',
         borderRight: 1,
         borderColor: 'divider',
         bgcolor: 'background.paper',
@@ -49,7 +48,13 @@ export function LocationMapEditorToolbar({ mode, onModeChange }: LocationMapEdit
         onChange={(_e, v) => {
           if (v != null) onModeChange(v as LocationMapEditorMode);
         }}
-        sx={{ gap: 0.5 }}
+        sx={{
+          width: '100%',
+          gap: 0,
+          '& .MuiToggleButtonGroup-grouped': {
+            borderRadius: 0,
+          },
+        }}
       >
         {TOOLS.map((t) => (
           <ToggleButton
@@ -57,7 +62,21 @@ export function LocationMapEditorToolbar({ mode, onModeChange }: LocationMapEdit
             value={t.mode}
             size="small"
             aria-label={t.label}
-            sx={{ px: 0.75, py: 0.5 }}
+            sx={{
+              width: '100%',
+              minWidth: 0,
+              height: '50px',
+              px: 0.5,
+              py: 0.75,
+              borderRadius: 0,
+              '&.Mui-selected': {
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+              },
+              '&.Mui-selected:hover': {
+                bgcolor: 'primary.main'
+              },
+            }}
           >
             <t.Icon fontSize="small" />
           </ToggleButton>
