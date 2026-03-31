@@ -58,3 +58,13 @@ export function squareSharedEdgeSegmentPx(
   }
   return null;
 }
+
+/** Pixel segment for a canonical `between:cellA|cellB` edge id. */
+export function squareEdgeSegmentPxFromEdgeId(
+  edgeId: string,
+  cellPx: number,
+): { x1: number; y1: number; x2: number; y2: number } | null {
+  const m = BETWEEN_EDGE_ID_RE.exec(edgeId);
+  if (!m) return null;
+  return squareSharedEdgeSegmentPx(m[1].trim(), m[2].trim(), cellPx);
+}

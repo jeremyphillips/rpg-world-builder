@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CanvasPoint } from './canvas.types'
 
 const DEFAULT_DRAG_THRESHOLD = 3
@@ -69,6 +69,20 @@ export function useCanvasPan(options?: UseCanvasPanOptions): UseCanvasPanReturn 
   const onPointerUp = useCallback(() => {
     dragState.current = null
     setIsDragging(false)
+  }, [])
+
+  // Window-level safety net: clears drag state even when a child calls
+  // stopPropagation on pointerup, which would prevent the wrapper's
+  // onPointerUp from firing.
+  useEffect(() => {
+    const handleWindowPointerUp = () => {
+      if (dragState.current) {
+        dragState.current = null
+        setIsDragging(false)
+      }
+    }
+    window.addEventListener('pointerup', handleWindowPointerUp)
+    return () => window.removeEventListener('pointerup', handleWindowPointerUp)
   }, [])
 
   const resetPan = useCallback(() => setPan({ x: 0, y: 0 }), [])

@@ -48,6 +48,19 @@ function edgeFeaturesOnCellEdges(
   return draft.edgeFeatures.filter((e) => keys.has(e.edgeId));
 }
 
+/**
+ * Resolve an erase target for a specific canonical edgeId. Returns the
+ * matching edge feature's id if found.
+ */
+export function resolveEraseEdgeByEdgeId(
+  edgeId: string,
+  draft: Pick<EraseDraftLike, 'edgeFeatures'>,
+): EraseTarget {
+  const hit = draft.edgeFeatures.find((e) => e.edgeId === edgeId);
+  if (hit) return { type: 'edge', featureId: hit.id };
+  return null;
+}
+
 export function resolveEraseTargetAtCell(
   cellId: string,
   draft: EraseDraftLike,

@@ -160,7 +160,12 @@ export function LocationMapEditorPlacePanel({
       {edgeItems.length > 0 ? (
         <Box>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
-            Edges
+            Edges (walls / windows / doors)
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, lineHeight: 1.4 }}>
+            Hover near a cell boundary to preview. Click or drag across boundaries to place
+            connected edge segments. Release to commit. Dragging locks to a straight line;
+            hold Shift to change direction mid-stroke. Use Erase mode to remove individual edges.
           </Typography>
           <Box
             sx={{

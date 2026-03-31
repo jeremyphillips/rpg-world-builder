@@ -54,7 +54,7 @@ When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEd
 | `clear-fill` | Stroke to clear terrain fill on cells without removing links/objects/paths/edges. |
 | `erase` | Click a cell to remove the highest-priority feature there (`resolveEraseTargetAtCell`: edge → object → path → link). |
 
-**State hook:** `useLocationMapEditorState` (`domain/mapEditor/useLocationMapEditorState.ts`) holds `mode`, `activePaint`, `activePlace`, `pathAnchorCellId` / `edgeAnchorCellId` for two-click path and edge segments, and `pendingPlacement` for the linked-location modal. Switching away from **place** clears anchors and pending placement.
+**State hook:** `useLocationMapEditorState` (`domain/mapEditor/useLocationMapEditorState.ts`) holds `mode`, `activePaint`, `activePlace`, `pathAnchorCellId` for two-click path segments, and `pendingPlacement` for the linked-location modal. Switching away from **place** clears anchors and pending placement. Edge placement no longer uses a two-click anchor; it uses **boundary-paint** (see below).
 
 **Layout:** `LocationEditRoute` sets `leftMapChromeWidthPx` to `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` plus `LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX` only while `mode === 'paint'`. That value is passed to `LocationGridAuthoringSection` as `leftChromeWidthPx` so the grid width accounts for left chrome.
 
@@ -68,22 +68,43 @@ When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEd
 
 ---
 
-## Open issues: edge tool (and path overlay)
+## Edge authoring (boundary-paint model)
 
-These limitations are intentional until follow-up work lands; they affect **edges** (walls, windows, doors on shared cell boundaries) and **paths** the same way.
+Edges (walls, windows, doors) use a **boundary-paint** interaction model on **square grids**. Instead of two-click placement through cell centers, the pointer resolves the nearest cell-boundary edge:
 
-### 1. Hex maps: no path/edge overlay or placement preview
+1. **Hover** — moving over the grid shows a dashed preview on the nearest edge boundary.
+2. **Pointer down** — starts an edge stroke; the first boundary is added.
+3. **Drag** — crossing neighboring boundaries adds them to the stroke (deduplicated).
+4. **Pointer up** — commits the stroke to the draft.
 
-`LocationGridAuthoringSection` draws persisted path segments, edge features, and the **dashed preview** during two-click placement only when the map is **square** (`squareGridGeometry && !isHex`). On **hex** geometry, that SVG layer is omitted, so:
+**Key modules:**
+- `domain/mapEditor/edgeAuthoring.ts` — pure helpers: `resolveNearestCellEdgeSide`, `resolveEdgeTargetFromGridPosition`, `applyEdgeStrokeToDraft` (with replace/no-op rules).
+- `squareGridMapOverlayGeometry.ts` — `squareEdgeSegmentPxFromEdgeId` for rendering committed and preview edges.
+- `LocationGridAuthoringSection` — wrapper-level pointer handlers resolve edge targets and manage stroke state; SVG overlay renders both hover preview and accumulated stroke.
 
-- Placed edges/paths may still be **stored** in the grid draft / `cellEntries` when the placement logic runs, but they are **not drawn** on the canvas overlay.
-- There is **no** hover preview line for path or edge placement on hex.
+**Replace/overwrite rules:** same kind on same edge = no-op; different kind replaces in place; empty edge = add.
 
-**Direction:** Add hex-aware segment geometry (or hide path/edge entries in the place palette on hex until parity exists). See [locations.md](./locations.md) *Grid geometry* and *What is deferred* for hex scope.
+**Erase:** in Erase mode, the pointer resolves the nearest edge boundary and removes that specific edge feature (`onEraseEdge`). Cell-level erase (`resolveEraseTargetAtCell`) still handles objects, paths, and links.
+
+### Open issues
+
+### 1. Hex maps: no path/edge overlay — palette entries hidden
+
+`LocationGridAuthoringSection` draws persisted path segments, edge features, and edge previews only when the map is **square** (`squareGridGeometry && !isHex`). On **hex** geometry, that SVG layer is omitted.
+
+**Current mitigation:** `LocationEditRoute` filters `placePaletteItems` to **exclude** `path` and `edge` categories when `gridGeometry === 'hex'`, so users cannot select tools that have no visual feedback. Existing path/edge data stored against a hex grid is preserved but not rendered.
+
+**Long-term direction:** Add hex-aware segment geometry (`hexGridMapOverlayGeometry.ts` with hex cell-center and shared-edge helpers), use `getNeighborPoints` from `shared/domain/grid/gridHelpers.ts` for adjacency in `handlePlaceCell`, and add a hex SVG overlay branch in `LocationGridAuthoringSection`. See [locations.md](./locations.md) *Grid geometry* and *What is deferred* for hex scope.
 
 ### 2. Canvas pan vs reliable clicks (place mode)
 
-Map pan is implemented with `useCanvasPan` on the canvas wrapper. In **place** mode the route passes `suppressCanvasPanOnCells` so grid cells **stop propagation** on pointer down/up and reduce the chance that a click is swallowed by a pan gesture. **Residual issue:** some interactions still report missed clicks or segments not persisting (trackpad micro-movement, browser differences). Further hardening (e.g. placement on `pointerup`, capture, or stricter click-vs-drag thresholds) is **open**.
+Map pan is implemented with `useCanvasPan` on the canvas wrapper. Three layers of hardening are now in place:
+
+1. **`suppressCanvasPanOnCells`** — in **place** mode, cell `pointerdown`/`pointerup` events call `stopPropagation` so the canvas pan handler never starts a drag from cell clicks.
+2. **Window-level `pointerup` safety net** — `useCanvasPan` registers a `window` `pointerup` listener that clears drag state even when a child stops propagation, preventing stranded `isDragging` / grabbing cursor.
+3. **`hasDragMoved` guard** — `LocationGridAuthoringSection` checks `hasDragMoved()` before dispatching `onCellClick`, matching the pattern used by `EncounterGrid`. This blocks accidental cell actions from drag gestures that started outside cells.
+
+**Remaining scope:** switching to `pointerup`-based placement (instead of browser `click`) with a movement threshold would further improve reliability on trackpads. This is deferred.
 
 ---
 
@@ -105,7 +126,7 @@ Zoom and pan behavior is shared between the location editor and encounter active
 | Export | Role |
 |--------|------|
 | `useCanvasZoom` | Zoom state, `zoomIn`/`zoomOut`/`zoomReset`, `zoomControlProps` spread for `ZoomControl`, `wheelContainerRef` (non-passive listener for Ctrl/Cmd + scroll / trackpad pinch). `bindResetPan` coordinates pan reset with zoom reset. |
-| `useCanvasPan` | Pan state, pointer drag handlers (`pointerHandlers` spread), `isDragging`, `hasDragMoved()` (distinguishes click from drag), `resetPan`. |
+| `useCanvasPan` | Pan state, pointer drag handlers (`pointerHandlers` spread), `isDragging`, `hasDragMoved()` (distinguishes click from drag), `resetPan`. Includes a window-level `pointerup` listener so drag state is always cleared even when children stop propagation. |
 | `CanvasPoint` | Shared type `{ x: number; y: number }`. |
 
 Both hooks are used at the route level; derived values are passed down to canvas/grid components as props.

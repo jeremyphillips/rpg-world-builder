@@ -14,15 +14,12 @@ export function useLocationMapEditorState() {
   const [pendingPlacement, setPendingPlacement] = useState<LocationMapPendingPlacement>(null);
   /** First cell for two-click path segment placement; cleared after each segment or when leaving place mode. */
   const [pathAnchorCellId, setPathAnchorCellId] = useState<string | null>(null);
-  /** First cell for two-click edge placement; cleared when leaving place mode. */
-  const [edgeAnchorCellId, setEdgeAnchorCellId] = useState<string | null>(null);
 
   const setModeWithReset = useCallback((next: LocationMapEditorMode) => {
     setMode(next);
     if (next !== 'place') {
       setActivePlace(null);
       setPathAnchorCellId(null);
-      setEdgeAnchorCellId(null);
       setPendingPlacement(null);
     }
     if (next !== 'paint') {
@@ -41,7 +38,5 @@ export function useLocationMapEditorState() {
     setPendingPlacement,
     pathAnchorCellId,
     setPathAnchorCellId,
-    edgeAnchorCellId,
-    setEdgeAnchorCellId,
   };
 }
