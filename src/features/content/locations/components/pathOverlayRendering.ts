@@ -1,3 +1,12 @@
+/**
+ * Editor-only bridge from authored `pathEntries` to SVG `<path d="...">` strings.
+ *
+ * **Temporary seam:** detail views and other consumers should eventually share the same
+ * pipeline: authored data → `pathEntriesToCenterlinePoints` in `@/shared/domain/locations/map/locationMapPathCenterline.helpers`
+ * (pixel centerlines) → optional smoothing here via `chainToSmoothSvgPath`. Do not add grid
+ * math, persistence, or hex policy in this module.
+ */
+import { pathEntriesToCenterlinePoints } from '@/shared/domain/locations/map/locationMapPathCenterline.helpers';
 import type { LocationMapPathAuthoringEntry } from '@/shared/domain/locations/map/locationMap.types';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
 
@@ -5,27 +14,19 @@ type Point = { cx: number; cy: number };
 type CenterFn = (cellId: string) => Point | null;
 
 /**
- * Build smooth SVG path data from authored path chains, using the provided
- * center function to map cell IDs to pixel coordinates.
+ * Map authored path chains to SVG path `d` attributes (smooth Catmull-Rom where applicable).
+ * Delegates cell-id → centerline points to shared `pathEntriesToCenterlinePoints`, then applies
+ * `chainToSmoothSvgPath` per chain.
  */
 export function pathEntriesToSvgPaths(
   pathEntries: readonly LocationMapPathAuthoringEntry[],
   centerFn: CenterFn,
 ): { kind: LocationMapPathKindId; d: string }[] {
-  const result: { kind: LocationMapPathKindId; d: string }[] = [];
-
-  for (const entry of pathEntries) {
-    const points: Point[] = [];
-    for (const cellId of entry.cellIds) {
-      const pt = centerFn(cellId);
-      if (pt) points.push(pt);
-    }
-    if (points.length < 2) continue;
-    const d = chainToSmoothSvgPath(points);
-    result.push({ kind: entry.kind, d });
-  }
-
-  return result;
+  const chains = pathEntriesToCenterlinePoints(pathEntries, centerFn);
+  return chains.map(({ kind, points }) => ({
+    kind,
+    d: chainToSmoothSvgPath(points),
+  }));
 }
 
 /**

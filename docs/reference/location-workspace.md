@@ -4,6 +4,10 @@ This document describes the **full-width create/edit shell** for campaign locati
 
 Location create and edit routes render inside a full-width workspace via `AuthMainFocus` layout mode, triggered by `isAuthMainFocusPath` in `src/app/layouts/auth/auth-main-path.ts`.
 
+**Canonical map authoring on the wire:** path kinds use `LOCATION_MAP_PATH_KIND_IDS` (`road` | `river`); edge kinds use `LOCATION_MAP_EDGE_KIND_IDS` (`wall` | `window` | `door`). Persisted `LocationMap` fields include `pathEntries` (per-chain `id`, `kind`, ordered `cellIds`) and `edgeEntries` (`edgeId`, `kind`). Server `toDoc` normalizes omitted Mongo arrays to empty `[]` so clients always receive arrays.
+
+**Rendering seam (temporary):** `pathEntriesToSvgPaths` in `components/pathOverlayRendering.ts` bridges authored data to SVG `d` strings; it delegates cell-center polylines to shared `pathEntriesToCenterlinePoints` (`shared/domain/locations/map/locationMapPathCenterline.helpers.ts`) then applies Catmull-Rom smoothing. Reuse the shared centerline step for non-editor map views in a later pass—avoid growing grid or persistence logic inside `pathOverlayRendering.ts`.
+
 ---
 
 ## Client feature touchpoints

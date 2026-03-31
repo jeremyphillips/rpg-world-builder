@@ -1,7 +1,9 @@
 import type {
   LocationMapBase,
   LocationMapCellAuthoringEntry,
+  LocationMapEdgeAuthoringEntry,
   LocationMapKindId,
+  LocationMapPathAuthoringEntry,
 } from '../../../../../shared/domain/locations';
 import {
   canLinkLocationScaleFromHostScale,
@@ -53,8 +55,12 @@ function toDoc(doc: Record<string, unknown>): LocationMapDoc {
     isDefault: doc.isDefault as boolean | undefined,
     cells: doc.cells as LocationMapDoc['cells'],
     cellEntries: doc.cellEntries as LocationMapDoc['cellEntries'],
-    pathEntries: doc.pathEntries as LocationMapDoc['pathEntries'],
-    edgeEntries: doc.edgeEntries as LocationMapDoc['edgeEntries'],
+    pathEntries: Array.isArray(doc.pathEntries)
+      ? (doc.pathEntries as LocationMapPathAuthoringEntry[])
+      : [],
+    edgeEntries: Array.isArray(doc.edgeEntries)
+      ? (doc.edgeEntries as LocationMapEdgeAuthoringEntry[])
+      : [],
     createdAt: String(doc.createdAt),
     updatedAt: String(doc.updatedAt),
   };
@@ -242,8 +248,8 @@ export async function createLocationMap(
     cells: body.cells,
     layout: body.layout,
     cellEntries: body.cellEntries,
-    pathEntries: body.pathEntries,
-    edgeEntries: body.edgeEntries,
+    pathEntries: Array.isArray(body.pathEntries) ? body.pathEntries : [],
+    edgeEntries: Array.isArray(body.edgeEntries) ? body.edgeEntries : [],
   };
   const vErr = validateLocationMapInput(validationPayload);
   if (vErr.length > 0) return { errors: vErr };
@@ -372,6 +378,9 @@ function mergeMapPayload(
   } else if (existing.edgeEntries !== undefined) {
     edgeEntries = existing.edgeEntries;
   }
+  const pathEntriesNorm = Array.isArray(pathEntries) ? pathEntries : [];
+  const edgeEntriesNorm = Array.isArray(edgeEntries) ? edgeEntries : [];
+
   return {
     name: body.name !== undefined ? String(body.name).trim() : (existing.name as string),
     kind: body.kind !== undefined ? String(body.kind) : (existing.kind as string),
@@ -379,8 +388,8 @@ function mergeMapPayload(
     cells: body.cells !== undefined ? body.cells : existing.cells,
     layout,
     cellEntries,
-    pathEntries,
-    edgeEntries,
+    pathEntries: pathEntriesNorm,
+    edgeEntries: edgeEntriesNorm,
   };
 }
 

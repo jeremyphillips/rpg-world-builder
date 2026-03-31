@@ -57,7 +57,7 @@ import {
 } from './squareGridMapOverlayGeometry';
 import { hexCellCenterPx, hexOverlayDimensions, resolveNearestHexCell } from './hexGridMapOverlayGeometry';
 import { chainToSmoothSvgPath } from './pathOverlayRendering';
-import type { LocationMapPathFeatureKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
+import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
 import { getNeighborPoints } from '@/shared/domain/grid/gridHelpers';
 
 const GRID_GAP_PX = SQUARE_GRID_GAP_PX; // MUI spacing(0.5) — matches GridEditor gap
@@ -303,7 +303,7 @@ export function LocationGridAuthoringSection({
     [isHex, hexGridGeometry, squareGridGeometry],
   );
 
-  const activePathKind: LocationMapPathFeatureKindId | null =
+  const activePathKind: LocationMapPathKindId | null =
     activePlace?.category === 'path' ? activePlace.kind : null;
 
   const pathSvgData = useMemo(() => {
@@ -345,7 +345,7 @@ export function LocationGridAuthoringSection({
       }
     }
 
-    const result: { kind: LocationMapPathFeatureKindId; d: string }[] = [];
+    const result: { kind: LocationMapPathKindId; d: string }[] = [];
 
     for (let i = 0; i < chains.length; i++) {
       let cells = chains[i].cells;

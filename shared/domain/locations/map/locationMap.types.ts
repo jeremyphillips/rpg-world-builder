@@ -92,8 +92,8 @@ export type LocationMapBase = {
   cells?: LocationMapCell[];
   /** Sparse cell authoring: links + simple objects (optional). */
   cellEntries?: LocationMapCellAuthoringEntry[];
-  /** Map-level path chains (roads, rivers). */
-  pathEntries?: LocationMapPathAuthoringEntry[];
-  /** Map-level edge features on shared boundaries. */
-  edgeEntries?: LocationMapEdgeAuthoringEntry[];
+  /** Map-level path chains (roads, rivers). Normalized to `[]` at API boundaries when omitted. */
+  pathEntries: LocationMapPathAuthoringEntry[];
+  /** Map-level edges on shared boundaries. Normalized to `[]` at API boundaries when omitted. */
+  edgeEntries: LocationMapEdgeAuthoringEntry[];
 };
