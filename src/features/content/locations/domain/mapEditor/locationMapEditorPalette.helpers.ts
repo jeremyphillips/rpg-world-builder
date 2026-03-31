@@ -10,7 +10,11 @@ import { LOCATION_PATH_FEATURE_KIND_META } from '@/features/content/locations/do
 import { LOCATION_PLACED_OBJECT_KIND_META } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
-import type { MapPaintPaletteItem, MapPlacePaletteItem } from './locationMapEditor.types';
+import type {
+  MapDrawPaletteItem,
+  MapPaintPaletteItem,
+  MapPlacePaletteItem,
+} from './locationMapEditor.types';
 
 export function getPaintPaletteItemsForScale(scale: LocationScaleId): MapPaintPaletteItem[] {
   const kinds = getAllowedCellFillKindsForScale(scale);
@@ -26,22 +30,35 @@ export function getPaintPaletteItemsForScale(scale: LocationScaleId): MapPaintPa
   });
 }
 
-export function getPlaceObjectPaletteItemsForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
+/**
+ * Place tool: discrete items only (linked child locations vs local map objects), from policy + meta.
+ */
+export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
   const kinds = getAllowedPlacedObjectKindsForScale(scale);
   return kinds.map((kind) => {
     const meta = LOCATION_PLACED_OBJECT_KIND_META[kind];
+    const linked = meta.linkedScale;
+    if (linked) {
+      return {
+        category: 'linked-content' as const,
+        kind,
+        label: meta.label,
+        description: meta.description,
+        iconName: meta.iconName,
+        linkedScale: linked,
+      };
+    }
     return {
-      category: 'object' as const,
+      category: 'map-object' as const,
       kind,
       label: meta.label,
       description: meta.description,
       iconName: meta.iconName,
-      linkedScale: meta.linkedScale,
     };
   });
 }
 
-export function getPlacePathPaletteItemsForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
+export function getDrawPathPaletteItemsForScale(scale: LocationScaleId): MapDrawPaletteItem[] {
   const kinds = getAllowedPathKindsForScale(scale);
   return kinds.map((kind) => {
     const meta = LOCATION_PATH_FEATURE_KIND_META[kind];
@@ -54,7 +71,7 @@ export function getPlacePathPaletteItemsForScale(scale: LocationScaleId): MapPla
   });
 }
 
-export function getPlaceEdgePaletteItemsForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
+export function getDrawEdgePaletteItemsForScale(scale: LocationScaleId): MapDrawPaletteItem[] {
   const kinds = getAllowedEdgeKindsForScale(scale);
   return kinds.map((kind) => {
     const meta = LOCATION_EDGE_FEATURE_KIND_META[kind];
@@ -67,16 +84,17 @@ export function getPlaceEdgePaletteItemsForScale(scale: LocationScaleId): MapPla
   });
 }
 
-/** Objects, then paths, then edges — per policy (empty sections omitted at render time). */
-export function getGroupedPlacePaletteForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
-  return [
-    ...getPlaceObjectPaletteItemsForScale(scale),
-    ...getPlacePathPaletteItemsForScale(scale),
-    ...getPlaceEdgePaletteItemsForScale(scale),
-  ];
+/** Paths then edges — per policy (empty groups omitted at render time). */
+export function getGroupedDrawPaletteForScale(scale: LocationScaleId): MapDrawPaletteItem[] {
+  return [...getDrawPathPaletteItemsForScale(scale), ...getDrawEdgePaletteItemsForScale(scale)];
 }
 
-/** @deprecated Use getGroupedPlacePaletteForScale or getPlaceObjectPaletteItemsForScale. */
-export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
-  return getGroupedPlacePaletteForScale(scale);
+/** @deprecated Use getPlacePaletteItemsForScale. */
+export function getPlaceObjectPaletteItemsForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
+  return getPlacePaletteItemsForScale(scale);
+}
+
+/** @deprecated Use getPlacePaletteItemsForScale. */
+export function getGroupedPlacePaletteForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
+  return getPlacePaletteItemsForScale(scale);
 }

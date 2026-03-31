@@ -6,7 +6,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import NearMeIcon from '@mui/icons-material/NearMe';
 import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
 import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
-import LayersClearIcon from '@mui/icons-material/LayersClear';
+import DrawIcon from '@mui/icons-material/Draw';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 import type { LocationMapEditorMode } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
@@ -23,9 +23,9 @@ const TOOLS: {
   Icon: ComponentType<SvgIconProps>;
 }[] = [
   { mode: 'select', label: 'Select', Icon: NearMeIcon },
-  { mode: 'place', label: 'Place', Icon: AddLocationAltIcon },
   { mode: 'paint', label: 'Paint', Icon: FormatColorFillIcon },
-  { mode: 'clear-fill', label: 'Clear fill', Icon: LayersClearIcon },
+  { mode: 'place', label: 'Place', Icon: AddLocationAltIcon },
+  { mode: 'draw', label: 'Draw', Icon: DrawIcon },
   { mode: 'erase', label: 'Erase', Icon: DeleteOutlineIcon },
 ];
 
@@ -76,7 +76,7 @@ export function LocationMapEditorToolbar({ mode, onModeChange }: LocationMapEdit
                 color: 'primary.contrastText',
               },
               '&.Mui-selected:hover': {
-                bgcolor: 'primary.main'
+                bgcolor: 'primary.main',
               },
             }}
           >

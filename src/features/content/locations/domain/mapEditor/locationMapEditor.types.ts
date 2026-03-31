@@ -1,29 +1,41 @@
 import type { LocationCellFillKindId } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
-import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
-import type { LocationPathFeatureKindId } from '@/features/content/locations/domain/mapContent/locationPathFeature.types';
+import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
+import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
 import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
 import type { LocationMapSwatchColorKey } from '@/features/content/locations/domain/mapContent/locationMapSwatchColors.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
 export type LocationMapEditorMode =
   | 'select'
-  | 'place'
   | 'paint'
-  | 'clear-fill'
+  | 'place'
+  | 'draw'
   | 'erase';
 
+/**
+ * Discrete placement (linked child locations vs local map objects). Paths and edges use
+ * {@link LocationMapActiveDrawSelection} under Draw mode.
+ */
 export type LocationMapActivePlaceSelection =
   | {
-      category: 'object';
+      category: 'linked-content';
       kind: LocationPlacedObjectKindId;
     }
   | {
+      category: 'map-object';
+      kind: LocationPlacedObjectKindId;
+    }
+  | null;
+
+/** Line/boundary authoring: paths and edges share Draw mode in the UI. */
+export type LocationMapActiveDrawSelection =
+  | {
       category: 'path';
-      kind: LocationPathFeatureKindId;
+      kind: LocationMapPathKindId;
     }
   | {
       category: 'edge';
-      kind: LocationEdgeFeatureKindId;
+      kind: LocationMapEdgeKindId;
     }
   | null;
 
@@ -50,24 +62,35 @@ export type MapPaintPaletteItem = {
   swatchColorKey: LocationMapSwatchColorKey;
 };
 
+/** Place palette: linked content vs map objects only (policy + meta). */
 export type MapPlacePaletteItem =
   | {
-      category: 'object';
+      category: 'linked-content';
       kind: LocationPlacedObjectKindId;
       label: string;
       description?: string;
       iconName?: string;
-      linkedScale?: LocationScaleId;
+      linkedScale: LocationScaleId;
     }
   | {
+      category: 'map-object';
+      kind: LocationPlacedObjectKindId;
+      label: string;
+      description?: string;
+      iconName?: string;
+    };
+
+/** Draw palette: paths and edges (policy + meta). */
+export type MapDrawPaletteItem =
+  | {
       category: 'path';
-      kind: LocationPathFeatureKindId;
+      kind: LocationMapPathKindId;
       label: string;
       description?: string;
     }
   | {
       category: 'edge';
-      kind: LocationEdgeFeatureKindId;
+      kind: LocationMapEdgeKindId;
       label: string;
       description?: string;
     };

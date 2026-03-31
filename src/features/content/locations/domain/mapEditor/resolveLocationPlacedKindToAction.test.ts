@@ -7,16 +7,24 @@ import {
 } from './resolvePlacedKindToAction';
 
 describe('resolvePlacedKindToAction', () => {
-  it('path category returns path action', () => {
-    expect(
-      resolvePlacedKindToAction({ category: 'path', kind: 'road' }, 'city'),
-    ).toEqual({ type: 'path', pathKind: 'road' });
+  it('returns unsupported without selection', () => {
+    expect(resolvePlacedKindToAction(null, 'city')).toEqual({
+      type: 'unsupported',
+      reason: 'no_selection',
+    });
   });
 
-  it('edge category returns edge action', () => {
+  it('linked-content city on world opens link', () => {
     expect(
-      resolvePlacedKindToAction({ category: 'edge', kind: 'wall' }, 'city'),
-    ).toEqual({ type: 'edge', edgeKind: 'wall' });
+      resolvePlacedKindToAction({ category: 'linked-content', kind: 'city' }, 'world'),
+    ).toEqual({ type: 'link', objectKind: 'city', linkedScale: 'city' });
+  });
+
+  it('map-object tree on city maps to marker object', () => {
+    expect(resolvePlacedKindToAction({ category: 'map-object', kind: 'tree' }, 'city')).toEqual({
+      type: 'object',
+      objectKind: 'marker',
+    });
   });
 });
 

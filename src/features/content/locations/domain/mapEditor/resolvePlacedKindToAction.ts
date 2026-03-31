@@ -1,8 +1,8 @@
 import type { LocationMapObjectKindId } from '@/shared/domain/locations';
-import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
-import type { LocationPathFeatureKindId } from '@/features/content/locations/domain/mapContent/locationPathFeature.types';
 import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
+
+import { LOCATION_PLACED_OBJECT_KIND_META } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
 
 import type { LocationMapActivePlaceSelection } from './locationMapEditor.types';
 import { mapPlacedObjectKindToPersistedMapObjectKind } from './placeObjectBridge';
@@ -14,8 +14,6 @@ export type ResolvedPlacedKindAction =
       objectKind: LocationPlacedObjectKindId;
     }
   | { type: 'object'; objectKind: LocationMapObjectKindId }
-  | { type: 'path'; pathKind: LocationPathFeatureKindId }
-  | { type: 'edge'; edgeKind: LocationEdgeFeatureKindId }
   | { type: 'unsupported'; reason?: string };
 
 export function resolvePlacedKindToAction(
@@ -25,11 +23,8 @@ export function resolvePlacedKindToAction(
   if (!selection) {
     return { type: 'unsupported', reason: 'no_selection' };
   }
-  if (selection.category === 'path') {
-    return { type: 'path', pathKind: selection.kind };
-  }
-  if (selection.category === 'edge') {
-    return { type: 'edge', edgeKind: selection.kind };
+  if (selection.category !== 'linked-content' && selection.category !== 'map-object') {
+    return { type: 'unsupported', reason: 'invalid_place_selection' };
   }
   const placedKind = selection.kind;
   if (placedKind === 'city' && hostScale === 'world') {
@@ -66,7 +61,10 @@ export function resolveLocationPlacedKindToAction(
   placedKind: LocationPlacedObjectKindId,
   hostScale: LocationScaleId,
 ): ResolveLocationPlacedKindResult {
-  const r = resolvePlacedKindToAction({ category: 'object', kind: placedKind }, hostScale);
+  const cat = LOCATION_PLACED_OBJECT_KIND_META[placedKind].linkedScale
+    ? ('linked-content' as const)
+    : ('map-object' as const);
+  const r = resolvePlacedKindToAction({ category: cat, kind: placedKind }, hostScale);
   if (r.type === 'link') {
     return {
       kind: 'link-modal',

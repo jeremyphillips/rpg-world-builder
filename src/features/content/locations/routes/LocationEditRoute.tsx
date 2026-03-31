@@ -39,8 +39,10 @@ import {
   nextSortOrder,
   useLocationFormCampaignData,
   useLocationFormDependentFieldEffects,
-  getGroupedPlacePaletteForScale,
+  getGroupedDrawPaletteForScale,
   getPaintPaletteItemsForScale,
+  getPlacePaletteItemsForScale,
+  resolveDrawSelectionToAction,
   resolvePlacedKindToAction,
   resolveEraseTargetAtCell,
   useLocationMapEditorState,
@@ -85,7 +87,10 @@ import {
   LocationMapEditorLinkedLocationModal,
   LocationMapEditorPaintTray,
   LocationMapEditorPlacePanel,
+  LocationMapEditorDrawTray,
+  LocationMapEditorDrawPanel,
   LocationMapEditorToolbar,
+  LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX,
   LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX,
   LOCATION_EDITOR_TOOLBAR_WIDTH_PX,
   type LocationCellObjectDraft,
@@ -445,26 +450,33 @@ export default function LocationEditRoute() {
     [mapHostScaleResolved],
   );
 
-  const placePaletteItems = useMemo(() => {
-    const all = getGroupedPlacePaletteForScale(mapHostScaleResolved);
+  const placePaletteItems = useMemo(
+    () => getPlacePaletteItemsForScale(mapHostScaleResolved),
+    [mapHostScaleResolved],
+  );
+
+  const drawPaletteItems = useMemo(() => {
+    const all = getGroupedDrawPaletteForScale(mapHostScaleResolved);
     if (gridGeometry === 'hex') {
-      return all.filter((i) => i.category === 'object' || i.category === 'path');
+      return all.filter((i) => i.category === 'path');
     }
     return all;
   }, [mapHostScaleResolved, gridGeometry]);
 
-  /** Path/link/object placement also needs this: otherwise canvas pan steals pointerdown and clicks often miss cells. */
-  const mapPlaceSuppressesCanvasPanOnCells = mapEditor.mode === 'place';
+  /** Path / object placement: pointer capture on cells so pan does not steal clicks. */
+  const mapPlaceSuppressesCanvasPanOnCells =
+    mapEditor.mode === 'place' ||
+    (mapEditor.mode === 'draw' && mapEditor.activeDraw?.category === 'path');
 
   const mapPlaceObjectDragStrokeEnabled =
-    mapEditor.mode === 'place' && mapEditor.activePlace?.category === 'object';
+    mapEditor.mode === 'place' && mapEditor.activePlace?.category === 'map-object';
 
   useEffect(() => {
     mapEditor.setPathAnchorCellId(null);
   }, [gridColumns, gridRows, mapEditor.setPathAnchorCellId]);
 
   useEffect(() => {
-    if (mapEditor.mode !== 'place') return;
+    if (mapEditor.mode !== 'draw') return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       mapEditor.setPathAnchorCellId(null);
@@ -506,7 +518,8 @@ export default function LocationEditRoute() {
 
   const leftMapChromeWidthPx = showMapEditorChrome
     ? LOCATION_EDITOR_TOOLBAR_WIDTH_PX +
-      (mapEditor.mode === 'paint' ? LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX : 0)
+      (mapEditor.mode === 'paint' ? LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX : 0) +
+      (mapEditor.mode === 'draw' ? LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX : 0)
     : 0;
 
   const { policyValue, handlePolicyChange } = useAccessPolicyField<LocationFormValues>(watch, setValue);
@@ -801,6 +814,11 @@ export default function LocationEditRoute() {
             ),
           };
         }
+        if (target.type === 'fill') {
+          const nextFill = { ...prev.cellFillByCellId };
+          delete nextFill[cellId];
+          return { ...prev, cellFillByCellId: nextFill };
+        }
         const nextLinks = { ...prev.linkedLocationByCellId };
         delete nextLinks[target.cellId];
         return { ...prev, linkedLocationByCellId: nextLinks };
@@ -809,37 +827,41 @@ export default function LocationEditRoute() {
     [gridColumns, gridRows],
   );
 
-  const handlePlaceCell = useCallback(
+  const handleAuthoringCellClick = useCallback(
     (cellId: string) => {
-      const ap = mapEditor.activePlace;
-      if (!ap) return;
-      const res = resolvePlacedKindToAction(ap, mapHostScaleResolved);
-      if (res.type === 'unsupported') return;
-      if (res.type === 'link') {
-        mapEditor.setPendingPlacement({
-          type: 'linked-location',
-          objectKind: res.objectKind,
-          hostScale: mapHostScaleResolved,
-          linkedScale: res.linkedScale,
-          targetCellId: cellId,
-        });
+      if (mapEditor.mode === 'place' && mapEditor.activePlace) {
+        const ap = mapEditor.activePlace;
+        const res = resolvePlacedKindToAction(ap, mapHostScaleResolved);
+        if (res.type === 'unsupported') return;
+        if (res.type === 'link') {
+          mapEditor.setPendingPlacement({
+            type: 'linked-location',
+            objectKind: res.objectKind,
+            hostScale: mapHostScaleResolved,
+            linkedScale: res.linkedScale,
+            targetCellId: cellId,
+          });
+          return;
+        }
+        if (res.type === 'object') {
+          if (!canPlaceObjectKindOnHostScale(mapHostScaleResolved, res.objectKind)) return;
+          setGridDraft((prev) => {
+            const existing = prev.objectsByCellId[cellId] ?? [];
+            return {
+              ...prev,
+              objectsByCellId: {
+                ...prev.objectsByCellId,
+                [cellId]: [...existing, { id: crypto.randomUUID(), kind: res.objectKind }],
+              },
+            };
+          });
+        }
         return;
       }
-      if (res.type === 'object') {
-        if (!canPlaceObjectKindOnHostScale(mapHostScaleResolved, res.objectKind)) return;
-        setGridDraft((prev) => {
-          const existing = prev.objectsByCellId[cellId] ?? [];
-          return {
-            ...prev,
-            objectsByCellId: {
-              ...prev.objectsByCellId,
-              [cellId]: [...existing, { id: crypto.randomUUID(), kind: res.objectKind }],
-            },
-          };
-        });
-        return;
-      }
-      if (res.type === 'path') {
+
+      if (mapEditor.mode === 'draw' && mapEditor.activeDraw?.category === 'path') {
+        const res = resolveDrawSelectionToAction(mapEditor.activeDraw);
+        if (res.type !== 'path') return;
         const anchor = mapEditor.pathAnchorCellId;
         if (!anchor) {
           mapEditor.setPathAnchorCellId(cellId);
@@ -896,13 +918,12 @@ export default function LocationEditRoute() {
           };
         });
         mapEditor.setPathAnchorCellId(cellId);
-        return;
       }
-      // Edge placement is handled by the boundary-paint stroke system in
-      // LocationGridAuthoringSection, not the cell-click flow.
     },
     [
+      mapEditor.mode,
       mapEditor.activePlace,
+      mapEditor.activeDraw,
       mapEditor.pathAnchorCellId,
       mapEditor.setPendingPlacement,
       mapEditor.setPathAnchorCellId,
@@ -966,9 +987,25 @@ export default function LocationEditRoute() {
           activePlace={mapEditor.activePlace}
           onSelectPlace={mapEditor.setActivePlace}
         />
+      ) : mapEditor.mode === 'draw' ? (
+        <LocationMapEditorDrawPanel
+          items={drawPaletteItems}
+          activeDraw={mapEditor.activeDraw}
+          onSelectDraw={mapEditor.setActiveDraw}
+        />
+      ) : mapEditor.mode === 'paint' ? (
+        <Typography variant="body2" color="text.secondary">
+          Use the swatch column next to the toolbar to pick terrain, then drag across cells to paint. Region painting
+          can extend this tool later.
+        </Typography>
+      ) : mapEditor.mode === 'erase' ? (
+        <Typography variant="body2" color="text.secondary">
+          Click a cell to remove the topmost feature (edge, object, path segment, link, or terrain fill). Drag across
+          cells to strip terrain fill in bulk.
+        </Typography>
       ) : (
         <Typography variant="body2" color="text.secondary">
-          Choose Place in the toolbar to add objects, paths, and edges to the map.
+          Use the toolbar to choose a tool. Open Selection to inspect cells, paths, edges, and runs.
         </Typography>
       )}
     </Stack>
@@ -1055,6 +1092,13 @@ export default function LocationEditRoute() {
                     onSelectSwatch={mapEditor.setActivePaint}
                   />
                 )}
+                {mapEditor.mode === 'draw' && (
+                  <LocationMapEditorDrawTray
+                    items={drawPaletteItems}
+                    activeDraw={mapEditor.activeDraw}
+                    onSelectDraw={mapEditor.setActiveDraw}
+                  />
+                )}
               </>
             )}
             <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex' }}>
@@ -1082,10 +1126,10 @@ export default function LocationEditRoute() {
                     mapEditorMode={mapEditor.mode}
                     activePaint={mapEditor.activePaint}
                     leftChromeWidthPx={leftMapChromeWidthPx}
-                    onPlaceCellClick={handlePlaceCell}
+                    onPlaceCellClick={handleAuthoringCellClick}
                     onEraseCellClick={handleEraseCell}
                     placePathAnchorCellId={mapEditor.pathAnchorCellId}
-                    activePlace={mapEditor.activePlace}
+                    activeDraw={mapEditor.activeDraw}
                     onEdgeStrokeCommit={handleEdgeStrokeCommit}
                     onEraseEdge={handleEraseEdge}
                     suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
@@ -1223,6 +1267,13 @@ export default function LocationEditRoute() {
                         onSelectSwatch={mapEditor.setActivePaint}
                       />
                     )}
+                    {mapEditor.mode === 'draw' && (
+                      <LocationMapEditorDrawTray
+                        items={drawPaletteItems}
+                        activeDraw={mapEditor.activeDraw}
+                        onSelectDraw={mapEditor.setActiveDraw}
+                      />
+                    )}
                   </>
                 )}
                 <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex' }}>
@@ -1264,10 +1315,10 @@ export default function LocationEditRoute() {
                         mapEditorMode={mapEditor.mode}
                         activePaint={mapEditor.activePaint}
                         leftChromeWidthPx={leftMapChromeWidthPx}
-                        onPlaceCellClick={handlePlaceCell}
+                        onPlaceCellClick={handleAuthoringCellClick}
                         onEraseCellClick={handleEraseCell}
                         placePathAnchorCellId={mapEditor.pathAnchorCellId}
-                        activePlace={mapEditor.activePlace}
+                        activeDraw={mapEditor.activeDraw}
                         onEdgeStrokeCommit={handleEdgeStrokeCommit}
                         onEraseEdge={handleEraseEdge}
                         suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
@@ -1302,6 +1353,13 @@ export default function LocationEditRoute() {
                       onSelectSwatch={mapEditor.setActivePaint}
                     />
                   )}
+                  {mapEditor.mode === 'draw' && (
+                    <LocationMapEditorDrawTray
+                      items={drawPaletteItems}
+                      activeDraw={mapEditor.activeDraw}
+                      onSelectDraw={mapEditor.setActiveDraw}
+                    />
+                  )}
                 </>
               )}
               <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex' }}>
@@ -1329,10 +1387,10 @@ export default function LocationEditRoute() {
                       mapEditorMode={mapEditor.mode}
                       activePaint={mapEditor.activePaint}
                       leftChromeWidthPx={leftMapChromeWidthPx}
-                      onPlaceCellClick={handlePlaceCell}
+                      onPlaceCellClick={handleAuthoringCellClick}
                       onEraseCellClick={handleEraseCell}
                       placePathAnchorCellId={mapEditor.pathAnchorCellId}
-                      activePlace={mapEditor.activePlace}
+                      activeDraw={mapEditor.activeDraw}
                       onEdgeStrokeCommit={handleEdgeStrokeCommit}
                       onEraseEdge={handleEraseEdge}
                       suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}

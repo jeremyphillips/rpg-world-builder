@@ -31,5 +31,5 @@ export type LocationMapSelection =
 
 /** Event-driven auto-switch: opening Place mode should focus the Map rail section (place palette). */
 export function shouldAutoSwitchRailToMapForMode(mode: LocationMapEditorMode): boolean {
-  return mode === 'place';
+  return mode === 'place' || mode === 'draw';
 }

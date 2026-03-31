@@ -29,8 +29,8 @@ import {
 } from '@/features/content/locations/domain/maps/gridLayoutDraft';
 import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
 import type {
+  LocationMapActiveDrawSelection,
   LocationMapActivePaintSelection,
-  LocationMapActivePlaceSelection,
   LocationMapEditorMode,
 } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
 import { resolveCellFillSwatchColor } from '@/app/theme/mapColors';
@@ -105,15 +105,15 @@ type LocationGridAuthoringSectionProps = {
   onEraseCellClick?: (cellId: string) => void;
   /** Place mode: first cell chosen for path segment (two-click flow). */
   placePathAnchorCellId?: string | null;
-  /** Active place-palette selection (needed to detect edge tool for boundary paint). */
-  activePlace?: LocationMapActivePlaceSelection;
+  /** Active draw-palette selection (paths / edges). */
+  activeDraw?: LocationMapActiveDrawSelection;
   /** Edge boundary-paint: commit a stroke of edge IDs. */
   onEdgeStrokeCommit?: (edgeIds: string[], edgeKind: LocationEdgeFeatureKindId) => void;
   /** Erase a specific edge feature by canonical edgeId. */
   onEraseEdge?: (edgeId: string) => void;
   /**
    * When true with place mode, cell pointer events stop propagation so the map canvas
-   * does not pan (same idea as paint/clear-fill strokes).
+   * does not pan (same idea as paint / erase-fill strokes).
    */
   suppressCanvasPanOnCells?: boolean;
   /**
@@ -143,7 +143,7 @@ export function LocationGridAuthoringSection({
   onPlaceCellClick,
   onEraseCellClick,
   placePathAnchorCellId = null,
-  activePlace = null,
+  activeDraw = null,
   onEdgeStrokeCommit,
   onEraseEdge,
   suppressCanvasPanOnCells = false,
@@ -190,8 +190,7 @@ export function LocationGridAuthoringSection({
     };
   }, []);
 
-  const edgePlaceActive =
-    mapEditorMode === 'place' && activePlace?.category === 'edge';
+  const edgePlaceActive = mapEditorMode === 'draw' && activeDraw?.category === 'edge';
   const edgeEraseActive = mapEditorMode === 'erase';
 
   useEffect(() => {
@@ -351,7 +350,7 @@ export function LocationGridAuthoringSection({
   );
 
   const activePathKind: LocationMapPathKindId | null =
-    activePlace?.category === 'path' ? activePlace.kind : null;
+    activeDraw?.category === 'path' ? activeDraw.kind : null;
 
   const pathSvgData = useMemo(() => {
     const chains = draft.pathEntries.map((pe) => ({
@@ -517,7 +516,7 @@ export function LocationGridAuthoringSection({
           ...d,
           cellFillByCellId: { ...d.cellFillByCellId, [cellId]: activePaint },
         }));
-      } else if (mapEditorMode === 'clear-fill') {
+      } else if (mapEditorMode === 'erase') {
         setDraft((d) => {
           const next = { ...d.cellFillByCellId };
           delete next[cellId];
@@ -540,8 +539,8 @@ export function LocationGridAuthoringSection({
 
   const commitEdgeStroke = useCallback(() => {
     const ids = edgeStrokeEdgeIds.current;
-    if (ids.length > 0 && activePlace?.category === 'edge') {
-      onEdgeStrokeCommit?.(ids, activePlace.kind);
+    if (ids.length > 0 && activeDraw?.category === 'edge') {
+      onEdgeStrokeCommit?.(ids, activeDraw.kind);
     }
     edgeStrokeActive.current = false;
     edgeStrokeSeen.current.clear();
@@ -549,7 +548,7 @@ export function LocationGridAuthoringSection({
     edgeStrokeLockedAxis.current = null;
     edgeStrokeLastTarget.current = null;
     setEdgeStrokeSnapshot([]);
-  }, [activePlace, onEdgeStrokeCommit]);
+  }, [activeDraw, onEdgeStrokeCommit]);
 
   useEffect(() => {
     const onWindowPointerUp = () => {
@@ -563,7 +562,7 @@ export function LocationGridAuthoringSection({
 
   const handlePaintPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      if (mapEditorMode !== 'paint' && mapEditorMode !== 'clear-fill') return;
+      if (mapEditorMode !== 'paint' && mapEditorMode !== 'erase') return;
       e.stopPropagation();
       if (mapEditorMode === 'paint' && !activePaint) return;
       paintStrokeActive.current = true;
@@ -586,29 +585,33 @@ export function LocationGridAuthoringSection({
 
   const handlePaintPointerUp = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
-      if (mapEditorMode !== 'paint' && mapEditorMode !== 'clear-fill') return;
+      if (mapEditorMode !== 'paint' && mapEditorMode !== 'erase') return;
       e.stopPropagation();
       endPaintStroke();
     },
     [endPaintStroke, mapEditorMode],
   );
 
-  const paintOrClear = mapEditorMode === 'paint' || mapEditorMode === 'clear-fill';
+  const paintStrokeOrEraseFill =
+    mapEditorMode === 'paint' || mapEditorMode === 'erase';
 
   const suppressEdgePlacePan =
-    suppressCanvasPanOnCells && mapEditorMode === 'place';
+    suppressCanvasPanOnCells &&
+    (mapEditorMode === 'place' ||
+      (mapEditorMode === 'draw' && activeDraw?.category === 'path'));
 
   const placeObjectStrokeMode =
     placeObjectDragStrokeEnabled && mapEditorMode === 'place';
 
   const placePathPlacement =
-    mapEditorMode === 'place' &&
+    mapEditorMode === 'draw' &&
+    activeDraw?.category === 'path' &&
     !placeObjectStrokeMode &&
     placePathAnchorCellId != null;
 
   const handleCellPointerDownForGrid = useCallback(
     (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      if (paintOrClear) {
+      if (paintStrokeOrEraseFill) {
         handlePaintPointerDown(e, cell);
         return;
       }
@@ -631,7 +634,7 @@ export function LocationGridAuthoringSection({
       }
     },
     [
-      paintOrClear,
+      paintStrokeOrEraseFill,
       handlePaintPointerDown,
       placeObjectStrokeMode,
       onPlaceCellClick,
@@ -672,7 +675,7 @@ export function LocationGridAuthoringSection({
 
   const handleCellPointerEnterForGrid = useCallback(
     (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      if (paintOrClear) {
+      if (paintStrokeOrEraseFill) {
         handlePaintPointerEnter(e, cell);
         return;
       }
@@ -689,7 +692,7 @@ export function LocationGridAuthoringSection({
       onPlaceCellClick?.(cell.cellId);
     },
     [
-      paintOrClear,
+      paintStrokeOrEraseFill,
       handlePaintPointerEnter,
       placePathPlacement,
       placeObjectStrokeMode,
@@ -699,7 +702,7 @@ export function LocationGridAuthoringSection({
 
   const handleCellPointerUpForGrid = useCallback(
     (e: ReactPointerEvent<HTMLElement>, _cell: GridCell) => {
-      if (paintOrClear) {
+      if (paintStrokeOrEraseFill) {
         handlePaintPointerUp(e);
         return;
       }
@@ -717,7 +720,7 @@ export function LocationGridAuthoringSection({
       }
     },
     [
-      paintOrClear,
+      paintStrokeOrEraseFill,
       handlePaintPointerUp,
       placeObjectStrokeMode,
       endPlaceObjectStroke,
@@ -730,7 +733,11 @@ export function LocationGridAuthoringSection({
     if (hasDragMoved?.()) return;
     if (mapEditorMode === 'place') {
       if (placeObjectStrokeMode) return;
-      if (edgePlaceActive) return;
+      onPlaceCellClick?.(cell.cellId);
+      return;
+    }
+    if (mapEditorMode === 'draw' && activeDraw?.category === 'path') {
+      if (placeObjectStrokeMode) return;
       onPlaceCellClick?.(cell.cellId);
       return;
     }
@@ -738,7 +745,7 @@ export function LocationGridAuthoringSection({
       onEraseCellClick?.(cell.cellId);
       return;
     }
-    if (mapEditorMode === 'paint' || mapEditorMode === 'clear-fill') {
+    if (mapEditorMode === 'paint') {
       return;
     }
     if (mapEditorMode !== 'select') {
@@ -850,14 +857,27 @@ export function LocationGridAuthoringSection({
 
   const handleHexFallbackClick = useCallback(
     (e: React.MouseEvent<HTMLElement>) => {
-      if (!isHex || mapEditorMode !== 'place' || edgePlaceActive || placeObjectStrokeMode) return;
+      if (!isHex || edgePlaceActive || placeObjectStrokeMode) return;
+      const hexGapPlaceOrPath =
+        mapEditorMode === 'place' ||
+        (mapEditorMode === 'draw' && activeDraw?.category === 'path');
+      if (!hexGapPlaceOrPath) return;
       if (hasDragMoved?.()) return;
       const target = e.target as HTMLElement;
       if (target.closest('[role="gridcell"]')) return;
       const cellId = resolveHexCellFromClient(e.clientX, e.clientY);
       if (cellId) onPlaceCellClick?.(cellId);
     },
-    [isHex, mapEditorMode, edgePlaceActive, placeObjectStrokeMode, hasDragMoved, resolveHexCellFromClient, onPlaceCellClick],
+    [
+      isHex,
+      mapEditorMode,
+      activeDraw,
+      edgePlaceActive,
+      placeObjectStrokeMode,
+      hasDragMoved,
+      resolveHexCellFromClient,
+      onPlaceCellClick,
+    ],
   );
 
   const renderMapCellIcons = (cell: GridCell) => {
@@ -1008,9 +1028,9 @@ export function LocationGridAuthoringSection({
 
   const mapToolCrosshair =
     mapEditorMode === 'place' ||
+    mapEditorMode === 'draw' ||
     mapEditorMode === 'erase' ||
-    mapEditorMode === 'paint' ||
-    mapEditorMode === 'clear-fill';
+    mapEditorMode === 'paint';
 
   const sharedGridProps = {
     columns: cols,
@@ -1020,18 +1040,18 @@ export function LocationGridAuthoringSection({
     onCellClick,
     getCellBackgroundColor,
     onCellPointerDown:
-      paintOrClear ||
+      paintStrokeOrEraseFill ||
       placeObjectStrokeMode ||
       placePathPlacement ||
       suppressEdgePlacePan
         ? handleCellPointerDownForGrid
         : undefined,
     onCellPointerEnter:
-      paintOrClear || placeObjectStrokeMode || placePathPlacement
+      paintStrokeOrEraseFill || placeObjectStrokeMode || placePathPlacement
         ? handleCellPointerEnterForGrid
         : undefined,
     onCellPointerUp:
-      paintOrClear ||
+      paintStrokeOrEraseFill ||
       placeObjectStrokeMode ||
       placePathPlacement ||
       suppressEdgePlacePan
