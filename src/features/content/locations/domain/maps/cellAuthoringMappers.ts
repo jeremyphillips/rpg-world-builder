@@ -1,5 +1,6 @@
 import type {
   LocationMapCellAuthoringEntry,
+  LocationMapCellFillKindId,
   LocationMapCellObjectEntry,
 } from '@/shared/domain/locations';
 
@@ -9,18 +10,22 @@ import type {
 export function cellDraftToCellEntries(
   linkedLocationByCellId: Record<string, string | undefined>,
   objectsByCellId: Record<string, LocationMapCellObjectEntry[]>,
+  cellFillByCellId: Record<string, LocationMapCellFillKindId | undefined> = {},
 ): LocationMapCellAuthoringEntry[] {
   const cellIds = new Set<string>([
     ...Object.keys(linkedLocationByCellId),
     ...Object.keys(objectsByCellId),
+    ...Object.keys(cellFillByCellId),
   ]);
   const out: LocationMapCellAuthoringEntry[] = [];
   for (const cellId of Array.from(cellIds).sort()) {
     const linked = linkedLocationByCellId[cellId]?.trim();
     const objects = objectsByCellId[cellId];
+    const fill = cellFillByCellId[cellId];
     const hasLink = Boolean(linked && linked.length > 0);
     const hasObjs = Boolean(objects && objects.length > 0);
-    if (!hasLink && !hasObjs) continue;
+    const hasFill = fill !== undefined && fill !== null && String(fill).trim() !== '';
+    if (!hasLink && !hasObjs && !hasFill) continue;
     const entry: LocationMapCellAuthoringEntry = { cellId };
     if (hasLink) entry.linkedLocationId = linked;
     if (hasObjs && objects) {
@@ -32,6 +37,7 @@ export function cellDraftToCellEntries(
           : {}),
       }));
     }
+    if (hasFill) entry.cellFillKind = fill;
     out.push(entry);
   }
   return out;
@@ -40,12 +46,14 @@ export function cellDraftToCellEntries(
 export function cellEntriesToDraft(entries: LocationMapCellAuthoringEntry[] | undefined): {
   linkedLocationByCellId: Record<string, string | undefined>;
   objectsByCellId: Record<string, LocationMapCellObjectEntry[]>;
+  cellFillByCellId: Record<string, LocationMapCellFillKindId | undefined>;
 } {
   if (!entries || entries.length === 0) {
-    return { linkedLocationByCellId: {}, objectsByCellId: {} };
+    return { linkedLocationByCellId: {}, objectsByCellId: {}, cellFillByCellId: {} };
   }
   const linkedLocationByCellId: Record<string, string | undefined> = {};
-  const objectsByCellId: Record<string, LocationCellObjectDraft[]> = {};
+  const objectsByCellId: Record<string, LocationMapCellObjectEntry[]> = {};
+  const cellFillByCellId: Record<string, LocationMapCellFillKindId | undefined> = {};
   for (const e of entries) {
     if (e.linkedLocationId && e.linkedLocationId.trim()) {
       linkedLocationByCellId[e.cellId] = e.linkedLocationId.trim();
@@ -57,6 +65,9 @@ export function cellEntriesToDraft(entries: LocationMapCellAuthoringEntry[] | un
         ...(o.label !== undefined && o.label !== '' ? { label: o.label } : {}),
       }));
     }
+    if (e.cellFillKind !== undefined && e.cellFillKind !== null && String(e.cellFillKind).trim() !== '') {
+      cellFillByCellId[e.cellId] = e.cellFillKind;
+    }
   }
-  return { linkedLocationByCellId, objectsByCellId };
+  return { linkedLocationByCellId, objectsByCellId, cellFillByCellId };
 }

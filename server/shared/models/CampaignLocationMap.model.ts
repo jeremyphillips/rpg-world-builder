@@ -42,6 +42,7 @@ const mapCellAuthoringEntrySchema = new Schema(
     cellId: { type: String, required: true },
     linkedLocationId: { type: String },
     objects: { type: [mapCellObjectEntrySchema], default: undefined },
+    cellFillKind: { type: String },
   },
   { _id: false },
 );

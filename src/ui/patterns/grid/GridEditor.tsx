@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react'
+import { useMemo, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
 import {
@@ -26,6 +26,11 @@ export type GridEditorProps = {
   /** Cells masked out of walkable layout (authoring); distinct from selection styling. */
   excludedCellIds?: string[]
   onCellClick?: (cell: GridCell) => void
+  /** Optional whole-cell background (e.g. terrain fill); selection / excluded still win. */
+  getCellBackgroundColor?: (cell: GridCell) => string | undefined
+  onCellPointerDown?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void
+  onCellPointerEnter?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void
+  onCellPointerUp?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void
   getCellLabel?: (cell: GridCell) => string | undefined
   /** When set, rendered inside the cell instead of {@link getCellLabel} text. */
   renderCellContent?: (cell: GridCell) => ReactNode
@@ -40,6 +45,10 @@ export default function GridEditor({
   selectedCellId,
   excludedCellIds,
   onCellClick,
+  getCellBackgroundColor,
+  onCellPointerDown,
+  onCellPointerEnter,
+  onCellPointerUp,
   getCellLabel,
   renderCellContent,
   getCellClassName,
@@ -77,6 +86,7 @@ export default function GridEditor({
         const extraClass = getCellClassName?.(cell)
         const selected = selectedCellId != null && selectedCellId === cellId
         const excluded = excludedSet.has(cellId)
+        const fillBg = getCellBackgroundColor?.(cell)
 
         return (
           <Box
@@ -92,6 +102,15 @@ export default function GridEditor({
             }
             disabled={disabled}
             onClick={() => !disabled && onCellClick?.(cell)}
+            onPointerDown={(e) => {
+              onCellPointerDown?.(e, cell)
+            }}
+            onPointerEnter={(e) => {
+              onCellPointerEnter?.(e, cell)
+            }}
+            onPointerUp={(e) => {
+              onCellPointerUp?.(e, cell)
+            }}
             className={extraClass}
             sx={{
               aspectRatio: '1',
@@ -109,7 +128,7 @@ export default function GridEditor({
                 ? GRID_CELL_BG_COLOR_SELECTED
                 : excluded
                   ? GRID_CELL_BG_COLOR_EXCLUDED
-                  : GRID_CELL_BG_COLOR,
+                  : fillBg ?? GRID_CELL_BG_COLOR,
               backgroundImage: excluded
                 ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
                 : undefined,
@@ -134,7 +153,7 @@ export default function GridEditor({
                       ? GRID_CELL_BG_COLOR_SELECTED
                       : excluded
                         ? GRID_CELL_BG_COLOR_EXCLUDED
-                        : GRID_CELL_BG_COLOR_HOVER,
+                        : fillBg ?? GRID_CELL_BG_COLOR_HOVER,
                   },
             }}
           >

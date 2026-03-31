@@ -3,9 +3,11 @@
  * Shared by server API validation and optionally client-side checks.
  */
 import { parseGridCellId } from '../../grid/gridCellIds';
+import { LOCATION_MAP_CELL_FILL_KIND_IDS } from './locationMapCellFill.constants';
 import { LOCATION_MAP_OBJECT_KIND_IDS } from './locationMap.constants';
 
 const OBJECT_KIND_SET = new Set(LOCATION_MAP_OBJECT_KIND_IDS as readonly string[]);
+const CELL_FILL_KIND_SET = new Set(LOCATION_MAP_CELL_FILL_KIND_IDS as readonly string[]);
 
 export type LocationMapCellAuthoringValidationError = {
   path: string;
@@ -69,6 +71,16 @@ export function validateCellEntriesStructure(
           path: `${prefix}.linkedLocationId`,
           code: 'INVALID',
           message: 'linkedLocationId must be a non-empty string when set',
+        });
+      }
+    }
+
+    if (row.cellFillKind !== undefined && row.cellFillKind !== null) {
+      if (typeof row.cellFillKind !== 'string' || !CELL_FILL_KIND_SET.has(row.cellFillKind)) {
+        errors.push({
+          path: `${prefix}.cellFillKind`,
+          code: 'INVALID',
+          message: `cellFillKind must be one of: ${LOCATION_MAP_CELL_FILL_KIND_IDS.join(', ')}`,
         });
       }
     }

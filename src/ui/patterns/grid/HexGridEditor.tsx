@@ -12,7 +12,7 @@
  *
  * Advanced hex tooling (drag-paint, overlays, zoom calibration) is deferred.
  */
-import { useMemo, type ReactNode } from 'react'
+import { useMemo, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import Box from '@mui/material/Box'
 import { makeGridCellId } from '@/shared/domain/grid'
 import {
@@ -38,6 +38,10 @@ export type HexGridEditorProps = {
   selectedCellId?: string | null
   excludedCellIds?: string[]
   onCellClick?: (cell: HexGridCell) => void
+  getCellBackgroundColor?: (cell: HexGridCell) => string | undefined
+  onCellPointerDown?: (e: ReactPointerEvent<HTMLElement>, cell: HexGridCell) => void
+  onCellPointerEnter?: (e: ReactPointerEvent<HTMLElement>, cell: HexGridCell) => void
+  onCellPointerUp?: (e: ReactPointerEvent<HTMLElement>, cell: HexGridCell) => void
   getCellLabel?: (cell: HexGridCell) => string | undefined
   renderCellContent?: (cell: HexGridCell) => ReactNode
   getCellClassName?: (cell: HexGridCell) => string | undefined
@@ -55,6 +59,10 @@ export default function HexGridEditor({
   selectedCellId,
   excludedCellIds,
   onCellClick,
+  getCellBackgroundColor,
+  onCellPointerDown,
+  onCellPointerEnter,
+  onCellPointerUp,
   getCellLabel,
   renderCellContent,
   getCellClassName,
@@ -116,11 +124,12 @@ export default function HexGridEditor({
             ? GRID_CELL_BORDER_COLOR_EXCLUDED
             : GRID_CELL_BORDER_COLOR
 
+        const fillBg = getCellBackgroundColor?.(cell)
         const innerFillColor = selected
           ? GRID_CELL_BG_COLOR_SELECTED
           : excluded
             ? GRID_CELL_BG_COLOR_EXCLUDED
-            : GRID_CELL_BG_COLOR
+            : fillBg ?? GRID_CELL_BG_COLOR
 
         return (
           <Box
@@ -136,6 +145,15 @@ export default function HexGridEditor({
             }
             disabled={disabled}
             onClick={() => !disabled && onCellClick?.(cell)}
+            onPointerDown={(e) => {
+              onCellPointerDown?.(e, cell)
+            }}
+            onPointerEnter={(e) => {
+              onCellPointerEnter?.(e, cell)
+            }}
+            onPointerUp={(e) => {
+              onCellPointerUp?.(e, cell)
+            }}
             className={extraClass}
             sx={{
               position: 'absolute',
@@ -166,7 +184,7 @@ export default function HexGridEditor({
                   ? GRID_CELL_BG_COLOR_SELECTED
                   : excluded
                     ? GRID_CELL_BG_COLOR_EXCLUDED
-                    : GRID_CELL_BG_COLOR_HOVER,
+                    : fillBg ?? GRID_CELL_BG_COLOR_HOVER,
               },
             }}
           >

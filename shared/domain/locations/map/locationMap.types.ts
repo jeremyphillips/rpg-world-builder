@@ -3,6 +3,7 @@ import {
   LOCATION_MAP_OBJECT_KIND_IDS,
 } from './locationMap.constants';
 import type { LocationCellUnitId } from './locationMap.constants';
+import type { LocationMapCellFillKindId } from './locationMapCellFill.constants';
 import type { GridGeometryId } from '../../grid/gridGeometry';
 
 export type { LocationCellUnitId };
@@ -47,6 +48,8 @@ export type LocationMapCellAuthoringEntry = {
   cellId: string;
   linkedLocationId?: string;
   objects?: LocationMapCellObjectEntry[];
+  /** Whole-cell terrain / surface fill (authored map content). */
+  cellFillKind?: LocationMapCellFillKindId;
 };
 
 /** Map fields shared by client and API (no campaign scope). */

@@ -11,21 +11,16 @@
  * `swatchColorKey` resolves via `getMapSwatchColor` / `mapSwatchColors` in `src/app/theme/mapColors.ts`.
  */
 
+import type { LocationMapCellFillKindId } from '@/shared/domain/locations';
+
 import type { LocationMapIconName } from './locationMapIconNames';
 import type { LocationMapSwatchColorKey } from './locationMapSwatchColors.types';
 
-export const LOCATION_CELL_FILL_KIND_IDS = [
-  'mountains',
-  'plains',
-  'forest_light',
-  'forest_heavy',
-  'swamp',
-  'desert',
-  'water',
-  'stone_floor',
-] as const;
+/** Re-export shared ids for feature consumers; same union as {@link LocationCellFillKindId}. */
+export { LOCATION_MAP_CELL_FILL_KIND_IDS as LOCATION_CELL_FILL_KIND_IDS } from '@/shared/domain/locations';
 
-export type LocationCellFillKindId = (typeof LOCATION_CELL_FILL_KIND_IDS)[number];
+/** Sparse cell fill kind (shared persistence + map editor). */
+export type LocationCellFillKindId = LocationMapCellFillKindId;
 
 export type LocationCellFillKindMeta = {
   label: string;

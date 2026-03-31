@@ -39,6 +39,10 @@ import {
   nextSortOrder,
   useLocationFormCampaignData,
   useLocationFormDependentFieldEffects,
+  getPaintPaletteItemsForScale,
+  getPlacePaletteItemsForScale,
+  resolveLocationPlacedKindToAction,
+  useLocationMapEditorState,
 } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer, ConfirmModal, VisibilityField } from '@/ui/patterns';
@@ -51,7 +55,11 @@ import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessP
 import { usePatchDriverState } from '@/features/content/shared/hooks/usePatchDriverState';
 import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
 import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
-import type { LocationScaleId } from '@/shared/domain/locations';
+import {
+  canPlaceObjectKindOnHostScale,
+  getAllowedLinkedLocationOptions,
+  type LocationScaleId,
+} from '@/shared/domain/locations';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import {
   LocationGridAuthoringSection,
@@ -64,6 +72,13 @@ import {
   LocationAncestryBreadcrumbs,
   BuildingFloorStrip,
   INITIAL_LOCATION_GRID_DRAFT,
+  gridDraftPersistableEquals,
+  LocationMapEditorCityLinkModal,
+  LocationMapEditorPaintTray,
+  LocationMapEditorPlacePanel,
+  LocationMapEditorToolbar,
+  LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX,
+  LOCATION_EDITOR_TOOLBAR_WIDTH_PX,
   type LocationCellObjectDraft,
   type LocationGridDraftState,
 } from '@/features/content/locations/components';
@@ -108,6 +123,13 @@ export default function LocationEditRoute() {
   const [gridDraft, setGridDraft] = useState<LocationGridDraftState>(
     INITIAL_LOCATION_GRID_DRAFT,
   );
+  /** Last saved / server-hydrated persistable map state (enables Save when only the grid changed). */
+  const [gridDraftBaseline, setGridDraftBaseline] =
+    useState<LocationGridDraftState | null>(null);
+  const isGridDraftDirty = useMemo(() => {
+    if (gridDraftBaseline === null) return false;
+    return !gridDraftPersistableEquals(gridDraft, gridDraftBaseline);
+  }, [gridDraft, gridDraftBaseline]);
   /** 0 = Metadata, 1 = Cell — switched when user selects a map cell */
   const [mapRailTab, setMapRailTab] = useState(0);
   const [rightRailOpen, setRightRailOpen] = useState(true);
@@ -227,7 +249,10 @@ export default function LocationEditRoute() {
     const rows = Number(gridRows);
     const valid =
       Number.isInteger(cols) && cols > 0 && Number.isInteger(rows) && rows > 0;
-    if (!valid) setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+    if (!valid) {
+      setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+      setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
+    }
   }, [gridColumns, gridRows]);
 
   useEffect(() => {
@@ -252,13 +277,16 @@ export default function LocationEditRoute() {
         setValue('gridRows', String(def.grid.height));
         setValue('gridCellUnit', String(def.grid.cellUnit));
         setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale(loc!.scale));
-        setGridDraft({
+        const next = {
           selectedCellId: null,
           excludedCellIds: def.layout?.excludedCellIds ?? [],
           ...cellEntriesToDraft(def.cellEntries),
-        });
+        };
+        setGridDraft(next);
+        setGridDraftBaseline(structuredClone(next));
       } else {
         setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+        setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
       }
     });
     return () => {
@@ -271,6 +299,7 @@ export default function LocationEditRoute() {
     if (loc.scale !== 'building') return;
     if (!activeFloorId) {
       setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+      setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
       return;
     }
     let cancelled = false;
@@ -283,13 +312,16 @@ export default function LocationEditRoute() {
         setValue('gridRows', String(def.grid.height));
         setValue('gridCellUnit', String(def.grid.cellUnit));
         setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale('floor'));
-        setGridDraft({
+        const next = {
           selectedCellId: null,
           excludedCellIds: def.layout?.excludedCellIds ?? [],
           ...cellEntriesToDraft(def.cellEntries),
-        });
+        };
+        setGridDraft(next);
+        setGridDraftBaseline(structuredClone(next));
       } else {
         setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+        setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
       }
     });
     return () => {
@@ -328,6 +360,53 @@ export default function LocationEditRoute() {
   const showMapGridAuthoring = isBuildingWorkspace
     ? Boolean(activeFloorId)
     : isLocationScaleSelected(watchedScale);
+
+  const mapHostScaleResolved = useMemo((): LocationScaleId => {
+    if (isBuildingWorkspace) return 'floor';
+    return (String(scaleForFormRules || '').trim() || 'world') as LocationScaleId;
+  }, [isBuildingWorkspace, scaleForFormRules]);
+
+  const mapHostLocationIdResolved = useMemo(() => {
+    if (isBuildingWorkspace) return activeFloorId ?? '';
+    return locationId ?? '';
+  }, [isBuildingWorkspace, activeFloorId, locationId]);
+
+  const mapEditor = useLocationMapEditorState();
+
+  const paintPaletteItems = useMemo(
+    () => getPaintPaletteItemsForScale(mapHostScaleResolved),
+    [mapHostScaleResolved],
+  );
+
+  const placePaletteItems = useMemo(
+    () => getPlacePaletteItemsForScale(mapHostScaleResolved),
+    [mapHostScaleResolved],
+  );
+
+  const cityLinkSelectOptions = useMemo(() => {
+    if (!campaignId || !loc || loc.source !== 'campaign') return [];
+    const campaignLocations = locations.filter((l) => l.source === 'campaign');
+    const host = {
+      id: mapHostLocationIdResolved || '__host__',
+      scale: mapHostScaleResolved,
+      name: loc.name,
+      source: 'campaign' as const,
+      campaignId,
+    };
+    return getAllowedLinkedLocationOptions(host, campaignLocations, {
+      campaignId,
+      excludeLocationId: mapHostLocationIdResolved || undefined,
+    })
+      .filter((l) => l.scale === 'city')
+      .map((l) => ({ value: l.id, label: l.name }));
+  }, [campaignId, loc, locations, mapHostLocationIdResolved, mapHostScaleResolved]);
+
+  const showMapEditorChrome = showMapGridAuthoring;
+
+  const leftMapChromeWidthPx = showMapEditorChrome
+    ? LOCATION_EDITOR_TOOLBAR_WIDTH_PX +
+      (mapEditor.mode === 'paint' ? LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX : 0)
+    : 0;
 
   const { policyValue, handlePolicyChange } = useAccessPolicyField<LocationFormValues>(watch, setValue);
 
@@ -378,6 +457,7 @@ export default function LocationEditRoute() {
               cellEntries: cellDraftToCellEntries(
                 gridDraft.linkedLocationByCellId,
                 gridDraft.objectsByCellId,
+                gridDraft.cellFillByCellId,
               ),
             },
           );
@@ -385,6 +465,7 @@ export default function LocationEditRoute() {
             ...locationToFormValues(updated),
             ...pickMapGridFormValues(values),
           });
+          setGridDraftBaseline(structuredClone(gridDraft));
           setSuccess(true);
         } catch (e) {
           setErrors([
@@ -417,6 +498,7 @@ export default function LocationEditRoute() {
             cellEntries: cellDraftToCellEntries(
               gridDraft.linkedLocationByCellId,
               gridDraft.objectsByCellId,
+              gridDraft.cellFillByCellId,
             ),
           },
         );
@@ -424,6 +506,7 @@ export default function LocationEditRoute() {
           ...locationToFormValues(updated),
           ...pickMapGridFormValues(values),
         });
+        setGridDraftBaseline(structuredClone(gridDraft));
         setSuccess(true);
       } catch (e) {
         setErrors([
@@ -446,6 +529,7 @@ export default function LocationEditRoute() {
       gridDraft.excludedCellIds,
       gridDraft.linkedLocationByCellId,
       gridDraft.objectsByCellId,
+      gridDraft.cellFillByCellId,
     ],
   );
 
@@ -495,6 +579,7 @@ export default function LocationEditRoute() {
           cellEntries: cellDraftToCellEntries(
             INITIAL_LOCATION_GRID_DRAFT.linkedLocationByCellId,
             INITIAL_LOCATION_GRID_DRAFT.objectsByCellId,
+            INITIAL_LOCATION_GRID_DRAFT.cellFillByCellId,
           ),
         },
       );
@@ -570,6 +655,38 @@ export default function LocationEditRoute() {
     [],
   );
 
+  const handlePlaceCell = useCallback(
+    (cellId: string) => {
+      const ap = mapEditor.activePlace;
+      if (!ap || ap.category !== 'object') return;
+      const res = resolveLocationPlacedKindToAction(ap.kind, mapHostScaleResolved);
+      if (res.kind === 'link-modal') {
+        mapEditor.setPendingPlacement({
+          type: 'linked-location',
+          objectKind: res.objectKind,
+          hostScale: mapHostScaleResolved,
+          linkedScale: res.linkedScale,
+          targetCellId: cellId,
+        });
+        return;
+      }
+      if (res.kind === 'place-object') {
+        if (!canPlaceObjectKindOnHostScale(mapHostScaleResolved, res.mapObjectKind)) return;
+        setGridDraft((prev) => {
+          const existing = prev.objectsByCellId[cellId] ?? [];
+          return {
+            ...prev,
+            objectsByCellId: {
+              ...prev.objectsByCellId,
+              [cellId]: [...existing, { id: crypto.randomUUID(), kind: res.mapObjectKind }],
+            },
+          };
+        });
+      }
+    },
+    [mapEditor.activePlace, mapEditor.setPendingPlacement, mapHostScaleResolved],
+  );
+
   const focusCellRailTab = useCallback(() => setMapRailTab(1), []);
 
   if (loading) {
@@ -607,7 +724,7 @@ export default function LocationEditRoute() {
             title={`Patch: ${loc.name}`}
             ancestryBreadcrumbs={ancestryBreadcrumbs}
             saving={saving}
-            dirty={driver.isDirty()}
+            dirty={driver.isDirty() || isGridDraftDirty}
             isNew={false}
             onSave={handlePatchSave}
             onBack={handleBack}
@@ -618,30 +735,61 @@ export default function LocationEditRoute() {
           />
         }
         canvas={
-          <LocationEditorCanvas
-            zoom={zoom}
-            pan={pan}
-            panHandlers={pointerHandlers}
-            isDragging={isDragging}
-            wheelContainerRef={wheelContainerRef}
-            zoomControlProps={zoomControlProps}
+          <Box
+            sx={{
+              display: 'flex',
+              flex: 1,
+              minHeight: 0,
+              overflow: 'hidden',
+              width: '100%',
+            }}
           >
-            {showMapGridAuthoring ? (
-              <LocationGridAuthoringSection
-                gridColumns={gridColumns}
-                gridRows={gridRows}
-                gridGeometry={gridGeometry}
-                draft={gridDraft}
-                setDraft={setGridDraft}
-                locations={locations}
-                campaignId={campaignId ?? undefined}
-                hostLocationId={locationId}
-                hostScale={scaleForFormRules}
-                hostName={loc.name}
-                onCellFocusRail={focusCellRailTab}
-              />
-            ) : null}
-          </LocationEditorCanvas>
+            {showMapEditorChrome && (
+              <>
+                <LocationMapEditorToolbar
+                  mode={mapEditor.mode}
+                  onModeChange={mapEditor.setMode}
+                />
+                {mapEditor.mode === 'paint' && (
+                  <LocationMapEditorPaintTray
+                    items={paintPaletteItems}
+                    activePaint={mapEditor.activePaint}
+                    onSelectSwatch={mapEditor.setActivePaint}
+                  />
+                )}
+              </>
+            )}
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex' }}>
+              <LocationEditorCanvas
+                zoom={zoom}
+                pan={pan}
+                panHandlers={pointerHandlers}
+                isDragging={isDragging}
+                wheelContainerRef={wheelContainerRef}
+                zoomControlProps={zoomControlProps}
+              >
+                {showMapGridAuthoring ? (
+                  <LocationGridAuthoringSection
+                    gridColumns={gridColumns}
+                    gridRows={gridRows}
+                    gridGeometry={gridGeometry}
+                    draft={gridDraft}
+                    setDraft={setGridDraft}
+                    locations={locations}
+                    campaignId={campaignId ?? undefined}
+                    hostLocationId={locationId}
+                    hostScale={scaleForFormRules}
+                    hostName={loc.name}
+                    onCellFocusRail={focusCellRailTab}
+                    mapEditorMode={mapEditor.mode}
+                    activePaint={mapEditor.activePaint}
+                    leftChromeWidthPx={leftMapChromeWidthPx}
+                    onPlaceCellClick={handlePlaceCell}
+                  />
+                ) : null}
+              </LocationEditorCanvas>
+            </Box>
+          </Box>
         }
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
@@ -650,6 +798,15 @@ export default function LocationEditRoute() {
               onTabChange={setMapRailTab}
               metadata={
                 <Stack spacing={2}>
+                  {mapEditor.mode === 'place' && (
+                    <LocationMapEditorPlacePanel
+                      items={placePaletteItems}
+                      activeKind={mapEditor.activePlace?.kind ?? null}
+                      onSelectKind={(kind) =>
+                        mapEditor.setActivePlace({ category: 'object', kind })
+                      }
+                    />
+                  )}
                   <Typography variant="subtitle1" fontWeight={600}>
                     Patching: {loc.name}
                   </Typography>
@@ -711,7 +868,7 @@ export default function LocationEditRoute() {
             title={loc.name}
             ancestryBreadcrumbs={ancestryBreadcrumbs}
             saving={saving}
-            dirty={isDirty}
+            dirty={isDirty || isGridDraftDirty}
             isNew={false}
             formId={FORM_ID}
             onBack={handleBack}
@@ -763,9 +920,97 @@ export default function LocationEditRoute() {
                   minHeight: 0,
                   position: 'relative',
                   display: 'flex',
-                  flexDirection: 'column',
+                  flexDirection: 'row',
+                  overflow: 'hidden',
                 }}
               >
+                {showMapEditorChrome && (
+                  <>
+                    <LocationMapEditorToolbar
+                      mode={mapEditor.mode}
+                      onModeChange={mapEditor.setMode}
+                    />
+                    {mapEditor.mode === 'paint' && (
+                      <LocationMapEditorPaintTray
+                        items={paintPaletteItems}
+                        activePaint={mapEditor.activePaint}
+                        onSelectSwatch={mapEditor.setActivePaint}
+                      />
+                    )}
+                  </>
+                )}
+                <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex' }}>
+                  <LocationEditorCanvas
+                    zoom={zoom}
+                    pan={pan}
+                    panHandlers={pointerHandlers}
+                    isDragging={isDragging}
+                    wheelContainerRef={wheelContainerRef}
+                    zoomControlProps={zoomControlProps}
+                  >
+                    {buildingNeedsFloor ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          px: 2,
+                          minHeight: 120,
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary" textAlign="center">
+                          No floors yet. Use &quot;Add floor&quot; above to create the first map.
+                        </Typography>
+                      </Box>
+                    ) : showMapGridAuthoring ? (
+                      <LocationGridAuthoringSection
+                        gridColumns={gridColumns}
+                        gridRows={gridRows}
+                        gridGeometry={gridGeometry}
+                        draft={gridDraft}
+                        setDraft={setGridDraft}
+                        locations={locations}
+                        campaignId={campaignId ?? undefined}
+                        hostLocationId={mapHostLocationId}
+                        hostScale={mapHostScale}
+                        hostName={mapHostName}
+                        onCellFocusRail={focusCellRailTab}
+                        mapEditorMode={mapEditor.mode}
+                        activePaint={mapEditor.activePaint}
+                        leftChromeWidthPx={leftMapChromeWidthPx}
+                        onPlaceCellClick={handlePlaceCell}
+                      />
+                    ) : null}
+                  </LocationEditorCanvas>
+                </Box>
+              </Box>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                flex: 1,
+                minHeight: 0,
+                overflow: 'hidden',
+                width: '100%',
+              }}
+            >
+              {showMapEditorChrome && (
+                <>
+                  <LocationMapEditorToolbar
+                    mode={mapEditor.mode}
+                    onModeChange={mapEditor.setMode}
+                  />
+                  {mapEditor.mode === 'paint' && (
+                    <LocationMapEditorPaintTray
+                      items={paintPaletteItems}
+                      activePaint={mapEditor.activePaint}
+                      onSelectSwatch={mapEditor.setActivePaint}
+                    />
+                  )}
+                </>
+              )}
+              <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex' }}>
                 <LocationEditorCanvas
                   zoom={zoom}
                   pan={pan}
@@ -774,21 +1019,7 @@ export default function LocationEditRoute() {
                   wheelContainerRef={wheelContainerRef}
                   zoomControlProps={zoomControlProps}
                 >
-                  {buildingNeedsFloor ? (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        px: 2,
-                        minHeight: 120,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary" textAlign="center">
-                        No floors yet. Use &quot;Add floor&quot; above to create the first map.
-                      </Typography>
-                    </Box>
-                  ) : showMapGridAuthoring ? (
+                  {showMapGridAuthoring ? (
                     <LocationGridAuthoringSection
                       gridColumns={gridColumns}
                       gridRows={gridRows}
@@ -797,40 +1028,19 @@ export default function LocationEditRoute() {
                       setDraft={setGridDraft}
                       locations={locations}
                       campaignId={campaignId ?? undefined}
-                      hostLocationId={mapHostLocationId}
-                      hostScale={mapHostScale}
-                      hostName={mapHostName}
+                      hostLocationId={locationId}
+                      hostScale={scaleForFormRules}
+                      hostName={loc.name}
                       onCellFocusRail={focusCellRailTab}
+                      mapEditorMode={mapEditor.mode}
+                      activePaint={mapEditor.activePaint}
+                      leftChromeWidthPx={leftMapChromeWidthPx}
+                      onPlaceCellClick={handlePlaceCell}
                     />
                   ) : null}
                 </LocationEditorCanvas>
               </Box>
             </Box>
-          ) : (
-            <LocationEditorCanvas
-              zoom={zoom}
-              pan={pan}
-              panHandlers={pointerHandlers}
-              isDragging={isDragging}
-              wheelContainerRef={wheelContainerRef}
-              zoomControlProps={zoomControlProps}
-            >
-              {showMapGridAuthoring ? (
-                <LocationGridAuthoringSection
-                  gridColumns={gridColumns}
-                  gridRows={gridRows}
-                  gridGeometry={gridGeometry}
-                  draft={gridDraft}
-                  setDraft={setGridDraft}
-                  locations={locations}
-                  campaignId={campaignId ?? undefined}
-                  hostLocationId={locationId}
-                  hostScale={scaleForFormRules}
-                  hostName={loc.name}
-                  onCellFocusRail={focusCellRailTab}
-                />
-              ) : null}
-            </LocationEditorCanvas>
           )
         }
         rightRail={
@@ -840,6 +1050,15 @@ export default function LocationEditRoute() {
               onTabChange={setMapRailTab}
               metadata={
                 <Stack spacing={2}>
+                  {mapEditor.mode === 'place' && (
+                    <LocationMapEditorPlacePanel
+                      items={placePaletteItems}
+                      activeKind={mapEditor.activePlace?.kind ?? null}
+                      onSelectKind={(kind) =>
+                        mapEditor.setActivePlace({ category: 'object', kind })
+                      }
+                    />
+                  )}
                   {isBuildingWorkspace && activeFloorId ? (
                     <Typography variant="caption" color="text.secondary">
                       Map and cells: {activeFloorName ?? 'Floor'} (save updates this floor).
@@ -879,6 +1098,26 @@ export default function LocationEditRoute() {
             />
           </LocationEditorRightRail>
         }
+      />
+
+      <LocationMapEditorCityLinkModal
+        open={mapEditor.pendingPlacement != null}
+        pending={mapEditor.pendingPlacement}
+        options={cityLinkSelectOptions}
+        onConfirm={(linkedLocationId) => {
+          const p = mapEditor.pendingPlacement;
+          if (!p || p.type !== 'linked-location') return;
+          const cellId = p.targetCellId;
+          setGridDraft((prev) => ({
+            ...prev,
+            linkedLocationByCellId: {
+              ...prev.linkedLocationByCellId,
+              [cellId]: linkedLocationId,
+            },
+          }));
+          mapEditor.setPendingPlacement(null);
+        }}
+        onCancel={() => mapEditor.setPendingPlacement(null)}
       />
 
       <ConfirmModal

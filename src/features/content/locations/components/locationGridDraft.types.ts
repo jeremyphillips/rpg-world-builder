@@ -1,4 +1,7 @@
-import type { LocationMapCellObjectEntry } from '@/shared/domain/locations';
+import type {
+  LocationMapCellFillKindId,
+  LocationMapCellObjectEntry,
+} from '@/shared/domain/locations';
 
 /** Same shape as persisted map cell objects. */
 export type LocationCellObjectDraft = LocationMapCellObjectEntry;
@@ -10,6 +13,8 @@ export type LocationGridDraftState = {
   linkedLocationByCellId: Record<string, string | undefined>;
   /** Simple objects placed on each cell (authoring draft). */
   objectsByCellId: Record<string, LocationCellObjectDraft[]>;
+  /** Whole-cell terrain / surface fill (sparse). */
+  cellFillByCellId: Record<string, LocationMapCellFillKindId | undefined>;
 };
 
 export const INITIAL_LOCATION_GRID_DRAFT: LocationGridDraftState = {
@@ -17,4 +22,5 @@ export const INITIAL_LOCATION_GRID_DRAFT: LocationGridDraftState = {
   excludedCellIds: [],
   linkedLocationByCellId: {},
   objectsByCellId: {},
+  cellFillByCellId: {},
 };

@@ -84,6 +84,7 @@ export default function LocationCreateRoute() {
             cellEntries: cellDraftToCellEntries(
               INITIAL_LOCATION_GRID_DRAFT.linkedLocationByCellId,
               INITIAL_LOCATION_GRID_DRAFT.objectsByCellId,
+              INITIAL_LOCATION_GRID_DRAFT.cellFillByCellId,
             ),
           },
         );
