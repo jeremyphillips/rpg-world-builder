@@ -86,6 +86,8 @@ export default function LocationCreateRoute() {
               INITIAL_LOCATION_GRID_DRAFT.objectsByCellId,
               INITIAL_LOCATION_GRID_DRAFT.cellFillByCellId,
             ),
+            pathSegments: INITIAL_LOCATION_GRID_DRAFT.pathSegments,
+            edgeFeatures: INITIAL_LOCATION_GRID_DRAFT.edgeFeatures,
           },
         );
         navigate(

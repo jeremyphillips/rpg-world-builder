@@ -10,6 +10,10 @@ import {
 } from './locationMap.constants';
 import type { LocationMapKindId } from './locationMap.types';
 import { validateCellEntriesStructure } from './locationMapCellAuthoring.validation';
+import {
+  validateEdgeFeaturesStructure,
+  validatePathSegmentsStructure,
+} from './locationMapFeatures.validation';
 import { GRID_GEOMETRY_IDS } from '../../grid/gridGeometry';
 
 export type LocationMapValidationError = {
@@ -226,6 +230,8 @@ export function validateLocationMapInput(payload: {
   cells?: unknown;
   layout?: unknown;
   cellEntries?: unknown;
+  pathSegments?: unknown;
+  edgeFeatures?: unknown;
 }): LocationMapValidationError[] {
   const errors: LocationMapValidationError[] = [];
   if (typeof payload.name !== 'string' || payload.name.trim().length === 0) {
@@ -255,6 +261,9 @@ export function validateLocationMapInput(payload: {
   errors.push(...validateLocationMapLayout(payload.layout));
 
   errors.push(...validateCellEntriesStructure(payload.cellEntries, w, h));
+
+  errors.push(...validatePathSegmentsStructure(payload.pathSegments, w, h));
+  errors.push(...validateEdgeFeaturesStructure(payload.edgeFeatures, w, h));
 
   return errors;
 }

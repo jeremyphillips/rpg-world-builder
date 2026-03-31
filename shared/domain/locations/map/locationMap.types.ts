@@ -4,6 +4,8 @@ import {
 } from './locationMap.constants';
 import type { LocationCellUnitId } from './locationMap.constants';
 import type { LocationMapCellFillKindId } from './locationMapCellFill.constants';
+import type { LocationMapEdgeFeatureKindId } from './locationMapEdgeFeature.constants';
+import type { LocationMapPathFeatureKindId } from './locationMapPathFeature.constants';
 import type { GridGeometryId } from '../../grid/gridGeometry';
 
 export type { LocationCellUnitId };
@@ -52,6 +54,27 @@ export type LocationMapCellAuthoringEntry = {
   cellFillKind?: LocationMapCellFillKindId;
 };
 
+/**
+ * Linear path segment between two adjacent cells (map-level authoring).
+ * Endpoints are normalized lexicographically for stable identity.
+ */
+export type LocationMapPathSegment = {
+  id: string;
+  kind: LocationMapPathFeatureKindId;
+  startCellId: string;
+  endCellId: string;
+};
+
+/**
+ * Feature attached to a cell boundary (e.g. wall on shared edge).
+ * `edgeId` format: see `encodeSquareCellEdgeId` in shared grid helpers.
+ */
+export type LocationMapEdgeFeatureEntry = {
+  id: string;
+  kind: LocationMapEdgeFeatureKindId;
+  edgeId: string;
+};
+
 /** Map fields shared by client and API (no campaign scope). */
 export type LocationMapBase = {
   id: string;
@@ -64,4 +87,8 @@ export type LocationMapBase = {
   cells?: LocationMapCell[];
   /** Sparse cell authoring: links + simple objects (optional). */
   cellEntries?: LocationMapCellAuthoringEntry[];
+  /** Map-level path segments (roads, rivers). */
+  pathSegments?: LocationMapPathSegment[];
+  /** Map-level edge features (walls, doors on boundaries). */
+  edgeFeatures?: LocationMapEdgeFeatureEntry[];
 };

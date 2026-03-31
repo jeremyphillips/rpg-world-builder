@@ -1,7 +1,24 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { resolveLocationPlacedKindToAction } from './resolveLocationPlacedKindToAction';
+import {
+  resolveLocationPlacedKindToAction,
+  resolvePlacedKindToAction,
+} from './resolvePlacedKindToAction';
+
+describe('resolvePlacedKindToAction', () => {
+  it('path category returns path action', () => {
+    expect(
+      resolvePlacedKindToAction({ category: 'path', kind: 'road' }, 'city'),
+    ).toEqual({ type: 'path', pathKind: 'road' });
+  });
+
+  it('edge category returns edge action', () => {
+    expect(
+      resolvePlacedKindToAction({ category: 'edge', kind: 'wall' }, 'city'),
+    ).toEqual({ type: 'edge', edgeKind: 'wall' });
+  });
+});
 
 describe('resolveLocationPlacedKindToAction', () => {
   it('city on world opens link modal to city scale', () => {
@@ -37,8 +54,16 @@ describe('resolveLocationPlacedKindToAction', () => {
     });
   });
 
-  it('building/site on city are unsupported in Phase 1', () => {
-    expect(resolveLocationPlacedKindToAction('building', 'city')).toEqual({ kind: 'unsupported' });
-    expect(resolveLocationPlacedKindToAction('site', 'city')).toEqual({ kind: 'unsupported' });
+  it('building/site on city open link modal to building/site scale', () => {
+    expect(resolveLocationPlacedKindToAction('building', 'city')).toEqual({
+      kind: 'link-modal',
+      objectKind: 'building',
+      linkedScale: 'building',
+    });
+    expect(resolveLocationPlacedKindToAction('site', 'city')).toEqual({
+      kind: 'link-modal',
+      objectKind: 'site',
+      linkedScale: 'site',
+    });
   });
 });

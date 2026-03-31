@@ -7,6 +7,7 @@ import NearMeIcon from '@mui/icons-material/NearMe';
 import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
 import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import LayersClearIcon from '@mui/icons-material/LayersClear';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 import type { LocationMapEditorMode } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
 import { LOCATION_EDITOR_TOOLBAR_WIDTH_PX } from '@/features/content/locations/components/workspace/locationEditor.constants';
@@ -25,6 +26,7 @@ const TOOLS: {
   { mode: 'place', label: 'Place', Icon: AddLocationAltIcon },
   { mode: 'paint', label: 'Paint', Icon: FormatColorFillIcon },
   { mode: 'clear-fill', label: 'Clear fill', Icon: LayersClearIcon },
+  { mode: 'erase', label: 'Erase', Icon: DeleteOutlineIcon },
 ];
 
 export function LocationMapEditorToolbar({ mode, onModeChange }: LocationMapEditorToolbarProps) {

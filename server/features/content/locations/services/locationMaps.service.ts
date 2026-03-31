@@ -237,6 +237,8 @@ export async function createLocationMap(
     cells: body.cells,
     layout: body.layout,
     cellEntries: body.cellEntries,
+    pathSegments: body.pathSegments,
+    edgeFeatures: body.edgeFeatures,
   };
   const vErr = validateLocationMapInput(validationPayload);
   if (vErr.length > 0) return { errors: vErr };
@@ -292,6 +294,8 @@ export async function createLocationMap(
     isDefault,
     cells: (body.cells as LocationMapDoc['cells']) ?? [],
     ...(Array.isArray(body.cellEntries) ? { cellEntries: body.cellEntries } : {}),
+    ...(Array.isArray(body.pathSegments) ? { pathSegments: body.pathSegments } : {}),
+    ...(Array.isArray(body.edgeFeatures) ? { edgeFeatures: body.edgeFeatures } : {}),
   });
 
   if (isDefault) {
@@ -315,6 +319,8 @@ function mergeMapPayload(
   cells?: unknown;
   layout?: unknown;
   cellEntries?: unknown;
+  pathSegments?: unknown;
+  edgeFeatures?: unknown;
 } {
   const eg = existing.grid as Record<string, unknown>;
   let grid: { width: number; height: number; cellUnit: unknown };
@@ -344,6 +350,18 @@ function mergeMapPayload(
   } else if (existing.cellEntries !== undefined) {
     cellEntries = existing.cellEntries;
   }
+  let pathSegments: unknown;
+  if (body.pathSegments !== undefined) {
+    pathSegments = body.pathSegments;
+  } else if (existing.pathSegments !== undefined) {
+    pathSegments = existing.pathSegments;
+  }
+  let edgeFeatures: unknown;
+  if (body.edgeFeatures !== undefined) {
+    edgeFeatures = body.edgeFeatures;
+  } else if (existing.edgeFeatures !== undefined) {
+    edgeFeatures = existing.edgeFeatures;
+  }
   return {
     name: body.name !== undefined ? String(body.name).trim() : (existing.name as string),
     kind: body.kind !== undefined ? String(body.kind) : (existing.kind as string),
@@ -351,6 +369,8 @@ function mergeMapPayload(
     cells: body.cells !== undefined ? body.cells : existing.cells,
     layout,
     cellEntries,
+    pathSegments,
+    edgeFeatures,
   };
 }
 
@@ -418,6 +438,8 @@ export async function updateLocationMap(
   if (body.cells !== undefined) $set.cells = body.cells ?? [];
   if (body.layout !== undefined) $set.layout = body.layout;
   if (body.cellEntries !== undefined) $set.cellEntries = body.cellEntries ?? [];
+  if (body.pathSegments !== undefined) $set.pathSegments = body.pathSegments ?? [];
+  if (body.edgeFeatures !== undefined) $set.edgeFeatures = body.edgeFeatures ?? [];
   if (body.isDefault !== undefined) $set.isDefault = body.isDefault;
 
   if (Object.keys($set).length === 0) {

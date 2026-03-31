@@ -5,6 +5,14 @@ import {
 
 import type { LocationGridDraftState } from './locationGridDraft.types';
 
+function sortPathSegmentsForCompare(d: LocationGridDraftState) {
+  return [...d.pathSegments].sort((x, y) => x.id.localeCompare(y.id));
+}
+
+function sortEdgeFeaturesForCompare(d: LocationGridDraftState) {
+  return [...d.edgeFeatures].sort((x, y) => x.id.localeCompare(y.id));
+}
+
 function stableStringify(value: unknown): string {
   if (value === undefined) return 'undefined';
   if (value === null || typeof value !== 'object') {
@@ -43,10 +51,25 @@ export function gridDraftPersistableEquals(
 
   const na = normalizePersistableCellMaps(a);
   const nb = normalizePersistableCellMaps(b);
-  return (
-    stableStringify(na.linkedLocationByCellId) ===
-      stableStringify(nb.linkedLocationByCellId) &&
-    stableStringify(na.objectsByCellId) === stableStringify(nb.objectsByCellId) &&
-    stableStringify(na.cellFillByCellId) === stableStringify(nb.cellFillByCellId)
-  );
+  if (
+    stableStringify(na.linkedLocationByCellId) !==
+      stableStringify(nb.linkedLocationByCellId) ||
+    stableStringify(na.objectsByCellId) !== stableStringify(nb.objectsByCellId) ||
+    stableStringify(na.cellFillByCellId) !== stableStringify(nb.cellFillByCellId)
+  ) {
+    return false;
+  }
+  if (
+    stableStringify(sortPathSegmentsForCompare(a)) !==
+    stableStringify(sortPathSegmentsForCompare(b))
+  ) {
+    return false;
+  }
+  if (
+    stableStringify(sortEdgeFeaturesForCompare(a)) !==
+    stableStringify(sortEdgeFeaturesForCompare(b))
+  ) {
+    return false;
+  }
+  return true;
 }

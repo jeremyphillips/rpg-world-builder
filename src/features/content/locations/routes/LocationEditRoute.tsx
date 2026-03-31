@@ -39,9 +39,10 @@ import {
   nextSortOrder,
   useLocationFormCampaignData,
   useLocationFormDependentFieldEffects,
+  getGroupedPlacePaletteForScale,
   getPaintPaletteItemsForScale,
-  getPlacePaletteItemsForScale,
-  resolveLocationPlacedKindToAction,
+  resolvePlacedKindToAction,
+  resolveEraseTargetAtCell,
   useLocationMapEditorState,
 } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
@@ -58,8 +59,11 @@ import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDe
 import {
   canPlaceObjectKindOnHostScale,
   getAllowedLinkedLocationOptions,
+  normalizePathSegmentEndpoints,
   type LocationScaleId,
 } from '@/shared/domain/locations';
+import { makeUndirectedSquareEdgeKey } from '@/shared/domain/grid/gridEdgeIds';
+import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import {
   LocationGridAuthoringSection,
@@ -290,6 +294,8 @@ export default function LocationEditRoute() {
             selectedCellId: null,
             excludedCellIds: def.layout?.excludedCellIds ?? [],
             ...cellEntriesToDraft(def.cellEntries),
+            pathSegments: def.pathSegments ?? [],
+            edgeFeatures: def.edgeFeatures ?? [],
           };
           setGridDraft(next);
           setGridDraftBaseline(structuredClone(next));
@@ -331,6 +337,8 @@ export default function LocationEditRoute() {
             selectedCellId: null,
             excludedCellIds: def.layout?.excludedCellIds ?? [],
             ...cellEntriesToDraft(def.cellEntries),
+            pathSegments: def.pathSegments ?? [],
+            edgeFeatures: def.edgeFeatures ?? [],
           };
           setGridDraft(next);
           setGridDraftBaseline(structuredClone(next));
@@ -399,9 +407,14 @@ export default function LocationEditRoute() {
   );
 
   const placePaletteItems = useMemo(
-    () => getPlacePaletteItemsForScale(mapHostScaleResolved),
+    () => getGroupedPlacePaletteForScale(mapHostScaleResolved),
     [mapHostScaleResolved],
   );
+
+  useEffect(() => {
+    mapEditor.setPathAnchorCellId(null);
+    mapEditor.setEdgeAnchorCellId(null);
+  }, [gridColumns, gridRows, mapEditor.setPathAnchorCellId, mapEditor.setEdgeAnchorCellId]);
 
   const cityLinkSelectOptions = useMemo(() => {
     if (!campaignId || !loc || loc.source !== 'campaign') return [];
@@ -479,6 +492,14 @@ export default function LocationEditRoute() {
                 gridDraft.objectsByCellId,
                 gridDraft.cellFillByCellId,
               ),
+              pathSegments: gridDraft.pathSegments.map((s) => {
+                const { startCellId, endCellId } = normalizePathSegmentEndpoints(
+                  s.startCellId,
+                  s.endCellId,
+                );
+                return { ...s, startCellId, endCellId };
+              }),
+              edgeFeatures: gridDraft.edgeFeatures,
             },
           );
           reset({
@@ -520,6 +541,14 @@ export default function LocationEditRoute() {
               gridDraft.objectsByCellId,
               gridDraft.cellFillByCellId,
             ),
+            pathSegments: gridDraft.pathSegments.map((s) => {
+              const { startCellId, endCellId } = normalizePathSegmentEndpoints(
+                s.startCellId,
+                s.endCellId,
+              );
+              return { ...s, startCellId, endCellId };
+            }),
+            edgeFeatures: gridDraft.edgeFeatures,
           },
         );
         reset({
@@ -550,6 +579,8 @@ export default function LocationEditRoute() {
       gridDraft.linkedLocationByCellId,
       gridDraft.objectsByCellId,
       gridDraft.cellFillByCellId,
+      gridDraft.pathSegments,
+      gridDraft.edgeFeatures,
     ],
   );
 
@@ -605,6 +636,8 @@ export default function LocationEditRoute() {
             INITIAL_LOCATION_GRID_DRAFT.objectsByCellId,
             INITIAL_LOCATION_GRID_DRAFT.cellFillByCellId,
           ),
+          pathSegments: INITIAL_LOCATION_GRID_DRAFT.pathSegments,
+          edgeFeatures: INITIAL_LOCATION_GRID_DRAFT.edgeFeatures,
         },
       );
       setLocationListRefreshKey((k) => k + 1);
@@ -679,12 +712,48 @@ export default function LocationEditRoute() {
     [],
   );
 
+  const handleEraseCell = useCallback(
+    (cellId: string) => {
+      const cols = Number(gridColumns);
+      const rows = Number(gridRows);
+      setGridDraft((prev) => {
+        const target = resolveEraseTargetAtCell(cellId, prev, cols, rows);
+        if (!target) return prev;
+        if (target.type === 'edge') {
+          return {
+            ...prev,
+            edgeFeatures: prev.edgeFeatures.filter((e) => e.id !== target.featureId),
+          };
+        }
+        if (target.type === 'object') {
+          const objs = prev.objectsByCellId[target.cellId] ?? [];
+          const nextObjs = objs.filter((o) => o.id !== target.objectId);
+          const nextMap = { ...prev.objectsByCellId };
+          if (nextObjs.length === 0) delete nextMap[target.cellId];
+          else nextMap[target.cellId] = nextObjs;
+          return { ...prev, objectsByCellId: nextMap };
+        }
+        if (target.type === 'path') {
+          return {
+            ...prev,
+            pathSegments: prev.pathSegments.filter((s) => s.id !== target.segmentId),
+          };
+        }
+        const nextLinks = { ...prev.linkedLocationByCellId };
+        delete nextLinks[target.cellId];
+        return { ...prev, linkedLocationByCellId: nextLinks };
+      });
+    },
+    [gridColumns, gridRows],
+  );
+
   const handlePlaceCell = useCallback(
     (cellId: string) => {
       const ap = mapEditor.activePlace;
-      if (!ap || ap.category !== 'object') return;
-      const res = resolveLocationPlacedKindToAction(ap.kind, mapHostScaleResolved);
-      if (res.kind === 'link-modal') {
+      if (!ap) return;
+      const res = resolvePlacedKindToAction(ap, mapHostScaleResolved);
+      if (res.type === 'unsupported') return;
+      if (res.type === 'link') {
         mapEditor.setPendingPlacement({
           type: 'linked-location',
           objectKind: res.objectKind,
@@ -694,21 +763,100 @@ export default function LocationEditRoute() {
         });
         return;
       }
-      if (res.kind === 'place-object') {
-        if (!canPlaceObjectKindOnHostScale(mapHostScaleResolved, res.mapObjectKind)) return;
+      if (res.type === 'object') {
+        if (!canPlaceObjectKindOnHostScale(mapHostScaleResolved, res.objectKind)) return;
         setGridDraft((prev) => {
           const existing = prev.objectsByCellId[cellId] ?? [];
           return {
             ...prev,
             objectsByCellId: {
               ...prev.objectsByCellId,
-              [cellId]: [...existing, { id: crypto.randomUUID(), kind: res.mapObjectKind }],
+              [cellId]: [...existing, { id: crypto.randomUUID(), kind: res.objectKind }],
             },
           };
         });
+        return;
+      }
+      if (res.type === 'path') {
+        const anchor = mapEditor.pathAnchorCellId;
+        if (!anchor) {
+          mapEditor.setPathAnchorCellId(cellId);
+          return;
+        }
+        if (anchor === cellId) {
+          mapEditor.setPathAnchorCellId(null);
+          return;
+        }
+        const pa = parseGridCellId(anchor);
+        const pb = parseGridCellId(cellId);
+        if (
+          !pa ||
+          !pb ||
+          Math.abs(pa.x - pb.x) + Math.abs(pa.y - pb.y) !== 1
+        ) {
+          mapEditor.setPathAnchorCellId(cellId);
+          return;
+        }
+        const { startCellId, endCellId } = normalizePathSegmentEndpoints(anchor, cellId);
+        setGridDraft((prev) => ({
+          ...prev,
+          pathSegments: [
+            ...prev.pathSegments,
+            {
+              id: crypto.randomUUID(),
+              kind: res.pathKind,
+              startCellId,
+              endCellId,
+            },
+          ],
+        }));
+        mapEditor.setPathAnchorCellId(cellId);
+        return;
+      }
+      if (res.type === 'edge') {
+        const anchor = mapEditor.edgeAnchorCellId;
+        if (!anchor) {
+          mapEditor.setEdgeAnchorCellId(cellId);
+          return;
+        }
+        if (anchor === cellId) {
+          mapEditor.setEdgeAnchorCellId(null);
+          return;
+        }
+        const pa = parseGridCellId(anchor);
+        const pb = parseGridCellId(cellId);
+        if (
+          !pa ||
+          !pb ||
+          Math.abs(pa.x - pb.x) + Math.abs(pa.y - pb.y) !== 1
+        ) {
+          mapEditor.setEdgeAnchorCellId(cellId);
+          return;
+        }
+        const edgeId = makeUndirectedSquareEdgeKey(anchor, cellId);
+        setGridDraft((prev) => ({
+          ...prev,
+          edgeFeatures: [
+            ...prev.edgeFeatures.filter((e) => e.edgeId !== edgeId),
+            {
+              id: crypto.randomUUID(),
+              kind: res.edgeKind,
+              edgeId,
+            },
+          ],
+        }));
+        mapEditor.setEdgeAnchorCellId(null);
       }
     },
-    [mapEditor.activePlace, mapEditor.setPendingPlacement, mapHostScaleResolved],
+    [
+      mapEditor.activePlace,
+      mapEditor.pathAnchorCellId,
+      mapEditor.edgeAnchorCellId,
+      mapEditor.setPendingPlacement,
+      mapEditor.setPathAnchorCellId,
+      mapEditor.setEdgeAnchorCellId,
+      mapHostScaleResolved,
+    ],
   );
 
   const focusCellRailTab = useCallback(() => setMapRailTab(1), []);
@@ -809,6 +957,7 @@ export default function LocationEditRoute() {
                     activePaint={mapEditor.activePaint}
                     leftChromeWidthPx={leftMapChromeWidthPx}
                     onPlaceCellClick={handlePlaceCell}
+                    onEraseCellClick={handleEraseCell}
                   />
                 ) : null}
               </LocationEditorCanvas>
@@ -825,10 +974,8 @@ export default function LocationEditRoute() {
                   {mapEditor.mode === 'place' && (
                     <LocationMapEditorPlacePanel
                       items={placePaletteItems}
-                      activeKind={mapEditor.activePlace?.kind ?? null}
-                      onSelectKind={(kind) =>
-                        mapEditor.setActivePlace({ category: 'object', kind })
-                      }
+                      activePlace={mapEditor.activePlace}
+                      onSelectPlace={mapEditor.setActivePlace}
                     />
                   )}
                   <Typography variant="subtitle1" fontWeight={600}>
@@ -1004,6 +1151,7 @@ export default function LocationEditRoute() {
                         activePaint={mapEditor.activePaint}
                         leftChromeWidthPx={leftMapChromeWidthPx}
                         onPlaceCellClick={handlePlaceCell}
+                        onEraseCellClick={handleEraseCell}
                       />
                     ) : null}
                   </LocationEditorCanvas>
@@ -1061,6 +1209,7 @@ export default function LocationEditRoute() {
                       activePaint={mapEditor.activePaint}
                       leftChromeWidthPx={leftMapChromeWidthPx}
                       onPlaceCellClick={handlePlaceCell}
+                      onEraseCellClick={handleEraseCell}
                     />
                   ) : null}
                 </LocationEditorCanvas>
@@ -1078,10 +1227,8 @@ export default function LocationEditRoute() {
                   {mapEditor.mode === 'place' && (
                     <LocationMapEditorPlacePanel
                       items={placePaletteItems}
-                      activeKind={mapEditor.activePlace?.kind ?? null}
-                      onSelectKind={(kind) =>
-                        mapEditor.setActivePlace({ category: 'object', kind })
-                      }
+                      activePlace={mapEditor.activePlace}
+                      onSelectPlace={mapEditor.setActivePlace}
                     />
                   )}
                   {isBuildingWorkspace && activeFloorId ? (

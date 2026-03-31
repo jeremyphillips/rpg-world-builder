@@ -65,6 +65,8 @@ type LocationGridAuthoringSectionProps = {
   leftChromeWidthPx?: number;
   /** Place mode: user clicked a cell to attempt placement. */
   onPlaceCellClick?: (cellId: string) => void;
+  /** Erase mode: remove highest-priority feature at cell (edge → object → path → link). */
+  onEraseCellClick?: (cellId: string) => void;
 };
 
 export function LocationGridAuthoringSection({
@@ -83,6 +85,7 @@ export function LocationGridAuthoringSection({
   activePaint = null,
   leftChromeWidthPx = 0,
   onPlaceCellClick,
+  onEraseCellClick,
 }: LocationGridAuthoringSectionProps) {
   const cols = Number(gridColumns);
   const rows = Number(gridRows);
@@ -105,6 +108,20 @@ export function LocationGridAuthoringSection({
       const prunedLinks = pruneCellKeyedRecordForGrid(prev.linkedLocationByCellId, cols, rows);
       const prunedObjs = pruneCellKeyedRecordForGrid(prev.objectsByCellId, cols, rows);
       const prunedFill = pruneCellKeyedRecordForGrid(prev.cellFillByCellId, cols, rows);
+      const cellInBounds = (cellId: string) => {
+        const p = parseGridCellId(cellId);
+        if (!p) return false;
+        return p.x >= 0 && p.y >= 0 && p.x < cols && p.y < rows;
+      };
+      const prunedPaths = prev.pathSegments.filter(
+        (s) => cellInBounds(s.startCellId) && cellInBounds(s.endCellId),
+      );
+      const betweenRe = /^between:([^|]+)\|([^|]+)$/;
+      const prunedEdges = prev.edgeFeatures.filter((e) => {
+        const m = betweenRe.exec(e.edgeId);
+        if (!m) return false;
+        return cellInBounds(m[1]) && cellInBounds(m[2]);
+      });
       let nextSel = prev.selectedCellId;
       if (nextSel) {
         const p = parseGridCellId(nextSel);
@@ -121,12 +138,16 @@ export function LocationGridAuthoringSection({
         JSON.stringify(prunedObjs) === JSON.stringify(prev.objectsByCellId);
       const fillSame =
         JSON.stringify(prunedFill) === JSON.stringify(prev.cellFillByCellId);
+      const pathsSame = JSON.stringify(prunedPaths) === JSON.stringify(prev.pathSegments);
+      const edgesSame = JSON.stringify(prunedEdges) === JSON.stringify(prev.edgeFeatures);
       if (
         sameIds &&
         nextSel === prev.selectedCellId &&
         linksSame &&
         objsSame &&
-        fillSame
+        fillSame &&
+        pathsSame &&
+        edgesSame
       ) {
         return prev;
       }
@@ -137,6 +158,8 @@ export function LocationGridAuthoringSection({
         linkedLocationByCellId: prunedLinks,
         objectsByCellId: prunedObjs,
         cellFillByCellId: prunedFill,
+        pathSegments: prunedPaths,
+        edgeFeatures: prunedEdges,
       };
     });
   }, [validPreview, cols, rows, setDraft]);
@@ -258,6 +281,10 @@ export function LocationGridAuthoringSection({
   const onCellClick = (cell: GridCell) => {
     if (mapEditorMode === 'place') {
       onPlaceCellClick?.(cell.cellId);
+      return;
+    }
+    if (mapEditorMode === 'erase') {
+      onEraseCellClick?.(cell.cellId);
       return;
     }
     if (mapEditorMode === 'paint' || mapEditorMode === 'clear-fill') {

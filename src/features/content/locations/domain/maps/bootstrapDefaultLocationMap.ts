@@ -10,7 +10,11 @@ import {
   listLocationMaps,
   updateLocationMap,
 } from '@/features/content/locations/domain/repo/locationMapRepo';
-import type { LocationMapCellAuthoringEntry } from '@/shared/domain/locations';
+import type {
+  LocationMapCellAuthoringEntry,
+  LocationMapEdgeFeatureEntry,
+  LocationMapPathSegment,
+} from '@/shared/domain/locations';
 import { pruneExcludedCellIdsForGrid } from '@/features/content/locations/domain/maps/gridLayoutDraft';
 
 export function validateGridBootstrap(values: LocationFormValues): string | null {
@@ -38,6 +42,8 @@ export async function bootstrapDefaultLocationMap(
   options?: {
     excludedCellIds?: string[];
     cellEntries?: LocationMapCellAuthoringEntry[];
+    pathSegments?: LocationMapPathSegment[];
+    edgeFeatures?: LocationMapEdgeFeatureEntry[];
   },
 ): Promise<void> {
   const err = validateGridBootstrap(values);
@@ -67,6 +73,8 @@ export async function bootstrapDefaultLocationMap(
   );
   const layout = { excludedCellIds };
   const cellEntries = options?.cellEntries ?? [];
+  const pathSegments = options?.pathSegments ?? [];
+  const edgeFeatures = options?.edgeFeatures ?? [];
 
   if (defaultMap) {
     await updateLocationMap(campaignId, locationId, defaultMap.id, {
@@ -74,6 +82,8 @@ export async function bootstrapDefaultLocationMap(
       layout,
       isDefault: true,
       cellEntries,
+      pathSegments,
+      edgeFeatures,
     });
     return;
   }
@@ -86,6 +96,8 @@ export async function bootstrapDefaultLocationMap(
     isDefault: true,
     cells: [],
     cellEntries,
+    pathSegments,
+    edgeFeatures,
   });
 }
 
