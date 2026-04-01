@@ -39,16 +39,10 @@ import { usePruneGridDraftOnDimensionChange } from '@/features/content/locations
 import { hexBoundarySegmentsForRegionCells } from './hexRegionBoundaryForAuthoring';
 import { HexMapAuthoringSvgOverlay } from './mapGrid/mapAuthoring/HexMapAuthoringSvgOverlay';
 import { SquareMapAuthoringSvgOverlay } from './mapGrid/mapAuthoring/SquareMapAuthoringSvgOverlay';
+import { useSquareEdgeBoundaryPaint } from './mapGrid/mapAuthoring/useSquareEdgeBoundaryPaint';
 import { LocationMapCellAuthoringOverlay } from './mapGrid/LocationMapCellAuthoringOverlay';
 
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
-import {
-  resolveEdgeTargetFromGridPosition,
-  shouldAcceptStrokeEdge,
-  getSquareEdgeOrientation,
-  type ResolvedEdgeTarget,
-  type EdgeOrientation,
-} from '@/features/content/locations/domain/mapEditor/edgeAuthoring';
 import {
   buildSelectModeInteractiveTargetInput,
   buildSelectModeInteractiveTargetInputSkipGeometry,
@@ -62,10 +56,7 @@ import {
   selectedCellIdForMapSelection,
   type LocationMapSelection,
 } from './workspace/locationEditorRail.types';
-import {
-  resolveSquareCellIdFromGridLocalPx,
-  SQUARE_GRID_GAP_PX,
-} from './squareGridMapOverlayGeometry';
+import { resolveSquareCellIdFromGridLocalPx } from './squareGridMapOverlayGeometry';
 import { edgeEntriesToSegmentGeometrySquare } from '@/shared/domain/locations/map/locationMapEdgeGeometry.helpers';
 import {
   pathEntriesToPolylineGeometry,
@@ -75,8 +66,6 @@ import { resolveNearestHexCell } from './hexGridMapOverlayGeometry';
 import { polylinePoint2DToSmoothSvgPath } from './pathOverlayRendering';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
 import { getNeighborPoints } from '@/shared/domain/grid/gridHelpers';
-
-const GRID_GAP_PX = SQUARE_GRID_GAP_PX; // MUI spacing(0.5) — matches GridEditor gap
 
 type LocationGridAuthoringSectionProps = {
   gridColumns: string;
@@ -172,30 +161,10 @@ export function LocationGridAuthoringSection({
   const placeObjectStrokeActive = useRef(false);
   const placeObjectStrokeSeen = useRef<Set<string>>(new Set());
 
-  // Edge boundary-paint state
-  const [edgeHoverTarget, setEdgeHoverTarget] = useState<ResolvedEdgeTarget | null>(null);
-  const edgeStrokeActive = useRef(false);
-  const edgeStrokeSeen = useRef<Set<string>>(new Set());
-  const edgeStrokeEdgeIds = useRef<string[]>([]);
-  const [edgeStrokeSnapshot, setEdgeStrokeSnapshot] = useState<string[]>([]);
   const [selectHoverTarget, setSelectHoverTarget] = useState<LocationMapSelection>({
     type: 'none',
   });
   const gridContainerRef = useRef<HTMLDivElement | null>(null);
-  const edgeStrokeLockedAxis = useRef<EdgeOrientation | null>(null);
-  const edgeStrokeLastTarget = useRef<ResolvedEdgeTarget | null>(null);
-  const shiftHeld = useRef(false);
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => { if (e.key === 'Shift') shiftHeld.current = true; };
-    const onKeyUp = (e: KeyboardEvent) => { if (e.key === 'Shift') shiftHeld.current = false; };
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('keyup', onKeyUp);
-    return () => {
-      window.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('keyup', onKeyUp);
-    };
-  }, []);
 
   useEffect(() => {
     if (mapEditorMode !== 'select') {
@@ -217,6 +186,27 @@ export function LocationGridAuthoringSection({
   const isHex = gridGeometry === 'hex';
   const { gridSizePx, squareGridGeometry, hexGridGeometry, cellCenterPx } =
     useLocationAuthoringGridLayout(validPreview, cols, rows, isHex, leftChromeWidthPx);
+
+  const {
+    edgeHoverTarget,
+    edgeStrokeSnapshot,
+    edgeStrokeActive,
+    commitEdgeStroke,
+    handleEdgePointerDown,
+    handleEdgePointerMove,
+    handleEdgePointerUp,
+    handleEdgePointerLeave,
+  } = useSquareEdgeBoundaryPaint({
+    gridContainerRef,
+    squareGridGeometry,
+    cols,
+    rows,
+    edgePlaceActive,
+    edgeEraseActive,
+    activeDraw,
+    onEdgeStrokeCommit,
+    onEraseEdge,
+  });
 
   const hexSelectedRegionBoundarySegments = useMemo(() => {
     if (!isHex || !hexGridGeometry || draft.mapSelection.type !== 'region') {
@@ -432,19 +422,6 @@ export function LocationGridAuthoringSection({
     placeObjectStrokeSeen.current.clear();
   }, []);
 
-  const commitEdgeStroke = useCallback(() => {
-    const ids = edgeStrokeEdgeIds.current;
-    if (ids.length > 0 && activeDraw?.category === 'edge') {
-      onEdgeStrokeCommit?.(ids, activeDraw.kind);
-    }
-    edgeStrokeActive.current = false;
-    edgeStrokeSeen.current.clear();
-    edgeStrokeEdgeIds.current = [];
-    edgeStrokeLockedAxis.current = null;
-    edgeStrokeLastTarget.current = null;
-    setEdgeStrokeSnapshot([]);
-  }, [activeDraw, onEdgeStrokeCommit]);
-
   useEffect(() => {
     const onWindowPointerUp = () => {
       if (paintStrokeActive.current) endPaintStroke();
@@ -453,7 +430,7 @@ export function LocationGridAuthoringSection({
     };
     window.addEventListener('pointerup', onWindowPointerUp);
     return () => window.removeEventListener('pointerup', onWindowPointerUp);
-  }, [endPaintStroke, endPlaceObjectStroke, commitEdgeStroke]);
+  }, [endPaintStroke, endPlaceObjectStroke, commitEdgeStroke, edgeStrokeActive]);
 
   const handlePaintPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
@@ -776,98 +753,6 @@ export function LocationGridAuthoringSection({
       locationById={locationById}
     />
   );
-
-  // ---- Edge boundary-paint pointer handlers (on the wrapper, not per-cell) ----
-
-  const resolveEdgeFromClient = useCallback(
-    (clientX: number, clientY: number): ResolvedEdgeTarget | null => {
-      if (!squareGridGeometry || !gridContainerRef.current) return null;
-      const rect = gridContainerRef.current.getBoundingClientRect();
-      const gx = clientX - rect.left;
-      const gy = clientY - rect.top;
-      return resolveEdgeTargetFromGridPosition(
-        gx,
-        gy,
-        squareGridGeometry.cellPx,
-        GRID_GAP_PX,
-        cols,
-        rows,
-      );
-    },
-    [squareGridGeometry, cols, rows],
-  );
-
-  const handleEdgePointerMove = useCallback(
-    (e: React.PointerEvent<HTMLElement>) => {
-      if (!edgePlaceActive && !edgeEraseActive) return;
-      e.stopPropagation();
-
-      const target = resolveEdgeFromClient(e.clientX, e.clientY);
-      setEdgeHoverTarget((prev) =>
-        prev?.edgeId === target?.edgeId ? prev : target,
-      );
-
-      if (edgeStrokeActive.current && target) {
-        if (edgeStrokeSeen.current.has(target.edgeId)) return;
-
-        const last = edgeStrokeLastTarget.current;
-        if (last) {
-          const { accept, newAxis } = shouldAcceptStrokeEdge(
-            target,
-            last,
-            edgeStrokeLockedAxis.current,
-            shiftHeld.current,
-          );
-          if (!accept) return;
-          edgeStrokeLockedAxis.current = newAxis;
-        }
-
-        edgeStrokeSeen.current.add(target.edgeId);
-        edgeStrokeEdgeIds.current.push(target.edgeId);
-        edgeStrokeLastTarget.current = target;
-        setEdgeStrokeSnapshot([...edgeStrokeEdgeIds.current]);
-      }
-    },
-    [edgePlaceActive, edgeEraseActive, resolveEdgeFromClient],
-  );
-
-  const handleEdgePointerDown = useCallback(
-    (e: React.PointerEvent<HTMLElement>) => {
-      e.stopPropagation();
-      if (edgePlaceActive) {
-        const target = resolveEdgeFromClient(e.clientX, e.clientY);
-        if (!target) return;
-        edgeStrokeActive.current = true;
-        edgeStrokeSeen.current = new Set([target.edgeId]);
-        edgeStrokeEdgeIds.current = [target.edgeId];
-        edgeStrokeLockedAxis.current = getSquareEdgeOrientation(target.side);
-        edgeStrokeLastTarget.current = target;
-        setEdgeStrokeSnapshot([target.edgeId]);
-        return;
-      }
-      if (edgeEraseActive) {
-        const target = resolveEdgeFromClient(e.clientX, e.clientY);
-        if (target) {
-          onEraseEdge?.(target.edgeId);
-        }
-      }
-    },
-    [edgePlaceActive, edgeEraseActive, resolveEdgeFromClient, onEraseEdge],
-  );
-
-  const handleEdgePointerUp = useCallback(
-    (e: React.PointerEvent<HTMLElement>) => {
-      if (edgeStrokeActive.current) {
-        e.stopPropagation();
-        commitEdgeStroke();
-      }
-    },
-    [commitEdgeStroke],
-  );
-
-  const handleEdgePointerLeave = useCallback(() => {
-    setEdgeHoverTarget(null);
-  }, []);
 
   const mapToolCrosshair =
     mapEditorMode === 'place' ||

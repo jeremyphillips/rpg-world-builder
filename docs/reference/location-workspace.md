@@ -190,7 +190,7 @@ Edges (walls, windows, doors) use a **boundary-paint** interaction model on **sq
 | `domain/mapEditor/edgeAuthoring.ts` | `resolveNearestCellEdgeSide`, `resolveEdgeTargetFromGridPosition`, `applyEdgeStrokeToDraft` (replace/no-op rules), `shouldAcceptStrokeEdge` (axis lock + collinearity + adjacency), `areEdgesAdjacent`, `getSquareEdgeOrientation`, types `ResolvedEdgeTarget`, `EdgeOrientation` |
 | `squareGridMapOverlayGeometry.ts` | `squareEdgeSegmentPxFromEdgeId` for rendering committed and preview edges |
 | `domain/mapEditor/resolveEraseTarget.ts` | `resolveEraseEdgeByEdgeId` for precise edge-specific erase |
-| `LocationGridAuthoringSection` | Capture-phase pointer handlers, stroke refs (`edgeStrokeActive`, `edgeStrokeSeen`, `edgeStrokeEdgeIds`, `edgeStrokeLockedAxis`, `edgeStrokeLastTarget`, `shiftHeld`), SVG overlay for hover preview and stroke accumulation |
+| `LocationGridAuthoringSection` | Composes **`useSquareEdgeBoundaryPaint`** (`mapGrid/mapAuthoring/useSquareEdgeBoundaryPaint.ts`) for capture-phase edge place/erase + stroke state; **`SquareMapAuthoringSvgOverlay`** for preview and committed segments |
 
 **Stroke constraint rules (`shouldAcceptStrokeEdge`):**
 1. **Axis lock** — the initial click locks the axis (horizontal or vertical). Subsequent edges must match unless Shift is held.
@@ -271,7 +271,7 @@ Both hooks are used at the route level; derived values are passed down to canvas
 2. **Zoom/pan enhancements:** extend `useCanvasZoom` / `useCanvasPan` in `src/ui/hooks/`; both location and encounter features consume them. `ZoomControl` supports `positioning` prop (`'fixed'` default, `'absolute'` for container-relative).
 3. **Focus-mode routes:** add new full-width routes by extending the regex in `src/app/layouts/auth/auth-main-path.ts`.
 4. **Path authoring:** persisted model is `pathEntries` on `LocationMap` (ordered `cellIds` per chain). Chain-building UX lives in `LocationEditRoute.tsx` (`handleAuthoringCellClick` in **Draw** mode); smooth curve rendering in `pathOverlayRendering.ts` (`pathEntriesToSvgPaths`); hex geometry helpers in `hexGridMapOverlayGeometry.ts`. The `pathSvgData` memo in `LocationGridAuthoringSection` unifies committed and preview curves. Tests in `pathOverlayRendering.test.ts` and `hexGridMapOverlayGeometry.test.ts`.
-5. **Edge authoring:** edge logic lives under `domain/mapEditor/edgeAuthoring.ts` with tests in `edgeAuthoring.test.ts`; grid integration in `LocationGridAuthoringSection.tsx`. Before changing behavior, read **Edge authoring** and **Open issues** above (hex edge gap).
+5. **Edge authoring:** edge logic lives under `domain/mapEditor/edgeAuthoring.ts` with tests in `edgeAuthoring.test.ts`; grid wiring uses `useSquareEdgeBoundaryPaint` in `LocationGridAuthoringSection.tsx`. Before changing behavior, read **Edge authoring** and **Open issues** above (hex edge gap).
 6. **Path preview performance:** if the chain preview feels sluggish, consider caching the committed chain curve and only recomputing the tail segments on hover. See **Open issues §3**.
 7. **Select mode / region hover:** resolver and grid chrome live in `resolveSelectModeInteractiveTarget.ts`, `buildSelectModeInteractiveTargetInput.ts` (shared args from draft + pick geometry), `resolveSelectModeRegionOrCellSelection.ts`, `refineSelectModeClickAfterRegionDrill.ts`, and `mapGridCellVisualState.ts`. See **Location map styling → Select mode** and **Open issues §4** before changing hover behavior.
 
