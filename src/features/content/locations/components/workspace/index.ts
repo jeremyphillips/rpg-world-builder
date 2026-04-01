@@ -1,6 +1,8 @@
 export { LocationEditorWorkspace } from './LocationEditorWorkspace'
 export { LocationEditorHeader } from './LocationEditorHeader'
 export { LocationEditorCanvas } from './LocationEditorCanvas'
+export { LocationEditorMapCanvasColumn } from './LocationEditorMapCanvasColumn'
+export type { LocationEditorMapCanvasColumnProps } from './LocationEditorMapCanvasColumn'
 export { LocationEditorRightRail } from './LocationEditorRightRail'
 export { LocationEditorRailSectionTabs } from './LocationEditorRailSectionTabs'
 export type { LocationEditorRailSectionTabsProps } from './LocationEditorRailSectionTabs'

@@ -27,6 +27,7 @@ export {
   LocationEditorWorkspace,
   LocationEditorHeader,
   LocationEditorCanvas,
+  LocationEditorMapCanvasColumn,
   LocationEditorRightRail,
   LocationEditorRailSectionTabs,
   LocationEditorSelectionPanel,

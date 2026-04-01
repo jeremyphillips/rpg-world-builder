@@ -23,10 +23,8 @@ import {
   toLocationInput,
   buildBuildingSubtypeSelectOptions,
   buildCharacterEntityPickerOptions,
-  listLocationMaps,
   validateGridBootstrap,
   bootstrapDefaultLocationMap,
-  cellEntriesToDraft,
   canApplyRegionPaint,
   shouldSwitchRailToMapForPaintDomain,
   upsertRegionEntry,
@@ -63,7 +61,6 @@ import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDe
 import {
   canPlaceObjectKindOnHostScale,
   getAllowedLinkedLocationOptions,
-  normalizeLocationMapAuthoringFields,
   removePathChainSegment,
   type LocationScaleId,
 } from '@/shared/domain/locations';
@@ -86,7 +83,7 @@ import {
   LocationGridAuthoringSection,
   LocationEditorWorkspace,
   LocationEditorHeader,
-  LocationEditorCanvas,
+  LocationEditorMapCanvasColumn,
   LocationEditorRightRail,
   LocationEditorRailSectionTabs,
   LocationEditorSelectionPanel,
@@ -98,12 +95,9 @@ import {
   gridDraftPersistableEquals,
   normalizedAuthoringPayloadFromGridDraft,
   LocationMapEditorLinkedLocationModal,
-  LocationMapEditorPaintTray,
   LocationMapEditorPaintMapPanel,
   LocationMapEditorPlacePanel,
-  LocationMapEditorDrawTray,
   LocationMapEditorDrawPanel,
-  LocationMapEditorToolbar,
   LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX,
   LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX,
   LOCATION_EDITOR_TOOLBAR_WIDTH_PX,
@@ -111,6 +105,11 @@ import {
   type LocationGridDraftState,
   type LocationEditorRailSection,
 } from '@/features/content/locations/components';
+
+import {
+  hydrateDefaultLocationMapState,
+  resetGridDraftToInitial,
+} from './hydrateDefaultLocationMap';
 
 const FORM_ID = 'location-edit-form';
 
@@ -310,38 +309,17 @@ export default function LocationEditRoute() {
     if (!campaignId || !locationId || !loc || loc.source !== 'campaign') return;
     if (loc.scale === 'building') return;
     let cancelled = false;
-    listLocationMaps(campaignId, locationId)
-      .then((maps) => {
-        if (cancelled) return;
-        const def = maps.find((m) => m.isDefault) ?? maps[0];
-        if (def) {
-          setValue('gridPreset', '');
-          setValue('gridColumns', String(def.grid.width));
-          setValue('gridRows', String(def.grid.height));
-          setValue('gridCellUnit', String(def.grid.cellUnit));
-          setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale(loc!.scale));
-          const authoring = normalizeLocationMapAuthoringFields(def);
-          const next = {
-            mapSelection: { type: 'none' as const },
-            selectedCellId: null,
-            excludedCellIds: def.layout?.excludedCellIds ?? [],
-            ...cellEntriesToDraft(authoring.cellEntries),
-            regionEntries: authoring.regionEntries,
-            pathEntries: authoring.pathEntries,
-            edgeEntries: authoring.edgeEntries,
-          };
-          setGridDraft(next);
-          setGridDraftBaseline(structuredClone(next));
-        } else {
-          setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
-          setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
-        }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
-        setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
-      });
+    hydrateDefaultLocationMapState(
+      campaignId,
+      locationId,
+      loc.scale,
+      setValue,
+      setGridDraft,
+      setGridDraftBaseline,
+    ).catch(() => {
+      if (cancelled) return;
+      resetGridDraftToInitial(setGridDraft, setGridDraftBaseline);
+    });
     return () => {
       cancelled = true;
     };
@@ -351,43 +329,21 @@ export default function LocationEditRoute() {
     if (!campaignId || !locationId || !loc || loc.source !== 'campaign') return;
     if (loc.scale !== 'building') return;
     if (!activeFloorId) {
-      setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
-      setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
+      resetGridDraftToInitial(setGridDraft, setGridDraftBaseline);
       return;
     }
     let cancelled = false;
-    listLocationMaps(campaignId, activeFloorId)
-      .then((maps) => {
-        if (cancelled) return;
-        const def = maps.find((m) => m.isDefault) ?? maps[0];
-        if (def) {
-          setValue('gridPreset', '');
-          setValue('gridColumns', String(def.grid.width));
-          setValue('gridRows', String(def.grid.height));
-          setValue('gridCellUnit', String(def.grid.cellUnit));
-          setValue('gridGeometry', def.grid.geometry ?? getDefaultGeometryForScale('floor'));
-          const authoring = normalizeLocationMapAuthoringFields(def);
-          const next = {
-            mapSelection: { type: 'none' as const },
-            selectedCellId: null,
-            excludedCellIds: def.layout?.excludedCellIds ?? [],
-            ...cellEntriesToDraft(authoring.cellEntries),
-            regionEntries: authoring.regionEntries,
-            pathEntries: authoring.pathEntries,
-            edgeEntries: authoring.edgeEntries,
-          };
-          setGridDraft(next);
-          setGridDraftBaseline(structuredClone(next));
-        } else {
-          setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
-          setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
-        }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
-        setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
-      });
+    hydrateDefaultLocationMapState(
+      campaignId,
+      activeFloorId,
+      'floor',
+      setValue,
+      setGridDraft,
+      setGridDraftBaseline,
+    ).catch(() => {
+      if (cancelled) return;
+      resetGridDraftToInitial(setGridDraft, setGridDraftBaseline);
+    });
     return () => {
       cancelled = true;
     };
@@ -648,55 +604,15 @@ export default function LocationEditRoute() {
   const handleCampaignSubmit = useCallback(
     async (values: LocationFormValues) => {
       if (!campaignId || !locationId || !loc) return;
-      if (loc.source === 'campaign' && loc.scale === 'building') {
-        if (!activeFloorId) {
-          setErrors([
-            {
-              path: '',
-              code: 'VALIDATION',
-              message: 'Add a floor before saving.',
-            },
-          ]);
-          return;
-        }
-        const err = validateGridBootstrap(values);
-        if (err) {
-          setErrors([{ path: '', code: 'VALIDATION', message: err }]);
-          return;
-        }
-        setSaving(true);
-        setSuccess(false);
-        setErrors([]);
-        try {
-          const draft = gridDraftRef.current;
-          const input = toLocationInput(values);
-          const updated = await locationRepo.updateEntry(campaignId, locationId, input);
-          const floorName =
-            locations.find((l) => l.id === activeFloorId)?.name ?? 'Floor';
-          await bootstrapDefaultLocationMap(
-            campaignId,
-            activeFloorId,
-            floorName,
-            'floor',
-            values,
-            {
-              excludedCellIds: draft.excludedCellIds,
-              ...normalizedAuthoringPayloadFromGridDraft(draft),
-            },
-          );
-          reset({
-            ...locationToFormValues(updated),
-            ...pickMapGridFormValues(values),
-          });
-          setGridDraftBaseline(structuredClone(gridDraftRef.current));
-          setSuccess(true);
-        } catch (e) {
-          setErrors([
-            { path: '', code: 'SAVE_FAILED', message: (e as Error).message },
-          ]);
-        } finally {
-          setSaving(false);
-        }
+      const isBuilding = loc.source === 'campaign' && loc.scale === 'building';
+      if (isBuilding && !activeFloorId) {
+        setErrors([
+          {
+            path: '',
+            code: 'VALIDATION',
+            message: 'Add a floor before saving.',
+          },
+        ]);
         return;
       }
       const err = validateGridBootstrap(values);
@@ -711,11 +627,18 @@ export default function LocationEditRoute() {
         const draft = gridDraftRef.current;
         const input = toLocationInput(values);
         const updated = await locationRepo.updateEntry(campaignId, locationId, input);
+        const mapLocationId = isBuilding ? activeFloorId! : locationId;
+        const mapBootstrapName = isBuilding
+          ? locations.find((l) => l.id === activeFloorId)?.name ?? 'Floor'
+          : updated.name;
+        const mapBootstrapScale = isBuilding
+          ? ('floor' as const)
+          : (updated.scale as LocationScaleId);
         await bootstrapDefaultLocationMap(
           campaignId,
-          locationId,
-          updated.name,
-          updated.scale as LocationScaleId,
+          mapLocationId,
+          mapBootstrapName,
+          mapBootstrapScale,
           values,
           {
             excludedCellIds: draft.excludedCellIds,
@@ -1110,29 +1033,7 @@ export default function LocationEditRoute() {
     </Stack>
   );
 
-  const systemSelectionPanel = (
-    <LocationEditorSelectionPanel
-      selection={gridDraft.mapSelection}
-      pathEntries={gridDraft.pathEntries}
-      edgeEntries={gridDraft.edgeEntries}
-      regionEntries={gridDraft.regionEntries}
-      onUpdateRegionEntry={handleUpdateRegionEntry}
-      cellPanelProps={{
-        selectedCellId: selectedCellIdForMapSelection(gridDraft.mapSelection),
-        hostLocationId: locationId,
-        hostScale: scaleForFormRules,
-        hostName: loc.name,
-        campaignId: campaignId ?? undefined,
-        locations,
-        linkedLocationByCellId: gridDraft.linkedLocationByCellId,
-        objectsByCellId: gridDraft.objectsByCellId,
-        onUpdateLinkedLocation: handleUpdateLinkedLocation,
-        onUpdateCellObjects: handleUpdateCellObjects,
-      }}
-    />
-  );
-
-  const campaignSelectionPanel = (
+  const selectionPanel = (
     <LocationEditorSelectionPanel
       selection={gridDraft.mapSelection}
       pathEntries={gridDraft.pathEntries}
@@ -1154,6 +1055,75 @@ export default function LocationEditRoute() {
     />
   );
 
+  const locationMapGrid = showMapGridAuthoring ? (
+    <LocationGridAuthoringSection
+      gridColumns={gridColumns}
+      gridRows={gridRows}
+      gridGeometry={gridGeometry}
+      draft={gridDraft}
+      setDraft={setGridDraft}
+      locations={locations}
+      campaignId={campaignId ?? undefined}
+      hostLocationId={mapHostLocationId}
+      hostScale={mapHostScale}
+      hostName={mapHostName}
+      onCellFocusRail={focusSelectionRailSection}
+      mapEditorMode={mapEditor.mode}
+      activePaint={mapEditor.activePaint}
+      leftChromeWidthPx={leftMapChromeWidthPx}
+      onPlaceCellClick={handleAuthoringCellClick}
+      onEraseCellClick={handleEraseCell}
+      placePathAnchorCellId={mapEditor.pathAnchorCellId}
+      activeDraw={mapEditor.activeDraw}
+      onEdgeStrokeCommit={handleEdgeStrokeCommit}
+      onEraseEdge={handleEraseEdge}
+      suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
+      placeObjectDragStrokeEnabled={mapPlaceObjectDragStrokeEnabled}
+      hasDragMoved={hasDragMoved}
+    />
+  ) : null;
+
+  const mapCanvasInnerChildren =
+    isBuildingWorkspace && buildingNeedsFloor ? (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          px: 2,
+          minHeight: 120,
+        }}
+      >
+        <Typography variant="body2" color="text.secondary" textAlign="center">
+          No floors yet. Use &quot;Add floor&quot; above to create the first map.
+        </Typography>
+      </Box>
+    ) : (
+      locationMapGrid
+    );
+
+  const mapCanvasColumn = (
+    <LocationEditorMapCanvasColumn
+      showMapEditorChrome={showMapEditorChrome}
+      mode={mapEditor.mode}
+      activePaint={mapEditor.activePaint}
+      activeDraw={mapEditor.activeDraw}
+      paintPaletteItems={paintPaletteItems}
+      drawPaletteItems={drawPaletteItems}
+      onPaintChange={handlePaintChange}
+      onModeChange={handleMapEditorModeChange}
+      onSelectDraw={mapEditor.setActiveDraw}
+      zoom={zoom}
+      pan={pan}
+      panHandlers={pointerHandlers}
+      isDragging={isDragging}
+      wheelContainerRef={wheelContainerRef}
+      zoomControlProps={zoomControlProps}
+    >
+      {mapCanvasInnerChildren}
+    </LocationEditorMapCanvasColumn>
+  );
+
   if (isSystem && driver) {
     return (
       <LocationEditorWorkspace
@@ -1172,79 +1142,7 @@ export default function LocationEditRoute() {
             onToggleRightRail={() => setRightRailOpen((o) => !o)}
           />
         }
-        canvas={
-          <Box
-            sx={{
-              position: 'relative',
-              display: 'flex',
-              flex: 1,
-              minHeight: 0,
-              overflow: 'hidden',
-              width: '100%',
-            }}
-          >
-            {showMapEditorChrome && (
-              <>
-                <LocationMapEditorToolbar
-                  mode={mapEditor.mode}
-                  onModeChange={handleMapEditorModeChange}
-                />
-                {mapEditor.mode === 'paint' && mapEditor.activePaint && (
-                  <LocationMapEditorPaintTray
-                    items={paintPaletteItems}
-                    activePaint={mapEditor.activePaint}
-                    onPaintChange={handlePaintChange}
-                  />
-                )}
-                {mapEditor.mode === 'draw' && (
-                  <LocationMapEditorDrawTray
-                    items={drawPaletteItems}
-                    activeDraw={mapEditor.activeDraw}
-                    onSelectDraw={mapEditor.setActiveDraw}
-                  />
-                )}
-              </>
-            )}
-            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex' }}>
-              <LocationEditorCanvas
-                zoom={zoom}
-                pan={pan}
-                panHandlers={pointerHandlers}
-                isDragging={isDragging}
-                wheelContainerRef={wheelContainerRef}
-                zoomControlProps={zoomControlProps}
-              >
-                {showMapGridAuthoring ? (
-                  <LocationGridAuthoringSection
-                    gridColumns={gridColumns}
-                    gridRows={gridRows}
-                    gridGeometry={gridGeometry}
-                    draft={gridDraft}
-                    setDraft={setGridDraft}
-                    locations={locations}
-                    campaignId={campaignId ?? undefined}
-                    hostLocationId={locationId}
-                    hostScale={scaleForFormRules}
-                    hostName={loc.name}
-                    onCellFocusRail={focusSelectionRailSection}
-                    mapEditorMode={mapEditor.mode}
-                    activePaint={mapEditor.activePaint}
-                    leftChromeWidthPx={leftMapChromeWidthPx}
-                    onPlaceCellClick={handleAuthoringCellClick}
-                    onEraseCellClick={handleEraseCell}
-                    placePathAnchorCellId={mapEditor.pathAnchorCellId}
-                    activeDraw={mapEditor.activeDraw}
-                    onEdgeStrokeCommit={handleEdgeStrokeCommit}
-                    onEraseEdge={handleEraseEdge}
-                    suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
-                    placeObjectDragStrokeEnabled={mapPlaceObjectDragStrokeEnabled}
-                    hasDragMoved={hasDragMoved}
-                  />
-                ) : null}
-              </LocationEditorCanvas>
-            </Box>
-          </Box>
-        }
+        canvas={mapCanvasColumn}
         rightRail={
           <LocationEditorRightRail open={rightRailOpen}>
             <LocationEditorRailSectionTabs
@@ -1285,7 +1183,7 @@ export default function LocationEditRoute() {
                 </Stack>
               }
               mapPanel={mapAuthoringPanel}
-              selectionPanel={systemSelectionPanel}
+              selectionPanel={selectionPanel}
             />
           </LocationEditorRightRail>
         }
@@ -1358,154 +1256,11 @@ export default function LocationEditRoute() {
                   overflow: 'hidden',
                 }}
               >
-                {showMapEditorChrome && (
-                  <>
-                    <LocationMapEditorToolbar
-                      mode={mapEditor.mode}
-                      onModeChange={handleMapEditorModeChange}
-                    />
-                    {mapEditor.mode === 'paint' && mapEditor.activePaint && (
-                      <LocationMapEditorPaintTray
-                        items={paintPaletteItems}
-                        activePaint={mapEditor.activePaint}
-                        onPaintChange={handlePaintChange}
-                      />
-                    )}
-                    {mapEditor.mode === 'draw' && (
-                      <LocationMapEditorDrawTray
-                        items={drawPaletteItems}
-                        activeDraw={mapEditor.activeDraw}
-                        onSelectDraw={mapEditor.setActiveDraw}
-                      />
-                    )}
-                  </>
-                )}
-                <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex' }}>
-                  <LocationEditorCanvas
-                    zoom={zoom}
-                    pan={pan}
-                    panHandlers={pointerHandlers}
-                    isDragging={isDragging}
-                    wheelContainerRef={wheelContainerRef}
-                    zoomControlProps={zoomControlProps}
-                  >
-                    {buildingNeedsFloor ? (
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          px: 2,
-                          minHeight: 120,
-                        }}
-                      >
-                        <Typography variant="body2" color="text.secondary" textAlign="center">
-                          No floors yet. Use &quot;Add floor&quot; above to create the first map.
-                        </Typography>
-                      </Box>
-                    ) : showMapGridAuthoring ? (
-                      <LocationGridAuthoringSection
-                        gridColumns={gridColumns}
-                        gridRows={gridRows}
-                        gridGeometry={gridGeometry}
-                        draft={gridDraft}
-                        setDraft={setGridDraft}
-                        locations={locations}
-                        campaignId={campaignId ?? undefined}
-                        hostLocationId={mapHostLocationId}
-                        hostScale={mapHostScale}
-                        hostName={mapHostName}
-                        onCellFocusRail={focusSelectionRailSection}
-                        mapEditorMode={mapEditor.mode}
-                        activePaint={mapEditor.activePaint}
-                        leftChromeWidthPx={leftMapChromeWidthPx}
-                        onPlaceCellClick={handleAuthoringCellClick}
-                        onEraseCellClick={handleEraseCell}
-                        placePathAnchorCellId={mapEditor.pathAnchorCellId}
-                        activeDraw={mapEditor.activeDraw}
-                        onEdgeStrokeCommit={handleEdgeStrokeCommit}
-                        onEraseEdge={handleEraseEdge}
-                        suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
-                        placeObjectDragStrokeEnabled={mapPlaceObjectDragStrokeEnabled}
-                        hasDragMoved={hasDragMoved}
-                      />
-                    ) : null}
-                  </LocationEditorCanvas>
-                </Box>
+                {mapCanvasColumn}
               </Box>
             </Box>
           ) : (
-            <Box
-              sx={{
-                position: 'relative',
-                display: 'flex',
-                flex: 1,
-                minHeight: 0,
-                overflow: 'hidden',
-                width: '100%',
-              }}
-            >
-              {showMapEditorChrome && (
-                <>
-                  <LocationMapEditorToolbar
-                    mode={mapEditor.mode}
-                    onModeChange={handleMapEditorModeChange}
-                  />
-                  {mapEditor.mode === 'paint' && mapEditor.activePaint && (
-                    <LocationMapEditorPaintTray
-                      items={paintPaletteItems}
-                      activePaint={mapEditor.activePaint}
-                      onPaintChange={handlePaintChange}
-                    />
-                  )}
-                  {mapEditor.mode === 'draw' && (
-                    <LocationMapEditorDrawTray
-                      items={drawPaletteItems}
-                      activeDraw={mapEditor.activeDraw}
-                      onSelectDraw={mapEditor.setActiveDraw}
-                    />
-                  )}
-                </>
-              )}
-              <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex' }}>
-                <LocationEditorCanvas
-                  zoom={zoom}
-                  pan={pan}
-                  panHandlers={pointerHandlers}
-                  isDragging={isDragging}
-                  wheelContainerRef={wheelContainerRef}
-                  zoomControlProps={zoomControlProps}
-                >
-                  {showMapGridAuthoring ? (
-                    <LocationGridAuthoringSection
-                      gridColumns={gridColumns}
-                      gridRows={gridRows}
-                      gridGeometry={gridGeometry}
-                      draft={gridDraft}
-                      setDraft={setGridDraft}
-                      locations={locations}
-                      campaignId={campaignId ?? undefined}
-                      hostLocationId={locationId}
-                      hostScale={scaleForFormRules}
-                      hostName={loc.name}
-                      onCellFocusRail={focusSelectionRailSection}
-                      mapEditorMode={mapEditor.mode}
-                      activePaint={mapEditor.activePaint}
-                      leftChromeWidthPx={leftMapChromeWidthPx}
-                      onPlaceCellClick={handleAuthoringCellClick}
-                      onEraseCellClick={handleEraseCell}
-                      placePathAnchorCellId={mapEditor.pathAnchorCellId}
-                      activeDraw={mapEditor.activeDraw}
-                      onEdgeStrokeCommit={handleEdgeStrokeCommit}
-                      onEraseEdge={handleEraseEdge}
-                      suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
-                      placeObjectDragStrokeEnabled={mapPlaceObjectDragStrokeEnabled}
-                      hasDragMoved={hasDragMoved}
-                    />
-                  ) : null}
-                </LocationEditorCanvas>
-              </Box>
-            </Box>
+            mapCanvasColumn
           )
         }
         rightRail={
@@ -1538,7 +1293,7 @@ export default function LocationEditRoute() {
                 </Stack>
               }
               mapPanel={mapAuthoringPanel}
-              selectionPanel={campaignSelectionPanel}
+              selectionPanel={selectionPanel}
             />
           </LocationEditorRightRail>
         }
