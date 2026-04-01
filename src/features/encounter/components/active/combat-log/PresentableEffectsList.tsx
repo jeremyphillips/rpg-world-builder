@@ -15,7 +15,7 @@ import {
 } from '../../../domain'
 import type { CombatStateSection, EnrichedPresentableEffect } from '../../../domain'
 import type { CombatantInstance } from '@/features/mechanics/domain/combat'
-import { combatToneToAppBadgeTone } from '../../shared/cards/combatant-badges'
+import { combatToneToAppBadgeTone } from '@/features/combat/components'
 
 const SECTION_LABELS: Record<CombatStateSection, string> = {
   'critical-now': 'Critical Now',

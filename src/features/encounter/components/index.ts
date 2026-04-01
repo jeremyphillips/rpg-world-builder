@@ -1,8 +1,12 @@
 export { CombatLane } from './setup/roster/CombatLane'
 export { AllyRosterLane } from './setup/roster/AllyRosterLane'
 export { OpponentRosterLane } from './setup/roster/OpponentRosterLane'
-export { CombatantPreviewCard } from './shared/cards/CombatantPreviewCard'
-export { CombatantAvatar } from './shared/CombatantAvatar'
+/** Temporary re-exports (Phase 3A). Prefer `@/features/combat/components` in new code. */
+export {
+  CombatantAvatar,
+  CombatantPreviewCard,
+  CombatActionPreviewCard,
+} from '@/features/combat/components'
 export { CombatLogEntryGroup } from './active/combat-log/CombatLogEntry'
 export { TurnOrderList } from './active/modals/TurnOrderList'
 export type { TurnOrderEntry } from './active/modals/TurnOrderList'
@@ -28,13 +32,13 @@ export {
   useCloseCombatantActionDrawerOnActiveCombatantChange,
   type CombatantActionDrawerView,
 } from './active/drawers/CombatantActionDrawer'
-export type { CombatantStatBadge, CombatantTrackedPartBadge } from './shared/cards/combatant-badges'
+export type { CombatantStatBadge, CombatantTrackedPartBadge } from '@/features/combat/components'
 export {
   CombatantCoreBadgeRow,
   CombatantPreviewChipRow,
   CombatantStatBadgeRow,
   CombatantTrackedPartBadgeRow,
-} from './shared/cards/combatant-badges'
+} from '@/features/combat/components'
 export { CombatLogPanel } from './active/combat-log/CombatLogPanel'
 export { EncounterActiveSidebar } from './active/grid/EncounterActiveSidebar'
 export { EncounterGrid } from './active/grid/EncounterGrid'

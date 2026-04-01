@@ -6,7 +6,7 @@ import type { CombatantInstance } from '@/features/mechanics/domain/combat'
 
 import { buildCombatantPreviewChips } from '@/features/encounter/helpers/presentation'
 import { formatEncounterHeaderSensesLine } from './formatEncounterHeaderSenses'
-import { combatToneToAppBadgeTone } from '../../shared/cards/combatant-badges'
+import { combatToneToAppBadgeTone } from '@/features/combat/components'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'

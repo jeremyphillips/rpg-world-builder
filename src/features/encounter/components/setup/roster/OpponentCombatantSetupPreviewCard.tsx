@@ -22,8 +22,7 @@ import {
 } from '@/features/mechanics/domain/combat'
 import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
-import { CombatantPreviewCard } from '../../shared/cards/CombatantPreviewCard'
-import { CombatantAvatar } from '../../shared/CombatantAvatar'
+import { CombatantAvatar, CombatantPreviewCard } from '@/features/combat/components'
 
 type OpponentCombatantSetupPreviewCardProps = {
   monster: Monster

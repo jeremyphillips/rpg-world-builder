@@ -6,7 +6,8 @@ import { alpha } from '@mui/material/styles'
 import { AppBadge } from '@/ui/primitives'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/combat/resolution/combat-action.types'
 import { deriveCombatActionBadges } from '@/features/mechanics/domain/combat/presentation/badges/action/combat-action-badges'
-import { combatToneToAppBadgeTone } from '../../shared/cards/combatant-badges'
+
+import { combatToneToAppBadgeTone } from './combatant-badges'
 
 const TARGETING_LABELS: Record<string, string> = {
   'single-target': 'Single Target',

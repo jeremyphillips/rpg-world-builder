@@ -3,15 +3,15 @@ import Typography from '@mui/material/Typography'
 
 import { AppBadge, AppTooltipWrap } from '@/ui/primitives'
 import type { AppBadgeTone } from '@/ui/types'
+import type { CombatStateTone } from '@/features/mechanics/domain/combat/presentation/effects/presentable-effects.types'
 import type {
   CombatantStatBadge,
   CombatantTrackedPartBadge,
   PreviewChip,
   PreviewTone,
-} from '../../../domain'
-import type { CombatStateTone } from '@/features/mechanics/domain/combat/presentation/effects/presentable-effects.types'
+} from '@/features/mechanics/domain/combat/presentation/view/tactical-preview.types'
 
-export type { CombatantStatBadge, CombatantTrackedPartBadge } from '../../../domain'
+export type { CombatantStatBadge, CombatantTrackedPartBadge }
 
 /** Shared tone mapper: CombatStateTone / PreviewTone → AppBadgeTone. */
 export function combatToneToAppBadgeTone(

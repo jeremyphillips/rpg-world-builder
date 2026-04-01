@@ -5,7 +5,7 @@ import { AppAvatar, type AvatarSize } from '@/ui/primitives'
 import {
   resolveCombatantAvatarSrc,
   type CombatantPortraitEntry,
-} from '../../helpers/combatants'
+} from '@/features/combat/presentation/resolveCombatantAvatarSrc'
 
 export type CombatantAvatarProps = {
   combatant: CombatantInstance

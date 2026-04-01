@@ -6,8 +6,10 @@ import Paper from '@mui/material/Paper'
 import { AppAvatar } from '@/ui/primitives'
 import { EntitySummaryCard } from '@/ui/patterns'
 
-import type { CombatantPreviewCardProps, ViewerCombatantPresentationKind } from '../../../domain'
 import { getCombatantPreviewCardOpacity } from '@/features/mechanics/domain/combat/presentation/participation/presentation-participation'
+import type { ViewerCombatantPresentationKind } from '@/features/mechanics/domain/combat/presentation/view/tactical-preview.types'
+import type { CombatantPreviewCardProps } from '@/features/combat/types/preview-card'
+
 import { CombatantPreviewChipRow } from './combatant-badges'
 
 export function CombatantPreviewCard({
