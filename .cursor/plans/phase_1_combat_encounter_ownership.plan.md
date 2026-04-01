@@ -1,3 +1,10 @@
+---
+name: ""
+overview: ""
+todos: []
+isProject: false
+---
+
 # Phase 1: Combat / encounter folder ownership and import boundaries
 
 Reference: [docs/reference/combat-encounter-refactor-reference.md](../../docs/reference/combat-encounter-refactor-reference.md)
@@ -6,10 +13,12 @@ This pass is a **folder ownership and import boundary refactor**, not a semantic
 
 ## Architectural intent
 
-| Layer | Ownership |
-|-------|-----------|
+
+| Layer                                  | Ownership                                    |
+| -------------------------------------- | -------------------------------------------- |
 | `src/features/mechanics/domain/combat` | Shared engine / runtime / state / resolution |
-| `src/features/encounter` | Feature / workflow / UI composition |
+| `src/features/encounter`               | Feature / workflow / UI composition          |
+
 
 **Invariant (this phase):** Code inside `src/features/mechanics/domain/combat` **must not** depend on `src/features/encounter`. Encounter may temporarily re-export from combat to reduce churn; combat must not import through encounter shims.
 
@@ -64,14 +73,14 @@ This pass is a **folder ownership and import boundary refactor**, not a semantic
 ## Execution order
 
 1. Create/finalize combat-owned landing spots:
-   - `resolution/action/area-grid-action.ts` (under mechanics domain — path becomes `combat/...` after step 3, or add under `encounter` then mv with folder)
-   - `presentation/view.types.ts`
+  - `resolution/action/area-grid-action.ts` (under mechanics domain — path becomes `combat/...` after step 3, or add under `encounter` then mv with folder)
+  - `presentation/view.types.ts`
 2. Update blocking imports so engine-owned files no longer depend on encounter-owned files for these seams.
 3. `git mv` `src/features/mechanics/domain/encounter` → `src/features/mechanics/domain/combat`
 4. `git mv` `src/features/encounter/space` → `src/features/mechanics/domain/combat/space`
 5. Rewrite imports:
-   - `@/features/mechanics/domain/encounter` → `@/features/mechanics/domain/combat`
-   - `@/features/encounter/space` → `@/features/mechanics/domain/combat/space`
+  - `@/features/mechanics/domain/encounter` → `@/features/mechanics/domain/combat`
+  - `@/features/encounter/space` → `@/features/mechanics/domain/combat/space`
 6. Update encounter feature files that used **relative** imports into `space` to use the combat-owned path (`@/features/mechanics/domain/combat/space/...`).
 7. Update barrels/exports only as far as safe (see barrel rules above).
 8. Run verification; fix stragglers.
@@ -116,9 +125,10 @@ This pass is a **folder ownership and import boundary refactor**, not a semantic
 
 ## Implementation todos
 
-- [ ] Add `combat/presentation/view.types.ts` and wire `ViewerCombatantPresentationKind`; update encounter view types to use combat as source of truth.
-- [ ] Move `area-grid-action.ts` into `combat/resolution/action`; thin re-export at encounter helpers; fix engine imports to combat only.
-- [ ] `git mv` mechanics/domain/encounter → combat; rewrite all `@/.../encounter` imports.
-- [ ] `git mv` encounter/space → mechanics/domain/combat/space; rewrite space imports + encounter relative `../space` imports.
-- [ ] Verify barrels (optional `export * from './space'` only if cycle-safe).
-- [ ] Stage A + Stage B verification + grep checks.
+- Add `combat/presentation/view.types.ts` and wire `ViewerCombatantPresentationKind`; update encounter view types to use combat as source of truth.
+- Move `area-grid-action.ts` into `combat/resolution/action`; thin re-export at encounter helpers; fix engine imports to combat only.
+- `git mv` mechanics/domain/encounter → combat; rewrite all `@/.../encounter` imports.
+- `git mv` encounter/space → mechanics/domain/combat/space; rewrite space imports + encounter relative `../space` imports.
+- Verify barrels (optional `export * from './space'` only if cycle-safe).
+- Stage A + Stage B verification + grep checks.
+

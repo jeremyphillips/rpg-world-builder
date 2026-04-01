@@ -43,7 +43,7 @@ Add a small module, e.g. `[src/features/mechanics/domain/encounter/resolution/ac
 - **Rules (minimal, composable):**
   - If `[isAreaGridAction](src/features/encounter/helpers/area-grid-action.ts)`(action) → include `**area-selection`** (Fireball-style; unchanged semantics).
   - If `action.effects?.some(e => e.kind === 'spawn')` → include `**spawn-placement`** (Phase 1: never satisfied; placeholder for Phase 2).
-  - If `action.casterOptions?.length` → include `**caster-option**` (satisfied when every field id has a non-empty value in the drawer’s `selectedCasterOptions` record).
+  - If `action.casterOptions?.length` → include `**caster-option`** (satisfied when every field id has a non-empty value in the drawer’s `selectedCasterOptions` record).
   - `**creature-target**` only when the action actually needs a selected combatant from the target picker for resolution. Reuse the same idea as `[actionUsesGridCreatureTargeting](src/features/encounter/space/space.selectors.ts)` **plus** any other kinds that still require `selection.targetId` in `[getActionTargets](src/features/mechanics/domain/encounter/resolution/action/action-targeting.ts)` (at minimum: `single-target`, `single-creature`, `dead-creature`; **exclude** `none`, `self`, `all-enemies`, and area-grid actions). This keeps “spell ⇒ creature target” from being assumed globally.
 
 `**getActionResolutionReadiness(...)`**
@@ -52,7 +52,7 @@ Add a small module, e.g. `[src/features/mechanics/domain/encounter/resolution/ac
 - **Output:** `{ canResolve: boolean; missingRequirements: Array<{ kind: ...; message: string }> }` with stable, user-facing `message` strings (short, for CTA and hints).
 - **Phase 1 behavior:**
   - Area grid: keep current rule—`aoeStep === 'confirm'` and `aoeOriginCellId` set; do not add creature-target.
-  - Spawn: `canResolve === false` until placement exists; `**missingRequirements`** should list `**spawn-placement`** (and `**caster-option**` if not satisfied).
+  - Spawn: `canResolve === false` until placement exists; `**missingRequirements`** should list `**spawn-placement`** (and `**caster-option`** if not satisfied).
   - Do **not** add map/token execution—only gating/messaging.
 
 ## 2. Refactor `[encounter-resolve-selection.ts](src/features/encounter/domain/interaction/encounter-resolve-selection.ts)`

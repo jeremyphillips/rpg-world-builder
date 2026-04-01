@@ -55,7 +55,7 @@ function combatant(
   }
 }
 
-/** Same sequence as `useEncounterState` `handleMoveCombatant` after `moveCombatant`. */
+/** Same anchor pass as after `moveCombatant` in `applyMoveCombatantIntent` / grid move. */
 function afterGridMoveLikeRuntime(state: EncounterState, moverId: string, targetCellId: string): EncounterState {
   const moved = moveCombatant(state, moverId, targetCellId)
   if (moved === state) return state
