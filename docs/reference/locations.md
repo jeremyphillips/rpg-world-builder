@@ -44,7 +44,7 @@ All accept a `GridDefinition` and branch on `geometry` internally:
 
 **Hex coordinate model:** first-pass hex uses bounded x/y with odd-q offset interpretation (odd columns shifted down by half a row). Axial conversion is internal only — the public API surface stays `GridPoint`-based.
 
-### Grid cell styles (`src/ui/patterns/grid/gridCellStyles.ts`)
+### Grid cell styles (`src/features/content/locations/components/mapGrid/gridCellStyles.ts`)
 
 Shared MUI styling tokens consumed by both `GridEditor` and `HexGridEditor` to keep border colors, selected shadow, etc. in visual parity.
 
@@ -178,7 +178,7 @@ Grid geometry is derived from `LOCATION_SCALE_FIELD_POLICY` — there is no user
 
 **Persistence:** `LocationMapGrid.geometry` is optional on the shared type and on the Mongoose schema (`enum: ['square', 'hex']`, not required). Legacy maps without the field work unchanged — they render using the scale policy default.
 
-### Shared grid renderers (`src/ui/patterns/grid/`)
+### Shared grid renderers (`src/features/content/locations/components/mapGrid/`)
 
 | Component | Use |
 |-----------|-----|
@@ -210,6 +210,6 @@ Both renderers share the same callback shapes (`onCellClick`, `renderCellContent
 3. **New transition kinds:** add to `LOCATION_TRANSITION_KIND_IDS` and any server checks; shared types in `transitions/`.
 4. **Imports:** use the **barrel** `@/shared/domain/locations` for shared vocabulary and validation; use `@/features/content/locations/domain` (or `.../domain/mapContent`) for authored map content and presentation tokens. Canvas hooks: `@/ui/hooks` (see [location-workspace.md](./location-workspace.md) for how the editor uses them).
 5. **Tests:** add shared tests under `shared/domain/locations/__tests__/scale/` or `__tests__/map/`; **mapContent** tests under `src/features/content/locations/domain/mapContent/`; server tests next to services/domain in `server/features/content/locations/`.
-6. **Hex geometry extensions:** geometry policy lives in `locationScaleField.policy.ts` (`allowedGeometries`, `defaultGeometry`). Grid math helpers are in `shared/domain/grid/gridHelpers.ts`. Rendering is in `HexGridEditor.tsx`. Do not add hex logic to encounter systems without a dedicated plan.
-7. **Grid styling parity:** both `GridEditor` and `HexGridEditor` import border/shadow tokens from `src/ui/patterns/grid/gridCellStyles.ts`. Keep this file updated when changing cell visuals.
+6. **Hex geometry extensions:** geometry policy lives in `locationScaleField.policy.ts` (`allowedGeometries`, `defaultGeometry`). Grid math helpers are in `shared/domain/grid/gridHelpers.ts`. Rendering is in `mapGrid/HexGridEditor.tsx`. Do not add hex logic to encounter systems without a dedicated plan.
+7. **Grid styling parity:** both `GridEditor` and `HexGridEditor` import border/shadow tokens from `src/features/content/locations/components/mapGrid/gridCellStyles.ts`. Keep this file updated when changing cell visuals.
 8. **Workspace UI:** layout shell, building floors, zoom/pan route wiring — [location-workspace.md](./location-workspace.md).

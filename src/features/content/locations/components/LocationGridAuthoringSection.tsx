@@ -13,10 +13,13 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
-import { alpha, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 
-import GridEditor, { type GridCell } from '@/ui/patterns/grid/GridEditor';
-import HexGridEditor from '@/ui/patterns/grid/HexGridEditor';
+import {
+  GridEditor,
+  HexGridEditor,
+  type GridCell,
+} from '@/features/content/locations/components/mapGrid';
 import type { GridGeometryId } from '@/shared/domain/grid/gridGeometry';
 import {
   getLocationMapObjectKindIcon,
@@ -34,6 +37,7 @@ import type {
   LocationMapEditorMode,
 } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
 import { resolveCellFillSwatchColor } from '@/app/theme/mapColors';
+import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
 import type { Location } from '@/features/content/locations/domain/types';
 import {
   LOCATION_EDITOR_HEADER_HEIGHT_PX,
@@ -433,37 +437,13 @@ export function LocationGridAuthoringSection({
     return result;
   }, [draft.pathEntries, placePathAnchorCellId, placeHoverCellId, cellCenterPx, gridGeometry, cols, rows, activePathKind]);
 
-  const pathOverlayStroke = theme.palette.info.main;
-
   /** Committed edge features (square grid only): shared geometry layer → SVG lines below. */
   const committedEdgeSegmentGeometry = useMemo(() => {
     if (!squareGridGeometry || isHex) return [];
     return edgeEntriesToSegmentGeometrySquare(draft.edgeEntries, squareGridGeometry.cellPx);
   }, [draft.edgeEntries, squareGridGeometry, isHex]);
 
-  const edgeOverlayStrokeProps = useMemo(() => {
-    const wall = {
-      stroke: alpha(theme.palette.text.primary, 0.95),
-      strokeWidth: 15,
-    };
-    const window = {
-      stroke: alpha(theme.palette.info.main, 0.95),
-      strokeWidth: 15,
-      strokeDasharray: '4 3' as const,
-    };
-    const door = {
-      stroke: alpha(theme.palette.warning.main, 0.95),
-      strokeWidth: 15,
-    };
-    return {
-      wall,
-      window,
-      door,
-    } satisfies Record<
-      LocationEdgeFeatureKindId,
-      { stroke: string; strokeWidth: number; strokeDasharray?: string }
-    >;
-  }, [theme.palette.info.main, theme.palette.text.primary, theme.palette.warning.main]);
+  const mapUi = useMemo(() => resolveLocationMapUiStyles(theme), [theme]);
 
 
   const locationById = useMemo(
@@ -1083,13 +1063,16 @@ export function LocationGridAuthoringSection({
             }
           : {}),
         '& .location-map-place-anchor-path': {
-          boxShadow: (t) => `inset 0 0 0 3px ${t.palette.primary.main}`,
+          boxShadow: (t) =>
+            `inset 0 0 0 ${mapUi.cell.placeAnchorOutlinePx}px ${t.palette.primary.main}`,
         },
         '& .location-map-path-endpoint': {
-          boxShadow: (t) => `inset 0 0 0 2px ${t.palette.info.main}`,
+          boxShadow: (t) =>
+            `inset 0 0 0 ${mapUi.cell.pathEndpointOutlinePx}px ${t.palette.info.main}`,
         },
         '& .location-map-place-hover-preview': {
-          boxShadow: (t) => `inset 0 0 0 2px ${t.palette.success.main}`,
+          boxShadow: (t) =>
+            `inset 0 0 0 ${mapUi.cell.placeHoverPreviewOutlinePx}px ${t.palette.success.main}`,
         },
       }}
     >
@@ -1160,10 +1143,10 @@ export function LocationGridAuthoringSection({
                   y1={seg.y1}
                   x2={seg.x2}
                   y2={seg.y2}
-                  stroke={theme.palette.primary.main}
-                  strokeWidth={4}
+                  stroke={mapUi.edgeBoundaryPaint.stroke}
+                  strokeWidth={mapUi.edgeBoundaryPaint.strokeWidthPx}
                   strokeLinecap="square"
-                  opacity={0.7}
+                  opacity={mapUi.edgeBoundaryPaint.opacity}
                 />
               );
             })}
@@ -1183,13 +1166,13 @@ export function LocationGridAuthoringSection({
                     y2={seg.y2}
                     stroke={
                       edgeEraseActive
-                        ? theme.palette.error.main
-                        : theme.palette.primary.light
+                        ? mapUi.edgeHover.strokeErase
+                        : mapUi.edgeHover.strokePlace
                     }
-                    strokeWidth={3}
-                    strokeDasharray="5 3"
+                    strokeWidth={mapUi.edgeHover.strokeWidthPx}
+                    strokeDasharray={mapUi.edgeHover.dasharray}
                     strokeLinecap="square"
-                    opacity={0.6}
+                    opacity={mapUi.edgeHover.opacity}
                   />
                 );
               })()}
@@ -1198,20 +1181,20 @@ export function LocationGridAuthoringSection({
                 key={`path-${p.pathId}`}
                 d={p.d}
                 fill="none"
-                stroke={pathOverlayStroke}
+                stroke={mapUi.path.stroke}
                 strokeWidth={
                   p.pathId !== '__preview__' &&
                   draft.mapSelection.type === 'path' &&
                   draft.mapSelection.pathId === p.pathId
-                    ? 4.5
-                    : 2.5
+                    ? mapUi.path.selectedStrokeWidthPx
+                    : mapUi.path.defaultStrokeWidthPx
                 }
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             ))}
             {committedEdgeSegmentGeometry.map((g) => {
-              const st = edgeOverlayStrokeProps[g.kind];
+              const st = mapUi.edgeCommittedStrokeByKind[g.kind];
               const seg = g.segment;
               const selected =
                 (draft.mapSelection.type === 'edge' &&
@@ -1226,7 +1209,11 @@ export function LocationGridAuthoringSection({
                   x2={seg.x2}
                   y2={seg.y2}
                   stroke={st.stroke}
-                  strokeWidth={selected ? st.strokeWidth + 4 : st.strokeWidth}
+                  strokeWidth={
+                    selected
+                      ? st.strokeWidth + mapUi.tokens.edge.selectedStrokeWidthBoostPx
+                      : st.strokeWidth
+                  }
                   strokeLinecap="square"
                   {...('strokeDasharray' in st && st.strokeDasharray != null
                     ? { strokeDasharray: st.strokeDasharray }
@@ -1257,13 +1244,13 @@ export function LocationGridAuthoringSection({
                 key={`path-${p.pathId}`}
                 d={p.d}
                 fill="none"
-                stroke={pathOverlayStroke}
+                stroke={mapUi.path.stroke}
                 strokeWidth={
                   p.pathId !== '__preview__' &&
                   draft.mapSelection.type === 'path' &&
                   draft.mapSelection.pathId === p.pathId
-                    ? 4.5
-                    : 2.5
+                    ? mapUi.path.selectedStrokeWidthPx
+                    : mapUi.path.defaultStrokeWidthPx
                 }
                 strokeLinecap="round"
                 strokeLinejoin="round"

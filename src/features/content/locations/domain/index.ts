@@ -16,6 +16,7 @@ export {
 export { cellDraftToCellEntries, cellEntriesToDraft } from './maps/cellAuthoringMappers';
 export * from './mapEditor';
 export * from './mapContent';
+export * from './mapPresentation';
 export {
   getLocationMapIconByName,
   LOCATION_MAP_ICON_COMPONENT_BY_NAME,

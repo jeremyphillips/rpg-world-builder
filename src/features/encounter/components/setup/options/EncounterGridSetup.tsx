@@ -13,7 +13,7 @@ import {
   GRID_SIZE_PRESETS,
   type GridSizePreset,
 } from '@/shared/domain/grid/gridPresets'
-import GridEditor from '@/ui/patterns/grid/GridEditor'
+import { GridEditor } from '@/features/content/locations/components/mapGrid';
 
 function capitalizePreset(key: string) {
   return key.slice(0, 1).toUpperCase() + key.slice(1)

@@ -3,9 +3,9 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
-} from 'react'
-import Box from '@mui/material/Box'
-import { makeGridCellId } from '@/shared/domain/grid'
+} from 'react';
+import Box from '@mui/material/Box';
+import { makeGridCellId } from '@/shared/domain/grid';
 import {
   GRID_CELL_BG_COLOR,
   GRID_CELL_BG_COLOR_EXCLUDED,
@@ -16,33 +16,33 @@ import {
   GRID_CELL_BORDER_COLOR_HOVER,
   GRID_CELL_BORDER_COLOR_SELECTED,
   gridCellSelectedShadow,
-} from './gridCellStyles'
+} from './gridCellStyles';
 
 export type GridCell = {
-  cellId: string
-  x: number
-  y: number
-}
+  cellId: string;
+  x: number;
+  y: number;
+};
 
 export type GridEditorProps = {
-  columns: number
-  rows: number
-  selectedCellId?: string | null
+  columns: number;
+  rows: number;
+  selectedCellId?: string | null;
   /** Cells masked out of walkable layout (authoring); distinct from selection styling. */
-  excludedCellIds?: string[]
-  onCellClick?: (cell: GridCell, event: ReactMouseEvent<HTMLElement>) => void
+  excludedCellIds?: string[];
+  onCellClick?: (cell: GridCell, event: ReactMouseEvent<HTMLElement>) => void;
   /** Optional whole-cell background (e.g. terrain fill); selection / excluded still win. */
-  getCellBackgroundColor?: (cell: GridCell) => string | undefined
-  onCellPointerDown?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void
-  onCellPointerEnter?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void
-  onCellPointerUp?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void
-  getCellLabel?: (cell: GridCell) => string | undefined
+  getCellBackgroundColor?: (cell: GridCell) => string | undefined;
+  onCellPointerDown?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void;
+  onCellPointerEnter?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void;
+  onCellPointerUp?: (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => void;
+  getCellLabel?: (cell: GridCell) => string | undefined;
   /** When set, rendered inside the cell instead of {@link getCellLabel} text. */
-  renderCellContent?: (cell: GridCell) => ReactNode
-  getCellClassName?: (cell: GridCell) => string | undefined
-  className?: string
-  disabled?: boolean
-}
+  renderCellContent?: (cell: GridCell) => ReactNode;
+  getCellClassName?: (cell: GridCell) => string | undefined;
+  className?: string;
+  disabled?: boolean;
+};
 
 export default function GridEditor({
   columns,
@@ -60,12 +60,12 @@ export default function GridEditor({
   className,
   disabled,
 }: GridEditorProps) {
-  const safeCols = Math.max(0, Math.floor(columns))
-  const safeRows = Math.max(0, Math.floor(rows))
+  const safeCols = Math.max(0, Math.floor(columns));
+  const safeRows = Math.max(0, Math.floor(rows));
   const excludedSet = useMemo(
     () => new Set(excludedCellIds ?? []),
     [excludedCellIds],
-  )
+  );
 
   return (
     <Box
@@ -82,16 +82,16 @@ export default function GridEditor({
       aria-rowcount={safeRows}
     >
       {Array.from({ length: safeRows * safeCols }, (_, i) => {
-        const x = i % safeCols
-        const y = Math.floor(i / safeCols)
-        const cellId = makeGridCellId(x, y)
-        const cell: GridCell = { cellId, x, y }
-        const label = getCellLabel?.(cell)
-        const custom = renderCellContent?.(cell)
-        const extraClass = getCellClassName?.(cell)
-        const selected = selectedCellId != null && selectedCellId === cellId
-        const excluded = excludedSet.has(cellId)
-        const fillBg = getCellBackgroundColor?.(cell)
+        const x = i % safeCols;
+        const y = Math.floor(i / safeCols);
+        const cellId = makeGridCellId(x, y);
+        const cell: GridCell = { cellId, x, y };
+        const label = getCellLabel?.(cell);
+        const custom = renderCellContent?.(cell);
+        const extraClass = getCellClassName?.(cell);
+        const selected = selectedCellId != null && selectedCellId === cellId;
+        const excluded = excludedSet.has(cellId);
+        const fillBg = getCellBackgroundColor?.(cell);
 
         return (
           <Box
@@ -109,13 +109,13 @@ export default function GridEditor({
             disabled={disabled}
             onClick={(e) => !disabled && onCellClick?.(cell, e)}
             onPointerDown={(e) => {
-              onCellPointerDown?.(e, cell)
+              onCellPointerDown?.(e, cell);
             }}
             onPointerEnter={(e) => {
-              onCellPointerEnter?.(e, cell)
+              onCellPointerEnter?.(e, cell);
             }}
             onPointerUp={(e) => {
-              onCellPointerUp?.(e, cell)
+              onCellPointerUp?.(e, cell);
             }}
             className={extraClass}
             sx={{
@@ -182,8 +182,8 @@ export default function GridEditor({
               </Box>
             ) : null}
           </Box>
-        )
+        );
       })}
     </Box>
-  )
+  );
 }
