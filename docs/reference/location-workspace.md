@@ -71,7 +71,7 @@ App-wide MUI theme (`palette`, etc.) still applies; map-specific tuning should g
 |------|---------|
 | `src/features/content/locations/routes/` | Create and edit routes compose the workspace; `LocationEditRoute` uses `locationEdit/` hooks (`useLocationEditWorkspaceModel`, `useLocationMapHydration`, `useLocationEditSaveActions`) then branches to `LocationEditCampaignWorkspace` vs `LocationEditSystemPatchWorkspace`. Detail views stay content-width. |
 | `components/workspace/` | Map-first editor shell — see below. |
-| `components/LocationGridAuthoringSection.tsx` | Interactive grid preview; dispatches to `GridEditor` or `HexGridEditor` by geometry. Renders SVG overlays for paths (both geometries) and edges (square only). |
+| `components/LocationGridAuthoringSection.tsx` | Interactive grid preview; dispatches to `GridEditor` or `HexGridEditor` by geometry. SVG layers: `mapGrid/mapAuthoring/SquareMapAuthoringSvgOverlay` (paths + edges + boundary-paint preview) and `HexMapAuthoringSvgOverlay` (paths + hex region outlines). Select-mode resolver input: `domain/mapEditor/buildSelectModeInteractiveTargetInput.ts` + `resolveSelectModeInteractiveTarget`. |
 
 ---
 
@@ -273,6 +273,6 @@ Both hooks are used at the route level; derived values are passed down to canvas
 4. **Path authoring:** persisted model is `pathEntries` on `LocationMap` (ordered `cellIds` per chain). Chain-building UX lives in `LocationEditRoute.tsx` (`handleAuthoringCellClick` in **Draw** mode); smooth curve rendering in `pathOverlayRendering.ts` (`pathEntriesToSvgPaths`); hex geometry helpers in `hexGridMapOverlayGeometry.ts`. The `pathSvgData` memo in `LocationGridAuthoringSection` unifies committed and preview curves. Tests in `pathOverlayRendering.test.ts` and `hexGridMapOverlayGeometry.test.ts`.
 5. **Edge authoring:** edge logic lives under `domain/mapEditor/edgeAuthoring.ts` with tests in `edgeAuthoring.test.ts`; grid integration in `LocationGridAuthoringSection.tsx`. Before changing behavior, read **Edge authoring** and **Open issues** above (hex edge gap).
 6. **Path preview performance:** if the chain preview feels sluggish, consider caching the committed chain curve and only recomputing the tail segments on hover. See **Open issues §3**.
-7. **Select mode / region hover:** resolver and grid chrome live in `resolveSelectModeInteractiveTarget.ts`, `resolveSelectModeRegionOrCellSelection.ts`, `refineSelectModeClickAfterRegionDrill.ts`, and `mapGridCellVisualState.ts`. See **Location map styling → Select mode** and **Open issues §4** before changing hover behavior.
+7. **Select mode / region hover:** resolver and grid chrome live in `resolveSelectModeInteractiveTarget.ts`, `buildSelectModeInteractiveTargetInput.ts` (shared args from draft + pick geometry), `resolveSelectModeRegionOrCellSelection.ts`, `refineSelectModeClickAfterRegionDrill.ts`, and `mapGridCellVisualState.ts`. See **Location map styling → Select mode** and **Open issues §4** before changing hover behavior.
 
 For domain, map policy, transitions, grid geometry policy, and hex rendering math, see [locations.md](./locations.md) (section *Pointers for the next agent*).

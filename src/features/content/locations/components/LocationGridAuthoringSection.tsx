@@ -37,8 +37,9 @@ import type { Location } from '@/features/content/locations/domain/types';
 import { useLocationAuthoringGridLayout } from '@/features/content/locations/hooks/useLocationAuthoringGridLayout';
 import { usePruneGridDraftOnDimensionChange } from '@/features/content/locations/hooks/usePruneGridDraftOnDimensionChange';
 import { hexBoundarySegmentsForRegionCells } from './hexRegionBoundaryForAuthoring';
+import { HexMapAuthoringSvgOverlay } from './mapGrid/mapAuthoring/HexMapAuthoringSvgOverlay';
+import { SquareMapAuthoringSvgOverlay } from './mapGrid/mapAuthoring/SquareMapAuthoringSvgOverlay';
 import { LocationMapCellAuthoringOverlay } from './mapGrid/LocationMapCellAuthoringOverlay';
-import { LocationMapPathSvgPaths } from './mapGrid/LocationMapPathSvgPaths';
 
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
 import {
@@ -48,6 +49,10 @@ import {
   type ResolvedEdgeTarget,
   type EdgeOrientation,
 } from '@/features/content/locations/domain/mapEditor/edgeAuthoring';
+import {
+  buildSelectModeInteractiveTargetInput,
+  buildSelectModeInteractiveTargetInputSkipGeometry,
+} from '@/features/content/locations/domain/mapEditor/buildSelectModeInteractiveTargetInput';
 import { refineSelectModeClickAfterRegionDrill } from '@/features/content/locations/domain/mapEditor/refineSelectModeClickAfterRegionDrill';
 import { resolveSelectModeInteractiveTarget } from '@/features/content/locations/domain/mapEditor/resolveSelectModeInteractiveTarget';
 
@@ -60,7 +65,6 @@ import {
 import {
   resolveSquareCellIdFromGridLocalPx,
   SQUARE_GRID_GAP_PX,
-  squareEdgeSegmentPxFromEdgeId,
 } from './squareGridMapOverlayGeometry';
 import { edgeEntriesToSegmentGeometrySquare } from '@/shared/domain/locations/map/locationMapEdgeGeometry.helpers';
 import {
@@ -581,23 +585,14 @@ export function LocationGridAuthoringSection({
         gx,
         gy,
         anchorCellId,
-        objectsByCellId: draft.objectsByCellId,
-        linkedLocationByCellId: draft.linkedLocationByCellId,
-        regionIdByCellId: draft.regionIdByCellId,
-        pathPolys: pathPickPolys,
-        edgeGeoms: edgePickGeoms,
-        edgeEntries: draft.edgeEntries,
-        isHex,
+        ...buildSelectModeInteractiveTargetInput(draft, pathPickPolys, edgePickGeoms, isHex),
       });
       setSelectHoverTarget((prev) => (mapSelectionEqual(prev, next) ? prev : next));
     },
     [
       mapEditorMode,
       validPreview,
-      draft.objectsByCellId,
-      draft.linkedLocationByCellId,
-      draft.regionIdByCellId,
-      draft.edgeEntries,
+      draft,
       pathPickPolys,
       edgePickGeoms,
       isHex,
@@ -713,14 +708,7 @@ export function LocationGridAuthoringSection({
           gx: 0,
           gy: 0,
           anchorCellId: cell.cellId,
-          objectsByCellId: d.objectsByCellId,
-          linkedLocationByCellId: d.linkedLocationByCellId,
-          regionIdByCellId: d.regionIdByCellId,
-          pathPolys: [],
-          edgeGeoms: null,
-          edgeEntries: [],
-          isHex,
-          skipGeometry: true,
+          ...buildSelectModeInteractiveTargetInputSkipGeometry(d, isHex),
         });
         const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, cell.cellId);
         return {
@@ -741,13 +729,7 @@ export function LocationGridAuthoringSection({
         gx,
         gy,
         anchorCellId: cell.cellId,
-        objectsByCellId: d.objectsByCellId,
-        linkedLocationByCellId: d.linkedLocationByCellId,
-        regionIdByCellId: d.regionIdByCellId,
-        pathPolys: pathPickPolys,
-        edgeGeoms: edgePickGeoms,
-        edgeEntries: d.edgeEntries,
-        isHex,
+        ...buildSelectModeInteractiveTargetInput(d, pathPickPolys, edgePickGeoms, isHex),
       });
       const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, cell.cellId);
       return {
@@ -1005,161 +987,35 @@ export function LocationGridAuthoringSection({
           draft.edgeEntries.length > 0 ||
           edgeHoverTarget != null ||
           edgeStrokeSnapshot.length > 0) ? (
-          <svg
+          <SquareMapAuthoringSvgOverlay
             width={squareGridGeometry.width}
             height={squareGridGeometry.height}
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              pointerEvents: 'none',
-              zIndex: 2,
-              display: 'block',
-            }}
-            aria-hidden
-          >
-            {edgeStrokeSnapshot.map((eid) => {
-              const seg = squareEdgeSegmentPxFromEdgeId(eid, squareGridGeometry.cellPx);
-              if (!seg) return null;
-              return (
-                <line
-                  key={`stroke-${eid}`}
-                  x1={seg.x1}
-                  y1={seg.y1}
-                  x2={seg.x2}
-                  y2={seg.y2}
-                  stroke={mapUi.edgeBoundaryPaint.stroke}
-                  strokeWidth={mapUi.edgeBoundaryPaint.strokeWidthPx}
-                  strokeLinecap="square"
-                  opacity={mapUi.edgeBoundaryPaint.opacity}
-                />
-              );
-            })}
-            {edgeHoverTarget &&
-              !edgeStrokeSnapshot.includes(edgeHoverTarget.edgeId) &&
-              (() => {
-                const seg = squareEdgeSegmentPxFromEdgeId(
-                  edgeHoverTarget.edgeId,
-                  squareGridGeometry.cellPx,
-                );
-                if (!seg) return null;
-                return (
-                  <line
-                    x1={seg.x1}
-                    y1={seg.y1}
-                    x2={seg.x2}
-                    y2={seg.y2}
-                    stroke={
-                      edgeEraseActive
-                        ? mapUi.edgeHover.strokeErase
-                        : mapUi.edgeHover.strokePlace
-                    }
-                    strokeWidth={mapUi.edgeHover.strokeWidthPx}
-                    strokeDasharray={mapUi.edgeHover.dasharray}
-                    strokeLinecap="square"
-                    opacity={mapUi.edgeHover.opacity}
-                  />
-                );
-              })()}
-            <LocationMapPathSvgPaths
-              pathSvgData={pathSvgData}
-              mapUi={mapUi}
-              mapSelection={draft.mapSelection}
-              selectHoverTarget={selectHoverTarget}
-            />
-            {committedEdgeSegmentGeometry.map((g) => {
-              const st = mapUi.edgeCommittedStrokeByKind[g.kind];
-              const seg = g.segment;
-              const selected =
-                (draft.mapSelection.type === 'edge' &&
-                  draft.mapSelection.edgeId === g.edgeId) ||
-                (draft.mapSelection.type === 'edge-run' &&
-                  draft.mapSelection.edgeIds.includes(g.edgeId));
-              const hovered =
-                selectHoverTarget.type === 'edge-run' &&
-                selectHoverTarget.edgeIds.includes(g.edgeId);
-              return (
-                <line
-                  key={g.edgeId}
-                  x1={seg.x1}
-                  y1={seg.y1}
-                  x2={seg.x2}
-                  y2={seg.y2}
-                  stroke={st.stroke}
-                  strokeWidth={
-                    selected || hovered
-                      ? st.strokeWidth + mapUi.tokens.edge.selectedStrokeWidthBoostPx
-                      : st.strokeWidth
-                  }
-                  strokeLinecap="square"
-                  {...('strokeDasharray' in st && st.strokeDasharray != null
-                    ? { strokeDasharray: st.strokeDasharray }
-                    : {})}
-                />
-              );
-            })}
-          </svg>
+            cellPx={squareGridGeometry.cellPx}
+            mapUi={mapUi}
+            pathSvgData={pathSvgData}
+            mapSelection={draft.mapSelection}
+            selectHoverTarget={selectHoverTarget}
+            edgeStrokeSnapshot={edgeStrokeSnapshot}
+            edgeHoverTarget={edgeHoverTarget}
+            edgeEraseActive={edgeEraseActive}
+            committedEdgeSegmentGeometry={committedEdgeSegmentGeometry}
+          />
         ) : null}
         {hexGridGeometry &&
         isHex &&
         (pathSvgData.length > 0 ||
           hexSelectedRegionBoundarySegments.length > 0 ||
           hexHoverRegionBoundarySegments.length > 0) ? (
-          <svg
+          <HexMapAuthoringSvgOverlay
             width={hexGridGeometry.width}
             height={hexGridGeometry.height}
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              pointerEvents: 'none',
-              zIndex: 2,
-              display: 'block',
-            }}
-            aria-hidden
-          >
-            <LocationMapPathSvgPaths
-              pathSvgData={pathSvgData}
-              mapUi={mapUi}
-              mapSelection={draft.mapSelection}
-              selectHoverTarget={selectHoverTarget}
-            />
-            {draft.mapSelection.type === 'region' &&
-              hexSelectedRegionBoundarySegments.map((seg, i) => (
-                <line
-                  key={`hex-region-boundary-${i}-${seg.x1}-${seg.y1}-${seg.x2}-${seg.y2}`}
-                  x1={seg.x1}
-                  y1={seg.y1}
-                  x2={seg.x2}
-                  y2={seg.y2}
-                  fill="none"
-                  stroke={mapUi.regionSelectedOutline.stroke}
-                  strokeWidth={mapUi.regionSelectedOutline.strokeWidthPx}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              ))}
-            {selectHoverTarget.type === 'region' &&
-              !(
-                draft.mapSelection.type === 'region' &&
-                draft.mapSelection.regionId === selectHoverTarget.regionId
-              ) &&
-              hexHoverRegionBoundarySegments.map((seg, i) => (
-                <line
-                  key={`hex-region-hover-${i}-${seg.x1}-${seg.y1}-${seg.x2}-${seg.y2}`}
-                  x1={seg.x1}
-                  y1={seg.y1}
-                  x2={seg.x2}
-                  y2={seg.y2}
-                  fill="none"
-                  stroke={mapUi.regionSelectedOutline.stroke}
-                  strokeWidth={mapUi.regionSelectedOutline.strokeWidthPx}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity={0.65}
-                />
-              ))}
-          </svg>
+            mapUi={mapUi}
+            pathSvgData={pathSvgData}
+            mapSelection={draft.mapSelection}
+            selectHoverTarget={selectHoverTarget}
+            hexSelectedRegionBoundarySegments={hexSelectedRegionBoundarySegments}
+            hexHoverRegionBoundarySegments={hexHoverRegionBoundarySegments}
+          />
         ) : null}
       </Box>
     </Paper>
