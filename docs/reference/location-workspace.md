@@ -69,7 +69,7 @@ App-wide MUI theme (`palette`, etc.) still applies; map-specific tuning should g
 
 | Area | Purpose |
 |------|---------|
-| `src/features/content/locations/routes/` | Create and edit routes compose the workspace; `LocationEditRoute` branches to `LocationEditCampaignWorkspace` vs `LocationEditSystemPatchWorkspace`. Detail views stay content-width. |
+| `src/features/content/locations/routes/` | Create and edit routes compose the workspace; `LocationEditRoute` uses `locationEdit/` hooks (`useLocationEditWorkspaceModel`, `useLocationMapHydration`, `useLocationEditSaveActions`) then branches to `LocationEditCampaignWorkspace` vs `LocationEditSystemPatchWorkspace`. Detail views stay content-width. |
 | `components/workspace/` | Map-first editor shell — see below. |
 | `components/LocationGridAuthoringSection.tsx` | Interactive grid preview; dispatches to `GridEditor` or `HexGridEditor` by geometry. Renders SVG overlays for paths (both geometries) and edges (square only). |
 
@@ -93,7 +93,7 @@ The workspace is composed of feature-owned components:
 | `BuildingFloorStrip` | **Building edit only:** floor tabs + add-floor control above the canvas (see **Building scale** below). |
 | `locationEditor.constants.ts` | Shared pixel constants: `LOCATION_EDITOR_HEADER_HEIGHT_PX`, `LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX`, `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` (map toolbar), plus `LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX` and `LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX` when those tools are active. |
 
-**Edit route composition:** `LocationEditRoute` chooses `LocationEditCampaignWorkspace` or `LocationEditSystemPatchWorkspace` and passes the map canvas column and rail panels (`mapAuthoringPanel`, `selectionPanel`, and related handlers) as props. Orchestration and map draft logic remain in the route until further refactors.
+**Edit route composition:** `LocationEditRoute` loads the entry, then calls **`useLocationEditWorkspaceModel`** (`routes/locationEdit/useLocationEditWorkspaceModel.ts`) for form state, grid draft, map editor, palettes, canvas zoom/pan, and handlers. **Hydration** (`useLocationMapHydration`) wraps `hydrateDefaultLocationMapState` for non-building vs building-floor maps. **Save / patch / add floor** (`useLocationEditSaveActions`) centralizes campaign submit, `useSystemPatchActions`, and floor creation. The route still builds `mapAuthoringPanel`, `selectionPanel`, and `mapCanvasColumn` JSX and passes them into `LocationEditCampaignWorkspace` or `LocationEditSystemPatchWorkspace`.
 
 ---
 
