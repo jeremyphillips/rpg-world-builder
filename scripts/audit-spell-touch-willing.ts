@@ -25,10 +25,10 @@ const AUDIT_ALLOWLIST = new Set<string>([
   // RAW: "creature you touch" — not explicitly willing.
   'tongues',
 ])
-import { getSystemSpells } from '../src/features/mechanics/domain/rulesets/system/spells/index.ts'
-import { DEFAULT_SYSTEM_RULESET_ID } from '../src/features/mechanics/domain/rulesets/ids/systemIds.ts'
+import { getSystemSpells } from '../packages/mechanics/src/rulesets/system/spells'
+import { DEFAULT_SYSTEM_RULESET_ID } from '../packages/mechanics/src/rulesets/ids/systemIds'
 import { deriveSpellHostility } from '../src/features/encounter/helpers/spells'
-import type { Spell } from '../src/features/content/spells/domain/types/spell.types.ts'
+import type { Spell } from '../src/features/content/spells/domain/types/spell.types'
 
 function findSuspiciousTouchSpells(spells: readonly Spell[]): Spell[] {
   const out: Spell[] = []

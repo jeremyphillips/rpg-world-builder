@@ -1,0 +1,7 @@
+{
+  "name": "@rpg-world-builder/mechanics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared mechanics domain (combat engine, environment, perception, rulesets). Source lives under src/; consumed via @/features/mechanics/domain/* path alias from the app."
+}

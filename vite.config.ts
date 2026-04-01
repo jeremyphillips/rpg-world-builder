@@ -8,7 +8,12 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'server/**/*.test.ts', 'shared/**/*.test.ts'],
+    include: [
+      'src/**/*.test.{ts,tsx}',
+      'packages/mechanics/src/**/*.test.{ts,tsx}',
+      'server/**/*.test.ts',
+      'shared/**/*.test.ts',
+    ],
   },
   server: {
     proxy: {
@@ -53,7 +58,7 @@ export default defineConfig({
       "@/features/message": path.resolve(__dirname, "src/features/message"),
       "@/features/npc": path.resolve(__dirname, "src/features/npc"),
       "@/features/skillProficiency": path.resolve(__dirname, "src/features/skillProficiency"),
-      "@/features/mechanics": path.resolve(__dirname, "src/features/mechanics"),
+      "@/features/mechanics/domain": path.resolve(__dirname, "packages/mechanics/src"),
       "@/features/content": path.resolve(__dirname, "src/features/content"),
       "@/features/notification": path.resolve(__dirname, "src/features/notification"),
       "@/features/session": path.resolve(__dirname, "src/features/session"),

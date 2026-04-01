@@ -10,7 +10,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = path.join(__dirname, '../src/features/mechanics/domain/rulesets/system/spells/data');
+const DATA_DIR = path.join(__dirname, '../packages/mechanics/src/rulesets/system/spells/data');
 
 const SPLITS = [
   { file: 'cantrips', count: 27, firstHalf: 13, firstSuffix: 'a-l', secondSuffix: 'm-z', varPrefix: 'SPELLS_LEVEL_0' },

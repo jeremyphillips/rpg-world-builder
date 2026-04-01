@@ -44,7 +44,8 @@
       "@/features/campaign/*": ["features/campaign/*"],
       "@/features/npc/*": ["features/npc/*"],
       "@/features/characterBuilder/context": ["features/characterBuilder/context/index.ts"],
-      "@/features/mechanics/*": ["features/mechanics/*"],
+      "@/features/mechanics/domain": ["../packages/mechanics/src"],
+      "@/features/mechanics/domain/*": ["../packages/mechanics/src/*"],
       "@/features/content/*": ["features/content/*"],
       "@/features/content/domain/types": ["features/content/shared/domain/types/index.ts"],
       "@/features/notification": ["features/notification/index.ts"],
@@ -82,5 +83,5 @@
       "@/utils": ["utils/index.ts"]
     }  
   },
-  "include": ["src"]
+  "include": ["src", "packages/mechanics/src"]
 }
