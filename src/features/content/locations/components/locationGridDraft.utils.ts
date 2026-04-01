@@ -1,5 +1,5 @@
 import { normalizeLocationMapAuthoringFields } from '@/shared/domain/locations';
-import { cellDraftToCellEntries, cellEntriesToDraft } from '@/features/content/locations/domain/maps/cellAuthoringMappers';
+import { cellDraftToCellEntries, cellEntriesToDraft } from '@/features/content/locations/domain/mapAuthoring/cellAuthoringMappers';
 
 import type { LocationGridDraftState } from './locationGridDraft.types';
 

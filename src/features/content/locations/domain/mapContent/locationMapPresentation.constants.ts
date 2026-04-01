@@ -4,7 +4,7 @@ import type { LocationMapIconName } from './locationMapIconNames';
 
 /**
  * Icon name per location scale for map markers / linked-location affordances.
- * UI resolves via `getLocationMapIconByName` (see `locationMapIconNameMap.tsx`).
+ * UI resolves via `getLocationMapIconByName` (see `domain/mapPresentation/locationMapIconNameMap.tsx`).
  */
 export const LOCATION_SCALE_MAP_ICON_NAME: Record<LocationScaleId, LocationMapIconName> = {
   world: 'map_world',

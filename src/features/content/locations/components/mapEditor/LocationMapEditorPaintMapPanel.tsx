@@ -7,8 +7,7 @@ import Typography from '@mui/material/Typography';
 import { getMapRegionColor } from '@/app/theme/mapColors';
 import { LOCATION_MAP_REGION_COLOR_KEYS } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
 import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
-import type { LocationMapPaintState } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
-import { resolveActiveRegionEntry } from '@/features/content/locations/domain/mapEditor/locationMapPaintSelection.helpers';
+import { resolveActiveRegionEntry, type LocationMapPaintState } from '@/features/content/locations/domain/mapEditor';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 
 import { RegionPaintActiveRegionSelect } from './RegionPaintActiveRegionSelect';

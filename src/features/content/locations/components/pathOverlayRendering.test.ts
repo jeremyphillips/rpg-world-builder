@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { LocationMapPathAuthoringEntry } from '@/shared/domain/locations/map/locationMap.types';
 
-import { distancePointToSegmentSquared } from '@/features/content/locations/domain/mapEditor/locationMapSelectionHitTest';
+import { distancePointToSegmentSquared } from '@/features/content/locations/domain/mapEditor';
 
 import {
   chainToSmoothSvgPath,

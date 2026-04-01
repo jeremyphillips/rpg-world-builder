@@ -4,7 +4,7 @@ This document describes the **full-width create/edit shell** for campaign locati
 
 Location create and edit routes render inside a full-width workspace via `AuthMainFocus` layout mode, triggered by `isAuthMainFocusPath` in `src/app/layouts/auth/auth-main-path.ts`.
 
-**Canonical map authoring on the wire:** path kinds use `LOCATION_MAP_PATH_KIND_IDS` (`road` | `river`); edge kinds use `LOCATION_MAP_EDGE_KIND_IDS` (`wall` | `window` | `door`). Persisted `LocationMap` fields include `pathEntries` (per-chain `id`, `kind`, ordered `cellIds`) and `edgeEntries` (`edgeId`, `kind`). At persistence and API boundaries, `normalizeLocationMapAuthoringFields` / `normalizeLocationMapBaseAuthoring` (`shared/domain/locations/map/locationMapAuthoring.normalize.ts`) ensure `cellEntries`, `pathEntries`, and `edgeEntries` are always arrays (never `undefined`), including server `toDoc`, client `locationMapRepo` responses, `bootstrapDefaultLocationMap`, and save/load paths in `LocationEditRoute`.
+**Canonical map authoring on the wire:** path kinds use `LOCATION_MAP_PATH_KIND_IDS` (`road` | `river`); edge kinds use `LOCATION_MAP_EDGE_KIND_IDS` (`wall` | `window` | `door`). Persisted `LocationMap` fields include `pathEntries` (per-chain `id`, `kind`, ordered `cellIds`) and `edgeEntries` (`edgeId`, `kind`). At persistence and API boundaries, `normalizeLocationMapAuthoringFields` / `normalizeLocationMapBaseAuthoring` (`shared/domain/locations/map/locationMapAuthoring.normalize.ts`) ensure `cellEntries`, `pathEntries`, and `edgeEntries` are always arrays (never `undefined`), including server `toDoc`, client `locationMapRepo` responses, `bootstrapDefaultLocationMap`, and save/load paths in `LocationEditRoute` (full-width UI is composed through `LocationEditCampaignWorkspace` or `LocationEditSystemPatchWorkspace`; see **Workspace layout**).
 
 **Geometry vs rendering:** Canonical authored→geometry lives in shared: `pathEntriesToPolylineGeometry` / `pathEntryToPolylineGeometry` compose `pathEntryToCenterlinePoints` into `Point2D[]` polylines (`locationMapPathPolyline.helpers.ts`); square **edge** boundaries use `edgeEntriesToSegmentGeometrySquare` (`locationMapEdgeGeometry.helpers.ts`, square only). Square pixel layout (`squareCellCenterPx`, `squareEdgeSegmentPxFromEdgeId`, `resolveSquareCellIdFromGridLocalPx`, …) is in `shared/domain/grid/squareGridOverlayGeometry.ts` and re-exported from `components/squareGridMapOverlayGeometry.ts`. **Renderer adapters** (non-canonical): `polylinePoint2DToSmoothSvgPath` and `pathEntriesToSvgPaths` in `components/pathOverlayRendering.ts` apply Catmull-Rom smoothing and SVG `d` strings only—do not add grid math there.
 
@@ -51,7 +51,7 @@ App-wide MUI theme (`palette`, etc.) still applies; map-specific tuning should g
 
 ### Select mode: interactive targets and cell chrome
 
-**Unified resolver:** `domain/mapEditor/resolveSelectModeInteractiveTarget.ts` is the single entry for **Select**-mode hover and click targeting. Priority: **DOM** hit on map object (`[data-map-object-id]`) → **DOM** hit on linked-location icon (`[data-map-linked-cell]`) → **square** edge geometry → **path** polyline → **draft interior** via `resolveSelectModeAfterPathEdgeHits`.
+**Unified resolver:** `domain/mapEditor/select-mode/resolveSelectModeInteractiveTarget.ts` is the single entry for **Select**-mode hover and click targeting. Priority: **DOM** hit on map object (`[data-map-object-id]`) → **DOM** hit on linked-location icon (`[data-map-linked-cell]`) → **square** edge geometry → **path** polyline → **draft interior** via `resolveSelectModeAfterPathEdgeHits`.
 
 **Interior resolution** (`resolveSelectModeRegionOrCellSelection.ts` — `resolveSelectModeAfterPathEdgeHits`): after path/edge misses, **map objects → region assignment → linked location → bare cell**. Region is ordered **before** linked so that hovering the **cell interior** (not the link icon) treats the **region** as the primary target; that drives `selectHoverTarget` in `LocationGridAuthoringSection` and keeps cell-level hover chrome off unless the winner is actually **`cell`**. Direct pointer hits on the link icon still resolve to `{ type: 'cell' }` via the DOM branch first.
 
@@ -69,9 +69,9 @@ App-wide MUI theme (`palette`, etc.) still applies; map-specific tuning should g
 
 | Area | Purpose |
 |------|---------|
-| `src/features/content/locations/routes/` | Create and edit routes compose the workspace; detail stays content-width. |
+| `src/features/content/locations/routes/` | Create and edit routes compose the workspace; `LocationEditRoute` uses `locationEdit/` hooks (`useLocationEditWorkspaceModel`, `useLocationMapHydration`, `useLocationEditSaveActions`) then branches to `LocationEditCampaignWorkspace` vs `LocationEditSystemPatchWorkspace`. Detail views stay content-width. |
 | `components/workspace/` | Map-first editor shell — see below. |
-| `components/LocationGridAuthoringSection.tsx` | Interactive grid preview; dispatches to `GridEditor` or `HexGridEditor` by geometry. Renders SVG overlays for paths (both geometries) and edges (square only). |
+| `components/LocationGridAuthoringSection.tsx` | Interactive grid preview; dispatches to `GridEditor` or `HexGridEditor` by geometry. SVG layers: `mapGrid/mapAuthoring/SquareMapAuthoringSvgOverlay` (paths + edges + boundary-paint preview) and `HexMapAuthoringSvgOverlay` (paths + hex region outlines). Select-mode resolver input: `domain/mapEditor/select-mode/` (`buildSelectModeInteractiveTargetInput`, `resolveSelectModeInteractiveTarget`). |
 
 ---
 
@@ -81,6 +81,8 @@ The workspace is composed of feature-owned components:
 
 | Component | Role |
 |-----------|------|
+| `LocationEditCampaignWorkspace` | **Campaign edit** (including building + floor): wraps `FormProvider`, optional `BuildingFloorStrip` + map column, `LocationEditorWorkspace`, location form + visibility in the rail, `LocationMapEditorLinkedLocationModal`, delete `ConfirmModal`. |
+| `LocationEditSystemPatchWorkspace` | **System-location patch:** `LocationEditorWorkspace` with patch header and patch-driven location panel (no `FormProvider`). |
 | `LocationEditorWorkspace` | Outer flex column: header slot + body row (canvas + right rail). Body row capped at `calc(100vh - headerHeight)`. |
 | `LocationEditorHeader` | Sticky header: title, ancestry breadcrumbs, global save button, right-rail toggle, optional actions (e.g. delete). |
 | `LocationEditorCanvas` | Flex-filling canvas region with zoom/pan transform wrapper. Hosts `LocationGridAuthoringSection` as child content and renders `ZoomControl` (fixed positioned). |
@@ -91,11 +93,13 @@ The workspace is composed of feature-owned components:
 | `BuildingFloorStrip` | **Building edit only:** floor tabs + add-floor control above the canvas (see **Building scale** below). |
 | `locationEditor.constants.ts` | Shared pixel constants: `LOCATION_EDITOR_HEADER_HEIGHT_PX`, `LOCATION_EDITOR_RIGHT_RAIL_WIDTH_PX`, `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` (map toolbar), plus `LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX` and `LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX` when those tools are active. |
 
+**Edit route composition:** `LocationEditRoute` loads the entry, then calls **`useLocationEditWorkspaceModel`** (`routes/locationEdit/useLocationEditWorkspaceModel.ts`) for form state, grid draft, map editor, palettes, canvas zoom/pan, and handlers. **Hydration** (`useLocationMapHydration`) wraps `hydrateDefaultLocationMapState` for non-building vs building-floor maps. **Save / patch / add floor** (`useLocationEditSaveActions`) centralizes campaign submit, `useSystemPatchActions`, and floor creation. The route still builds `mapAuthoringPanel`, `selectionPanel`, and `mapCanvasColumn` JSX and passes them into `LocationEditCampaignWorkspace` or `LocationEditSystemPatchWorkspace`.
+
 ---
 
 ## Map editor toolbar and related UI
 
-When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEditRoute.tsx`), the canvas column includes **map editor chrome** to the left of `LocationEditorCanvas`: a vertical toolbar and, depending on mode, a slim **paint** swatch column and/or **draw** kind column.
+When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEditRoute.tsx`; panels are wired from the route into the active workspace shell), the canvas column includes **map editor chrome** to the left of `LocationEditorCanvas`: a vertical toolbar and, depending on mode, a slim **paint** swatch column and/or **draw** kind column.
 
 ### `LocationMapEditorToolbar`
 
@@ -105,7 +109,7 @@ When the map grid is shown in create/edit (`showMapGridAuthoring` in `LocationEd
 | **Width** | `LOCATION_EDITOR_TOOLBAR_WIDTH_PX` (`locationEditor.constants.ts`) |
 | **Control** | MUI vertical `ToggleButtonGroup` (exclusive), icon-only buttons |
 
-**Modes** (`LocationMapEditorMode` in `domain/mapEditor/locationMapEditor.types.ts`):
+**Modes** (`LocationMapEditorMode` in `domain/mapEditor/types/locationMapEditor.types.ts`):
 
 | Mode | Purpose |
 |------|---------|
@@ -183,10 +187,10 @@ Edges (walls, windows, doors) use a **boundary-paint** interaction model on **sq
 
 | Module | Exports |
 |--------|---------|
-| `domain/mapEditor/edgeAuthoring.ts` | `resolveNearestCellEdgeSide`, `resolveEdgeTargetFromGridPosition`, `applyEdgeStrokeToDraft` (replace/no-op rules), `shouldAcceptStrokeEdge` (axis lock + collinearity + adjacency), `areEdgesAdjacent`, `getSquareEdgeOrientation`, types `ResolvedEdgeTarget`, `EdgeOrientation` |
+| `domain/mapEditor/edge/edgeAuthoring.ts` | `resolveNearestCellEdgeSide`, `resolveEdgeTargetFromGridPosition`, `applyEdgeStrokeToDraft` (replace/no-op rules), `shouldAcceptStrokeEdge` (axis lock + collinearity + adjacency), `areEdgesAdjacent`, `getSquareEdgeOrientation`, types `ResolvedEdgeTarget`, `EdgeOrientation` |
 | `squareGridMapOverlayGeometry.ts` | `squareEdgeSegmentPxFromEdgeId` for rendering committed and preview edges |
-| `domain/mapEditor/resolveEraseTarget.ts` | `resolveEraseEdgeByEdgeId` for precise edge-specific erase |
-| `LocationGridAuthoringSection` | Capture-phase pointer handlers, stroke refs (`edgeStrokeActive`, `edgeStrokeSeen`, `edgeStrokeEdgeIds`, `edgeStrokeLockedAxis`, `edgeStrokeLastTarget`, `shiftHeld`), SVG overlay for hover preview and stroke accumulation |
+| `domain/mapEditor/erase/resolveEraseTarget.ts` | `resolveEraseTargetAtCell` (priority stack); `resolveEraseEdgeByEdgeId` for precise edge-only erase |
+| `LocationGridAuthoringSection` | Composes **`useSquareEdgeBoundaryPaint`** (`mapGrid/mapAuthoring/useSquareEdgeBoundaryPaint.ts`) for capture-phase edge place/erase + stroke state; **`SquareMapAuthoringSvgOverlay`** for preview and committed segments |
 
 **Stroke constraint rules (`shouldAcceptStrokeEdge`):**
 1. **Axis lock** — the initial click locks the axis (horizontal or vertical). Subsequent edges must match unless Shift is held.
@@ -241,7 +245,7 @@ The smooth curve preview (hover → smooth Catmull-Rom spline) recalculates the 
 For **`scale === building`** (campaign edit only), the editor is **building-centric** but **maps live on floor children**, not on the building record:
 
 - **Floors** are separate locations: `scale: floor`, `parentId` = building id. Each floor has its own default map (normal persistence — no merged multi-floor document).
-- **UI:** a **`BuildingFloorStrip`** sits under the header in the canvas column (full-width strip). Tabs show **Floor 1**, **Floor 2**, … (labels from sorted order); **+ Add floor** creates the next floor + bootstraps its map. Only **one** floor's grid is mounted at a time (`activeFloorId` in route state; URL stays `/locations/:buildingId/edit`).
+- **UI:** a **`BuildingFloorStrip`** sits under the header in the canvas column (full-width strip), rendered inside **`LocationEditCampaignWorkspace`** when `scale === building`. Tabs show **Floor 1**, **Floor 2**, … (labels from sorted order); **+ Add floor** creates the next floor + bootstraps its map. Only **one** floor's grid is mounted at a time (`activeFloorId` in route state; URL stays `/locations/:buildingId/edit`).
 - **Save** updates the **building** location (metadata, etc.) and **bootstraps the active floor's** map. If there are no floors yet, save is disabled until at least one floor exists.
 - **Code:** helpers in `domain/building/buildingWorkspaceFloors.ts`; branching in `LocationEditRoute.tsx` (map load/save keyed by `activeFloorId`, `hostScale: 'floor'` for grid authoring). Out of scope for this pass: basement labels, floor reorder/delete UX, stacked canvases.
 
@@ -263,12 +267,12 @@ Both hooks are used at the route level; derived values are passed down to canvas
 
 ## Pointers for the next agent (workspace)
 
-1. **Workspace layout changes:** modify components under `components/workspace/`; constants in `locationEditor.constants.ts`. Do not add workspace layout logic to the generic content template system.
+1. **Workspace layout changes:** modify components under `components/workspace/`; entry shells are `LocationEditCampaignWorkspace` and `LocationEditSystemPatchWorkspace` (both wrap `LocationEditorWorkspace`). Constants in `locationEditor.constants.ts`. Do not add workspace layout logic to the generic content template system.
 2. **Zoom/pan enhancements:** extend `useCanvasZoom` / `useCanvasPan` in `src/ui/hooks/`; both location and encounter features consume them. `ZoomControl` supports `positioning` prop (`'fixed'` default, `'absolute'` for container-relative).
 3. **Focus-mode routes:** add new full-width routes by extending the regex in `src/app/layouts/auth/auth-main-path.ts`.
 4. **Path authoring:** persisted model is `pathEntries` on `LocationMap` (ordered `cellIds` per chain). Chain-building UX lives in `LocationEditRoute.tsx` (`handleAuthoringCellClick` in **Draw** mode); smooth curve rendering in `pathOverlayRendering.ts` (`pathEntriesToSvgPaths`); hex geometry helpers in `hexGridMapOverlayGeometry.ts`. The `pathSvgData` memo in `LocationGridAuthoringSection` unifies committed and preview curves. Tests in `pathOverlayRendering.test.ts` and `hexGridMapOverlayGeometry.test.ts`.
-5. **Edge authoring:** edge logic lives under `domain/mapEditor/edgeAuthoring.ts` with tests in `edgeAuthoring.test.ts`; grid integration in `LocationGridAuthoringSection.tsx`. Before changing behavior, read **Edge authoring** and **Open issues** above (hex edge gap).
+5. **Edge authoring:** edge logic lives under `domain/mapEditor/edge/` with tests in `domain/mapEditor/__tests__/edge/`; grid wiring uses `useSquareEdgeBoundaryPaint` in `LocationGridAuthoringSection.tsx`. Before changing behavior, read **Edge authoring** and **Open issues** above (hex edge gap).
 6. **Path preview performance:** if the chain preview feels sluggish, consider caching the committed chain curve and only recomputing the tail segments on hover. See **Open issues §3**.
-7. **Select mode / region hover:** resolver and grid chrome live in `resolveSelectModeInteractiveTarget.ts`, `resolveSelectModeRegionOrCellSelection.ts`, `refineSelectModeClickAfterRegionDrill.ts`, and `mapGridCellVisualState.ts`. See **Location map styling → Select mode** and **Open issues §4** before changing hover behavior.
+7. **Select mode / region hover:** resolver and grid chrome live under `domain/mapEditor/select-mode/` (`resolveSelectModeInteractiveTarget`, `buildSelectModeInteractiveTargetInput`, `resolveSelectModeRegionOrCellSelection`, `refineSelectModeClickAfterRegionDrill`, `locationMapSelectionHitTest`) plus `mapGridCellVisualState.ts`. See **Location map styling → Select mode** and **Open issues §4** before changing hover behavior.
 
 For domain, map policy, transitions, grid geometry policy, and hex rendering math, see [locations.md](./locations.md) (section *Pointers for the next agent*).

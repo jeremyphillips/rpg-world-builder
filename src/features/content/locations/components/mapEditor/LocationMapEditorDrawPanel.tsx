@@ -9,7 +9,7 @@ import { getLocationMapIconByName } from '@/features/content/locations/domain';
 import type {
   LocationMapActiveDrawSelection,
   MapDrawPaletteItem,
-} from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
+} from '@/features/content/locations/domain/mapEditor';
 
 function selectionKey(sel: LocationMapActiveDrawSelection): string | null {
   if (!sel) return null;
