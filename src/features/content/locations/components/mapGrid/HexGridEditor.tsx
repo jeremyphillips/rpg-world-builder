@@ -20,16 +20,7 @@ import {
 } from 'react';
 import Box from '@mui/material/Box';
 import { makeGridCellId } from '@/shared/domain/grid';
-import {
-  GRID_CELL_BG_COLOR,
-  GRID_CELL_BG_COLOR_EXCLUDED,
-  GRID_CELL_BG_COLOR_HOVER,
-  GRID_CELL_BG_COLOR_SELECTED,
-  GRID_CELL_BORDER_COLOR,
-  GRID_CELL_BORDER_COLOR_EXCLUDED,
-  GRID_CELL_BORDER_COLOR_HOVER,
-  GRID_CELL_BORDER_COLOR_SELECTED,
-} from './gridCellStyles';
+import { gridCellPalette } from './gridCellStyles';
 
 export type HexGridCell = {
   cellId: string;
@@ -124,17 +115,17 @@ export default function HexGridEditor({
         const strokePx = selected ? '2px' : '1px';
 
         const outerRingColor = selected
-          ? GRID_CELL_BORDER_COLOR_SELECTED
+          ? gridCellPalette.border.selected
           : excluded
-            ? GRID_CELL_BORDER_COLOR_EXCLUDED
-            : GRID_CELL_BORDER_COLOR;
+            ? gridCellPalette.border.excluded
+            : gridCellPalette.border.default;
 
         const fillBg = getCellBackgroundColor?.(cell);
         const innerFillColor = selected
-          ? GRID_CELL_BG_COLOR_SELECTED
+          ? gridCellPalette.background.selected
           : excluded
-            ? GRID_CELL_BG_COLOR_EXCLUDED
-            : fillBg ?? GRID_CELL_BG_COLOR;
+            ? gridCellPalette.background.excluded
+            : fillBg ?? gridCellPalette.background.default;
 
         return (
           <Box
@@ -182,15 +173,15 @@ export default function HexGridEditor({
               bgcolor: outerRingColor,
               '&:hover:not(:disabled)': {
                 bgcolor: selected
-                  ? GRID_CELL_BORDER_COLOR_SELECTED
-                  : GRID_CELL_BORDER_COLOR_HOVER,
+                  ? gridCellPalette.border.selected
+                  : gridCellPalette.border.hover,
               },
               '&:hover:not(:disabled) .hex-inner': {
                 bgcolor: selected
-                  ? GRID_CELL_BG_COLOR_SELECTED
+                  ? gridCellPalette.background.selected
                   : excluded
-                    ? GRID_CELL_BG_COLOR_EXCLUDED
-                    : fillBg ?? GRID_CELL_BG_COLOR_HOVER,
+                    ? gridCellPalette.background.excluded
+                    : fillBg ?? gridCellPalette.background.hover,
               },
             }}
           >

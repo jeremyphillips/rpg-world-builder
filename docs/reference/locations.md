@@ -184,7 +184,7 @@ Grid geometry is derived from `LOCATION_SCALE_FIELD_POLICY` — there is no user
 |-----------|-----|
 | `GridEditor` | Square grid — CSS grid layout, `aspectRatio: 1` cells. Used by encounters and square-scale locations. |
 | `HexGridEditor` | Hex grid — CSS `clip-path` hexagons, absolute positioning with odd-q offset layout. Used by hex-scale locations only. |
-| `gridCellStyles.ts` | Shared MUI styling tokens (border colors, selected shadow) consumed by both renderers. |
+| `gridCellStyles.ts` | `gridCellPalette` (border/background MUI paths), `gridCellSelectedShadow`, `gridCellSelectedInsetPx`. |
 
 Both renderers share the same callback shapes (`onCellClick`, `renderCellContent`, etc.) and cell identity convention (`makeGridCellId(x, y)` → `"x,y"`).
 

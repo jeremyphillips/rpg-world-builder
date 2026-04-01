@@ -5,13 +5,7 @@ export {
   type HexGridEditorProps,
 } from './HexGridEditor';
 export {
-  GRID_CELL_BG_COLOR,
-  GRID_CELL_BG_COLOR_EXCLUDED,
-  GRID_CELL_BG_COLOR_HOVER,
-  GRID_CELL_BG_COLOR_SELECTED,
-  GRID_CELL_BORDER_COLOR,
-  GRID_CELL_BORDER_COLOR_EXCLUDED,
-  GRID_CELL_BORDER_COLOR_HOVER,
-  GRID_CELL_BORDER_COLOR_SELECTED,
+  gridCellPalette,
+  gridCellSelectedInsetPx,
   gridCellSelectedShadow,
 } from './gridCellStyles';

@@ -6,17 +6,7 @@ import {
 } from 'react';
 import Box from '@mui/material/Box';
 import { makeGridCellId } from '@/shared/domain/grid';
-import {
-  GRID_CELL_BG_COLOR,
-  GRID_CELL_BG_COLOR_EXCLUDED,
-  GRID_CELL_BG_COLOR_HOVER,
-  GRID_CELL_BG_COLOR_SELECTED,
-  GRID_CELL_BORDER_COLOR,
-  GRID_CELL_BORDER_COLOR_EXCLUDED,
-  GRID_CELL_BORDER_COLOR_HOVER,
-  GRID_CELL_BORDER_COLOR_SELECTED,
-  gridCellSelectedShadow,
-} from './gridCellStyles';
+import { gridCellPalette, gridCellSelectedShadow } from './gridCellStyles';
 
 export type GridCell = {
   cellId: string;
@@ -125,16 +115,16 @@ export default function GridEditor({
               border: 1,
               borderRadius: 0.5,
               borderColor: selected
-                ? GRID_CELL_BORDER_COLOR_SELECTED
+                ? gridCellPalette.border.selected
                 : excluded
-                  ? GRID_CELL_BORDER_COLOR_EXCLUDED
-                  : GRID_CELL_BORDER_COLOR,
+                  ? gridCellPalette.border.excluded
+                  : gridCellPalette.border.default,
               borderStyle: excluded && !selected ? 'dashed' : 'solid',
               bgcolor: selected
-                ? GRID_CELL_BG_COLOR_SELECTED
+                ? gridCellPalette.background.selected
                 : excluded
-                  ? GRID_CELL_BG_COLOR_EXCLUDED
-                  : fillBg ?? GRID_CELL_BG_COLOR,
+                  ? gridCellPalette.background.excluded
+                  : fillBg ?? gridCellPalette.background.default,
               backgroundImage: excluded
                 ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
                 : undefined,
@@ -153,13 +143,13 @@ export default function GridEditor({
                 ? undefined
                 : {
                     borderColor: selected
-                      ? GRID_CELL_BORDER_COLOR_SELECTED
-                      : GRID_CELL_BORDER_COLOR_HOVER,
+                      ? gridCellPalette.border.selected
+                      : gridCellPalette.border.hover,
                     bgcolor: selected
-                      ? GRID_CELL_BG_COLOR_SELECTED
+                      ? gridCellPalette.background.selected
                       : excluded
-                        ? GRID_CELL_BG_COLOR_EXCLUDED
-                        : fillBg ?? GRID_CELL_BG_COLOR_HOVER,
+                        ? gridCellPalette.background.excluded
+                        : fillBg ?? gridCellPalette.background.hover,
                   },
             }}
           >

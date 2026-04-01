@@ -4,16 +4,27 @@
  */
 import type { Theme } from '@mui/material/styles';
 
-/** MUI palette paths for `borderColor` / `bgcolor` in `sx`. */
-export const GRID_CELL_BORDER_COLOR = 'divider' as const;
-export const GRID_CELL_BORDER_COLOR_EXCLUDED = 'text.disabled' as const;
-export const GRID_CELL_BORDER_COLOR_HOVER = 'primary.main' as const;
-export const GRID_CELL_BORDER_COLOR_SELECTED = 'primary.main' as const;
+/**
+ * MUI palette paths for `borderColor` / `bgcolor` in `sx` (nested for readability).
+ */
+export const gridCellPalette = {
+  border: {
+    default: 'divider',
+    excluded: 'text.disabled',
+    hover: 'primary.main',
+    selected: 'primary.main',
+  },
+  background: {
+    default: 'background.paper',
+    excluded: 'action.disabledBackground',
+    selected: 'background.paper',
+    hover: 'background.paper',
+  },
+} as const;
 
-export const GRID_CELL_BG_COLOR = 'background.paper' as const;
-export const GRID_CELL_BG_COLOR_EXCLUDED = 'action.disabledBackground' as const;
-export const GRID_CELL_BG_COLOR_SELECTED = 'background.paper' as const;
-export const GRID_CELL_BG_COLOR_HOVER = 'background.paper' as const;
+/** Inset ring width when a square cell is selected (`boxShadow`). */
+export const gridCellSelectedInsetPx = 2;
 
-export const gridCellSelectedShadow = (theme: Theme) =>
-  `inset 0 0 0 2px ${theme.palette.primary.main}`;
+export function gridCellSelectedShadow(theme: Theme) {
+  return `inset 0 0 0 ${gridCellSelectedInsetPx}px ${theme.palette.primary.main}`;
+}
