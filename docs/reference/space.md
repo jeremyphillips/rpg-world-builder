@@ -70,7 +70,7 @@ The `showReachable` option is driven by movement budget (`movementRemaining > 0`
 
 **Grid hover status:** `deriveGridHoverStatusMessage` (encounter helpers) composes a single line for illegal hover (movement, creature targeting, or invalid AoE origin) to show under the encounter header.
 
-**Grid cell visuals:** The active encounter grid (`EncounterGrid`) derives each cell’s fill and movement outline from a small pure resolver and style map — `getCellVisualState` and `getCellVisualSx` in `src/features/encounter/components/active/grid/cellVisualState.ts` and `cellVisualStyles.ts`. **Overlay precedence** (highest first): blocked tile → placement (invalid hover, selected, cast-range band) → AoE (invalid origin hover, locked origin, area template) → **AoE cast-range band** (cells within spell cast distance when no higher-priority AoE tint applies) → default paper. **Movement** (reachable border / green fill / illegal-move hover) is applied after that stack. The AoE cast-range band is modeled as a first-class overlay kind; its style entry uses the same paper fill as open ground (matching prior behavior) while still participating in precedence so **movement fill suppression** on those cells is explicit in the resolver, not a separate ad hoc suppression flag in the component. Persistent auras or emanations can extend the same overlay list later.
+**Grid cell visuals:** The tactical grid is rendered by **`CombatGrid`** (`src/features/combat/components/grid/CombatGrid.tsx`); the encounter feature exposes a thin **`EncounterGrid`** wrapper that forwards the same props. Cell fill and movement outlines come from `getCellVisualState` and `getCellVisualSx` in `src/features/combat/components/grid/cellVisualState.ts` and `cellVisualStyles.ts`. **Overlay precedence** (highest first): blocked tile → placement (invalid hover, selected, cast-range band) → AoE (invalid origin hover, locked origin, area template) → **AoE cast-range band** (cells within spell cast distance when no higher-priority AoE tint applies) → default paper. **Movement** (reachable border / green fill / illegal-move hover) is applied after that stack. The AoE cast-range band is modeled as a first-class overlay kind; its style entry uses the same paper fill as open ground (matching prior behavior) while still participating in precedence so **movement fill suppression** on those cells is explicit in the resolver, not a separate ad hoc suppression flag in the component. Persistent auras or emanations can extend the same overlay list later.
 
 ### Battlefield presence, occupancy, and return placement (mechanics linkage)
 
@@ -85,7 +85,7 @@ Grid **`CombatantPosition[]`** is the source of truth for **which combatant occu
 
 The grid view model’s **`occupantRendersToken`** flag stays aligned with presence: if mechanics have cleared placement, there is usually no `occupantId`; if state ever diverged, the flag still suppresses the token when presence is false.
 
-**UI:** Initiative / preview cards use shared participation visuals (`src/features/encounter/domain/presentation-participation.ts`) — defeated vs battlefield-absent dimming — separate from this folder but driven by the same presence semantics.
+**UI:** Initiative / preview cards use shared participation visuals (`src/features/mechanics/domain/combat/presentation/participation/presentation-participation.ts`) — defeated vs battlefield-absent dimming — separate from this folder but driven by the same presence semantics.
 
 ### Spawn and grid replacement (tactical token handoff)
 

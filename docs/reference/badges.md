@@ -18,15 +18,15 @@ Produce compact, ordered badge chips for combat action rows and cards
 
 | File | Role |
 |---|---|
-| `src/features/encounter/domain/badges/action/combat-action-badges.types.ts` | `ActionBadgeKind`, `ActionBadgeDescriptor` |
-| `src/features/encounter/domain/badges/action/combat-action-badges.ts` | `deriveCombatActionBadges()` -- pure derivation |
-| `src/features/encounter/domain/badges/action/combat-action-badges.test.ts` | Unit tests (21 cases) |
-| `src/features/encounter/domain/badges/action/action-presentation.types.ts` | `ActionPresentationViewModel`, `ActionSemanticCategory`, `ActionSourceTag` |
-| `src/features/encounter/domain/badges/action/action-presentation.ts` | `deriveActionPresentation()` -- wraps badge derivation with name, category, sourceTag |
-| `src/features/encounter/domain/badges/action/action-presentation.test.ts` | Unit tests (29 cases) |
-| `src/features/encounter/components/active/action-row/ActionRowBase.tsx` | Maps `ActionBadgeDescriptor[]` to `AppBadge` components |
-| `src/features/encounter/components/active/action-row/ActionRow.tsx` | Consumes `ActionPresentationViewModel` |
-| `src/features/encounter/components/active/cards/CombatActionPreviewCard.tsx` | Also uses `deriveCombatActionBadges` directly |
+| `src/features/mechanics/domain/combat/presentation/badges/action/combat-action-badges.types.ts` | `ActionBadgeKind`, `ActionBadgeDescriptor` |
+| `src/features/mechanics/domain/combat/presentation/badges/action/combat-action-badges.ts` | `deriveCombatActionBadges()` -- pure derivation |
+| `src/features/mechanics/domain/combat/presentation/badges/__tests__/action/combat-action-badges.test.ts` | Unit tests (21 cases) |
+| `src/features/mechanics/domain/combat/presentation/actions/action-presentation.types.ts` | `ActionPresentationViewModel`, `ActionSemanticCategory`, `ActionSourceTag` |
+| `src/features/mechanics/domain/combat/presentation/actions/action-presentation.ts` | `deriveActionPresentation()` -- wraps badge derivation with name, category, sourceTag |
+| `src/features/mechanics/domain/combat/presentation/badges/__tests__/action/action-presentation.test.ts` | Unit tests (29 cases) |
+| `src/features/combat/components/action-row/CombatActionRowBase.tsx` | Maps `ActionBadgeDescriptor[]` to `AppBadge` components |
+| `src/features/encounter/components/active/action-row/ActionRow.tsx` | Encounter wrapper: `deriveActionPresentation` + campaign spell link; renders `CombatActionRowBase` |
+| `src/features/combat/components/cards/CombatActionPreviewCard.tsx` | Also uses `deriveCombatActionBadges` directly |
 
 ### Data flow
 
@@ -38,7 +38,7 @@ CombatActionDefinition
         --> deriveSourceTag(action)          --> ActionSourceTag
         --> deriveDisplayName / secondLine / footerLink
   --> ActionPresentationViewModel
-        --> ActionRow --> ActionRowBase --> AppBadge[]
+        --> ActionRow --> CombatActionRowBase --> AppBadge[]
 ```
 
 ### ActionBadgeDescriptor
@@ -139,15 +139,15 @@ Turn Triggers, System Details).
 |---|---|
 | `src/features/mechanics/domain/conditions/effect-condition-definitions.ts` | `EFFECT_CONDITION_DEFINITIONS` -- PHB condition data; `DAMAGE_IMPLIES_CONDITION` -- damage→condition dedup map |
 | `src/features/mechanics/domain/combat/state/conditions/condition-rules/condition-definitions.ts` | `CONDITION_RULES` -- mechanical consequence rules |
-| `src/features/encounter/domain/effects/presentable-effects.types.ts` | `CombatStateTone`, `CombatStatePriority`, `CombatStateSection`, `CombatStatePresentation`, `EnrichedPresentableEffect` |
-| `src/features/encounter/domain/effects/presentable-effects.ts` | `collectPresentableEffects`, `enrichPresentableEffects`, `sortByPriority`, `groupBySection` |
-| `src/features/encounter/domain/effects/combat-state-ui-map.ts` | `COMBAT_STATE_UI_MAP` -- merged lookup from condition definitions + engine markers |
-| `src/features/encounter/domain/badges/defense/encounter-defense-badges.ts` | `buildEncounterDefensePreviewChips` -- defense preview chips with filtering options |
-| `src/features/encounter/helpers/build-combatant-preview-chips.ts` | `buildCombatantPreviewChips` -- priority-driven preview chip pipeline |
-| `src/features/encounter/helpers/format-turn-duration.ts` | `formatTurnDuration` -- shared turn-duration formatter |
+| `src/features/mechanics/domain/combat/presentation/effects/presentable-effects.types.ts` | `CombatStateTone`, `CombatStatePriority`, `CombatStateSection`, `CombatStatePresentation`, `EnrichedPresentableEffect` |
+| `src/features/mechanics/domain/combat/presentation/effects/presentable-effects.ts` | `collectPresentableEffects`, `enrichPresentableEffects`, `sortByPriority`, `groupBySection` |
+| `src/features/mechanics/domain/combat/presentation/effects/combat-state-ui-map.ts` | `COMBAT_STATE_UI_MAP` -- merged lookup from condition definitions + engine markers |
+| `src/features/mechanics/domain/combat/presentation/badges/defense/encounter-defense-badges.ts` | `buildEncounterDefensePreviewChips` -- defense preview chips with filtering options |
+| `src/features/combat/presentation/build-combatant-preview-chips.ts` | `buildCombatantPreviewChips` -- priority-driven preview chip pipeline |
+| `src/features/mechanics/domain/combat/presentation/formatters/turn-duration.ts` | `formatTurnDuration` -- source of truth; `src/features/combat/presentation/format-turn-duration.ts` re-exports for client combat UI |
 | `src/features/encounter/components/active/combat-log/PresentableEffectsList.tsx` | Section-grouped badge list rendering |
 | `src/features/encounter/components/active/drawers/CombatantActionDrawer.tsx` | Inline condition badge rendering in drawer |
-| `src/features/encounter/components/shared/cards/combatant-badges.tsx` | `CombatantPreviewChipRow` -- preview card chips with `maxVisible` overflow |
+| `src/features/combat/components/cards/combatant-badges.tsx` | `CombatantPreviewChipRow` -- preview card chips with `maxVisible` overflow |
 
 ### Data flow: full effects list (drawers / panels)
 
@@ -205,7 +205,7 @@ type PreviewChip = {
 ```
 
 `timeLabel` is produced by the shared `formatTurnDuration` helper
-(`src/features/encounter/helpers/format-turn-duration.ts`). It accepts
+(`src/features/mechanics/domain/combat/presentation/formatters/turn-duration.ts`; also re-exported from `src/features/combat/presentation/format-turn-duration.ts`). It accepts
 concentration-style `{ remainingTurns, totalTurns }` or marker-style
 `{ remainingTurns }` and returns `"Xs/Ys"` or `"Xs left"` respectively.
 
@@ -215,7 +215,7 @@ concentration-style `{ remainingTurns, totalTurns }` or marker-style
 type CombatStateTone = 'danger' | 'warning' | 'info' | 'success' | 'neutral'
 ```
 
-Defined in `presentable-effects.types.ts`. Reused by `ActionBadgeDescriptor.tone`.
+Defined in `src/features/mechanics/domain/combat/presentation/effects/presentable-effects.types.ts`. Reused by `ActionBadgeDescriptor.tone`.
 Mapped to `AppBadgeTone` at render time (`neutral` --> `default`).
 
 ### Priority model (condition-specific)
@@ -253,7 +253,7 @@ Both pipelines render to the same component at `src/ui/primitives/`.
 A single shared function bridges `CombatStateTone` / `PreviewTone` to `AppBadgeTone`:
 
 ```typescript
-combatToneToAppBadgeTone(tone) // in combatant-badges.tsx, exported
+combatToneToAppBadgeTone(tone) // in src/features/combat/components/cards/combatant-badges.tsx, exported
 ```
 
 All badge-rendering components import this shared mapper (`neutral` --> `default`).
@@ -275,7 +275,7 @@ This prevents duplicate badges at the source rather than patching display logic.
 ### Damage defense badge labels (two `label` concepts)
 
 - **`DamageResistanceMarker.label`** (on `CombatantInstance.damageResistanceMarkers`) — runtime / authoring / debug text (e.g. `immunity to fire` when the marker is built). It is **not** the source of truth for what the encounter UI shows on badges.
-- **Derived badge label** — canonical presentational copy produced only by **`formatDamageDefenseLabel(level, damageType)`** in `encounter-defense-badges.ts` (`Immune:`, `Resistance:`, `Vulnerability:` plus the mapped damage-type display name). `deriveEncounterDefenseBadges` attaches this to `EncounterDamageDefenseBadge.label`; preview chips and presentable effects both consume that derived string.
+- **Derived badge label** — canonical presentational copy produced only by **`formatDamageDefenseLabel(level, damageType)`** in [`encounter-defense-badges.ts`](../../src/features/mechanics/domain/combat/presentation/badges/defense/encounter-defense-badges.ts) (`Immune:`, `Resistance:`, `Vulnerability:` plus the mapped damage-type display name). `deriveEncounterDefenseBadges` attaches this to `EncounterDamageDefenseBadge.label`; preview chips and presentable effects both consume that derived string.
 
 Do not use `DamageResistanceMarker.label` for damage-defense badge UI — it can contain legacy phrasing.
 
@@ -285,21 +285,21 @@ Do not use `DamageResistanceMarker.label` for damage-defense badge UI — it can
 
 #### Two-tier taxonomy
 
-Presentation resolves in order: **core** → **specialized** → **fallback** (`resolveEffectPresentation` in [`combat-state-ui-map.ts`](../../src/features/encounter/domain/effects/combat-state-ui-map.ts)).
+Presentation resolves in order: **core** → **specialized** → **fallback** (`resolveEffectPresentation` in [`combat-state-ui-map.ts`](../../src/features/mechanics/domain/combat/presentation/effects/combat-state-ui-map.ts)).
 
 | Tier | Source | Examples |
 |------|--------|----------|
-| **Core** | [`core-combat-state-presentation.ts`](../../src/features/encounter/domain/effects/core-combat-state-presentation.ts) | PHB `EffectConditionId` rows, immunity-only condition ids (e.g. `exhaustion`), universal engine markers (`bloodied`, `concentrating`, `banished`) |
-| **Specialized** | [`specialized-effect-presentation.ts`](../../src/features/encounter/domain/effects/specialized-effect-presentation.ts) | Named monster/affliction/system-detail markers (`mummy-rot`, `engulfed`, `limb-severed`, …) — not universal PHB statuses |
+| **Core** | [`core-combat-state-presentation.ts`](../../src/features/mechanics/domain/combat/presentation/effects/core-combat-state-presentation.ts) | PHB `EffectConditionId` rows, immunity-only condition ids (e.g. `exhaustion`), universal engine markers (`bloodied`, `concentrating`, `banished`) |
+| **Specialized** | [`specialized-effect-presentation.ts`](../../src/features/mechanics/domain/combat/presentation/effects/specialized-effect-presentation.ts) | Named monster/affliction/system-detail markers (`mummy-rot`, `engulfed`, `limb-severed`, …) — not universal PHB statuses |
 | **Fallback** | `getFallbackPresentation` | Unknown spell/state ids, dynamic hook keys, etc. Title-cased for resilience; **not** a substitute for adding core/specialized rows when a key is stable |
 
-**Defense badges** use a separate path (`presentationTier: 'defense'`): [`formatDamageDefenseLabel`](../../src/features/encounter/domain/badges/defense/encounter-defense-badges.ts) from semantic `level` + `damageType`, not raw `DamageResistanceMarker.label`.
+**Defense badges** use a separate path (`presentationTier: 'defense'`): [`formatDamageDefenseLabel`](../../src/features/mechanics/domain/combat/presentation/badges/defense/encounter-defense-badges.ts) from semantic `level` + `damageType`, not raw `DamageResistanceMarker.label`.
 
-- **Merged lookup** [`COMBAT_STATE_UI_MAP`](../../src/features/encounter/domain/effects/combat-state-ui-map.ts) = core ∪ specialized (backward-compatible `getCombatStatePresentation`).
+- **Merged lookup** [`COMBAT_STATE_UI_MAP`](../../src/features/mechanics/domain/combat/presentation/effects/combat-state-ui-map.ts) = core ∪ specialized (backward-compatible `getCombatStatePresentation`).
 - **`enrichWithPresentation`** sets canonical **`label`**, **`presentationTier`**, and **`usedFallbackPresentation`** (true only for generic fallback tier).
 - **`getUserFacingEffectLabel`** returns post-enrichment badge text. List and drawer surfaces should use this or **`effect.label`** after enrich.
 - **Preview chips** use **`resolvePresentationForSemanticKey`** (same tier order).
-- **Tests** ([`presentation-map-coverage.test.ts`](../../src/features/encounter/domain/effects/presentation-map-coverage.test.ts)): core keys and specialized keys must not hit generic fallback; unknown keys may; **`FALLBACK_ONLY_PRESENTATION_KEYS`** allowlists keys that never get rows (e.g. dynamic ids).
+- **Tests** ([`presentation-map-coverage.test.ts`](../../src/features/mechanics/domain/combat/presentation/effects/__tests__/presentation-map-coverage.test.ts)): core keys and specialized keys must not hit generic fallback; unknown keys may; **`FALLBACK_ONLY_PRESENTATION_KEYS`** allowlists keys that never get rows (e.g. dynamic ids).
 
 ### Barrel exports
 

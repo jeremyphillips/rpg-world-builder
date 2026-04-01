@@ -346,6 +346,8 @@ src/features/combat/presentation
 
 Encounter-specific wrappers stay in `src/features/encounter`.
 
+**Current package layout and import boundaries** (maintained as its own reference, not duplicated here): **[combat-client-ui.md](./combat-client-ui.md)**.
+
 ### Create the floor adapter seam
 
 Add a dedicated adapter for converting authored floor data into combat startup/runtime seed data.
@@ -410,14 +412,14 @@ These remain encounter-owned.
 
 ## Grid split guidance
 
-`EncounterGrid` should not remain the only or primary owner of grid rendering.
-
-Target split:
+**Phase 3D:** Generic grid rendering lives in **`CombatGrid`**; **`EncounterGrid`** is a thin wrapper that forwards the same props to **`CombatGrid`** (feature-owned import path for the active encounter screen).
 
 ```txt
 src/features/combat/components/grid/CombatGrid.tsx
 src/features/encounter/components/active/grid/EncounterGrid.tsx
 ```
+
+Cell visual plumbing (`cellVisualState.ts`, `cellVisualStyles.ts`) lives under **`src/features/combat/components/grid/`**.
 
 ### `CombatGrid` should own
 
@@ -426,13 +428,10 @@ src/features/encounter/components/active/grid/EncounterGrid.tsx
 - callback-based interaction hooks
 - view-model-driven rendering
 
-### `EncounterGrid` should own
+### Encounter shell (routes / parents / `EncounterGrid` wrapper) should own
 
-- mapping encounter route state into the grid view model
-- selected actor/target orchestration
-- feature-specific interaction wiring
-- modal/drawer integration
-- DM-specific workflow logic
+- supplying the grid view model and callbacks (pan/zoom, hover, token popover renderer, interaction flags)
+- feature-specific orchestration around the grid (selected actor/target, modals, drawers, DM workflow) — **not** inside `CombatGrid`
 
 ---
 
@@ -567,6 +566,8 @@ This adapter should avoid leaking editor-facing concepts deep into combat runtim
 - extract avatar/card/badge/chip primitives
 - split `EncounterGrid` into generic renderer + encounter wrapper
 - split action/drawer primitives from encounter orchestration
+
+See **[combat-client-ui.md](./combat-client-ui.md)** for what lives under `src/features/combat` and how it relates to the engine and Encounter.
 
 ### Phase 4 — Introduce canonical intents and events
 

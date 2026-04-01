@@ -64,7 +64,7 @@ When the block lists **Gear** but you model AC as **`kind: 'natural'`** (no worn
 Shared elemental/weapon damage labels include **`DamageType`** in [`damage.types.ts`](../../src/features/mechanics/domain/damage/damage.types.ts).
 
 - **`mechanics.resistances`** — [`CreatureResistanceDamageType[]`](../../src/features/mechanics/domain/creatures/immunities.types.ts); combat builds **resistance** markers (half damage).
-- **`mechanics.immunities`** / **`mechanics.vulnerabilities`** — mixed damage + condition immunities use [`ImmunityType`](../../src/features/mechanics/domain/creatures/immunities.types.ts) (vulnerabilities use [`CreatureVulnerabilityDamageType`](../../src/features/mechanics/domain/creatures/immunities.types.ts)); [`buildMonsterCombatantInstance`](../../src/features/encounter/helpers/combatant-builders.ts) maps them to combat markers. Condition-like entries are partitioned vs damage types consistently with spells.
+- **`mechanics.immunities`** / **`mechanics.vulnerabilities`** — mixed damage + condition immunities use [`ImmunityType`](../../src/features/mechanics/domain/creatures/immunities.types.ts) (vulnerabilities use [`CreatureVulnerabilityDamageType`](../../src/features/mechanics/domain/creatures/immunities.types.ts)); [`buildMonsterCombatantInstance`](../../src/features/encounter/helpers/combatants/combatant-builders.ts) maps them to combat markers. Condition-like entries are partitioned vs damage types consistently with spells.
 
 ## Actions and traits
 
