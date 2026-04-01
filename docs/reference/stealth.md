@@ -26,7 +26,7 @@ These are **rules / UX facts**, not TODOs:
 - **`stealth?: CombatantStealthRuntime`** on the **subject** combatant — always an **object wrapper** (not a bare `hiddenFromObserverIds` on `CombatantInstance`) so metadata can grow without reshaping combatants.
 - Stored fields:
   - **`hiddenFromObserverIds: string[]`** — combatant ids of observers for whom the subject is treated as hidden (subject to reconciliation below).
-  - **`hideEligibility?: CombatantHideEligibilityExtension`** — optional extension flags (e.g. **`allowHalfCoverForHide`**, **`allowDimLightHide`**, **`allowMagicalConcealmentHide`**) persisted when hide resolution applies them so **stealth sustain** uses the **same** world-basis rules as hide entry. Type: [`combatant.types.ts`](../../src/features/mechanics/domain/encounter/state/types/combatant.types.ts). See **`resolveHideEligibilityForCombatant`** in [`sight-hide-rules.ts`](../../src/features/mechanics/domain/encounter/state/stealth/sight-hide-rules.ts).
+  - **`hideEligibility?: CombatantHideEligibilityExtension`** — optional extension flags (e.g. **`allowHalfCoverForHide`**, **`allowDimLightHide`**, **`allowMagicalConcealmentHide`**) persisted when hide resolution applies them so **stealth sustain** uses the **same** world-basis rules as hide entry. Type: [`combatant.types.ts`](../../src/features/mechanics/domain/combat/state/types/combatant.types.ts). See **`resolveHideEligibilityForCombatant`** in [`sight-hide-rules.ts`](../../src/features/mechanics/domain/combat/state/stealth/sight-hide-rules.ts).
 
 ---
 
@@ -34,7 +34,7 @@ These are **rules / UX facts**, not TODOs:
 
 All stealth **rules and mutations** live in:
 
-**[`stealth-rules.ts`](../../src/features/mechanics/domain/encounter/state/stealth/stealth-rules.ts)**
+**[`stealth-rules.ts`](../../src/features/mechanics/domain/combat/state/stealth/stealth-rules.ts)**
 
 Other modules (**`action-resolver.ts`**, **`useEncounterState`**) call exported helpers only; they do not reimplement stealth logic.
 
@@ -42,27 +42,27 @@ Other modules (**`action-resolver.ts`**, **`useEncounterState`**) call exported 
 
 ## Hide attempt eligibility
 
-**`getStealthHideAttemptDenialReason`** delegates to **`getHideAttemptEligibilityDenialReason`** in [`sight-hide-rules.ts`](../../src/features/mechanics/domain/encounter/state/stealth/sight-hide-rules.ts): **occupant** perception (`canPerceiveTargetOccupantForCombat`) plus a **merged-world** hide basis **per observer–hider pair** when a tactical grid exists.
+**`getStealthHideAttemptDenialReason`** delegates to **`getHideAttemptEligibilityDenialReason`** in [`sight-hide-rules.ts`](../../src/features/mechanics/domain/combat/state/stealth/sight-hide-rules.ts): **occupant** perception (`canPerceiveTargetOccupantForCombat`) plus a **merged-world** hide basis **per observer–hider pair** when a tactical grid exists.
 
 **Concealment and feature-flag branches** still use the **hider’s merged cell** only (same as before):
 
-- **Baseline concealment** — [`cellWorldSupportsHideConcealment`](../../src/features/mechanics/domain/encounter/state/stealth/sight-hide-rules.ts): heavy obscurement; **non-magical** light obscurement; darkness lighting; **magical darkness**. Dim-only and magical light obscurement need the feat/runtime flags below.
+- **Baseline concealment** — [`cellWorldSupportsHideConcealment`](../../src/features/mechanics/domain/combat/state/stealth/sight-hide-rules.ts): heavy obscurement; **non-magical** light obscurement; darkness lighting; **magical darkness**. Dim-only and magical light obscurement need the feat/runtime flags below.
 - **Feature-flag branches** (OR-merge, **hider cell only** — entry + sustain): **`allowDimLightHide`**, **`allowMagicalConcealmentHide`**, **`allowDifficultTerrainHide`** (merged **`terrainMovement`** **`difficult`** or **`greater-difficult`**), **`allowHighWindHide`** (merged **`atmosphereTags`** includes **`high-wind`**). See [`environment.resolve.ts`](../../src/features/mechanics/domain/environment/environment.resolve.ts) for `world.magical` and atmosphere merge.
 
 **Terrain cover for hide** (when concealment/flags do not already allow the attempt):
 
-- **With grid** — [`pairSupportsHideWorldBasisFromObserver`](../../src/features/mechanics/domain/encounter/state/stealth/sight-hide-rules.ts) uses [`resolveTerrainCoverGradeForHideFromObserver`](../../src/features/mechanics/domain/encounter/state/environment/observer-hide-terrain-cover.ts): **maximum** merged `terrainCover` along the same **supercover segment** as line-of-sight (`traceLineOfSightCells` in [`sight/space.sight.ts`](../../src/features/encounter/space/sight/space.sight.ts)), from the **observer’s cell** through the **hider’s cell** (observer endpoint excluded from the max; hider cell included). Half cover only counts with **`allowHalfCoverForHide`**; three-quarters/full baseline.
-- **Without grid / placements** — **fallback:** [`cellWorldSupportsHideAttemptWorldBasis`](../../src/features/mechanics/domain/encounter/state/stealth/sight-hide-rules.ts) on the hider’s cell only (cell-local `terrainCover`), so behavior matches the legacy permissive tactical gap.
+- **With grid** — [`pairSupportsHideWorldBasisFromObserver`](../../src/features/mechanics/domain/combat/state/stealth/sight-hide-rules.ts) uses [`resolveTerrainCoverGradeForHideFromObserver`](../../src/features/mechanics/domain/combat/state/environment/observer-hide-terrain-cover.ts): **maximum** merged `terrainCover` along the same **supercover segment** as line-of-sight (`traceLineOfSightCells` in [`sight/space.sight.ts`](../../src/features/mechanics/domain/combat/space/sight/space.sight.ts)), from the **observer’s cell** through the **hider’s cell** (observer endpoint excluded from the max; hider cell included). Half cover only counts with **`allowHalfCoverForHide`**; three-quarters/full baseline.
+- **Without grid / placements** — **fallback:** [`cellWorldSupportsHideAttemptWorldBasis`](../../src/features/mechanics/domain/combat/state/stealth/sight-hide-rules.ts) on the hider’s cell only (cell-local `terrainCover`), so behavior matches the legacy permissive tactical gap.
 
-**Combatant-sourced feature flags:** **`getCombatantHideEligibilityExtensionOptions`** ([`combatant-hide-eligibility.ts`](../../src/features/mechanics/domain/encounter/state/stealth/combatant-hide-eligibility.ts)) merges **one boolean seam** from:
+**Combatant-sourced feature flags:** **`getCombatantHideEligibilityExtensionOptions`** ([`combatant-hide-eligibility.ts`](../../src/features/mechanics/domain/combat/state/stealth/combatant-hide-eligibility.ts)) merges **one boolean seam** from:
 
 1. **Authored snapshot** — **`stats.skillRuntime.hideEligibilityFeatureFlags`**, which **`buildCharacterCombatantInstance`** / **`buildMonsterCombatantInstance`** populate from data:
-   - **Characters:** persisted **`Character.feats`** (string ids) → **`CharacterDetailDto.feats`** → **`deriveHideEligibilityFeatureFlagsFromCharacterDetail`** ([`derive-hide-eligibility-from-authored.ts`](../../src/features/encounter/helpers/derive-hide-eligibility-from-authored.ts)) → feat ids in **`FEAT_IDS_ALLOW_HALF_COVER_FOR_HIDE`** ([`hide-eligibility-feat-sources.ts`](../../src/features/mechanics/domain/encounter/state/stealth/hide-eligibility-feat-sources.ts)) set **`allowHalfCoverForHide`** (e.g. **`skulker`**).
+   - **Characters:** persisted **`Character.feats`** (string ids) → **`CharacterDetailDto.feats`** → **`deriveHideEligibilityFeatureFlagsFromCharacterDetail`** ([`derive-hide-eligibility-from-authored.ts`](../../src/features/encounter/helpers/combatants/derive-hide-eligibility-from-authored.ts)) → feat ids in **`FEAT_IDS_ALLOW_HALF_COVER_FOR_HIDE`** ([`hide-eligibility-feat-sources.ts`](../../src/features/mechanics/domain/combat/state/stealth/hide-eligibility-feat-sources.ts)) set **`allowHalfCoverForHide`** (e.g. **`skulker`**).
    - **Monsters:** optional **`mechanics.hideEligibilityFeatureFlags`** on the stat block (homebrew / special creatures).
 
-2. **Temporary runtime** — same flags, **union (OR)** with the snapshot (see below), from [`hide-eligibility-runtime-sources.ts`](../../src/features/mechanics/domain/encounter/state/stealth/hide-eligibility-runtime-sources.ts):
-   - **`activeEffects`:** structured **`kind: 'hide-eligibility-grant'`** effects ([`HideEligibilityGrantEffect`](../../src/features/mechanics/domain/effects/effects.types.ts)) on the combatant stack, including nested payloads (e.g. **`aura.effects`**, **`state.ongoingEffects`**). Spell application can attach these via **`applyActionEffects`** in [`action-effects.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-effects.ts).
-   - **`conditions` / `states`:** **`RuntimeMarker`** ids/classifications (see [`hide-eligibility-runtime-sources.ts`](../../src/features/mechanics/domain/encounter/state/stealth/hide-eligibility-runtime-sources.ts)): `hide-eligibility:allow-half-cover`, `hide-eligibility:allow-dim-light`, `hide-eligibility:allow-magical-concealment`, `hide-eligibility:allow-difficult-terrain`, `hide-eligibility:allow-high-wind`.
+2. **Temporary runtime** — same flags, **union (OR)** with the snapshot (see below), from [`hide-eligibility-runtime-sources.ts`](../../src/features/mechanics/domain/combat/state/stealth/hide-eligibility-runtime-sources.ts):
+   - **`activeEffects`:** structured **`kind: 'hide-eligibility-grant'`** effects ([`HideEligibilityGrantEffect`](../../src/features/mechanics/domain/effects/effects.types.ts)) on the combatant stack, including nested payloads (e.g. **`aura.effects`**, **`state.ongoingEffects`**). Spell application can attach these via **`applyActionEffects`** in [`action-effects.ts`](../../src/features/mechanics/domain/combat/resolution/action/action-effects.ts).
+   - **`conditions` / `states`:** **`RuntimeMarker`** ids/classifications (see [`hide-eligibility-runtime-sources.ts`](../../src/features/mechanics/domain/combat/state/stealth/hide-eligibility-runtime-sources.ts)): `hide-eligibility:allow-half-cover`, `hide-eligibility:allow-dim-light`, `hide-eligibility:allow-magical-concealment`, `hide-eligibility:allow-difficult-terrain`, `hide-eligibility:allow-high-wind`.
 
 **Merge rule:** for each boolean, **true if any** source is true — authored snapshot **or** any qualifying active effect **or** marker.
 
@@ -84,14 +84,14 @@ Eligibility answers **whether a hide attempt may be attempted** vs a given obser
 
 1. **Candidate observers:** **`resolveDefaultHideObservers`** lists other-side combatants for whom **`getStealthHideAttemptDenialReason`** is **`null`** (hide **eligibility** only — includes **observer-relative** terrain cover when gridded). Baseline observer set is **the opposing side**; distance and sense-specific filters beyond shared perception are **not** applied yet (see TODOs).
 2. **No eligible observers:** if the candidate list is **empty**, **`resolveCombatAction`** logs the outcome and performs **no d20 Stealth roll** (nothing to compare against). Eligibility is evaluated **before** rolling.
-3. **Stealth total:** when there is at least one candidate, **`action-resolver.ts`** rolls **d20 + Stealth modifier** for **`resolutionMode === 'hide'`**. Modifier comes from **`hideProfile.stealthModifier`** or **`getStealthCheckModifier(actor)`** (runtime snapshot: Dex + proficiency when threaded — see [`passive-perception.ts`](../../src/features/mechanics/domain/encounter/state/awareness/passive-perception.ts)).
+3. **Stealth total:** when there is at least one candidate, **`action-resolver.ts`** rolls **d20 + Stealth modifier** for **`resolutionMode === 'hide'`**. Modifier comes from **`hideProfile.stealthModifier`** or **`getStealthCheckModifier(actor)`** (runtime snapshot: Dex + proficiency when threaded — see [`passive-perception.ts`](../../src/features/mechanics/domain/combat/state/awareness/passive-perception.ts)).
 4. **Comparison:** **`resolveHideWithPassivePerception(state, hiderId, stealthTotal, options)`** compares that total to each **candidate** observer’s **passive Perception** via **`getPassivePerceptionScore(observer)`**.
 5. **Threshold:** **`stealthBeatsPassivePerception(total, passive)`** — Stealth must be **strictly greater than** passive Perception (**`>`**). A **tie** (**`==`**) does **not** count as hidden from that observer (observer wins ties). This matches the strict-greater tests in **`action-resolution.hide.test.ts`** and **`stealth-rules.test.ts`**.
 6. **Storage (partial success):** For each **candidate**, **beat** → observer id is **on** **`hiddenFromObserverIds`**; **fail or tie** → that id is **removed** if it was only in the candidate set. Observer ids **not** in the candidate list for this attempt are **unchanged** (so prior hidden-from state can persist for observers you did not re-contest). **`stealth.hideEligibility`** is set from the **effective** merged eligibility (**`resolveHideEligibilityForCombatant`** in **`hide-attempt`** mode), so call-site overrides, prior stealth snapshot, and **`skillRuntime.hideEligibilityFeatureFlags`** are reflected for later sustain.
 
-**Passive Perception source:** authoritative runtime seam **`getPassivePerceptionScore`** — prefers **`stats.skillRuntime`** (explicit passive, PB × Perception proficiency, etc.) and legacy **`stats.passivePerception`**, then derived **`10 + Wisdom`** as in [`passive-perception.ts`](../../src/features/mechanics/domain/encounter/state/awareness/passive-perception.ts). Populated from character/monster builders ([`combatant-builders.ts`](../../src/features/encounter/helpers/combatant-builders.ts)).
+**Passive Perception source:** authoritative runtime seam **`getPassivePerceptionScore`** — prefers **`stats.skillRuntime`** (explicit passive, PB × Perception proficiency, etc.) and legacy **`stats.passivePerception`**, then derived **`10 + Wisdom`** as in [`passive-perception.ts`](../../src/features/mechanics/domain/combat/state/awareness/passive-perception.ts). Populated from character/monster builders ([`combatant-builders.ts`](../../src/features/encounter/helpers/combatant-builders.ts)).
 
-**Standard Hide action:** **`DEFAULT_HIDE_COMBAT_ACTION`** in [`combat-action.types.ts`](../../src/features/mechanics/domain/encounter/resolution/combat-action.types.ts) (`resolutionMode: 'hide'`, `targeting: self`).
+**Standard Hide action:** **`DEFAULT_HIDE_COMBAT_ACTION`** in [`combat-action.types.ts`](../../src/features/mechanics/domain/combat/resolution/combat-action.types.ts) (`resolutionMode: 'hide'`, `targeting: self`).
 
 **Separation of concerns:** **Eligibility** (can you try?) ≠ **resolution** (did your Stealth beat their passive?) ≠ **visibility** (can they see your occupant right now?) ≠ **stored hidden state** (runtime bookkeeping). Rules do **not** conflate “currently unseen” with “hidden.”
 
@@ -101,7 +101,7 @@ Eligibility answers **whether a hide attempt may be attempted** vs a given obser
 
 Hide is a normal **`CombatActionDefinition`** on the combatant’s action list (e.g. skill affordance → `id: 'hide'`, `resolutionMode: 'hide'`, `targeting: self`, `cost: { action: true }`). Execution uses **only** the hider’s **current** placement and merged environment — there is **no** destination cell, cover object, or move-and-hide step in this baseline.
 
-- **Eligibility (disabled rows / Resolve):** **`getHideActionUnavailableReason`** in [`stealth-rules.ts`](../../src/features/mechanics/domain/encounter/state/stealth/stealth-rules.ts) mirrors whether **`resolveDefaultHideObservers`** would be non-empty. If it returns a string, the Hide row is treated as invalid with that reason (`invalidActionReasons` in the action drawer), and **`getActionResolutionReadiness`** adds a **`hide-eligibility`** gate so Resolve stays off until the situation changes (e.g. concealment/cover). Same rules as the resolver — no duplicate stealth math in React.
+- **Eligibility (disabled rows / Resolve):** **`getHideActionUnavailableReason`** in [`stealth-rules.ts`](../../src/features/mechanics/domain/combat/state/stealth/stealth-rules.ts) mirrors whether **`resolveDefaultHideObservers`** would be non-empty. If it returns a string, the Hide row is treated as invalid with that reason (`invalidActionReasons` in the action drawer), and **`getActionResolutionReadiness`** adds a **`hide-eligibility`** gate so Resolve stays off until the situation changes (e.g. concealment/cover). Same rules as the resolver — no duplicate stealth math in React.
 - **Action economy:** Hide consumes the **standard Action** via **`spendActionCost`** in **`resolveCombatActionInternal`** (same path as other actions). Bonus-action Hide is not implemented.
 - **Feedback:** Outcomes appear in the combat log (and encounter toast pipeline) via existing **`action-resolved`** entries; no separate stealth-only feedback channel.
 
@@ -171,7 +171,7 @@ Contract constant: **`ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE`** (`stealth/stealt
 
 | Export | Role |
 |--------|------|
-| `getCombatantHideEligibilityExtensionOptions` | Derive hide flags from **snapshot + `activeEffects` + markers** (OR merge; see [`hide-eligibility-runtime-sources.ts`](../../src/features/mechanics/domain/encounter/state/stealth/hide-eligibility-runtime-sources.ts)). |
+| `getCombatantHideEligibilityExtensionOptions` | Derive hide flags from **snapshot + `activeEffects` + markers** (OR merge; see [`hide-eligibility-runtime-sources.ts`](../../src/features/mechanics/domain/combat/state/stealth/hide-eligibility-runtime-sources.ts)). |
 | `getStealthHideAttemptDenialReason` | Hide **attempt** eligibility (delegates). |
 | `getHideActionUnavailableReason` | UI/readiness: short reason when a Hide attempt is not allowed from the current cell (same basis as `resolveDefaultHideObservers`); `null` when allowed. |
 | `getPassivePerceptionScore` | Passive Perception for hide comparison. |

@@ -312,35 +312,11 @@ That is acceptable as an intermediate step so long as the code remains compatibl
 
 ### Rename engine ownership
 
-Current:
-
-```txt
-src/features/mechanics/domain/encounter
-```
-
-Target:
-
-```txt
-src/features/mechanics/domain/combat
-```
-
-Reason: this folder represents engine/runtime/state/resolution logic, not encounter feature composition.
+**Phase 1 (done):** the shared mechanics engine folder is `src/features/mechanics/domain/combat` (renamed from `encounter`). It holds engine/runtime/state/resolution logic, not encounter feature composition.
 
 ### Move runtime board/space logic out of encounter feature
 
-Current:
-
-```txt
-src/features/encounter/space
-```
-
-Target:
-
-```txt
-src/features/mechanics/domain/combat/space
-```
-
-Reason: combat space is engine-owned and will be needed by the server.
+**Phase 1 (done):** runtime grid/space lives at `src/features/mechanics/domain/combat/space` (moved from `src/features/encounter/space`). Combat space is engine-owned and will be needed by the server.
 
 ### Create a combat presentation/selectors layer
 
@@ -384,17 +360,13 @@ src/features/content/locations/adapters/locationFloorToCombatSeed.ts
 
 ## Folder-specific guidance from the current tree
 
-### `src/features/mechanics/domain/encounter`
+### `src/features/mechanics/domain/combat`
 
-This should become `combat`.
+This is the shared combat engine (Phase 1: renamed from `encounter`).
 
-It is the future shared combat engine.
+### `src/features/mechanics/domain/combat/space`
 
-### `src/features/encounter/space`
-
-This should move into combat engine ownership.
-
-It is runtime board logic, not encounter workflow.
+Runtime board logic lives here (Phase 1: moved from `src/features/encounter/space`). It is not encounter workflow composition.
 
 ### `src/features/encounter/domain`
 

@@ -42,7 +42,7 @@ src/features/mechanics/domain/resolution/
     ├── buildCreatureResolutionInput.ts  # Shared base for any creature
     └── buildCharacterResolutionInput.ts # Extends creature with character concerns
 
-src/features/mechanics/domain/encounter/resolution/
+src/features/mechanics/domain/combat/resolution/
 ├── index.ts                           # Encounter resolution barrel (re-exports initiative from resolution/)
 ├── combat-action.types.ts            # CombatActionDefinition, profiles, costs
 ├── action-resolution.types.ts        # Selection and options types
@@ -143,7 +143,7 @@ The encounter action system resolves combat actions against encounter state:
 **Targeting profile fields:**
 
 - `requiresWilling` — when `true` on `single-target`, valid targets are same-side only (caster + allies); “willing” is approximated as allies until explicit consent exists. Such actions are **non-hostile** for charm / hostile-action rules. Authored on spells via `targeting.requiresWilling` in spell effects.
-- `requiresSight` — when `true` (spell `targeting.requiresSight` → `buildSpellCombatActions`), valid targets must pass `canSeeForTargeting`, which delegates to `canPerceiveTargetOccupantForCombat` (`encounter/state/visibility/combatant-pair-visibility.ts`): **occupant** perception (not “cell only”), same as attack-roll visibility. After blinded (`canSee`), invisible vs See Invisibility, and LOS/LoE, world/perception (`resolveViewerPerceptionForCellFromState`, `canPerceiveOccupants`) applies heavy obscurement and magical darkness. **Missing tactical grid:** permissive fallback treats occupant visibility as allowed once the condition/LOS gates pass (matches legacy non-grid encounters). Not applied to `self`, `none`, or `all-enemies` (area mapping does not validate per-creature sight).
+- `requiresSight` — when `true` (spell `targeting.requiresSight` → `buildSpellCombatActions`), valid targets must pass `canSeeForTargeting`, which delegates to `canPerceiveTargetOccupantForCombat` (`combat/state/visibility/combatant-pair-visibility.ts`): **occupant** perception (not “cell only”), same as attack-roll visibility. After blinded (`canSee`), invisible vs See Invisibility, and LOS/LoE, world/perception (`resolveViewerPerceptionForCellFromState`, `canPerceiveOccupants`) applies heavy obscurement and magical darkness. **Missing tactical grid:** permissive fallback treats occupant visibility as allowed once the condition/LOS gates pass (matches legacy non-grid encounters). Not applied to `self`, `none`, or `all-enemies` (area mapping does not validate per-creature sight).
 - `suppressSameSideHostileActions` — passed through `ResolveCombatActionOptions` (default **true** when omitted: legacy “no friendly fire”). When **true**, hostile `single-target` actions cannot target same-side combatants. When **false**, core resolution allows same-side targets (e.g. PC vs PC). Campaign/app code can drive this from `mechanics.combat.encounter.suppressSameSideHostile` on the ruleset.
 
 **Targeting query layer** (`action-targeting.ts`):
@@ -154,7 +154,7 @@ Targeting validation is centralized so the resolver and UI share a single source
 - `getActionTargetCandidates(state, actor, action, options?)` — returns all combatants that pass `isValidActionTarget`. **Initiative order** for most kinds; for **`dead-creature`**, also includes combatants in `combatantsById` that are **missing from `initiativeOrder`** (e.g. corpses dropped when a new round re-rolls initiative from living participants only in `advanceEncounterTurn`). Used by the UI to populate the target picker.
 - `getActionTargets(state, actor, selection, action, options?)` — resolves the actual target(s) for a selected action. Handles selection-specific concerns (targetId lookup, `self` auto-targeting, no-target fallbacks) and delegates validation to `isValidActionTarget`.
 
-**LOS / visibility seams** (`visibility/visibility-seams.ts` re-exports; see `visibility/visibility-los.ts`, `visibility/combatant-pair-visibility.ts`): `lineOfSightClear` / `lineOfEffectClear` delegate to `hasLineOfSight` when `EncounterSpace` and placements exist; otherwise they stay **clear** for backwards compatibility. `canSeeForTargeting` is the public entry for “can I select this target for a sight-required action?” and shares `canPerceiveTargetOccupantForCombat` with attack-roll resolution. **Binary** LoS geometry is in [`sight/space.sight.ts`](../../src/features/encounter/space/sight/space.sight.ts); **obscurement / darkness** affecting whether the **occupant** is perceived are resolved in `perception.resolve.ts`, not as a second ad hoc targeting layer.
+**LOS / visibility seams** (`visibility/visibility-seams.ts` re-exports; see `visibility/visibility-los.ts`, `visibility/combatant-pair-visibility.ts`): `lineOfSightClear` / `lineOfEffectClear` delegate to `hasLineOfSight` when `EncounterSpace` and placements exist; otherwise they stay **clear** for backwards compatibility. `canSeeForTargeting` is the public entry for “can I select this target for a sight-required action?” and shares `canPerceiveTargetOccupantForCombat` with attack-roll resolution. **Binary** LoS geometry is in [`sight/space.sight.ts`](../../src/features/mechanics/domain/combat/space/sight/space.sight.ts); **obscurement / darkness** affecting whether the **occupant** is perceived are resolved in `perception.resolve.ts`, not as a second ad hoc targeting layer.
 
 **Opportunity attacks** (`reactions/opportunity-attack.ts`): **Leave reach** (spatial) is `didHostileMoverLeaveMeleeReachOfReactor` — compare distances before/after `moveCombatant`. **Sight** for OA uses the same occupant seam: `canReactorPerceiveDepartingOccupantForOpportunityAttack` → `canPerceiveTargetOccupantForCombat` on **pre-move** state (combat semantics, `viewerRole: 'pc'`). Full legality is `getOpportunityAttackLegalityDenialReason` (hostile, active, reaction budget, leave-reach, then sight). Disengage / no-OA movement flags are not modeled yet.
 
@@ -177,7 +177,7 @@ Pure helpers describe what must be true before the encounter action drawer enabl
 
 Condition consequences model the mechanical rules of each `EffectConditionId` as composable data primitives. Rather than scattering condition-specific `if` checks through action resolution code, each condition declares its consequences as a typed array, and derived query helpers combine active conditions into answers the resolution layer can consume.
 
-**Directory:** `encounter/state/conditions/condition-rules/`
+**Directory:** `combat/state/conditions/condition-rules/`
 
 | Module | Responsibility |
 |--------|----------------|

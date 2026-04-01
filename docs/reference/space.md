@@ -13,7 +13,7 @@ The system is intentionally separate from narrative `Location` content. Location
 ## 2. Directory Layout
 
 ```
-src/features/encounter/space/
+src/features/mechanics/domain/combat/space/
 ├── index.ts                        # Public barrel
 ├── space.types.ts                  # EncounterSpace, EncounterCell, GridObstacle, CombatantPosition
 ├── space.helpers.ts                # Pure cell/distance/occupancy queries
@@ -74,7 +74,7 @@ The `showReachable` option is driven by movement budget (`movementRemaining > 0`
 
 ### Battlefield presence, occupancy, and return placement (mechanics linkage)
 
-Grid **`CombatantPosition[]`** is the source of truth for **which combatant occupies which cell**. Separately, **participation / battlefield presence** (whether a creature should appear on the tactical map at all) is defined in mechanics via `hasBattlefieldPresence` and engine-state rules (e.g. **banished**, **off-grid**) — see `combatants/combatant-participation.ts` and `conditions/condition-rules/engine-state-definitions.ts` in `src/features/mechanics/domain/encounter/state/`.
+Grid **`CombatantPosition[]`** is the source of truth for **which combatant occupies which cell**. Separately, **participation / battlefield presence** (whether a creature should appear on the tactical map at all) is defined in mechanics via `hasBattlefieldPresence` and engine-state rules (e.g. **banished**, **off-grid**) — see `combatants/combatant-participation.ts` and `conditions/condition-rules/engine-state-definitions.ts` in `src/features/mechanics/domain/combat/state/`.
 
 **When a combatant becomes temporarily absent** (those engine states), mechanics **`battlefield-return-placement.ts`**:
 
@@ -89,7 +89,7 @@ The grid view model’s **`occupantRendersToken`** flag stays aligned with prese
 
 ### Spawn and grid replacement (tactical token handoff)
 
-When a **`spawn`** effect creates new combatants that **replace** an existing token on the grid (e.g. animating a corpse into a new creature), **`applyGridSpawnReplacementFromTarget`** (`src/features/encounter/space/placement/applyGridSpawnReplacement.ts`) updates **`EncounterState.placements`**: the spawn target is removed from placements, the first spawned combatant takes the target’s **`cellId`**, and any additional spawns are placed on the nearest passable empty cells (Chebyshev distance). The grid view model continues to derive **`occupantId`** from placements only, so the **new** combatant becomes the visible token. This is the generic hook for corpse→minion replacement and is intended to extend to future **shapeshift / transformation** flows that introduce a new combatant instance in the same space.
+When a **`spawn`** effect creates new combatants that **replace** an existing token on the grid (e.g. animating a corpse into a new creature), **`applyGridSpawnReplacementFromTarget`** (`src/features/mechanics/domain/combat/space/placement/applyGridSpawnReplacement.ts`) updates **`EncounterState.placements`**: the spawn target is removed from placements, the first spawned combatant takes the target’s **`cellId`**, and any additional spawns are placed on the nearest passable empty cells (Chebyshev distance). The grid view model continues to derive **`occupantId`** from placements only, so the **new** combatant becomes the visible token. This is the generic hook for corpse→minion replacement and is intended to extend to future **shapeshift / transformation** flows that introduce a new combatant instance in the same space.
 
 ### Line of sight (binary, first pass)
 
@@ -106,7 +106,7 @@ When a **`spawn`** effect creates new combatants that **replace** an existing to
 
 **Optional battlefield spell context:** When the caller passes **`BattlefieldSpellContext`** (`spellLookup`, optional **`suppressSameSideHostile`**) as the fourth argument, movement is reconciled against **effective ground speed** for the combatant’s **current** cell after each step:
 
-- **`getEffectiveGroundMovementBudgetFt`** (`src/features/mechanics/domain/encounter/state/battlefield/battlefield-spatial-movement-modifiers.ts`) applies **`floor(baseSpeed × product)`**, where the product comes from overlapping **attached sphere auras** (`EncounterState.attachedAuraInstances`) whose spells define **`modifier`** effects with **`target: 'speed'`** and **`mode: 'multiply'`** (e.g. Spirit Guardians `0.5`). Overlap uses the same geometry as aura rendering; the aura **source** and **`unaffectedCombatantIds`** are skipped; defeated combatants and same-side suppression follow **`battlefield-attached-aura-shared`** rules.
+- **`getEffectiveGroundMovementBudgetFt`** (`src/features/mechanics/domain/combat/state/battlefield/battlefield-spatial-movement-modifiers.ts`) applies **`floor(baseSpeed × product)`**, where the product comes from overlapping **attached sphere auras** (`EncounterState.attachedAuraInstances`) whose spells define **`modifier`** effects with **`target: 'speed'`** and **`mode: 'multiply'`** (e.g. Spirit Guardians `0.5`). Overlap uses the same geometry as aura rendering; the aura **source** and **`unaffectedCombatantIds`** are skipped; defeated combatants and same-side suppression follow **`battlefield-attached-aura-shared`** rules.
 - **`turnContext.movementSpentThisTurn`** accumulates feet moved; after each move, **`movementRemaining = max(0, effectiveMax − spent)`** so entering or leaving an aura mid-turn updates the budget without double-counting.
 
 When no context is passed, behavior remains **remaining − distance** (legacy/tests).
@@ -163,7 +163,7 @@ Current naming intentionally distinguishes *in-range by metric* (`selectCellsWit
 | `GridViewModel` | `selectors/space.selectors.ts` | Complete grid for rendering |
 | `placeCombatant` | `selectors/space.selectors.ts` | Authoritative placement update: filter prior row, append `{ combatantId, cellId }` for passable cells |
 | `moveCombatant` | `selectors/space.selectors.ts` | Validates move; updates `movementRemaining` and `placements`; optional 4th arg **`BattlefieldSpellContext`** for spatial speed reconciliation |
-| `getEffectiveGroundMovementBudgetFt` | `encounter/state/battlefield/battlefield-spatial-movement-modifiers.ts` | Effective movement cap from base speed × attached-aura speed multipliers (current overlap) |
+| `getEffectiveGroundMovementBudgetFt` | `combat/state/battlefield/battlefield-spatial-movement-modifiers.ts` | Effective movement cap from base speed × attached-aura speed multipliers (current overlap) |
 | `applyGridSpawnReplacementFromTarget` | `placement/applyGridSpawnReplacement.ts` | Transfers tactical `placements` from a spawn target to new combatant(s) (replacement / corpse→minion) |
 | `hasLineOfSight` | `sight/space.sight.ts` | Binary LoS along supercover segment between cell centers |
 | `GridInteractionMode` | `encounter-interaction.types.ts` | `'select-target' \| 'move'` UI mode |

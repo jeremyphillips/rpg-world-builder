@@ -1,6 +1,6 @@
 # Encounter death, defeat, and remains (domain model)
 
-Reference for mechanics encounter semantics: participation, recorded death, remains, and targeting. **Authoritative implementation:** [`src/features/mechanics/domain/encounter/state/combatants/combatant-participation.ts`](../../src/features/mechanics/domain/encounter/state/combatants/combatant-participation.ts) and [`action-targeting.ts`](../../src/features/mechanics/domain/encounter/resolution/action/action-targeting.ts).
+Reference for mechanics encounter semantics: participation, recorded death, remains, and targeting. **Authoritative implementation:** [`src/features/mechanics/domain/combat/state/combatants/combatant-participation.ts`](../../src/features/mechanics/domain/combat/state/combatants/combatant-participation.ts) and [`action-targeting.ts`](../../src/features/mechanics/domain/combat/resolution/action/action-targeting.ts).
 
 ---
 
@@ -94,4 +94,4 @@ Until that is modeled:
 ## Related references
 
 - [`docs/reference/badges.md`](badges.md) — `participation_defeated` preview chip pipeline (encounter UI).
-- [`combatant.types.ts`](../../src/features/mechanics/domain/encounter/state/types/combatant.types.ts) — `remains`, `diedAtRound`, `CombatantDeathRecord`.
+- [`combatant.types.ts`](../../src/features/mechanics/domain/combat/state/types/combatant.types.ts) — `remains`, `diedAtRound`, `CombatantDeathRecord`.
