@@ -212,8 +212,12 @@ This pass adds:
 ### Phase 4E (seam canonical; honest unmigrated surface)
 
 - **Migrated flows** (end turn, move combatant, resolve action): production code paths go through **`applyCombatIntent` only** — [`useEncounterState`](../../../../src/features/encounter/hooks/useEncounterState.ts) is the sole production caller; routes do not bypass the application seam for these operations.
-- **Still unmigrated:** encounter **start** (`createEncounterState` in the hook), DM/manual mutators, reset. **Start-by-intent** is a likely **Phase 4F+** change (startup intent or dedicated applicator, canonical roster + space payload); not part of 4E unless explicitly requested.
 - **Deferred feedback enhancements** (optional richer UX, not required for validity): see [client/feedback-followups.md](../client/feedback-followups.md) for **`action-log-slice`** and **`registerIntentFailure`**.
+
+### Phase 4F (startup seam — not a runtime intent)
+
+- **Encounter start** uses **`startEncounterFromSetup`** ([`start-encounter-from-setup.ts`](../../../../src/features/mechanics/domain/combat/application/start-encounter-from-setup.ts)) with **`CombatStartupInput`** ([`combat-startup.types.ts`](../../../../src/features/mechanics/domain/combat/application/combat-startup.types.ts)), which calls engine **`createEncounterState`**. This keeps **initialization** separate from **`applyCombatIntent`** (commands on an existing encounter). Do not add `StartEncounterIntent` to the runtime intent union for this — startup is not a transition on prior `EncounterState`.
+- **Still unmigrated:** DM/manual mutators, reset.
 
 ## Open design questions
 

@@ -55,7 +55,7 @@ Reusable client combat UI + Encounter integration docs:
 - drawers/panels
 - combat log
 - local dispatch
-- deferred feedback (`action-log-slice`, `registerIntentFailure`, start-by-intent deferral): [client/feedback-followups.md](./client/feedback-followups.md)
+- deferred feedback (`action-log-slice`, `registerIntentFailure`): [client/feedback-followups.md](./client/feedback-followups.md)
 
 ### `server/`
 Future server-authoritative combat docs:

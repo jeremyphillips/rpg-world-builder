@@ -7,13 +7,13 @@ import {
   applyDamageToCombatant,
   applyHealingToCombatant,
   buildReducedToZeroTraits,
-  createEncounterState,
   DEFAULT_MANUAL_MONSTER_TRIGGER_CONTEXT,
   getActionTargetCandidates,
   getCombatantAvailableActions,
   removeConditionFromCombatant,
   applyCombatIntent,
   flattenLogEntriesFromIntentSuccess,
+  startEncounterFromSetup,
   removeStateFromCombatant,
   triggerManualHook,
   type CombatantInstance,
@@ -284,19 +284,20 @@ export function useEncounterState({
     environmentZones?: EncounterEnvironmentZone[]
   }) {
     if (selectedCombatants.length === 0 || unresolvedCombatantCount > 0) return
-    setEncounterState(
-      createEncounterState(selectedCombatants, {
-        space: opts?.space,
-        placementOptions: opts?.placementOptions,
-        environmentBaseline: opts?.environmentBaseline,
-        environmentZones: opts?.environmentZones,
-        battlefieldSpell: {
-          spellLookup: spellsById != null ? (id) => spellsById[id] : () => undefined,
-          suppressSameSideHostile,
-          monstersById,
-        },
-      }),
-    )
+    const result = startEncounterFromSetup({
+      combatants: selectedCombatants,
+      space: opts?.space,
+      placementOptions: opts?.placementOptions,
+      environmentBaseline: opts?.environmentBaseline,
+      environmentZones: opts?.environmentZones,
+      battlefieldSpell: {
+        spellsById: spellsById ?? undefined,
+        monstersById,
+        suppressSameSideHostile,
+      },
+    })
+    if (!result.ok) return
+    setEncounterState(result.state)
   }
 
   function handleNextTurn() {

@@ -42,6 +42,8 @@ See also: [local-dispatch.md](./local-dispatch.md), [../engine/intents-and-event
 
 ---
 
-## Encounter start by intent (related deferral)
+## Encounter startup (Phase 4F — implemented)
 
-Routing **`handleStartEncounter`** through `applyCombatIntent` (or a dedicated startup applicator) is **out of scope** for Phase 4E by default. It needs a new intent or entry point, canonical payload for roster + space/options, and broader tests — typically tracked as **Phase 4F or later**. See [`migration-roadmap.md`](../migration-roadmap.md) and [`MUTATION_ENTRY_POINTS.md`](../../../../src/features/mechanics/domain/combat/application/MUTATION_ENTRY_POINTS.md).
+**Resolved in Phase 4F:** Confirmed encounter start goes through **`startEncounterFromSetup`** with **`CombatStartupInput`**, not through `applyCombatIntent` or a `StartEncounterIntent`. See [`start-encounter-from-setup.ts`](../../../../src/features/mechanics/domain/combat/application/start-encounter-from-setup.ts) and [`migration-roadmap.md`](../migration-roadmap.md).
+
+**Optional later:** surfacing startup log rows through the same toast path as post-start intents (`registerCombatLogAppended`) — not required for the startup seam to be valid.

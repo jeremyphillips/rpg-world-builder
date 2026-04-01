@@ -6,7 +6,7 @@ Primary state hub: `src/features/encounter/hooks/useEncounterState.ts`.
 
 | Flow | Handler | Engine / notes |
 |------|---------|----------------|
-| Start encounter | `handleStartEncounter` | `createEncounterState` directly (not seam); **deferred** — intent or dedicated applicator likely **Phase 4F+** |
+| Start encounter | `handleStartEncounter` | [`startEncounterFromSetup`](./start-encounter-from-setup.ts) (`CombatStartupInput`) → `createEncounterState` |
 | End turn | `handleNextTurn` | `applyCombatIntent` (`end-turn`) → `advanceEncounterTurn` |
 | Resolve action | `handleResolveAction` | `applyCombatIntent` (`resolve-action`) → `resolveCombatAction` |
 | Grid move | `handleMoveCombatant` | `applyCombatIntent` (`move-combatant`) → `moveCombatant` + reconciliation, stealth, auras |
@@ -27,11 +27,14 @@ After a successful `applyCombatIntent`, Encounter schedules **one** `queueMicrot
 
 **Migrated (must go through the seam):** end turn, resolve action, grid move — all use `applyCombatIntent` exclusively for truth-changing execution.
 
+## Phase 4F — startup application seam (not a runtime intent)
+
+**Encounter start** is **initialization**, not `applyCombatIntent` on existing state. Production path: hook builds [`CombatStartupInput`](./combat-startup.types.ts) (combatants, space, env, `battlefieldSpell` with `spellsById` / `monstersById` — no UI `spellLookup` closures) → [`startEncounterFromSetup`](./start-encounter-from-setup.ts) → engine `createEncounterState`. This parallels a future “create combat session” request vs runtime “apply intent” commands.
+
 ## Unmigrated truth-changing flows (explicit)
 
 | Flow | Notes |
 |------|--------|
-| **Start encounter** | `createEncounterState` in hook; moving behind the seam needs startup intent/applicator + payload design — **defer to Phase 4F+** unless explicitly scoped |
 | **DM / manual** | Damage, healing, conditions, states, reduced-to-zero manual hook — direct engine mutators; optional future intents or simulator-only |
 | **Reset** | Clears encounter state (not an in-encounter intent) |
 
