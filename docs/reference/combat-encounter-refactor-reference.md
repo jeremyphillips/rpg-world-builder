@@ -601,6 +601,8 @@ See **[combat-client-ui.md](./combat-client-ui.md)** for what lives under `src/f
 - convert state-changing entry points to intent-shaped contracts
 - derive logs/toasts from canonical events
 
+Implementation detail and phase status: **[combat/migration-roadmap.md](./combat/migration-roadmap.md)**, **[combat/client/local-dispatch.md](./combat/client/local-dispatch.md)**. Phase 4E documents the local seam as canonical for migrated gameplay flows (end turn, move, resolve). **Encounter start** still uses direct `createEncounterState` in the hook until a later phase (e.g. **4F+**) defines a startup intent or applicator — see **[combat/client/feedback-followups.md](./combat/client/feedback-followups.md)**. Optional deferred client hooks (`action-log-slice` consumption, `registerIntentFailure`) are described there.
+
 ### Phase 5 — Add server combat application layer
 
 - create live combat session service

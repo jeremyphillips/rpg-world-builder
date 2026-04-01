@@ -92,9 +92,13 @@ This is the bridge from single-client mutation flow toward server-authoritative 
 
 - Implemented: `flattenLogEntriesFromIntentSuccess` in combat application; `useEncounterState` schedules a single log/toast callback per successful intent (flattened entries, one microtask). `registerCombatLogAppended` API unchanged.
 
-- Next (4E+): remaining legacy mutators, optional server path.
+### Phase 4E (consolidation + documentation)
 
-See [.cursor/plans/phase_4a_combat_intent_dispatch.plan.md](../../../.cursor/plans/phase_4a_combat_intent_dispatch.plan.md), [.cursor/plans/phase_4c_action_seam_7edcc62d.plan.md](../../../.cursor/plans/phase_4c_action_seam_7edcc62d.plan.md), and [.cursor/plans/phase_4d_log_toast_events.plan.md](../../../.cursor/plans/phase_4d_log_toast_events.plan.md).
+- **Seam is canonical** for migrated flows in production: end turn, move combatant, resolve action — only [`useEncounterState`](../../../src/features/encounter/hooks/useEncounterState.ts) calls `applyCombatIntent`; routes wire hook handlers and do not bypass the application layer for those flows.
+- **Unmigrated** truth-changing flows remain explicit: encounter **start** still uses `createEncounterState` in the hook; DM/manual mutators and reset are unchanged. **Encounter start by intent** is deferred to **Phase 4F or later** (new startup intent or applicator, roster + space payload design, broader tests) unless explicitly scoped.
+- **Deferred feedback** documented in [client/feedback-followups.md](./client/feedback-followups.md): optional `action-log-slice` consumption expansion, optional `registerIntentFailure`, and rationale.
+
+See [.cursor/plans/phase_4a_combat_intent_dispatch.plan.md](../../../.cursor/plans/phase_4a_combat_intent_dispatch.plan.md), [.cursor/plans/phase_4c_action_seam_7edcc62d.plan.md](../../../.cursor/plans/phase_4c_action_seam_7edcc62d.plan.md), [.cursor/plans/phase_4d_log_toast_events.plan.md](../../../.cursor/plans/phase_4d_log_toast_events.plan.md), and [.cursor/plans/phase_4e_consolidation.plan.md](../../../.cursor/plans/phase_4e_consolidation.plan.md).
 
 ## Future server-authoritative phase
 

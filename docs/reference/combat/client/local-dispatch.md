@@ -16,6 +16,8 @@ Describe how the Encounter feature submits truth-changing combat operations toda
 
 **Phase 4C:** Documents prep vs commit ([`PHASE_4C_ACTION_PREP_VS_COMMIT.md`](../../../../src/features/mechanics/domain/combat/application/PHASE_4C_ACTION_PREP_VS_COMMIT.md)), hardens `apply-resolve-action-intent` slightly, adds optional `action-log-slice` events, and extracts [`build-resolve-action-intent.ts`](../../../../src/features/encounter/domain/interaction/build-resolve-action-intent.ts) for testable mapping from confirmed hook state. This is **not** a second action migration—the committed path was already unified in 4B.
 
+**Phase 4E:** Consolidation pass — production Encounter uses **`applyCombatIntent` only** for end turn, move, and resolve (see [`MUTATION_ENTRY_POINTS.md`](../../../../src/features/mechanics/domain/combat/application/MUTATION_ENTRY_POINTS.md)). **Start encounter** still creates state with `createEncounterState` in the hook; routing that through the seam is **deferred (Phase 4F+)** unless explicitly scoped. Optional client feedback follow-ups (`action-log-slice`, `registerIntentFailure`) are described in [feedback-followups.md](./feedback-followups.md) — not required for the seam to be valid.
+
 ## Ownership
 
 | Concern | Owner |
@@ -33,3 +35,4 @@ The same **`applyCombatIntent`** *shape* (intent in, result out) can be reimplem
 
 - [engine/intents-and-events.md](../engine/intents-and-events.md)
 - [application/MUTATION_ENTRY_POINTS.md](../../../../src/features/mechanics/domain/combat/application/MUTATION_ENTRY_POINTS.md) (repo path)
+- [feedback-followups.md](./feedback-followups.md) — deferred `action-log-slice` / `registerIntentFailure` / start-by-intent notes

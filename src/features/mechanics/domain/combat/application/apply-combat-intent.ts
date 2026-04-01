@@ -5,7 +5,7 @@
  * contract can be backed by server authority (HTTP or websocket) without changing the intent/result types.
  * Do not add Encounter routes, setup modals, or React concerns here.
  *
- * See MUTATION_ENTRY_POINTS.md for current UI mutation sites and Phase 4B migration candidates.
+ * See MUTATION_ENTRY_POINTS.md for UI mutation sites, migrated vs unmigrated flows, and Phase 4E seam boundaries.
  */
 
 import type { CombatIntent } from '../intents'
@@ -45,7 +45,7 @@ export function applyCombatIntent(
         error: {
           code: 'not-implemented',
           intentKind: intent.kind,
-          message: `Intent "${intent.kind}" is not yet handled by applyCombatIntent (Phase 4C+).`,
+          message: `Intent "${intent.kind}" is not yet handled by applyCombatIntent.`,
         },
       }
   }

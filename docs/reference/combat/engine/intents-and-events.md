@@ -209,6 +209,12 @@ This pass adds:
 - [`intent-success-log-entries.ts`](../../../../src/features/mechanics/domain/combat/application/intent-success-log-entries.ts) — `flattenLogEntriesFromIntentSuccess` / `flattenLogEntriesFromEvents` merge all `log-appended` slices from one `CombatIntentSuccess` into a single `CombatLogEvent[]` in event order.
 - Encounter (`useEncounterState`) calls `registerCombatLogAppended` at most **once** per successful intent via one `queueMicrotask`, so multiple `log-appended` events in one result do not duplicate toasts or scheduling.
 
+### Phase 4E (seam canonical; honest unmigrated surface)
+
+- **Migrated flows** (end turn, move combatant, resolve action): production code paths go through **`applyCombatIntent` only** — [`useEncounterState`](../../../../src/features/encounter/hooks/useEncounterState.ts) is the sole production caller; routes do not bypass the application seam for these operations.
+- **Still unmigrated:** encounter **start** (`createEncounterState` in the hook), DM/manual mutators, reset. **Start-by-intent** is a likely **Phase 4F+** change (startup intent or dedicated applicator, canonical roster + space payload); not part of 4E unless explicitly requested.
+- **Deferred feedback enhancements** (optional richer UX, not required for validity): see [client/feedback-followups.md](../client/feedback-followups.md) for **`action-log-slice`** and **`registerIntentFailure`**.
+
 ## Open design questions
 
 As the system evolves, these questions will need clear answers:

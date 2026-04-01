@@ -103,7 +103,7 @@ Deliverable: a short `**MUTATION_ENTRY_POINTS.md`** or block comment in the new 
 
 **Minimum concepts:**
 
-- `**CombatIntentResult`** — success vs failure; optional `nextState: EncounterState` (or “patch” later); `**events: CombatEvent[]`** for canonical records; `**validationIssues`** or `**error: CombatDispatchError**`.
+- `**CombatIntentResult`** — success vs failure; optional `nextState: EncounterState` (or “patch” later); `**events: CombatEvent[]`** for canonical records; `**validationIssues`** or `**error: CombatDispatchError`**.
 - `**CombatValidationIssue**` — code + message (stable for UI).
 - `**CombatDispatchError**` — not-found, illegal, permission (future), wrapped validation list.
 - `**CombatEvent**` — narrow v1 set: e.g. `turn-ended`, `combatant-moved`, `action-resolved`, `log-appended` — enough to subsume “log slice appended” without rewriting log UI in 4A.
@@ -152,7 +152,7 @@ If risk stays low:
 
 - `**docs/reference/combat/engine/intents-and-events.md`** — add “Implementation status: Phase 4A introduces types under …” and link to source paths.
 - `**docs/reference/combat/client/overview.md`** (or a short `**client/local-dispatch.md`**) — describe Encounter → dispatch → engine flow and UI-local vs authoritative state.
-- `**docs/reference/combat/migration-roadmap.md**` — add a **Phase 4A** bullet under Phase 4: “4A — contracts + local seam (complete); 4B+ — migrate flows.”
+- `**docs/reference/combat/migration-roadmap.md`** — add a **Phase 4A** bullet under Phase 4: “4A — contracts + local seam (complete); 4B+ — migrate flows.”
 
 ---
 

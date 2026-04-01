@@ -15,7 +15,8 @@ Then branch by concern:
 
 - Engine: [engine/overview.md](./engine/overview.md)
 - Client UI: [client/overview.md](./client/overview.md)
-- Local intent dispatch (Phase 4A): [client/local-dispatch.md](./client/local-dispatch.md)
+- Local intent dispatch (Phase 4A+): [client/local-dispatch.md](./client/local-dispatch.md)
+- Deferred client feedback follow-ups (Phase 4E docs): [client/feedback-followups.md](./client/feedback-followups.md)
 - Server authority: [server/overview.md](./server/overview.md)
 - Authored content bridge: [authored-content/location-floor-adapter.md](./authored-content/location-floor-adapter.md)
 
@@ -54,6 +55,7 @@ Reusable client combat UI + Encounter integration docs:
 - drawers/panels
 - combat log
 - local dispatch
+- deferred feedback (`action-log-slice`, `registerIntentFailure`, start-by-intent deferral): [client/feedback-followups.md](./client/feedback-followups.md)
 
 ### `server/`
 Future server-authoritative combat docs:
