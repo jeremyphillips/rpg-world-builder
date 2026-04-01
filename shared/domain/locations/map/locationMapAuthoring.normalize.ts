@@ -5,6 +5,7 @@ import type {
   LocationMapPathAuthoringEntry,
   LocationMapRegionAuthoringEntry,
 } from './locationMap.types';
+import { normalizeRegionEntriesArray } from './locationMapRegionAuthoring.normalize';
 
 /**
  * Runtime normalization for persisted/API map authoring fields.
@@ -32,9 +33,7 @@ export function normalizeLocationMapAuthoringFields(input: {
     edgeEntries: Array.isArray(input.edgeEntries)
       ? (input.edgeEntries as LocationMapEdgeAuthoringEntry[])
       : [],
-    regionEntries: Array.isArray(input.regionEntries)
-      ? (input.regionEntries as LocationMapRegionAuthoringEntry[])
-      : [],
+    regionEntries: normalizeRegionEntriesArray(input.regionEntries),
   };
 }
 

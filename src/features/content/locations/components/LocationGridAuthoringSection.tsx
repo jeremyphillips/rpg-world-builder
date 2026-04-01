@@ -26,10 +26,7 @@ import {
   getLocationScaleMapIcon,
 } from '@/features/content/locations/domain';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
-import {
-  cellDraftToCellEntries,
-  pruneRegionEntriesForCellEntries,
-} from '@/features/content/locations/domain/maps/cellAuthoringMappers';
+import { cellDraftToCellEntries } from '@/features/content/locations/domain/maps/cellAuthoringMappers';
 import {
   pruneCellKeyedRecordForGrid,
   pruneExcludedCellIdsForGrid,
@@ -44,9 +41,7 @@ import {
   canApplyAnyPaintStroke,
   canApplyRegionPaint,
   getActiveSurfaceFillKind,
-  upsertRegionEntry,
 } from '@/features/content/locations/domain/mapEditor/locationMapPaintSelection.helpers';
-import { DEFAULT_REGION_PAINT_LABEL } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
 import { getMapRegionColor, resolveCellFillSwatchColor } from '@/app/theme/mapColors';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
@@ -217,16 +212,6 @@ export function LocationGridAuthoringSection({
       const prunedObjs = pruneCellKeyedRecordForGrid(prev.objectsByCellId, cols, rows);
       const prunedFill = pruneCellKeyedRecordForGrid(prev.cellFillByCellId, cols, rows);
       const prunedRegion = pruneCellKeyedRecordForGrid(prev.regionIdByCellId, cols, rows);
-      const cellEntriesForPrune = cellDraftToCellEntries(
-        prunedLinks,
-        prunedObjs,
-        prunedFill,
-        prunedRegion,
-      );
-      const prunedRegionEntries = pruneRegionEntriesForCellEntries(
-        prev.regionEntries,
-        cellEntriesForPrune,
-      );
       const cellInBounds = (cellId: string) => {
         const p = parseGridCellId(cellId);
         if (!p) return false;
@@ -274,6 +259,10 @@ export function LocationGridAuthoringSection({
         if (!allPresent) {
           nextMapSelection = { type: 'none' };
         }
+      } else if (ms.type === 'region') {
+        if (!prev.regionEntries.some((r) => r.id === ms.regionId)) {
+          nextMapSelection = { type: 'none' };
+        }
       }
 
       const sameLen = prunedExcluded.length === prev.excludedCellIds.length;
@@ -286,8 +275,7 @@ export function LocationGridAuthoringSection({
       const fillSame =
         JSON.stringify(prunedFill) === JSON.stringify(prev.cellFillByCellId);
       const regionSame =
-        JSON.stringify(prunedRegion) === JSON.stringify(prev.regionIdByCellId) &&
-        JSON.stringify(prunedRegionEntries) === JSON.stringify(prev.regionEntries);
+        JSON.stringify(prunedRegion) === JSON.stringify(prev.regionIdByCellId);
       const pathsSame = JSON.stringify(prunedPaths) === JSON.stringify(prev.pathEntries);
       const edgesSame = JSON.stringify(prunedEdges) === JSON.stringify(prev.edgeEntries);
       const mapSelSame =
@@ -314,7 +302,7 @@ export function LocationGridAuthoringSection({
         objectsByCellId: prunedObjs,
         cellFillByCellId: prunedFill,
         regionIdByCellId: prunedRegion,
-        regionEntries: prunedRegionEntries,
+        regionEntries: prev.regionEntries,
         pathEntries: prunedPaths,
         edgeEntries: prunedEdges,
       };
@@ -528,20 +516,12 @@ export function LocationGridAuthoringSection({
           }));
           return;
         }
-        if (canApplyRegionPaint(activePaint ?? null)) {
+        if (canApplyRegionPaint(activePaint ?? null, draft.regionEntries)) {
           const paint = activePaint!;
-          const rid = paint.activeRegionDraftId!.trim();
-          const colorKey = paint.activeRegionColorKey!;
-          const label = paint.regionLabel.trim() || DEFAULT_REGION_PAINT_LABEL;
-          const entry: LocationMapRegionAuthoringEntry = {
-            id: rid,
-            colorKey,
-            label,
-          };
-          setDraft((d) => ({
-            ...d,
-            regionEntries: upsertRegionEntry(d.regionEntries, entry),
-            regionIdByCellId: { ...d.regionIdByCellId, [cellId]: rid },
+          const rid = paint.activeRegionId!.trim();
+          setDraft((prevDraft) => ({
+            ...prevDraft,
+            regionIdByCellId: { ...prevDraft.regionIdByCellId, [cellId]: rid },
           }));
         }
         return;
@@ -556,7 +536,7 @@ export function LocationGridAuthoringSection({
         });
       }
     },
-    [activePaint, mapEditorMode, setDraft],
+    [activePaint, draft.regionEntries, mapEditorMode, setDraft],
   );
 
   const endPaintStroke = useCallback(() => {
@@ -595,7 +575,7 @@ export function LocationGridAuthoringSection({
   const handlePaintPointerDown = useCallback(
     (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
       if (mapEditorMode !== 'paint' && mapEditorMode !== 'erase') return;
-      if (mapEditorMode === 'paint' && !canApplyAnyPaintStroke(activePaint ?? null)) {
+      if (mapEditorMode === 'paint' && !canApplyAnyPaintStroke(activePaint ?? null, draft.regionEntries)) {
         return;
       }
       e.stopPropagation();
@@ -603,20 +583,20 @@ export function LocationGridAuthoringSection({
       strokeSeen.current = new Set();
       applyStrokeCell(cell.cellId);
     },
-    [activePaint, applyStrokeCell, mapEditorMode],
+    [activePaint, applyStrokeCell, draft.regionEntries, mapEditorMode],
   );
 
   const handlePaintPointerEnter = useCallback(
     (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
       if (!paintStrokeActive.current) return;
       if (e.buttons !== 1) return;
-      if (mapEditorMode === 'paint' && !canApplyAnyPaintStroke(activePaint ?? null)) {
+      if (mapEditorMode === 'paint' && !canApplyAnyPaintStroke(activePaint ?? null, draft.regionEntries)) {
         return;
       }
       e.stopPropagation();
       applyStrokeCell(cell.cellId);
     },
-    [activePaint, applyStrokeCell, mapEditorMode],
+    [activePaint, applyStrokeCell, draft.regionEntries, mapEditorMode],
   );
 
   const handlePaintPointerUp = useCallback(

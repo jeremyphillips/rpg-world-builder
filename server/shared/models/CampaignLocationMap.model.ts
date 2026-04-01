@@ -41,6 +41,9 @@ const mapRegionEntrySchema = new Schema(
   {
     id: { type: String, required: true },
     colorKey: { type: String, required: true },
+    name: { type: String },
+    description: { type: String },
+    /** Legacy; prefer `name`. Kept for old documents. */
     label: { type: String },
   },
   { _id: false },

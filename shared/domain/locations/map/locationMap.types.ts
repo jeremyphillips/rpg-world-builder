@@ -61,7 +61,8 @@ export type LocationMapCellAuthoringEntry = {
 export type LocationMapRegionAuthoringEntry = {
   id: string;
   colorKey: LocationMapRegionColorKey;
-  label?: string;
+  name: string;
+  description?: string;
 };
 
 /**

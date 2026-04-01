@@ -8,8 +8,9 @@ import {
   LOCATION_MAP_GRID_MAX_WIDTH,
   LOCATION_MAP_KIND_IDS,
 } from './locationMap.constants';
-import type { LocationMapKindId, LocationMapRegionAuthoringEntry } from './locationMap.types';
+import type { LocationMapKindId } from './locationMap.types';
 import { validateCellEntriesStructure } from './locationMapCellAuthoring.validation';
+import { normalizeRegionEntriesArray } from './locationMapRegionAuthoring.normalize';
 import {
   validateRegionEntriesStructure,
   validateCellRegionIdsReferenceRegionEntries,
@@ -267,10 +268,8 @@ export function validateLocationMapInput(payload: {
 
   errors.push(...validateCellEntriesStructure(payload.cellEntries, w, h));
 
-  const regionNorm = Array.isArray(payload.regionEntries)
-    ? (payload.regionEntries as LocationMapRegionAuthoringEntry[])
-    : [];
-  errors.push(...validateRegionEntriesStructure(payload.regionEntries));
+  const regionNorm = normalizeRegionEntriesArray(payload.regionEntries);
+  errors.push(...validateRegionEntriesStructure(regionNorm));
   errors.push(
     ...validateCellRegionIdsReferenceRegionEntries(payload.cellEntries, regionNorm).map((e) => ({
       path: e.path,

@@ -29,6 +29,10 @@ describe('location map authoring round-trip', () => {
       regionEntries: [{ id: 'reg-a', colorKey: 'regionRed' as const, label: 'R' }],
     });
 
+    expect(loaded.regionEntries).toEqual([
+      { id: 'reg-a', colorKey: 'regionRed', name: 'R' },
+    ]);
+
     const draft = {
       ...cellEntriesToDraft(loaded.cellEntries),
       pathEntries: loaded.pathEntries,
@@ -64,5 +68,42 @@ describe('location map authoring round-trip', () => {
     expect(edgeEntriesToSegmentGeometrySquare(persistedShaped.edgeEntries, 40)).toEqual(
       edgeEntriesToSegmentGeometrySquare(loaded.edgeEntries, 40),
     );
+  });
+
+  it('retains region entries with no cell references through save-shaped normalization', () => {
+    const loaded = normalizeLocationMapAuthoringFields({
+      cellEntries: [],
+      pathEntries: [],
+      edgeEntries: [],
+      regionEntries: [
+        {
+          id: 'orphan',
+          colorKey: 'regionBlue' as const,
+          name: 'Empty region',
+          description: 'No cells yet',
+        },
+      ],
+    });
+
+    const draft = {
+      ...cellEntriesToDraft(loaded.cellEntries),
+      pathEntries: loaded.pathEntries,
+      edgeEntries: loaded.edgeEntries,
+      regionEntries: loaded.regionEntries,
+    };
+
+    const persistedShaped = normalizeLocationMapAuthoringFields({
+      cellEntries: cellDraftToCellEntries(
+        draft.linkedLocationByCellId,
+        draft.objectsByCellId,
+        draft.cellFillByCellId,
+        draft.regionIdByCellId,
+      ),
+      pathEntries: draft.pathEntries,
+      edgeEntries: draft.edgeEntries,
+      regionEntries: draft.regionEntries,
+    });
+
+    expect(persistedShaped.regionEntries).toEqual(loaded.regionEntries);
   });
 });

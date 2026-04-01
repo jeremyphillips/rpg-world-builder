@@ -2,9 +2,7 @@ import type {
   LocationMapCellAuthoringEntry,
   LocationMapCellFillKindId,
   LocationMapCellObjectEntry,
-  LocationMapRegionAuthoringEntry,
 } from '@/shared/domain/locations';
-import { pruneOrphanRegionEntries } from '@/shared/domain/locations/map/locationMapRegionAuthoring.validation';
 
 /**
  * Route draft (records keyed by cell id) ↔ persisted `cellEntries` on LocationMap.
@@ -95,21 +93,4 @@ export function cellEntriesToDraft(entries: LocationMapCellAuthoringEntry[] | un
     }
   }
   return { linkedLocationByCellId, objectsByCellId, cellFillByCellId, regionIdByCellId };
-}
-
-/**
- * Persisted region list: keep only entries still referenced by `cellEntries`.
- */
-export function pruneRegionEntriesForCellEntries(
-  regionEntries: LocationMapRegionAuthoringEntry[],
-  cellEntries: LocationMapCellAuthoringEntry[],
-): LocationMapRegionAuthoringEntry[] {
-  const referenced = new Set<string>();
-  for (const e of cellEntries) {
-    const r = e.regionId?.trim();
-    if (r) {
-      referenced.add(r);
-    }
-  }
-  return pruneOrphanRegionEntries(regionEntries, referenced);
 }

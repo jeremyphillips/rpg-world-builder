@@ -1,21 +1,13 @@
 import type { LocationCellFillKindId } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
-import { LOCATION_MAP_REGION_COLOR_KEYS } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
-import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 
-import {
-  DEFAULT_REGION_PAINT_LABEL,
-  type LocationMapActivePaintSelection,
-  type LocationMapPaintState,
-} from './locationMapEditor.types';
+import type { LocationMapActivePaintSelection, LocationMapPaintState } from './locationMapEditor.types';
 
 export function createInitialPaintState(): LocationMapPaintState {
   return {
     domain: 'surface',
     surfaceFillKind: null,
-    activeRegionColorKey: null,
-    activeRegionDraftId: null,
-    regionLabel: DEFAULT_REGION_PAINT_LABEL,
+    activeRegionId: null,
   };
 }
 
@@ -37,22 +29,33 @@ export function canApplySurfaceTerrainPaint(
   return getActiveSurfaceFillKind(selection) != null;
 }
 
-export function canApplyRegionPaint(selection: LocationMapActivePaintSelection): boolean {
+export function resolveActiveRegionEntry(
+  entries: readonly LocationMapRegionAuthoringEntry[],
+  activeRegionId: string | null | undefined,
+): LocationMapRegionAuthoringEntry | null {
+  const id = activeRegionId?.trim();
+  if (!id) {
+    return null;
+  }
+  return entries.find((e) => e.id === id) ?? null;
+}
+
+export function canApplyRegionPaint(
+  selection: LocationMapActivePaintSelection,
+  regionEntries: readonly LocationMapRegionAuthoringEntry[],
+): boolean {
   if (!selection || selection.domain !== 'region') {
     return false;
   }
-  if (!selection.activeRegionDraftId?.trim()) {
-    return false;
-  }
-  if (!selection.activeRegionColorKey) {
-    return false;
-  }
-  return true;
+  return resolveActiveRegionEntry(regionEntries, selection.activeRegionId) != null;
 }
 
 /** Surface stroke or region stroke (paint tool). */
-export function canApplyAnyPaintStroke(selection: LocationMapActivePaintSelection): boolean {
-  return canApplySurfaceTerrainPaint(selection) || canApplyRegionPaint(selection);
+export function canApplyAnyPaintStroke(
+  selection: LocationMapActivePaintSelection,
+  regionEntries: readonly LocationMapRegionAuthoringEntry[],
+): boolean {
+  return canApplySurfaceTerrainPaint(selection) || canApplyRegionPaint(selection, regionEntries);
 }
 
 export function upsertRegionEntry(
@@ -66,22 +69,4 @@ export function upsertRegionEntry(
   const next = [...entries];
   next[i] = entry;
   return next;
-}
-
-/**
- * When entering Region paint, ensure a stable draft id and a default preset color.
- */
-export function ensureRegionDraftTarget(
-  state: LocationMapPaintState,
-  newId: () => string = () => crypto.randomUUID(),
-): LocationMapPaintState {
-  const draftId = state.activeRegionDraftId ?? newId();
-  const colorKey: LocationMapRegionColorKey =
-    state.activeRegionColorKey ?? LOCATION_MAP_REGION_COLOR_KEYS[0];
-  return {
-    ...state,
-    domain: 'region',
-    activeRegionDraftId: draftId,
-    activeRegionColorKey: colorKey,
-  };
 }

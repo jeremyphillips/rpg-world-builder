@@ -1,3 +1,6 @@
+/** Default display name for newly created authored regions. */
+export const LOCATION_MAP_DEFAULT_REGION_NAME = 'Untitled Region';
+
 /**
  * Curated region overlay preset keys (authoring). Values resolve in app theme from primitives.
  */

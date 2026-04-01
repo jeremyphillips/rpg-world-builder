@@ -1,16 +1,29 @@
-import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { getMapRegionColor } from '@/app/theme/mapColors';
-import { LOCATION_MAP_REGION_COLOR_KEYS } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
 import type { LocationMapPaintState } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
+import { resolveActiveRegionEntry } from '@/features/content/locations/domain/mapEditor/locationMapPaintSelection.helpers';
+import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
+import { LocationMapRegionMetadataForm } from '@/features/content/locations/components/workspace/LocationMapRegionMetadataForm';
+import type { RegionMetadataFormValues } from '@/features/content/locations/components/workspace/LocationMapRegionMetadataForm';
 
 type LocationMapEditorPaintMapPanelProps = {
   paint: LocationMapPaintState;
+  regionEntries: readonly LocationMapRegionAuthoringEntry[];
+  onUpdateRegionEntry: (
+    regionId: string,
+    patch: Pick<LocationMapRegionAuthoringEntry, 'name' | 'description' | 'colorKey'>,
+  ) => void;
+  onFocusRegionInSelection?: () => void;
 };
 
-export function LocationMapEditorPaintMapPanel({ paint }: LocationMapEditorPaintMapPanelProps) {
+export function LocationMapEditorPaintMapPanel({
+  paint,
+  regionEntries,
+  onUpdateRegionEntry,
+  onFocusRegionInSelection,
+}: LocationMapEditorPaintMapPanelProps) {
   if (paint.domain === 'surface') {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -19,45 +32,42 @@ export function LocationMapEditorPaintMapPanel({ paint }: LocationMapEditorPaint
     );
   }
 
-  const colorKey = paint.activeRegionColorKey ?? LOCATION_MAP_REGION_COLOR_KEYS[0];
-  const swatch = getMapRegionColor(colorKey);
+  const active = resolveActiveRegionEntry(regionEntries, paint.activeRegionId);
+
+  if (!active) {
+    return (
+      <Stack spacing={1}>
+        <Typography variant="subtitle2" fontWeight={600}>
+          Region paint
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Create a region or choose one in the paint tray, then paint cells to assign them to that region.
+        </Typography>
+      </Stack>
+    );
+  }
 
   return (
-    <Stack spacing={1.5}>
+    <Stack spacing={2}>
       <Typography variant="subtitle2" fontWeight={600}>
-        Region paint
+        Active region
       </Typography>
-      <Typography variant="caption" color="text.secondary">
-        Paint domain: Region
-      </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box
-          sx={{
-            width: 28,
-            height: 28,
-            borderRadius: 0.5,
-            border: 1,
-            borderColor: 'divider',
-            bgcolor: swatch,
-            flexShrink: 0,
-          }}
-          aria-hidden
-        />
-        <Stack spacing={0.25} sx={{ minWidth: 0 }}>
-          <Typography variant="body2" fontWeight={600} noWrap>
-            {paint.regionLabel}
-          </Typography>
-          {paint.activeRegionDraftId ? (
-            <Typography variant="caption" color="text.secondary" noWrap title={paint.activeRegionDraftId}>
-              Draft: {paint.activeRegionDraftId.slice(0, 8)}…
-            </Typography>
-          ) : null}
-        </Stack>
-      </Box>
-      <Typography variant="body2" color="text.secondary">
-        Region metadata and assigning cells to regions will come in a later pass. For now, choose a preset color and
-        draft target in the tray.
-      </Typography>
+      {onFocusRegionInSelection ? (
+        <Button variant="outlined" size="small" onClick={onFocusRegionInSelection} sx={{ alignSelf: 'flex-start' }}>
+          Open in Selection
+        </Button>
+      ) : null}
+      <LocationMapRegionMetadataForm
+        region={active}
+        formId="location-map-region-metadata-paint"
+        onSubmitValues={(values: RegionMetadataFormValues) => {
+          onUpdateRegionEntry(active.id, {
+            name: values.name,
+            description: values.description.trim() === '' ? undefined : values.description.trim(),
+            colorKey: values.colorKey,
+          });
+        }}
+      />
     </Stack>
   );
 }

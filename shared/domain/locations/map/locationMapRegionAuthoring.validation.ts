@@ -55,8 +55,18 @@ export function validateRegionEntriesStructure(
         message: `colorKey must be one of: ${LOCATION_MAP_REGION_COLOR_KEYS.join(', ')}`,
       });
     }
+    if (row.name !== undefined && row.name !== null && typeof row.name !== 'string') {
+      errors.push({ path: `${prefix}.name`, code: 'INVALID', message: 'name must be a string' });
+    }
     if (row.label !== undefined && row.label !== null && typeof row.label !== 'string') {
       errors.push({ path: `${prefix}.label`, code: 'INVALID', message: 'label must be a string' });
+    }
+    if (row.description !== undefined && row.description !== null && typeof row.description !== 'string') {
+      errors.push({
+        path: `${prefix}.description`,
+        code: 'INVALID',
+        message: 'description must be a string',
+      });
     }
   }
   return errors;

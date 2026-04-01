@@ -21,7 +21,12 @@ describe('normalizeLocationMapAuthoringFields', () => {
     const regionEntries = [{ id: 'r1', colorKey: 'regionRed' as const, label: 'A' }];
     expect(
       normalizeLocationMapAuthoringFields({ cellEntries, pathEntries, edgeEntries, regionEntries }),
-    ).toEqual({ cellEntries, pathEntries, edgeEntries, regionEntries });
+    ).toEqual({
+      cellEntries,
+      pathEntries,
+      edgeEntries,
+      regionEntries: [{ id: 'r1', colorKey: 'regionRed', name: 'A' }],
+    });
   });
 });
 

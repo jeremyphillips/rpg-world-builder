@@ -1,13 +1,9 @@
 import type { LocationCellFillKindId } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
-import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
 import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
 import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
 import type { LocationMapSwatchColorKey } from '@/features/content/locations/domain/mapContent/locationMapSwatchColors.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
-
-/** Placeholder label for the active region paint target (Phase 1 draft only). */
-export const DEFAULT_REGION_PAINT_LABEL = 'Untitled Region';
 
 export type LocationMapEditorMode =
   | 'select'
@@ -44,16 +40,15 @@ export type LocationMapActiveDrawSelection =
   | null;
 
 /**
- * Paint tool state: Surface (terrain fill) vs Region (overlay draft target).
+ * Paint tool state: Surface (terrain fill) vs Region (authored region target).
+ * Region metadata lives in draft `regionEntries`; paint state only holds `activeRegionId`.
  * `null` when the editor is not in Paint mode.
  */
 export type LocationMapPaintState = {
   domain: 'surface' | 'region';
   surfaceFillKind: LocationCellFillKindId | null;
-  activeRegionColorKey: LocationMapRegionColorKey | null;
-  activeRegionDraftId: string | null;
-  /** Placeholder until persisted region names exist. */
-  regionLabel: string;
+  /** Must match an id in draft `regionEntries` when painting regions. */
+  activeRegionId: string | null;
 };
 
 export type LocationMapActivePaintSelection = LocationMapPaintState | null;

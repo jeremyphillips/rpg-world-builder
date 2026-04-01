@@ -1,9 +1,5 @@
 import { normalizeLocationMapAuthoringFields } from '@/shared/domain/locations';
-import {
-  cellDraftToCellEntries,
-  cellEntriesToDraft,
-  pruneRegionEntriesForCellEntries,
-} from '@/features/content/locations/domain/maps/cellAuthoringMappers';
+import { cellDraftToCellEntries, cellEntriesToDraft } from '@/features/content/locations/domain/maps/cellAuthoringMappers';
 
 import type { LocationGridDraftState } from './locationGridDraft.types';
 
@@ -45,12 +41,11 @@ export function normalizedAuthoringPayloadFromGridDraft(draft: LocationGridDraft
     draft.cellFillByCellId,
     draft.regionIdByCellId,
   );
-  const regionEntries = pruneRegionEntriesForCellEntries(draft.regionEntries, cellEntries);
   return normalizeLocationMapAuthoringFields({
     cellEntries,
     pathEntries: draft.pathEntries,
     edgeEntries: draft.edgeEntries,
-    regionEntries,
+    regionEntries: draft.regionEntries,
   });
 }
 
@@ -65,10 +60,9 @@ export function normalizePersistableCellMaps(d: LocationGridDraftState) {
     d.cellFillByCellId,
     d.regionIdByCellId,
   );
-  const regionEntries = pruneRegionEntriesForCellEntries(d.regionEntries, cellEntries);
   return {
     ...cellEntriesToDraft(cellEntries),
-    regionEntries,
+    regionEntries: d.regionEntries,
   };
 }
 

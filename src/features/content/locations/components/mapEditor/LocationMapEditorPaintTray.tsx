@@ -1,5 +1,8 @@
 import type { MouseEvent } from 'react';
+import { useEffect, useMemo } from 'react';
+import { FormProvider, useForm } from 'react-hook-form';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -13,29 +16,84 @@ import type {
   LocationMapPaintState,
   MapPaintPaletteItem,
 } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
-import {
-  ensureRegionDraftTarget,
-} from '@/features/content/locations/domain/mapEditor/locationMapPaintSelection.helpers';
+import { resolveActiveRegionEntry } from '@/features/content/locations/domain/mapEditor/locationMapPaintSelection.helpers';
 import type { LocationCellFillKindId } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
+import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 import {
   LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX,
   LOCATION_EDITOR_TOOLBAR_WIDTH_PX,
 } from '@/features/content/locations/components/workspace/locationEditor.constants';
+import FormSelectField from '@/ui/patterns/form/FormSelectField';
+
+type ActiveRegionFieldValues = {
+  activeRegionId: string;
+};
+
+function PaintTrayActiveRegionSelect({
+  activeRegionId,
+  regionEntries,
+  onSelectActiveRegion,
+}: {
+  activeRegionId: string | null;
+  regionEntries: readonly LocationMapRegionAuthoringEntry[];
+  onSelectActiveRegion: (regionId: string) => void;
+}) {
+  const methods = useForm<ActiveRegionFieldValues>({
+    defaultValues: { activeRegionId: activeRegionId ?? '' },
+    mode: 'onBlur',
+  });
+  const { reset } = methods;
+
+  useEffect(() => {
+    reset({ activeRegionId: activeRegionId ?? '' });
+  }, [activeRegionId, reset]);
+
+  const options = useMemo(
+    () => regionEntries.map((r) => ({ value: r.id, label: r.name })),
+    [regionEntries],
+  );
+
+  return (
+    <FormProvider {...methods}>
+      <Box sx={{ '& .MuiOutlinedInput-root': { borderRadius: 0 } }}>
+        <FormSelectField
+          name="activeRegionId"
+          label="Active region"
+          placeholder="Select…"
+          options={options}
+          size="small"
+          onAfterChange={(v) => onSelectActiveRegion(v)}
+        />
+      </Box>
+    </FormProvider>
+  );
+}
 
 type LocationMapEditorPaintTrayProps = {
   items: MapPaintPaletteItem[];
   activePaint: LocationMapPaintState;
   onPaintChange: (next: LocationMapPaintState) => void;
+  regionEntries: readonly LocationMapRegionAuthoringEntry[];
+  onCreateRegion: () => void;
+  onSelectActiveRegion: (regionId: string) => void;
+  onActiveRegionColorKeyChange: (colorKey: LocationMapRegionColorKey) => void;
 };
 
 export function LocationMapEditorPaintTray({
   items,
   activePaint,
   onPaintChange,
+  regionEntries,
+  onCreateRegion,
+  onSelectActiveRegion,
+  onActiveRegionColorKeyChange,
 }: LocationMapEditorPaintTrayProps) {
   if (items.length === 0) return null;
 
   const domain = activePaint.domain;
+  const activeEntry = resolveActiveRegionEntry(regionEntries, activePaint.activeRegionId);
+  const regionColorKey = activeEntry?.colorKey ?? LOCATION_MAP_REGION_COLOR_KEYS[0];
+  const regionSwatchColor = getMapRegionColor(regionColorKey);
 
   const handleDomainChange = (_: MouseEvent<HTMLElement>, value: 'surface' | 'region' | null) => {
     if (value == null) return;
@@ -43,7 +101,7 @@ export function LocationMapEditorPaintTray({
       onPaintChange({ ...activePaint, domain: 'surface' });
       return;
     }
-    onPaintChange(ensureRegionDraftTarget(activePaint));
+    onPaintChange({ ...activePaint, domain: 'region' });
   };
 
   const handleSelectSurface = (kind: LocationCellFillKindId) => {
@@ -55,24 +113,18 @@ export function LocationMapEditorPaintTray({
   };
 
   const handleSelectRegionColor = (key: LocationMapRegionColorKey) => {
-    onPaintChange({
-      ...ensureRegionDraftTarget({ ...activePaint, domain: 'region' }),
-      activeRegionColorKey: key,
-    });
+    if (!activePaint.activeRegionId?.trim()) return;
+    onActiveRegionColorKeyChange(key);
   };
-
-  const regionColorKey = activePaint.activeRegionColorKey ?? LOCATION_MAP_REGION_COLOR_KEYS[0];
-  const regionSwatchColor = getMapRegionColor(regionColorKey);
 
   return (
     <Box
       sx={{
-        // TODO: move to absolute position after tackling other trays
-        // position: 'absolute',
-        // top: 0,
-        // bottom: 0,
-        // left: LOCATION_EDITOR_TOOLBAR_WIDTH_PX,
-        // zIndex: 1,
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: LOCATION_EDITOR_TOOLBAR_WIDTH_PX,
+        zIndex: 1,
         display: 'flex',
         flexDirection: 'column',
         gap: 1,
@@ -142,9 +194,14 @@ export function LocationMapEditorPaintTray({
         </Stack>
       ) : (
         <Stack spacing={1} sx={{ px: 0.25 }}>
-          <Typography variant="caption" color="text.secondary" fontWeight={600}>
-            Active region
-          </Typography>
+          <Button variant="outlined" size="small" onClick={onCreateRegion} sx={{ borderRadius: 0 }}>
+            New region
+          </Button>
+          <PaintTrayActiveRegionSelect
+            activeRegionId={activePaint.activeRegionId}
+            regionEntries={regionEntries}
+            onSelectActiveRegion={onSelectActiveRegion}
+          />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             <Box
               sx={{
@@ -152,14 +209,14 @@ export function LocationMapEditorPaintTray({
                 height: 28,
                 borderRadius: 0,
                 border: 2,
-                borderColor: 'primary.main',
+                borderColor: activeEntry ? 'primary.main' : 'divider',
                 bgcolor: regionSwatchColor,
                 flexShrink: 0,
               }}
               aria-hidden
             />
             <Typography variant="caption" noWrap sx={{ minWidth: 0 }}>
-              {activePaint.regionLabel}
+              {activeEntry ? activeEntry.name : 'No region selected'}
             </Typography>
           </Box>
           <Typography variant="caption" color="text.secondary" fontWeight={600}>
@@ -182,6 +239,7 @@ export function LocationMapEditorPaintTray({
                     component="button"
                     type="button"
                     onClick={() => handleSelectRegionColor(key)}
+                    disabled={!activeEntry}
                     sx={{
                       width: 28,
                       height: 28,
@@ -189,9 +247,10 @@ export function LocationMapEditorPaintTray({
                       border: 2,
                       borderColor: selected ? 'primary.main' : 'divider',
                       bgcolor: c,
-                      cursor: 'pointer',
+                      cursor: activeEntry ? 'pointer' : 'not-allowed',
                       p: 0,
                       boxShadow: selected ? 2 : 0,
+                      opacity: activeEntry ? 1 : 0.45,
                     }}
                     aria-label={key}
                     aria-pressed={selected}

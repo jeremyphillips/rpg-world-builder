@@ -1,7 +1,7 @@
-import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 import type { LocationMapEdgeAuthoringEntry, LocationMapPathAuthoringEntry } from '@/shared/domain/locations';
+import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 
 import type { LocationMapSelection } from './locationEditorRail.types';
 import {
@@ -14,6 +14,8 @@ import {
   LocationCellAuthoringPanel,
   type LocationCellAuthoringPanelProps,
 } from '../LocationCellAuthoringPanel';
+import { LocationMapRegionMetadataForm } from './LocationMapRegionMetadataForm';
+import type { RegionMetadataFormValues } from './LocationMapRegionMetadataForm';
 
 export type LocationEditorSelectionPanelProps = {
   selection: LocationMapSelection;
@@ -21,6 +23,11 @@ export type LocationEditorSelectionPanelProps = {
   cellPanelProps: LocationCellAuthoringPanelProps;
   pathEntries: readonly LocationMapPathAuthoringEntry[];
   edgeEntries: readonly LocationMapEdgeAuthoringEntry[];
+  regionEntries: readonly LocationMapRegionAuthoringEntry[];
+  onUpdateRegionEntry: (
+    regionId: string,
+    patch: Pick<LocationMapRegionAuthoringEntry, 'name' | 'description' | 'colorKey'>,
+  ) => void;
 };
 
 /**
@@ -31,6 +38,8 @@ export function LocationEditorSelectionPanel({
   cellPanelProps,
   pathEntries,
   edgeEntries,
+  regionEntries,
+  onUpdateRegionEntry,
 }: LocationEditorSelectionPanelProps) {
   switch (selection.type) {
     case 'none':
@@ -43,13 +52,30 @@ export function LocationEditorSelectionPanel({
       return (
         <LocationCellAuthoringPanel {...cellPanelProps} selectedCellId={selection.cellId} />
       );
-    case 'region':
+    case 'region': {
+      const region = regionEntries.find((r) => r.id === selection.regionId);
+      if (!region) {
+        return (
+          <Typography variant="body2" color="text.secondary">
+            Region not found. It may have been removed.
+          </Typography>
+        );
+      }
       return (
-        <PlaceholderMessage
-          title="Region"
-          body="Region selection and editing will arrive with persisted region overlays. Use Paint → Region to prepare draft targets for now."
+        <LocationMapRegionMetadataForm
+          region={region}
+          formId="location-map-region-metadata-selection"
+          submitLabel="Save"
+          onSubmitValues={(values: RegionMetadataFormValues) => {
+            onUpdateRegionEntry(region.id, {
+              name: values.name,
+              description: values.description.trim() === '' ? undefined : values.description.trim(),
+              colorKey: values.colorKey,
+            });
+          }}
         />
       );
+    }
     case 'path':
       return <LocationMapPathInspector pathId={selection.pathId} pathEntries={pathEntries} />;
     case 'object':
@@ -73,17 +99,4 @@ export function LocationEditorSelectionPanel({
         />
       );
   }
-}
-
-function PlaceholderMessage({ title, body }: { title: string; body: string }) {
-  return (
-    <Box>
-      <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
-        {title}
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        {body}
-      </Typography>
-    </Box>
-  );
 }
