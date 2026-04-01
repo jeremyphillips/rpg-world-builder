@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { makeUndirectedSquareEdgeKey } from '@/shared/domain/grid/gridEdgeIds';
 
 import {
+  resolveSquareCellIdFromGridLocalPx,
   squareCellCenterPx,
   squareSharedEdgeSegmentPx,
 } from './squareGridMapOverlayGeometry';
@@ -17,6 +18,15 @@ describe('squareGridMapOverlayGeometry', () => {
 
   it('squareCellCenterPx steps by cell + gap', () => {
     expect(squareCellCenterPx('1,0', cellPx)?.cx).toBe(40 + 4 + 20);
+  });
+
+  it('resolveSquareCellIdFromGridLocalPx returns cell when point is inside cell rect', () => {
+    expect(resolveSquareCellIdFromGridLocalPx(20, 20, cellPx, 3, 3)).toBe('0,0');
+    expect(resolveSquareCellIdFromGridLocalPx(64, 20, cellPx, 3, 3)).toBe('1,0');
+  });
+
+  it('resolveSquareCellIdFromGridLocalPx returns null in the inter-cell gap', () => {
+    expect(resolveSquareCellIdFromGridLocalPx(42, 20, cellPx, 3, 3)).toBeNull();
   });
 
   it('squareSharedEdgeSegmentPx draws vertical segment in gutter for east neighbor', () => {

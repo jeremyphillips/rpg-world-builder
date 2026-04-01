@@ -10,3 +10,4 @@ export * from './useLocationMapEditorState';
 export * from './locationMapSelectionHitTest';
 export * from './resolveSelectModeRegionOrCellSelection';
 export * from './resolveSelectModeInteractiveTarget';
+export * from './refineSelectModeClickAfterRegionDrill';

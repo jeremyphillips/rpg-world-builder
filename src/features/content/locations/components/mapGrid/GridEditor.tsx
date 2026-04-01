@@ -12,6 +12,11 @@ import {
   gridCellPalette,
   gridCellSelectedShadow,
 } from './gridCellStyles';
+import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
+import {
+  shouldApplyCellHoverChrome,
+  shouldApplyCellSelectedChrome,
+} from './mapGridCellVisualState';
 
 export type GridCell = {
   cellId: string;
@@ -38,11 +43,10 @@ export type GridEditorProps = {
   className?: string;
   disabled?: boolean;
   /**
-   * Select-mode hover policy: when `'single'`, only `selectHoverCellId` receives `:hover` chrome;
-   * when `'none'`, cell hover is suppressed (path/edge/region/object is the hover target).
+   * Select-mode hover winner from map hit-testing. When set, cell `:hover` chrome follows
+   * {@link shouldApplyCellHoverChrome}; omit in other modes so all cells keep normal hover.
    */
-  selectHoverCellPolicy?: 'all' | 'none' | 'single';
-  selectHoverCellId?: string | null;
+  selectHoverTarget?: LocationMapSelection;
 };
 
 export default function GridEditor({
@@ -60,8 +64,7 @@ export default function GridEditor({
   getCellClassName,
   className,
   disabled,
-  selectHoverCellPolicy = 'all',
-  selectHoverCellId = null,
+  selectHoverTarget: selectHoverTargetProp,
 }: GridEditorProps) {
   const safeCols = Math.max(0, Math.floor(columns));
   const safeRows = Math.max(0, Math.floor(rows));
@@ -92,12 +95,10 @@ export default function GridEditor({
         const label = getCellLabel?.(cell);
         const custom = renderCellContent?.(cell);
         const extraClass = getCellClassName?.(cell);
-        const selected = selectedCellId != null && selectedCellId === cellId;
+        const selected = shouldApplyCellSelectedChrome(selectedCellId, cellId);
         const excluded = excludedSet.has(cellId);
         const fillBg = getCellBackgroundColor?.(cell);
-        const allowHover =
-          selectHoverCellPolicy === 'all' ||
-          (selectHoverCellPolicy === 'single' && selectHoverCellId === cellId);
+        const allowHover = shouldApplyCellHoverChrome(cellId, selectHoverTargetProp);
 
         return (
           <Box

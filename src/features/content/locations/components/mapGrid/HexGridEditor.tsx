@@ -20,7 +20,12 @@ import {
 } from 'react';
 import Box from '@mui/material/Box';
 import { makeGridCellId } from '@/shared/domain/grid';
+import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
 import { gridCellPalette } from './gridCellStyles';
+import {
+  shouldApplyCellHoverChrome,
+  shouldApplyCellSelectedChrome,
+} from './mapGridCellVisualState';
 
 export type HexGridCell = {
   cellId: string;
@@ -45,9 +50,8 @@ export type HexGridEditorProps = {
   disabled?: boolean;
   /** Pixel width of a single hex cell. Defaults to 48. */
   hexSize?: number;
-  /** See {@link GridEditorProps.selectHoverCellPolicy}. */
-  selectHoverCellPolicy?: 'all' | 'none' | 'single';
-  selectHoverCellId?: string | null;
+  /** See {@link GridEditorProps.selectHoverTarget}. */
+  selectHoverTarget?: LocationMapSelection;
 };
 
 const CLIP_HEX = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
@@ -68,8 +72,7 @@ export default function HexGridEditor({
   className,
   disabled,
   hexSize = 48,
-  selectHoverCellPolicy = 'all',
-  selectHoverCellId = null,
+  selectHoverTarget: selectHoverTargetProp,
 }: HexGridEditorProps) {
   const safeCols = Math.max(0, Math.floor(columns));
   const safeRows = Math.max(0, Math.floor(rows));
@@ -110,7 +113,7 @@ export default function HexGridEditor({
         const label = getCellLabel?.(cell);
         const custom = renderCellContent?.(cell);
         const extraClass = getCellClassName?.(cell);
-        const selected = selectedCellId != null && selectedCellId === cellId;
+        const selected = shouldApplyCellSelectedChrome(selectedCellId, cellId);
         const excluded = excludedSet.has(cellId);
 
         const isOddCol = x % 2 === 1;
@@ -132,9 +135,7 @@ export default function HexGridEditor({
             ? gridCellPalette.background.excluded
             : fillBg ?? gridCellPalette.background.default;
 
-        const allowHover =
-          selectHoverCellPolicy === 'all' ||
-          (selectHoverCellPolicy === 'single' && selectHoverCellId === cellId);
+        const allowHover = shouldApplyCellHoverChrome(cellId, selectHoverTargetProp);
 
         return (
           <Box

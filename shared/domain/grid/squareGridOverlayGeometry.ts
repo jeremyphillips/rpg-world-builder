@@ -1,4 +1,4 @@
-import { parseGridCellId } from './gridCellIds';
+import { makeGridCellId, parseGridCellId } from './gridCellIds';
 
 /** Matches {@link makeUndirectedSquareEdgeKey} persisted edge ids. */
 export const BETWEEN_EDGE_ID_RE = /^between:([^|]+)\|([^|]+)$/;
@@ -14,6 +14,28 @@ export function squareCellCenterPx(
   if (!p) return null;
   const step = cellPx + SQUARE_GRID_GAP_PX;
   return { cx: p.x * step + cellPx / 2, cy: p.y * step + cellPx / 2 };
+}
+
+/**
+ * Which square grid cell (if any) contains `(gx, gy)` in grid-local pixels
+ * (origin top-left of the grid, same layout as {@link squareCellCenterPx}).
+ * Returns null in the inter-cell gap or outside the grid bounds.
+ */
+export function resolveSquareCellIdFromGridLocalPx(
+  gx: number,
+  gy: number,
+  cellPx: number,
+  cols: number,
+  rows: number,
+): string | null {
+  const step = cellPx + SQUARE_GRID_GAP_PX;
+  const ix = Math.floor(gx / step);
+  const iy = Math.floor(gy / step);
+  const rx = gx - ix * step;
+  const ry = gy - iy * step;
+  if (rx >= cellPx || ry >= cellPx) return null;
+  if (ix < 0 || ix >= cols || iy < 0 || iy >= rows) return null;
+  return makeGridCellId(ix, iy);
 }
 
 /**

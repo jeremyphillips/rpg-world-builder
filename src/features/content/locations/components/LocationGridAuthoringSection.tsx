@@ -59,6 +59,7 @@ import {
   type ResolvedEdgeTarget,
   type EdgeOrientation,
 } from '@/features/content/locations/domain/mapEditor/edgeAuthoring';
+import { refineSelectModeClickAfterRegionDrill } from '@/features/content/locations/domain/mapEditor/refineSelectModeClickAfterRegionDrill';
 import { resolveSelectModeInteractiveTarget } from '@/features/content/locations/domain/mapEditor/resolveSelectModeInteractiveTarget';
 
 import type { LocationGridDraftState } from './locationGridDraft.types';
@@ -69,6 +70,7 @@ import {
 } from './workspace/locationEditorRail.types';
 import {
   BETWEEN_EDGE_ID_RE,
+  resolveSquareCellIdFromGridLocalPx,
   SQUARE_GRID_GAP_PX,
   squareCellCenterPx,
   squareEdgeSegmentPxFromEdgeId,
@@ -729,7 +731,17 @@ export function LocationGridAuthoringSection({
       const top = document.elementFromPoint(e.clientX, e.clientY);
       const cellEl = top?.closest('[role="gridcell"]');
       const anchorCellId =
-        cellEl?.getAttribute('data-cell-id') ?? resolveHexCellFromClient(e.clientX, e.clientY);
+        cellEl?.getAttribute('data-cell-id') ??
+        resolveHexCellFromClient(e.clientX, e.clientY) ??
+        (!isHex && squareGridGeometry
+          ? resolveSquareCellIdFromGridLocalPx(
+              gx,
+              gy,
+              squareGridGeometry.cellPx,
+              cols,
+              rows,
+            )
+          : null);
       if (!anchorCellId) {
         setSelectHoverTarget((prev) =>
           mapSelectionEqual(prev, { type: 'none' }) ? prev : { type: 'none' },
@@ -761,6 +773,9 @@ export function LocationGridAuthoringSection({
       pathPickPolys,
       edgePickGeoms,
       isHex,
+      squareGridGeometry,
+      cols,
+      rows,
       resolveHexCellFromClient,
     ],
   );
@@ -864,7 +879,7 @@ export function LocationGridAuthoringSection({
     }
     if (!gridContainerRef.current) {
       setDraft((d) => {
-        const ms = resolveSelectModeInteractiveTarget({
+        const resolved = resolveSelectModeInteractiveTarget({
           targetElement: e.target as HTMLElement,
           gx: 0,
           gy: 0,
@@ -878,6 +893,7 @@ export function LocationGridAuthoringSection({
           isHex,
           skipGeometry: true,
         });
+        const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, cell.cellId);
         return {
           ...d,
           mapSelection: ms,
@@ -891,7 +907,7 @@ export function LocationGridAuthoringSection({
     const gx = e.clientX - rect.left;
     const gy = e.clientY - rect.top;
     setDraft((d) => {
-      const ms = resolveSelectModeInteractiveTarget({
+      const resolved = resolveSelectModeInteractiveTarget({
         targetElement: e.target as HTMLElement,
         gx,
         gy,
@@ -904,6 +920,7 @@ export function LocationGridAuthoringSection({
         edgeEntries: d.edgeEntries,
         isHex,
       });
+      const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, cell.cellId);
       return {
         ...d,
         mapSelection: ms,
@@ -1164,19 +1181,6 @@ export function LocationGridAuthoringSection({
     mapEditorMode === 'erase' ||
     mapEditorMode === 'paint';
 
-  const selectHoverCellPolicy: 'all' | 'none' | 'single' =
-    mapEditorMode === 'select'
-      ? selectHoverTarget.type === 'none'
-        ? 'all'
-        : selectHoverTarget.type === 'cell'
-          ? 'single'
-          : 'none'
-      : 'all';
-  const selectHoverCellOnlyId =
-    mapEditorMode === 'select' && selectHoverTarget.type === 'cell'
-      ? selectHoverTarget.cellId
-      : null;
-
   const sharedGridProps = {
     columns: cols,
     rows: rows,
@@ -1204,8 +1208,8 @@ export function LocationGridAuthoringSection({
         : undefined,
     renderCellContent: renderMapCellIcons,
     getCellClassName,
-    selectHoverCellPolicy,
-    selectHoverCellId: selectHoverCellOnlyId,
+    selectHoverTarget:
+      mapEditorMode === 'select' ? selectHoverTarget : undefined,
   };
 
   if (!validPreview) return null;

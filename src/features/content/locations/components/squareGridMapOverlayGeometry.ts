@@ -4,6 +4,7 @@
 export {
   BETWEEN_EDGE_ID_RE,
   SQUARE_GRID_GAP_PX,
+  resolveSquareCellIdFromGridLocalPx,
   squareCellCenterPx,
   squareSharedEdgeSegmentPx,
   squareEdgeSegmentPxFromEdgeId,

@@ -9,3 +9,7 @@ export {
   gridCellSelectedInsetPx,
   gridCellSelectedShadow,
 } from './gridCellStyles';
+export {
+  shouldApplyCellHoverChrome,
+  shouldApplyCellSelectedChrome,
+} from './mapGridCellVisualState';
