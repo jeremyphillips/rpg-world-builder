@@ -23,7 +23,7 @@ export const gridCellPalette = {
   background: {
     default: 'background.paper',
     excluded: 'action.disabledBackground',
-    selected: 'background.paper',
+    selected: 'none',
     hover: 'background.paper',
   },
 } as const;
