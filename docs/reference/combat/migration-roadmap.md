@@ -82,9 +82,14 @@ This is the bridge from single-client mutation flow toward server-authoritative 
 ### Phase 4B (move + resolve through seam)
 
 - Implemented: `MoveCombatantIntent` and `ResolveActionIntent` handled in `applyCombatIntent`; `handleMoveCombatant` and `handleResolveAction` dispatch intents only (orchestration in application layer).
-- Next (4C+): broader action UX, optional standalone place/spawn intents, DM mutators.
 
-See [.cursor/plans/phase_4a_combat_intent_dispatch.plan.md](../../../.cursor/plans/phase_4a_combat_intent_dispatch.plan.md).
+### Phase 4C (harden + document action seam)
+
+- Not a second migration: committed action execution already flows through `handleResolveAction` → `ResolveActionIntent` → `applyCombatIntent` → `resolveCombatAction`.
+- Added prep-vs-commit note, narrow validation/events in `apply-resolve-action-intent`, pure `buildResolveActionIntentFromActiveSelection` in Encounter domain, docs aligned with reality.
+- Next (4D+): log/toast from canonical events, remaining legacy mutators, optional server path.
+
+See [.cursor/plans/phase_4a_combat_intent_dispatch.plan.md](../../../.cursor/plans/phase_4a_combat_intent_dispatch.plan.md) and [.cursor/plans/phase_4c_action_seam_7edcc62d.plan.md](../../../.cursor/plans/phase_4c_action_seam_7edcc62d.plan.md).
 
 ## Future server-authoritative phase
 

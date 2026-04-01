@@ -35,6 +35,7 @@ import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import { buildSummonAllyMonsterCombatant } from '../helpers/combatants'
 import type { AoeStep } from '../helpers/actions'
 
+import { buildResolveActionIntentFromActiveSelection } from '../domain/interaction/build-resolve-action-intent'
 import type { OpponentRosterEntry } from '../types'
 import type { EncounterSpace, InitialPlacementOptions } from '@/features/mechanics/domain/combat/space'
 
@@ -321,17 +322,16 @@ export function useEncounterState({
       if (!prev || !prev.activeCombatantId || !selectedActionId) return prev
       const result = applyCombatIntent(
         prev,
-        {
-          kind: 'resolve-action',
-          actorId: prev.activeCombatantId,
-          targetId: selectedActionTargetId || undefined,
-          actionId: selectedActionId,
-          casterOptions: selectedCasterOptions,
-          aoeOriginCellId: aoeOriginCellId || undefined,
-          singleCellPlacementCellId: selectedSingleCellPlacementCellId || undefined,
+        buildResolveActionIntentFromActiveSelection({
+          activeCombatantId: prev.activeCombatantId,
+          selectedActionId,
+          selectedActionTargetId,
+          selectedCasterOptions,
+          aoeOriginCellId,
+          selectedSingleCellPlacementCellId,
           unaffectedCombatantIds,
-          objectId: selectedObjectAnchorId?.trim() || undefined,
-        },
+          selectedObjectAnchorId,
+        }),
         { resolveCombatActionOptions: { monstersById, buildSummonAllyCombatant } },
       )
       if (!result.ok) return prev

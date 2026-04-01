@@ -11,12 +11,29 @@ export function applyResolveActionIntent(
 ): CombatIntentResult {
   const { kind: _discriminant, ...selection } = intent
 
-  if (!state.combatantsById[selection.actorId]) {
+  const actor = state.combatantsById[selection.actorId]
+  if (!actor) {
     return {
       ok: false,
       error: {
         code: 'validation-failed',
         issues: [{ code: 'unknown-actor', message: `No combatant "${selection.actorId}".` }],
+      },
+    }
+  }
+
+  const actions = actor.actions
+  if (actions && actions.length > 0 && !actions.some((a) => a.id === selection.actionId)) {
+    return {
+      ok: false,
+      error: {
+        code: 'validation-failed',
+        issues: [
+          {
+            code: 'unknown-action',
+            message: `Combatant "${selection.actorId}" has no action "${selection.actionId}".`,
+          },
+        ],
       },
     }
   }
@@ -29,6 +46,7 @@ export function applyResolveActionIntent(
     { kind: 'action-resolved', actorId: selection.actorId, actionId: selection.actionId },
   ]
   if (appended.length > 0) {
+    events.push({ kind: 'action-log-slice', entryTypes: appended.map((e) => e.type) })
     events.push({ kind: 'log-appended', entries: appended })
   }
 

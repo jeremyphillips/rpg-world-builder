@@ -14,6 +14,8 @@ Describe how the Encounter feature submits truth-changing combat operations toda
 
 **Phase 4B:** End turn, grid movement (`move-combatant`), and action resolution (`resolve-action` → `resolveCombatAction`) all go through `applyCombatIntent`; see `apply-move-combatant-intent.ts` and `apply-resolve-action-intent.ts`.
 
+**Phase 4C:** Documents prep vs commit ([`PHASE_4C_ACTION_PREP_VS_COMMIT.md`](../../../../src/features/mechanics/domain/combat/application/PHASE_4C_ACTION_PREP_VS_COMMIT.md)), hardens `apply-resolve-action-intent` slightly, adds optional `action-log-slice` events, and extracts [`build-resolve-action-intent.ts`](../../../../src/features/encounter/domain/interaction/build-resolve-action-intent.ts) for testable mapping from confirmed hook state. This is **not** a second action migration—the committed path was already unified in 4B.
+
 ## Ownership
 
 | Concern | Owner |

@@ -212,6 +212,7 @@ describe('applyCombatIntent', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.events.some((e) => e.kind === 'action-resolved')).toBe(true)
+    expect(result.events.some((e) => e.kind === 'action-log-slice')).toBe(true)
     const ar = result.events.find((e) => e.kind === 'action-resolved')
     if (ar?.kind === 'action-resolved') {
       expect(ar.actorId).toBe('actor')

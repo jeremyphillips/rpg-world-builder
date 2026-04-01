@@ -194,6 +194,16 @@ Concrete types and the local apply seam live under the shared combat engine pack
 
 End turn, grid movement, and action resolution (`resolveCombatAction`) are wired through `applyCombatIntent` from Encounter state (`useEncounterState`). `place-area` / `choose-spawn-cell` remain reserved for future explicit intents if needed (often covered by `resolve-action` today).
 
+### Phase 4C (harden + document the action seam)
+
+Phase 4C is **not** a second migration: committed action execution was already unified in Phase 4B on `handleResolveAction` → `ResolveActionIntent` → `applyCombatIntent` → `applyResolveActionIntent` → `resolveCombatAction`.
+
+This pass adds:
+
+- [`PHASE_4C_ACTION_PREP_VS_COMMIT.md`](../../../../src/features/mechanics/domain/combat/application/PHASE_4C_ACTION_PREP_VS_COMMIT.md) — classifies UI-local prep (A), confirmed payload shaping (B), and authoritative execution (C).
+- Narrow hardening in `apply-resolve-action-intent.ts` (e.g. unknown `actionId` when the actor has a non-empty action list) and optional `action-log-slice` events (log entry types appended) for future log/toast work.
+- Optional pure helper [`build-resolve-action-intent.ts`](../../../../src/features/encounter/domain/interaction/build-resolve-action-intent.ts) mapping confirmed hook fields into `ResolveActionIntent`.
+
 ## Open design questions
 
 As the system evolves, these questions will need clear answers:

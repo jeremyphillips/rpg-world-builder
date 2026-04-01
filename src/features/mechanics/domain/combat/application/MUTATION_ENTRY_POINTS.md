@@ -1,5 +1,7 @@
 # Encounter mutation entry points
 
+**Prep vs commit:** see [`PHASE_4C_ACTION_PREP_VS_COMMIT.md`](./PHASE_4C_ACTION_PREP_VS_COMMIT.md) (UI-local preparation vs confirmed payload vs authoritative `applyCombatIntent`).
+
 Primary state hub: `src/features/encounter/hooks/useEncounterState.ts`.
 
 | Flow | Handler | Engine / notes |
@@ -15,7 +17,7 @@ Orchestration for move/resolve/end-turn lives in [`apply-combat-intent.ts`](./ap
 
 Routes (`EncounterActiveRoute`, `EncounterRuntimeContext`) wire grid/footer callbacks to the handlers above.
 
-## Later migration (4C+)
+## Later migration (4D+)
 
 | Area | Notes |
 |------|--------|

@@ -1,4 +1,4 @@
-import type { CombatLogEvent, EncounterState } from '../state/types'
+import type { CombatLogEvent, CombatLogEventType, EncounterState } from '../state/types'
 import type { CombatIntentKind } from '../intents'
 
 export type CombatValidationIssue = {
@@ -29,6 +29,8 @@ export type CombatEvent =
   | { kind: 'log-appended'; entries: CombatLogEvent[] }
   | { kind: 'combatant-moved'; combatantId: string; fromCellId: string | null; toCellId: string | null }
   | { kind: 'action-resolved'; actorId: string; actionId: string }
+  /** Summary of log entry types appended during this resolution (for 4D+ consumers; no ad hoc strings). */
+  | { kind: 'action-log-slice'; entryTypes: CombatLogEventType[] }
 
 export type CombatIntentSuccess = {
   ok: true
