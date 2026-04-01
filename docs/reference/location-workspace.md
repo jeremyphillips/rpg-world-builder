@@ -36,6 +36,18 @@ Location create and edit routes render inside a full-width workspace via `AuthMa
 - **Derived geometry (pixels, polylines, segments):** `locationMapPathPolyline.helpers.ts`, `locationMapEdgeGeometry.helpers.ts`, `squareGridOverlayGeometry.ts` / `hexGridMapOverlayGeometry.ts` as appropriate.
 - **Feature SVG / smoothing:** `pathOverlayRendering.ts` and components such as `LocationGridAuthoringSection`.
 
+### Location map styling
+
+Presentation is split so hex/terrain colors, overlay rules, and grid chrome stay traceable:
+
+| Layer | Where | Role |
+|--------|--------|------|
+| **Primitives & map colors** | `src/app/theme/colorPrimitives.ts`, `mapColors.ts` | Hex scales; terrain swatches (`baseMapSwatchColors`); region preset colors (`baseMapRegionColors`). |
+| **Map UI tokens** | `domain/mapPresentation/locationMapUiStyles.ts` | Stroke widths, opacities, SVG/path/edge emphasis, region overlay placeholders; `resolveLocationMapUiStyles(theme)` for palette-dependent strokes. |
+| **Grid cells** | `components/mapGrid/gridCellStyles.ts` | `gridCellPalette` (MUI paths for borders/backgrounds) and selected inset shadow — shared by `GridEditor` / `HexGridEditor`. |
+
+App-wide MUI theme (`palette`, etc.) still applies; map-specific tuning should go through these modules rather than ad hoc values in components. See [color-theming.md](./color-theming.md) and [locations.md](./locations.md) (grid renderers + styling parity).
+
 ---
 
 ## Client feature touchpoints
