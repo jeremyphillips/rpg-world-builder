@@ -37,7 +37,7 @@ export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePa
   const kinds = getAllowedPlacedObjectKindsForScale(scale);
   return kinds.map((kind) => {
     const meta = LOCATION_PLACED_OBJECT_KIND_META[kind];
-    const linked = meta.linkedScale;
+    const linked = 'linkedScale' in meta ? meta.linkedScale : undefined;
     if (linked) {
       return {
         category: 'linked-content' as const,

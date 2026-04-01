@@ -71,7 +71,7 @@ export {
   formatLogGroupHeader,
   formatLogEntryDetail,
 } from '@/features/mechanics/domain/combat/presentation/combat-log/combat-log'
-export type { GroupedLogEntry } from '@/features/mechanics/domain/combat/presentation/combat-log/combat-log.types'
+export type { GroupedLogEntry } from '@/features/mechanics/domain/combat/presentation/combat-log/combat-log'
 export type { CombatLogEntry, CombatLogEntryImportance, CombatLogPresentationMode } from '@/features/mechanics/domain/combat/presentation/combat-log/combat-log.types'
 export type { GridInteractionMode } from '@/features/mechanics/domain/combat/selectors/interaction/encounter-interaction.types'
 export {

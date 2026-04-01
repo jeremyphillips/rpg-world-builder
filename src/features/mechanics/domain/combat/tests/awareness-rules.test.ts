@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/creation/createSquareGridSpace'
 
+import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 import {
   applyNoiseAwarenessForSubject,
   createEncounterState,
@@ -9,6 +10,7 @@ import {
   reconcileAwarenessGuessesWithPerception,
   setGuessedCellForObserver,
 } from '@/features/mechanics/domain/combat/state'
+import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 import {
   encounterAttackerOutsideDefenderHeavilyObscured,
   testEnemy,
@@ -69,7 +71,7 @@ describe('awareness-rules (guessed cell / sound seam)', () => {
         },
       ],
     }
-    const next = applyNoiseAwarenessForSubject(state, 'orc', { kind: 'movement' })
+    const next = applyNoiseAwarenessForSubject(asEncounterState(state), 'orc', { kind: 'movement' })
     expect(getGuessedCellForObserver(next, 'orc', 'wiz')).toBe('c-2-2')
     expect(getGuessedCellForObserver(next, 'orc', 'ally')).toBe('c-2-2')
     expect(getGuessedCellForObserver(next, 'orc', 'gob')).toBeUndefined()
@@ -80,7 +82,7 @@ describe('awareness-rules (guessed cell / sound seam)', () => {
     const wiz = testPc('wiz', 'Wizard', 20)
     const orc = testEnemy('orc', 'Orc', 20)
     const base = createEncounterState([wiz, orc], { rng: () => 0.5, space })
-    let state = {
+    let state: EncounterState = asEncounterState({
       ...base,
       partyCombatantIds: ['wiz'],
       enemyCombatantIds: ['orc'],
@@ -89,7 +91,7 @@ describe('awareness-rules (guessed cell / sound seam)', () => {
         { combatantId: 'wiz', cellId: 'c-0-0' },
         { combatantId: 'orc', cellId: 'c-1-0' },
       ],
-    }
+    })
     state = setGuessedCellForObserver(state, 'orc', 'wiz', 'c-1-0')
     expect(getGuessedCellForObserver(state, 'orc', 'wiz')).toBe('c-1-0')
     const pruned = reconcileAwarenessGuessesWithPerception(state)

@@ -234,7 +234,7 @@ describe('combatant builders thread Perception / Stealth runtime', () => {
       attacks: [],
       weaponOptions: [],
       wieldedWeaponIds: [],
-    }) as ReturnType<typeof useCombatStats>
+    }) as unknown as ReturnType<typeof useCombatStats>
 
   it('buildCharacterCombatantInstance sets skillRuntime proficiency and skill flags from detail DTO', () => {
     const c = buildCharacterCombatantInstance({
@@ -289,7 +289,7 @@ describe('combatant builders thread Perception / Stealth runtime', () => {
         senses: { passivePerception: 13 },
       },
       lore: { alignment: 'neutral evil', xpValue: 50, challengeRating: 0.25 },
-    }) as Monster
+    }) as unknown as Monster
 
   it('buildMonsterCombatantInstance sets skillRuntime from mechanics and senses', () => {
     const m = buildMonsterCombatantInstance({

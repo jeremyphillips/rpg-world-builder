@@ -24,6 +24,7 @@ import {
   testEnemy,
   testPc,
 } from '@/features/mechanics/domain/combat/tests/encounter-visibility-test-fixtures'
+import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 
 describe('stealth-rules', () => {
   it('getStealthHideAttemptDenialReason delegates to hide eligibility (heavy obscurement allows attempt)', () => {
@@ -43,7 +44,7 @@ describe('stealth-rules', () => {
         { combatantId: 'orc', cellId: 'c-1-0' },
       ],
     }
-    expect(getStealthHideAttemptDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+    expect(getStealthHideAttemptDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe('observer-sees-without-concealment')
   })
 
   it('getHideActionUnavailableReason is null when hide attempts are allowed (heavy obscurement)', () => {
@@ -63,7 +64,7 @@ describe('stealth-rules', () => {
         { combatantId: 'orc', cellId: 'c-1-0' },
       ],
     }
-    expect(getHideActionUnavailableReason(state, 'orc')).toBe('Need concealment or cover from observers.')
+    expect(getHideActionUnavailableReason(asEncounterState(state), 'orc')).toBe('Need concealment or cover from observers.')
   })
 
   it('applyStealthHideSuccess records observer-relative hidden state', () => {
@@ -77,7 +78,7 @@ describe('stealth-rules', () => {
       enemyCombatantIds: ['orc'],
       initiativeOrder: ['wiz', 'orc', 'ally'],
     }
-    const applied = applyStealthHideSuccess(state, 'orc', ['wiz'])
+    const applied = applyStealthHideSuccess(asEncounterState(state), 'orc', ['wiz'])
     expect(applied.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
     expect(isHiddenFromObserver(applied, 'wiz', 'orc')).toBe(true)
     expect(isHiddenFromObserver(applied, 'ally', 'orc')).toBe(false)
@@ -106,7 +107,7 @@ describe('stealth-rules', () => {
       { combatantId: 'orc', cellId: 'c-1-0' },
     ] }
     const logLenBefore = state.log.length
-    const pruned = reconcileStealthHiddenForPerceivedObservers(state)
+    const pruned = reconcileStealthHiddenForPerceivedObservers(asEncounterState(state))
     expect(pruned.combatantsById.orc?.stealth).toBeUndefined()
     expect(pruned.log.length).toBeGreaterThan(logLenBefore)
     const pruneNote = pruned.log.find(
@@ -141,7 +142,7 @@ describe('stealth-rules', () => {
       },
     }
     const logLenBefore = state.log.length
-    const next = reconcileStealthHiddenForPerceivedObservers(state)
+    const next = reconcileStealthHiddenForPerceivedObservers(asEncounterState(state))
     expect(next.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
     expect(next.log.length).toBe(logLenBefore)
   })
@@ -184,7 +185,7 @@ describe('stealth-rules', () => {
       },
     }
     expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
-    const pruned = reconcileStealthHiddenForPerceivedObservers(state)
+    const pruned = reconcileStealthHiddenForPerceivedObservers(asEncounterState(state))
     expect(pruned.combatantsById.orc?.stealth).toBeUndefined()
     const pruneNote = pruned.log.find((e) => e.type === 'stealth-reveal')
     expect(pruneNote?.summary).toContain('clear line of sight')
@@ -248,7 +249,7 @@ describe('stealth-rules', () => {
       },
     }
     expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
-    const afterPerception = reconcileStealthHiddenForPerceivedObservers(state)
+    const afterPerception = reconcileStealthHiddenForPerceivedObservers(asEncounterState(state))
     expect(afterPerception.combatantsById.orc?.stealth).toBeUndefined()
   })
 
@@ -315,7 +316,7 @@ describe('stealth-rules', () => {
       },
     }
     expect(state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
-    const afterPerception = reconcileStealthHiddenForPerceivedObservers(state)
+    const afterPerception = reconcileStealthHiddenForPerceivedObservers(asEncounterState(state))
     expect(afterPerception.combatantsById.orc?.stealth).toBeUndefined()
   })
 
@@ -416,7 +417,7 @@ describe('stealth-rules', () => {
       },
     }
     const hideOpts = { hideEligibility: { featureFlags: { allowHalfCoverForHide: true } } }
-    const beat = resolveHideWithPassivePerception(state, 'orc', 11, hideOpts)
+    const beat = resolveHideWithPassivePerception(asEncounterState(state), 'orc', 11, hideOpts)
     expect(beat.state.combatantsById.orc?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
     expect(beat.state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
@@ -456,7 +457,7 @@ describe('stealth-rules', () => {
         },
       },
     }
-    const beat = resolveHideWithPassivePerception(state, 'orc', 11)
+    const beat = resolveHideWithPassivePerception(asEncounterState(state), 'orc', 11)
     expect(beat.state.combatantsById.orc?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
     expect(beat.state.combatantsById.orc?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
@@ -527,7 +528,7 @@ describe('stealth-rules', () => {
     }
     const zonesRemoved = { ...withHalfCoverZone, environmentZones: [] as typeof withHalfCoverZone.environmentZones }
     expect(zonesRemoved.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
-    const afterPerception = reconcileStealthHiddenForPerceivedObservers(zonesRemoved)
+    const afterPerception = reconcileStealthHiddenForPerceivedObservers(asEncounterState(zonesRemoved))
     expect(afterPerception.combatantsById.orc?.stealth).toBeUndefined()
   })
 
@@ -559,7 +560,7 @@ describe('stealth-rules', () => {
         },
       },
     }
-    const next = reconcileStealthAfterMovementOrEnvironmentChange(state)
+    const next = reconcileStealthAfterMovementOrEnvironmentChange(asEncounterState(state))
     expect(next.combatantsById.orc?.stealth?.hiddenFromObserverIds).toEqual(['wiz'])
     const ctx = next.log.find((e) => e.details?.includes(STEALTH_DEBUG_REASON.hideBasisLostContext))
     expect(ctx?.summary).toMatch(/still hidden from|hide basis/i)

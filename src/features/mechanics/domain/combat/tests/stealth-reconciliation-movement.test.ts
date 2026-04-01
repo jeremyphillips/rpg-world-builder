@@ -143,7 +143,7 @@ describe('stealth reconciliation — movement & environment integration', () => 
         { combatantId: 'orc', cellId: 'c-2-2' },
       ],
       environmentBaseline: {
-        setting: 'dungeon',
+        setting: 'indoors',
         lightingLevel: 'dim',
         visibilityObscured: 'light',
         terrainMovement: 'normal',

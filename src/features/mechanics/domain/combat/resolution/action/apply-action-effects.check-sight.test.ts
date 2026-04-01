@@ -24,6 +24,7 @@ function baseCheckAction(requiresSight: boolean | undefined): CombatActionDefini
       spellId: 'test',
       level: 0,
       range: '30 feet',
+      concentration: false,
     },
     effects: [
       {

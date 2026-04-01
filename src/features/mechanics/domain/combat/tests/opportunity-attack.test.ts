@@ -16,6 +16,7 @@ import {
 import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 
 import { testEnemy, testPc } from './encounter-visibility-test-fixtures'
+import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 
 /** Ensures the mover has movement budget (only the active combatant gets turn resources reset in createEncounterState). */
 function withMovementRemaining(state: EncounterState, combatantId: string, feet: number): EncounterState {
@@ -131,7 +132,7 @@ describe('opportunity attack legality', () => {
         },
       ],
     }
-    const beforeMoved = withMovementRemaining(before, 'orc', 30)
+    const beforeMoved = withMovementRemaining(asEncounterState(before), 'orc', 30)
     const after = moveCombatant(beforeMoved, 'orc', 'c-2-0')
     expect(getOpportunityAttackLegalityDenialReason(beforeMoved, after, 'orc', 'wiz')).toBe(
       'cannot-perceive-departing-occupant',
@@ -160,7 +161,7 @@ describe('opportunity attack legality', () => {
         },
       ],
     }
-    const beforeMoved = withMovementRemaining(before, 'orc', 30)
+    const beforeMoved = withMovementRemaining(asEncounterState(before), 'orc', 30)
     const after = moveCombatant(beforeMoved, 'orc', 'c-2-0')
     expect(getOpportunityAttackLegalityDenialReason(beforeMoved, after, 'orc', 'wiz')).toBe(
       'cannot-perceive-departing-occupant',

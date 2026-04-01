@@ -1,4 +1,4 @@
-import type { Effect } from '../../effects/effects.types'
+import type { Effect } from '../../../effects/effects.types'
 import type {
   CombatantHideEligibilityFeatureFlagsRuntime,
   RuntimeMarker,

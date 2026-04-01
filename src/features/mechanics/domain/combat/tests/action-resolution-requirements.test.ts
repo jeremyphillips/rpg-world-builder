@@ -4,6 +4,7 @@ import type { CombatActionDefinition } from '@/features/mechanics/domain/combat/
 
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/creation/createSquareGridSpace'
 import { createEncounterState } from '../state'
+import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 import {
   actionRequiresCreatureTargetForResolve,
   getActionResolutionReadiness,
@@ -133,7 +134,7 @@ describe('action-resolution-requirements', () => {
     })
     const r = getActionResolutionReadiness(hideAction, {
       ...emptyCtx,
-      encounterState,
+      encounterState: asEncounterState(encounterState),
       activeCombatant,
     })
     expect(r.missingRequirements.filter((m) => m.kind === 'hide-eligibility')).toHaveLength(0)

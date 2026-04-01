@@ -1,4 +1,4 @@
-import type { ActionBadgeDescriptor } from './combat-action-badges.types'
+import type { ActionBadgeDescriptor } from '../badges/action/combat-action-badges.types'
 
 /**
  * Primary user-intent category for an action.

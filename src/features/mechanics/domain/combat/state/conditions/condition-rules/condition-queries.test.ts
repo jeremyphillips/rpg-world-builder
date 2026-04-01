@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import type { CombatantInstance } from '../types/combatant.types'
+import type { CombatantInstance } from '../../types/combatant.types'
 import {
   canTakeActions,
   getActiveConsequences,

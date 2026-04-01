@@ -39,6 +39,7 @@ The core model is:
 - `ownership-boundaries.md` — what each layer owns
 - `glossary.md` — stable terminology
 - `migration-roadmap.md` — phased refactor plan
+- `adr-shared-combat-extraction.md` — ADR: shared combat extraction boundary, public API freeze, server import policy
 
 ### `engine/`
 Shared combat engine docs:

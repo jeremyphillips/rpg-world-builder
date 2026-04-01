@@ -25,10 +25,8 @@ export type FieldSpecOption = { value: string; label: string };
 export type FieldSpec<
   FormValues extends Record<string, unknown>,
   // Phantom type params for call-site inference (InputShape / ItemShape in mappers).
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for mapper typing
-  InputShape extends Record<string, unknown> = Record<string, unknown>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for mapper typing
-  ItemShape extends Record<string, unknown> = Record<string, unknown>,
+  _InputShape extends Record<string, unknown> = Record<string, unknown>,
+  _ItemShape extends Record<string, unknown> = Record<string, unknown>,
 > = {
   name: keyof FormValues & string;
   label: string;

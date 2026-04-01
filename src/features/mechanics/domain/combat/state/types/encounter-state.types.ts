@@ -7,8 +7,8 @@ import type {
   EncounterEnvironmentBaseline,
   EncounterEnvironmentZone,
 } from '@/features/mechanics/domain/environment/environment.types'
-import type { AttachedBattlefieldEffectSource } from '../attached-battlefield-source'
-import type { BattlefieldEffectAnchor } from '../battlefield-effect-anchor'
+import type { AttachedBattlefieldEffectSource } from '../auras/attached-battlefield-source'
+import type { BattlefieldEffectAnchor } from '../battlefield/battlefield-effect-anchor'
 
 /** Persistent battlefield sphere effect (e.g. Spirit Guardians emanation). */
 export type BattlefieldEffectInstance = {

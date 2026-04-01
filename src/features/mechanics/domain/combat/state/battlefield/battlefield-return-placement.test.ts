@@ -10,7 +10,7 @@ import {
   markerCausesBattlefieldAbsence,
 } from './battlefield-return-placement'
 import type { CombatantInstance, EncounterState } from '../types'
-import type { InitiativeRoll } from '../../resolution/resolvers/initiative-resolver'
+import type { InitiativeRoll } from '../../../resolution/resolvers/initiative-resolver'
 
 function minimalCombatant(id: string, overrides: Partial<CombatantInstance> = {}): CombatantInstance {
   return {

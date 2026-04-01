@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
+import type { EncounterEnvironmentBaseline } from '@/features/mechanics/domain/environment/environment.types'
 
 import { updateEncounterEnvironmentBaseline } from '@/features/mechanics/domain/combat/state/environment/environment-baseline-mutations'
 
@@ -33,9 +34,9 @@ describe('applyEnvironmentBaselinePatch', () => {
   })
 
   it('replaces atmosphereTags entirely when present', () => {
-    const base = {
+    const base: EncounterEnvironmentBaseline = {
       ...DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE,
-      atmosphereTags: ['high-wind', 'underwater'] as const,
+      atmosphereTags: ['high-wind', 'underwater'],
     }
     const next = applyEnvironmentBaselinePatch(base, { atmosphereTags: ['anti-magic'] })
     expect(next.atmosphereTags).toEqual(['anti-magic'])

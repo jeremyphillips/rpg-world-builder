@@ -14,6 +14,7 @@ import { createEncounterState } from '@/features/mechanics/domain/combat/state/r
 import type { BattlefieldEffectInstance } from '@/features/mechanics/domain/combat/state/types'
 
 import { createCombatant } from '@/features/mechanics/domain/combat/tests/action-resolution.test-helpers'
+import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 
 function treeObstacle(id: string, cellId: string): GridObstacle {
   return {
@@ -224,7 +225,7 @@ describe('object-anchored emanation via resolveCombatAction + obstacle move', ()
       spellAttackBonus: 5,
       casterLevel: 5,
       spellIds: ['darkness'],
-      spellsById: { darkness },
+      spellsById: { darkness: darkness as unknown as Spell },
     })
 
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 10, rows: 10 })

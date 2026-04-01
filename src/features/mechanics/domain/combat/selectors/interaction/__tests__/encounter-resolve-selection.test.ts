@@ -6,6 +6,7 @@ import { DEFAULT_HIDE_COMBAT_ACTION } from '@/features/mechanics/domain/combat/r
 import { createEncounterState } from '@/features/mechanics/domain/combat/state'
 
 import { testEnemy, testPc } from '@/features/mechanics/domain/combat/tests/encounter-visibility-test-fixtures'
+import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 
 import { selectValidActionIdsForTarget } from '../../interaction/encounter-resolve-selection'
 
@@ -25,7 +26,7 @@ describe('selectValidActionIdsForTarget', () => {
     const activeCombatant = encounterState.combatantsById.orc!
     const availableActions: CombatActionDefinition[] = [{ ...DEFAULT_HIDE_COMBAT_ACTION, id: 'hide' }]
     const { validIds, invalidReasons } = selectValidActionIdsForTarget(
-      encounterState,
+      asEncounterState(encounterState),
       activeCombatant,
       null,
       availableActions,
@@ -58,7 +59,7 @@ describe('selectValidActionIdsForTarget', () => {
     const activeCombatant = encounterState.combatantsById.orc!
     const availableActions: CombatActionDefinition[] = [{ ...DEFAULT_HIDE_COMBAT_ACTION, id: 'hide' }]
     const { validIds, invalidReasons } = selectValidActionIdsForTarget(
-      encounterState,
+      asEncounterState(encounterState),
       activeCombatant,
       null,
       availableActions,

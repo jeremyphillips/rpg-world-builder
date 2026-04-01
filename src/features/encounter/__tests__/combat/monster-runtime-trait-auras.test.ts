@@ -14,22 +14,22 @@ import {
 function minimalMonster(overrides: Partial<Monster> & Pick<Monster, 'id'>): Monster {
   return {
     name: 'Test',
+    source: 'system',
+    systemId: 'SRD_CC_v5_2_1',
     type: 'aberration',
-    size: 'medium',
-    alignment: 'neutral',
-    armorClass: { value: 10 },
-    hitPoints: { count: 1, die: 8, modifier: 0 },
-    speed: { ground: 30 },
+    lore: { alignment: 'neutral', xpValue: 0, challengeRating: 0 },
     mechanics: {
+      hitPoints: { count: 1, die: 8, modifier: 0 },
+      armorClass: { kind: 'fixed', value: 10 },
+      movement: { ground: 30 },
       proficiencyBonus: 2,
       abilities: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
       savingThrows: {},
-      hitPoints: { count: 1, die: 8, modifier: 0 },
       traits: [],
       actions: [],
     },
     ...overrides,
-  } as Monster
+  } as unknown as Monster
 }
 
 describe('monster trait attached battlefield auras', () => {
@@ -61,6 +61,7 @@ describe('monster trait attached battlefield auras', () => {
       {
         kind: 'save',
         save: { ability: 'wisdom', dc: 14 },
+        onFail: [],
       },
       {
         kind: 'emanation',
@@ -69,6 +70,7 @@ describe('monster trait attached battlefield auras', () => {
       },
       {
         kind: 'interval',
+        stateId: 'trait-interval',
         every: { unit: 'turn', value: 1 },
         effects: [],
       },
@@ -77,6 +79,9 @@ describe('monster trait attached battlefield auras', () => {
     const monster = minimalMonster({
       id: 'test-aura-monster',
       mechanics: {
+        hitPoints: { count: 1, die: 8, modifier: 0 },
+        armorClass: { kind: 'fixed', value: 10 },
+        movement: { ground: 30 },
         traits: [
           {
             name: 'Aura of Testing',
@@ -87,7 +92,6 @@ describe('monster trait attached battlefield auras', () => {
         proficiencyBonus: 2,
         abilities: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
         savingThrows: {},
-        hitPoints: { count: 1, die: 8, modifier: 0 },
         actions: [],
       },
     })
@@ -112,6 +116,9 @@ describe('monster trait attached battlefield auras', () => {
     const monster = minimalMonster({
       id: 'sunlight-only',
       mechanics: {
+        hitPoints: { count: 1, die: 8, modifier: 0 },
+        armorClass: { kind: 'fixed', value: 10 },
+        movement: { ground: 30 },
         traits: [
           {
             name: 'Sunlight',
@@ -129,7 +136,6 @@ describe('monster trait attached battlefield auras', () => {
         proficiencyBonus: 2,
         abilities: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
         savingThrows: {},
-        hitPoints: { count: 1, die: 8, modifier: 0 },
         actions: [],
       },
     })
@@ -151,6 +157,7 @@ describe('monster trait attached battlefield auras', () => {
       },
       {
         kind: 'interval',
+        stateId: 'encounter-interval',
         every: { unit: 'turn', value: 1 },
         effects: [],
       },
@@ -160,6 +167,9 @@ describe('monster trait attached battlefield auras', () => {
       id: 'encounter-seed',
       name: 'Seeder',
       mechanics: {
+        hitPoints: { count: 1, die: 8, modifier: 0 },
+        armorClass: { kind: 'fixed', value: 10 },
+        movement: { ground: 30 },
         traits: [
           {
             name: 'Field',
@@ -170,7 +180,6 @@ describe('monster trait attached battlefield auras', () => {
         proficiencyBonus: 2,
         abilities: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
         savingThrows: {},
-        hitPoints: { count: 1, die: 8, modifier: 0 },
         actions: [],
       },
     })
@@ -202,6 +211,9 @@ describe('monster trait attached battlefield auras', () => {
       monster: minimalMonster({
         id: 'x',
         mechanics: {
+          hitPoints: { count: 1, die: 8, modifier: 0 },
+          armorClass: { kind: 'fixed', value: 10 },
+          movement: { ground: 30 },
           traits: [
             {
               name: 'T',
@@ -218,7 +230,6 @@ describe('monster trait attached battlefield auras', () => {
           proficiencyBonus: 2,
           abilities: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
           savingThrows: {},
-          hitPoints: { count: 1, die: 8, modifier: 0 },
           actions: [],
         },
       }),

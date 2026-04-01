@@ -13,6 +13,7 @@ import { createEncounterState } from '@/features/mechanics/domain/combat/state'
 import { createCombatant } from '@/features/mechanics/domain/combat/tests/action-resolution.test-helpers'
 
 import { selectGridViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
+import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 
 describe('selectGridViewModel — viewerPerceivesOccupantToken', () => {
   it('sets viewerPerceivesOccupantToken false on occupant cell when viewer cannot perceive (invisible)', () => {
@@ -252,7 +253,7 @@ describe('selectGridViewModel — viewerPerceivesOccupantToken', () => {
         },
       ],
     }
-    const grid = selectGridViewModel(state, {
+    const grid = selectGridViewModel(asEncounterState(state), {
       perception: { viewerCombatantId: 'a', viewerRole: 'pc' },
     })
     const selfCell = grid?.cells.find((c) => c.cellId === 'c-0-0')
@@ -293,7 +294,7 @@ describe('selectGridViewModel — viewerPerceivesOccupantToken', () => {
         },
       ],
     }
-    const grid = selectGridViewModel(state, {
+    const grid = selectGridViewModel(asEncounterState(state), {
       perception: { viewerCombatantId: 'wiz', viewerRole: 'pc' },
       persistentAttachedAuras: [{ originCellId: 'c-2-2', areaRadiusFt: 20 }],
     })
@@ -343,7 +344,7 @@ describe('selectGridViewModel — viewerPerceivesOccupantToken', () => {
         },
       ],
     }
-    const grid = selectGridViewModel(state, {
+    const grid = selectGridViewModel(asEncounterState(state), {
       perception: { viewerCombatantId: 'orc', viewerRole: 'pc' },
       persistentAttachedAuras: [{ originCellId: 'c-2-2', areaRadiusFt: 20 }],
     })

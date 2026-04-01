@@ -162,7 +162,6 @@ describe('combatant pair visibility (occupant)', () => {
   it('attack roll pair visibility ignores stealth hidden state (no double-stacked modifiers)', () => {
     expect(ATTACK_ROLL_READS_STEALTH_HIDDEN_STATE).toBe(false)
     const state = encounterAttackerOutsideDefenderHeavilyObscured()
-    const wiz = state.combatantsById.wiz!
     const orc = state.combatantsById.orc!
     const orcWithStealth: typeof orc = {
       ...orc,

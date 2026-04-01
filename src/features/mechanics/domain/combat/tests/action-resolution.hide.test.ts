@@ -6,6 +6,7 @@ import { DEFAULT_HIDE_COMBAT_ACTION, resolveCombatAction } from '../resolution'
 import { createEncounterState } from '../state'
 
 import { createCombatant } from './action-resolution.test-helpers'
+import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 
 describe('resolveCombatAction — Hide vs passive Perception', () => {
   it('rolls Stealth and marks hidden from observers beaten (strict > passive)', () => {
@@ -53,7 +54,7 @@ describe('resolveCombatAction — Hide vs passive Perception', () => {
     }
 
     const resolved = resolveCombatAction(
-      withPlacements,
+      asEncounterState(withPlacements),
       { actorId: 'orc', actionId: 'hide' },
       {
         rng: () => 0.96,
@@ -111,7 +112,7 @@ describe('resolveCombatAction — Hide vs passive Perception', () => {
     }
 
     const resolved = resolveCombatAction(
-      withPlacements,
+      asEncounterState(withPlacements),
       { actorId: 'orc', actionId: 'hide' },
       {
         rng: () => 0.0,
@@ -157,7 +158,7 @@ describe('resolveCombatAction — Hide vs passive Perception', () => {
     }
 
     const resolved = resolveCombatAction(
-      withPlacements,
+      asEncounterState(withPlacements),
       { actorId: 'orc', actionId: 'hide' },
       { rng: () => 0.99 },
     )
@@ -228,7 +229,7 @@ describe('resolveCombatAction — Hide vs passive Perception', () => {
     }
 
     // d20 10 + mod 5 = 15: beats PP 10, loses to PP 20
-    const resolved = resolveCombatAction(withPlacements, { actorId: 'orc', actionId: 'hide' }, { rng: () => 0.45 })
+    const resolved = resolveCombatAction(asEncounterState(withPlacements), { actorId: 'orc', actionId: 'hide' }, { rng: () => 0.45 })
 
     expect(resolved.combatantsById.orc?.stealth?.hiddenFromObserverIds?.sort()).toEqual(['wiz'])
     expect(resolved.combatantsById.orc?.stealth?.hiddenFromObserverIds).not.toContain('ally')
@@ -284,7 +285,7 @@ describe('resolveCombatAction — Hide vs passive Perception', () => {
     expect(getCombatantTurnResources(withPlacements.combatantsById.orc!).actionAvailable).toBe(true)
 
     const resolved = resolveCombatAction(
-      withPlacements,
+      asEncounterState(withPlacements),
       { actorId: 'orc', actionId: 'hide' },
       { rng: () => 0.96 },
     )

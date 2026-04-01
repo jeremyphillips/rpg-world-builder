@@ -65,7 +65,8 @@ describe('reconcileEnvironmentZonesFromAttachedAuras', () => {
     const zid = environmentZoneIdForAttachedAuraInstance(instanceId)
     expect(state.environmentZones?.some((z) => z.id === zid)).toBe(true)
     const cell = resolveWorldEnvironmentFromEncounterState(state, 'c-2-2')
-    expect(cell.magicalDarkness).toBe(true)
+    expect(cell).toBeDefined()
+    expect(cell!.magicalDarkness).toBe(true)
   })
 
   it('creates a fog zone: heavy obscured, no lighting forced to darkness, not magical darkness', () => {
@@ -93,10 +94,11 @@ describe('reconcileEnvironmentZonesFromAttachedAuras', () => {
     expect(zone?.overrides.lightingLevel).toBeUndefined()
     expect(zone?.magical?.magicalDarkness).toBeFalsy()
     const cell = resolveWorldEnvironmentFromEncounterState(state, 'c-2-2')
-    expect(cell.magicalDarkness).toBe(false)
-    expect(cell.visibilityObscured).toBe('heavy')
-    expect(cell.lightingLevel).toBe('bright')
-    expect(cell.obscurationPresentationCauses).toContain('fog')
+    expect(cell).toBeDefined()
+    expect(cell!.magicalDarkness).toBe(false)
+    expect(cell!.visibilityObscured).toBe('heavy')
+    expect(cell!.lightingLevel).toBe('bright')
+    expect(cell!.obscurationPresentationCauses).toContain('fog')
   })
 
   it('Stinking Cloud reuses the fog profile: same heavy-obscured zone shape as Fog Cloud (spell id only)', () => {
@@ -120,10 +122,11 @@ describe('reconcileEnvironmentZonesFromAttachedAuras', () => {
     const zid = environmentZoneIdForAttachedAuraInstance(instanceId)
     expect(state.environmentZones?.some((z) => z.id === zid)).toBe(true)
     const cell = resolveWorldEnvironmentFromEncounterState(state, 'c-3-3')
-    expect(cell.magicalDarkness).toBe(false)
-    expect(cell.visibilityObscured).toBe('heavy')
-    expect(cell.lightingLevel).toBe('bright')
-    expect(cell.obscurationPresentationCauses).toContain('fog')
+    expect(cell).toBeDefined()
+    expect(cell!.magicalDarkness).toBe(false)
+    expect(cell!.visibilityObscured).toBe('heavy')
+    expect(cell!.lightingLevel).toBe('bright')
+    expect(cell!.obscurationPresentationCauses).toContain('fog')
   })
 
   it('removes managed zones when the aura row is gone', () => {
@@ -329,8 +332,10 @@ describe('overlapping darkness + baseline', () => {
       }),
     )
     const inside = resolveWorldEnvironmentFromEncounterState(state, 'c-2-2')
-    expect(inside.magicalDarkness).toBe(true)
+    expect(inside).toBeDefined()
+    expect(inside!.magicalDarkness).toBe(true)
     const outside = resolveWorldEnvironmentFromEncounterState(state, 'c-6-6')
-    expect(outside.magicalDarkness).toBe(false)
+    expect(outside).toBeDefined()
+    expect(outside!.magicalDarkness).toBe(false)
   })
 })

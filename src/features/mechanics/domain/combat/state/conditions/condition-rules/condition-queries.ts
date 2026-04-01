@@ -1,6 +1,6 @@
 import type { AbilityRef } from '@/features/mechanics/domain/character'
 import type { EffectConditionId } from '@/features/mechanics/domain/effects/effects.types'
-import type { CombatantInstance } from '../types'
+import type { CombatantInstance } from '../../types'
 import type {
   ConditionConsequence,
   AttackModConsequence,

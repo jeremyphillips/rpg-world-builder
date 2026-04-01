@@ -13,6 +13,7 @@ import {
 } from '@/features/mechanics/domain/combat/state'
 
 import { encounterAttackerOutsideDefenderHeavilyObscured, testEnemy, testPc } from './encounter-visibility-test-fixtures'
+import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 
 describe('sight-based checks (shared seam)', () => {
   it('matches canPerceiveTargetOccupantForCombat', () => {
@@ -34,7 +35,7 @@ describe('sight-based checks (shared seam)', () => {
         { combatantId: 'o', cellId: 'c-1-0' },
       ],
     }
-    expect(getSightBasedCheckLegalityDenialReason(withPlacements, 'w', 'o')).toBe(null)
+    expect(getSightBasedCheckLegalityDenialReason(asEncounterState(withPlacements), 'w', 'o')).toBe(null)
   })
 
   it('blocks sight-based check when cell/region may be known but occupant not perceivable', () => {
@@ -63,7 +64,7 @@ describe('hide attempt eligibility', () => {
         { combatantId: 'orc', cellId: 'c-1-0' },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe('observer-sees-without-concealment')
   })
 
   it('allows hide when heavy obscurement blocks occupant perception (shared seam)', () => {
@@ -92,7 +93,7 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe('observer-sees-without-concealment')
   })
 
   it('allowDimLightHide permits dim-only cell when observer still perceives occupant', () => {
@@ -117,7 +118,7 @@ describe('hide attempt eligibility', () => {
       ],
     }
     expect(
-      getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz', {
+      getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz', {
         hideEligibility: { featureFlags: { allowDimLightHide: true } },
       }),
     ).toBe(null)
@@ -145,8 +146,8 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(canPerceiveTargetOccupantForCombat(state, 'wiz', 'orc')).toBe(true)
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+    expect(canPerceiveTargetOccupantForCombat(asEncounterState(state), 'wiz', 'orc')).toBe(true)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe('observer-sees-without-concealment')
   })
 
   it('allowMagicalConcealmentHide permits magically tagged light obscurement', () => {
@@ -172,7 +173,7 @@ describe('hide attempt eligibility', () => {
       ],
     }
     expect(
-      getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz', {
+      getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz', {
         hideEligibility: { featureFlags: { allowMagicalConcealmentHide: true } },
       }),
     ).toBe(null)
@@ -199,8 +200,8 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(canPerceiveTargetOccupantForCombat(state, 'wiz', 'orc')).toBe(true)
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe(null)
+    expect(canPerceiveTargetOccupantForCombat(asEncounterState(state), 'wiz', 'orc')).toBe(true)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe(null)
   })
 
   it('permissive hide attempt when no tactical grid (fallback)', () => {
@@ -297,7 +298,7 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe(null)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe(null)
   })
 
   it('allows hide with full (total) cover when observer sees occupant', () => {
@@ -321,7 +322,7 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe(null)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe(null)
   })
 
   it('denies hide with half cover only when observer sees occupant (baseline)', () => {
@@ -345,7 +346,7 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe('observer-sees-without-concealment')
   })
 
   it('extension seam: allowHalfCoverForHide permits half cover when set', () => {
@@ -370,11 +371,11 @@ describe('hide attempt eligibility', () => {
       ],
     }
     expect(
-      getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz', {
+      getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz', {
         hideEligibility: { featureFlags: { allowHalfCoverForHide: true } },
       }),
     ).toBe(null)
-    expect(getStealthHideAttemptDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+    expect(getStealthHideAttemptDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe('observer-sees-without-concealment')
   })
 
   it('combatant skillRuntime.hideEligibilityFeatureFlags allows dim-only hide without call-site options', () => {
@@ -405,8 +406,8 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe(null)
-    expect(getStealthHideAttemptDenialReason(state, 'orc', 'wiz')).toBe(null)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe(null)
+    expect(getStealthHideAttemptDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe(null)
   })
 
   it('combatant skillRuntime.hideEligibilityFeatureFlags allows half cover without call-site options', () => {
@@ -437,8 +438,8 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe(null)
-    expect(getStealthHideAttemptDenialReason(state, 'orc', 'wiz')).toBe(null)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe(null)
+    expect(getStealthHideAttemptDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe(null)
   })
 
   it('observer-relative: intermediate cell cover supports hide from one observer angle but not another', () => {
@@ -464,10 +465,10 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(canPerceiveTargetOccupantForCombat(state, 'wiz', 'orc')).toBe(true)
-    expect(canPerceiveTargetOccupantForCombat(state, 'bard', 'orc')).toBe(true)
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe(null)
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'bard')).toBe('observer-sees-without-concealment')
+    expect(canPerceiveTargetOccupantForCombat(asEncounterState(state), 'wiz', 'orc')).toBe(true)
+    expect(canPerceiveTargetOccupantForCombat(asEncounterState(state), 'bard', 'orc')).toBe(true)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe(null)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'bard')).toBe('observer-sees-without-concealment')
   })
 
   it('resolveTerrainCoverGradeForHideFromObserver maxes merged terrainCover along supercover segment', () => {
@@ -493,8 +494,8 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(resolveTerrainCoverGradeForHideFromObserver(state, 'wiz', 'orc')).toBe('three-quarters')
-    expect(resolveTerrainCoverGradeForHideFromObserver(state, 'bard', 'orc')).toBe('none')
+    expect(resolveTerrainCoverGradeForHideFromObserver(asEncounterState(state), 'wiz', 'orc')).toBe('three-quarters')
+    expect(resolveTerrainCoverGradeForHideFromObserver(asEncounterState(state), 'bard', 'orc')).toBe('none')
   })
 
   it('denies hide on difficult terrain alone without allowDifficultTerrainHide', () => {
@@ -518,9 +519,9 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe('observer-sees-without-concealment')
     expect(
-      getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz', {
+      getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz', {
         hideEligibility: { featureFlags: { allowDifficultTerrainHide: true } },
       }),
     ).toBe(null)
@@ -547,9 +548,9 @@ describe('hide attempt eligibility', () => {
         },
       ],
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz')).toBe('observer-sees-without-concealment')
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz')).toBe('observer-sees-without-concealment')
     expect(
-      getHideAttemptEligibilityDenialReason(state, 'orc', 'wiz', {
+      getHideAttemptEligibilityDenialReason(asEncounterState(state), 'orc', 'wiz', {
         hideEligibility: { featureFlags: { allowHighWindHide: true } },
       }),
     ).toBe(null)

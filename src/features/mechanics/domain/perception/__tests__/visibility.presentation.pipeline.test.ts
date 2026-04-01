@@ -16,7 +16,7 @@ import {
   projectGridCellRenderState,
   projectBattlefieldRenderState,
 } from '../perception.render.projection'
-import type { EncounterViewerPerceptionCell } from '../perception.types'
+import type { EncounterViewerBattlefieldPerception, EncounterViewerPerceptionCell } from '../perception.types'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

@@ -1,12 +1,3 @@
-import type {
-  CombatantPreviewKind,
-  CombatantPreviewMode,
-  PreviewChip,
-  PreviewStat,
-  CombatantPreviewAction,
-  ViewerCombatantPresentationKind,
-} from '@/features/mechanics/domain/combat/presentation/view/tactical-preview.types'
-
 export type {
   CombatantPreviewMode,
   CombatantPreviewKind,

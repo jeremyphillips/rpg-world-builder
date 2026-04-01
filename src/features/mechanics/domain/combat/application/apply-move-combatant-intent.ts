@@ -83,8 +83,8 @@ export function applyMoveCombatantIntent(
     {
       kind: 'combatant-moved',
       combatantId: intent.combatantId,
-      fromCellId,
-      toCellId,
+      fromCellId: fromCellId ?? null,
+      toCellId: toCellId ?? null,
     },
   ]
   if (appended.length > 0) {

@@ -118,6 +118,7 @@ describe('Darkness — place-anchored emanation (shared anchor pipeline)', () =>
     expect(zone?.area).toEqual({ kind: 'sphere-ft', originCellId, radiusFt: 15 })
     expect(zone?.magical?.magicalDarkness).toBe(true)
     const world = resolveWorldEnvironmentFromEncounterState(resolved, originCellId)
-    expect(world.magicalDarkness).toBe(true)
+    expect(world).toBeDefined()
+    expect(world!.magicalDarkness).toBe(true)
   })
 })

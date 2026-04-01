@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { getLocationMapIconByName } from '@/features/content/locations/domain';
+import type { LocationMapIconName } from '@/features/content/locations/domain/mapContent';
 import type {
   LocationMapActivePlaceSelection,
   MapPlacePaletteItem,
@@ -45,8 +46,9 @@ export function LocationMapEditorPlacePanel({
   const renderCard = (item: MapPlacePaletteItem) => {
     const key = itemKey(item);
     const selected = activeKey === key;
-    const Icon =
-      item.iconName ? getLocationMapIconByName(item.iconName) : getLocationMapIconByName('marker');
+    const Icon = item.iconName
+      ? getLocationMapIconByName(item.iconName as LocationMapIconName)
+      : getLocationMapIconByName('marker');
     const onClick = () => {
       if (item.category === 'linked-content') {
         onSelectPlace({ category: 'linked-content', kind: item.kind });

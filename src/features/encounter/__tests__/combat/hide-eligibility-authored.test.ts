@@ -17,6 +17,7 @@ import {
   encounterAttackerOutsideDefenderMagicalDarknessCell,
   testEnemy,
 } from '@/features/mechanics/domain/combat/tests/encounter-visibility-test-fixtures'
+import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 
 const hideEligibilityGrantHalfCover = {
   kind: 'hide-eligibility-grant' as const,
@@ -75,7 +76,7 @@ const mockCombatStats = (pb: number): ReturnType<typeof useCombatStats> =>
     attacks: [],
     weaponOptions: [],
     wieldedWeaponIds: [],
-  }) as ReturnType<typeof useCombatStats>
+  }) as unknown as ReturnType<typeof useCombatStats>
 
 describe('hide eligibility from authored character feats (runtime)', () => {
   it('getCombatantHideEligibilityExtensionOptions reflects builder output from skulker feat', () => {
@@ -127,9 +128,9 @@ describe('hide eligibility from authored character feats (runtime)', () => {
         },
       },
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'rogue', 'wiz')).toBe(null)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'rogue', 'wiz')).toBe(null)
 
-    const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
+    const beat = resolveHideWithPassivePerception(asEncounterState(state), 'rogue', 11)
     expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
     expect(beat.state.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
@@ -178,16 +179,16 @@ describe('temporary runtime hide permissions (same resolver seam)', () => {
 
   it('half-cover only: no feat and no temporary grant denies hide attempt', () => {
     const state = halfCoverEncounter({})
-    expect(getHideAttemptEligibilityDenialReason(state, 'rogue', 'wiz')).toBe('observer-sees-without-concealment')
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'rogue', 'wiz')).toBe('observer-sees-without-concealment')
   })
 
   it('half-cover: hide-eligibility-grant on activeEffects allows entry and sustain like authored feat', () => {
     const state = halfCoverEncounter({ activeEffects: [hideEligibilityGrantHalfCover] })
-    expect(getHideAttemptEligibilityDenialReason(state, 'rogue', 'wiz')).toBe(null)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'rogue', 'wiz')).toBe(null)
     expect(getCombatantHideEligibilityExtensionOptions(state.combatantsById.rogue!)?.featureFlags?.allowHalfCoverForHide).toBe(
       true,
     )
-    const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
+    const beat = resolveHideWithPassivePerception(asEncounterState(state), 'rogue', 11)
     expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowHalfCoverForHide).toBe(true)
     expect(beat.state.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })
@@ -251,8 +252,8 @@ describe('temporary runtime hide permissions (same resolver seam)', () => {
         rogue,
       },
     }
-    expect(getHideAttemptEligibilityDenialReason(state, 'rogue', 'wiz')).toBe(null)
-    const beat = resolveHideWithPassivePerception(state, 'rogue', 11)
+    expect(getHideAttemptEligibilityDenialReason(asEncounterState(state), 'rogue', 'wiz')).toBe(null)
+    const beat = resolveHideWithPassivePerception(asEncounterState(state), 'rogue', 11)
     expect(beat.state.combatantsById.rogue?.stealth?.hideEligibility?.featureFlags?.allowDimLightHide).toBe(true)
     expect(beat.state.combatantsById.rogue?.stealth?.hiddenFromObserverIds).toContain('wiz')
   })

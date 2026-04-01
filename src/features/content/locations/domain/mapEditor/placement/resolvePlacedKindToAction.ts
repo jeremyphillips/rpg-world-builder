@@ -61,7 +61,9 @@ export function resolveLocationPlacedKindToAction(
   placedKind: LocationPlacedObjectKindId,
   hostScale: LocationScaleId,
 ): ResolveLocationPlacedKindResult {
-  const cat = LOCATION_PLACED_OBJECT_KIND_META[placedKind].linkedScale
+  const meta = LOCATION_PLACED_OBJECT_KIND_META[placedKind]
+  const cat =
+    'linkedScale' in meta && meta.linkedScale
     ? ('linked-content' as const)
     : ('map-object' as const);
   const r = resolvePlacedKindToAction({ category: cat, kind: placedKind }, hostScale);
