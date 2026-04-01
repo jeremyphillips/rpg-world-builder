@@ -10,7 +10,7 @@ import { getMapSwatchColor } from '@/app/theme/mapColors';
 import type {
   LocationMapPaintState,
   MapPaintPaletteItem,
-} from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
+} from '@/features/content/locations/domain/mapEditor';
 import type { LocationCellFillKindId } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
 import {
   LOCATION_EDITOR_PAINT_TRAY_WIDTH_PX,

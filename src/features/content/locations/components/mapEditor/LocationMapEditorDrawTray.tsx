@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 import type {
   LocationMapActiveDrawSelection,
   MapDrawPaletteItem,
-} from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
+} from '@/features/content/locations/domain/mapEditor';
 
 import { LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX } from '@/features/content/locations/components/workspace/locationEditor.constants';
 

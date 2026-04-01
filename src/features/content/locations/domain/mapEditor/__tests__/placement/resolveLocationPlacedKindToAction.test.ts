@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   resolveLocationPlacedKindToAction,
   resolvePlacedKindToAction,
-} from './resolvePlacedKindToAction';
+} from '../../placement';
 
 describe('resolvePlacedKindToAction', () => {
   it('returns unsupported without selection', () => {

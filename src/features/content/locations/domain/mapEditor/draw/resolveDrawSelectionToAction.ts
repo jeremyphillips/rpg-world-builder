@@ -1,7 +1,7 @@
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
 import type { LocationPathFeatureKindId } from '@/features/content/locations/domain/mapContent/locationPathFeature.types';
 
-import type { LocationMapActiveDrawSelection } from './locationMapEditor.types';
+import type { LocationMapActiveDrawSelection } from '../types/locationMapEditor.types';
 
 export type ResolvedDrawKindAction =
   | { type: 'path'; pathKind: LocationPathFeatureKindId }

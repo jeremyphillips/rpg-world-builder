@@ -2,14 +2,14 @@ import { useCallback, useEffect, useRef, useState, type MutableRefObject, type R
 import type { PointerEvent as ReactPointerEvent } from 'react';
 
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
-import type { LocationMapActiveDrawSelection } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
 import {
+  getSquareEdgeOrientation,
   resolveEdgeTargetFromGridPosition,
   shouldAcceptStrokeEdge,
-  getSquareEdgeOrientation,
-  type ResolvedEdgeTarget,
   type EdgeOrientation,
-} from '@/features/content/locations/domain/mapEditor/edgeAuthoring';
+  type LocationMapActiveDrawSelection,
+  type ResolvedEdgeTarget,
+} from '@/features/content/locations/domain/mapEditor';
 
 import { SQUARE_GRID_GAP_PX } from '@/features/content/locations/components/squareGridMapOverlayGeometry';
 

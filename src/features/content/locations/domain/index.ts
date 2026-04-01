@@ -18,17 +18,6 @@ export * from './mapEditor';
 export * from './mapContent';
 export * from './mapPresentation';
 export {
-  getLocationMapIconByName,
-  LOCATION_MAP_ICON_COMPONENT_BY_NAME,
-  type LocationMapDisplayIconComponent,
-} from './map/locationMapIconNameMap';
-export {
-  getLocationMapObjectKindIcon,
-  getLocationScaleMapIcon,
-  LOCATION_MAP_OBJECT_KIND_ICON,
-  LOCATION_SCALE_MAP_ICON,
-} from './map/locationMapDisplayIcons';
-export {
   validateLocationChange,
   type LocationValidationMode,
 } from './validation/validateLocationChange';

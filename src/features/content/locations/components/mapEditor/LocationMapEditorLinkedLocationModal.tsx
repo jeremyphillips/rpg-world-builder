@@ -6,7 +6,7 @@ import Typography from '@mui/material/Typography';
 import { AppModal } from '@/ui/patterns';
 import FormSelectField from '@/ui/patterns/form/FormSelectField';
 import type { SelectOption } from '@/ui/patterns/form/FormSelectField';
-import type { LocationMapPendingPlacement } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
+import type { LocationMapPendingPlacement } from '@/features/content/locations/domain/mapEditor';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
 function linkedTargetNoun(scale: LocationScaleId): string {

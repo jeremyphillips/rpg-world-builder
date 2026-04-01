@@ -21,16 +21,18 @@ import {
 import type { GridGeometryId } from '@/shared/domain/grid/gridGeometry';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
-import type {
-  LocationMapActiveDrawSelection,
-  LocationMapActivePaintSelection,
-  LocationMapEditorMode,
-} from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
 import {
+  buildSelectModeInteractiveTargetInput,
+  buildSelectModeInteractiveTargetInputSkipGeometry,
   canApplyAnyPaintStroke,
   canApplyRegionPaint,
   getActiveSurfaceFillKind,
-} from '@/features/content/locations/domain/mapEditor/locationMapPaintSelection.helpers';
+  refineSelectModeClickAfterRegionDrill,
+  resolveSelectModeInteractiveTarget,
+  type LocationMapActiveDrawSelection,
+  type LocationMapActivePaintSelection,
+  type LocationMapEditorMode,
+} from '@/features/content/locations/domain/mapEditor';
 import { resolveCellFillSwatchColor } from '@/app/theme/mapColors';
 import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
 import type { Location } from '@/features/content/locations/domain/types';
@@ -43,12 +45,6 @@ import { useSquareEdgeBoundaryPaint } from './mapGrid/mapAuthoring/useSquareEdge
 import { LocationMapCellAuthoringOverlay } from './mapGrid/LocationMapCellAuthoringOverlay';
 
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
-import {
-  buildSelectModeInteractiveTargetInput,
-  buildSelectModeInteractiveTargetInputSkipGeometry,
-  refineSelectModeClickAfterRegionDrill,
-  resolveSelectModeInteractiveTarget,
-} from '@/features/content/locations/domain/mapEditor';
 
 import type { LocationGridDraftState } from './locationGridDraft.types';
 import {

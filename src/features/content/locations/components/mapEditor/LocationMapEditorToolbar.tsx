@@ -9,7 +9,7 @@ import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import DrawIcon from '@mui/icons-material/Draw';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
-import type { LocationMapEditorMode } from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
+import type { LocationMapEditorMode } from '@/features/content/locations/domain/mapEditor';
 import { LOCATION_EDITOR_TOOLBAR_WIDTH_PX } from '@/features/content/locations/components/workspace/locationEditor.constants';
 
 type LocationMapEditorToolbarProps = {

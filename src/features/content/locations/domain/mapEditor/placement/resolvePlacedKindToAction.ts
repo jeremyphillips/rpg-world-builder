@@ -4,7 +4,7 @@ import type { LocationScaleId } from '@/shared/domain/locations';
 
 import { LOCATION_PLACED_OBJECT_KIND_META } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
 
-import type { LocationMapActivePlaceSelection } from './locationMapEditor.types';
+import type { LocationMapActivePlaceSelection } from '../types/locationMapEditor.types';
 import { mapPlacedObjectKindToPersistedMapObjectKind } from './placeObjectBridge';
 
 export type ResolvedPlacedKindAction =

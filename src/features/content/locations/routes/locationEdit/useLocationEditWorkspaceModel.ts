@@ -53,11 +53,11 @@ import {
   LOCATION_MAP_REGION_COLOR_KEYS,
 } from '@/shared/domain/locations/map/locationMapRegion.constants';
 import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
-import { applyEdgeStrokeToDraft } from '@/features/content/locations/domain/mapEditor/edgeAuthoring';
-import type {
-  LocationMapEditorMode,
-  LocationMapPaintState,
-} from '@/features/content/locations/domain/mapEditor/locationMapEditor.types';
+import {
+  applyEdgeStrokeToDraft,
+  type LocationMapEditorMode,
+  type LocationMapPaintState,
+} from '@/features/content/locations/domain/mapEditor';
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';

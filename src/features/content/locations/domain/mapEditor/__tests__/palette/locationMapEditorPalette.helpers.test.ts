@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getPaintPaletteItemsForScale,
   getPlacePaletteItemsForScale,
-} from './locationMapEditorPalette.helpers';
+} from '../../palette';
 
 describe('locationMapEditorPalette.helpers', () => {
   it('getPaintPaletteItemsForScale maps policy + cell-fill meta', () => {

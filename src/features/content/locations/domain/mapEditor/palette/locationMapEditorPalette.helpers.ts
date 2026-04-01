@@ -14,7 +14,7 @@ import type {
   MapDrawPaletteItem,
   MapPaintPaletteItem,
   MapPlacePaletteItem,
-} from './locationMapEditor.types';
+} from '../types/locationMapEditor.types';
 
 export function getPaintPaletteItemsForScale(scale: LocationScaleId): MapPaintPaletteItem[] {
   const kinds = getAllowedCellFillKindsForScale(scale);

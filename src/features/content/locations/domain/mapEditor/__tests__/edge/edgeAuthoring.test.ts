@@ -12,7 +12,7 @@ import {
   resolveNearestCellEdgeSide,
   shouldAcceptStrokeEdge,
   type ResolvedEdgeTarget,
-} from './edgeAuthoring';
+} from '../../edge';
 
 // ---------------------------------------------------------------------------
 // resolveNearestCellEdgeSide

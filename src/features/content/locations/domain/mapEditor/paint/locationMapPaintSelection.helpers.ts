@@ -1,7 +1,7 @@
 import type { LocationCellFillKindId } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 
-import type { LocationMapActivePaintSelection, LocationMapPaintState } from './locationMapEditor.types';
+import type { LocationMapActivePaintSelection, LocationMapPaintState } from '../types/locationMapEditor.types';
 
 export function createInitialPaintState(): LocationMapPaintState {
   return {

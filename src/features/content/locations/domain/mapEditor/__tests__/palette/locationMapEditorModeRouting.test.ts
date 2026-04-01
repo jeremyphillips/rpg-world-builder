@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getGroupedDrawPaletteForScale,
   getPlacePaletteItemsForScale,
-} from './locationMapEditorPalette.helpers';
+} from '../../palette';
 
 describe('map editor mode palette routing', () => {
   it('Place palette is only discrete objects (linked vs map-object categories)', () => {

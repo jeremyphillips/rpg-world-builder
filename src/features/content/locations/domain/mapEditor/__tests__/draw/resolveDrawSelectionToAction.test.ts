@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { resolveDrawSelectionToAction } from './resolveDrawSelectionToAction';
+import { resolveDrawSelectionToAction } from '../../draw';
 
 describe('resolveDrawSelectionToAction', () => {
   it('returns path action for path category', () => {

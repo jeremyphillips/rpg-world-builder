@@ -8,7 +8,7 @@ import {
   canApplyRegionPaint,
   createInitialPaintState,
   resolveActiveRegionEntry,
-} from './locationMapPaintSelection.helpers';
+} from '../../paint';
 
 const sampleRegions: LocationMapRegionAuthoringEntry[] = [
   {

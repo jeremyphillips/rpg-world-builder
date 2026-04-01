@@ -6,8 +6,8 @@ import type {
   LocationMapActivePlaceSelection,
   LocationMapEditorMode,
   LocationMapPendingPlacement,
-} from './locationMapEditor.types';
-import { createInitialPaintState } from './locationMapPaintSelection.helpers';
+} from '../types/locationMapEditor.types';
+import { createInitialPaintState } from '../paint/locationMapPaintSelection.helpers';
 
 export function useLocationMapEditorState() {
   const [mode, setMode] = useState<LocationMapEditorMode>('select');

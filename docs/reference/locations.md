@@ -106,7 +106,7 @@ Under `shared/domain/locations/__tests__/`, mirroring source: e.g. `__tests__/sc
   3. **Edge features** — boundary features (`LOCATION_EDGE_FEATURE_KIND_IDS`).
   4. **Placed objects** — anchored / footprint props (`LOCATION_PLACED_OBJECT_KIND_IDS`).
   **`LOCATION_SCALE_MAP_CONTENT_POLICY`** lists which ids apply at **world**, **city**, and **floor** (other scales are empty until extended). Intended future tools: **paint** (fills + paths), **edge** (edges), **place** (objects). Not wired to persistence or UI in the first pass.
-- **Client:** default map bootstrap, grid drafting, cell authoring mappers under `src/features/content/locations/domain/maps/`; map content vocabulary under `domain/mapContent/`; display icons under `domain/map/`; repo helpers `locationMapRepo.ts`.
+- **Client:** default map bootstrap, grid drafting, cell authoring mappers under `src/features/content/locations/domain/maps/`; map content vocabulary under `domain/mapContent/`; display icons under `domain/mapPresentation/`; repo helpers `locationMapRepo.ts`.
 
 ### Transition layer
 
@@ -139,7 +139,7 @@ Under `shared/domain/locations/__tests__/`, mirroring source: e.g. `__tests__/sc
 | `domain/repo/` | `locationRepo`, `locationMapRepo` — API/data access for lists and maps. |
 | `domain/maps/` | `bootstrapDefaultLocationMap` (client-side default map creation/update), grid layout draft helpers, cell entry mappers. Uses `getDefaultMapKindForScale` from shared domain to derive map kind. |
 | `domain/mapContent/` | Authored-map vocabulary, per-scale map content policy, presentation tokens (icon names, swatch keys, cell-fill meta). See **Shared vs feature** above. |
-| `domain/map/` | `locationMapIconNameMap`, `locationMapDisplayIcons` — resolves semantic icon names to MUI components. |
+| `domain/mapPresentation/` | `locationMapUiStyles`, `locationMapIconNameMap`, `locationMapDisplayIcons` — map chrome styling and semantic icon name → MUI resolution. |
 | `components/` | `LocationGridAuthoringSection` (interactive grid preview; dispatches to `GridEditor` or `HexGridEditor` based on scale geometry), cell modal, cards. |
 | `components/workspace/` | Map-first editor shell — [location-workspace.md](./location-workspace.md). |
 | `hooks/` | Campaign data, parent picker options, default world scale, dependent field effects. |

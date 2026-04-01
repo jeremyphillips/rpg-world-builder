@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { makeUndirectedSquareEdgeKey } from '@/shared/domain/grid/gridEdgeIds';
 
-import { resolveEraseTargetAtCell } from './resolveEraseTarget';
+import { resolveEraseTargetAtCell } from '../../erase';
 
 describe('resolveEraseTargetAtCell', () => {
   const cols = 4;

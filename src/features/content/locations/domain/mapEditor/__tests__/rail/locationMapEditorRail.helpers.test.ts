@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { shouldSwitchRailToMapForPaintDomain } from './locationMapEditorRail.helpers';
+import { shouldSwitchRailToMapForPaintDomain } from '../../rail';
 
 describe('locationMapEditorRail.helpers', () => {
   it('shouldSwitchRailToMapForPaintDomain is true only for region paint', () => {

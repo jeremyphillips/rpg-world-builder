@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 
 import { makeUndirectedSquareEdgeKey } from '@/shared/domain/grid/gridEdgeIds';
 
-import { deriveSquareEdgeRunSelection } from './squareEdgeRunSelection';
+import { deriveSquareEdgeRunSelection } from '../../edge';
 
 const wall = (edgeId: string) => ({ edgeId, kind: 'wall' as const });
 const door = (edgeId: string) => ({ edgeId, kind: 'door' as const });

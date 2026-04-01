@@ -2,14 +2,14 @@ import type { LocationMapEdgeAuthoringEntry } from '@/shared/domain/locations';
 import type { EdgeSegmentGeometry, PathPolylineGeometry } from '@/shared/domain/locations/map/locationMapGeometry.types';
 
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
-import { getSquareEdgeOrientationFromEdgeId } from '../edgeAuthoring';
+import { getSquareEdgeOrientationFromEdgeId } from '../edge';
 import {
   DEFAULT_EDGE_PICK_HALF_WIDTH_PX,
   DEFAULT_PATH_PICK_TOLERANCE_PX,
   resolveNearestEdgeHit,
   resolveNearestPathHit,
 } from './locationMapSelectionHitTest';
-import { deriveSquareEdgeRunSelection } from '../squareEdgeRunSelection';
+import { deriveSquareEdgeRunSelection } from '../edge';
 import { resolveSelectModeAfterPathEdgeHits } from './resolveSelectModeRegionOrCellSelection';
 
 type Objectish = { id: string };
