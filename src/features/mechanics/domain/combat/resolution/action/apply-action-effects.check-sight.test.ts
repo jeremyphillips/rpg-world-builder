@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest'
 
 import { EXTRAPLANAR_CREATURE_TYPES } from '@/features/mechanics/domain/rulesets/system/monsters/extraplanar-creature-types'
 import { applyActionEffects } from './action-effects'
-import type { CombatActionDefinition } from '../combat-action.types'
-import { addConditionToCombatant, createEncounterState } from '../../state'
+import type { CombatActionDefinition } from '@/features/mechanics/domain/combat/resolution/combat-action.types'
+import { addConditionToCombatant, createEncounterState } from '@/features/mechanics/domain/combat/state'
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/creation/createSquareGridSpace'
 import {
   encounterAttackerOutsideDefenderHeavilyObscured,
   encounterAttackerOutsideDefenderMagicalDarknessCell,
   testEnemy,
   testPc,
-} from '../../tests/encounter-visibility-test-fixtures'
+} from '@/features/mechanics/domain/combat/tests/encounter-visibility-test-fixtures'
 
 function baseCheckAction(requiresSight: boolean | undefined): CombatActionDefinition {
   return {

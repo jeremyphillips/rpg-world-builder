@@ -5,8 +5,8 @@ import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/
 import {
   buildGridPerceptionSlice,
   mergeGridPerceptionInputCapabilities,
-} from '../perception.render.projection'
-import type { EncounterState } from '../../combat/state/types/encounter-state.types'
+} from '@/features/mechanics/domain/perception/perception.render.projection'
+import type { EncounterState } from '@/features/mechanics/domain/combat/state/types/encounter-state.types'
 
 function baseEncounter(overrides: Partial<EncounterState> = {}): EncounterState {
   const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })

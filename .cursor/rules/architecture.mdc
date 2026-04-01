@@ -16,8 +16,8 @@ Cursor MUST follow the directives below when generating, refactoring, or moving 
 Before considering work “done”, Cursor MUST ensure:
 
 - ✅ TypeScript passes
-- ✅ `yarn test` passes
-- ✅ `yarn build` passes
+- ✅ `npm run test` passes
+- ✅ `npm run build` passes
 
 If a change introduces new exports or moves files, Cursor MUST also update any relevant `index.ts` barrel exports.
 

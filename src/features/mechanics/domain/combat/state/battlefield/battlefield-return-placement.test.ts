@@ -3,14 +3,14 @@ import { describe, expect, it } from 'vitest'
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space'
 import type { CombatantPosition, EncounterSpace } from '@/features/mechanics/domain/combat/space'
 
-import { addStateToCombatant, removeStateFromCombatant } from '../conditions/condition-mutations'
-import { dropConcentration } from '../effects/concentration-mutations'
+import { addStateToCombatant, removeStateFromCombatant } from '@/features/mechanics/domain/combat/state/conditions/condition-mutations'
+import { dropConcentration } from '@/features/mechanics/domain/combat/state/effects/concentration-mutations'
 import {
   findNearestUnoccupiedPassableCell,
   markerCausesBattlefieldAbsence,
 } from './battlefield-return-placement'
-import type { CombatantInstance, EncounterState } from '../types'
-import type { InitiativeRoll } from '../../../resolution/resolvers/initiative-resolver'
+import type { CombatantInstance, EncounterState } from '@/features/mechanics/domain/combat/state/types'
+import type { InitiativeRoll } from '@/features/mechanics/domain/resolution/resolvers/initiative-resolver'
 
 function minimalCombatant(id: string, overrides: Partial<CombatantInstance> = {}): CombatantInstance {
   return {

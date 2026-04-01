@@ -3,9 +3,9 @@ import { getEncounterViewerPerceptionCapabilitiesFromCombatant } from '@/feature
 import { resolveViewerPerceptionForCellFromState } from '@/features/mechanics/domain/perception/perception.resolve'
 import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 
-import type { CombatantInstance } from '../types'
-import type { EncounterState } from '../types'
-import { canSee } from '../conditions/condition-rules/condition-queries'
+import type { CombatantInstance } from '@/features/mechanics/domain/combat/state/types'
+import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
+import { canSee } from '@/features/mechanics/domain/combat/state/conditions/condition-rules/condition-queries'
 import { lineOfEffectClear, lineOfSightClear } from './visibility-los'
 
 /** State marker from the See Invisibility spell (`stateId: 'see-invisibility'`). */

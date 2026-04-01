@@ -6,10 +6,10 @@ import { getCombatantHideEligibilityExtensionOptions } from './combatant-hide-el
 import {
   resolveTerrainCoverGradeForHideFromObserver,
   terrainCoverGradeSupportsHideAttempt,
-} from '../environment/observer-hide-terrain-cover'
-import { canPerceiveTargetOccupantForCombat } from '../visibility/combatant-pair-visibility'
-import type { CombatantHideEligibilityExtension } from '../types/combatant.types'
-import type { EncounterState } from '../types'
+} from '@/features/mechanics/domain/combat/state/environment/observer-hide-terrain-cover'
+import { canPerceiveTargetOccupantForCombat } from '@/features/mechanics/domain/combat/state/visibility/combatant-pair-visibility'
+import type { CombatantHideEligibilityExtension } from '@/features/mechanics/domain/combat/state/types/combatant.types'
+import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 
 /**

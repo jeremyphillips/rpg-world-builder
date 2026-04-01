@@ -1,4 +1,4 @@
-import type { EncounterState } from '../state/types'
+import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 
 /**
  * Spreads and partial overrides often widen `environmentZones[].kind` to `string`.

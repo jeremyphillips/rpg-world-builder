@@ -6,7 +6,7 @@
  *
  * Does not change mechanics; logging only.
  */
-import type { EncounterState } from '../types'
+import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 
 export function isStealthRuntimeTraceEnabled(): boolean {
   if (typeof globalThis === 'undefined') return false

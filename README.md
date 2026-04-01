@@ -38,25 +38,25 @@ The UI is currently transitioning from a single reactive form to a step-based mo
 ## Getting Started
 ### Install dependencies
 ```bash
-yarn
+npm i
 ```
 
 ### Run development servers
 Runs frontend (Vite) and backend (Express) concurrently:
 ```bash
-yarn dev
+npm run dev
 ```
 
 ### Run frontend only
 Runs frontend (Vite) and backend (Express) concurrently:
 ```bash
-yarn dev:frontend
+npm run dev:frontend
 ```
 
 ### Run backend only
 Runs frontend (Vite) and backend (Express) concurrently:
 ```bash
-yarn dev:backend
+npm run dev:backend
 ```
 
 ## Project Structure (High-Level)

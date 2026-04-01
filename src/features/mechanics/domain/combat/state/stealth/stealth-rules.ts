@@ -13,15 +13,15 @@
 
 import type { EncounterEnvironmentBaselinePatch } from '@/features/mechanics/domain/environment/environment.types'
 
-import { reconcileAwarenessGuessesWithPerception } from '../awareness/awareness-rules'
-import { getPassivePerceptionScore } from '../awareness/passive-perception'
+import { reconcileAwarenessGuessesWithPerception } from '@/features/mechanics/domain/combat/state/awareness/awareness-rules'
+import { getPassivePerceptionScore } from '@/features/mechanics/domain/combat/state/awareness/passive-perception'
 import {
   canPerceiveTargetOccupantForCombat,
   evaluatePerceiveTargetOccupantForCombat,
   type PerceiveTargetOccupantEvaluation,
-} from '../visibility/combatant-pair-visibility'
-import { updateEncounterEnvironmentBaseline } from '../environment/environment-baseline-mutations'
-import { updateEncounterCombatant } from '../mutations/mutations'
+} from '@/features/mechanics/domain/combat/state/visibility/combatant-pair-visibility'
+import { updateEncounterEnvironmentBaseline } from '@/features/mechanics/domain/combat/state/environment/environment-baseline-mutations'
+import { updateEncounterCombatant } from '@/features/mechanics/domain/combat/state/mutations/mutations'
 import { getCombatantHideEligibilityExtensionOptions } from './combatant-hide-eligibility'
 import {
   getHideAttemptEligibilityDenialReason,
@@ -32,8 +32,8 @@ import {
   type HideEligibilityFeatureFlags,
 } from './sight-hide-rules'
 import { getCellForCombatant } from '@/features/mechanics/domain/combat/space/space.helpers'
-import type { CombatantStealthRuntime } from '../types/combatant.types'
-import type { EncounterState } from '../types'
+import type { CombatantStealthRuntime } from '@/features/mechanics/domain/combat/state/types/combatant.types'
+import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 import type { EncounterViewerPerceptionCapabilities } from '@/features/mechanics/domain/perception/perception.types'
 import {
   appendStealthHideBasisLostContextNote,

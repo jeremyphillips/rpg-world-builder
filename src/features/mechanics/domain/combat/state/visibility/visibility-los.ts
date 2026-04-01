@@ -1,6 +1,6 @@
 import { getCellForCombatant, hasLineOfSight } from '@/features/mechanics/domain/combat/space'
 
-import type { EncounterState } from '../types'
+import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 
 /**
  * Grid line-of-sight: segment between observer and target cell centers; **intermediate** cells

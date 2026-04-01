@@ -2,13 +2,13 @@
  * Diagnostic combat-log lines for stealth / `hiddenFromObserverIds` bookkeeping only.
  * Does not change stealth or perception rules — append-only notes on {@link EncounterState.log}.
  */
-import { appendEncounterLogEvent, appendEncounterNote, getEncounterCombatantLabel } from '../effects/logging'
-import type { EncounterState } from '../types'
+import { appendEncounterLogEvent, appendEncounterNote, getEncounterCombatantLabel } from '@/features/mechanics/domain/combat/state/effects/logging'
+import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 import {
   formatPerceiveTargetOccupantBreakdownCompact,
   formatStealthRevealHumanReadable,
   type PerceiveTargetOccupantEvaluation,
-} from '../visibility/combatant-pair-visibility'
+} from '@/features/mechanics/domain/combat/state/visibility/combatant-pair-visibility'
 
 /** `reason=` id is stable for filtering; other keys use display labels (see {@link getEncounterCombatantLabel}). */
 export const STEALTH_DEBUG_REASON = {

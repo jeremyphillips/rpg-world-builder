@@ -3,20 +3,20 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import type { EncounterWorldCellEnvironment } from '../../environment/environment.types'
-import { inferObscurationPresentationCausesWhenMissing } from '../visibility.presentation.compatibility'
-import { resolveViewerPerceptionForCell } from '../perception.resolve'
+import type { EncounterWorldCellEnvironment } from '@/features/mechanics/domain/environment/environment.types'
+import { inferObscurationPresentationCausesWhenMissing } from '@/features/mechanics/domain/perception/visibility.presentation.compatibility'
+import { resolveViewerPerceptionForCell } from '@/features/mechanics/domain/perception/perception.resolve'
 import {
   buildViewerAdjustedPresentationWorld,
   mapResolvedVisibilityToFillKind,
   resolvePresentationVisibilityFill,
   resolvePresentationVisibilityFillFromMergedWorld,
-} from '../visibility.presentation'
+} from '@/features/mechanics/domain/perception/visibility.presentation'
 import {
   projectGridCellRenderState,
   projectBattlefieldRenderState,
-} from '../perception.render.projection'
-import type { EncounterViewerBattlefieldPerception, EncounterViewerPerceptionCell } from '../perception.types'
+} from '@/features/mechanics/domain/perception/perception.render.projection'
+import type { EncounterViewerBattlefieldPerception, EncounterViewerPerceptionCell } from '@/features/mechanics/domain/perception/perception.types'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

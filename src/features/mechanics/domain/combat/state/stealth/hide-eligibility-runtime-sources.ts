@@ -1,8 +1,8 @@
-import type { Effect } from '../../../effects/effects.types'
+import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type {
   CombatantHideEligibilityFeatureFlagsRuntime,
   RuntimeMarker,
-} from '../types/combatant.types'
+} from '@/features/mechanics/domain/combat/state/types/combatant.types'
 
 /**
  * Marker **`id`** or **`classification`** entry that OR-merges **`allowHalfCoverForHide`** with snapshot

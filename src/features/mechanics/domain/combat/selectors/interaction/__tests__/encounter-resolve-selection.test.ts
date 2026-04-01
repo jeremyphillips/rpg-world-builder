@@ -8,7 +8,7 @@ import { createEncounterState } from '@/features/mechanics/domain/combat/state'
 import { testEnemy, testPc } from '@/features/mechanics/domain/combat/tests/encounter-visibility-test-fixtures'
 import { asEncounterState } from '@/features/mechanics/domain/combat/tests/encounter-test-state'
 
-import { selectValidActionIdsForTarget } from '../../interaction/encounter-resolve-selection'
+import { selectValidActionIdsForTarget } from '@/features/mechanics/domain/combat/selectors/interaction/encounter-resolve-selection'
 
 describe('selectValidActionIdsForTarget', () => {
   it('marks Hide invalid with eligibility reason on open ground', () => {

@@ -1,7 +1,7 @@
 import type {
   CombatantHideEligibilityExtension,
   CombatantInstance,
-} from '../types/combatant.types'
+} from '@/features/mechanics/domain/combat/state/types/combatant.types'
 import {
   hasAnyHideEligibilityFeatureFlags,
   mergeHideEligibilityFeatureFlagsOr,

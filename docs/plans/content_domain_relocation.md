@@ -223,7 +223,7 @@ Some consumers (e.g. `mechanics`, `characterBuilder`, `character`) import from m
 
 After each phase (or at end of Phase 4):
 
-1. `yarn build` passes
+1. `npm run build` passes
 2. TypeScript passes
 3. Lint passes
 4. No remaining imports from old paths (except shared types/vocab that stayed)

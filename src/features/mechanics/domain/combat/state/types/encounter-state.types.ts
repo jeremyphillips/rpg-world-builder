@@ -1,4 +1,4 @@
-import type { InitiativeRoll } from '../../resolution'
+import type { InitiativeRoll } from '@/features/mechanics/domain/combat/resolution'
 import type { CombatantInstance } from './combatant.types'
 import type { CombatLogEvent } from './combat-log.types'
 import type { EncounterSpace, CombatantPosition } from '@/features/mechanics/domain/combat/space'
@@ -7,8 +7,8 @@ import type {
   EncounterEnvironmentBaseline,
   EncounterEnvironmentZone,
 } from '@/features/mechanics/domain/environment/environment.types'
-import type { AttachedBattlefieldEffectSource } from '../auras/attached-battlefield-source'
-import type { BattlefieldEffectAnchor } from '../battlefield/battlefield-effect-anchor'
+import type { AttachedBattlefieldEffectSource } from '@/features/mechanics/domain/combat/state/auras/attached-battlefield-source'
+import type { BattlefieldEffectAnchor } from '@/features/mechanics/domain/combat/state/battlefield/battlefield-effect-anchor'
 
 /** Persistent battlefield sphere effect (e.g. Spirit Guardians emanation). */
 export type BattlefieldEffectInstance = {

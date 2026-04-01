@@ -3,8 +3,8 @@ import type { ConditionImmunityId } from '@/features/mechanics/domain/conditions
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types'
 import type { AbilityKey, AbilityRef } from '@/features/mechanics/domain/character'
-import type { BreakdownToken } from '../../../resolution/resolvers/stat-resolver'
-import type { CombatActionDefinition } from '../../resolution/combat-action.types'
+import type { BreakdownToken } from '@/features/mechanics/domain/resolution/resolvers/stat-resolver'
+import type { CombatActionDefinition } from '@/features/mechanics/domain/combat/resolution/combat-action.types'
 
 export type CombatantSide = 'party' | 'enemies'
 
