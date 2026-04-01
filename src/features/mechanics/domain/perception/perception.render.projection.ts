@@ -42,7 +42,7 @@ export type EncounterGridCellRenderState = {
   occupantTokenVisibility: OccupantTokenVisibility
   showObstacleGlyph: boolean
   /**
-   * When set, may replace tactical base fills (see `mergePerceptionIntoCellVisualState` in `cellVisualState.ts`;
+   * When set, may replace tactical base fills (see `mergePerceptionIntoCellVisualState` in `features/combat/components/grid/cellVisualState.ts`;
    * immersed PCs may also replace `aoe-cast-range` / `placement-cast-range` band fills). Presentation-only.
    */
   perceptionBaseFillKind: VisibilityFillKind | null

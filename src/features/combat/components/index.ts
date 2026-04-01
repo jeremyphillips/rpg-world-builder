@@ -2,6 +2,7 @@ export {
   CombatActionRowBase,
   type CombatActionRowBaseProps,
 } from './action-row/CombatActionRowBase'
+export { CombatGrid, type CombatGridProps } from './grid/CombatGrid'
 export { CombatantAvatar, type CombatantAvatarProps } from './avatar/CombatantAvatar'
 export { CombatantPreviewCard } from './cards/CombatantPreviewCard'
 export { CombatActionPreviewCard } from './cards/CombatActionPreviewCard'

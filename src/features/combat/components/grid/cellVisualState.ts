@@ -23,7 +23,7 @@ export type CellBaseFillKind =
   | VisibilityFillKind
 
 /**
- * Movement emphasis on top of base fill. Mutually exclusive branches match legacy EncounterGrid behavior.
+ * Movement emphasis on top of base fill. Mutually exclusive branches match legacy CombatGrid behavior.
  */
 export type CellMovementVisual =
   | 'none'

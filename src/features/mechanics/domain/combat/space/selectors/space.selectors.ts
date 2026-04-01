@@ -122,7 +122,7 @@ export type GridCellViewModel = {
   /** Single-cell placement: confirmed chosen cell. */
   placementSelected?: boolean
   /**
-   * World-space tactical tint for synced attached-emanation footprint (secondary color in `cellVisualStyles`).
+   * World-space tactical tint for synced attached-emanation footprint (secondary color in `features/combat/components/grid/cellVisualStyles.ts`).
    * Stripped for **PC** viewers immersed in heavy obscurement / MD (see immersed rule in
    * `selectGridViewModel` / `resolveViewerBattlefieldPerception`) — distinct from per-cell visibility fills.
    */
@@ -204,7 +204,7 @@ export function actionUsesGridCreatureTargeting(action: CombatActionDefinition |
  *
  * Does **not** strip **`aoeCastRange`** flags on the view model (placement affordance). Immersed viewers
  * still avoid a cast-range **fill** “hole” in fog via `mergePerceptionIntoCellVisualState` +
- * `immersionAllowsPerceptionOverCastRangeBands` in `EncounterGrid`. Does **not** remove movement /
+ * `immersionAllowsPerceptionOverCastRangeBands` in `CombatGrid`. Does **not** remove movement /
  * reachability outlines.
  */
 function immersedFootprintOverlaysSuppressed(perceptionSlice: GridPerceptionSlice | null): boolean {
