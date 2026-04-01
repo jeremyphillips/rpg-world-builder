@@ -20,10 +20,12 @@ import equipmentRoutes from '../features/content/equipment/routes/equipment.rout
 import locationsRoutes, {
   locationMapTransitionsRouter,
 } from '../features/content/locations/routes/locations.routes'
+import combatRoutes from '../features/combat/routes/combat.routes'
 
 const campaignScopedContent = [requireAuth, requireCampaignRole('observer')]
 
 export function registerRoutes(app: Express) {
+  app.use('/api/combat', combatRoutes)
   app.use('/api/chat', chatRoutes)
   app.use('/api/users', userRoutes)
   app.use('/api/campaigns/:id/classes', ...campaignScopedContent, classesRoutes)
