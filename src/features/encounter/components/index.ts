@@ -12,8 +12,6 @@ export {
   PresentableEffectsList,
   PresentableEffectsHeaderChips,
 } from '@/features/combat/components'
-export { TurnOrderList } from './active/modals/TurnOrderList'
-export type { TurnOrderEntry } from './active/modals/TurnOrderList'
 export { EncounterView } from './shared/layout/EncounterView'
 export { EncounterSetupView } from './setup/layout/EncounterSetupView'
 export { EncounterSetupHeader } from './setup/layout/EncounterSetupHeader'
@@ -58,6 +56,5 @@ export {
 export { EncounterEditModal } from './shared/modals/EncounterEditModal'
 export { CombatTargetSelectModal, buildTargetOptions } from './active/modals/CombatTargetSelectModal'
 export { CombatLogModal } from './active/combat-log/CombatLogModal'
-export { CombatTurnOrderModal } from './active/modals/CombatTurnOrderModal'
 export { SelectEncounterAllyModal } from './setup/modals/SelectEncounterAllyModal'
 export { SelectEncounterOpponentModal } from './setup/modals/SelectEncounterOpponentModal'

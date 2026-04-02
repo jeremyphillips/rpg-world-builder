@@ -11,7 +11,6 @@ Implementation: [`src/features/encounter/ui/theme/encounterUiStateTheme.ts`](../
 - **`getEncounterUiStateTheme(theme)`** — resolves light/dark values in one place from `theme.palette` and MUI color helpers (`alpha`, `lighten`, etc.).
 - **`EncounterUiStateTheme`** — structured by **surface** then **semantic state** (not parallel flat color maps).
 - **Header layout** — `header.height` (`layoutFallbackPx`, `cssVarName` for the sticky bar measurement) and `header.bar` (padding + `minHeightPx` + `boxSizing`) live on the theme object. No separate top-level layout exports.
-- **`getEncounterTurnOrderRowOpacity(theme, input)`** — turn-order row opacity from `participation` factors on the theme object (same semantics as mechanics participation visuals).
 
 Raw color primitives (`colorPrimitives`) and global [`palette`](../../../../src/app/theme/palette.ts) definitions stay in app theme code. Encounter features **consume** semantic tokens from `getEncounterUiStateTheme`, not primitives, for encounter-specific UI states.
 
@@ -25,10 +24,6 @@ Raw color primitives (`colorPrimitives`) and global [`palette`](../../../../src/
 | **Header height** | `layoutFallbackPx`, `cssVarName` | Fallback before `documentElement` CSS var is set; used by sidebar / grid hover positioning. |
 | **Header bar** | padding + `minHeightPx` | Top chrome strip sizing. |
 | **Header directive** | `resourcesExhaustedTextColor` | When turn resources are exhausted, directive text uses this token. |
-| **Turn order row** (`TurnOrderList` — e.g. Combat Turn Order **modal**) | `current`, `default` | `borderColor`, `borderWidth` (via full `border` on `Paper` with `elevation={0}` — not the sidebar preview cards). Row **opacity** via `getEncounterTurnOrderRowOpacity`. |
-| **Participation** (opacity factors) | `defeatedOpacity`, `battlefieldAbsentOpacity`, `unseenViewerDimFactor` | Numeric factors for dimming rows; aligned with mechanics participation visuals. |
-
-**AppBadge** styling (tones, labels, `filled` vs `outlined` in turn lists, etc.) is intentionally **not** part of this mapping; adjust in components when needed.
 
 ## Scaling pattern
 
