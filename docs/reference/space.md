@@ -28,7 +28,8 @@ packages/mechanics/src/combat/space/
 ├── placement/                      # Placements, spawn replacement, placeRandomGridObject (legacy placeRandomGridObstacle)
 ├── rendering/                      # Grid occupant token presentation
 ├── selectors/                      # State-level selectors, GridViewModel, movement
-├── sight/                          # Line of sight: supercover line + hasLineOfSight / cellBlocksSight
+├── sight/                          # Supercover line + hasLineOfSight, cellBlocksSight (raw), cellOpaqueToSight
+├── spatial/                        # Edge segment crossing; movement BFS (reachability, shortest path ft)
 └── __tests__/                      # Mirrors creation, placement, rendering, selectors, sight (+ space.helpers.test)
 ```
 
@@ -109,8 +110,9 @@ When a **`spawn`** effect creates new combatants that **replace** an existing to
 `sight/space.sight.ts` implements **binary** line of sight on the square grid for shared use by spells, ranged/thrown attacks, and any feature that needs “can I draw a line?” — not spell-specific.
 
 - **Line geometry:** The segment runs between **cell centers** of the source and target cells `(x+0.5, y+0.5)`. The set of cells visited is a **grid supercover** using an **Amanatides & Woo–style DDA** (each unit cell the segment intersects). When a ray hits a **corner** between two cells, the tie branch steps **diagonally** so both grid steps are included.
-- **Blocking:** `cellBlocksSight(space, cellId)` is the **only** resolver for opaque sight blockers; it reads `EncounterCell.blocksSight`. **Intermediate** cells on the path may block; **source and target cells do not** block their own endpoints (occupants on those squares do not apply blocking in this first pass).
-- **API:** `hasLineOfSight(space, fromCellId, toCellId)`; `traceLineOfSightCells` is mainly for tests and debugging.
+- **Interior opacity:** **Intermediate** cells (not source or target **as cell interiors**) use **`cellOpaqueToSight`**: raw `EncounterCell.blocksSight` via **`cellBlocksSight`**, **plus** any **`GridObject`** on that cell with **`blocksLineOfSight`**. Source/target cell **centers** are not treated as opaque interiors; a **segment** into the target can still be blocked by an **`EncounterEdge`**.
+- **Edges:** Consecutive cells on the path are checked with **`segmentSightBlocked`** (`spatial/edgeCrossing.ts`). Orthogonal steps use the edge between the two cells (if absent, the boundary is open). **Diagonal** steps use a **strict corner rule**: sight is blocked if **either** orthogonal edge from the source toward that diagonal would block sight (same geometry as movement segment checks; **policy** can differ — e.g. a **window** edge may set **`blocksMovement: true`** and **`blocksSight: false`**).
+- **API:** `hasLineOfSight(space, fromCellId, toCellId)`; `traceLineOfSightCells` is mainly for tests and debugging. Raw flag read: **`cellBlocksSight`**; composed interior: **`cellOpaqueToSight`**.
 - **Targeting:** `canSeeForTargeting` delegates to `canPerceiveTargetOccupantForCombat` (`visibility/combatant-pair-visibility.ts`): condition-based sight (e.g. blinded, invisible), `lineOfSightClear` → `hasLineOfSight` when a grid exists, then **occupant** visibility from `perception.resolve.ts` (heavy obscurement, magical darkness, etc.). **Cover** for attack modifiers is still separate; binary LoS here does not replace perception’s “can you see the creature in that cell?”
 
 ### Movement
@@ -122,11 +124,13 @@ When a **`spawn`** effect creates new combatants that **replace** an existing to
 - **`getEffectiveGroundMovementBudgetFt`** (`packages/mechanics/src/combat/state/battlefield/battlefield-spatial-movement-modifiers.ts`) applies **`floor(baseSpeed × product)`**, where the product comes from overlapping **attached sphere auras** (`EncounterState.attachedAuraInstances`) whose spells define **`modifier`** effects with **`target: 'speed'`** and **`mode: 'multiply'`** (e.g. Spirit Guardians `0.5`). Overlap uses the same geometry as aura rendering; the aura **source** and **`unaffectedCombatantIds`** are skipped; defeated combatants and same-side suppression follow **`battlefield-attached-aura-shared`** rules.
 - **`turnContext.movementSpentThisTurn`** accumulates feet moved; after each move, **`movementRemaining = max(0, effectiveMax − spent)`** so entering or leaving an aura mid-turn updates the budget without double-counting.
 
-When no context is passed, behavior remains **remaining − distance** (legacy/tests).
+When no context is passed, **`movementRemaining`** is reduced by the **shortest legal path length in feet** (`minMovementCostFtToCell`), not Chebyshev distance alone — going around a wall costs more than a straight-line metric when the direct segment is blocked.
 
 Turn start resets movement via **`createCombatantTurnResources`** in **`shared.ts`**: when **`advanceEncounterTurn`** / **`createEncounterState`** supply spell lookup (same object shape as interval resolution), the initial **`movementRemaining`** uses the same **effective** budget for the combatant’s position at turn start.
 
-`selectCellsWithinDistance` returns cell IDs within movement range using Chebyshev distance. `canMoveTo` is the single predicate combining distance, budget, cell passability, and occupancy.
+**Movement reachability (not LoS):** **`spatial/movementReachability.ts`** performs **breadth-first search** over **king-adjacent** cells (8 directions). Each step uses **`movementStepLegal`**: **`cellMovementBlockedForEntering`** on the cell entered, and **`segmentMovementBlocked`** on the step (orthogonal edge or diagonal corner rule — same geometry as sight, **movement** flags on edges). This answers “is there **some** legal route within budget?” — **not** “is the straight supercover ray clear?” (that remains **`hasLineOfSight`** only).
+
+**`minMovementCostFtToCell`** returns the **shortest** route cost in feet (each orthogonal or diagonal step costs one **`cellFeet`**). **`cellsReachableWithinMovementBudget`** collects all cells reachable within **`movementRemaining`**. **`selectCellsWithinDistance`** and **`canMoveTo`** use this BFS; **`moveCombatant`** deducts the shortest-path cost. **`placeCombatant`**, **`isValidSingleCellPlacementPick`**, **`validateSingleCellPlacement`**, and **`isValidAoeOriginCell`** still use **`cellMovementBlockedForEntering`** only for destination validity (not graph search).
 
 ### Character speed
 
@@ -136,12 +140,12 @@ Characters default to 30ft ground speed (`stats.speeds = { ground: 30 }`) in `bu
 
 These are intentional simplifications for the current milestone, not bugs:
 
-- **Distance-based cell selection is geometric only.** `selectCellsWithinDistance` ignores walls, terrain costs, and blockers. Sufficient for generated open grids. Named distinctly from future `selectPathReachableCells`.
+- **Uniform step costs only.** Reachability BFS treats each king-move as one **`cellFeet`**; **`EncounterCell.movementCost`** / difficult terrain multipliers are not applied yet.
 - **`targeting.rangeFt` is a single resolved scalar.** No long-range disadvantage, area templates, cone/line targeting, or minimum range. `CombatantAttackRange` carries `longFt` for future disadvantage rules, but the roll modifier is not wired.
 - **Character speed is hardcoded 30ft.** No race/species-based speeds. Refined when race modeling is added.
 - **Opportunity attacks (domain legality).** `reactions/opportunity-attack.ts` evaluates leave-reach (spatial) separately from sight: `canReactorPerceiveDepartingOccupantForOpportunityAttack` delegates to `canPerceiveTargetOccupantForCombat` (combat `viewerRole: 'pc'`, not DM omniscience). Movement resolution does not auto-spend reactions; callers use `getOpportunityAttackLegalityDenialReason` / `getCombatantIdsEligibleForOpportunityAttackAgainstMover` after `moveCombatant` when wiring OA UI or prompts.
 - **No Disengage or Dash actions.** Dash would double `movementRemaining`; Disengage would suppress opportunity attacks. `CombatActionCost.movementFeet` exists for future action costs.
-- **Pathfinding** is still geometric / not path-aware for movement highlights. **Ray-based LOS** exists for targeting (`hasLineOfSight`); **cover bonuses** and **obscurement** are still deferred.
+- **Cover bonuses** and **obscurement** for attacks are still deferred beyond binary LoS / perception.
 - **No large creature footprints.** `CombatantPosition.size` exists as a seam but is not consumed by placement, movement, or range validation.
 - **`EncounterCell.movementCost` is not consumed.** The field exists for future difficult terrain but `moveCombatant` does not read it.
 
@@ -153,7 +157,7 @@ These are intentional simplifications for the current milestone, not bugs:
 
 ### Geometric vs path-aware reachability
 
-Current naming intentionally distinguishes *in-range by metric* (`selectCellsWithinDistance`) from *actually pathable/reachable* (future `selectPathReachableCells`). Authored maps will require path-aware reachability and likely LOS-aware targeting as separate concerns. These three -- pathfinding, LOS, and range metric -- are easy to accidentally blur together.
+**Targeting range** (`rangeFt`) still uses **Chebyshev** distance for “in range” — not movement pathfinding. **Movement** uses BFS shortest-path feet on the grid. **LoS** uses **supercover + segments** only (`hasLineOfSight`). Those three — range metric, movement route, LoS ray — stay separate; the UI should not assume they coincide near walls.
 
 ### Split movement model extensibility
 

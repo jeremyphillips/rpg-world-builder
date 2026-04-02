@@ -1,4 +1,5 @@
-import { getCellAt, getCellById } from '../space.helpers'
+import { cellHasSightBlockingGridObject, getCellAt, getCellById } from '../space.helpers'
+import { segmentMovementBlocked, segmentSightBlocked } from '../spatial/edgeCrossing'
 import type { EncounterSpace } from '../space.types'
 
 /**
@@ -9,6 +10,14 @@ export function cellBlocksSight(space: EncounterSpace, cellId: string): boolean 
   const cell = getCellById(space, cellId)
   if (!cell) return true
   return cell.blocksSight === true
+}
+
+/**
+ * Composed LoS interior opacity: raw `EncounterCell.blocksSight` **or** any grid object with
+ * `blocksLineOfSight` on this cell. Not a synonym for {@link cellBlocksSight}.
+ */
+export function cellOpaqueToSight(space: EncounterSpace, cellId: string): boolean {
+  return cellBlocksSight(space, cellId) || cellHasSightBlockingGridObject(space, cellId)
 }
 
 /**
@@ -105,8 +114,10 @@ export function traceLineOfSightCells(
 }
 
 /**
- * Binary line of sight on the square grid: clear iff no **intermediate** cell on the supercover
- * segment has `blocksSight`. Source and target cells do not block their own endpoints.
+ * Binary line of sight on the square grid: supercover geometry between cell centers; **interior**
+ * cells use {@link cellOpaqueToSight} (terrain + grid objects); **every** step uses
+ * {@link segmentSightBlocked} (edges, including diagonal corner rule). Source and target **cell
+ * interiors** do not count as opaque endpoints; the **segment** into the target can still block.
  */
 export function hasLineOfSight(
   space: EncounterSpace,
@@ -124,7 +135,15 @@ export function hasLineOfSight(
   for (let i = 1; i < path.length - 1; i++) {
     const cell = getCellAt(space, path[i].x, path[i].y)
     if (!cell) return false
-    if (cellBlocksSight(space, cell.id)) return false
+    if (cellOpaqueToSight(space, cell.id)) return false
   }
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const a = getCellAt(space, path[i]!.x, path[i]!.y)
+    const b = getCellAt(space, path[i + 1]!.x, path[i + 1]!.y)
+    if (!a || !b) return false
+    if (segmentSightBlocked(space, a.id, b.id)) return false
+  }
+
   return true
 }

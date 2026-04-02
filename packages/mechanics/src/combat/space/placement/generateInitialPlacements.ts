@@ -1,6 +1,6 @@
 import type { CombatantInstance } from '@/features/mechanics/domain/combat/state'
 import type { EncounterSpace, CombatantPosition, InitialPlacementOptions } from '../space.types'
-import { getCellAt, isCellOccupied } from '../space.helpers'
+import { cellMovementBlockedForEntering, getCellAt, isCellOccupied } from '../space.helpers'
 
 type Side = NonNullable<InitialPlacementOptions['allySide']>
 
@@ -71,7 +71,7 @@ export function generateInitialPlacements(
     for (const combatant of group) {
       const slot = candidates.find((coord) => {
         const cell = getCellAt(space, coord.x, coord.y)
-        if (!cell || cell.kind === 'wall' || cell.kind === 'blocking') return false
+        if (!cell || cellMovementBlockedForEntering(space, cell.id)) return false
         return !isCellOccupied(placements, cell.id)
       })
 

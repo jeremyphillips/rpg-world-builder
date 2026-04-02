@@ -1,4 +1,5 @@
 import {
+  cellMovementBlockedForEntering,
   getCellById,
   getCellForCombatant,
   placeCombatant,
@@ -11,10 +12,8 @@ import { ENGINE_STATE_RULES } from '../conditions/condition-rules/engine-state-d
 import { updateCombatant } from '../shared'
 import type { CombatantInstance, EncounterState } from '../types'
 
-function isPassableCell(
-  cell: { kind?: string } | undefined,
-): cell is { kind: string; id: string; x: number; y: number } {
-  return Boolean(cell && cell.kind !== 'wall' && cell.kind !== 'blocking')
+function isPassableCell(space: EncounterSpace, cell: EncounterCell | undefined): cell is EncounterCell {
+  return Boolean(cell && !cellMovementBlockedForEntering(space, cell.id))
 }
 
 /** Engine states whose rules include battlefield absence (banished, off-grid, …). */
@@ -39,7 +38,7 @@ export function findNearestUnoccupiedPassableCell(
   excludeCombatantId: string,
 ): string | undefined {
   const origin = getCellById(space, originCellId)
-  if (!origin || !isPassableCell(origin)) return undefined
+  if (!origin || !isPassableCell(space, origin)) return undefined
 
   const occupied = new Set(
     placements.filter((p) => p.combatantId !== excludeCombatantId).map((p) => p.cellId),
@@ -49,7 +48,7 @@ export function findNearestUnoccupiedPassableCell(
   for (let d = 0; d <= maxCoord; d++) {
     const layer: EncounterCell[] = []
     for (const cell of space.cells) {
-      if (!isPassableCell(cell)) continue
+      if (!isPassableCell(space, cell)) continue
       const cheb = Math.max(Math.abs(cell.x - origin.x), Math.abs(cell.y - origin.y))
       if (cheb !== d) continue
       layer.push(cell)
@@ -79,7 +78,7 @@ function resolveCellIdForBattlefieldReturn(
     placements.filter((p) => p.combatantId !== combatantId).map((p) => p.cellId),
   )
 
-  if (preferredCell && isPassableCell(preferredCell) && !occupiedByOther.has(preferred)) {
+  if (preferredCell && isPassableCell(space, preferredCell) && !occupiedByOther.has(preferred)) {
     return preferred
   }
 

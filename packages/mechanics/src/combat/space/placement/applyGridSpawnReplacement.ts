@@ -1,9 +1,9 @@
 import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 import type { CombatantPosition, EncounterCell, EncounterSpace } from '../space.types'
-import { getCellById, getCellForCombatant, gridDistanceFt } from '../space.helpers'
+import { cellMovementBlockedForEntering, getCellById, getCellForCombatant, gridDistanceFt } from '../space.helpers'
 
-function isCellPassable(cell: EncounterCell): boolean {
-  return cell.kind !== 'wall' && cell.kind !== 'blocking'
+function isCellPassable(space: EncounterSpace, cell: EncounterCell): boolean {
+  return !cellMovementBlockedForEntering(space, cell.id)
 }
 
 function occupiedCells(placements: CombatantPosition[]): Set<string> {
@@ -27,7 +27,7 @@ export function pickNearestOpenCellIds(
   if (!anchor) return []
 
   const scored = space.cells
-    .filter((cell) => isCellPassable(cell) && !occ.has(cell.id))
+    .filter((cell) => isCellPassable(space, cell) && !occ.has(cell.id))
     .map((cell) => {
       const d = gridDistanceFt(space, anchorCellId, cell.id)
       return { cellId: cell.id, d: d ?? Number.POSITIVE_INFINITY }

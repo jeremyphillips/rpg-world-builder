@@ -1,7 +1,13 @@
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { SpawnEffect, SpawnPlacement } from '@/features/mechanics/domain/effects/effects.types'
 import type { CombatantPosition, EncounterSpace } from '@/features/mechanics/domain/combat/space'
-import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt } from '@/features/mechanics/domain/combat/space'
+import {
+  cellMovementBlockedForEntering,
+  getCellById,
+  getCellForCombatant,
+  getOccupant,
+  gridDistanceFt,
+} from '@/features/mechanics/domain/combat/space'
 import { hasLineOfSight } from '@/features/mechanics/domain/combat/space/sight/space.sight'
 import { isAreaGridAction } from './area-grid-action'
 import { areaTemplateRadiusFt } from './action-targeting'
@@ -209,7 +215,7 @@ export function validateSingleCellPlacement(
   const reasons: PlacementValidationReason[] = []
 
   const targetCell = getCellById(space, targetCellId)
-  if (!targetCell || targetCell.kind === 'wall' || targetCell.kind === 'blocking') {
+  if (!targetCell || cellMovementBlockedForEntering(space, targetCellId)) {
     reasons.push('invalid-terrain')
   }
 

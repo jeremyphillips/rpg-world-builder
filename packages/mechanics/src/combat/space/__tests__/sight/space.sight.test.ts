@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { createSquareGridSpace } from '../../creation/createSquareGridSpace'
 import {
   cellBlocksSight,
+  cellOpaqueToSight,
   gridCellsAlongSupercoverLine,
   hasLineOfSight,
   traceLineOfSightCells,
 } from '../../sight/space.sight'
+import { segmentMovementBlocked, segmentSightBlocked } from '../../spatial/edgeCrossing'
 
 describe('gridCellsAlongSupercoverLine', () => {
   it('returns a single cell when endpoints coincide', () => {
@@ -68,5 +70,60 @@ describe('hasLineOfSight', () => {
   it('traceLineOfSightCells matches cell ids on the grid', () => {
     const space = createSquareGridSpace({ id: 'g', name: 'G', columns: 3, rows: 3 })
     expect(traceLineOfSightCells(space, 'c-0-0', 'c-2-0')).toEqual(['c-0-0', 'c-1-0', 'c-2-0'])
+  })
+
+  it('is false when an edge between adjacent cells blocks sight', () => {
+    const space = createSquareGridSpace({ id: 'g', name: 'G', columns: 4, rows: 4 })
+    const withEdge = {
+      ...space,
+      edges: [{ fromCellId: 'c-0-0', toCellId: 'c-1-0', blocksSight: true }],
+    }
+    expect(hasLineOfSight(withEdge, 'c-0-0', 'c-1-0')).toBe(false)
+  })
+
+  it('is false when a grid object blocks LoS on an intermediate cell', () => {
+    const space = createSquareGridSpace({ id: 'g', name: 'G', columns: 4, rows: 4 })
+    const mid = space.cells.find((c) => c.x === 1 && c.y === 0)!
+    const withObj = {
+      ...space,
+      gridObjects: [
+        {
+          id: 'rock',
+          cellId: mid.id,
+          blocksMovement: false,
+          blocksLineOfSight: true,
+          coverKind: 'none' as const,
+          isMovable: false,
+        },
+      ],
+    }
+    expect(cellOpaqueToSight(withObj, mid.id)).toBe(true)
+    expect(hasLineOfSight(withObj, 'c-0-0', 'c-2-0')).toBe(false)
+  })
+
+  it('window edge: blocks movement but not sight when edge flags differ', () => {
+    const space = createSquareGridSpace({ id: 'g', name: 'G', columns: 4, rows: 4 })
+    const withWindow = {
+      ...space,
+      edges: [
+        {
+          fromCellId: 'c-0-0',
+          toCellId: 'c-1-0',
+          blocksMovement: true,
+          blocksSight: false,
+        },
+      ],
+    }
+    expect(segmentSightBlocked(withWindow, 'c-0-0', 'c-1-0')).toBe(false)
+    expect(segmentMovementBlocked(withWindow, 'c-0-0', 'c-1-0')).toBe(true)
+  })
+
+  it('diagonal corner: blocks sight if either orthogonal edge blocks sight', () => {
+    const space = createSquareGridSpace({ id: 'g', name: 'G', columns: 4, rows: 4 })
+    const withOneEdge = {
+      ...space,
+      edges: [{ fromCellId: 'c-0-0', toCellId: 'c-1-0', blocksSight: true }],
+    }
+    expect(hasLineOfSight(withOneEdge, 'c-0-0', 'c-1-1')).toBe(false)
   })
 })

@@ -140,6 +140,43 @@ export function findGridObjectAtCell(
   return getEncounterGridObjects(space).find((o) => o.cellId === cellId)
 }
 
+/** All grid objects whose footprint includes this cell (multi-object support). */
+export function findGridObjectsAtCell(
+  space: EncounterSpace | undefined,
+  cellId: string,
+): GridObject[] {
+  return getEncounterGridObjects(space).filter((o) => o.cellId === cellId)
+}
+
+export function cellHasSightBlockingGridObject(
+  space: EncounterSpace | undefined,
+  cellId: string,
+): boolean {
+  return findGridObjectsAtCell(space, cellId).some((o) => o.blocksLineOfSight)
+}
+
+export function cellHasMovementBlockingGridObject(
+  space: EncounterSpace | undefined,
+  cellId: string,
+): boolean {
+  return findGridObjectsAtCell(space, cellId).some((o) => o.blocksMovement)
+}
+
+/**
+ * Composed “may a token enter / stand on this cell?” for movement and placement.
+ * Combines {@link EncounterCell} wall/blocking kind, `blocksMovement`, and grid objects.
+ */
+export function cellMovementBlockedForEntering(
+  space: EncounterSpace,
+  cellId: string,
+): boolean {
+  const cell = getCellById(space, cellId)
+  if (!cell) return true
+  if (cell.kind === 'wall' || cell.kind === 'blocking') return true
+  if (cell.blocksMovement === true) return true
+  return cellHasMovementBlockingGridObject(space, cellId)
+}
+
 export function findGridObjectById(
   space: EncounterSpace | undefined,
   objectId: string,
