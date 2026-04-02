@@ -130,3 +130,11 @@ export type {
   ViewerCombatantPresentationKind,
 } from '@/features/mechanics/domain/combat/presentation/view/tactical-preview.types'
 export type { CombatantPreviewCardProps } from './view/encounter-view.types'
+
+export type {
+  EncounterSetupPolicy,
+  EncounterSetupRosterPolicy,
+  EncounterSetupEnvironmentPolicy,
+  EncounterSetupGridPolicy,
+} from './setup'
+export { SIMULATOR_ENCOUNTER_SETUP_POLICY } from './setup'

@@ -20,10 +20,7 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '@/features/combat/presentation'
-import {
-  ATMOSPHERE_TAGS,
-  DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE,
-} from '@/features/mechanics/domain/environment'
+import { ATMOSPHERE_TAGS } from '@/features/mechanics/domain/environment'
 import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/combat/state'
 import { resolveBattlefieldEffectOriginCellId } from '@/features/mechanics/domain/combat/state/battlefield/battlefield-effect-anchor'
 import { getCombatantBaseMovement } from '@/features/mechanics/domain/combat/state/shared'
@@ -40,6 +37,7 @@ import {
   type EncounterSimulatorViewerMode,
   type EncounterViewerContext,
 } from '../domain'
+import { SIMULATOR_ENCOUNTER_SETUP_POLICY } from '../domain/setup'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
 import type { GridInteractionMode } from '../domain'
 import {
@@ -68,6 +66,9 @@ import type { CombatantPortraitEntry } from '../helpers/combatants'
 import { campaignEncounterActivePath, campaignEncounterSetupPath } from './encounterPaths'
 
 function useEncounterRuntimeValue() {
+  /** Setup defaults + edit flags; simulator uses {@link SIMULATOR_ENCOUNTER_SETUP_POLICY}. */
+  const encounterSetupPolicy = SIMULATOR_ENCOUNTER_SETUP_POLICY
+
   useActiveCampaign()
   const navigate = useNavigate()
   const { id: campaignId } = useParams<{ id: string }>()
@@ -125,6 +126,7 @@ function useEncounterRuntimeValue() {
     allyOptions: allAllyOptions,
     opponentOptionsByKey,
     nextRuntimeId,
+    rosterPolicy: encounterSetupPolicy.roster,
   })
 
   const {
@@ -237,10 +239,12 @@ function useEncounterRuntimeValue() {
     if (campaignId) navigate(campaignEncounterSetupPath(campaignId), { replace: true })
   }, [handleResetEncounterBase, navigate, campaignId])
 
-  const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(
-    DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE,
+  const [environmentSetup, setEnvironmentSetup] = useState<EnvironmentSetupValues>(() => ({
+    ...encounterSetupPolicy.environment.environmentDefaults,
+  }))
+  const [gridSizePreset, setGridSizePreset] = useState<GridSizePreset>(
+    encounterSetupPolicy.grid.gridSizePresetDefault,
   )
-  const [gridSizePreset, setGridSizePreset] = useState<GridSizePreset>('medium')
   const [interactionMode, setInteractionMode] = useState<GridInteractionMode>('select-target')
   const [allyModalOpen, setAllyModalOpen] = useState(false)
   const [opponentModalOpen, setOpponentModalOpen] = useState(false)
@@ -696,6 +700,7 @@ function useEncounterRuntimeValue() {
     characterPortraitById,
     allyOptions,
     opponentOptions,
+    encounterSetupPolicy,
     selectedAllyIds,
     setSelectedAllyIds,
     opponentRoster,

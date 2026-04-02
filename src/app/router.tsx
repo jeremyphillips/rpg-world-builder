@@ -178,7 +178,11 @@ export const router = createBrowserRouter([
                 element: <AdminGuard />,
                 children: [
                   {
-                    /* Encounter Simulator (dev/testing); not future GameSession */
+                    /*
+                     * Encounter Simulator: DM/admin setup + active combat sandbox.
+                     * Setup is not a player participation surface — future player flow belongs on a
+                     * separate lobby/session route, not readonly setup.
+                     */
                     path: 'encounter',
                     element: <EncounterLayout />,
                     children: [

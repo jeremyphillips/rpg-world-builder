@@ -1,3 +1,6 @@
+/**
+ * Encounter configuration (participants, environment, grid). DM/simulator-only surface — not player lobby.
+ */
 import { Navigate } from 'react-router-dom'
 
 import {

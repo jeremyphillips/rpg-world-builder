@@ -1,16 +1,23 @@
 import { useMemo, useState } from 'react'
 
+import type { EncounterSetupRosterPolicy } from '../domain/setup'
+
 import type { OpponentOption, OpponentRosterEntry, AllyOption } from '../types'
 
 export function useEncounterRoster(args: {
   allyOptions: AllyOption[]
   opponentOptionsByKey: Record<string, OpponentOption>
   nextRuntimeId: (prefix: string) => string
+  rosterPolicy: EncounterSetupRosterPolicy
 }) {
-  const { allyOptions, opponentOptionsByKey, nextRuntimeId } = args
+  const { allyOptions, opponentOptionsByKey, nextRuntimeId, rosterPolicy } = args
 
-  const [selectedAllyIds, setSelectedAllyIds] = useState<string[]>([])
-  const [opponentRoster, setOpponentRoster] = useState<OpponentRosterEntry[]>([])
+  const [selectedAllyIds, setSelectedAllyIds] = useState<string[]>(
+    () => [...rosterPolicy.defaultSelectedAllyIds],
+  )
+  const [opponentRoster, setOpponentRoster] = useState<OpponentRosterEntry[]>(() =>
+    rosterPolicy.defaultOpponentRoster.map((e) => ({ ...e })),
+  )
 
   const selectedAllyOptions = useMemo(
     () => allyOptions.filter((option) => selectedAllyIds.includes(option.id)),

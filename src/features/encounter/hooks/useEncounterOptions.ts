@@ -1,3 +1,7 @@
+/**
+ * Builds ally and opponent option lists from campaign roster + catalog.
+ * Initial roster selection defaults come from the encounter setup policy (`useEncounterRoster` / runtime context).
+ */
 import { useMemo } from 'react'
 
 import { formatCharacterSubtitleLine, formatNpcClassLine } from '@/features/character/formatters'
