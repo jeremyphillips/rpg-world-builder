@@ -45,6 +45,11 @@ export type EncounterActiveHeaderProps = {
   activeCombatant: CombatantInstance | null
   /** Duplicate-aware title for the active combatant. */
   activeCombatantDisplayLabel: string
+  /**
+   * When set (e.g. viewer controls this combatant’s turn), replaces the identity headline
+   * — typically `Your turn — {name}` to match turn-change toast copy.
+   */
+  activeCombatantHeadlineOverride?: string | null
   monstersById: Record<string, Monster | undefined>
   turnResources: CombatantTurnResources | null
   baseMovementFt: number
@@ -78,6 +83,7 @@ export function EncounterActiveHeader({
   nextCombatantLabel,
   activeCombatant,
   activeCombatantDisplayLabel,
+  activeCombatantHeadlineOverride,
   monstersById,
   turnResources,
   baseMovementFt,
@@ -152,7 +158,7 @@ export function EncounterActiveHeader({
           {activeCombatant ? (
             <EncounterActiveCombatantIdentity
               combatant={activeCombatant}
-              displayLabel={activeCombatantDisplayLabel}
+              displayLabel={activeCombatantHeadlineOverride ?? activeCombatantDisplayLabel}
               monstersById={monstersById}
             />
           ) : (

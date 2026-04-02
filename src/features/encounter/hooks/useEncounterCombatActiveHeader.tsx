@@ -259,6 +259,22 @@ export function useEncounterCombatActiveHeader({
   const canOpenActionsDrawer =
     Boolean(capabilities?.canSelectAction) && availableActions.length > 0
 
+  const activeCombatantHeadlineOverride = useMemo(() => {
+    if (!encounterState || !activeCombatant) return null
+    const id = activeCombatant.instanceId
+    let viewerActsAsThisCombatant = false
+    if (viewerContext.mode === 'session') {
+      viewerActsAsThisCombatant = viewerContext.controlledCombatantIds.includes(id)
+    } else {
+      const pov =
+        viewerContext.presentationSelectedCombatantId ?? encounterState.activeCombatantId ?? null
+      viewerActsAsThisCombatant = pov === id
+    }
+    if (!viewerActsAsThisCombatant) return null
+    const label = getCombatantDisplayLabel(activeCombatant, encounterCombatantRoster)
+    return `Your turn — ${label}`
+  }, [encounterState, activeCombatant, encounterCombatantRoster, viewerContext])
+
   const activeHeader =
     encounterState && activeCombatant ? (
       <EncounterActiveHeader
@@ -268,6 +284,7 @@ export function useEncounterCombatActiveHeader({
         nextCombatantLabel={nextCombatantLabel}
         activeCombatant={activeCombatant}
         activeCombatantDisplayLabel={getCombatantDisplayLabel(activeCombatant, encounterCombatantRoster)}
+        activeCombatantHeadlineOverride={activeCombatantHeadlineOverride}
         monstersById={monstersById}
         turnResources={activeCombatant.turnResources ?? null}
         baseMovementFt={baseMovementFt}
