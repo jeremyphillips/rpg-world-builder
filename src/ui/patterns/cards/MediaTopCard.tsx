@@ -74,7 +74,7 @@ const MediaTopCard = ({
         {badges.length > 0 && (
           <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 1.5 }}>
             {badges.map((b, i) => (
-              <CardBadge key={i} type={b.type} value={b.value} />
+              <CardBadge key={i} type={b.type} value={b.value} tone={b.tone} />
             ))}
           </Stack>
         )}

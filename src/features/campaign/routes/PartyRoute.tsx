@@ -15,8 +15,8 @@ export default function PartyRoute() {
         <Typography variant="h4">Party</Typography>
       </Stack>
 
-      <CampaignPartySection status="approved" />
-      <CampaignPartySection status="pending" />
+      <CampaignPartySection approvalStatus="approved" />
+      <CampaignPartySection approvalStatus="pending" />
     </Box>
   )
 }

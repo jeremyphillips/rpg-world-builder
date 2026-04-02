@@ -12,9 +12,12 @@ interface CharacterMediaTopCardProps {
   classes: CharacterClassSummary[]
   description?: string
   imageUrl?: string
+  /** Campaign roster approval — renders the standard pending/approved status badge. */
   status?: 'pending' | 'approved'
-  /** Appended before character approval status badges (e.g. lobby presence). */
-  extraBadges?: CardBadgeProps[]
+  /**
+   * Live presence — when set, adds a Here now / Not here tag (AppToneBase) after any roster `status` badge.
+   */
+  isPresent?: boolean
   attribution?: string | { name: string; imageUrl?: string }
   link?: string
   isEditable?: boolean
@@ -30,7 +33,7 @@ const CharacterMediaTopCard = ({
   description,
   imageUrl,
   status,
-  extraBadges,
+  isPresent,
   attribution,
   link,
   isEditable,
@@ -41,10 +44,17 @@ const CharacterMediaTopCard = ({
   const subheadline = [race, classLine]
     .filter(Boolean)
     .join(' · ')
-  const badges: CardBadgeProps[] = [
-    ...(extraBadges ?? []),
-    ...(status ? [{ type: 'status' as const, value: status }] : []),
-  ]
+  const badges: CardBadgeProps[] = []
+  if (status) {
+    badges.push({ type: 'status', value: status })
+  }
+  if (isPresent !== undefined) {
+    badges.push({
+      type: 'tag',
+      value: isPresent ? 'Here now' : 'Not here',
+      tone: isPresent ? 'success' : 'warning',
+    })
+  }
 
   const placeholder = (
     <Box

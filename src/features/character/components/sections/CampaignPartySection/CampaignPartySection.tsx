@@ -4,19 +4,40 @@ import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { AppAlert } from '@/ui/primitives'
 
+export type CampaignPartyApprovalStatus = 'pending' | 'approved'
+
+export type CampaignPartyPresenceStatus = 'here' | 'not_here' | 'unknown'
+
 export interface CampaignPartySectionProps {
-  status?: 'pending' | 'approved'
+  /** Which campaign party members to load (membership approval on the roster). */
+  approvalStatus?: CampaignPartyApprovalStatus
+  /**
+   * Optional live presence overlay for characters already in this section.
+   * Omitted keys and `'unknown'` mean no presence badge and normal opacity.
+   */
+  presenceByCharacterId?: Record<string, CampaignPartyPresenceStatus>
+}
+
+function presenceToIsPresent(p: CampaignPartyPresenceStatus | undefined): boolean | undefined {
+  if (p === undefined || p === 'unknown') return undefined
+  return p === 'here'
+}
+
+function presenceCardOpacity(p: CampaignPartyPresenceStatus | undefined): number {
+  return p === 'not_here' ? 0.45 : 1
 }
 
 export default function CampaignPartySection({
-  status = 'approved',
+  approvalStatus = 'approved',
+  presenceByCharacterId,
 }: CampaignPartySectionProps) {
   const {
     party: approvedPartyCharacters,
     loading: approvedPartyCharactersLoading,
-  } = useCampaignParty(status)
+  } = useCampaignParty(approvalStatus)
 
-  const heading = status === 'approved' ? 'Active party members' : 'Pending party members'
+  const heading =
+    approvalStatus === 'approved' ? 'Active party members' : 'Pending party members'
 
   return (
     <>
@@ -33,21 +54,33 @@ export default function CampaignPartySection({
             <CircularProgress />
           </Box>
         ) : approvedPartyCharacters.length === 0 ? (
-          <AppAlert tone="info">No {status} characters in this campaign.</AppAlert>
+          <AppAlert tone="info">No {approvalStatus} characters in this campaign.</AppAlert>
         ) : (
-          approvedPartyCharacters.map((char) => (
-            <CharacterMediaTopCard
-              key={char.id}
-              characterId={char.id}
-              name={char.name}
-              race={char.race?.name ?? '—'}
-              classes={char.classes}
-              imageUrl={char.imageUrl ?? undefined}
-              status={char.status}
-              attribution={{ name: char.ownerName, imageUrl: char.ownerAvatarUrl ?? undefined }}
-              link={`/characters/${char.id}`}
-            />
-          ))
+          approvedPartyCharacters.map((char) => {
+            const presence = presenceByCharacterId?.[char.id]
+            const isPresent = presenceToIsPresent(presence)
+            return (
+              <Box
+                key={char.id}
+                sx={{
+                  opacity: presenceCardOpacity(presence),
+                  transition: 'opacity 0.2s ease',
+                }}
+              >
+                <CharacterMediaTopCard
+                  characterId={char.id}
+                  name={char.name}
+                  race={char.race?.name ?? '—'}
+                  classes={char.classes}
+                  imageUrl={char.imageUrl ?? undefined}
+                  status={char.status}
+                  isPresent={isPresent}
+                  attribution={{ name: char.ownerName, imageUrl: char.ownerAvatarUrl ?? undefined }}
+                  link={`/characters/${char.id}`}
+                />
+              </Box>
+            )
+          })
         )}
       </Box>
     </>

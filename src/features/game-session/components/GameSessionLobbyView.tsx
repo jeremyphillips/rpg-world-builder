@@ -150,9 +150,7 @@ export function GameSessionLobbyView({
                     classes={char.classes}
                     imageUrl={char.imageUrl ?? undefined}
                     status={char.status}
-                    extraBadges={[
-                      { type: 'tag', value: isPresent ? 'Here now' : 'Not here' },
-                    ]}
+                    isPresent={isPresent}
                     attribution={{ name: char.ownerName, imageUrl: char.ownerAvatarUrl ?? undefined }}
                     link={`/characters/${char.id}`}
                   />

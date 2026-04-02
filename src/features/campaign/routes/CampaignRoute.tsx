@@ -138,8 +138,8 @@ export default function CampaignRoute() {
       <h3>Sessions</h3>
       <Link to={ROUTES.SESSIONS.replace(':id', activeCampaignId!)}>View Sessions</Link>
 
-      <CampaignPartySection status="approved" />
-      <CampaignPartySection status="pending" />
+      <CampaignPartySection approvalStatus="approved" />
+      <CampaignPartySection approvalStatus="pending" />
 
       {/* Invite User modal */}
       <FormModal<InviteFormData>
