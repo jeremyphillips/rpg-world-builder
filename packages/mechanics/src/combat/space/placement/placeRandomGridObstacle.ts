@@ -93,7 +93,7 @@ function getOccupiedCellIds(space: EncounterSpace): string[] {
 }
 
 /**
- * @deprecated Use {@link placeRandomGridObject}.
+ * @deprecated Use {@link placeRandomGridObject} and other runtime grid-object placement helpers. Do not add new call sites.
  */
 export function placeRandomGridObstacle(
   space: EncounterSpace,

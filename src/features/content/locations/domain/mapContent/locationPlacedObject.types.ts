@@ -7,6 +7,10 @@
  *   kinds like marker / obstacle), and
  * - `LOCATION_SCALE_FIELD_POLICY` (form field / setup policy).
  *
+ * **Display metadata** (`LOCATION_PLACED_OBJECT_KIND_META`): label, description, icon, linking — canonical for UI.
+ * **Combat/runtime defaults** keyed by the same ids: `LOCATION_PLACED_OBJECT_KIND_RUNTIME_DEFAULTS` in
+ * `locationPlacedObject.runtime.ts` (do not duplicate those behaviors into meta).
+ *
  * Future tool intent: **place** tool; not paint or edge tools.
  */
 

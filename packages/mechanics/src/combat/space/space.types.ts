@@ -45,7 +45,7 @@ export type GridObjectPlacementKindKey = GridProceduralPlacementKind | LocationP
 export type GridObstacleKind = GridProceduralPlacementKind;
 
 /**
- * @deprecated Use {@link GridObject} for runtime placed-object records.
+ * @deprecated Use {@link GridObject} for runtime placed-object records. Do not introduce new usages; read legacy data via `getEncounterGridObjects` (`space.helpers`).
  */
 export type GridObstacle = {
   id: string;

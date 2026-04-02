@@ -2,6 +2,7 @@ import {
   LOCATION_PLACED_OBJECT_KIND_META,
   type LocationPlacedObjectKindId,
 } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
+import { resolveLocationPlacedObjectKindRuntimeDefaults } from '@/features/content/locations/domain/mapContent/locationPlacedObject.runtime';
 
 import type {
   GridObject,
@@ -26,6 +27,7 @@ export function gridObjectPlacementKindKey(o: GridObject): GridObjectPlacementKi
 
 /**
  * Human-readable name for a placed object (procedural tree/pillar or authored vocabulary).
+ * Display strings come only from {@link LOCATION_PLACED_OBJECT_KIND_META} for authored kinds.
  */
 export function gridObjectPlacementKindDisplayLabel(key: GridObjectPlacementKindKey): string {
   if (key === 'tree' || key === 'pillar') {
@@ -38,7 +40,7 @@ export function gridObjectDisplayLabel(o: GridObject): string {
   return gridObjectPlacementKindDisplayLabel(gridObjectPlacementKindKey(o))
 }
 
-/** Defaults for encounter bootstrap props (tree / pillar). */
+/** Defaults for encounter bootstrap props (tree / pillar); not in authored vocabulary. */
 export function defaultsForProceduralKind(kind: GridProceduralPlacementKind): GridObjectBehaviorFields {
   void kind
   return {
@@ -50,31 +52,9 @@ export function defaultsForProceduralKind(kind: GridProceduralPlacementKind): Gr
 }
 
 /**
- * First-pass runtime behavior from authored {@link LocationPlacedObjectKindId}.
- * Refine per-kind when map→combat hydration is wired.
+ * Runtime behavior for an authored {@link LocationPlacedObjectKindId}.
+ * Delegates to {@link resolveLocationPlacedObjectKindRuntimeDefaults} (`locationPlacedObject.runtime.ts`) — do not duplicate per-kind combat defaults in mechanics.
  */
 export function defaultsForAuthoredKind(kind: LocationPlacedObjectKindId): GridObjectBehaviorFields {
-  switch (kind) {
-    case 'table':
-      return {
-        blocksMovement: false,
-        blocksLineOfSight: false,
-        coverKind: 'half',
-        isMovable: true,
-      }
-    case 'tree':
-      return defaultsForProceduralKind('tree')
-    case 'stairs':
-    case 'treasure':
-    case 'city':
-    case 'building':
-    case 'site':
-    default:
-      return {
-        blocksMovement: true,
-        blocksLineOfSight: true,
-        coverKind: 'none',
-        isMovable: false,
-      }
-  }
+  return resolveLocationPlacedObjectKindRuntimeDefaults(kind)
 }
