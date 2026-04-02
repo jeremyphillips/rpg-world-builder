@@ -42,7 +42,7 @@ import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection, ResolveCombatActionOptions } from '../action-resolution.types'
 import { resolveAttachedEmanationAnchorModeFromSelection } from './area-grid-action'
-import { findGridObstacleById } from '@/features/mechanics/domain/combat/space/space.helpers'
+import { findGridObjectById } from '@/features/mechanics/domain/combat/space/space.helpers'
 import { formatCasterOptionSummary } from '../../../spells/caster-options'
 import {
   rollDamage,
@@ -755,10 +755,10 @@ function resolveCombatActionInternal(
           ? { kind: 'creature', combatantId: selection.targetId }
           : null
     } else if (mode === 'object') {
-      const obstacle =
-        selection.objectId != null ? findGridObstacleById(finalState.space, selection.objectId) : undefined
-      anchor = obstacle
-        ? { kind: 'object', objectId: obstacle.id, snapshotCellId: obstacle.cellId }
+      const gridObject =
+        selection.objectId != null ? findGridObjectById(finalState.space, selection.objectId) : undefined
+      anchor = gridObject
+        ? { kind: 'object', objectId: gridObject.id, snapshotCellId: gridObject.cellId }
         : null
     } else {
       anchor = { kind: 'creature', combatantId: selection.actorId }

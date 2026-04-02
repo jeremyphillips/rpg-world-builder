@@ -1,4 +1,4 @@
-import { findGridObstacleById, moveGridObstacleToCell } from '@/features/mechanics/domain/combat/space/space.helpers'
+import { findGridObjectById, moveGridObjectToCell } from '@/features/mechanics/domain/combat/space/space.helpers'
 
 import { reconcileEnvironmentZonesFromAttachedAuras } from '@/features/mechanics/domain/environment/environment-zones-battlefield-sync'
 import { dropConcentration } from '../effects/concentration-mutations'
@@ -42,7 +42,7 @@ export function reconcileBattlefieldEffectAnchors(state: EncounterState): Encoun
     }
 
     if (aura.anchor.kind === 'object' && space) {
-      const live = findGridObstacleById(space, aura.anchor.objectId)
+      const live = findGridObjectById(space, aura.anchor.objectId)
       if (live && aura.anchor.snapshotCellId !== live.cellId) {
         kept.push({
           ...aura,
@@ -84,16 +84,27 @@ export function reconcileBattlefieldEffectAnchors(state: EncounterState): Encoun
 }
 
 /**
- * Apply a grid obstacle move and run {@link reconcileBattlefieldEffectAnchors} so object-anchored
- * effects follow the obstacle (and invalid anchors are cleaned up).
+ * Apply a grid object move and run {@link reconcileBattlefieldEffectAnchors} so object-anchored
+ * effects follow the object (and invalid anchors are cleaned up).
+ */
+export function moveGridObjectInEncounterState(
+  state: EncounterState,
+  objectId: string,
+  cellId: string,
+): EncounterState {
+  if (!state.space) return state
+  const nextSpace = moveGridObjectToCell(state.space, objectId, cellId)
+  if (!nextSpace) return state
+  return reconcileBattlefieldEffectAnchors({ ...state, space: nextSpace })
+}
+
+/**
+ * @deprecated Use {@link moveGridObjectInEncounterState}.
  */
 export function moveGridObstacleInEncounterState(
   state: EncounterState,
   obstacleId: string,
   cellId: string,
 ): EncounterState {
-  if (!state.space) return state
-  const nextSpace = moveGridObstacleToCell(state.space, obstacleId, cellId)
-  if (!nextSpace) return state
-  return reconcileBattlefieldEffectAnchors({ ...state, space: nextSpace })
+  return moveGridObjectInEncounterState(state, obstacleId, cellId)
 }

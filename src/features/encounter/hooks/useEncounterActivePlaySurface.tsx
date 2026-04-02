@@ -30,7 +30,7 @@ import {
   isSelfCenteredAreaAction,
   resolveAttachedEmanationAnchorModeFromSelection,
 } from '../helpers/actions'
-import { findGridObstacleAtCell, formatGridCellLabel, getCellForCombatant } from '@/features/mechanics/domain/combat/space/space.helpers'
+import { findGridObjectAtCell, formatGridCellLabel, getCellForCombatant } from '@/features/mechanics/domain/combat/space/space.helpers'
 import {
   actionUsesGridCreatureTargeting,
   isValidAoeOriginCell,
@@ -700,10 +700,10 @@ export function useEncounterActivePlaySurface(
         if (!capabilities?.canSelectAction) return
         const space = encounterState.space
         if (!space) return
-        const obstacle = findGridObstacleAtCell(space, cellId)
-        if (obstacle) {
+        const gridObject = findGridObjectAtCell(space, cellId)
+        if (gridObject) {
           setPlacementError(null)
-          setSelectedObjectAnchorId(obstacle.id)
+          setSelectedObjectAnchorId(gridObject.id)
         }
         return
       }

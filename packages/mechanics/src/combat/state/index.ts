@@ -31,6 +31,7 @@ export type { BattlefieldEffectAnchor } from './battlefield/battlefield-effect-a
 export { resolveBattlefieldEffectOriginCellId } from './battlefield/battlefield-effect-anchor'
 export {
   reconcileBattlefieldEffectAnchors,
+  moveGridObjectInEncounterState,
   moveGridObstacleInEncounterState,
 } from './auras/battlefield-effect-anchor-reconciliation'
 export {

@@ -1,4 +1,11 @@
-import type { EncounterSpace, EncounterCell, CombatantPosition, GridObstacle } from './space.types'
+import { defaultsForProceduralKind } from './gridObject/gridObject.defaults'
+import type {
+  EncounterSpace,
+  EncounterCell,
+  CombatantPosition,
+  GridObstacle,
+  GridObject,
+} from './space.types'
 
 // ---------------------------------------------------------------------------
 // Cell lookups
@@ -102,32 +109,111 @@ export function formatGridCellLabel(space: EncounterSpace, cellId: string): stri
   return `${col}${cell.y + 1}`
 }
 
-/** First obstacle whose footprint is this cell (e.g. tree / pillar from {@link EncounterSpace.obstacles}). */
+// ---------------------------------------------------------------------------
+// Grid objects (runtime placed props)
+// ---------------------------------------------------------------------------
+
+export function gridObstacleToGridObject(o: GridObstacle): GridObject {
+  return {
+    id: o.id,
+    cellId: o.cellId,
+    ...defaultsForProceduralKind(o.kind),
+    blocksMovement: o.blocksMovement,
+    blocksLineOfSight: o.blocksLineOfSight,
+    proceduralPlacementKind: o.kind,
+  }
+}
+
+/**
+ * Canonical list: prefers {@link EncounterSpace.gridObjects}, else maps legacy {@link EncounterSpace.obstacles}.
+ */
+export function getEncounterGridObjects(space: EncounterSpace | undefined): GridObject[] {
+  if (!space) return []
+  if (space.gridObjects != null && space.gridObjects.length > 0) return space.gridObjects
+  return (space.obstacles ?? []).map(gridObstacleToGridObject)
+}
+
+export function findGridObjectAtCell(
+  space: EncounterSpace | undefined,
+  cellId: string,
+): GridObject | undefined {
+  return getEncounterGridObjects(space).find((o) => o.cellId === cellId)
+}
+
+export function findGridObjectById(
+  space: EncounterSpace | undefined,
+  objectId: string,
+): GridObject | undefined {
+  return getEncounterGridObjects(space).find((o) => o.id === objectId)
+}
+
+/**
+ * Narrow legacy {@link GridObstacle} rows to the procedural shape for APIs that still expect it.
+ */
+export function gridObstacleFromGridObjectIfProcedural(o: GridObject): GridObstacle | undefined {
+  if (!o.proceduralPlacementKind) return undefined
+  return {
+    id: o.id,
+    kind: o.proceduralPlacementKind,
+    cellId: o.cellId,
+    blocksLineOfSight: o.blocksLineOfSight,
+    blocksMovement: o.blocksMovement,
+  }
+}
+
+/** Move an existing grid object to another valid cell (e.g. carried object / GM adjustment). Returns a new space, or `null` if the object or target cell is invalid. */
+export function moveGridObjectToCell(
+  space: EncounterSpace,
+  objectId: string,
+  cellId: string,
+): EncounterSpace | null {
+  if (!getCellById(space, cellId)) return null
+  if (space.gridObjects != null && space.gridObjects.length > 0) {
+    const idx = space.gridObjects.findIndex((o) => o.id === objectId)
+    if (idx < 0) return null
+    const next = [...space.gridObjects]
+    next[idx] = { ...next[idx]!, cellId }
+    return { ...space, gridObjects: next }
+  }
+  const obstacles = space.obstacles ?? []
+  const idx = obstacles.findIndex((o) => o.id === objectId)
+  if (idx < 0) return null
+  const nextObs = [...obstacles]
+  nextObs[idx] = { ...nextObs[idx]!, cellId }
+  return { ...space, obstacles: nextObs }
+}
+
+/**
+ * @deprecated Use {@link findGridObjectAtCell}.
+ */
 export function findGridObstacleAtCell(
   space: EncounterSpace | undefined,
   cellId: string,
 ): GridObstacle | undefined {
-  return space?.obstacles?.find((o) => o.cellId === cellId)
+  const o = findGridObjectAtCell(space, cellId)
+  if (!o) return undefined
+  return gridObstacleFromGridObjectIfProcedural(o)
 }
 
+/**
+ * @deprecated Use {@link findGridObjectById}.
+ */
 export function findGridObstacleById(
   space: EncounterSpace | undefined,
   objectId: string,
 ): GridObstacle | undefined {
-  return space?.obstacles?.find((o) => o.id === objectId)
+  const o = findGridObjectById(space, objectId)
+  if (!o) return undefined
+  return gridObstacleFromGridObjectIfProcedural(o)
 }
 
-/** Move an existing grid obstacle to another valid cell (e.g. carried object / GM adjustment). Returns a new space, or `null` if the obstacle or target cell is invalid. */
+/**
+ * @deprecated Use {@link moveGridObjectToCell}.
+ */
 export function moveGridObstacleToCell(
   space: EncounterSpace,
   obstacleId: string,
   cellId: string,
 ): EncounterSpace | null {
-  if (!getCellById(space, cellId)) return null
-  const obstacles = space.obstacles ?? []
-  const idx = obstacles.findIndex((o) => o.id === obstacleId)
-  if (idx < 0) return null
-  const nextObs = [...obstacles]
-  nextObs[idx] = { ...nextObs[idx]!, cellId }
-  return { ...space, obstacles: nextObs }
+  return moveGridObjectToCell(space, obstacleId, cellId)
 }

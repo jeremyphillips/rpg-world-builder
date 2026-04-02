@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createSquareGridSpace } from '../../creation/createSquareGridSpace'
 import { generateInitialPlacements } from '../../placement/generateInitialPlacements'
 import type { CombatantInstance } from '@/features/mechanics/domain/combat/state/types/combatant.types'
-import { placeRandomGridObstacle } from '../../placement/placeRandomGridObstacle'
+import { placeRandomGridObject } from '../../placement/placeRandomGridObstacle'
 
 function makeCombatant(id: string, side: 'party' | 'enemies'): CombatantInstance {
   return {
@@ -22,15 +22,15 @@ function makeCombatant(id: string, side: 'party' | 'enemies'): CombatantInstance
   } as unknown as CombatantInstance
 }
 
-describe('placeRandomGridObstacle', () => {
-  it('adds one obstacle and marks cell blocking for outdoors (tree)', () => {
+describe('placeRandomGridObject', () => {
+  it('adds one object and marks cell blocking for outdoors (tree)', () => {
     const base = createSquareGridSpace({ id: 'g', name: 'G', columns: 4, rows: 4 })
     const rng = () => 0.99
-    const next = placeRandomGridObstacle(base, 'outdoors', rng)
+    const next = placeRandomGridObject(base, 'outdoors', rng)
 
-    expect(next.obstacles?.length).toBe(1)
-    expect(next.obstacles?.[0]?.kind).toBe('tree')
-    const cellId = next.obstacles![0]!.cellId
+    expect(next.gridObjects?.length).toBe(1)
+    expect(next.gridObjects?.[0]?.proceduralPlacementKind).toBe('tree')
+    const cellId = next.gridObjects![0]!.cellId
     const cell = next.cells.find((c) => c.id === cellId)
     expect(cell?.kind).toBe('blocking')
     expect(cell?.blocksMovement).toBe(true)
@@ -40,16 +40,16 @@ describe('placeRandomGridObstacle', () => {
   it('uses pillar for indoors and mixed/other', () => {
     const base = createSquareGridSpace({ id: 'g', name: 'G', columns: 3, rows: 3 })
     const rng = () => 0
-    expect(placeRandomGridObstacle(base, 'indoors', rng).obstacles?.[0]?.kind).toBe('pillar')
-    expect(placeRandomGridObstacle(base, 'mixed', rng).obstacles?.[0]?.kind).toBe('pillar')
-    expect(placeRandomGridObstacle(base, 'other', rng).obstacles?.[0]?.kind).toBe('pillar')
+    expect(placeRandomGridObject(base, 'indoors', rng).gridObjects?.[0]?.proceduralPlacementKind).toBe('pillar')
+    expect(placeRandomGridObject(base, 'mixed', rng).gridObjects?.[0]?.proceduralPlacementKind).toBe('pillar')
+    expect(placeRandomGridObject(base, 'other', rng).gridObjects?.[0]?.proceduralPlacementKind).toBe('pillar')
   })
 
   it('does not place initial combatants on the obstacle cell', () => {
     const base = createSquareGridSpace({ id: 'g', name: 'G', columns: 8, rows: 6 })
     const rng = () => 0.2
-    const space = placeRandomGridObstacle(base, 'outdoors', rng)
-    const obstacleCellId = space.obstacles![0]!.cellId
+    const space = placeRandomGridObject(base, 'outdoors', rng)
+    const obstacleCellId = space.gridObjects![0]!.cellId
 
     const a = makeCombatant('ally-1', 'party')
     const e = makeCombatant('foe-1', 'enemies')

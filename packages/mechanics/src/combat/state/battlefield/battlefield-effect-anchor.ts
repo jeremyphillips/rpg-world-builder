@@ -1,5 +1,5 @@
 import type { EncounterSpace, CombatantPosition } from '@/features/mechanics/domain/combat/space'
-import { findGridObstacleById, getCellById, getCellForCombatant } from '@/features/mechanics/domain/combat/space'
+import { findGridObjectById, getCellById, getCellForCombatant } from '@/features/mechanics/domain/combat/space'
 
 /**
  * Spatial attachment for a persistent battlefield effect (emanation / aura footprint).
@@ -14,8 +14,8 @@ export type BattlefieldEffectAnchor =
  * Resolves the grid cell that currently defines the center of the effect's sphere.
  * Returns undefined when spatial data is missing or the anchor cannot be placed.
  *
- * **Object anchors:** Prefer the **live** obstacle position from {@link EncounterSpace.obstacles} so the
- * origin tracks when the obstacle moves. If the obstacle id is no longer present, the anchor cannot be
+ * **Object anchors:** Prefer the **live** grid object position from {@link EncounterSpace.gridObjects}
+ * (or legacy {@link EncounterSpace.obstacles}) so the origin tracks when the object moves. If the id is no longer present, the anchor cannot be
  * resolved (cast-time `snapshotCellId` is not used as a stale fallback — see
  * {@link reconcileBattlefieldEffectAnchors}).
  */
@@ -31,7 +31,7 @@ export function resolveBattlefieldEffectOriginCellId(
     case 'place':
       return getCellById(space, anchor.cellId) ? anchor.cellId : undefined
     case 'object': {
-      const live = findGridObstacleById(space, anchor.objectId)
+      const live = findGridObjectById(space, anchor.objectId)
       if (live && getCellById(space, live.cellId)) {
         return live.cellId
       }

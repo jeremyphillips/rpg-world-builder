@@ -9,7 +9,12 @@ import {
   getSingleCellPlacementRequirement,
   validateSingleCellPlacement,
 } from '@/features/mechanics/domain/combat/resolution/action/action-requirement-model'
-import { getCellById, getCellForCombatant, gridDistanceFt } from '@/features/mechanics/domain/combat/space/space.helpers'
+import {
+  getCellById,
+  getCellForCombatant,
+  getEncounterGridObjects,
+  gridDistanceFt,
+} from '@/features/mechanics/domain/combat/space/space.helpers'
 import {
   actionUsesGridCreatureTargeting,
   getMoveRejectionReason,
@@ -106,10 +111,10 @@ export function deriveGridHoverStatusMessage(params: {
   }
 
   if (interactionMode === 'object-anchor-select') {
-    const obstacles = encounterState.space?.obstacles
-    if (!obstacles?.length) return 'No obstacles on this map'
-    const obs = obstacles.find((o) => o.cellId === hoveredCellId)
-    if (!obs) return 'Select a tree or pillar'
+    const objects = getEncounterGridObjects(encounterState.space)
+    if (!objects.length) return 'No objects on this map'
+    const obs = objects.find((o) => o.cellId === hoveredCellId)
+    if (!obs) return 'Select a battlefield object'
     return null
   }
 

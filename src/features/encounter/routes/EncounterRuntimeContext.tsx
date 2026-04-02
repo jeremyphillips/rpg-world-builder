@@ -44,7 +44,7 @@ import {
 } from '../components'
 import { isAreaGridAction } from '../helpers/actions'
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/creation/createSquareGridSpace'
-import { placeRandomGridObstacle } from '@/features/mechanics/domain/combat/space/placement/placeRandomGridObstacle'
+import { placeRandomGridObject } from '@/features/mechanics/domain/combat/space/placement/placeRandomGridObstacle'
 
 import type { CombatantPortraitEntry } from '../helpers/combatants'
 
@@ -390,7 +390,7 @@ function useEncounterRuntimeValue() {
           columns: preset.columns,
           rows: preset.rows,
         })
-        const space = placeRandomGridObstacle(base, environmentSetup.setting)
+        const space = placeRandomGridObject(base, environmentSetup.setting)
         handleStartEncounter({ space, environmentBaseline: environmentSetup })
       }}
     />

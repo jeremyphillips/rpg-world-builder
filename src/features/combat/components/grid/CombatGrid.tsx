@@ -390,7 +390,11 @@ export function CombatGrid({
                       pointerEvents: 'none',
                     }}
                   >
-                    {cell.obstacleKind === 'tree' ? 'T' : 'P'}
+                    {cell.obstacleKind === 'tree'
+                      ? 'T'
+                      : cell.obstacleKind === 'pillar'
+                        ? 'P'
+                        : (cell.obstacleLabel?.charAt(0).toUpperCase() ?? '·')}
                   </Typography>
                 )}
               </Box>

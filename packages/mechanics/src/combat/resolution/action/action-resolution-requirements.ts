@@ -2,7 +2,7 @@ import {
   isAreaGridAction,
   resolveAttachedEmanationAnchorModeFromSelection,
 } from './area-grid-action'
-import { getCellForCombatant } from '@/features/mechanics/domain/combat/space/space.helpers'
+import { getCellForCombatant, getEncounterGridObjects } from '@/features/mechanics/domain/combat/space/space.helpers'
 import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import type { CombatantInstance } from '../../state'
@@ -48,7 +48,7 @@ export function isAreaGridCombatAction(
   return isAreaGridAction(action, selectedCasterOptions)
 }
 
-/** True when the action needs a grid obstacle id (`EncounterSpace.obstacles`) for resolve. */
+/** True when the action needs a grid object id (`EncounterSpace.gridObjects` / legacy `obstacles`) for resolve. */
 export function actionRequiresObjectAnchorForResolve(
   action: CombatActionDefinition | undefined | null,
   selectedCasterOptions?: Record<string, string>,
@@ -124,7 +124,7 @@ export type ActionResolutionReadinessContext = {
   selectedCasterOptions: Record<string, string>
   /** Grid cell when the action requires single-cell map placement. */
   selectedSingleCellPlacementCellId?: string | null
-  /** Obstacle id from {@link EncounterSpace.obstacles} when attached emanation `anchorMode === 'object'`. */
+  /** Grid object id from {@link EncounterSpace.gridObjects} (or legacy `obstacles`) when attached emanation `anchorMode === 'object'`. */
   selectedObjectAnchorId?: string | null
   encounterState: EncounterState | null | undefined
   activeCombatant: CombatantInstance | null | undefined
@@ -190,7 +190,7 @@ export function getActionResolutionReadiness(
     if (mode === 'object') {
       const oid = ctx.selectedObjectAnchorId?.trim()
       const obstacleOk = Boolean(
-        oid && ctx.encounterState?.space?.obstacles?.some((o) => o.id === oid),
+        oid && getEncounterGridObjects(ctx.encounterState?.space).some((o) => o.id === oid),
       )
       if (!obstacleOk) {
         missingRequirements.push({
@@ -219,7 +219,7 @@ export function getActionResolutionReadiness(
     const missingRequirements: ActionResolutionMissing[] = []
     const oid = ctx.selectedObjectAnchorId?.trim()
     const obstacleOk = Boolean(
-      oid && ctx.encounterState?.space?.obstacles?.some((o) => o.id === oid),
+      oid && getEncounterGridObjects(ctx.encounterState?.space).some((o) => o.id === oid),
     )
     if (!obstacleOk) {
       missingRequirements.push({

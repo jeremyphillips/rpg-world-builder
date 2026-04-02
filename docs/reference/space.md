@@ -10,15 +10,22 @@ The spatial system adds tactical grid-based positioning to encounters. It answer
 
 The system is intentionally separate from narrative `Location` content. Locations describe fictional places; encounter spaces define tactical geometry.
 
+**Conceptual split (see also §6):**
+
+- **Authored vocabulary** — e.g. `LocationPlacedObjectKindId` in location map content (what authors place).
+- **Runtime grid objects** — `GridObject` on `EncounterSpace.gridObjects`: blocking, LoS, cover, `isMovable`, optional `authoredPlaceKindId` or `proceduralPlacementKind` (`tree` / `pillar`).
+- **Edges and boundaries** — `EncounterEdge`, `EncounterCell.kind` (e.g. `wall`), and `EncounterAuthoringPresentation.edgeEntries` (walls / doors / windows as presentation); not folded into `GridObject` unless a future feature explicitly bridges them.
+
 ## 2. Directory Layout
 
 ```
 packages/mechanics/src/combat/space/
 ├── index.ts                        # Public barrel
-├── space.types.ts                  # EncounterSpace, EncounterCell, GridObstacle, CombatantPosition
-├── space.helpers.ts                # Pure cell/distance/occupancy queries
+├── space.types.ts                  # EncounterSpace, EncounterCell, GridObject, CombatantPosition, …
+├── gridObject/                     # Default/spec helpers for runtime object behavior (procedural + authored kinds)
+├── space.helpers.ts                # Cell/distance/occupancy; getEncounterGridObjects, find/move grid objects
 ├── creation/                       # Space factories
-├── placement/                      # Placements, spawn replacement, obstacles
+├── placement/                      # Placements, spawn replacement, placeRandomGridObject (legacy placeRandomGridObstacle)
 ├── rendering/                      # Grid occupant token presentation
 ├── selectors/                      # State-level selectors, GridViewModel, movement
 ├── sight/                          # Line of sight: supercover line + hasLineOfSight / cellBlocksSight
@@ -31,15 +38,21 @@ packages/mechanics/src/combat/space/
 
 `createSquareGridSpace` generates a rectangular `EncounterSpace` with mode `'square-grid'`, a configurable `cellFeet` scale (default 5ft), and `width * height` cells. Each cell has an `(x, y)` coordinate and a string `id` of the form `c-{x}-{y}`.
 
-When an encounter is started from setup, the app may call **`placeRandomGridObstacle`** immediately after `createSquareGridSpace`. That inserts **exactly one** random obstruction on an **open** cell, records it in **`EncounterSpace.obstacles`** (`GridObstacle`: `kind` `tree` | `pillar`, `cellId`, and stub booleans `blocksLineOfSight` / `blocksMovement` for future rules), and sets the chosen cell’s **`kind`** to **`blocking`** with blocking flags so placement and AoE origin checks stay aligned.
+When an encounter is started from setup, the app calls **`placeRandomGridObject`** immediately after `createSquareGridSpace`. That inserts **exactly one** random procedural object on an **open** cell, appends a **`GridObject`** to **`EncounterSpace.gridObjects`** (with `proceduralPlacementKind` `tree` | `pillar`, runtime flags from `defaultsForProceduralKind`, and **`isMovable: false`**), and sets the chosen cell’s **`kind`** to **`blocking`** with blocking flags so placement and AoE origin checks stay aligned.
 
-**Environment → obstacle kind (first pass):**
+**`placeRandomGridObstacle`** remains as a **deprecated** alias that delegates to **`placeRandomGridObject`**; new code should not depend on it.
+
+**Environment → procedural kind (first pass):**
 
 - `indoors` → pillar  
 - `outdoors` → tree  
 - `mixed` and `other` → pillar (neutral default until richer mapping exists)
 
-**Timing note:** Obstacles are chosen **before** `generateInitialPlacements` runs (combatants are not on the grid yet). The implementation only avoids cells already listed in `obstacles`; it does not reserve cells against future token positions beyond marking the cell as impassable.
+**Reading placed objects:** Use **`getEncounterGridObjects(space)`** in `space.helpers.ts`. It returns **`gridObjects`** when that array is non-empty; otherwise it maps legacy **`EncounterSpace.obstacles`** (`GridObstacle`, deprecated) into **`GridObject`** so older persisted state still works.
+
+**Timing note:** Objects are chosen **before** `generateInitialPlacements` runs (combatants are not on the grid yet). The implementation avoids cells already occupied by **`gridObjects` or legacy `obstacles`**; it does not reserve cells against future token positions beyond marking the cell as impassable.
+
+**Object-anchored effects:** Attached emanations with **`anchorMode === 'object'`** store **`BattlefieldEffectAnchor`** `{ kind: 'object', objectId }` where **`objectId`** is a **`GridObject.id`**. **`resolveBattlefieldEffectOriginCellId`** uses the live object position (**`findGridObjectById`**). **`moveGridObjectInEncounterState`** applies a cell move and runs **`reconcileBattlefieldEffectAnchors`** (deprecated alias: **`moveGridObstacleInEncounterState`**).
 
 ### Distance
 
@@ -62,7 +75,7 @@ When an encounter is started from setup, the app may call **`placeRandomGridObst
 
 ### Grid view model
 
-`selectGridViewModel` flattens `EncounterSpace` + `CombatantPosition[]` into a flat `GridCellViewModel[]` for UI rendering. Each cell carries **`isActive`**, **`isSelectedTarget`**, **`isWithinSelectedActionRange`** (Chebyshev distance from the active combatant to that cell within the selected action’s `rangeFt` — distance only, not full targeting validity), **`isLegalTargetForSelectedAction`**, **`isHostileLegalTargetForSelectedAction`**, **`isHostileSelectedTargetPulse`**, and **`isReachable`**, plus **`obstacleKind` / `obstacleLabel`** when the cell has an entry in `space.obstacles`. Token styling uses **`occupantIsDefeated`** (dimmed token when HP ≤ 0) and **`occupantRendersToken`**: the avatar/token is drawn only when the occupant has **battlefield presence** (see below). The active encounter grid uses **token-first** emphasis (rings, pulses) for turn and targeting; it does **not** apply a full-board tint for “in range” distance.
+`selectGridViewModel` flattens `EncounterSpace` + `CombatantPosition[]` into a flat `GridCellViewModel[]` for UI rendering. Each cell carries **`isActive`**, **`isSelectedTarget`**, **`isWithinSelectedActionRange`** (Chebyshev distance from the active combatant to that cell within the selected action’s `rangeFt` — distance only, not full targeting validity), **`isLegalTargetForSelectedAction`**, **`isHostileLegalTargetForSelectedAction`**, **`isHostileSelectedTargetPulse`**, and **`isReachable`**, plus **`obstacleKind` / `obstacleLabel`** when **`getEncounterGridObjects`** reports an object on that cell. **`obstacleKind`** is typed as **`GridObjectPlacementKindKey`** (procedural `tree` | `pillar` or an authored **`LocationPlacedObjectKindId`**); **`obstacleLabel`** comes from `gridObjectPlacementKindDisplayLabel`. Token styling uses **`occupantIsDefeated`** (dimmed token when HP ≤ 0) and **`occupantRendersToken`**: the avatar/token is drawn only when the occupant has **battlefield presence** (see below). The active encounter grid uses **token-first** emphasis (rings, pulses) for turn and targeting; it does **not** apply a full-board tint for “in range” distance.
 
 The `showReachable` option is driven by movement budget (`movementRemaining > 0`) and UI mode (movement highlights are suppressed during AoE origin placement) so reachable cells can highlight without an explicit movement mode.
 
@@ -154,16 +167,20 @@ Current naming intentionally distinguishes *in-range by metric* (`selectCellsWit
 
 | Type | Location | Purpose |
 |------|----------|---------|
-| `EncounterSpace` | `space.types.ts` | Grid definition: cells, optional `obstacles`, scale, dimensions |
-| `GridObstacle` | `space.types.ts` | Obstruction record: kind, cellId, future blocking flags |
+| `EncounterSpace` | `space.types.ts` | Grid definition: cells, optional **`gridObjects`**, optional deprecated **`obstacles`**, scale, dimensions |
+| `GridObject` | `space.types.ts` | Runtime placed object: `cellId`, blocking / LoS / `coverKind`, **`isMovable`**, optional `authoredPlaceKindId` or `proceduralPlacementKind` |
+| `GridObstacle` | `space.types.ts` | **Deprecated.** Legacy obstruction shape; use **`GridObject`** — read via **`getEncounterGridObjects`** |
 | `EncounterCell` | `space.types.ts` | Single cell: position, kind, terrain tags |
 | `CombatantPosition` | `space.types.ts` | Links combatant to cell |
 | `CombatantAttackRange` | `combatant.types.ts` | Discriminated union: melee (rangeFt) or ranged (normalFt, longFt) |
-| `GridCellViewModel` | `selectors/space.selectors.ts` | UI-ready cell with highlight flags; includes **`occupantRendersToken`**, **`occupantIsDefeated`** |
+| `GridCellViewModel` | `selectors/space.selectors.ts` | UI-ready cell with highlight flags; includes **`occupantRendersToken`**, **`occupantIsDefeated`**, **`obstacleKind`** / **`obstacleLabel`** (from grid objects) |
 | `GridViewModel` | `selectors/space.selectors.ts` | Complete grid for rendering |
+| `getEncounterGridObjects` | `space.helpers.ts` | Canonical list: **`gridObjects`** or legacy **`obstacles`** mapped to **`GridObject`** |
+| `placeRandomGridObject` | `placement/placeRandomGridObstacle.ts` | Procedural single-object placement into **`gridObjects`** |
 | `placeCombatant` | `selectors/space.selectors.ts` | Authoritative placement update: filter prior row, append `{ combatantId, cellId }` for passable cells |
 | `moveCombatant` | `selectors/space.selectors.ts` | Validates move; updates `movementRemaining` and `placements`; optional 4th arg **`BattlefieldSpellContext`** for spatial speed reconciliation |
+| `moveGridObjectInEncounterState` | `auras/battlefield-effect-anchor-reconciliation.ts` | Moves a grid object and runs **`reconcileBattlefieldEffectAnchors`** (replaces deprecated **`moveGridObstacleInEncounterState`**) |
 | `getEffectiveGroundMovementBudgetFt` | `combat/state/battlefield/battlefield-spatial-movement-modifiers.ts` | Effective movement cap from base speed × attached-aura speed multipliers (current overlap) |
 | `applyGridSpawnReplacementFromTarget` | `placement/applyGridSpawnReplacement.ts` | Transfers tactical `placements` from a spawn target to new combatant(s) (replacement / corpse→minion) |
 | `hasLineOfSight` | `sight/space.sight.ts` | Binary LoS along supercover segment between cell centers |
-| `GridInteractionMode` | `encounter-interaction.types.ts` | `'select-target' \| 'move'` UI mode |
+| `GridInteractionMode` | `encounter-interaction.types.ts` | `'select-target' \| 'move' \| 'aoe-place' \| 'single-cell-place' \| 'object-anchor-select'` |

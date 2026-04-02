@@ -7,10 +7,17 @@ import type {
   EncounterAuthoringPresentation,
   EncounterCell,
   EncounterSpace,
-  GridObstacleKind,
+  GridObjectPlacementKindKey,
 } from '../space.types'
-import { gridObstacleDisplayName } from '../placement/placeRandomGridObstacle'
-import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from '../space.helpers'
+import { gridObjectPlacementKindDisplayLabel, gridObjectPlacementKindKey } from '../gridObject/gridObject.defaults'
+import {
+  getCellById,
+  getCellForCombatant,
+  getEncounterGridObjects,
+  getOccupant,
+  gridDistanceFt,
+  isCellOccupied,
+} from '../space.helpers'
 import { hasLineOfSight } from '../sight/space.sight'
 import type { CombatantSide } from '@/features/mechanics/domain/combat/state/types/combatant.types'
 import {
@@ -99,8 +106,8 @@ export type GridCellViewModel = {
   occupantSide: CombatantSide | null
   /** From `CombatantInstance.portraitImageKey` — resolve URLs in UI only. */
   occupantPortraitImageKey: string | null
-  /** Obstruction on this cell (from `EncounterSpace.obstacles`), for labels / tooltips. */
-  obstacleKind: GridObstacleKind | null
+  /** Placed object on this cell (from `EncounterSpace.gridObjects` / legacy `obstacles`), for labels / tooltips. */
+  obstacleKind: GridObjectPlacementKindKey | null
   obstacleLabel: string | null
   isActive: boolean
   isSelectedTarget: boolean
@@ -303,9 +310,9 @@ export function selectGridViewModel(
           ? aoe.hoverCellId!
           : aoe.originCellId ?? null
 
-  const obstacleByCellId = new Map<string, GridObstacleKind>()
-  for (const o of space.obstacles ?? []) {
-    obstacleByCellId.set(o.cellId, o.kind)
+  const obstacleByCellId = new Map<string, GridObjectPlacementKindKey>()
+  for (const o of getEncounterGridObjects(space)) {
+    obstacleByCellId.set(o.cellId, gridObjectPlacementKindKey(o))
   }
 
   const combatantRoster = Object.values(state.combatantsById)
@@ -314,7 +321,7 @@ export function selectGridViewModel(
     const occupantId = getOccupant(placements, cell.id) ?? null
     const combatant = occupantId ? state.combatantsById[occupantId] ?? null : null
     const obstacleKind = obstacleByCellId.get(cell.id) ?? null
-    const obstacleLabel = obstacleKind != null ? gridObstacleDisplayName(obstacleKind) : null
+    const obstacleLabel = obstacleKind != null ? gridObjectPlacementKindDisplayLabel(obstacleKind) : null
 
     let withinSelectedActionRange = false
     if (rangeFt != null && activeCellId) {
