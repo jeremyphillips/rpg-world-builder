@@ -48,6 +48,9 @@ export type { MediaTopCardProps } from './cards/MediaTopCard'
 export { default as TimelineCard } from './cards/TimelineCard'
 export type { TimelineCardProps } from './cards/TimelineCard'
 
+export { SelectEntityModal } from './modal'
+export type { SelectEntityOption, SelectEntityModalProps } from './modal'
+
 export { default as AppModal } from './modals/AppModal'
 export { default as ConfirmModal } from './modals/ConfirmModal'
 export { default as FormModal } from './modals/FormModal'

@@ -8,13 +8,13 @@ import Typography from '@mui/material/Typography'
 
 import type { CombatantInstance } from '@/features/mechanics/domain/combat'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/combat/state'
-import { SelectEncounterCombatantModal, type CombatantOption } from '../../setup/modals/SelectEncounterCombatantModal'
+import { SelectEntityModal, type SelectEntityOption } from '@/ui/patterns'
 
 type AttachedEmanationSetupPanelProps = {
   actionLabel: string
   activeCombatantId: string
   allCombatants: readonly CombatantInstance[]
-  combatantOptions: CombatantOption[]
+  combatantOptions: SelectEntityOption[]
   unaffectedCombatantIds: string[]
   onUnaffectedChange: (ids: string[]) => void
   suppressSameSideHostile: boolean
@@ -86,7 +86,7 @@ export function AttachedEmanationSetupPanel({
           None selected (only campaign defaults apply when enabled).
         </Typography>
       )}
-      <SelectEncounterCombatantModal
+      <SelectEntityModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         headline="Select unaffected creatures"

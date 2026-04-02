@@ -46,7 +46,7 @@ import { deriveRecommendedActionsForTarget } from '@/features/mechanics/domain/c
 import { ActionRow } from '../action-row/ActionRow'
 import { deriveActionUnavailableHint } from '@/features/mechanics/domain/combat/presentation/actions/derive-action-unavailable-hint'
 import type { CombatantInstance } from '@/features/mechanics/domain/combat'
-import type { CombatantOption } from '../../setup/modals/SelectEncounterCombatantModal'
+import type { SelectEntityOption } from '@/ui/patterns'
 import { AttachedEmanationSetupPanel } from './AttachedEmanationSetupPanel'
 
 /**
@@ -98,7 +98,7 @@ export type CombatantActionDrawerProps = {
   attachedEmanationSetup?: {
     activeCombatantId: string
     allCombatants: readonly CombatantInstance[]
-    combatantOptions: CombatantOption[]
+    combatantOptions: SelectEntityOption[]
     unaffectedCombatantIds: string[]
     onUnaffectedChange: (ids: string[]) => void
     suppressSameSideHostile: boolean

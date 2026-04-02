@@ -3,14 +3,13 @@ import { useState } from 'react'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 
-import { SelectEncounterCombatantModal } from './SelectEncounterCombatantModal'
-import type { CombatantOption } from './SelectEncounterCombatantModal'
+import { SelectEntityModal, type SelectEntityOption } from '@/ui/patterns'
 
 type SelectEncounterAllyModalProps = {
   open: boolean
   onClose: () => void
-  partyOptions: CombatantOption[]
-  npcOptions: CombatantOption[]
+  partyOptions: SelectEntityOption[]
+  npcOptions: SelectEntityOption[]
   selectedAllyIds: string[]
   onApply: (selectedIds: string[]) => void
 }
@@ -35,7 +34,7 @@ export function SelectEncounterAllyModal({
   )
 
   return (
-    <SelectEncounterCombatantModal
+    <SelectEntityModal
       open={open}
       onClose={onClose}
       headline="Select Ally Combatants"
