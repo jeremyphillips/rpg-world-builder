@@ -109,6 +109,9 @@ export { default as FormActions } from './form/FormActions'
 export { ZoomControl } from './ZoomControl/ZoomControl'
 export type { ZoomControlProps } from './ZoomControl/ZoomControl'
 
+export { ActivePlayPageShell } from './active-play/ActivePlayPageShell'
+export type { ActivePlayPageShellProps } from './active-play/ActivePlayPageShell'
+
 export { AppDrawer } from './AppDrawer/AppDrawer'
 export type { AppDrawerProps } from './AppDrawer/AppDrawer'
 

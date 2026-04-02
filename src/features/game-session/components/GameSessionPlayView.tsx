@@ -2,6 +2,8 @@ import type { GameSession } from '../domain/game-session.types'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
+import { ActivePlayPageShell } from '@/ui/patterns'
+
 import { GameSessionEncounterPlaySurface } from './GameSessionEncounterPlaySurface'
 
 type GameSessionPlayViewProps = {
@@ -9,19 +11,24 @@ type GameSessionPlayViewProps = {
 }
 
 /**
- * Live session play: loads persisted combat for `session.activeEncounterId` and renders the shared
- * {@link CombatPlayView} shell (grid, sidebar, drawers) via {@link GameSessionEncounterPlaySurface}.
+ * Live session play: route-owned session copy and ActivePlayPageShell framing; shared combat UI
+ * comes from GameSessionEncounterPlaySurface → useEncounterActivePlaySurface → CombatPlayView.
  */
 export function GameSessionPlayView({ session }: GameSessionPlayViewProps) {
   return (
-    <Stack spacing={2} sx={{ height: '100%', minHeight: 0 }}>
-      <Typography variant="h5" component="h1" gutterBottom>
-        {session.title}
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        Session play — combat state is loaded from the linked encounter record.
-      </Typography>
+    <ActivePlayPageShell
+      metadata={
+        <Stack spacing={0.5}>
+          <Typography variant="h5" component="h1">
+            {session.title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Session play — combat state is loaded from the linked encounter record.
+          </Typography>
+        </Stack>
+      }
+    >
       <GameSessionEncounterPlaySurface session={session} />
-    </Stack>
+    </ActivePlayPageShell>
   )
 }

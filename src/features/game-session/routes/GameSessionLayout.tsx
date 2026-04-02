@@ -78,7 +78,25 @@ export default function GameSessionLayout() {
     return null
   }
 
+  const inPlay = pathname.endsWith('/play') || pathname.endsWith('/play/')
+
   if (loading) {
+    if (inPlay) {
+      return (
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+          }}
+        >
+          <CircularProgress size={28} aria-label="Loading game session" />
+        </Box>
+      )
+    }
     return (
       <Box>
         <Breadcrumbs items={breadcrumbs} />
@@ -88,6 +106,21 @@ export default function GameSessionLayout() {
   }
 
   if (!session || loadError) {
+    if (inPlay) {
+      return (
+        <Box sx={{ flex: 1, minHeight: 0, p: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Game session not found
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {loadError ?? 'This session does not exist or you do not have access.'}
+          </Typography>
+          <MuiLink component={RouterLink} to={campaignGameSessionsListPath(campaignId)}>
+            Back to live play
+          </MuiLink>
+        </Box>
+      )
+    }
     return (
       <Box>
         <Breadcrumbs items={breadcrumbs} />
@@ -109,43 +142,56 @@ export default function GameSessionLayout() {
   const playPath = campaignGameSessionPlayPath(campaignId, gameSessionId)
   const inLobby = pathname.endsWith('/lobby')
   const inSetup = pathname.endsWith('/setup')
-  const inPlay = pathname.endsWith('/play')
   const showPlayTab = session.status === 'active'
 
   return (
     <GameSessionRecordProvider session={session} refetch={refetch}>
-      <Box>
-        <Breadcrumbs items={breadcrumbs} />
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-          <Button
-            component={NavLink}
-            to={lobbyPath}
-            variant={inLobby ? 'contained' : 'outlined'}
-            size="small"
-          >
-            Lobby
-          </Button>
-          <Button
-            component={NavLink}
-            to={setupPath}
-            variant={inSetup ? 'contained' : 'outlined'}
-            size="small"
-          >
-            Setup
-          </Button>
-          {showPlayTab && (
+      {inPlay ? (
+        <Box
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+          }}
+        >
+          <Outlet />
+        </Box>
+      ) : (
+        <Box>
+          <Breadcrumbs items={breadcrumbs} />
+          <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
             <Button
               component={NavLink}
-              to={playPath}
-              variant={inPlay ? 'contained' : 'outlined'}
+              to={lobbyPath}
+              variant={inLobby ? 'contained' : 'outlined'}
               size="small"
             >
-              Play
+              Lobby
             </Button>
-          )}
-        </Stack>
-        <Outlet />
-      </Box>
+            <Button
+              component={NavLink}
+              to={setupPath}
+              variant={inSetup ? 'contained' : 'outlined'}
+              size="small"
+            >
+              Setup
+            </Button>
+            {showPlayTab && (
+              <Button
+                component={NavLink}
+                to={playPath}
+                variant="outlined"
+                size="small"
+              >
+                Play
+              </Button>
+            )}
+          </Stack>
+          <Outlet />
+        </Box>
+      )}
     </GameSessionRecordProvider>
   )
 }
