@@ -24,6 +24,7 @@ import { useEncounterActivePlaySurface } from '@/features/encounter/hooks/useEnc
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
 
 import type { GameSession } from '../domain/game-session.types'
+import { summarizeEncounterSpaceForLog } from '../combat/buildEncounterSpaceFromLocationMap'
 import { campaignGameSessionLobbyPath } from '../routes/gameSessionPaths'
 
 function buildHydrationFromEncounter(encounter: EncounterState): {
@@ -98,6 +99,19 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
   }, [session.activeEncounterId])
 
   const hydratedEncounterState = persisted?.state ?? null
+
+  useEffect(() => {
+    const isDev = Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV)
+    if (!isDev) return
+    if (!hydratedEncounterState?.space) return
+    const summary = summarizeEncounterSpaceForLog(hydratedEncounterState.space)
+    console.info('[game-session play] persisted encounter space', {
+      encounterLocationId: session.location?.locationId ?? null,
+      buildingId: session.location?.buildingId ?? null,
+      floorId: session.location?.floorId ?? null,
+      derivedSpace: summary,
+    })
+  }, [hydratedEncounterState?.space, session.location])
 
   const { selectedCombatantIds, opponentRoster } = useMemo(() => {
     if (!hydratedEncounterState) return { selectedCombatantIds: [] as string[], opponentRoster: [] as OpponentRosterEntry[] }

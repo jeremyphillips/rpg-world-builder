@@ -2,7 +2,13 @@ import type { CombatActionDefinition } from '@/features/mechanics/domain/combat'
 import { isHostileAction, isValidActionTarget } from '@/features/mechanics/domain/combat/resolution/action/action-targeting'
 import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 import { getCombatantDisplayLabel, reconcileBattlefieldEffectAnchors } from '@/features/mechanics/domain/combat/state'
-import type { CombatantPosition, EncounterCell, EncounterSpace, GridObstacleKind } from '../space.types'
+import type {
+  CombatantPosition,
+  EncounterAuthoringPresentation,
+  EncounterCell,
+  EncounterSpace,
+  GridObstacleKind,
+} from '../space.types'
 import { gridObstacleDisplayName } from '../placement/placeRandomGridObstacle'
 import { getCellById, getCellForCombatant, getOccupant, gridDistanceFt, isCellOccupied } from '../space.helpers'
 import { hasLineOfSight } from '../sight/space.sight'
@@ -141,6 +147,10 @@ export type GridCellViewModel = {
   viewerOccupantPresentationKind?: ViewerCombatantPresentationKind
   /** Viewer-relative render projection (perception layer); undefined when perception opts omitted. */
   perception?: EncounterGridCellRenderState
+  /** Location-map authoring: surface fill kind id (when `space.authoringPresentation` is set). */
+  authoringCellFillKind?: string
+  /** Location-map authoring: region overlay color key. */
+  authoringRegionColorKey?: string
 }
 
 export type GridViewModel = {
@@ -148,6 +158,8 @@ export type GridViewModel = {
   rows: number
   cellFeet: number
   cells: GridCellViewModel[]
+  /** Serialized authored map chrome for SVG underlay (edges, paths); optional. */
+  authoringPresentation?: EncounterAuthoringPresentation
   /** Battlefield-level perception presentation + viewer anchor for token self-filter. */
   perception?: {
     battlefieldRender: EncounterBattlefieldRenderState
@@ -410,6 +422,15 @@ export function selectGridViewModel(
       viewerPerceivesOccupantToken = viewerOccupantPresentationKind === 'visible'
     }
 
+    const ap = space.authoringPresentation
+    const blockAuthoringUnderlay = cell.kind === 'wall' || cell.kind === 'blocking'
+    let authoringCellFillKind: string | undefined
+    let authoringRegionColorKey: string | undefined
+    if (ap && !blockAuthoringUnderlay) {
+      authoringCellFillKind = ap.cellFillByCombatCellId[cell.id]
+      authoringRegionColorKey = ap.regionColorKeyByCombatCellId?.[cell.id]
+    }
+
     return {
       cellId: cell.id,
       x: cell.x,
@@ -451,6 +472,8 @@ export function selectGridViewModel(
         : {}),
       ...(persistentAttachedAura ? { persistentAttachedAura: true } : {}),
       ...(cellPerception ? { perception: cellPerception } : {}),
+      ...(authoringCellFillKind ? { authoringCellFillKind } : {}),
+      ...(authoringRegionColorKey ? { authoringRegionColorKey } : {}),
     }
   })
 
@@ -459,6 +482,7 @@ export function selectGridViewModel(
     rows: space.height,
     cellFeet,
     cells,
+    ...(space.authoringPresentation ? { authoringPresentation: space.authoringPresentation } : {}),
     ...(perceptionSlice
       ? {
           perception: {

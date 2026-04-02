@@ -17,7 +17,8 @@ import { resolveImageUrl } from '@/shared/lib/media'
 import type { GridViewModel, GridCellViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
 import { DEFEATED_PARTICIPATION_OPACITY } from '@/features/mechanics/domain/combat/presentation/participation/presentation-defeated'
 import { getCellVisualState, mergePerceptionIntoCellVisualState } from './cellVisualState'
-import { getCellVisualSx } from './cellVisualStyles'
+import { getCellVisualSx, mergeAuthoringMapUnderlayIntoCellSx } from './cellVisualStyles'
+import { CombatGridAuthoringOverlay } from './CombatGridAuthoringOverlay'
 
 const BASE_CELL_SIZE = 48
 const HOVER_DELAY_MS = 350
@@ -251,6 +252,25 @@ export function CombatGrid({
             borderRadius: 1,
           }}
         >
+          {grid.authoringPresentation ? (
+            <Box
+              sx={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                zIndex: 0,
+                pointerEvents: 'none',
+              }}
+            >
+              <CombatGridAuthoringOverlay
+                theme={theme}
+                authoringPresentation={grid.authoringPresentation}
+                columns={grid.columns}
+                rows={grid.rows}
+                cellPx={cellSizePx}
+              />
+            </Box>
+          ) : null}
           {grid.cells.map((cell) => {
             const isWall = cell.kind === 'wall' || cell.kind === 'blocking'
             const clickable = !isWall && Boolean(onCellClick)
@@ -283,7 +303,12 @@ export function CombatGrid({
             })
             const liftAboveBlindVeil =
               Boolean(battlefieldRender?.useBlindVeil) && viewerCellId != null && cell.cellId === viewerCellId
-            const cellVisualSx = getCellVisualSx(theme, visual)
+            const cellVisualSx = mergeAuthoringMapUnderlayIntoCellSx(
+              theme,
+              getCellVisualSx(theme, visual),
+              cell,
+              visual,
+            )
 
             const legalTarget = cell.isLegalTargetForSelectedAction
             const showLegalTargetRedPulse =

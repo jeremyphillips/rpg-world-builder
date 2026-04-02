@@ -14,6 +14,7 @@ import { getPartyCharacters } from '../../campaign/services/campaign.service'
 import { getCharacterDetail } from '../../character/services/character.service'
 import type { GameSessionApi } from './gameSession.service'
 import { resolveCampaignRulesAndCatalogForGameSession } from './resolveCampaignRulesAndCatalog.server'
+import { resolveEncounterSpaceForGameSessionStart } from './resolveGameSessionCombatSpace.server'
 
 export type BuildCombatStartupFromGameSessionResult =
   | { ok: true; input: CombatStartupInput }
@@ -115,8 +116,11 @@ export async function buildCombatStartupInputFromGameSession(
 
   const suppressSameSideHostile = ruleset.mechanics.combat.encounter.suppressSameSideHostile === true
 
+  const { space } = await resolveEncounterSpaceForGameSessionStart(campaignId, session)
+
   const input: CombatStartupInput = {
     combatants,
+    space,
     battlefieldSpell: {
       spellsById: catalog.spellsById as Record<string, Spell>,
       monstersById: catalog.monstersById as Record<string, Monster>,

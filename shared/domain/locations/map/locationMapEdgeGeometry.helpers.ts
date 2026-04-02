@@ -4,7 +4,10 @@
  */
 import type { LocationMapEdgeAuthoringEntry } from './locationMap.types';
 import type { EdgeSegmentGeometry, LineSegment2D } from './locationMapGeometry.types';
-import { squareEdgeSegmentPxFromEdgeId } from '../../grid/squareGridOverlayGeometry';
+import {
+  SQUARE_GRID_GAP_PX,
+  squareEdgeSegmentPxFromEdgeId,
+} from '../../grid/squareGridOverlayGeometry';
 
 function pxSegmentToLineSegment2D(seg: {
   x1: number;
@@ -19,8 +22,9 @@ function pxSegmentToLineSegment2D(seg: {
 export function edgeEntryToSegmentGeometrySquare(
   entry: LocationMapEdgeAuthoringEntry,
   cellPx: number,
+  gapPx: number = SQUARE_GRID_GAP_PX,
 ): EdgeSegmentGeometry | null {
-  const px = squareEdgeSegmentPxFromEdgeId(entry.edgeId, cellPx);
+  const px = squareEdgeSegmentPxFromEdgeId(entry.edgeId, cellPx, gapPx);
   if (!px) return null;
   return {
     edgeId: entry.edgeId,
@@ -33,10 +37,11 @@ export function edgeEntryToSegmentGeometrySquare(
 export function edgeEntriesToSegmentGeometrySquare(
   edgeEntries: readonly LocationMapEdgeAuthoringEntry[],
   cellPx: number,
+  gapPx: number = SQUARE_GRID_GAP_PX,
 ): EdgeSegmentGeometry[] {
   const out: EdgeSegmentGeometry[] = [];
   for (const e of edgeEntries) {
-    const g = edgeEntryToSegmentGeometrySquare(e, cellPx);
+    const g = edgeEntryToSegmentGeometrySquare(e, cellPx, gapPx);
     if (g) out.push(g);
   }
   return out;

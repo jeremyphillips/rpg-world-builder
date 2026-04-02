@@ -1,0 +1,39 @@
+import { describe, expect, it } from 'vitest'
+
+import { authorCellIdToCombatCellId, buildEncounterSpaceFromLocationMap } from './buildEncounterSpaceFromLocationMap'
+
+describe('authorCellIdToCombatCellId', () => {
+  it('maps x,y ids to combat c-x-y', () => {
+    expect(authorCellIdToCombatCellId('0,0')).toBe('c-0-0')
+    expect(authorCellIdToCombatCellId('3,2')).toBe('c-3-2')
+  })
+})
+
+describe('buildEncounterSpaceFromLocationMap', () => {
+  it('applies excluded cells as blocking and maps edge walls', () => {
+    const space = buildEncounterSpaceFromLocationMap({
+      mapHostLocationId: 'floor-loc-1',
+      map: {
+        id: 'map-1',
+        locationId: 'loc',
+        name: 'Hall',
+        kind: 'encounter-grid',
+        grid: { width: 2, height: 2, cellUnit: '5ft' },
+        layout: { excludedCellIds: ['1,1'] },
+        edgeEntries: [{ edgeId: 'between:0,0|1,0', kind: 'wall' }],
+        cellEntries: [],
+        pathEntries: [],
+        regionEntries: [],
+      },
+    })
+
+    expect(space.locationId).toBe('floor-loc-1')
+    expect(space.cells.find((c) => c.id === 'c-1-1')?.kind).toBe('blocking')
+    expect(space.cells.find((c) => c.id === 'c-0-0')?.kind).toBe('open')
+    expect(space.edges?.length).toBe(1)
+    expect(space.edges?.[0]?.fromCellId).toBe('c-0-0')
+    expect(space.edges?.[0]?.toCellId).toBe('c-1-0')
+    expect(space.authoringPresentation?.edgeEntries).toHaveLength(1)
+    expect(space.authoringPresentation?.edgeEntries[0]?.edgeId).toBe('between:0,0|1,0')
+  })
+})

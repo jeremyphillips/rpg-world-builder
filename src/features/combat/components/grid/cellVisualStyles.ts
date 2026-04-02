@@ -1,6 +1,10 @@
 import type { Theme } from '@mui/material/styles'
 import { alpha } from '@mui/material/styles'
 import type { SystemStyleObject } from '@mui/system'
+import type { GridCellViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
+import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types'
+import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/mapContent/locationCellFill.types'
+import { getMapRegionColor, resolveCellFillSwatchColor } from '@/app/theme/mapColors'
 import type { CellBaseFillKind, CellMovementVisual, CellVisualState } from './cellVisualState'
 
 const CELL_TRANSITION = 'background-color 0.15s, box-shadow 0.15s, outline 0.15s' as const
@@ -94,5 +98,44 @@ export function getCellVisualSx(theme: Theme, state: CellVisualState): SystemSty
     transition: CELL_TRANSITION,
     outlineOffset: 0,
     boxSizing: 'border-box',
+  }
+}
+
+/**
+ * When the tactical base is neutral paper and the cell is walkable, apply authored map fill / region tint
+ * beneath movement overlays (movement `boxShadow` from {@link getCellVisualSx} still applies).
+ */
+export function mergeAuthoringMapUnderlayIntoCellSx(
+  theme: Theme,
+  baseSx: SystemStyleObject<Theme>,
+  cell: GridCellViewModel,
+  visual: CellVisualState,
+): SystemStyleObject<Theme> {
+  if (visual.baseFillKind !== 'paper') return baseSx
+  if (cell.kind === 'wall' || cell.kind === 'blocking') return baseSx
+
+  const fillKind = cell.authoringCellFillKind
+  const regionKey = cell.authoringRegionColorKey
+  if (!fillKind && !regionKey) return baseSx
+
+  const fillMeta = fillKind
+    ? LOCATION_CELL_FILL_KIND_META[fillKind as keyof typeof LOCATION_CELL_FILL_KIND_META]
+    : undefined
+
+  let stacked: string = theme.palette.background.paper
+  if (fillMeta) {
+    stacked = resolveCellFillSwatchColor(fillMeta)
+  }
+  if (regionKey) {
+    const rc = getMapRegionColor(regionKey as LocationMapRegionColorKey)
+    stacked = `linear-gradient(${alpha(rc, 0.22)}, ${alpha(rc, 0.22)}), ${stacked}`
+  }
+
+  if (!fillMeta && !regionKey) return baseSx
+
+  return {
+    ...baseSx,
+    bgcolor: undefined,
+    background: stacked,
   }
 }

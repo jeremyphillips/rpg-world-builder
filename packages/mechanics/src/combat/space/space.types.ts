@@ -19,6 +19,20 @@ export type GridObstacle = {
   blocksMovement: boolean;
 };
 
+/**
+ * Serialized authored map chrome for combat **presentation only** (fills, region tint, paths, wall strokes).
+ * Mechanics (movement, LoS, targeting) use {@link EncounterCell} / {@link EncounterEdge} on this space;
+ * this blob is optional and ignored by the engine when absent.
+ */
+export type EncounterAuthoringPresentation = {
+  edgeEntries: Array<{ edgeId: string; kind: 'wall' | 'door' | 'window' }>;
+  pathEntries: Array<{ id: string; kind: string; cellIds: string[] }>;
+  /** Combat cell id (`c-x-y`) → sparse cell fill kind id from location map authoring. */
+  cellFillByCombatCellId: Record<string, string>;
+  /** Combat cell id → region color key (e.g. `regionRed`) for semi-transparent overlay. */
+  regionColorKeyByCombatCellId?: Record<string, string>;
+};
+
 export type EncounterSpace = {
   id: string;
   locationId?: string | null;
@@ -39,6 +53,8 @@ export type EncounterSpace = {
   scale: EncounterSpaceScale;
 
   render?: EncounterSpaceRenderMeta;
+  /** Authoring-derived visuals for play; does not drive combat resolution. */
+  authoringPresentation?: EncounterAuthoringPresentation;
 };
 
 export type EncounterCell = {
