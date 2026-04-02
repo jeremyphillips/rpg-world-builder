@@ -45,7 +45,12 @@ GameSession **must not** own combat rules or canonical encounter state; it **orc
 
 ## Socket.IO note
 
-Lobby presence uses Socket.IO for **who is in the lobby** (session-scoped). That is **separate** from any future **combat** realtime channel (authoritative state broadcast after intents), which is still described as outstanding work in [roadmap.md](./roadmap.md).
+Two session-scoped channels (both authenticated via the same client socket from `SocketConnectionProvider`):
+
+- **Lobby presence** — `join_game_session_lobby` / `game_session_lobby_presence`: ephemeral **who is in the lobby** (`presentUserIds`). Not durable membership on the game session document.
+- **Session sync** — `join_game_session_sync` / `game_session_sync`: **invalidation hints** when canonical state changes. Payload includes `sessionRowChanged` (game session document: status, `activeEncounterId`, etc.) and optional `combatSessionId` + `combatRevision` after a successful persisted intent. Clients **refetch** `GET` game session and/or `GET` persisted combat — they do not treat the socket payload as authoritative state. Lobby **`/play`** routing and play **turn** updates both follow from refreshed HTTP data. Implementation: `server/socket.ts` (`emitGameSessionSync`), `GameSessionSyncProvider` + `GameSessionLayout`.
+
+Finer-grained UX (e.g. 409 retry polish, server-side catalog injection) may still be tracked in [roadmap.md](./roadmap.md).
 
 ## Where to read more in-repo
 

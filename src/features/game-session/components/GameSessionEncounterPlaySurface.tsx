@@ -28,6 +28,7 @@ import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combat
 import type { GameSession } from '../domain/game-session.types'
 import { summarizeEncounterSpaceForLog } from '../combat/buildEncounterSpaceFromLocationMap'
 import { campaignGameSessionLobbyPath } from '../routes/gameSessionPaths'
+import { useGameSessionSync } from '../routes/GameSessionSyncContext'
 import { resolveGameSessionEncounterSeat } from '../utils/resolveGameSessionEncounterSeat'
 
 function buildHydrationFromEncounter(encounter: EncounterState): {
@@ -79,6 +80,10 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
   )
   const [loadError, setLoadError] = useState<string | null>(null)
   const [revision, setRevision] = useState(0)
+  const revisionRef = useRef(revision)
+  revisionRef.current = revision
+
+  const { lastSyncPayload } = useGameSessionSync()
 
   useEffect(() => {
     if (!session.activeEncounterId) return
@@ -101,6 +106,32 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
       cancelled = true
     }
   }, [session.activeEncounterId])
+
+  useEffect(() => {
+    if (!session.activeEncounterId || !lastSyncPayload) return
+    if (lastSyncPayload.combatSessionId !== session.activeEncounterId) return
+    if (lastSyncPayload.combatRevision === undefined) return
+    if (lastSyncPayload.combatRevision <= revisionRef.current) return
+
+    let cancelled = false
+    setLoadError(null)
+    ;(async () => {
+      try {
+        const dto = await fetchPersistedCombatSession(session.activeEncounterId!)
+        if (!cancelled) {
+          setPersisted(dto)
+          setRevision(dto.revision)
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setLoadError(e instanceof Error ? e.message : 'Failed to load combat session')
+        }
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [lastSyncPayload, session.activeEncounterId])
 
   const hydratedEncounterState = persisted?.state ?? null
 

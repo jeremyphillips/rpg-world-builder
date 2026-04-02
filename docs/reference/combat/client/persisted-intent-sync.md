@@ -29,6 +29,10 @@ When **`persistedCombat`** is set:
 
 Over HTTP, **`ApplyCombatIntentContext`** is JSON — no **`spellLookup`** / **`rng`** functions. Mechanics code that runs on the server for attached-aura **spatial entry**, **interval**, and related paths **guards** **`spellLookup`** (and similar) with **`typeof … === 'function'`** before invoking, so missing lookups do not throw when **`spatialEntryAfterMove`** or similar objects are still present with only flags (e.g. **`suppressSameSideHostile`**) after serialization.
 
+## Other clients (multiplayer)
+
+Only the client that **POST**s an intent receives the HTTP response with the new **`revision`** and **`state`**. Other participants in the same game session **do not** get that response; they stay in sync by listening for **`game_session_sync`** on the socket layer and **refetching** the same persisted combat snapshot via **`GET /api/combat/sessions/:sessionId`** when the event indicates a newer **`combatRevision`** (see [../game-session.md](../game-session.md) Socket.IO note). Authoritative state remains **server + GET**; the socket is an **invalidation** signal, not a second source of truth.
+
 ## See also
 
 - [../game-session.md](../game-session.md) — GameSession **`/play`** and `activeEncounterId`

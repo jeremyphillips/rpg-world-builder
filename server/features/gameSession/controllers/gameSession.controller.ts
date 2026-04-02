@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express'
 import { validateRequired } from '../../../shared/validators/common'
+import { emitGameSessionSync } from '../../../socket'
 import * as gameSessionService from '../services/gameSession.service'
 import { startGameSession as executeStartGameSession } from '../services/startGameSession.service'
 
@@ -113,6 +114,13 @@ export async function startGameSession(req: Request, res: Response) {
     res.status(result.status).json({ error: result.message })
     return
   }
+  emitGameSessionSync({
+    campaignId,
+    gameSessionId,
+    sessionRowChanged: true,
+    combatSessionId: result.session.activeEncounterId ?? undefined,
+    combatRevision: undefined,
+  })
   res.json({ gameSession: result.session })
 }
 
@@ -165,6 +173,13 @@ export async function updateGameSession(req: Request, res: Response) {
       res.status(404).json({ error: 'Game session not found' })
       return
     }
+    emitGameSessionSync({
+      campaignId,
+      gameSessionId,
+      sessionRowChanged: true,
+      combatSessionId: gameSession.activeEncounterId ?? undefined,
+      combatRevision: undefined,
+    })
     res.json({ gameSession })
   } catch (err) {
     console.error('updateGameSession:', err)

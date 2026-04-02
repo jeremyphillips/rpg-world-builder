@@ -17,6 +17,10 @@ function lobbyRoomName(roomKey: string) {
   return `gameSessionLobby:${roomKey}`
 }
 
+function gameSessionSyncRoomName(roomKey: string) {
+  return `gameSessionSync:${roomKey}`
+}
+
 function addLobbyPresence(roomKey: string, userId: string) {
   let m = lobbyPresence.get(roomKey)
   if (!m) {
@@ -69,6 +73,32 @@ function leaveGameSessionLobbySocket(s: SocketWithUser) {
   if (campaignId && gameSessionId) {
     broadcastLobbyPresence(roomKey, campaignId, gameSessionId)
   }
+}
+
+function leaveGameSessionSyncSocket(s: SocketWithUser) {
+  const roomKey = s.syncRoomKey
+  if (!roomKey) return
+  s.leave(gameSessionSyncRoomName(roomKey))
+  s.syncRoomKey = undefined
+  s.syncCampaignId = undefined
+  s.syncGameSessionId = undefined
+}
+
+/** Payload for `game_session_sync` — clients refetch canonical session/combat state. */
+export type GameSessionSyncPayload = {
+  campaignId: string
+  gameSessionId: string
+  /** Game session document changed (status, activeEncounterId, etc.). */
+  sessionRowChanged: boolean
+  /** Persisted combat id when `revision` advanced (same as combat API session id). */
+  combatSessionId?: string
+  combatRevision?: number
+}
+
+export function emitGameSessionSync(payload: GameSessionSyncPayload) {
+  if (!io) return
+  const roomKey = lobbyRoomKey(payload.campaignId, payload.gameSessionId)
+  io.to(gameSessionSyncRoomName(roomKey)).emit('game_session_sync', payload)
 }
 
 export function initSocket(httpServer: HttpServer) {
@@ -141,8 +171,41 @@ export function initSocket(httpServer: HttpServer) {
       leaveGameSessionLobbySocket(socket)
     })
 
+    socket.on('join_game_session_sync', async (payload: { campaignId?: string; gameSessionId?: string }) => {
+      const campaignId = payload?.campaignId
+      const gameSessionId = payload?.gameSessionId
+      const uid = socket.userId
+      if (!campaignId || !gameSessionId || !uid) return
+
+      const session = await getGameSessionById(gameSessionId, campaignId)
+      if (!session) return
+
+      const roomKey = lobbyRoomKey(campaignId, gameSessionId)
+      if (socket.syncRoomKey === roomKey) {
+        return
+      }
+      if (socket.syncRoomKey && socket.syncRoomKey !== roomKey) {
+        leaveGameSessionSyncSocket(socket)
+      }
+
+      socket.join(gameSessionSyncRoomName(roomKey))
+      socket.syncRoomKey = roomKey
+      socket.syncCampaignId = campaignId
+      socket.syncGameSessionId = gameSessionId
+    })
+
+    socket.on('leave_game_session_sync', (payload: { campaignId?: string; gameSessionId?: string }) => {
+      const campaignId = payload?.campaignId
+      const gameSessionId = payload?.gameSessionId
+      if (!campaignId || !gameSessionId || !socket.syncRoomKey) return
+      const roomKey = lobbyRoomKey(campaignId, gameSessionId)
+      if (socket.syncRoomKey !== roomKey) return
+      leaveGameSessionSyncSocket(socket)
+    })
+
     socket.on('disconnect', () => {
       leaveGameSessionLobbySocket(socket)
+      leaveGameSessionSyncSocket(socket)
     })
   })
 
@@ -160,4 +223,7 @@ interface SocketWithUser extends Socket {
   lobbyRoomKey?: string
   lobbyCampaignId?: string
   lobbyGameSessionId?: string
+  syncRoomKey?: string
+  syncCampaignId?: string
+  syncGameSessionId?: string
 }

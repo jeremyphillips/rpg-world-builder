@@ -15,6 +15,7 @@ import { authorizeCombatIntentForGameSession } from '../services/combatIntentAut
 import {
   parseCombatStartupBody,
 } from '../services/combatSessions.service'
+import { emitGameSessionSync } from '../../../socket'
 
 const router = Router()
 
@@ -135,6 +136,15 @@ router.post(
         })
         return
       case 'success':
+        if (gameSession) {
+          emitGameSessionSync({
+            campaignId: gameSession.campaignId,
+            gameSessionId: gameSession.id,
+            sessionRowChanged: false,
+            combatSessionId: sessionId,
+            combatRevision: outcome.revision,
+          })
+        }
         res.status(200).json({
           ok: true,
           revision: outcome.revision,
