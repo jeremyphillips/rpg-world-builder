@@ -1,6 +1,8 @@
 import type { GridPerceptionDebugOverrides } from '@/features/mechanics/domain/perception/perception.render.projection'
 import type { EncounterState } from '@/features/mechanics/domain/combat'
 
+/** Client policy types for encounter UI. See `docs/reference/combat/client/encounter-viewer-permissions.md` for summary and post-build follow-ups. */
+
 /**
  * Session seat / operator role for permission policy (distinct from grid `GridPerceptionInput.viewerRole` dm|pc).
  * Simulator uses `dm` as the single full-control convention.

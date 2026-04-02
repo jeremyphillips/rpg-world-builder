@@ -27,6 +27,7 @@ Then branch by concern:
 | Client UI | [client/overview.md](./client/overview.md), [client/grid.md](./client/grid.md) |
 | Encounter Simulator → mechanics today | [client/local-dispatch.md](./client/local-dispatch.md) |
 | Persisted session intent mirror (GameSession `/play`, HTTP, revision queue) | [client/persisted-intent-sync.md](./client/persisted-intent-sync.md) |
+| Viewer identity, controlled combatants, client capabilities (simulator vs session) | [client/encounter-viewer-permissions.md](./client/encounter-viewer-permissions.md) |
 | Deferred client hooks | [client/feedback-followups.md](./client/feedback-followups.md) |
 | Server authority (target + current notes) | [server/authoritative-flow.md](./server/authoritative-flow.md) |
 | Location floors → combat seed | [authored-content/location-floor-adapter.md](./authored-content/location-floor-adapter.md) |
