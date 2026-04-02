@@ -5,11 +5,18 @@ export type {
   GameSessionParticipantRole,
   GameSessionStatus,
 } from './domain/game-session.types'
-export { DEMO_GAME_SESSION_ID, resolveMockGameSession } from './data/mock-game-session'
-export { useGameSession } from './hooks/useGameSession'
+export {
+  fetchGameSession,
+  fetchGameSessionsForCampaign,
+  createGameSession,
+  updateGameSession,
+  type GameSessionPatch,
+} from './api/gameSessionApi'
+export { useGameSessionRecord } from './routes/GameSessionRecordContext'
 export {
   campaignGameSessionLobbyPath,
   campaignGameSessionPath,
   campaignGameSessionSetupPath,
   campaignGameSessionsListPath,
 } from './routes/gameSessionPaths'
+export { canEditGameSessionSetup } from './utils/canEditGameSessionSetup'

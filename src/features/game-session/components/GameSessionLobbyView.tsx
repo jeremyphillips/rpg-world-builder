@@ -46,13 +46,13 @@ export function GameSessionLobbyView({ session }: GameSessionLobbyViewProps) {
             Where
           </Typography>
           <Typography variant="body1">
-            {session.location.label ?? '—'}
+            {session.location.label ?? session.location.locationId ?? '—'}
           </Typography>
-          {(session.location.buildingId || session.location.floorId) && (
+          {session.location.floorId && (
             <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-              {session.location.buildingId && `Building: ${session.location.buildingId}`}
-              {session.location.buildingId && session.location.floorId ? ' · ' : ''}
-              {session.location.floorId && `Floor: ${session.location.floorId}`}
+              {/^\d+$/.test(session.location.floorId)
+                ? `Floor ${session.location.floorId}`
+                : session.location.floorId}
             </Typography>
           )}
         </CardContent>

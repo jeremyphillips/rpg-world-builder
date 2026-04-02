@@ -1,24 +1,77 @@
-import { NavLink, Outlet, useParams, useLocation } from 'react-router-dom'
+import { useCallback, useEffect, useState } from 'react'
+import { NavLink, Outlet, useParams, useLocation, Link as RouterLink } from 'react-router-dom'
+import { ApiError } from '@/app/api'
 import { Breadcrumbs } from '@/ui/patterns'
 import { useBreadcrumbs } from '@/app/navigation'
-import { useGameSession } from '../hooks/useGameSession'
+import { fetchGameSession } from '../api/gameSessionApi'
+import { GameSessionRecordProvider } from './GameSessionRecordContext'
 import {
   campaignGameSessionLobbyPath,
   campaignGameSessionSetupPath,
   campaignGameSessionsListPath,
 } from './gameSessionPaths'
+import type { GameSession } from '../domain/game-session.types'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import MuiLink from '@mui/material/Link'
-import { Link as RouterLink } from 'react-router-dom'
+import CircularProgress from '@mui/material/CircularProgress'
 
 export default function GameSessionLayout() {
   const { id: campaignId, gameSessionId } = useParams<{ id: string; gameSessionId: string }>()
   const { pathname } = useLocation()
-  const { session } = useGameSession()
   const breadcrumbs = useBreadcrumbs()
+
+  const [session, setSession] = useState<GameSession | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const refetch = useCallback(async () => {
+    if (!campaignId || !gameSessionId) return
+    setLoadError(null)
+    try {
+      const s = await fetchGameSession(campaignId, gameSessionId)
+      setSession(s)
+    } catch (e) {
+      setSession(null)
+      if (e instanceof ApiError) {
+        setLoadError(e.message)
+      } else {
+        setLoadError('Failed to load session')
+      }
+    }
+  }, [campaignId, gameSessionId])
+
+  useEffect(() => {
+    if (!campaignId || !gameSessionId) return
+
+    let cancelled = false
+    setLoading(true)
+    setLoadError(null)
+
+    fetchGameSession(campaignId, gameSessionId)
+      .then((s) => {
+        if (!cancelled) setSession(s)
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setSession(null)
+          if (e instanceof ApiError) {
+            setLoadError(e.message)
+          } else {
+            setLoadError('Failed to load session')
+          }
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [campaignId, gameSessionId])
 
   if (!campaignId || !gameSessionId) {
     return null
@@ -29,7 +82,16 @@ export default function GameSessionLayout() {
   const inLobby = pathname.endsWith('/lobby')
   const inSetup = pathname.endsWith('/setup')
 
-  if (!session) {
+  if (loading) {
+    return (
+      <Box>
+        <Breadcrumbs items={breadcrumbs} />
+        <CircularProgress size={28} sx={{ mt: 2 }} />
+      </Box>
+    )
+  }
+
+  if (!session || loadError) {
     return (
       <Box>
         <Breadcrumbs items={breadcrumbs} />
@@ -37,7 +99,7 @@ export default function GameSessionLayout() {
           Game session not found
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          There is no live session for this id yet (or it is not available in the current mock).
+          {loadError ?? 'This session does not exist or you do not have access.'}
         </Typography>
         <MuiLink component={RouterLink} to={campaignGameSessionsListPath(campaignId)}>
           Back to live play
@@ -47,27 +109,29 @@ export default function GameSessionLayout() {
   }
 
   return (
-    <Box>
-      <Breadcrumbs items={breadcrumbs} />
-      <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-        <Button
-          component={NavLink}
-          to={lobbyPath}
-          variant={inLobby ? 'contained' : 'outlined'}
-          size="small"
-        >
-          Lobby
-        </Button>
-        <Button
-          component={NavLink}
-          to={setupPath}
-          variant={inSetup ? 'contained' : 'outlined'}
-          size="small"
-        >
-          Setup
-        </Button>
-      </Stack>
-      <Outlet />
-    </Box>
+    <GameSessionRecordProvider session={session} refetch={refetch}>
+      <Box>
+        <Breadcrumbs items={breadcrumbs} />
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+          <Button
+            component={NavLink}
+            to={lobbyPath}
+            variant={inLobby ? 'contained' : 'outlined'}
+            size="small"
+          >
+            Lobby
+          </Button>
+          <Button
+            component={NavLink}
+            to={setupPath}
+            variant={inSetup ? 'contained' : 'outlined'}
+            size="small"
+          >
+            Setup
+          </Button>
+        </Stack>
+        <Outlet />
+      </Box>
+    </GameSessionRecordProvider>
   )
 }

@@ -21,6 +21,7 @@ import locationsRoutes, {
   locationMapTransitionsRouter,
 } from '../features/content/locations/routes/locations.routes'
 import combatRoutes from '../features/combat/routes/combat.routes'
+import gameSessionRoutes from '../features/gameSession/routes/gameSession.routes'
 
 const campaignScopedContent = [requireAuth, requireCampaignRole('observer')]
 
@@ -35,6 +36,7 @@ export function registerRoutes(app: Express) {
   app.use('/api/campaigns/:id/skill-proficiencies', ...campaignScopedContent, skillProficienciesRoutes)
   app.use('/api/campaigns/:id/equipment', ...campaignScopedContent, equipmentRoutes)
   app.use('/api/campaigns/:id/locations', ...campaignScopedContent, locationsRoutes)
+  app.use('/api/campaigns/:id/game-sessions', ...campaignScopedContent, gameSessionRoutes)
   app.use('/api/campaigns/:id/location-maps/:mapId', ...campaignScopedContent, locationMapTransitionsRouter)
   app.use('/api/campaigns', campaignRoutes)
   app.use('/api/uploads', uploadRoutes)
