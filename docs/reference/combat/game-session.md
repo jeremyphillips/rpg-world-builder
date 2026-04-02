@@ -43,6 +43,12 @@ GameSession **does not** embed the Encounter Simulator provider; it **orchestrat
 
 GameSession **must not** own combat rules or canonical encounter state; it **orchestrates** loading, revision sync, and navigation while **calling** the same mechanics and HTTP seams as other clients.
 
+## Session shell vs canonical phase
+
+`GameSessionLayout` (shell) loads the session record, owns **`GameSessionSyncProvider`**, and wraps **lobby, setup, and play** so socket invalidation arrives **before** `/play` mounts — enabling lobby→play when the DM starts an encounter and future play→lobby when `activeEncounterId` clears. **Canonical phase** for routing is derived in one place (`deriveGameSessionCanonicalPhase` in `src/features/game-session/utils/`): **`play`** when `status === 'active'` and `activeEncounterId` is set; otherwise **`lobby`** (meaning “not in encounter play,” including **setup** routes — naming matches product language). Child routes stay presentation-focused; they use `Navigate` against that phase after refetch.
+
+**Play surface** (`GameSessionEncounterPlaySurface`) may add **play-level** handling (e.g. refetch persisted combat when `combatRevision` advances) without bloating the layout subscription.
+
 ## Socket.IO note
 
 Two session-scoped channels (both authenticated via the same client socket from `SocketConnectionProvider`):

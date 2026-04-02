@@ -7,13 +7,8 @@ import { useCampaignParty } from '@/features/campaign/hooks'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
 import { useGameSessionLobbyPresence } from '../hooks/useGameSessionLobbyPresence'
 import { startGameSession } from '../api/gameSessionApi'
-import type { GameSession } from '../domain/game-session.types'
+import { deriveGameSessionCanonicalPhase } from '../utils/deriveGameSessionCanonicalPhase'
 import { campaignGameSessionPlayPath } from './gameSessionPaths'
-
-/** Matches {@link GameSessionPlayRoute}: active live play requires both status and linked encounter. */
-function shouldRedirectLobbyToPlay(session: GameSession): boolean {
-  return session.status === 'active' && Boolean(session.activeEncounterId)
-}
 
 export default function GameSessionLobbyRoute() {
   const { id: campaignIdFromRoute } = useParams<{ id: string }>()
@@ -47,7 +42,7 @@ export default function GameSessionLobbyRoute() {
     }
   }, [campaignId, navigate, presentUserIds, refetch, session.id])
 
-  if (campaignIdFromRoute && shouldRedirectLobbyToPlay(session)) {
+  if (campaignIdFromRoute && deriveGameSessionCanonicalPhase(session) === 'play') {
     return (
       <Navigate to={campaignGameSessionPlayPath(campaignIdFromRoute, session.id)} replace />
     )

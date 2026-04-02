@@ -83,6 +83,9 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
   const revisionRef = useRef(revision)
   revisionRef.current = revision
 
+  /** Play-level: refetch persisted combat when shell reports a newer `combatRevision` for this
+   * encounter (layout subscription stays lightweight; combat GET runs here).
+   */
   const { lastSyncPayload } = useGameSessionSync()
 
   useEffect(() => {

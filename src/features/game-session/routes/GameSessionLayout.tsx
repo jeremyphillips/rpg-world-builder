@@ -20,6 +20,10 @@ import Typography from '@mui/material/Typography'
 import MuiLink from '@mui/material/Link'
 import CircularProgress from '@mui/material/CircularProgress'
 
+/** Campaign game session shell: loads canonical `GameSession`, owns `GameSessionSyncProvider`
+ * (socket `game_session_sync` at layout scope for lobby/setup/play), and wraps outlet. Route
+ * guards derive encounter phase via `deriveGameSessionCanonicalPhase` after refetch.
+ */
 export default function GameSessionLayout() {
   const { id: campaignId, gameSessionId } = useParams<{ id: string; gameSessionId: string }>()
   const { pathname } = useLocation()

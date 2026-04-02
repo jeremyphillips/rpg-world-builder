@@ -10,6 +10,15 @@ import {
 
 import { useSocketConnection } from '@/app/providers/SocketConnectionProvider'
 
+/**
+ * Session **shell** subscription: `join_game_session_sync` lives in the layout (not play-only) so
+ * lobby, setup, and play all receive invalidation before `/play` mounts — enabling lobby→play
+ * auto-routing and future play→lobby when `activeEncounterId` clears. Payload stays lightweight
+ * (`sessionRowChanged` + optional combat revision pointers); child routes refetch HTTP state.
+ * Richer or high-frequency combat reconciliation may add play-level handling later without
+ * bloating this provider.
+ */
+
 /** Mirrors server `GameSessionSyncPayload` — clients refetch canonical state after this event. */
 export type GameSessionSyncPayload = {
   campaignId: string
