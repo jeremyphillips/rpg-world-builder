@@ -13,3 +13,7 @@ export function campaignGameSessionLobbyPath(campaignId: string, gameSessionId: 
 export function campaignGameSessionSetupPath(campaignId: string, gameSessionId: string): string {
   return `/campaigns/${campaignId}/game-sessions/${gameSessionId}/setup`
 }
+
+export function campaignGameSessionPlayPath(campaignId: string, gameSessionId: string): string {
+  return `/campaigns/${campaignId}/game-sessions/${gameSessionId}/play`
+}

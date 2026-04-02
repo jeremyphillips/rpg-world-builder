@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import { validateRequired } from '../../../shared/validators/common'
 import * as gameSessionService from '../services/gameSession.service'
+import { startGameSession as executeStartGameSession } from '../services/startGameSession.service'
 
 function paramString(req: Request, key: string): string | undefined {
   const v = req.params[key]
@@ -87,6 +88,27 @@ export async function createGameSession(req: Request, res: Response) {
     console.error('createGameSession:', err)
     res.status(500).json({ error: 'Failed to create game session' })
   }
+}
+
+export async function startGameSession(req: Request, res: Response) {
+  const campaignId = paramString(req, 'id')
+  const gameSessionId = paramString(req, 'gameSessionId')
+  const userId = (req as Request & { userId?: string }).userId
+  if (!campaignId || !gameSessionId) {
+    res.status(400).json({ error: 'Campaign ID and game session ID are required' })
+    return
+  }
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
+
+  const result = await executeStartGameSession(gameSessionId, campaignId, userId)
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.message })
+    return
+  }
+  res.json({ gameSession: result.session })
 }
 
 export async function updateGameSession(req: Request, res: Response) {

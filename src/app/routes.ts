@@ -37,6 +37,7 @@ export const ROUTES = {
   CAMPAIGN_GAME_SESSION: '/campaigns/:id/game-sessions/:gameSessionId',
   CAMPAIGN_GAME_SESSION_LOBBY: '/campaigns/:id/game-sessions/:gameSessionId/lobby',
   CAMPAIGN_GAME_SESSION_SETUP: '/campaigns/:id/game-sessions/:gameSessionId/setup',
+  CAMPAIGN_GAME_SESSION_PLAY: '/campaigns/:id/game-sessions/:gameSessionId/play',
   MESSAGING: '/campaigns/:id/messages',
   MESSAGING_CONVERSATION: '/campaigns/:id/messages/:conversationId',
   WORLD: '/campaigns/:id/world',

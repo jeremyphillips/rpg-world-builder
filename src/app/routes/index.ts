@@ -22,6 +22,7 @@ export {
   GameSessionIndexRedirect,
   GameSessionLobbyRoute,
   GameSessionSetupRoute,
+  GameSessionPlayRoute,
   InviteRoute,
   RulesRoute,
   PartyRoute,

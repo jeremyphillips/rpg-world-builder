@@ -10,12 +10,14 @@ export {
   fetchGameSessionsForCampaign,
   createGameSession,
   updateGameSession,
+  startGameSession,
   type GameSessionPatch,
 } from './api/gameSessionApi'
 export { useGameSessionRecord } from './routes/GameSessionRecordContext'
 export {
   campaignGameSessionLobbyPath,
   campaignGameSessionPath,
+  campaignGameSessionPlayPath,
   campaignGameSessionSetupPath,
   campaignGameSessionsListPath,
 } from './routes/gameSessionPaths'

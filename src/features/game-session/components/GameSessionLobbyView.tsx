@@ -8,6 +8,7 @@ import { getLobbyStatusBanner } from '../utils/lobbyStatusPresentation'
 import { resolveExpectedSessionCharacterIds } from '../utils/resolveExpectedSessionCharacterIds'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
@@ -29,6 +30,9 @@ type GameSessionLobbyViewProps = {
   campaignCharacters: CharacterRosterSummary[]
   campaignPartyLoading: boolean
   presentUserIdSet: ReadonlySet<string>
+  onStartSession?: () => void | Promise<void>
+  startSessionLoading?: boolean
+  startSessionError?: string | null
 }
 
 export function GameSessionLobbyView({
@@ -36,11 +40,15 @@ export function GameSessionLobbyView({
   campaignCharacters,
   campaignPartyLoading,
   presentUserIdSet,
+  onStartSession,
+  startSessionLoading,
+  startSessionError,
 }: GameSessionLobbyViewProps) {
   const { user } = useAuth()
   const banner = getLobbyStatusBanner(session)
 
   const dmIsYou = user?.id === session.dmUserId
+  const canStartSession = dmIsYou && session.status === 'lobby' && typeof onStartSession === 'function'
 
   const expectedCharacterRows = useMemo(() => {
     const expectedIds = new Set(resolveExpectedSessionCharacterIds(session, campaignCharacters))
@@ -108,6 +116,33 @@ export function GameSessionLobbyView({
         </CardContent>
       </Card>
 
+      {canStartSession && (
+        <Card variant="outlined">
+          <CardContent>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              Start live play
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              When you are ready, start the session to create the active encounter and move everyone into
+              play.
+            </Typography>
+            {startSessionError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {startSessionError}
+              </Alert>
+            )}
+            <Button
+              variant="contained"
+              color="primary"
+              disabled={Boolean(startSessionLoading)}
+              onClick={() => void onStartSession?.()}
+            >
+              {startSessionLoading ? 'Starting…' : 'Start session'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       <Box>
         <Typography variant="subtitle1" gutterBottom>
           Expected party
@@ -161,11 +196,6 @@ export function GameSessionLobbyView({
         )}
       </Box>
 
-      {session.activeEncounterId && (
-        <Typography variant="body2" color="text.secondary">
-          Active encounter: {session.activeEncounterId} (integration later)
-        </Typography>
-      )}
     </Stack>
   )
 }

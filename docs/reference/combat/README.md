@@ -29,11 +29,12 @@ Then branch by concern:
 | Deferred client hooks | [client/feedback-followups.md](./client/feedback-followups.md) |
 | Server authority (target + current notes) | [server/authoritative-flow.md](./server/authoritative-flow.md) |
 | Location floors → combat seed | [authored-content/location-floor-adapter.md](./authored-content/location-floor-adapter.md) |
+| GameSession vs combat | [game-session.md](./game-session.md) |
 
 ## Core philosophy (short)
 
 - **`packages/mechanics` (combat)** owns **canonical rules and state** and the **startup** and **runtime intent** application seams. It stays free of React, routes, and Encounter Simulator workflow.
-- **`src/features/encounter`** is the **Encounter Simulator**: dev/testing combat workflow (setup, composition, operator shells). It **consumes** combat; it does not own combat truth. Future **GameSession** live play is a separate feature.
+- **`src/features/encounter`** is the **Encounter Simulator**: dev/testing combat workflow (setup, composition, operator shells). It **consumes** combat; it does not own combat truth. **`src/features/game-session`** is **GameSession** (live-play session: lobby, setup, lifecycle); see [game-session.md](./game-session.md). It does not own combat truth; encounter wiring from the lobby is still future work ([roadmap.md](./roadmap.md)).
 - **`src/features/combat`** (client) owns **reusable combat UI** primitives; it does not own authoritative state.
 - **Server** owns **persistence, authority, sequencing, and eventually realtime** around the same mechanics seams. It does **not** fork rules.
 
@@ -43,6 +44,7 @@ Then branch by concern:
 
 - `architecture.md` — system view and principles  
 - `ownership-boundaries.md` — layer responsibilities  
+- `game-session.md` — GameSession live-play shell vs combat  
 - `glossary.md` — terminology  
 - `roadmap.md` — milestones, outstanding items, gaps  
 - `migration-roadmap.md` — redirect to `roadmap.md`  

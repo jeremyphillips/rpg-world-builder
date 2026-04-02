@@ -7,6 +7,7 @@ import { fetchGameSession } from '../api/gameSessionApi'
 import { GameSessionRecordProvider } from './GameSessionRecordContext'
 import {
   campaignGameSessionLobbyPath,
+  campaignGameSessionPlayPath,
   campaignGameSessionSetupPath,
   campaignGameSessionsListPath,
 } from './gameSessionPaths'
@@ -77,11 +78,6 @@ export default function GameSessionLayout() {
     return null
   }
 
-  const lobbyPath = campaignGameSessionLobbyPath(campaignId, gameSessionId)
-  const setupPath = campaignGameSessionSetupPath(campaignId, gameSessionId)
-  const inLobby = pathname.endsWith('/lobby')
-  const inSetup = pathname.endsWith('/setup')
-
   if (loading) {
     return (
       <Box>
@@ -108,6 +104,14 @@ export default function GameSessionLayout() {
     )
   }
 
+  const lobbyPath = campaignGameSessionLobbyPath(campaignId, gameSessionId)
+  const setupPath = campaignGameSessionSetupPath(campaignId, gameSessionId)
+  const playPath = campaignGameSessionPlayPath(campaignId, gameSessionId)
+  const inLobby = pathname.endsWith('/lobby')
+  const inSetup = pathname.endsWith('/setup')
+  const inPlay = pathname.endsWith('/play')
+  const showPlayTab = session.status === 'active'
+
   return (
     <GameSessionRecordProvider session={session} refetch={refetch}>
       <Box>
@@ -129,6 +133,16 @@ export default function GameSessionLayout() {
           >
             Setup
           </Button>
+          {showPlayTab && (
+            <Button
+              component={NavLink}
+              to={playPath}
+              variant={inPlay ? 'contained' : 'outlined'}
+              size="small"
+            >
+              Play
+            </Button>
+          )}
         </Stack>
         <Outlet />
       </Box>

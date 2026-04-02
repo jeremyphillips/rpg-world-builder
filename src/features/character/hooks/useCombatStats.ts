@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 import type { Character } from '@/features/character/domain/types'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog'
+import type { RulesetLike } from '@/features/mechanics/domain/rulesets/types/ruleset.types'
 import { collectIntrinsicEffects } from '../domain/engine/collectCharacterEffects'
 import { getLoadoutPickerOptions } from '../domain/engine/getLoadoutPickerOptions'
 import { getWeaponPickerOptions } from '../domain/engine/getWeaponPickerOptions'
@@ -139,7 +141,79 @@ export function getCharacterAttacks(
 // Hook return type
 // ---------------------------------------------------------------------------
 
-export type UseCombatStatsReturn = ReturnType<typeof useCombatStats>
+/**
+ * Pure combat stat resolution for a character — shared by `useCombatStats` and server-side
+ * encounter startup (e.g. game session start).
+ */
+export function computeCombatStatsFromCharacter(
+  character: Character,
+  catalog: CampaignCatalogAdmin,
+  ruleset: RulesetLike,
+) {
+  const base = buildCharacterResolutionInput(character, { armorById: catalog.armorById })
+  const context: EvaluationContext = {
+    ...base.context,
+    self: {
+      ...base.context.self,
+      proficiencyBonus: resolveProficiencyBonusAtLevel({
+        level: base.context.self.level,
+        ruleset,
+      }),
+    },
+  }
+
+  const resolved = resolveEquipmentLoadoutDetailed(character.combat, character.equipment)
+  const enchantmentEffects = getEnchantmentCandidateEffects({ resolved })
+
+  const ownedMagicItemIds = character.equipment?.magicItems ?? []
+  const magicCandidates = getMagicItemCandidateEffects(ownedMagicItemIds)
+  const activeMagicEffects = selectActiveMagicItemEffects(magicCandidates, {
+    equippedIds: ownedMagicItemIds,
+    attunedIds: ownedMagicItemIds,
+  })
+
+  const allEffects = [...base.effects, ...enchantmentEffects, ...activeMagicEffects]
+
+  const intrinsicEffects = collectIntrinsicEffects(character)
+  const loadout = resolveLoadout(character.combat)
+
+  const acResult = resolveStatDetailed('armor_class', context, allEffects)
+  const maxHp = resolveStat('hit_points_max', context, allEffects)
+  const initiative = resolveStat('initiative', context, allEffects)
+
+  const loadoutOptions = getLoadoutPickerOptions(character, intrinsicEffects, catalog.armorById)
+  const activeOption =
+    loadoutOptions.find(
+      (o) =>
+        o.loadout.armorId === resolved.armor.baseId && o.loadout.shieldId === resolved.shield.baseId,
+    ) ?? loadoutOptions[0] ?? null
+
+  const ownedWeaponIds = character.equipment?.weapons ?? []
+  const wieldedWeaponIds = resolveWieldedWeaponIds(resolved, ownedWeaponIds)
+  const normalizedWeapons = normalizeWeaponsForAttacks(catalog.weaponsById as Record<string, any>)
+  const attacks = getCharacterAttacks(character, context, allEffects, wieldedWeaponIds, normalizedWeapons)
+  const weaponOptions = getWeaponPickerOptions(character, catalog.weaponsById as any)
+
+  return {
+    armorClass: acResult.value,
+    maxHp,
+    initiative,
+    proficiencyBonus: context.self.proficiencyBonus,
+    activeEffects: allEffects,
+    calculatedArmorClass: {
+      value: acResult.value,
+      breakdown: acResult.breakdown,
+    },
+    loadoutOptions,
+    activeLoadout: loadout,
+    activeOption,
+    attacks,
+    weaponOptions,
+    wieldedWeaponIds,
+  }
+}
+
+export type UseCombatStatsReturn = ReturnType<typeof computeCombatStatsFromCharacter>
 
 // ---------------------------------------------------------------------------
 // Hook
@@ -148,71 +222,8 @@ export type UseCombatStatsReturn = ReturnType<typeof useCombatStats>
 export function useCombatStats(character: Character) {
   const { catalog, ruleset } = useCampaignRules()
 
-  return useMemo(() => {
-    const base = buildCharacterResolutionInput(character, { armorById: catalog.armorById })
-    const context: EvaluationContext = {
-      ...base.context,
-      self: {
-        ...base.context.self,
-        proficiencyBonus: resolveProficiencyBonusAtLevel({
-          level: base.context.self.level,
-          ruleset,
-        }),
-      },
-    }
-
-    const resolved = resolveEquipmentLoadoutDetailed(character.combat, character.equipment)
-    const enchantmentEffects = getEnchantmentCandidateEffects({ resolved })
-
-    const ownedMagicItemIds = character.equipment?.magicItems ?? []
-    const magicCandidates = getMagicItemCandidateEffects(ownedMagicItemIds)
-    const activeMagicEffects = selectActiveMagicItemEffects(magicCandidates, {
-      equippedIds: ownedMagicItemIds,
-      attunedIds: ownedMagicItemIds,
-    })
-
-    const allEffects = [
-      ...base.effects,
-      ...enchantmentEffects,
-      ...activeMagicEffects,
-    ]
-
-    const intrinsicEffects = collectIntrinsicEffects(character)
-    const loadout = resolveLoadout(character.combat)
-
-    const acResult = resolveStatDetailed('armor_class', context, allEffects)
-    const maxHp = resolveStat('hit_points_max', context, allEffects)
-    const initiative = resolveStat('initiative', context, allEffects)
-
-    const loadoutOptions = getLoadoutPickerOptions(character, intrinsicEffects, catalog.armorById)
-    const activeOption = loadoutOptions.find(
-      (o) =>
-        o.loadout.armorId === resolved.armor.baseId &&
-        o.loadout.shieldId === resolved.shield.baseId
-    ) ?? loadoutOptions[0] ?? null
-
-    const ownedWeaponIds = character.equipment?.weapons ?? []
-    const wieldedWeaponIds = resolveWieldedWeaponIds(resolved, ownedWeaponIds)
-    const normalizedWeapons = normalizeWeaponsForAttacks(catalog.weaponsById as Record<string, any>)
-    const attacks = getCharacterAttacks(character, context, allEffects, wieldedWeaponIds, normalizedWeapons)
-    const weaponOptions = getWeaponPickerOptions(character, catalog.weaponsById as any)
-
-    return {
-      armorClass: acResult.value,
-      maxHp,
-      initiative,
-      proficiencyBonus: context.self.proficiencyBonus,
-      activeEffects: allEffects,
-      calculatedArmorClass: {
-        value: acResult.value,
-        breakdown: acResult.breakdown,
-      },
-      loadoutOptions,
-      activeLoadout: loadout,
-      activeOption,
-      attacks,
-      weaponOptions,
-      wieldedWeaponIds,
-    }
-  }, [character, catalog, ruleset])
+  return useMemo(
+    () => computeCombatStatsFromCharacter(character, catalog, ruleset),
+    [character, catalog, ruleset],
+  )
 }

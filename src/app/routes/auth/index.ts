@@ -25,6 +25,7 @@ export { default as GameSessionLayout } from '@/features/game-session/routes/Gam
 export { default as GameSessionIndexRedirect } from '@/features/game-session/routes/GameSessionIndexRedirect'
 export { default as GameSessionLobbyRoute } from '@/features/game-session/routes/GameSessionLobbyRoute'
 export { default as GameSessionSetupRoute } from '@/features/game-session/routes/GameSessionSetupRoute'
+export { default as GameSessionPlayRoute } from '@/features/game-session/routes/GameSessionPlayRoute'
 export {
   LocationListRoute,
   LocationDetailRoute,

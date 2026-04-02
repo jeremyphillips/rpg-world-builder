@@ -28,7 +28,7 @@ If you are unsure where something goes, use [ownership-boundaries.md](./ownershi
 
 This is a **brief** anchor; details and gaps are in [roadmap.md](./roadmap.md).
 
-- **Client:** The **Encounter Simulator** uses **`startEncounterFromSetup`** for encounter start and **`applyCombatIntent`** for migrated in-encounter actions (see [client/local-dispatch.md](./client/local-dispatch.md)). This is still **local** to the browser for that dev/testing surface. A future **GameSession** (live play, campaign members, per-player PC control) is a separate feature and not implied here.
+- **Client:** The **Encounter Simulator** uses **`startEncounterFromSetup`** for encounter start and **`applyCombatIntent`** for migrated in-encounter actions (see [client/local-dispatch.md](./client/local-dispatch.md)). This is still **local** to the browser for that dev/testing surface. **GameSession** (live-play session shell: lobby, setup, lifecycle) is implemented separately under `src/features/game-session`; it does **not** yet drive authoritative combat from the lobby—see [game-session.md](./game-session.md).
 - **Shared package:** [`@rpg-world-builder/mechanics`](../../../packages/mechanics/README.md) exposes the combat application seams and wire types (see [adr-shared-combat-extraction.md](./adr-shared-combat-extraction.md)).
 - **Server:** REST endpoints persist **combat sessions** (MongoDB) with **`sessionId`**, **`revision`**, and **`EncounterState` snapshot**; startup and apply-intent are **separate** routes. Realtime broadcast and campaign permissions are **not** part of the current minimal server surface.
 
@@ -82,7 +82,7 @@ This layer does **not** own truth.
 
 ### 3. Encounter Simulator feature
 
-This layer owns the **dev/testing** workflow around combat: a single operator runs the simulator, picks any roster, and controls every combatant’s turn. It is **not** the future player-facing **GameSession** (DM-led live game, joined players, encounter inside a broader session).
+This layer owns the **dev/testing** workflow around combat: a single operator runs the simulator, picks any roster, and controls every combatant’s turn. It is **not** **GameSession** (DM-led live session, lobby, and eventual encounter launch inside that session)—that product shell is a **separate feature**; see [game-session.md](./game-session.md).
 
 It is responsible for:
 
@@ -132,7 +132,7 @@ Authored content does **not** directly own live combat state.
 2. An adapter converts the location floor into a combat seed
 3. Combat starts with canonical runtime state
 4. Client UI renders combat state through reusable combat UI
-5. Encounter Simulator composes workflow around that UI (future **GameSession** would compose live-play concerns separately)
+5. Encounter Simulator composes workflow around that UI (**GameSession** composes live-play session concerns separately—lobby/setup today; encounter wiring later—see [game-session.md](./game-session.md))
 6. Truth-changing operations use the **intent** seam (client-local and/or server-backed)
 7. Server is authoritative for persisted combat state and broadcasts updates to participants
 
@@ -146,7 +146,7 @@ Local dispatch is in production for migrated flows; the server exposes a **persi
 
 ### Combat vs Encounter Simulator
 - Combat owns reusable truth and reusable combat-facing abstractions
-- Encounter Simulator owns this feature’s workflow and orchestration (sandbox / mechanics validation). **GameSession** (future) will own live-play session workflow beside it, not inside this feature.
+- Encounter Simulator owns this feature’s workflow and orchestration (sandbox / mechanics validation). **GameSession** owns live-play **session** workflow (lobby, setup, lifecycle) beside it, not inside `encounter`; see [game-session.md](./game-session.md).
 
 ### Engine vs Client UI
 - Engine owns pure derivation and state transitions

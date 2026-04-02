@@ -102,3 +102,14 @@ export async function updateGameSession(
   )
   return dtoToGameSession(data.gameSession)
 }
+
+/**
+ * DM-only: creates persisted combat from session setup, marks session active, attaches {@link GameSession.activeEncounterId}.
+ */
+export async function startGameSession(campaignId: string, gameSessionId: string): Promise<GameSession> {
+  const data = await apiFetch<{ gameSession: GameSessionDto }>(
+    `/api/campaigns/${campaignId}/game-sessions/${gameSessionId}/start`,
+    { method: 'POST' },
+  )
+  return dtoToGameSession(data.gameSession)
+}

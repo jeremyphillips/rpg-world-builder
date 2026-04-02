@@ -17,7 +17,7 @@ import { buildSkillAffordanceCombatActions } from '@/features/encounter/helpers/
 import { buildTurnHooksFromEffects } from '@/features/encounter/helpers/monsters'
 import { getPreviewStatTooltip } from '@/features/combat/presentation'
 import { buildSpellCombatActions, getCharacterSpellcastingStats } from '@/features/encounter/helpers/spells'
-import { useCharacter, useCombatStats } from '@/features/character/hooks'
+import { useCharacter, useCombatStats, type AttackEntry } from '@/features/character/hooks'
 import { toCharacterForEngine } from '@/features/character/read-model'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import type { CombatantInstance, CombatantSide } from '@/features/mechanics/domain/combat'
@@ -115,7 +115,7 @@ function LoadedAllyCombatantSetupPreviewCard({
 
   const attacks = useMemo(
     () =>
-      combatStats.attacks.map((attack) => ({
+      combatStats.attacks.map((attack: AttackEntry) => ({
         id: `${characterId}-${attack.weaponId}-${attack.hand}`,
         name: attack.name,
         attackBonus: attack.attackBonus,
