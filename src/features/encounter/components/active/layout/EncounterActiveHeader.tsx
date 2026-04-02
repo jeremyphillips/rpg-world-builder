@@ -2,12 +2,11 @@
 // import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 
-import { useTheme } from '@mui/material/styles'
+import { alpha, lighten, useTheme } from '@mui/material/styles'
 
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 // import IconButton from '@mui/material/IconButton'
-import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
@@ -102,8 +101,7 @@ export function EncounterActiveHeader({
 }: EncounterActiveHeaderProps) {
   const theme = useTheme()
   const encounterUiStateTheme = useMemo(() => getEncounterUiStateTheme(theme), [theme])
-  const headerSurface =
-    encounterUiStateTheme.header[activeCombatantHeadlineOverride ? 'activeTurn' : 'default']
+  const isActiveTurnChrome = Boolean(activeCombatantHeadlineOverride)
 
   const showSimulatorChrome = toolbarVariant === 'simulator'
   const move = turnResources?.movementRemaining ?? 0
@@ -142,17 +140,25 @@ export function EncounterActiveHeader({
   const headerBar = encounterUiStateTheme.header.bar
 
   return (
-    <Paper
+    <Box
       ref={headerRootRef}
-      square
-      elevation={2}
       sx={{
         position: 'sticky',
         top: 0,
         zIndex: (t) => t.zIndex.appBar + 1,
+        borderRadius: 0,
         borderBottom: '1px solid',
-        borderColor: headerSurface.borderColor,
-        bgcolor: headerSurface.bgColor,
+        borderColor: isActiveTurnChrome
+          ? (t) => alpha(t.palette.primary.main, t.palette.mode === 'dark' ? 0.5 : 0.32)
+          : 'divider',
+        bgcolor: isActiveTurnChrome
+          ? (t) =>
+              t.palette.mode === 'dark'
+                ? lighten(t.palette.background.default, 0.06)
+                : alpha(t.palette.primary.main, 0.07)
+          : 'background.default',
+        boxShadow: (t) => t.shadows[2],
+        color: 'text.primary',
         px: headerBar.horizontalSpacing,
         py: headerBar.verticalSpacing,
         minHeight: headerBar.minHeightPx,
@@ -299,9 +305,7 @@ export function EncounterActiveHeader({
               fontWeight: 700,
               lineHeight: 1.35,
               textAlign: { xs: 'left', md: 'right' },
-              color: resourcesExhausted
-                ? encounterUiStateTheme.header.directive.resourcesExhaustedTextColor
-                : 'inherit',
+              color: resourcesExhausted ? 'warning.main' : 'inherit',
             }}
           >
             {directive}
@@ -369,6 +373,6 @@ export function EncounterActiveHeader({
           </AppTooltipWrap>
         </Stack>
       )}
-    </Paper>
+    </Box>
   )
 }

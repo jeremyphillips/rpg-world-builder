@@ -2,32 +2,29 @@
 
 ## Purpose
 
-Encounter-specific **state styling** (e.g. “your turn” vs default chrome) should not scatter raw palette imports or ad hoc `alpha()` maps across components. Use a small **feature-owned semantic layer** that maps the active MUI `Theme` into encounter meanings.
+Encounter-specific **layout** and shared tokens should stay in a small feature-owned module. **Colors that must follow the active CSS color scheme** (`colorSchemes` + `cssVariables`) should use **MUI `sx` palette paths** (e.g. `'background.default'`, `'divider'`) or **`(theme) => …`** callbacks in components — **not** baked hex values from `theme.palette` at module or `useMemo` time, which can stick to the light palette while the document is in dark mode.
 
 ## Source of truth
 
 Implementation: [`src/features/encounter/ui/theme/encounterUiStateTheme.ts`](../../../../src/features/encounter/ui/theme/encounterUiStateTheme.ts)
 
-- **`getEncounterUiStateTheme(theme)`** — resolves light/dark values in one place from `theme.palette` and MUI color helpers (`alpha`, `lighten`, etc.).
-- **`EncounterUiStateTheme`** — structured by **surface** then **semantic state** (not parallel flat color maps).
-- **Header layout** — `header.height` (`layoutFallbackPx`, `cssVarName` for the sticky bar measurement) and `header.bar` (padding + `minHeightPx` + `boxSizing`) live on the theme object. No separate top-level layout exports.
+- **`getEncounterUiStateTheme(theme)`** — header **height** (CSS var name + layout fallback px) and **bar** padding / `minHeight` (layout only).
+- **`EncounterActiveHeader`** — header **fill and border** use `sx` with `'background.default'`, `'divider'`, and `alpha` / `lighten` on **`theme`** from callbacks so values track `--mui-palette-*` at runtime. The header root is a **`Box`**, not **`Paper`**, to avoid Paper’s default `paper` fill and `--Paper-overlay` elevation wash.
 
-Raw color primitives (`colorPrimitives`) and global [`palette`](../../../../src/app/theme/palette.ts) definitions stay in app theme code. Encounter features **consume** semantic tokens from `getEncounterUiStateTheme`, not primitives, for encounter-specific UI states.
+Raw color primitives (`colorPrimitives`) and global [`palette`](../../../../src/app/theme/palette.ts) definitions stay in app theme code.
 
 **AppToast** does not use encounter header height tokens — its strip is sized independently.
 
 ## Supported surfaces (current)
 
-| Surface | Semantic states | Notes |
-|--------|-----------------|--------|
-| **Header** (`EncounterActiveHeader`) | `default`, `activeTurn` | `activeTurn` when the viewer is the active combatant for their turn (same condition as the “Your turn — …” headline). |
-| **Header height** | `layoutFallbackPx`, `cssVarName` | Fallback before `documentElement` CSS var is set; used by sidebar / grid hover positioning. |
-| **Header bar** | padding + `minHeightPx` | Top chrome strip sizing. |
-| **Header directive** | `resourcesExhaustedTextColor` | When turn resources are exhausted, directive text uses this token. |
+| Surface | Notes |
+|--------|--------|
+| **Header layout** | `header.height`, `header.bar` on `EncounterUiStateTheme`. |
+| **Header chrome colors** | Resolved in `EncounterActiveHeader` `sx` (see above). |
 
 ## Scaling pattern
 
-Add new **surfaces** (e.g. `combatantCard`, `targeting`, `overlay`) as sibling keys under `EncounterUiStateTheme`, each with named states and `bgColor` / `borderColor` (or other fields) as needed. Keep resolution inside `getEncounterUiStateTheme` or small helpers next to it so components stay declarative.
+Add **layout** or **non-scheme** tokens under `EncounterUiStateTheme`. For **theme-mode-aware colors**, prefer **palette path strings** or **`sx` functions** in the component.
 
 ## Related
 

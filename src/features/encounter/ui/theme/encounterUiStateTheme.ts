@@ -1,9 +1,10 @@
 import type { Theme } from '@mui/material/styles'
-import { alpha, lighten } from '@mui/material/styles'
 
 /**
- * Semantic encounter UI colors derived from the active MUI theme (light/dark resolved here).
- * Feature-owned: do not extend the global palette; map palette roles into encounter meanings.
+ * Semantic encounter UI tokens derived from the active MUI theme.
+ * Prefer **palette path strings** (e.g. `'background.default'`) in component `sx` when colors must
+ * track **CSS color-scheme** (`colorSchemes` + `cssVariables`); do not bake `theme.palette.*` hex
+ * here — those resolve once and can stay on the light palette while the document is in dark mode.
  */
 export type EncounterUiStateTheme = {
   header: {
@@ -19,29 +20,14 @@ export type EncounterUiStateTheme = {
       minHeightPx: number
       boxSizing: 'border-box'
     }
-    default: {
-      bgColor: string
-      borderColor: string
-    }
-    activeTurn: {
-      bgColor: string
-      borderColor: string
-    }
-    directive: {
-      resourcesExhaustedTextColor: string
-    }
   }
 }
 
 /**
- * Resolves encounter semantic UI tokens from `theme.palette` / MUI color helpers.
- * Keeps raw primitives and app palette wiring out of leaf components.
+ * Layout and non–color-scheme-dependent tokens. Header **fill and border** use `sx` palette paths
+ * / callbacks in `EncounterActiveHeader` so dark/light follow `--mui-palette-*` at runtime.
  */
-export function getEncounterUiStateTheme(theme: Theme): EncounterUiStateTheme {
-  const paper = theme.palette.background.paper
-  const divider = theme.palette.divider
-  const isDark = theme.palette.mode === 'dark'
-
+export function getEncounterUiStateTheme(_theme: Theme): EncounterUiStateTheme {
   return {
     header: {
       height: {
@@ -53,19 +39,6 @@ export function getEncounterUiStateTheme(theme: Theme): EncounterUiStateTheme {
         verticalSpacing: 2,
         minHeightPx: 104,
         boxSizing: 'border-box',
-      },
-      default: {
-        bgColor: paper,
-        borderColor: divider,
-      },
-      activeTurn: {
-        bgColor: isDark
-          ? lighten(paper, 0.06)
-          : alpha(theme.palette.primary.main, 0.07),
-        borderColor: alpha(theme.palette.primary.main, isDark ? 0.5 : 0.32),
-      },
-      directive: {
-        resourcesExhaustedTextColor: theme.palette.warning.main,
       },
     },
   }
