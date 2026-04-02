@@ -2,7 +2,9 @@
 
 ## Status
 
-**Proposed** — architecture / interface-freeze for Stage 2 extraction. Does not change runtime behavior.
+**Accepted** for the combat public surface and import policy. The mechanics package lives under [`packages/mechanics`](../../../packages/mechanics); the combat entry is [`@rpg-world-builder/mechanics`](../../../packages/mechanics/README.md). Server routes consume that package for startup and apply-intent (see [roadmap.md](./roadmap.md) for current server scope).
+
+This ADR remains the **contract** for what counts as stable API vs internal engine; it does not list every implementation detail.
 
 ## Context
 
@@ -31,7 +33,7 @@ This ADR freezes a **public API surface** for near-term stability, recommends an
 
 4. **Startup and runtime mutation remain distinct seams** in the shared and server models:
    - **Startup:** `CombatStartupInput` → `startEncounterFromSetup` → initial `EncounterState` (session creation / initialization).
-   - **Runtime:** `applyCombatIntent` on existing state (commands with revision/sequencing on the server later).
+   - **Runtime:** `applyCombatIntent` on existing state (commands with revision/sequencing on the server). On the server, persisted sessions use **`baseRevision`** for optimistic concurrency (see [roadmap.md](./roadmap.md)).
 
 5. **Extraction must account for sibling mechanics dependencies** — see Sibling dependency inventory.
 
@@ -101,13 +103,14 @@ These stay separate in shared and server APIs.
 
 ## Non-goals
 
-This ADR does **not** implement extraction, server routes, persistence, final realtime transport, or full content DTO redesign.
+This ADR does **not** specify realtime transport, full permission models, event-sourcing, or complete content DTO redesign. Those evolve in product code and [roadmap.md](./roadmap.md).
 
 ## Consequences
 
 - Positive: stable API list for server work; honest dependency inventory; monolithic-first package default.
 - Negative: first package will be large; manage semver via frozen API vs internal re-exports.
 
-## Next step (after ADR approval)
+## Implementation notes (current)
 
-**Stage 2 (done):** Mechanics source lives in `packages/mechanics/src`; `@/features/mechanics/domain/*` resolves there; Vitest includes package tests. See [`packages/mechanics/README.md`](../../../packages/mechanics/README.md) for consumption notes.
+- **Package extraction (Stage 2):** Mechanics source lives in `packages/mechanics/src`; `@/features/mechanics/domain/*` resolves there; Vitest includes package tests. See [`packages/mechanics/README.md`](../../../packages/mechanics/README.md).
+- **Server persistence:** MongoDB-backed combat sessions with revisioned apply-intent are described in [roadmap.md](./roadmap.md) and [server/authoritative-flow.md](./server/authoritative-flow.md).

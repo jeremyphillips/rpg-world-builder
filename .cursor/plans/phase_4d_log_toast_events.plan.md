@@ -18,7 +18,7 @@ todos:
     content: Optional registerIntentFailure for validation errors (minimal)
     status: pending
   - id: docs
-    content: Update intents-and-events, local-dispatch, migration-roadmap
+    content: Update intents-and-events, local-dispatch, roadmap
     status: pending
   - id: verify
     content: Grep, tsc, full vitest, manual smoke
@@ -61,7 +61,7 @@ isProject: false
 
 6. **Failure** — Optional `registerIntentFailure` or similar; **not** required to satisfy “choose A” / flatten / one microtask.
 
-7. **Docs** — [`docs/reference/combat/engine/intents-and-events.md`](../../docs/reference/combat/engine/intents-and-events.md), [`client/local-dispatch.md`](../../docs/reference/combat/client/local-dispatch.md), [`migration-roadmap.md`](../../docs/reference/combat/migration-roadmap.md).
+7. **Docs** — [`docs/reference/combat/engine/intents-and-events.md`](../../docs/reference/combat/engine/intents-and-events.md), [`client/local-dispatch.md`](../../docs/reference/combat/client/local-dispatch.md), [`roadmap.md`](../../docs/reference/combat/roadmap.md).
 
 ## Verification
 

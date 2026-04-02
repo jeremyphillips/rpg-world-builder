@@ -7,7 +7,7 @@ todos:
   - id: doc-feedback-followups
     content: Add docs/reference/combat/client/feedback-followups.md (action-log-slice + registerIntentFailure)
   - id: doc-updates
-    content: Update intents-and-events, local-dispatch, migration-roadmap, README, MUTATION_ENTRY_POINTS, optional combat-encounter-refactor-reference
+    content: Update intents-and-events, local-dispatch, roadmap, README, MUTATION_ENTRY_POINTS, optional combat-encounter-refactor-reference
   - id: doc-deferred-start
     content: Document deferred encounter start-by-intent (4F+) in combat reference docs; not in 4E unless explicitly scoped
   - id: code-comments
@@ -53,7 +53,7 @@ Cover **action-log-slice** and **registerIntentFailure** (purpose, deferral rati
 
 - `engine/intents-and-events.md` — Phase 4E: seam canonical for migrated flows; unmigrated flows named; link feedback follow-ups; **state start-by-intent deferred to 4F+ unless scoped**.
 - `client/local-dispatch.md` — same.
-- `migration-roadmap.md` — Phase 4E bullet + **deferred start-encounter intent** as follow-up phase.
+- `roadmap.md` (formerly detailed in `migration-roadmap.md`, which now redirects) — Phase 4E bullet + **deferred start-encounter intent** as follow-up phase; see also consolidated [roadmap.md](../../docs/reference/combat/roadmap.md).
 - `src/features/mechanics/domain/combat/application/MUTATION_ENTRY_POINTS.md` — Phase 4E section; **unmigrated** table including start encounter (direct `createEncounterState`) with pointer to 4F+.
 - `docs/reference/combat-encounter-refactor-reference.md` — minimal pointer if needed.
 

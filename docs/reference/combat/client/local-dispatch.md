@@ -31,9 +31,11 @@ Describe how the Encounter feature submits truth-changing combat operations toda
 | React state, routing, setup | `src/features/encounter` |
 | Reusable combat UI primitives | `src/features/combat` (must not import Encounter) |
 
-## Server authority later
+## Server authority (remote dispatch)
 
-The same **`applyCombatIntent`** *shape* (intent in, result out) can be reimplemented as a remote call: the UI still builds intents and consumes results; only the transport changes. **Startup** can use the same idea: a canonical **`CombatStartupInput`** maps to a future “create session” API; **`startEncounterFromSetup`** stays the local stand-in.
+The same **`applyCombatIntent`** *shape* (intent in, result out) is what a server round-trip implements: the UI still builds intents and consumes results; only the transport changes. **Startup** uses the same idea: **`CombatStartupInput`** matches persisted session creation on the server.
+
+**Current scope:** REST endpoints persist sessions and apply intents with **revision** checks; production Encounter still uses **local** mechanics by default. Realtime, permissions, and full client integration are tracked in [../roadmap.md](../roadmap.md) and [../server/authoritative-flow.md](../server/authoritative-flow.md).
 
 ## See also
 

@@ -135,7 +135,13 @@ A smaller UI leaf component, often prop-driven, that may be reusable even when i
 ## Authoritative state
 The canonical source of truth for combat state.
 
-Long-term, this will live on the server for multiplayer/live play.
+For **multiplayer / live play**, authoritative snapshots are intended to live on the **server** and be broadcast to clients. Today, the product’s main Encounter flow may still apply mechanics **locally** while the server exposes a **persisted** combat session API for the same seams—see [roadmap.md](./roadmap.md).
+
+## Persisted combat session (server)
+A server-owned record tying a **`sessionId`** to the latest **`EncounterState` snapshot**, a monotonic **`revision`**, and timestamps. Clients send **`baseRevision`** when applying an intent so the server can reject **stale** concurrent updates. This is snapshot-first persistence, not full event sourcing.
+
+## Revision (combat session)
+An integer incremented when a successful intent mutation commits a new snapshot. Used for optimistic concurrency (`baseRevision` must match the stored revision).
 
 ## Local UI state
 Temporary client-only interaction state that should not be treated as canonical combat truth.

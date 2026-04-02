@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document describes the target combat architecture at a high level.
+This document describes the **combat architecture** at a high level: what the system is, which layers exist, how they interact, and the **philosophy** that keeps those boundaries stable.
 
 It is the top-level answer to:
 
@@ -10,6 +10,27 @@ It is the top-level answer to:
 - what major layers it has
 - how those layers interact
 - what long-term shape the refactor is moving toward
+
+**Operational status** (what is implemented vs planned next, and known limitations) lives in [roadmap.md](./roadmap.md) so this file stays relatively stable.
+
+## Philosophy (why these layers exist)
+
+Combat documentation is split on purpose:
+
+- **Truth** (rules, state, legality, resolution) must be **shared** and **testable** in one place so client and server do not diverge.
+- **Workflow** (modals, setup, routing, DM experience) is product-specific and belongs in **Encounter**, not inside the engine.
+- **Presentation** (grid rendering, tooltips) is **client UI** and must not own canonical state.
+- **Authority** (who may act, what is persisted, ordering, broadcast) is **server**; the server calls the same mechanics functions as the client.
+
+If you are unsure where something goes, use [ownership-boundaries.md](./ownership-boundaries.md).
+
+## Current implementation snapshot
+
+This is a **brief** anchor; details and gaps are in [roadmap.md](./roadmap.md).
+
+- **Client:** Encounter uses **`startEncounterFromSetup`** for encounter start and **`applyCombatIntent`** for migrated in-encounter actions (see [client/local-dispatch.md](./client/local-dispatch.md)). This is still **local** to the browser for the main product flow.
+- **Shared package:** [`@rpg-world-builder/mechanics`](../../../packages/mechanics/README.md) exposes the combat application seams and wire types (see [adr-shared-combat-extraction.md](./adr-shared-combat-extraction.md)).
+- **Server:** REST endpoints persist **combat sessions** (MongoDB) with **`sessionId`**, **`revision`**, and **`EncounterState` snapshot**; startup and apply-intent are **separate** routes. Realtime broadcast and campaign permissions are **not** part of the current minimal server surface.
 
 ## Core architecture
 
@@ -105,15 +126,21 @@ Authored content does **not** directly own live combat state.
 
 ## High-level data flow
 
-### Current target direction
+### Target direction (end state)
 
 1. Authored content produces a location floor
 2. An adapter converts the location floor into a combat seed
 3. Combat starts with canonical runtime state
 4. Client UI renders combat state through reusable combat UI
 5. Encounter composes product workflow around that UI
-6. Truth-changing operations move toward intent dispatch
-7. Server later becomes authoritative for those same intents
+6. Truth-changing operations use the **intent** seam (client-local and/or server-backed)
+7. Server is authoritative for persisted combat state and broadcasts updates to participants
+
+The gap between “local intents only” and “server-backed multiplayer” is tracked in [roadmap.md](./roadmap.md).
+
+### Today (incremental)
+
+Local dispatch is in production for migrated flows; the server exposes a **persisted** combat API suitable for **authoritative** clients when wired up. Encounter is not required to use the server API yet.
 
 ## Key boundaries
 

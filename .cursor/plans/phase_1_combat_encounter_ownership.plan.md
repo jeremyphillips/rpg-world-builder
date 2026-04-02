@@ -9,6 +9,8 @@ isProject: false
 
 Reference: [docs/reference/combat-encounter-refactor-reference.md](../../docs/reference/combat-encounter-refactor-reference.md)
 
+**Combat reference (architecture, ownership, roadmap):** [docs/reference/combat/README.md](../../docs/reference/combat/README.md), [docs/reference/combat/roadmap.md](../../docs/reference/combat/roadmap.md) (replaces the old `migration-roadmap.md` content).
+
 This pass is a **folder ownership and import boundary refactor**, not a semantic rename pass.
 
 ## Architectural intent

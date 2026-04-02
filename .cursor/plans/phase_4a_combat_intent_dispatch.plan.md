@@ -31,7 +31,7 @@ isProject: false
 
 # Phase 4A — Define combat intent boundary and local dispatch architecture
 
-**Reads:** [docs/reference/combat/README.md](../../docs/reference/combat/README.md), [docs/reference/combat/engine/intents-and-events.md](../../docs/reference/combat/engine/intents-and-events.md), [docs/reference/combat/architecture.md](../../docs/reference/combat/architecture.md), [docs/reference/combat/migration-roadmap.md](../../docs/reference/combat/migration-roadmap.md), prior phases [.cursor/plans/phase_1_combat_encounter_ownership.plan.md](./phase_1_combat_encounter_ownership.plan.md), [phase_3_combat_ui_decomposition.plan.md](./phase_3_combat_ui_decomposition.plan.md).
+**Reads:** [docs/reference/combat/README.md](../../docs/reference/combat/README.md), [docs/reference/combat/engine/intents-and-events.md](../../docs/reference/combat/engine/intents-and-events.md), [docs/reference/combat/architecture.md](../../docs/reference/combat/architecture.md), [docs/reference/combat/roadmap.md](../../docs/reference/combat/roadmap.md), prior phases [.cursor/plans/phase_1_combat_encounter_ownership.plan.md](./phase_1_combat_encounter_ownership.plan.md), [phase_3_combat_ui_decomposition.plan.md](./phase_3_combat_ui_decomposition.plan.md).
 
 **Goal:** Introduce the **intent dispatch boundary** between Encounter UI and the shared combat engine. This pass is **architecture-first**: contracts + seam + proof; **not** a broad migration of gameplay flows.
 
@@ -152,7 +152,7 @@ If risk stays low:
 
 - `**docs/reference/combat/engine/intents-and-events.md`** — add “Implementation status: Phase 4A introduces types under …” and link to source paths.
 - `**docs/reference/combat/client/overview.md`** (or a short `**client/local-dispatch.md`**) — describe Encounter → dispatch → engine flow and UI-local vs authoritative state.
-- `**docs/reference/combat/migration-roadmap.md`** — add a **Phase 4A** bullet under Phase 4: “4A — contracts + local seam (complete); 4B+ — migrate flows.”
+- `**docs/reference/combat/roadmap.md`** — add a **Phase 4A** bullet under Phase 4: “4A — contracts + local seam (complete); 4B+ — migrate flows.” (`migration-roadmap.md` now redirects to `roadmap.md`.)
 
 ---
 

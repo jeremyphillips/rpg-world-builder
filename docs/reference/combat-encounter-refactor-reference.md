@@ -601,7 +601,7 @@ See **[combat-client-ui.md](./combat-client-ui.md)** for what lives under `src/f
 - convert state-changing entry points to intent-shaped contracts
 - derive logs/toasts from canonical events
 
-Implementation detail and phase status: **[combat/migration-roadmap.md](./combat/migration-roadmap.md)**, **[combat/client/local-dispatch.md](./combat/client/local-dispatch.md)**. Phase 4E documents the local **runtime** seam as canonical for end turn, move, and resolve. Phase 4F adds **`startEncounterFromSetup`** for **encounter initialization** (not a runtime intent). Optional deferred client hooks (`action-log-slice` consumption, `registerIntentFailure`) are described in **[combat/client/feedback-followups.md](./combat/client/feedback-followups.md)**.
+Implementation detail, phase status, server persistence notes, and gaps: **[combat/roadmap.md](./combat/roadmap.md)** (the old **`migration-roadmap.md`** redirects there). **[combat/client/local-dispatch.md](./combat/client/local-dispatch.md)** describes Encounter → mechanics today. Phase 4E documents the local **runtime** seam as canonical for end turn, move, and resolve. Phase 4F adds **`startEncounterFromSetup`** for **encounter initialization** (not a runtime intent). Optional deferred client hooks (`action-log-slice` consumption, `registerIntentFailure`) are described in **[combat/client/feedback-followups.md](./combat/client/feedback-followups.md)**.
 
 ### Phase 5 — Add server combat application layer
 
@@ -609,6 +609,8 @@ Implementation detail and phase status: **[combat/migration-roadmap.md](./combat
 - receive intents server-side
 - apply shared combat engine
 - persist and broadcast canonical updates
+
+**Progress:** Persisted combat sessions and revisioned apply-intent exist as REST APIs (see **[combat/roadmap.md](./combat/roadmap.md)** and **[combat/server/authoritative-flow.md](./combat/server/authoritative-flow.md)**). Broadcast, permissions, and full client wiring remain outstanding.
 
 ---
 

@@ -7,7 +7,7 @@ isProject: false
 
 # Phase 3 decomposition — reusable client combat UI
 
-**Reads:** [docs/reference/combat-encounter-refactor-reference.md](../../docs/reference/combat-encounter-refactor-reference.md), prior Phase 3 outline in [.cursor/plans/phase_3_combat_client_ui_3f6aeac0.plan.md](./phase_3_combat_client_ui_3f6aeac0.plan.md).
+**Reads:** [docs/reference/combat-encounter-refactor-reference.md](../../docs/reference/combat-encounter-refactor-reference.md), prior Phase 3 outline in [.cursor/plans/phase_3_combat_client_ui_3f6aeac0.plan.md](./phase_3_combat_client_ui_3f6aeac0.plan.md). **Combat authority / gaps:** [docs/reference/combat/README.md](../../docs/reference/combat/README.md), [docs/reference/combat/roadmap.md](../../docs/reference/combat/roadmap.md).
 
 **Target:** `src/features/combat/{components,hooks,presentation}` owns reusable client combat UI. `**src/features/combat` must not import `src/features/encounter`.** No route/setup moves; no `EncounterState` renames; no whole-drawer moves by default.
 

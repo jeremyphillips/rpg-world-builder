@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document describes the long-term authoritative server flow for multiplayer/live combat.
+This document describes the **authoritative server** model for combat: responsibilities, how intents are handled, how the shared engine fits in, and how persistence and broadcast relate.
 
 It should answer:
 
@@ -10,6 +10,17 @@ It should answer:
 - how combat intents should be handled server-side
 - how the shared combat engine fits in
 - how state, persistence, and broadcast relate
+
+**What is implemented today** vs **future** is summarized in [roadmap.md](../roadmap.md) (gaps, next steps). This file stays oriented toward the **target** end state; the roadmap tracks **current** HTTP surface and limitations.
+
+## Current server surface (minimal persistence)
+
+As of the Stage 3C pass, the server exposes revisioned combat sessions over REST:
+
+- **`POST /api/combat/sessions`** — builds initial state via **`startEncounterFromSetup`**, persists a document with **`sessionId`**, **`revision`** (initial snapshot), and **`state`**, returns those fields to the client.
+- **`POST /api/combat/sessions/:sessionId/intents`** — body includes **`baseRevision`**, **`intent`**, optional **`context`**; loads persisted state, checks revision, runs **`applyCombatIntent`**; on success, persists **`nextState`** and increments revision; returns **`409`** on stale revision and **`404`** if the session id is unknown.
+
+This is **not** multiplayer yet: there is **no** socket broadcast, **no** campaign permission checks on these routes by default, and the **Encounter** client still uses **local** dispatch unless separately wired to these APIs. See [roadmap.md](../roadmap.md).
 
 ## Core principle
 

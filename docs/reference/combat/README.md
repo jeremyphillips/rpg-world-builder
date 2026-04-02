@@ -1,90 +1,71 @@
-# Combat Reference
+# Combat reference (authoritative index)
 
-This directory contains the reference docs for the combat refactor and long-term combat architecture.
+This directory is the **canonical documentation** for combat **architecture**, **ownership**, **terminology**, and **direction**. It is not only a refactor checklist: treat these docs as the source of truth for *why* the system is shaped this way and *where* new work belongs.
 
-## Reading order
+## What this doc set is for
 
-Start here:
+- **Philosophy and boundaries:** who owns truth vs workflow vs transport (see [architecture.md](./architecture.md), [ownership-boundaries.md](./ownership-boundaries.md)).
+- **Stable vocabulary:** [glossary.md](./glossary.md).
+- **Mechanics contract:** public API and import policy — [adr-shared-combat-extraction.md](./adr-shared-combat-extraction.md).
+- **Execution reality:** what is shipped, what is next, and **known gaps** — [roadmap.md](./roadmap.md).
 
-1. [architecture.md](./architecture.md)
-2. [ownership-boundaries.md](./ownership-boundaries.md)
-3. [glossary.md](./glossary.md)
-4. [migration-roadmap.md](./migration-roadmap.md)
+The [roadmap](./roadmap.md) is the living tracker for milestones, outstanding work, and shortcomings. Older filename **`migration-roadmap.md`** redirects there so bookmarks keep working.
+
+## Reading order (recommended)
+
+1. [architecture.md](./architecture.md) — layers, data flow, success criteria  
+2. [ownership-boundaries.md](./ownership-boundaries.md) — decision guide for where code goes  
+3. [glossary.md](./glossary.md) — shared terms  
+4. [adr-shared-combat-extraction.md](./adr-shared-combat-extraction.md) — shared package surface and policies  
+5. [roadmap.md](./roadmap.md) — current gaps and planned work  
 
 Then branch by concern:
 
-- Engine: [engine/overview.md](./engine/overview.md)
-- Client UI: [client/overview.md](./client/overview.md)
-- Local intent dispatch (Phase 4A+): [client/local-dispatch.md](./client/local-dispatch.md)
-- Deferred client feedback follow-ups (Phase 4E docs): [client/feedback-followups.md](./client/feedback-followups.md)
-- Server authority: [server/overview.md](./server/overview.md)
-- Authored content bridge: [authored-content/location-floor-adapter.md](./authored-content/location-floor-adapter.md)
+| Concern | Doc |
+|--------|-----|
+| Intents, events, engine concepts | [engine/overview.md](./engine/overview.md), [engine/intents-and-events.md](./engine/intents-and-events.md) |
+| Client UI | [client/overview.md](./client/overview.md), [client/grid.md](./client/grid.md) |
+| Encounter → mechanics today | [client/local-dispatch.md](./client/local-dispatch.md) |
+| Deferred client hooks | [client/feedback-followups.md](./client/feedback-followups.md) |
+| Server authority (target + current notes) | [server/authoritative-flow.md](./server/authoritative-flow.md) |
+| Location floors → combat seed | [authored-content/location-floor-adapter.md](./authored-content/location-floor-adapter.md) |
 
-## Purpose
+## Core philosophy (short)
 
-These docs exist to keep the end-state architecture clear during a long refactor.
-
-The core model is:
-
-- **combat** owns reusable engine truth
-- **client combat UI** owns reusable combat-facing UI primitives
-- **encounter** owns product workflow and screen composition
-- **server** owns authority, sequencing, persistence, and broadcast
-- **authored content** owns location floors/maps and adapts them into combat runtime seeds
+- **`packages/mechanics` (combat)** owns **canonical rules and state** and the **startup** and **runtime intent** application seams. It stays free of React, routes, and Encounter workflow.
+- **`src/features/encounter`** owns **product workflow** (setup, composition, DM shells). It **consumes** combat; it does not own combat truth.
+- **`src/features/combat`** (client) owns **reusable combat UI** primitives; it does not own authoritative state.
+- **Server** owns **persistence, authority, sequencing, and eventually realtime** around the same mechanics seams. It does **not** fork rules.
 
 ## Directory guide
 
-### Top-level docs
-- `architecture.md` — big-picture system view
-- `ownership-boundaries.md` — what each layer owns
-- `glossary.md` — stable terminology
-- `migration-roadmap.md` — phased refactor plan
-- `adr-shared-combat-extraction.md` — ADR: shared combat extraction boundary, public API freeze, server import policy
+### Top-level
+
+- `architecture.md` — system view and principles  
+- `ownership-boundaries.md` — layer responsibilities  
+- `glossary.md` — terminology  
+- `roadmap.md` — milestones, outstanding items, gaps  
+- `migration-roadmap.md` — redirect to `roadmap.md`  
+- `adr-shared-combat-extraction.md` — ADR: public API, imports, package shape  
 
 ### `engine/`
-Shared combat engine docs:
-- state
-- resolution
-- space/visibility
-- intents/events
-- selectors/presentation
+
+Shared combat engine: state, resolution, space, intents/events, selectors.
 
 ### `client/`
-Reusable client combat UI + Encounter integration docs:
-- UI layer
-- grid
-- drawers/panels
-- combat log
-- local dispatch
-- deferred feedback (`action-log-slice`, `registerIntentFailure`): [client/feedback-followups.md](./client/feedback-followups.md)
+
+Reusable combat UI and Encounter integration; local dispatch documentation.
 
 ### `server/`
-Future server-authoritative combat docs:
-- authoritative flow
-- session lifecycle
-- persistence
-- realtime sync
-- permissions/validation
+
+Authoritative server flow; persistence and realtime are described here and in [roadmap.md](./roadmap.md) (there is no separate `server/overview.md`).
 
 ### `authored-content/`
-How location floors/maps connect to combat runtime:
-- location floor adapter
-- combat seed
 
-## How to use these docs during refactor work
+Editor-facing maps/floors and the adapter seam into combat runtime seeds.
 
-When working on a combat refactor pass:
+## When you change behavior or structure
 
-1. confirm which layer owns the code being changed
-2. verify the intended boundary in `ownership-boundaries.md`
-3. check whether the change affects engine, client, server, or authored-content docs
-4. update the relevant phase or architecture doc if the plan changes materially
-
-## Current architectural direction
-
-The long-term target is:
-
-- Encounter UI becomes a consumer of combat engine + combat UI
-- truth-changing actions move toward intent dispatch
-- server authority later replaces or backs local dispatch
-- location floors enter combat through an explicit adapter seam
+1. Decide which **layer** owns the change ([ownership-boundaries.md](./ownership-boundaries.md)).  
+2. If the change is user-visible or cross-cutting, update **architecture** or **roadmap** if the direction shifts.  
+3. If the **public mechanics API** changes, update the **ADR** and `packages/mechanics/README.md`.

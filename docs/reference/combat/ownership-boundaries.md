@@ -4,7 +4,7 @@
 
 This document defines which layer owns which responsibilities.
 
-This is the primary reference for deciding where code belongs during the combat refactor.
+This is the primary reference for deciding **where code belongs** in the combat system—during refactors and for new features. It complements [architecture.md](./architecture.md) (system view) and [roadmap.md](./roadmap.md) (what is shipped and what remains).
 
 ## Core rule
 

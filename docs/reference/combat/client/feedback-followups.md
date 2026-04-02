@@ -44,6 +44,6 @@ See also: [local-dispatch.md](./local-dispatch.md), [../engine/intents-and-event
 
 ## Encounter startup (Phase 4F — implemented)
 
-**Resolved in Phase 4F:** Confirmed encounter start goes through **`startEncounterFromSetup`** with **`CombatStartupInput`**, not through `applyCombatIntent` or a `StartEncounterIntent`. See [`start-encounter-from-setup.ts`](../../../../packages/mechanics/src/combat/application/start-encounter-from-setup.ts) and [`migration-roadmap.md`](../migration-roadmap.md).
+**Resolved in Phase 4F:** Confirmed encounter start goes through **`startEncounterFromSetup`** with **`CombatStartupInput`**, not through `applyCombatIntent` or a `StartEncounterIntent`. See [`start-encounter-from-setup.ts`](../../../../packages/mechanics/src/combat/application/start-encounter-from-setup.ts) and [`roadmap.md`](../roadmap.md).
 
 **Optional later:** surfacing startup log rows through the same toast path as post-start intents (`registerCombatLogAppended`) — not required for the startup seam to be valid.

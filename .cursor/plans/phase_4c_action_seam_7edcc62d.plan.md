@@ -18,7 +18,7 @@ todos:
     content: Optionally extract buildResolveActionIntentFromActiveSelection (Encounter-owned default) + tests
     status: completed
   - id: docs
-    content: Update intents-and-events, local-dispatch, migration-roadmap for 4C reality
+    content: Update intents-and-events, local-dispatch, roadmap for 4C reality
     status: completed
   - id: verify
     content: Grep (no duplicate path, no new resolveCombatAction in encounter prod); tsc + full vitest
@@ -145,7 +145,7 @@ Update:
 
 - [`docs/reference/combat/engine/intents-and-events.md`](../../docs/reference/combat/engine/intents-and-events.md)
 - [`docs/reference/combat/client/local-dispatch.md`](../../docs/reference/combat/client/local-dispatch.md)
-- [`docs/reference/combat/migration-roadmap.md`](../../docs/reference/combat/migration-roadmap.md)
+- [`docs/reference/combat/roadmap.md`](../../docs/reference/combat/roadmap.md)
 
 State clearly:
 
