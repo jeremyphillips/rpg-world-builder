@@ -84,7 +84,16 @@ export function applyDamageToCombatant(
 
   let nextState = updateCombatant(resistanceLogState, targetId, (combatant) => {
     const normalizedDamageType = normalizeDamageType(options?.damageType)
-    const currentTurnContext = combatant.turnContext ?? createEmptyTurnContext()
+    const emptyTurn = createEmptyTurnContext()
+    const rawCtx = combatant.turnContext
+    const currentTurnContext = {
+      ...emptyTurn,
+      ...(rawCtx ?? {}),
+      damageTakenByType: {
+        ...emptyTurn.damageTakenByType,
+        ...(rawCtx?.damageTakenByType ?? {}),
+      },
+    }
     const existingSuppressedHooks = combatant.suppressedHooks ?? []
     const suppressedHooks =
       normalizedDamageType == null
@@ -110,7 +119,9 @@ export function applyDamageToCombatant(
     const trackedParts = (combatant.trackedParts ?? []).map((trackedPart) => {
       const resetsForNewTurn = trackedPart.damageWindowTurnKey !== turnKey
       const baseDamageTakenThisTurn = resetsForNewTurn ? 0 : trackedPart.damageTakenThisTurn
-      const baseDamageTakenByTypeThisTurn = resetsForNewTurn ? {} : trackedPart.damageTakenByTypeThisTurn
+      const baseDamageTakenByTypeThisTurn = resetsForNewTurn
+        ? {}
+        : (trackedPart.damageTakenByTypeThisTurn ?? {})
       const baseLossAppliedThisTurn = resetsForNewTurn ? 0 : trackedPart.lossAppliedThisTurn
       const damageTakenThisTurn = baseDamageTakenThisTurn + effectiveAmount
       const damageTakenByTypeThisTurn =

@@ -5,7 +5,7 @@ import {
   applyDamageToCombatant,
   createEncounterState,
 } from '../state'
-import type { CombatantInstance } from '../state'
+import type { CombatantInstance, CombatantTurnContext } from '../state'
 
 function baseCombatant(
   id: string,
@@ -87,5 +87,30 @@ describe('applyDamageToCombatant — charmed ends when ally of charmer damages t
     expect(damaged.combatantsById['monster-1']!.conditions.some((c) => c.label === 'charmed')).toBe(
       true,
     )
+  })
+})
+
+describe('applyDamageToCombatant — partial turnContext / tracked-part hydration', () => {
+  it('does not throw when turnContext exists but omits damageTakenByType', () => {
+    const target = baseCombatant('spawn-1', 'enemies', 'Spawn', 10)
+    const actor = baseCombatant('pc-1', 'party', 'Hero', 20)
+    const state = createEncounterState([actor, target], { rng: () => 0.5 })
+    const withPartialCtx = {
+      ...state,
+      combatantsById: {
+        ...state.combatantsById,
+        'spawn-1': {
+          ...state.combatantsById['spawn-1']!,
+          // Simulates persisted or merged combatants missing nested fields (invalid vs CombatantTurnContext)
+          turnContext: { totalDamageTaken: 0, movementSpentThisTurn: 0 } as unknown as CombatantTurnContext,
+        },
+      },
+    }
+    const next = applyDamageToCombatant(withPartialCtx, 'spawn-1', 2, {
+      actorId: 'pc-1',
+      damageType: 'piercing',
+    })
+    expect(next.combatantsById['spawn-1']!.stats.currentHitPoints).toBe(8)
+    expect(next.combatantsById['spawn-1']!.turnContext?.damageTakenByType?.piercing).toBe(2)
   })
 })
