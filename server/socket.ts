@@ -37,13 +37,22 @@ function removeLobbyPresence(roomKey: string, userId: string) {
 
 function broadcastLobbyPresence(roomKey: string, campaignId: string, gameSessionId: string) {
   if (!io) return
-  const counts = lobbyPresence.get(roomKey)
-  const presentUserIds = counts ? [...counts.keys()] : []
+  const presentUserIds = getGameSessionLobbyPresentUserIdsForRoomKey(roomKey)
   io.to(lobbyRoomName(roomKey)).emit('game_session_lobby_presence', {
     campaignId,
     gameSessionId,
     presentUserIds,
   })
+}
+
+/** Ephemeral user ids currently in the lobby room (Socket.IO tab ref counts). Used when starting a session. */
+export function getGameSessionLobbyPresentUserIds(campaignId: string, gameSessionId: string): string[] {
+  return getGameSessionLobbyPresentUserIdsForRoomKey(lobbyRoomKey(campaignId, gameSessionId))
+}
+
+function getGameSessionLobbyPresentUserIdsForRoomKey(roomKey: string): string[] {
+  const counts = lobbyPresence.get(roomKey)
+  return counts ? [...counts.keys()] : []
 }
 
 function leaveGameSessionLobbySocket(s: SocketWithUser) {

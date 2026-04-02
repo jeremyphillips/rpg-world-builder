@@ -1,3 +1,4 @@
+import { getGameSessionLobbyPresentUserIds } from '../../../socket'
 import { createPersistedCombatSession } from '../../combat/services/combatPersisted.service'
 import { buildCombatStartupInputFromGameSession } from './buildGameSessionCombatStartup.server'
 import { getGameSessionById, updateGameSession, type GameSessionApi } from './gameSession.service'
@@ -25,7 +26,8 @@ export async function startGameSession(
     return { ok: false, status: 409, message: 'Session already has an active encounter.' }
   }
 
-  const built = await buildCombatStartupInputFromGameSession(existing, campaignId)
+  const presentUserIds = getGameSessionLobbyPresentUserIds(campaignId, gameSessionId)
+  const built = await buildCombatStartupInputFromGameSession(existing, campaignId, { presentUserIds })
   if (!built.ok) {
     return { ok: false, status: 400, message: built.message }
   }

@@ -23,5 +23,13 @@ export {
 } from './routes/gameSessionPaths'
 export { canEditGameSessionSetup } from './utils/canEditGameSessionSetup'
 export { resolveExpectedSessionCharacterIds } from './utils/resolveExpectedSessionCharacterIds'
+export {
+  resolveLaunchSessionCharacterIds,
+  type RosterCharacterForLaunch,
+} from './utils/resolveLaunchSessionCharacterIds'
+export {
+  getPresentPlayerCharacterIdsForSessionLobby,
+  isPlayerCharacterForSessionLobby,
+} from './utils/presentPlayerCharactersForSessionLobby'
 export { useGameSessionLobbyPresence } from './hooks/useGameSessionLobbyPresence'
 export type { GameSessionLobbyPresencePayload } from './hooks/useGameSessionLobbyPresence'

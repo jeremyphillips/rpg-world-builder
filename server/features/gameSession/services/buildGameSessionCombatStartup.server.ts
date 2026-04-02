@@ -4,6 +4,9 @@ import {
   buildCharacterCombatantForGameSession,
   buildMonsterCombatantForGameSession,
 } from '@/features/game-session/combat/buildCharacterCombatantForGameSession'
+import { resolveExpectedSessionCharacterIds } from '@/features/game-session/utils/resolveExpectedSessionCharacterIds'
+import { resolveLaunchSessionCharacterIds } from '@/features/game-session/utils/resolveLaunchSessionCharacterIds'
+import type { GameSession } from '@/features/game-session/domain/game-session.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 
@@ -19,6 +22,7 @@ export type BuildCombatStartupFromGameSessionResult =
 export async function buildCombatStartupInputFromGameSession(
   session: GameSessionApi,
   campaignId: string,
+  options: { presentUserIds: string[] },
 ): Promise<BuildCombatStartupFromGameSessionResult> {
   const { ruleset, catalog } = await resolveCampaignRulesAndCatalogForGameSession(campaignId)
 
@@ -27,9 +31,29 @@ export async function buildCombatStartupInputFromGameSession(
     return { ok: false, message: 'No approved party characters in this campaign.' }
   }
 
+  const sessionForExpected = session as unknown as GameSession
+  const expectedCharacterIds = resolveExpectedSessionCharacterIds(sessionForExpected, roster)
+  const launchCharacterIds = resolveLaunchSessionCharacterIds({
+    expectedCharacterIds,
+    rosterCharacters: roster,
+    presentUserIds: options.presentUserIds,
+  })
+
+  if (launchCharacterIds.length === 0) {
+    return {
+      ok: false,
+      message:
+        'At least one expected party character whose player is present in the lobby is required to start. ' +
+        'Players must have this lobby open so their presence is recorded.',
+    }
+  }
+
+  const launchSet = new Set(launchCharacterIds)
+  const rosterLaunch = roster.filter((row) => launchSet.has(row.id))
+
   const combatants: CombatantInstance[] = []
 
-  for (const row of roster) {
+  for (const row of rosterLaunch) {
     const detail = await getCharacterDetail(row.id)
     if (!detail) continue
     combatants.push(

@@ -5,6 +5,7 @@ import { CharacterMediaTopCard } from '@/features/character/components'
 import type { GameSession } from '../domain/game-session.types'
 import { formatSessionDateTime } from '@/features/session/dates'
 import { getLobbyStatusBanner } from '../utils/lobbyStatusPresentation'
+import { getPresentPlayerCharacterIdsForSessionLobby } from '../utils/presentPlayerCharactersForSessionLobby'
 import { resolveExpectedSessionCharacterIds } from '../utils/resolveExpectedSessionCharacterIds'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -54,6 +55,19 @@ export function GameSessionLobbyView({
     const expectedIds = new Set(resolveExpectedSessionCharacterIds(session, campaignCharacters))
     return campaignCharacters.filter((c) => expectedIds.has(c.id))
   }, [session, campaignCharacters])
+
+  const presentPlayerCharacterIds = useMemo(
+    () => getPresentPlayerCharacterIdsForSessionLobby(session, campaignCharacters, presentUserIdSet),
+    [session, campaignCharacters, presentUserIdSet],
+  )
+
+  const hasPresentPlayerCharacters = presentPlayerCharacterIds.length > 0
+
+  const startSessionDisabled =
+    Boolean(startSessionLoading) || campaignPartyLoading || !hasPresentPlayerCharacters
+
+  const showStartBlockedByPresence =
+    canStartSession && !campaignPartyLoading && !hasPresentPlayerCharacters
 
   return (
     <Stack spacing={2}>
@@ -123,18 +137,25 @@ export function GameSessionLobbyView({
               Start live play
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              When you are ready, start the session to create the active encounter and move everyone into
-              play.
+              When you are ready, start the session to create the active encounter. Only party characters
+              whose players have this lobby open (so they appear as present below) are placed in the
+              encounter; opponents you configured in setup are still added as usual.
             </Typography>
             {startSessionError && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {startSessionError}
               </Alert>
             )}
+            {showStartBlockedByPresence && (
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                At least one player character must be present in the lobby (this page open) to start the
+                session.
+              </Typography>
+            )}
             <Button
               variant="contained"
               color="primary"
-              disabled={Boolean(startSessionLoading)}
+              disabled={startSessionDisabled}
               onClick={() => void onStartSession?.()}
             >
               {startSessionLoading ? 'Starting…' : 'Start session'}
