@@ -131,6 +131,8 @@ export interface AppDataGridColumn<T> {
   onSwitchChange?: (row: T, checked: boolean) => void
   /** Disable the switch for specific rows (requires switchColumn) */
   isSwitchDisabled?: (row: T) => boolean
+  /** When false, disables sorting for this column (default true). */
+  sortable?: boolean
 }
 
 // ── Filter types ──────────────────────────────────────────────────────────
@@ -347,6 +349,7 @@ export default function AppDataGrid<T>({
         flex: col.flex,
         minWidth: col.minWidth,
         type: col.type as GridColDef['type'],
+        ...(col.sortable === false ? { sortable: false } : {}),
       }
 
       if (col.accessor) {

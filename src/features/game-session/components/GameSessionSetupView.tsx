@@ -7,6 +7,7 @@ import type { PickerOption } from '@/ui/patterns/form/OptionPickerField'
 import { ApiError } from '@/app/api'
 import AppForm from '@/ui/patterns/form/AppForm'
 import FormTextField from '@/ui/patterns/form/FormTextField'
+import FormDateTimeField from '@/ui/patterns/form/FormDateTimeField'
 import FormSelectField from '@/ui/patterns/form/FormSelectField'
 import OptionPickerField from '@/ui/patterns/form/OptionPickerField'
 import { AppAlert } from '@/ui/primitives'
@@ -31,18 +32,11 @@ const STATUS_SELECT_OPTIONS = STATUS_OPTIONS.map((o) => ({
   value: o.value,
 }))
 
-function toDatetimeLocalValue(iso: string | null): string {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
 type FormValues = {
   title: string
   status: GameSessionStatus
-  scheduledFor: string
+  /** ISO string from FormDateTimeField, or null when cleared */
+  scheduledFor: string | null
   locationIds: string[]
   floorId: string
 }
@@ -56,7 +50,7 @@ function buildDefaults(session: GameSession): FormValues {
   return {
     title: session.title,
     status: session.status,
-    scheduledFor: toDatetimeLocalValue(session.scheduledFor),
+    scheduledFor: session.scheduledFor ?? null,
     locationIds: session.location.locationId ? [session.location.locationId] : [],
     floorId: floor,
   }
@@ -126,13 +120,7 @@ function GameSessionSetupFormFields({
         size="small"
         disabled={!canEdit}
       />
-      <FormTextField
-        name="scheduledFor"
-        label="Scheduled start (local)"
-        type="datetime-local"
-        size="small"
-        disabled={!canEdit}
-      />
+      <FormDateTimeField name="scheduledFor" label="Scheduled start" disabled={!canEdit} />
 
       <Controller
         name="locationIds"
@@ -228,7 +216,9 @@ export function GameSessionSetupView({ session, canEdit, locations, onSave }: Ga
                 await onSave({
                   title: vals.title.trim(),
                   status: vals.status,
-                  scheduledFor: vals.scheduledFor ? new Date(vals.scheduledFor).toISOString() : null,
+                  scheduledFor: vals.scheduledFor
+                    ? new Date(vals.scheduledFor).toISOString()
+                    : null,
                   locationId: locId,
                   locationLabel: null,
                   buildingId: null,
