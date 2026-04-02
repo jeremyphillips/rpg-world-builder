@@ -6,10 +6,7 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { AppTabs, AppTab } from '@/ui/patterns'
-import {
-  ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR,
-  ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX,
-} from '@/ui/primitives'
+import { getEncounterUiStateTheme } from '@/features/encounter/ui/theme/encounterUiStateTheme'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
@@ -57,11 +54,15 @@ export function EncounterActiveSidebar({
       sx={{
         position: 'fixed',
         right: (theme) => theme.spacing(2),
-        top: (theme) =>
-          `calc(var(${ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR}, ${ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX}px) + ${theme.spacing(2)})`,
+        top: (theme) => {
+          const { cssVarName, layoutFallbackPx } = getEncounterUiStateTheme(theme).header.height
+          return `calc(var(${cssVarName}, ${layoutFallbackPx}px) + ${theme.spacing(2)})`
+        },
         width: SIDEBAR_WIDTH,
-        maxHeight: (theme) =>
-          `calc(100vh - var(${ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR}, ${ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX}px) - ${theme.spacing(2)} - ${theme.spacing(2)})`,
+        maxHeight: (theme) => {
+          const { cssVarName, layoutFallbackPx } = getEncounterUiStateTheme(theme).header.height
+          return `calc(100vh - var(${cssVarName}, ${layoutFallbackPx}px) - ${theme.spacing(2)} - ${theme.spacing(2)})`
+        },
         display: 'flex',
         flexDirection: 'column',
         zIndex: (theme) => theme.zIndex.appBar,

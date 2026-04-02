@@ -25,6 +25,7 @@ Then branch by concern:
 |--------|-----|
 | Intents, events, engine concepts | [engine/overview.md](./engine/overview.md), [engine/intents-and-events.md](./engine/intents-and-events.md) |
 | Client UI | [client/overview.md](./client/overview.md), [client/grid.md](./client/grid.md) |
+| Encounter feature UI state theming (semantic header states) | [client/encounter-ui-theme.md](./client/encounter-ui-theme.md) |
 | Encounter Simulator → mechanics today | [client/local-dispatch.md](./client/local-dispatch.md) |
 | Action-resolved encounter toasts (viewer pipeline, dedupe, queue) | [client/local-dispatch.md](./client/local-dispatch.md#encounter-toasts-viewer-aware) |
 | Persisted session intent mirror (GameSession `/play`, HTTP, revision queue) | [client/persisted-intent-sync.md](./client/persisted-intent-sync.md) |
@@ -59,7 +60,7 @@ Shared combat engine: state, resolution, space, intents/events, selectors.
 
 ### `client/`
 
-Reusable combat UI and Encounter Simulator integration; local dispatch documentation; persisted session intent sync (HTTP mirror, slim context, client queue).
+Reusable combat UI and Encounter Simulator integration; local dispatch documentation; persisted session intent sync (HTTP mirror, slim context, client queue). Encounter-specific **semantic UI state** colors for active play chrome are documented in [client/encounter-ui-theme.md](./client/encounter-ui-theme.md) (`src/features/encounter/ui/theme/`).
 
 ### `server/`
 

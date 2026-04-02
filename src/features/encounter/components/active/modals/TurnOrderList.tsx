@@ -1,3 +1,7 @@
+import { useMemo } from 'react'
+
+import type { Theme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -5,7 +9,10 @@ import Typography from '@mui/material/Typography'
 import { AppBadge } from '@/ui/primitives'
 import type { AppBadgeTone } from '@/ui/types'
 import type { TurnOrderStatus, ViewerCombatantPresentationKind } from '../../../domain'
-import { getTurnOrderRowOpacity } from '@/features/mechanics/domain/combat/presentation/participation/presentation-participation'
+import {
+  getEncounterTurnOrderRowOpacity,
+  getEncounterUiStateTheme,
+} from '../../../ui/theme/encounterUiStateTheme'
 
 export type TurnOrderEntry = {
   combatantId: string
@@ -43,23 +50,36 @@ const STATUS_LABEL: Record<TurnOrderStatus, string> = {
 function TurnOrderRow({
   entry,
   orderIndex,
+  encounterTheme,
+  theme,
 }: {
   entry: TurnOrderEntry
   orderIndex: number
+  encounterTheme: ReturnType<typeof getEncounterUiStateTheme>
+  theme: Theme
 }) {
+  const rowChrome =
+    entry.status === 'current'
+      ? encounterTheme.turnOrderRow.current
+      : encounterTheme.turnOrderRow.default
+  const { borderColor, borderWidth } = rowChrome
+  /** `Paper` `variant="outlined"` bakes in `1px solid divider` on the root; use `elevation={0}` + explicit `border` so theme width applies. */
+  const border = `${borderWidth} solid ${borderColor}`
+  const opacity = getEncounterTurnOrderRowOpacity(theme, {
+    status: entry.status,
+    isBattlefieldAbsent: entry.isBattlefieldAbsent ?? false,
+    nonVisibleViewerPresentation:
+      entry.presentationKind != null && entry.presentationKind !== 'visible',
+  })
+
   return (
     <Paper
-      variant="outlined"
+      variant="elevation"
+      elevation={0}
       sx={{
         p: 1.25,
-        borderColor:
-          entry.status === 'current' ? 'primary.main' : 'divider',
-        opacity: getTurnOrderRowOpacity({
-          status: entry.status,
-          isBattlefieldAbsent: entry.isBattlefieldAbsent ?? false,
-          nonVisibleViewerPresentation:
-            entry.presentationKind != null && entry.presentationKind !== 'visible',
-        }),
+        border,
+        opacity,
       }}
     >
       <Stack
@@ -103,6 +123,9 @@ function TurnOrderRow({
 }
 
 export function TurnOrderList({ entries }: TurnOrderListProps) {
+  const theme = useTheme()
+  const encounterTheme = useMemo(() => getEncounterUiStateTheme(theme), [theme])
+
   if (entries.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -117,7 +140,13 @@ export function TurnOrderList({ entries }: TurnOrderListProps) {
   return (
     <Stack spacing={1}>
       {activeEntries.map((entry, index) => (
-        <TurnOrderRow key={entry.combatantId} entry={entry} orderIndex={index} />
+        <TurnOrderRow
+          key={entry.combatantId}
+          entry={entry}
+          orderIndex={index}
+          encounterTheme={encounterTheme}
+          theme={theme}
+        />
       ))}
 
       {defeatedEntries.length > 0 && (
@@ -137,7 +166,13 @@ export function TurnOrderList({ entries }: TurnOrderListProps) {
             DEFEATED
           </Typography>
           {defeatedEntries.map((entry, index) => (
-            <TurnOrderRow key={entry.combatantId} entry={entry} orderIndex={index} />
+            <TurnOrderRow
+              key={entry.combatantId}
+              entry={entry}
+              orderIndex={index}
+              encounterTheme={encounterTheme}
+              theme={theme}
+            />
           ))}
         </>
       )}

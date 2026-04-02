@@ -1,12 +1,11 @@
 import type { ReactNode, Ref } from 'react'
+import { useMemo } from 'react'
 
+import { useTheme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 
-import {
-  ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR,
-  ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX,
-} from '@/ui/primitives'
+import { getEncounterUiStateTheme } from '@/features/encounter/ui/theme/encounterUiStateTheme'
 import { ZoomControl } from '@/ui/patterns'
 import type { ZoomControlProps } from '@/ui/patterns'
 
@@ -37,6 +36,10 @@ export function CombatPlayView({
   encounterActiveSidebar,
   actionDrawer,
 }: CombatPlayViewProps) {
+  const theme = useTheme()
+  const encounterUi = useMemo(() => getEncounterUiStateTheme(theme), [theme])
+  const { cssVarName, layoutFallbackPx } = encounterUi.header.height
+
   return (
     <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {activeHeader}
@@ -50,7 +53,7 @@ export function CombatPlayView({
             position: 'absolute',
             left: 0,
             right: 0,
-            top: `calc(var(${ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR}, ${ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX}px))`,
+            top: `calc(var(${cssVarName}, ${layoutFallbackPx}px))`,
             zIndex: (theme) => theme.zIndex.appBar,
             px: 2,
             py: 0.5,

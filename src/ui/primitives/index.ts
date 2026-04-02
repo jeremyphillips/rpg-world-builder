@@ -20,12 +20,6 @@ export { mapAppAlertToneToMuiSeverity } from './appTone'
 export { default as AppToast } from './AppToast/AppToast'
 export type { AppToastProps } from './AppToast/AppToast'
 
-export {
-  encounterActiveBarSx,
-  ENCOUNTER_ACTIVE_HEADER_HEIGHT_CSS_VAR,
-  ENCOUNTER_ACTIVE_HEADER_LAYOUT_HEIGHT_PX,
-} from './encounterActiveBarLayout'
-
 export { default as AppTooltip } from './AppTooltip'
 export type { AppTooltipProps } from './AppTooltip'
 export { AppTooltipWrap } from './AppTooltipWrap'

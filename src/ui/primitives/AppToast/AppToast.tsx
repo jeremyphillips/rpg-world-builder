@@ -67,6 +67,7 @@ export function AppToast({
         variant={variant}
         onClose={onClose}
         sx={[
+          // Toast strip is independent of encounter header chrome (no shared height/CSS var).
           {
             px: 4,
             py: 2,
