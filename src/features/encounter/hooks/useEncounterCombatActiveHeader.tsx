@@ -18,6 +18,7 @@ import {
   deriveEncounterCapabilities,
   deriveEncounterHeaderModel,
   deriveEncounterPerceptionUiFeedback,
+  type EncounterHeaderViewerPolicy,
   type EncounterViewerContext,
   type EncounterSimulatorViewerMode,
 } from '../domain'
@@ -139,6 +140,24 @@ export function useEncounterCombatActiveHeader({
     [encounterState, viewerContext],
   )
 
+  const encounterHeaderViewerPolicy = useMemo((): EncounterHeaderViewerPolicy => {
+    if (viewerContext.mode === 'simulator') {
+      return { viewerMayActOnTurn: true, tonePerspective: 'dm' }
+    }
+    if (!capabilities) {
+      return { viewerMayActOnTurn: false, tonePerspective: 'observer' }
+    }
+    return {
+      viewerMayActOnTurn: capabilities.canSelectAction,
+      tonePerspective: capabilities.tonePerspective,
+    }
+  }, [viewerContext.mode, capabilities])
+
+  const activeCombatantDisplayLabelForHeader = useMemo(() => {
+    if (!activeCombatant) return ''
+    return getCombatantDisplayLabel(activeCombatant, encounterCombatantRoster)
+  }, [activeCombatant, encounterCombatantRoster])
+
   const targetCombatantForHeader = useMemo(() => {
     if (!encounterState || !selectedActionTargetId) return null
     return encounterState.combatantsById[selectedActionTargetId] ?? null
@@ -217,7 +236,9 @@ export function useEncounterCombatActiveHeader({
           targetCombatantForHeader && encounterState
             ? getCombatantDisplayLabel(targetCombatantForHeader, encounterCombatantRoster)
             : null,
+        activeCombatantDisplayLabel: activeCombatantDisplayLabelForHeader,
       },
+      viewer: encounterHeaderViewerPolicy,
     })
   }, [
     activeCombatant,
@@ -231,6 +252,8 @@ export function useEncounterCombatActiveHeader({
     encounterState,
     encounterCombatantRoster,
     selectedCasterOptions,
+    activeCombatantDisplayLabelForHeader,
+    encounterHeaderViewerPolicy,
   ])
 
   const canOpenActionsDrawer =
