@@ -1,8 +1,6 @@
 import {
   LOCATION_PLACED_OBJECT_KIND_META,
-  type LocationPlacedObjectKindId,
 } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
-import { resolveLocationPlacedObjectKindRuntimeDefaults } from '@/features/content/locations/domain/mapContent/locationPlacedObject.runtime';
 
 import type {
   GridObject,
@@ -51,10 +49,3 @@ export function defaultsForProceduralKind(kind: GridProceduralPlacementKind): Gr
   }
 }
 
-/**
- * Runtime behavior for an authored {@link LocationPlacedObjectKindId}.
- * Delegates to {@link resolveLocationPlacedObjectKindRuntimeDefaults} (`locationPlacedObject.runtime.ts`) — do not duplicate per-kind combat defaults in mechanics.
- */
-export function defaultsForAuthoredKind(kind: LocationPlacedObjectKindId): GridObjectBehaviorFields {
-  return resolveLocationPlacedObjectKindRuntimeDefaults(kind)
-}

@@ -1,5 +1,6 @@
 export * from './space.types'
 export * from './gridObject/gridObject.defaults'
+export * from './gridObject/gridObject.fromAuthored'
 export * from './space.helpers'
 export * from './rendering/grid-occupant-render-visibility'
 export * from './selectors/space.selectors'

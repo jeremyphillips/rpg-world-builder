@@ -25,6 +25,10 @@ export type LocationPlacedObjectKindRuntimeDefaults = {
   isMovable: boolean;
 };
 
+/**
+ * Canonical keyed table for {@link resolveLocationPlacedObjectKindRuntimeDefaults}.
+ * Do not read from this object directly in new code — use the resolver so lookup stays centralized.
+ */
 export const LOCATION_PLACED_OBJECT_KIND_RUNTIME_DEFAULTS = {
   city: {
     blocksMovement: true,
@@ -70,6 +74,11 @@ export const LOCATION_PLACED_OBJECT_KIND_RUNTIME_DEFAULTS = {
   },
 } as const satisfies Record<LocationPlacedObjectKindId, LocationPlacedObjectKindRuntimeDefaults>;
 
+/**
+ * Single entry point for authored-kind combat/runtime defaults. All hydration paths should use this (or
+ * `buildGridObjectFromAuthoredPlacedObject` in `packages/mechanics/.../gridObject.fromAuthored.ts`) instead of indexing
+ * {@link LOCATION_PLACED_OBJECT_KIND_RUNTIME_DEFAULTS} ad hoc.
+ */
 export function resolveLocationPlacedObjectKindRuntimeDefaults(
   kind: LocationPlacedObjectKindId,
 ): LocationPlacedObjectKindRuntimeDefaults {

@@ -21,6 +21,11 @@ export type GridObjectCoverKind = 'none' | 'half' | 'three-quarters';
 /**
  * Runtime record for a placed map object on the tactical grid (single-cell footprint today).
  * Distinct from {@link EncounterEdge} / {@link EncounterAuthoringPresentation} wall segments.
+ *
+ * **Authored → runtime bridge:** When hydrating from map placement, set `authoredPlaceKindId` and build with
+ * `buildGridObjectFromAuthoredPlacedObject` (`gridObject.fromAuthored.ts`). Resolve combat behavior only through
+ * `resolveLocationPlacedObjectKindRuntimeDefaults` — not ad hoc per-kind logic. Display metadata stays in
+ * `LOCATION_PLACED_OBJECT_KIND_META`.
  */
 export type GridObject = {
   id: string;
@@ -30,7 +35,11 @@ export type GridObject = {
   coverKind: GridObjectCoverKind;
   /** Whether the object can be repositioned by combat rules (e.g. shove); not “structural immovability”. */
   isMovable: boolean;
-  /** From authored location map placement when present. */
+  /**
+   * Present when this object was created from authored placed-object placement (`LocationPlacedObjectKindId`).
+   * Optional for procedural props and legacy `GridObstacle` migration. Runtime fields for this kind must match
+   * `resolveLocationPlacedObjectKindRuntimeDefaults(authoredPlaceKindId)` at hydration time.
+   */
   authoredPlaceKindId?: LocationPlacedObjectKindId;
   /** Procedural encounter props (tree/pillar) when not from authored map data. */
   proceduralPlacementKind?: GridProceduralPlacementKind;
