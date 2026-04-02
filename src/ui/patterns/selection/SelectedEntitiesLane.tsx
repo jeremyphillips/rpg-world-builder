@@ -15,6 +15,8 @@ export type SelectedEntitiesLaneProps = {
   emptyMessage: string
   hasSelection: boolean
   children?: ReactNode
+  /** When true, the primary action button is disabled. */
+  actionDisabled?: boolean
 }
 
 /**
@@ -29,6 +31,7 @@ export function SelectedEntitiesLane({
   emptyMessage,
   hasSelection,
   children,
+  actionDisabled = false,
 }: SelectedEntitiesLaneProps) {
   return (
     <Paper sx={{ p: 3, minHeight: 320 }}>
@@ -41,7 +44,13 @@ export function SelectedEntitiesLane({
             </Typography>
           ) : null}
         </Box>
-        <Button variant="outlined" fullWidth startIcon={<AddIcon />} onClick={onAction}>
+        <Button
+          variant="outlined"
+          fullWidth
+          startIcon={<AddIcon />}
+          onClick={onAction}
+          disabled={actionDisabled}
+        >
           {actionLabel}
         </Button>
         {hasSelection ? children : (

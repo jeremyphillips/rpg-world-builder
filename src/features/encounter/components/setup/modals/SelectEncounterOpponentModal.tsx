@@ -8,6 +8,7 @@ import { SelectEntityModal, type SelectEntityOption } from '@/ui/patterns'
 type SelectEncounterOpponentModalProps = {
   open: boolean
   onClose: () => void
+  headline?: string
   monsterOptions: SelectEntityOption[]
   npcOptions: SelectEntityOption[]
   selectedOpponentKeys: string[]
@@ -17,6 +18,7 @@ type SelectEncounterOpponentModalProps = {
 export function SelectEncounterOpponentModal({
   open,
   onClose,
+  headline = 'Select Opponent Combatants',
   monsterOptions,
   npcOptions,
   selectedOpponentKeys,
@@ -37,7 +39,7 @@ export function SelectEncounterOpponentModal({
     <SelectEntityModal
       open={open}
       onClose={onClose}
-      headline="Select Opponent Combatants"
+      headline={headline}
       options={activeOptions}
       selectedIds={selectedOpponentKeys}
       onApply={onApply}

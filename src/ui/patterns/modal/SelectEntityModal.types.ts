@@ -22,4 +22,8 @@ export type SelectEntityModalProps = {
   onApply: (selectedIds: string[]) => void
   footerNote?: string
   headerSlot?: ReactNode
+  /** When `1`, clicking an option replaces selection (single-select). */
+  maxSelections?: number
+  /** Placeholder for the filter field (default: "Search…"). */
+  filterPlaceholder?: string
 }

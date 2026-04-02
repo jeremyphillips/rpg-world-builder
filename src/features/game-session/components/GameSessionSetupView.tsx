@@ -1,22 +1,35 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Controller, FormProvider, useForm, type UseFormReturn } from 'react-hook-form'
-import type { GameSession, GameSessionStatus } from '../domain/game-session.types'
-import type { GameSessionPatch } from '../api/gameSessionApi'
-import type { Location } from '@/features/content/locations/domain/types'
-import type { PickerOption } from '@/ui/patterns/form/OptionPickerField'
-import { ApiError } from '@/app/api'
-import FormTextField from '@/ui/patterns/form/FormTextField'
-import FormDateTimeField from '@/ui/patterns/form/FormDateTimeField'
-import FormSelectField from '@/ui/patterns/form/FormSelectField'
-import OptionPickerField from '@/ui/patterns/form/OptionPickerField'
-import { AppAlert } from '@/ui/primitives'
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  type Control,
+  type UseFormReturn,
+} from 'react-hook-form'
+import CloseIcon from '@mui/icons-material/Close'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
+import IconButton from '@mui/material/IconButton'
+import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+
+import { ApiError } from '@/app/api'
+import { SelectEncounterOpponentModal } from '@/features/encounter/components'
+import type { OpponentOption } from '@/features/encounter/types'
+import { LocationSummaryCard } from '@/features/content/locations/components'
+import type { Location } from '@/features/content/locations/domain/types'
+import type { GameSessionPatch } from '../api/gameSessionApi'
+import type { GameSession, GameSessionStatus } from '../domain/game-session.types'
+import FormDateTimeField from '@/ui/patterns/form/FormDateTimeField'
+import FormSelectField from '@/ui/patterns/form/FormSelectField'
+import FormTextField from '@/ui/patterns/form/FormTextField'
+import { EntitySummaryCard, SelectedEntitiesLane, SelectEntityModal, type SelectEntityOption } from '@/ui/patterns'
+import { AppAlert, AppAvatar } from '@/ui/primitives'
+import { resolveImageUrl } from '@/shared/lib/media'
 
 const STATUS_LABEL: Record<GameSessionStatus, string> = {
   draft: 'Draft',
@@ -55,6 +68,8 @@ type FormValues = {
   scheduledFor: string | null
   locationIds: string[]
   floorId: string
+  /** `monster:id` / `npc:id` keys (encounter opponent vocabulary). */
+  opponentRefKeys: string[]
 }
 
 function buildDefaults(session: GameSession): FormValues {
@@ -68,12 +83,217 @@ function buildDefaults(session: GameSession): FormValues {
     scheduledFor: session.scheduledFor ?? null,
     locationIds: session.location.locationId ? [session.location.locationId] : [],
     floorId: floor,
+    opponentRefKeys: [...session.opponentRefKeys],
   }
 }
 
 function floorCountForBuilding(buildingId: string, all: Location[]): number {
   const n = all.filter((l) => l.parentId === buildingId && l.scale === 'floor').length
   return Math.max(1, n)
+}
+
+type GameSessionBuildingLocationFieldProps = {
+  control: Control<FormValues>
+  campaignId: string | undefined
+  locations: Location[]
+  buildingSelectOptions: SelectEntityOption[]
+  canEdit: boolean
+}
+
+function GameSessionBuildingLocationField({
+  control,
+  campaignId,
+  locations,
+  buildingSelectOptions,
+  canEdit,
+}: GameSessionBuildingLocationFieldProps) {
+  const [modalOpen, setModalOpen] = useState(false)
+
+  return (
+    <Controller
+      name="locationIds"
+      control={control}
+      defaultValue={[]}
+      render={({ field }) => {
+        const selectedId = field.value?.[0]
+        const selectedLoc = selectedId ? locations.find((l) => l.id === selectedId) : undefined
+        const parentName =
+          selectedLoc?.parentId != null
+            ? locations.find((p) => p.id === selectedLoc.parentId)?.name
+            : undefined
+
+        const detailLink =
+          campaignId && selectedId
+            ? `/campaigns/${campaignId}/world/locations/${selectedId}`
+            : '#'
+
+        return (
+          <>
+            <SelectedEntitiesLane
+              title="Location (building)"
+              description="Only building-scale locations are listed."
+              actionLabel={selectedId ? 'Change building' : 'Select building'}
+              onAction={() => setModalOpen(true)}
+              emptyMessage="No building selected yet."
+              hasSelection={Boolean(selectedId)}
+              actionDisabled={!canEdit}
+            >
+              {selectedId && selectedLoc?.scale === 'building' ? (
+                <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ width: '100%' }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <LocationSummaryCard
+                      link={detailLink}
+                      name={selectedLoc.name}
+                      scale={selectedLoc.scale}
+                      imageUrl={
+                        selectedLoc.imageKey ? resolveImageUrl(selectedLoc.imageKey) : undefined
+                      }
+                      parentName={parentName}
+                    />
+                  </Box>
+                  <IconButton
+                    size="small"
+                    aria-label="Clear building"
+                    onClick={() => field.onChange([])}
+                    disabled={!canEdit}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Stack>
+              ) : selectedId ? (
+                <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ width: '100%' }}>
+                  <Typography variant="body2" color="error" sx={{ flex: 1 }}>
+                    This location is missing or is not a building-scale location.
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    aria-label="Clear building"
+                    onClick={() => field.onChange([])}
+                    disabled={!canEdit}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Stack>
+              ) : null}
+            </SelectedEntitiesLane>
+
+            <SelectEntityModal
+              open={modalOpen}
+              onClose={() => setModalOpen(false)}
+              headline="Location (building)"
+              subheadline="Choose a building for this session."
+              options={buildingSelectOptions}
+              selectedIds={selectedId ? [selectedId] : []}
+              onApply={(ids) => {
+                field.onChange(ids.slice(0, 1))
+              }}
+              maxSelections={1}
+              filterPlaceholder="Search buildings…"
+              footerNote={
+                buildingSelectOptions.length === 0
+                  ? 'No building locations in this campaign.'
+                  : undefined
+              }
+            />
+          </>
+        )
+      }}
+    />
+  )
+}
+
+type GameSessionOpponentsFieldProps = {
+  control: Control<FormValues>
+  monsterSelectOptions: SelectEntityOption[]
+  npcSelectOptions: SelectEntityOption[]
+  opponentOptionsByKey: Record<string, OpponentOption>
+  canEdit: boolean
+}
+
+function GameSessionOpponentsField({
+  control,
+  monsterSelectOptions,
+  npcSelectOptions,
+  opponentOptionsByKey,
+  canEdit,
+}: GameSessionOpponentsFieldProps) {
+  const [modalOpen, setModalOpen] = useState(false)
+
+  return (
+    <Controller
+      name="opponentRefKeys"
+      control={control}
+      defaultValue={[]}
+      render={({ field }) => {
+        const keys = field.value ?? []
+        return (
+          <>
+            <SelectedEntitiesLane
+              title="Monsters"
+              description="Choose monsters and NPCs from the campaign catalog (same sources as encounter opponent selection)."
+              actionLabel={keys.length > 0 ? 'Edit monsters & NPCs' : 'Add monsters & NPCs'}
+              onAction={() => setModalOpen(true)}
+              emptyMessage="No monsters or NPCs selected yet."
+              hasSelection={keys.length > 0}
+              actionDisabled={!canEdit}
+            >
+              <Stack spacing={1.5} sx={{ width: '100%' }}>
+                {keys.map((key) => {
+                  const opt = opponentOptionsByKey[key]
+                  return (
+                    <Paper key={key} variant="outlined" sx={{ p: 1.5 }}>
+                      <Stack direction="row" alignItems="flex-start" spacing={1}>
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          {opt ? (
+                            <EntitySummaryCard
+                              avatar={
+                                <AppAvatar
+                                  src={resolveImageUrl(opt.imageKey ?? opt.imageUrl)}
+                                  name={opt.label}
+                                  size="sm"
+                                />
+                              }
+                              title={opt.label}
+                              subtitle={opt.subtitle}
+                              titleVariant="body2"
+                            />
+                          ) : (
+                            <Typography variant="body2" color="error">
+                              Unknown entry: {key}
+                            </Typography>
+                          )}
+                        </Box>
+                        <IconButton
+                          size="small"
+                          aria-label="Remove from list"
+                          onClick={() => field.onChange(keys.filter((k) => k !== key))}
+                          disabled={!canEdit}
+                        >
+                          <CloseIcon fontSize="small" />
+                        </IconButton>
+                      </Stack>
+                    </Paper>
+                  )
+                })}
+              </Stack>
+            </SelectedEntitiesLane>
+
+            <SelectEncounterOpponentModal
+              open={modalOpen}
+              onClose={() => setModalOpen(false)}
+              headline="Select monsters & NPCs"
+              monsterOptions={monsterSelectOptions}
+              npcOptions={npcSelectOptions}
+              selectedOpponentKeys={keys}
+              onApply={(next) => {
+                field.onChange(next)
+              }}
+            />
+          </>
+        )
+      }}
+    />
+  )
 }
 
 function buildPatch(
@@ -92,6 +312,7 @@ function buildPatch(
     locationLabel: null,
     buildingId: null,
     floorId: isBuilding ? (vals.floorId || '1') : null,
+    opponentRefKeys: vals.opponentRefKeys,
   }
 }
 
@@ -99,8 +320,12 @@ type GameSessionSetupFormFieldsProps = {
   methods: UseFormReturn<FormValues>
   sessionStatus: GameSessionStatus
   canEdit: boolean
+  campaignId: string | undefined
   locations: Location[]
-  buildingPickerOptions: PickerOption[]
+  buildingSelectOptions: SelectEntityOption[]
+  monsterSelectOptions: SelectEntityOption[]
+  npcSelectOptions: SelectEntityOption[]
+  opponentOptionsByKey: Record<string, OpponentOption>
   saving: boolean
   onSaveDraft: () => void
   onScheduleSession: () => void
@@ -111,8 +336,12 @@ function GameSessionSetupFormFields({
   methods,
   sessionStatus,
   canEdit,
+  campaignId,
   locations,
-  buildingPickerOptions,
+  buildingSelectOptions,
+  monsterSelectOptions,
+  npcSelectOptions,
+  opponentOptionsByKey,
   saving,
   onSaveDraft,
   onScheduleSession,
@@ -179,29 +408,42 @@ function GameSessionSetupFormFields({
         time — use Open now when you are ready to gather players.
       </Typography>
 
-      <Controller
-        name="locationIds"
-        control={control}
-        defaultValue={[]}
-        render={({ field }) => (
-          <OptionPickerField
-            label="Location (building)"
-            options={buildingPickerOptions}
-            value={field.value ?? []}
-            onChange={field.onChange}
-            maxItems={1}
-            disabled={!canEdit}
-            renderSelectedAs="card"
-            placeholder="Search buildings…"
-            helperText="Only building-scale locations are listed."
-            emptyMessage="No building locations in this campaign."
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        alignItems="stretch"
+        sx={{ width: '100%' }}
+      >
+        <Box sx={{ flex: { md: 1 }, minWidth: 0 }}>
+          <Stack spacing={2}>
+            <GameSessionBuildingLocationField
+              control={control}
+              campaignId={campaignId}
+              locations={locations}
+              buildingSelectOptions={buildingSelectOptions}
+              canEdit={canEdit}
+            />
+            {isBuildingLocation && (
+              <FormSelectField
+                name="floorId"
+                label="Floor"
+                options={floorOptions}
+                size="small"
+                disabled={!canEdit}
+              />
+            )}
+          </Stack>
+        </Box>
+        <Box sx={{ flex: { md: 1 }, minWidth: 0 }}>
+          <GameSessionOpponentsField
+            control={control}
+            monsterSelectOptions={monsterSelectOptions}
+            npcSelectOptions={npcSelectOptions}
+            opponentOptionsByKey={opponentOptionsByKey}
+            canEdit={canEdit}
           />
-        )}
-      />
-
-      {isBuildingLocation && (
-        <FormSelectField name="floorId" label="Floor" options={floorOptions} size="small" disabled={!canEdit} />
-      )}
+        </Box>
+      </Stack>
 
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ pt: 1 }}>
         <Button
@@ -238,11 +480,25 @@ function GameSessionSetupFormFields({
 type GameSessionSetupViewProps = {
   session: GameSession
   canEdit: boolean
+  /** Campaign id for location detail links in the building summary card. */
+  campaignId: string | undefined
   locations: Location[]
+  monsterSelectOptions: SelectEntityOption[]
+  npcSelectOptions: SelectEntityOption[]
+  opponentOptionsByKey: Record<string, OpponentOption>
   onSave: (patch: GameSessionPatch) => Promise<void>
 }
 
-export function GameSessionSetupView({ session, canEdit, locations, onSave }: GameSessionSetupViewProps) {
+export function GameSessionSetupView({
+  session,
+  canEdit,
+  campaignId,
+  locations,
+  monsterSelectOptions,
+  npcSelectOptions,
+  opponentOptionsByKey,
+  onSave,
+}: GameSessionSetupViewProps) {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -257,14 +513,15 @@ export function GameSessionSetupView({ session, canEdit, locations, onSave }: Ga
     reset(buildDefaults(session))
   }, [session, reset])
 
-  const buildingPickerOptions: PickerOption[] = useMemo(
+  const buildingSelectOptions: SelectEntityOption[] = useMemo(
     () =>
       locations
         .filter((l) => l.scale === 'building')
         .map((l) => ({
-          value: l.id,
+          id: l.id,
           label: l.name,
-          description: l.category,
+          subtitle: l.category,
+          imageKey: l.imageKey ?? null,
         })),
     [locations],
   )
@@ -350,8 +607,12 @@ export function GameSessionSetupView({ session, canEdit, locations, onSave }: Ga
                   methods={methods}
                   sessionStatus={session.status}
                   canEdit={canEdit}
+                  campaignId={campaignId}
                   locations={locations}
-                  buildingPickerOptions={buildingPickerOptions}
+                  buildingSelectOptions={buildingSelectOptions}
+                  monsterSelectOptions={monsterSelectOptions}
+                  npcSelectOptions={npcSelectOptions}
+                  opponentOptionsByKey={opponentOptionsByKey}
                   saving={saving}
                   onSaveDraft={onSaveDraft}
                   onScheduleSession={onScheduleSession}

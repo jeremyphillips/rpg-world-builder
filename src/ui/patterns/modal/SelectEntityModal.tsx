@@ -24,6 +24,8 @@ export function SelectEntityModal({
   onApply,
   footerNote,
   headerSlot,
+  maxSelections,
+  filterPlaceholder = 'Search…',
 }: SelectEntityModalProps) {
   const [filter, setFilter] = useState('')
   const [localSelected, setLocalSelected] = useState<string[]>(selectedIds)
@@ -41,9 +43,12 @@ export function SelectEntityModal({
   }, [options, filter])
 
   const toggleSelection = (id: string) => {
-    setLocalSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    )
+    setLocalSelected((prev) => {
+      if (maxSelections === 1) {
+        return prev.includes(id) ? [] : [id]
+      }
+      return prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    })
   }
 
   const handleApply = () => {
@@ -68,7 +73,7 @@ export function SelectEntityModal({
         <TextField
           fullWidth
           size="small"
-          placeholder="Search…"
+          placeholder={filterPlaceholder}
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           autoFocus

@@ -1,55 +1,53 @@
 import { HorizontalCompactCard } from '@/ui/patterns'
 import { CardBadge } from '@/ui/primitives'
-import type { CardBadgeProps } from '@/ui/primitives'
 
 export interface LocationSummaryCardProps {
-  /** Location detail route (footer “View details”). */
-  link: string
+  /** Location detail route when `footerActionLabel` is set. */
+  link?: string
   name: string
-  type: string
-  description?: string
+  /** Shown in the description line before `parentName` (e.g. scale id or label). */
+  scale?: string
   imageUrl?: string
   /** Whether this is a user-created location */
   isCustom?: boolean
-  /** Parent location name, if nested */
+  /** Parent location name, if nested — combined with `scale` for the description line. */
   parentName?: string
+  /**
+   * When set (non-empty), renders the footer link to `link` with this label.
+   * Omit to hide the footer action (default).
+   */
+  footerActionLabel?: string
+}
+
+function buildDescription(scale?: string, parentName?: string): string | undefined {
+  const s = scale?.trim()
+  const p = parentName?.trim()
+  if (s && p) return `${s} · ${p}`
+  if (s) return s
+  if (p) return p
+  return undefined
 }
 
 const LocationSummaryCard = ({
   link,
   name,
-  type,
-  description,
+  scale,
   imageUrl,
   isCustom,
   parentName,
+  footerActionLabel,
 }: LocationSummaryCardProps) => {
-  const badgeItems: CardBadgeProps[] = [
-    { type: 'tag', value: type },
-  ]
-  if (isCustom) {
-    badgeItems.push({ type: 'tag', value: 'Custom' })
-  }
-
-  const titleBadges = (
-    <>
-      {badgeItems.map((b, i) => (
-        <CardBadge key={i} type={b.type} value={b.value} />
-      ))}
-    </>
-  )
-
-  const subheadline = parentName ? `Inside: ${parentName}` : undefined
+  const description = buildDescription(scale, parentName)
+  const showFooter = Boolean(link && footerActionLabel?.trim())
 
   return (
     <HorizontalCompactCard
       image={imageUrl}
       headline={name}
-      subheadline={subheadline}
       description={description}
-      titleBadges={titleBadges}
-      footerActionTo={link}
-      footerActionLabel="View details"
+      titleBadges={isCustom ? <CardBadge type="tag" value="Custom" /> : undefined}
+      footerActionTo={showFooter ? link : undefined}
+      footerActionLabel={showFooter ? footerActionLabel?.trim() : undefined}
       footerActionOpenInNewTab={false}
     />
   )

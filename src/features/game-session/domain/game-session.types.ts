@@ -41,6 +41,10 @@ export type GameSession = {
    */
   scheduledFor: string | null
   location: GameSessionLocationContext
+  /**
+   * Planned opponent references (`monster:id` / `npc:id`), aligned with encounter opponent picker keys.
+   */
+  opponentRefKeys: string[]
   participants: GameSessionParticipant[]
   /**
    * Active encounter subsystem owned by this session (child), when live combat exists.

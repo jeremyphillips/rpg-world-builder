@@ -15,6 +15,7 @@ type GameSessionDto = {
     label: string | null
   }
   participants: GameSession['participants']
+  opponentRefKeys: string[]
   activeEncounterId: string | null
   createdAt: string
   updatedAt: string
@@ -35,6 +36,7 @@ function dtoToGameSession(d: GameSessionDto): GameSession {
       label: d.location.label,
     },
     participants: d.participants,
+    opponentRefKeys: d.opponentRefKeys ?? [],
     activeEncounterId: d.activeEncounterId,
     createdAt: d.createdAt,
     updatedAt: d.updatedAt,
@@ -85,6 +87,7 @@ export type GameSessionPatch = {
   buildingId?: string | null
   floorId?: string | null
   locationLabel?: string | null
+  opponentRefKeys?: string[]
   activeEncounterId?: string | null
 }
 

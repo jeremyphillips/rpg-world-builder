@@ -105,11 +105,20 @@ export async function updateGameSession(req: Request, res: Response) {
     buildingId,
     floorId,
     locationLabel,
+    opponentRefKeys,
     activeEncounterId,
   } = req.body
 
   if (status !== undefined && !gameSessionService.isGameSessionStatus(status)) {
     res.status(400).json({ error: 'Invalid status' })
+    return
+  }
+
+  if (
+    opponentRefKeys !== undefined &&
+    (!Array.isArray(opponentRefKeys) || opponentRefKeys.some((x: unknown) => typeof x !== 'string'))
+  ) {
+    res.status(400).json({ error: 'opponentRefKeys must be an array of strings' })
     return
   }
 
@@ -122,6 +131,7 @@ export async function updateGameSession(req: Request, res: Response) {
       buildingId,
       floorId,
       locationLabel,
+      opponentRefKeys,
       activeEncounterId,
     })
     if (!gameSession) {

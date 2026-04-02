@@ -11,6 +11,7 @@ const session: GameSession = {
   title: 'S',
   scheduledFor: null,
   location: {},
+  opponentRefKeys: [],
   participants: [],
 }
 

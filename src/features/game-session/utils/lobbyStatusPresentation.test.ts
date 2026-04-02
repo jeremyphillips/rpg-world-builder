@@ -8,6 +8,7 @@ const base: Omit<GameSession, 'status' | 'scheduledFor'> = {
   dmUserId: 'dm',
   title: 'Test',
   location: {},
+  opponentRefKeys: [],
   participants: [],
 }
 

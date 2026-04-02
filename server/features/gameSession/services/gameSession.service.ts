@@ -31,6 +31,8 @@ export interface GameSessionDoc {
   floorId?: string | null
   locationLabel?: string | null
   participants: GameSessionParticipantDoc[]
+  /** `monster:id` / `npc:id` keys (same vocabulary as encounter opponent selection). */
+  opponentRefKeys?: string[]
   activeEncounterId?: string | null
   createdAt: Date
   updatedAt: Date
@@ -54,6 +56,7 @@ export type GameSessionApi = {
     characterId: string | null
     role: GameSessionParticipantRole
   }>
+  opponentRefKeys: string[]
   activeEncounterId: string | null
   createdAt: string
   updatedAt: string
@@ -78,6 +81,7 @@ function docToApi(doc: GameSessionDoc & { _id: mongoose.Types.ObjectId }): GameS
       characterId: p.characterId ? p.characterId.toString() : null,
       role: p.role,
     })),
+    opponentRefKeys: Array.isArray(doc.opponentRefKeys) ? [...doc.opponentRefKeys] : [],
     activeEncounterId: doc.activeEncounterId ?? null,
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
@@ -140,6 +144,7 @@ export async function createGameSession(
     floorId: data.floorId ?? null,
     locationLabel: data.locationLabel ?? null,
     participants: [{ userId: uid, role: 'dm', characterId: null }],
+    opponentRefKeys: [],
     activeEncounterId: null,
     createdAt: now,
     updatedAt: now,
@@ -174,6 +179,7 @@ export async function updateGameSession(
     buildingId?: string | null
     floorId?: string | null
     locationLabel?: string | null
+    opponentRefKeys?: string[]
     activeEncounterId?: string | null
   },
 ): Promise<GameSessionApi | null> {
@@ -196,6 +202,7 @@ export async function updateGameSession(
   if (patch.buildingId !== undefined) $set.buildingId = patch.buildingId
   if (patch.floorId !== undefined) $set.floorId = patch.floorId
   if (patch.locationLabel !== undefined) $set.locationLabel = patch.locationLabel
+  if (patch.opponentRefKeys !== undefined) $set.opponentRefKeys = patch.opponentRefKeys
   if (patch.activeEncounterId !== undefined) $set.activeEncounterId = patch.activeEncounterId
 
   const doc = await gameSessionsCollection().findOneAndUpdate(
