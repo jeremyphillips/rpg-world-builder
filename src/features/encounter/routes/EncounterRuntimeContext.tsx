@@ -21,30 +21,20 @@ import { useCharacters } from '@/features/character/hooks'
 import { formatMonsterIdentityLine } from '@/features/content/monsters/formatters'
 import { buildMonsterModalStats } from '@/features/combat/presentation'
 import { ATMOSPHERE_TAGS } from '@/features/mechanics/domain/environment'
-import { getEffectiveGroundMovementBudgetFt } from '@/features/mechanics/domain/combat/state'
-import { resolveBattlefieldEffectOriginCellId } from '@/features/mechanics/domain/combat/state/battlefield/battlefield-effect-anchor'
-import { getCombatantBaseMovement } from '@/features/mechanics/domain/combat/state/shared'
-import { actionRequiresCreatureTargetForResolve } from '@/features/mechanics/domain/combat'
-import { getSingleCellPlacementRequirement } from '@/features/mechanics/domain/combat/resolution/action/action-requirement-model'
-import { getCombatantDisplayLabel } from '@/features/mechanics/domain/combat/state'
-
 import {
-  canResolveCombatActionSelection,
-  deriveEncounterCapabilities,
-  deriveEncounterHeaderModel,
-  deriveEncounterPerceptionUiFeedback,
   deriveEncounterPresentationGridPerceptionInput,
   type EncounterSimulatorViewerMode,
   type EncounterViewerContext,
 } from '../domain'
 import { SIMULATOR_ENCOUNTER_SETUP_POLICY } from '../domain/setup'
 import { useEncounterState, useEncounterOptions, useEncounterRoster } from '../hooks'
+import { useEncounterCombatActiveHeader } from '../hooks/useEncounterCombatActiveHeader'
+import { useEncounterGridViewModel } from '../hooks/useEncounterGridViewModel'
 import type { GridInteractionMode } from '../domain'
 import {
   OpponentRosterLane,
   AllyRosterLane,
   EncounterSetupHeader,
-  EncounterActiveHeader,
   SelectEncounterAllyModal,
   SelectEncounterOpponentModal,
   EncounterEditModal,
@@ -53,11 +43,7 @@ import {
   type EnvironmentSetupValues,
   type GridSizePreset,
 } from '../components'
-import { areaTemplateRadiusFt } from '@/features/mechanics/domain/combat/resolution/action/action-targeting'
 import { isAreaGridAction } from '../helpers/actions'
-import { getCellForCombatant } from '@/features/mechanics/domain/combat/space/space.helpers'
-import { buildCombatantViewerPresentationKindById } from '@/features/mechanics/domain/combat/space/rendering/grid-occupant-render-visibility'
-import { selectGridViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/creation/createSquareGridSpace'
 import { placeRandomGridObstacle } from '@/features/mechanics/domain/combat/space/placement/placeRandomGridObstacle'
 
@@ -358,112 +344,21 @@ function useEncounterRuntimeValue() {
     }
   }, [aoeStep, selectedAction, selectedCasterOptions])
 
-  const selectedActionRangeFt = useMemo(() => {
-    return selectedAction?.targeting?.rangeFt ?? null
-  }, [selectedAction])
-
-  const persistentAttachedAuras = useMemo(() => {
-    if (!encounterState?.attachedAuraInstances?.length) return undefined
-    const resolved = encounterState.attachedAuraInstances
-      .map((a) => {
-        const originCellId = resolveBattlefieldEffectOriginCellId(
-          encounterState.space,
-          encounterState.placements,
-          a.anchor,
-        )
-        if (!originCellId) return null
-        return { originCellId, areaRadiusFt: a.area.size }
-      })
-      .filter((x): x is { originCellId: string; areaRadiusFt: number } => x !== null)
-    return resolved.length > 0 ? resolved : undefined
-  }, [encounterState?.attachedAuraInstances, encounterState?.space, encounterState?.placements])
-
-  const aoeGridOverlay = useMemo(() => {
-    if (!encounterState?.space || !encounterState.placements || !activeCombatantId) return null
-    if (!selectedAction || !isAreaGridAction(selectedAction, selectedCasterOptions) || aoeStep === 'none')
-      return null
-    const casterCellId = getCellForCombatant(encounterState.placements, activeCombatantId)
-    if (!casterCellId || !selectedAction.areaTemplate) return null
-    const castRangeFt = selectedAction.targeting?.rangeFt ?? 0
-    const areaRadiusFt = areaTemplateRadiusFt(selectedAction.areaTemplate)
-    return {
-      castRangeFt,
-      areaRadiusFt,
-      casterCellId,
-      hoverCellId: aoeHoverCellId,
-      originCellId: aoeOriginCellId,
-      step: aoeStep === 'confirm' ? 'confirm' as const : 'placing' as const,
-    }
-  }, [
+  const { gridViewModel, combatantViewerPresentationKindById } = useEncounterGridViewModel({
     encounterState,
     activeCombatantId,
+    activeCombatant,
     selectedAction,
+    selectedActionTargetId,
     selectedCasterOptions,
     aoeStep,
     aoeHoverCellId,
     aoeOriginCellId,
-  ])
-
-  const singleCellPlacementGridOverlay = useMemo(() => {
-    if (!encounterState?.space || !encounterState.placements || !activeCombatantId) return null
-    if (interactionMode !== 'single-cell-place') return null
-    if (!selectedAction) return null
-    const req = getSingleCellPlacementRequirement(selectedAction)
-    if (!req) return null
-    const casterCellId = getCellForCombatant(encounterState.placements, activeCombatantId)
-    if (!casterCellId) return null
-    return {
-      casterCellId,
-      rangeFt: req.rangeFt,
-      lineOfSightRequired: req.lineOfSightRequired,
-      mustBeUnoccupied: req.mustBeUnoccupied,
-      hoverCellId: singleCellPlacementHoverCellId,
-      selectedCellId: selectedSingleCellPlacementCellId,
-    }
-  }, [
-    encounterState,
-    activeCombatantId,
-    selectedAction,
     interactionMode,
     singleCellPlacementHoverCellId,
     selectedSingleCellPlacementCellId,
-  ])
-
-  const gridViewModel = useMemo(() => {
-    if (!encounterState) return undefined
-    const rangeForRing =
-      aoeGridOverlay || singleCellPlacementGridOverlay ? null : selectedActionRangeFt
-    return selectGridViewModel(encounterState, {
-      selectedTargetId: selectedActionTargetId || null,
-      selectedActionRangeFt: rangeForRing,
-      selectedAction,
-      showReachable:
-        (activeCombatant?.turnResources?.movementRemaining ?? 0) > 0 &&
-        interactionMode !== 'aoe-place' &&
-        interactionMode !== 'single-cell-place',
-      aoe: aoeGridOverlay,
-      placementPick: singleCellPlacementGridOverlay,
-      persistentAttachedAuras,
-      perception: presentationGridPerceptionInput,
-    })
-  }, [
-    encounterState,
-    selectedActionTargetId,
-    selectedActionRangeFt,
-    selectedAction,
-    activeCombatant,
-    aoeGridOverlay,
-    singleCellPlacementGridOverlay,
-    interactionMode,
-    persistentAttachedAuras,
-    presentationGridPerceptionInput,
-  ])
-
-  const combatantViewerPresentationKindById = useMemo(() => {
-    if (!encounterState) return {}
-    const ids = Object.keys(encounterState.combatantsById)
-    return buildCombatantViewerPresentationKindById(encounterState, presentationGridPerceptionInput, ids)
-  }, [encounterState, presentationGridPerceptionInput])
+    presentationGridPerceptionInput: presentationGridPerceptionInput ?? undefined,
+  })
 
   // turnResources was consumed by the now-commented-out footer.
   // activeCombatant.turnResources is still accessible directly via the context.
@@ -501,186 +396,34 @@ function useEncounterRuntimeValue() {
     />
   )
 
-  const encounterCombatantRoster = useMemo(
-    () => (encounterState ? Object.values(encounterState.combatantsById) : []),
-    [encounterState],
-  )
-
-  const nextCombatantId = useMemo(() => {
-    if (!encounterState) return null
-    const nextIdx = encounterState.turnIndex + 1
-    return nextIdx < encounterState.initiativeOrder.length
-      ? encounterState.initiativeOrder[nextIdx]
-      : encounterState.initiativeOrder[0] ?? null
-  }, [encounterState])
-
-  const nextCombatantLabel = useMemo(() => {
-    if (!encounterState || !nextCombatantId) return null
-    const nextCombatant = encounterState.combatantsById[nextCombatantId]
-    if (!nextCombatant) return null
-    return getCombatantDisplayLabel(nextCombatant, encounterCombatantRoster)
-  }, [encounterState, encounterCombatantRoster, nextCombatantId])
-
-  const nextCombatantPresentationKind = useMemo(() => {
-    if (!nextCombatantId) return null
-    return combatantViewerPresentationKindById[nextCombatantId] ?? 'visible'
-  }, [nextCombatantId, combatantViewerPresentationKindById])
-
-  const presentationViewerDisplayLabel = useMemo(() => {
-    if (!encounterState || !activeCombatant) return null
-    const vid = presentationGridPerceptionInput?.viewerCombatantId
-    if (vid && encounterState.combatantsById[vid]) {
-      return getCombatantDisplayLabel(encounterState.combatantsById[vid], encounterCombatantRoster)
-    }
-    return getCombatantDisplayLabel(activeCombatant, encounterCombatantRoster)
-  }, [encounterState, activeCombatant, encounterCombatantRoster, presentationGridPerceptionInput])
-
-  const perceptionUiFeedback = useMemo(
-    () =>
-      activeCombatant
-        ? deriveEncounterPerceptionUiFeedback({
-            simulatorViewerMode: viewerContext.simulatorViewerMode,
-            presentationViewerDisplayLabel,
-            gridPerception: gridViewModel?.perception,
-          })
-        : null,
-    [
-      activeCombatant,
-      presentationViewerDisplayLabel,
-      gridViewModel?.perception,
-      viewerContext.simulatorViewerMode,
-    ],
-  )
-
-  const capabilities = useMemo(
-    () => (encounterState ? deriveEncounterCapabilities(encounterState, viewerContext) : null),
-    [encounterState, viewerContext],
-  )
-
-  const targetCombatantForHeader = useMemo(() => {
-    if (!encounterState || !selectedActionTargetId) return null
-    return encounterState.combatantsById[selectedActionTargetId] ?? null
-  }, [encounterState, selectedActionTargetId])
-
-  const canResolveActionForHeader = useMemo(
-    () =>
-      canResolveCombatActionSelection({
-        selectedActionId,
-        selectedAction,
-        availableActions,
-        aoeStep,
-        aoeOriginCellId,
-        selectedActionTargetId,
-        selectedCasterOptions,
-        selectedSingleCellPlacementCellId,
-        selectedObjectAnchorId,
-        encounterState,
-        activeCombatant,
-      }),
-    [
-      selectedActionId,
-      selectedAction,
-      availableActions,
-      aoeStep,
-      aoeOriginCellId,
-      selectedActionTargetId,
-      selectedCasterOptions,
-      selectedSingleCellPlacementCellId,
-      selectedObjectAnchorId,
-      encounterState,
-      activeCombatant,
-    ],
-  )
-
-  const availableActionIdsForHeader = useMemo(
-    () => availableActions.map((a) => a.id),
-    [availableActions],
-  )
-
-  const baseMovementFt = useMemo(() => {
-    if (!activeCombatant) return 0
-    if (encounterState && catalog.spellsById) {
-      return getEffectiveGroundMovementBudgetFt(activeCombatant, encounterState, {
-        spellLookup: (id) => catalog.spellsById[id],
-        suppressSameSideHostile,
-      })
-    }
-    return getCombatantBaseMovement(activeCombatant)
-  }, [activeCombatant, encounterState, catalog.spellsById, suppressSameSideHostile])
-
-  const encounterHeaderModel = useMemo(() => {
-    if (!activeCombatant) {
-      return { directive: '—', endTurnEmphasis: 'subtle' as const }
-    }
-    return deriveEncounterHeaderModel({
-      turn: {
-        combatantActions: activeCombatant.actions,
-        availableActionIds: availableActionIdsForHeader,
-        turnResources: activeCombatant.turnResources ?? null,
-      },
-      interaction: {
-        interactionMode,
-        selectedActionId,
-        selectedAction,
-        selectedCasterOptions,
-        aoeStep,
-        canResolveAction: canResolveActionForHeader,
-        selectedActionRequiresCreatureTarget: selectedAction
-          ? actionRequiresCreatureTargetForResolve(selectedAction, selectedCasterOptions)
-          : undefined,
-      },
-      display: {
-        selectedActionLabel: selectedAction?.label ?? null,
-        selectedTargetLabel:
-          targetCombatantForHeader && encounterState
-            ? getCombatantDisplayLabel(targetCombatantForHeader, encounterCombatantRoster)
-            : null,
-      },
-    })
-  }, [
+  const { activeHeader, capabilities } = useEncounterCombatActiveHeader({
+    variant: 'simulator',
+    encounterState,
     activeCombatant,
-    interactionMode,
-    availableActionIdsForHeader,
+    availableActions,
     selectedActionId,
     selectedAction,
-    aoeStep,
-    targetCombatantForHeader,
-    canResolveActionForHeader,
-    encounterState,
-    encounterCombatantRoster,
     selectedCasterOptions,
-  ])
-
-  /** Matches {@link getCombatantAvailableActions}: empty means no action/bonus costs left to spend on real options (bonus slot can read “available” while bonus list is empty). */
-  const canOpenActionsDrawer =
-    Boolean(capabilities?.canSelectAction) && availableActions.length > 0
-
-  const activeHeader =
-    encounterState && activeCombatant ? (
-      <EncounterActiveHeader
-        roundNumber={encounterState.roundNumber}
-        turnIndex={encounterState.turnIndex}
-        turnCount={encounterState.initiativeOrder.length}
-        nextCombatantLabel={nextCombatantLabel}
-        activeCombatant={activeCombatant}
-        activeCombatantDisplayLabel={getCombatantDisplayLabel(activeCombatant, encounterCombatantRoster)}
-        monstersById={monstersById}
-        turnResources={activeCombatant.turnResources ?? null}
-        baseMovementFt={baseMovementFt}
-        directive={encounterHeaderModel.directive}
-        endTurnEmphasis={encounterHeaderModel.endTurnEmphasis}
-        canOpenActions={canOpenActionsDrawer}
-        onOpenActions={() => setActionDrawerOpen(true)}
-        canEndTurn={capabilities?.canEndTurn ?? false}
-        onEndTurn={handleNextTurn}
-        onEditEncounter={() => setEditModalOpen(true)}
-        onResetEncounter={handleResetEncounter}
-        simulatorViewerMode={simulatorViewerMode}
-        onSimulatorViewerModeChange={handleSimulatorViewerModeChange}
-        perceptionFeedback={perceptionUiFeedback}
-        nextCombatantPresentationKind={nextCombatantPresentationKind}
-      />
-    ) : undefined
+    aoeStep,
+    aoeOriginCellId,
+    selectedActionTargetId,
+    selectedSingleCellPlacementCellId,
+    selectedObjectAnchorId,
+    interactionMode,
+    gridViewModel,
+    combatantViewerPresentationKindById,
+    presentationGridPerceptionInput,
+    viewerContext,
+    simulatorViewerMode,
+    onSimulatorViewerModeChange: handleSimulatorViewerModeChange,
+    handleNextTurn,
+    handleResetEncounter,
+    setActionDrawerOpen,
+    onEditEncounter: () => setEditModalOpen(true),
+    monstersById,
+    spellsById: catalog.spellsById,
+    suppressSameSideHostile,
+  })
 
   // activeFooter commented out -- action resolution now handled by CombatantActionDrawer
   const activeFooter = undefined

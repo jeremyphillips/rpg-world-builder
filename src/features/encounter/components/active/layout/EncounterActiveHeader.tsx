@@ -60,6 +60,11 @@ export type EncounterActiveHeaderProps = {
   /** Presentation POV for grid/sidebar/header (not turn ownership). */
   simulatorViewerMode: EncounterSimulatorViewerMode
   onSimulatorViewerModeChange: (mode: EncounterSimulatorViewerMode) => void
+  /**
+   * `simulator`: full POV + edit/reset (Encounter Simulator).
+   * `session`: live session play — hides simulator POV switcher and edit/reset affordances.
+   */
+  toolbarVariant?: 'simulator' | 'session'
   /** Magical darkness / blind veil hints from `deriveEncounterPerceptionUiFeedback` (not the main POV line). */
   perceptionFeedback?: EncounterPerceptionUiFeedback | null
   /** Next combatant’s viewer presentation (strict POV); null when N/A. */
@@ -88,7 +93,9 @@ export function EncounterActiveHeader({
   onSimulatorViewerModeChange,
   perceptionFeedback,
   nextCombatantPresentationKind = null,
+  toolbarVariant = 'simulator',
 }: EncounterActiveHeaderProps) {
+  const showSimulatorChrome = toolbarVariant === 'simulator'
   const move = turnResources?.movementRemaining ?? 0
   const headerRootRef = useRef<HTMLDivElement>(null)
   const resourcesExhausted = !turnResources || (turnResources.actionAvailable === false && turnResources.bonusActionAvailable === false && turnResources.movementRemaining === 0)
@@ -176,10 +183,16 @@ export function EncounterActiveHeader({
             aria-atomic="true"
             sx={{ maxWidth: '100%', width: '100%' }}
           >
-            <EncounterPresentationPovField
-              simulatorViewerMode={simulatorViewerMode}
-              onSimulatorViewerModeChange={onSimulatorViewerModeChange}
-            />
+            {showSimulatorChrome ? (
+              <EncounterPresentationPovField
+                simulatorViewerMode={simulatorViewerMode}
+                onSimulatorViewerModeChange={onSimulatorViewerModeChange}
+              />
+            ) : (
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                Session play
+              </Typography>
+            )}
             {perceptionFeedback?.magicalDarknessLine && (
               <AppTooltipWrap
                 tooltip={
@@ -304,38 +317,39 @@ export function EncounterActiveHeader({
         </Stack>
       </Stack>
       
-      {/* leaving commented out until i can find a better place for these buttons */}
-      <Stack
-        direction="row"
-        spacing={0}
-        sx={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          zIndex: 1,
-        }}
-      >
-        <AppTooltipWrap tooltip="Edit encounter">
-          <IconButton
-            size="small"
-            color="inherit"
-            aria-label="Edit encounter"
-            onClick={onEditEncounter}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </AppTooltipWrap>
-        <AppTooltipWrap tooltip="Reset encounter">
-          <IconButton
-            size="small"
-            color="inherit"
-            aria-label="Reset encounter"
-            onClick={onResetEncounter}
-          >
-            <RestartAltIcon fontSize="small" />
-          </IconButton>
-        </AppTooltipWrap>
-      </Stack>
+      {showSimulatorChrome && (
+        <Stack
+          direction="row"
+          spacing={0}
+          sx={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            zIndex: 1,
+          }}
+        >
+          <AppTooltipWrap tooltip="Edit encounter">
+            <IconButton
+              size="small"
+              color="inherit"
+              aria-label="Edit encounter"
+              onClick={onEditEncounter}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </AppTooltipWrap>
+          <AppTooltipWrap tooltip="Reset encounter">
+            <IconButton
+              size="small"
+              color="inherit"
+              aria-label="Reset encounter"
+              onClick={onResetEncounter}
+            >
+              <RestartAltIcon fontSize="small" />
+            </IconButton>
+          </AppTooltipWrap>
+        </Stack>
+      )}
     </Paper>
   )
 }

@@ -27,6 +27,7 @@ export { CombatGrid, type CombatGridProps } from './grid/CombatGrid'
 export { CombatantAvatar, type CombatantAvatarProps } from './avatar/CombatantAvatar'
 export { CombatantPreviewCard } from './cards/CombatantPreviewCard'
 export { CombatActionPreviewCard } from './cards/CombatActionPreviewCard'
+export { CombatPlayView, type CombatPlayViewProps } from './CombatPlayView'
 export {
   combatToneToAppBadgeTone,
   CombatantCoreBadgeRow,

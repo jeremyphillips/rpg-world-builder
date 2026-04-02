@@ -1,17 +1,43 @@
 import { Router } from 'express'
 import { asyncHandler } from '../../../shared/middleware/asyncHandler'
+import { requireAuth } from '../../../shared/middleware/requireAuth'
 import {
   parsePersistedApplyIntentBody,
 } from '../services/combatApplyIntent.service'
 import {
   applyPersistedIntent,
   createPersistedCombatSession,
+  getPersistedCombatSession,
 } from '../services/combatPersisted.service'
 import {
   parseCombatStartupBody,
 } from '../services/combatSessions.service'
 
 const router = Router()
+
+router.get(
+  '/sessions/:sessionId',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const rawId = req.params.sessionId
+    const sessionId = Array.isArray(rawId) ? rawId[0] : rawId
+    if (typeof sessionId !== 'string' || sessionId.length === 0) {
+      res.status(400).json({ error: 'Missing or invalid session id.' })
+      return
+    }
+    const record = await getPersistedCombatSession(sessionId)
+    if (!record) {
+      res.status(404).json({ error: 'Combat session not found.' })
+      return
+    }
+    res.json({
+      ok: true,
+      sessionId: record.sessionId,
+      revision: record.revision,
+      state: record.state,
+    })
+  }),
+)
 
 router.post(
   '/sessions/:sessionId/intents',

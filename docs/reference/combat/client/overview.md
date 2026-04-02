@@ -29,6 +29,7 @@ It should not own combat truth.
 
 Examples of things that belong here:
 
+- `CombatPlayView` (shared active play layout shell)
 - `CombatantAvatar`
 - `CombatantPreviewCard`
 - combat badges/chips

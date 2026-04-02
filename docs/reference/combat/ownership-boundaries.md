@@ -59,6 +59,7 @@ It owns:
 
 - reusable combat components
 - reusable combat renderer layers
+- the shared **active play** layout shell (**`CombatPlayView`**) — header/grid/sidebar/drawer **slots** — consumed by Encounter Simulator and GameSession **`/play`**, not simulator-only workflow
 - client-only formatting/chips/tooltips
 - optional reusable combat UI hooks
 - wrappers around canonical state/results for display
@@ -110,21 +111,22 @@ The Encounter Simulator must not own:
 
 ## GameSession feature owns
 
-The **GameSession** feature (`src/features/game-session`) owns the **live-play session** shell: game session records, campaign-scoped routes, **lobby** and **setup** UI, session lifecycle status, and **ephemeral lobby presence** (Socket.IO) for “who is here.”
+The **GameSession** feature (`src/features/game-session`) owns the **live-play session** shell: game session records, campaign-scoped routes, **lobby**, **setup**, **`/play`**, session lifecycle status, and **ephemeral lobby presence** (Socket.IO) for “who is here.”
 
 It owns:
 
-- game session CRUD and lifecycle actions (e.g. draft / scheduled / open lobby)
+- game session CRUD and lifecycle actions (e.g. draft / scheduled / open lobby / start session)
 - lobby and setup presentation that is **not** combat encounter state
+- **`/play` orchestration**: resolve **`activeEncounterId`**, fetch persisted combat (**`GET /api/combat/sessions/:id`**), hydrate local state, mirror intents (**`POST .../intents`**) after local applies, render the shared **`CombatPlayView`** shell (via **`GameSessionEncounterPlaySurface`** + **`useEncounterActivePlaySurface`**)
 - mapping expected party display to campaign roster (with a placeholder seam for stricter rules later)
 
 It must **not** own:
 
 - canonical **encounter** / combat state (that remains mechanics + server combat application)
-- combat rules, intents, or grid truth
-- Encounter Simulator workflow
+- combat rules, intents, or grid truth (it **calls** shared mechanics and HTTP APIs)
+- Encounter Simulator workflow (roster/setup/modals for the dev surface stay in **`encounter`**)
 
-Future “start encounter from this session” orchestration belongs here **only** as workflow that **invokes** the same combat seams used elsewhere—not as a second combat engine.
+“Start encounter / bind combat to this session” orchestration belongs here **only** as workflow that **invokes** the same combat seams used elsewhere—not as a second combat engine.
 
 ## Server combat application owns
 
@@ -195,8 +197,8 @@ It should be explicit and narrow.
 - it is pure and serializable
 
 ### Put code in client combat UI if:
-- it is a reusable combat-facing component or client presentation helper
-- it should not depend on Encounter Simulator routes/workflow
+- it is a reusable combat-facing component or client presentation helper (including the shared **`CombatPlayView`** shell)
+- it should not depend on Encounter Simulator routes/workflow or GameSession session orchestration
 
 ### Put code in Encounter Simulator (`src/features/encounter`) if:
 - it is setup, layout, orchestration, or feature workflow for the dev/testing combat surface

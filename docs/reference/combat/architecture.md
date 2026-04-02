@@ -28,7 +28,7 @@ If you are unsure where something goes, use [ownership-boundaries.md](./ownershi
 
 This is a **brief** anchor; details and gaps are in [roadmap.md](./roadmap.md).
 
-- **Client:** The **Encounter Simulator** uses **`startEncounterFromSetup`** for encounter start and **`applyCombatIntent`** for migrated in-encounter actions (see [client/local-dispatch.md](./client/local-dispatch.md)). This is still **local** to the browser for that dev/testing surface. **GameSession** (live-play session shell: lobby, setup, lifecycle) is implemented separately under `src/features/game-session`; it does **not** yet drive authoritative combat from the lobby—see [game-session.md](./game-session.md).
+- **Client:** The **Encounter Simulator** uses **`startEncounterFromSetup`** for encounter start and **`applyCombatIntent`** for migrated in-encounter actions (see [client/local-dispatch.md](./client/local-dispatch.md)); active combat uses the shared **`CombatPlayView`** shell via **`useEncounterActivePlaySurface`**. **GameSession** (`src/features/game-session`) provides lobby, setup, lifecycle, and a **`/play`** route that loads persisted combat by **`activeEncounterId`**, hydrates **`useEncounterState`**, mirrors intents to the server, and reuses the same **`CombatPlayView`** surface—see [game-session.md](./game-session.md).
 - **Shared package:** [`@rpg-world-builder/mechanics`](../../../packages/mechanics/README.md) exposes the combat application seams and wire types (see [adr-shared-combat-extraction.md](./adr-shared-combat-extraction.md)).
 - **Server:** REST endpoints persist **combat sessions** (MongoDB) with **`sessionId`**, **`revision`**, and **`EncounterState` snapshot**; startup and apply-intent are **separate** routes. Realtime broadcast and campaign permissions are **not** part of the current minimal server surface.
 
@@ -77,18 +77,19 @@ It is responsible for:
 - reusable combat presentation helpers
 - reusable renderer-level contracts
 - client display of canonical combat state and results
+- the shared **active play layout shell** (**`CombatPlayView`**) used by both the Encounter Simulator active route and GameSession **`/play`**
 
 This layer does **not** own truth.
 
 ### 3. Encounter Simulator feature
 
-This layer owns the **dev/testing** workflow around combat: a single operator runs the simulator, picks any roster, and controls every combatant’s turn. It is **not** **GameSession** (DM-led live session, lobby, and eventual encounter launch inside that session)—that product shell is a **separate feature**; see [game-session.md](./game-session.md).
+This layer owns the **dev/testing** workflow around combat: a single operator runs the simulator, picks any roster, and controls every combatant’s turn. It is **not** **GameSession** (DM-led live session: lobby, setup, **`/play`**, lifecycle)—that product shell is a **separate feature**; see [game-session.md](./game-session.md).
 
 It is responsible for:
 
 - simulator routes (campaign-scoped; URL may still use the segment `encounter` for stability)
 - setup flow
-- active combat screen composition
+- active combat screen composition (via shared **`useEncounterActivePlaySurface`** → **`CombatPlayView`**)
 - operator workflow (all combatants controlled by one user in this surface)
 - wrappers/adapters that connect feature state to combat UI
 - feature-specific modals and orchestration shells
@@ -132,7 +133,7 @@ Authored content does **not** directly own live combat state.
 2. An adapter converts the location floor into a combat seed
 3. Combat starts with canonical runtime state
 4. Client UI renders combat state through reusable combat UI
-5. Encounter Simulator composes workflow around that UI (**GameSession** composes live-play session concerns separately—lobby/setup today; encounter wiring later—see [game-session.md](./game-session.md))
+5. Encounter Simulator composes workflow around that UI; **GameSession** composes live-play session concerns separately (lobby, setup, **`/play`** with persisted combat when **`activeEncounterId`** is set—see [game-session.md](./game-session.md))
 6. Truth-changing operations use the **intent** seam (client-local and/or server-backed)
 7. Server is authoritative for persisted combat state and broadcasts updates to participants
 

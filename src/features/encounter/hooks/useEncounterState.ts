@@ -12,11 +12,13 @@ import {
   getCombatantAvailableActions,
   removeConditionFromCombatant,
   applyCombatIntent,
+  type ApplyCombatIntentContext,
   flattenLogEntriesFromIntentSuccess,
   startEncounterFromSetup,
   removeStateFromCombatant,
   triggerManualHook,
   type CombatantInstance,
+  type CombatIntent,
   type CombatLogEvent,
   type EncounterState,
   type ManualEnvironmentContext,
@@ -37,6 +39,7 @@ import { buildSummonAllyMonsterCombatant } from '../helpers/combatants'
 import type { AoeStep } from '../helpers/actions'
 
 import { buildResolveActionIntentFromActiveSelection } from '../domain/interaction/build-resolve-action-intent'
+import { postPersistedCombatIntent } from '@/features/combat/api/combatSessionApi'
 import type { OpponentRosterEntry } from '../types'
 import type { EncounterSpace, InitialPlacementOptions } from '@/features/mechanics/domain/combat/space'
 import type { CombatIntentSuccess } from '@/features/mechanics/domain/combat/results'
@@ -50,6 +53,18 @@ type UseEncounterStateArgs = {
   /** When set, end-of-turn interval resolution can load spell payloads (e.g. Spirit Guardians). */
   spellsById?: Record<string, Spell>
   suppressSameSideHostile?: boolean
+  /**
+   * When set (e.g. GameSession play), load encounter from persisted snapshot and skip roster-driven resets.
+   */
+  hydratedEncounterState?: EncounterState | null
+  /**
+   * When set, successful applyCombatIntent calls are mirrored to `POST /api/combat/sessions/:id/intents`.
+   */
+  persistedCombat?: {
+    sessionId: string
+    revision: number
+    setRevision: (r: number) => void
+  }
 }
 
 export function useEncounterState({
@@ -60,7 +75,16 @@ export function useEncounterState({
   armorById,
   spellsById,
   suppressSameSideHostile,
+  hydratedEncounterState,
+  persistedCombat,
 }: UseEncounterStateArgs) {
+  const isHydratedMode = Boolean(hydratedEncounterState)
+  const persistedRevisionRef = useRef(persistedCombat?.revision ?? 0)
+
+  useEffect(() => {
+    if (persistedCombat) persistedRevisionRef.current = persistedCombat.revision
+  }, [persistedCombat?.revision])
+
   const [resolvedCombatantsById, setResolvedCombatantsById] = useState<Record<string, CombatantInstance>>({})
   const [encounterState, setEncounterState] = useState<EncounterState | null>(null)
   const [controlTargetId, setControlTargetId] = useState('')
@@ -98,6 +122,16 @@ export function useEncounterState({
     setAoeHoverCellId(null)
   }, [])
 
+  useEffect(() => {
+    if (!hydratedEncounterState) return
+    setEncounterState(hydratedEncounterState)
+    setResolvedCombatantsById(
+      Object.fromEntries(
+        Object.values(hydratedEncounterState.combatantsById).map((c) => [c.instanceId, c]),
+      ),
+    )
+  }, [hydratedEncounterState])
+
   const combatLogAppendedRef = useRef<
     ((events: CombatLogEvent[], state: EncounterState) => void) | undefined
   >(undefined)
@@ -113,6 +147,25 @@ export function useEncounterState({
     if (logEntries.length === 0) return
     queueMicrotask(() => combatLogAppendedRef.current?.(logEntries, result.nextState))
   }, [])
+
+  const syncPersistedAfterApply = useCallback(
+    (intent: CombatIntent, context: ApplyCombatIntentContext = {}) => {
+      if (!persistedCombat) return
+      const baseRev = persistedRevisionRef.current
+      void postPersistedCombatIntent({
+        sessionId: persistedCombat.sessionId,
+        baseRevision: baseRev,
+        intent,
+        context,
+      }).then((r) => {
+        if (r.ok) {
+          persistedRevisionRef.current = r.revision
+          persistedCombat.setRevision(r.revision)
+        }
+      })
+    },
+    [persistedCombat],
+  )
 
   const selectedCombatants = useMemo(
     () =>
@@ -170,6 +223,7 @@ export function useEncounterState({
   )
 
   useEffect(() => {
+    if (isHydratedMode) return
     const validIds = new Set(selectedCombatantIds)
 
     setResolvedCombatantsById((prev) =>
@@ -178,7 +232,7 @@ export function useEncounterState({
       ),
     )
     setEncounterState(null)
-  }, [selectedCombatantIds])
+  }, [selectedCombatantIds, isHydratedMode])
 
   useEffect(() => {
     if (!encounterState) {
@@ -188,6 +242,7 @@ export function useEncounterState({
   }, [encounterState])
 
   useEffect(() => {
+    if (isHydratedMode) return
     const validMonsterIds = new Set(
       opponentRoster.filter((entry) => entry.kind === 'monster').map((entry) => entry.runtimeId),
     )
@@ -202,11 +257,12 @@ export function useEncounterState({
         Object.entries(prev).filter(([runtimeId]) => validMonsterIds.has(runtimeId)),
       ) as Record<string, ManualMonsterTriggerContext>,
     )
-  }, [opponentRoster])
+  }, [opponentRoster, isHydratedMode])
 
   useEffect(() => {
+    if (isHydratedMode) return
     setEncounterState(null)
-  }, [environmentContext, monsterFormsById, monsterManualTriggersById])
+  }, [environmentContext, monsterFormsById, monsterManualTriggersById, isHydratedMode])
 
   useEffect(() => {
     resetAoePlacement()
@@ -303,7 +359,7 @@ export function useEncounterState({
   function handleNextTurn() {
     setEncounterState((prev) => {
       if (!prev) return prev
-      const result = applyCombatIntent(prev, { kind: 'end-turn' }, {
+      const context: ApplyCombatIntentContext = {
         advanceEncounterTurnOptions: {
           rng: Math.random,
           battlefieldInterval:
@@ -315,9 +371,11 @@ export function useEncounterState({
                 }
               : undefined,
         },
-      })
+      }
+      const result = applyCombatIntent(prev, { kind: 'end-turn' }, context)
       if (!result.ok) return prev
       notifyLogAppendedFromIntentSuccess(result)
+      syncPersistedAfterApply({ kind: 'end-turn' }, context)
       return result.nextState
     })
   }
@@ -325,22 +383,23 @@ export function useEncounterState({
   const handleResolveAction = useCallback(() => {
     setEncounterState((prev) => {
       if (!prev || !prev.activeCombatantId || !selectedActionId) return prev
-      const result = applyCombatIntent(
-        prev,
-        buildResolveActionIntentFromActiveSelection({
-          activeCombatantId: prev.activeCombatantId,
-          selectedActionId,
-          selectedActionTargetId,
-          selectedCasterOptions,
-          aoeOriginCellId,
-          selectedSingleCellPlacementCellId,
-          unaffectedCombatantIds,
-          selectedObjectAnchorId,
-        }),
-        { resolveCombatActionOptions: { monstersById, buildSummonAllyCombatant } },
-      )
+      const intent = buildResolveActionIntentFromActiveSelection({
+        activeCombatantId: prev.activeCombatantId,
+        selectedActionId,
+        selectedActionTargetId,
+        selectedCasterOptions,
+        aoeOriginCellId,
+        selectedSingleCellPlacementCellId,
+        unaffectedCombatantIds,
+        selectedObjectAnchorId,
+      })
+      const context: ApplyCombatIntentContext = {
+        resolveCombatActionOptions: { monstersById, buildSummonAllyCombatant },
+      }
+      const result = applyCombatIntent(prev, intent, context)
       if (!result.ok) return prev
       notifyLogAppendedFromIntentSuccess(result)
+      syncPersistedAfterApply(intent, context)
       return result.nextState
     })
     resetAoePlacement()
@@ -362,6 +421,7 @@ export function useEncounterState({
     buildSummonAllyCombatant,
     resetAoePlacement,
     notifyLogAppendedFromIntentSuccess,
+    syncPersistedAfterApply,
   ])
 
   function handleResetEncounter() {
@@ -455,30 +515,29 @@ export function useEncounterState({
     if (!encounterState || !activeCombatantId) return
     setEncounterState((prev) => {
       if (!prev) return prev
-      const result = applyCombatIntent(
-        prev,
-        {
-          kind: 'move-combatant',
-          combatantId: activeCombatantId,
-          destinationCellId: targetCellId,
-        },
-        {
-          moveCombatantSpellContext:
-            spellsById != null
-              ? { spellLookup: (id) => spellsById[id], suppressSameSideHostile }
-              : undefined,
-          spatialEntryAfterMove:
-            spellsById != null
-              ? {
-                  spellLookup: (id) => spellsById[id],
-                  suppressSameSideHostile,
-                  monstersById,
-                }
-              : undefined,
-        },
-      )
+      const intent: CombatIntent = {
+        kind: 'move-combatant',
+        combatantId: activeCombatantId,
+        destinationCellId: targetCellId,
+      }
+      const context: ApplyCombatIntentContext = {
+        moveCombatantSpellContext:
+          spellsById != null
+            ? { spellLookup: (id) => spellsById[id], suppressSameSideHostile }
+            : undefined,
+        spatialEntryAfterMove:
+          spellsById != null
+            ? {
+                spellLookup: (id) => spellsById[id],
+                suppressSameSideHostile,
+                monstersById,
+              }
+            : undefined,
+      }
+      const result = applyCombatIntent(prev, intent, context)
       if (!result.ok) return prev
       notifyLogAppendedFromIntentSuccess(result)
+      syncPersistedAfterApply(intent, context)
       return result.nextState
     })
   }
