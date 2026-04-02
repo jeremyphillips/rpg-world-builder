@@ -45,6 +45,11 @@ export type LocationMapCellObjectEntry = {
   id: string;
   kind: LocationMapObjectKindId;
   label?: string;
+  /**
+   * Palette / `LocationPlacedObjectKindId` when the editor persists it (encounter `GridObject` bridge).
+   * Legacy maps omit this; encounter build may infer a lossy default from `kind` instead.
+   */
+  authoredPlaceKindId?: string;
 };
 
 export type LocationMapCellAuthoringEntry = {

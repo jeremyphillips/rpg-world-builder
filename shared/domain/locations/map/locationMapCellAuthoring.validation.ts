@@ -121,6 +121,15 @@ export function validateCellEntriesStructure(
           if (oro.label !== undefined && oro.label !== null && typeof oro.label !== 'string') {
             errors.push({ path: `${op}.label`, code: 'INVALID', message: 'label must be a string' });
           }
+          if (oro.authoredPlaceKindId !== undefined && oro.authoredPlaceKindId !== null) {
+            if (typeof oro.authoredPlaceKindId !== 'string' || oro.authoredPlaceKindId.trim() === '') {
+              errors.push({
+                path: `${op}.authoredPlaceKindId`,
+                code: 'INVALID',
+                message: 'authoredPlaceKindId must be a non-empty string when set',
+              });
+            }
+          }
         }
       }
     }

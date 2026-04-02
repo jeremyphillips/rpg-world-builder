@@ -43,6 +43,9 @@ export function cellDraftToCellEntries(
         ...(o.label !== undefined && String(o.label).trim() !== ''
           ? { label: String(o.label).trim() }
           : {}),
+        ...(o.authoredPlaceKindId !== undefined && String(o.authoredPlaceKindId).trim() !== ''
+          ? { authoredPlaceKindId: String(o.authoredPlaceKindId).trim() }
+          : {}),
       }));
     }
     if (hasFill) {
@@ -83,6 +86,9 @@ export function cellEntriesToDraft(entries: LocationMapCellAuthoringEntry[] | un
         id: o.id,
         kind: o.kind,
         ...(o.label !== undefined && o.label !== '' ? { label: o.label } : {}),
+        ...(o.authoredPlaceKindId !== undefined && String(o.authoredPlaceKindId).trim() !== ''
+          ? { authoredPlaceKindId: String(o.authoredPlaceKindId).trim() }
+          : {}),
       }));
     }
     if (e.cellFillKind !== undefined && e.cellFillKind !== null && String(e.cellFillKind).trim() !== '') {

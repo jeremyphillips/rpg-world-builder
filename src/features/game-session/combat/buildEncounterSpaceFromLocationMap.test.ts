@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
+import { resolveLocationPlacedObjectKindRuntimeDefaults } from '@/features/content/locations/domain/mapContent/locationPlacedObject.runtime'
+
 import { authorCellIdToCombatCellId, buildEncounterSpaceFromLocationMap } from './buildEncounterSpaceFromLocationMap'
 
 describe('authorCellIdToCombatCellId', () => {
@@ -35,5 +37,48 @@ describe('buildEncounterSpaceFromLocationMap', () => {
     expect(space.edges?.[0]?.toCellId).toBe('c-1-0')
     expect(space.authoringPresentation?.edgeEntries).toHaveLength(1)
     expect(space.authoringPresentation?.edgeEntries[0]?.edgeId).toBe('between:0,0|1,0')
+  })
+
+  it('hydrates authored cell objects into gridObjects and applies transitional cell blocking when blocksMovement', () => {
+    const space = buildEncounterSpaceFromLocationMap({
+      mapHostLocationId: 'floor-loc-1',
+      map: {
+        id: 'map-obj',
+        locationId: 'loc',
+        name: 'Room',
+        kind: 'encounter-grid',
+        grid: { width: 3, height: 3, cellUnit: '5ft' },
+        layout: {},
+        edgeEntries: [],
+        cellEntries: [
+          {
+            cellId: '0,0',
+            objects: [{ id: 'a1', kind: 'treasure' }],
+          },
+          {
+            cellId: '1,0',
+            objects: [{ id: 't1', kind: 'marker', authoredPlaceKindId: 'table' }],
+          },
+        ],
+        pathEntries: [],
+        regionEntries: [],
+      },
+    })
+
+    expect(space.gridObjects?.length).toBe(2)
+    const treasure = space.gridObjects?.find((o) => o.authoredPlaceKindId === 'treasure')
+    const table = space.gridObjects?.find((o) => o.authoredPlaceKindId === 'table')
+    expect(treasure?.cellId).toBe('c-0-0')
+    expect(table?.cellId).toBe('c-1-0')
+
+    const treasureRt = resolveLocationPlacedObjectKindRuntimeDefaults('treasure')
+    expect(space.cells.find((c) => c.id === 'c-0-0')?.kind).toBe(
+      treasureRt.blocksMovement ? 'blocking' : 'open',
+    )
+
+    const tableRt = resolveLocationPlacedObjectKindRuntimeDefaults('table')
+    expect(space.cells.find((c) => c.id === 'c-1-0')?.kind).toBe(
+      tableRt.blocksMovement ? 'blocking' : 'open',
+    )
   })
 })

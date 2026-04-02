@@ -29,6 +29,15 @@ export const LOCATION_PLACED_OBJECT_KIND_IDS = [
 
 export type LocationPlacedObjectKindId = (typeof LOCATION_PLACED_OBJECT_KIND_IDS)[number];
 
+const PLACED_KIND_ID_SET = new Set<string>(LOCATION_PLACED_OBJECT_KIND_IDS as readonly string[]);
+
+/** Validates and narrows persisted `authoredPlaceKindId` strings for map cell objects. */
+export function parseLocationPlacedObjectKindId(raw: string | undefined | null): LocationPlacedObjectKindId | null {
+  if (raw == null || typeof raw !== 'string') return null;
+  const t = raw.trim();
+  return PLACED_KIND_ID_SET.has(t) ? (t as LocationPlacedObjectKindId) : null;
+}
+
 export type LocationPlacedObjectKindMeta = {
   label: string;
   description?: string;

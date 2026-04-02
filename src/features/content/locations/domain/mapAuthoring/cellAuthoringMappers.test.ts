@@ -41,4 +41,14 @@ describe('cellAuthoringMappers', () => {
     const back = cellEntriesToDraft(entries);
     expect(back.regionIdByCellId['0,0']).toBe('reg-1');
   });
+
+  it('round-trips object authoredPlaceKindId', () => {
+    const entries = cellDraftToCellEntries(
+      {},
+      { '0,0': [{ id: 'x', kind: 'marker', authoredPlaceKindId: 'table' }] },
+    );
+    expect(entries[0]?.objects?.[0]?.authoredPlaceKindId).toBe('table');
+    const back = cellEntriesToDraft(entries);
+    expect(back.objectsByCellId['0,0']?.[0]?.authoredPlaceKindId).toBe('table');
+  });
 });

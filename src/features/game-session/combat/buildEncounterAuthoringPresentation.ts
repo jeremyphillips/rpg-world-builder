@@ -1,7 +1,7 @@
 import type { EncounterAuthoringPresentation } from '@/features/mechanics/domain/combat/space'
 import type { LocationMapBase } from '@/shared/domain/locations/map/locationMap.types'
 
-import { authorCellIdToCombatCellId } from './buildEncounterSpaceFromLocationMap'
+import { authorCellIdToCombatCellId } from './encounterMapCellIds'
 
 /**
  * Maps persisted location map authoring into a combat-serializable presentation payload.

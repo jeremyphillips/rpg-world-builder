@@ -5,15 +5,15 @@ import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locati
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/creation/createSquareGridSpace'
 import type { EncounterEdge, EncounterSpace } from '@/features/mechanics/domain/combat/space'
 
+import { authorCellIdToCombatCellId } from './encounterMapCellIds'
+import {
+  applyEncounterCellBlockingFlagsForAuthoredGridObjects,
+  buildGridObjectsFromLocationMapCellEntries,
+} from './hydrateGridObjectsFromLocationMap'
+
 const BETWEEN_EDGE_RE = /^between:([^|]+)\|([^|]+)$/
 
-/** Location authoring uses `x,y`; combat square grids use `c-x-y` (see {@link createSquareGridSpace}). */
-export function authorCellIdToCombatCellId(authorCellId: string): string {
-  const t = authorCellId.trim()
-  const m = /^(\d+),(\d+)$/.exec(t)
-  if (m) return `c-${m[1]}-${m[2]}`
-  return t
-}
+export { authorCellIdToCombatCellId } from './encounterMapCellIds'
 
 function parseBetweenEdgeKey(edgeId: string): [string, string] | null {
   const m = BETWEEN_EDGE_RE.exec(edgeId.trim())
@@ -111,10 +111,17 @@ export function buildEncounterSpaceFromLocationMap(
     edges.push(edgeToEncounterEdge(fromCombat, toCombat, e.kind))
   }
 
+  const gridObjects = buildGridObjectsFromLocationMapCellEntries(map)
+  let cells = [...byId.values()]
+  if (gridObjects.length > 0) {
+    cells = applyEncounterCellBlockingFlagsForAuthoredGridObjects(cells, gridObjects)
+  }
+
   return {
     ...base,
-    cells: [...byId.values()],
+    cells,
     edges: edges.length > 0 ? edges : undefined,
+    gridObjects: gridObjects.length > 0 ? gridObjects : undefined,
     authoringPresentation: buildEncounterAuthoringPresentationFromLocationMap(map),
   }
 }
