@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
-import { AppToast, type AppAlertTone } from '@/ui/primitives'
+import { AppToast } from '@/ui/primitives'
 import { useCanvasZoom, useCanvasPan } from '@/ui/hooks'
 
 import { CombatPlayView } from '@/features/combat/components/CombatPlayView'
@@ -20,7 +20,8 @@ import {
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/combat/state'
 import { buildInitialCasterOptionsForAction } from '@/features/mechanics/domain/spells/caster-options'
 
-import { buildEncounterActionToastPayload } from '../helpers/actions'
+import { deriveEncounterToastForViewer } from '../toast/derive-encounter-toast-for-viewer'
+import type { EncounterToastPresentation, EncounterToastViewerInput } from '../toast/encounter-toast-types'
 import { deriveEncounterSideOutcome } from '../helpers/state'
 import { EncounterGameOverModal } from '../components/active/modals/EncounterGameOverModal'
 import { canResolveCombatActionSelection, selectValidActionIdsForTarget } from '../domain'
@@ -95,6 +96,7 @@ export type EncounterActivePlaySurfaceDeps = Pick<
   | 'suppressSameSideHostile'
   | 'spellsById'
   | 'capabilities'
+  | 'viewerContext'
 >
 
 function placementReasonMessage(reason: PlacementValidationReason): string {
@@ -166,16 +168,42 @@ export function useEncounterActivePlaySurface(
     suppressSameSideHostile,
     spellsById,
     capabilities,
+    viewerContext,
   }: EncounterActivePlaySurfaceDeps,
   options?: UseEncounterActivePlaySurfaceOptions,
 ) {
-  const [toastPayload, setToastPayload] = useState<{
-    title: string
-    tone: AppAlertTone
-    narrative: string
-    mechanics: string
-  } | null>(null)
+  const [toastPayload, setToastPayload] = useState<EncounterToastPresentation | null>(null)
   const [toastOpen, setToastOpen] = useState(false)
+  const toastOpenRef = useRef(false)
+  const toastQueueRef = useRef<EncounterToastPresentation[]>([])
+  const shownToastDedupeKeysRef = useRef<Set<string>>(new Set())
+
+  useEffect(() => {
+    toastOpenRef.current = toastOpen
+  }, [toastOpen])
+
+  const toastViewerInput = useMemo((): EncounterToastViewerInput => {
+    const mode: EncounterToastViewerInput['viewerMode'] =
+      viewerContext.mode === 'simulator' ? 'simulator' : 'session'
+    return {
+      viewerMode: mode,
+      controlledCombatantIds: viewerContext.controlledCombatantIds,
+      tonePerspective: capabilities?.tonePerspective ?? 'dm',
+    }
+  }, [viewerContext.mode, viewerContext.controlledCombatantIds, capabilities?.tonePerspective])
+
+  const handleToastClose = useCallback(() => {
+    setToastOpen(false)
+    window.setTimeout(() => {
+      const next = toastQueueRef.current.shift()
+      if (next) {
+        setToastPayload(next)
+        setToastOpen(true)
+      } else {
+        setToastPayload(null)
+      }
+    }, 0)
+  }, [])
   const [placementError, setPlacementError] = useState<string | null>(null)
   const [singleCellPlacementError, setSingleCellPlacementError] = useState<string | null>(null)
   const [gameOverDismissed, setGameOverDismissed] = useState(false)
@@ -195,15 +223,29 @@ export function useEncounterActivePlaySurface(
 
 
   useEffect(() => {
+    if (!encounterState) {
+      shownToastDedupeKeysRef.current.clear()
+    }
+  }, [encounterState])
+
+  useEffect(() => {
     registerCombatLogAppended((events, stateAfter) => {
-      const payload = buildEncounterActionToastPayload(events, stateAfter)
-      if (payload) {
-        setToastPayload(payload)
-        setToastOpen(true)
+      const presentation = deriveEncounterToastForViewer(events, stateAfter, toastViewerInput)
+      if (!presentation) return
+      if (shownToastDedupeKeysRef.current.has(presentation.dedupeKey)) return
+      shownToastDedupeKeysRef.current.add(presentation.dedupeKey)
+
+      if (toastOpenRef.current) {
+        const q = toastQueueRef.current
+        const last = q[q.length - 1]
+        if (last?.dedupeKey !== presentation.dedupeKey) q.push(presentation)
+        return
       }
+      setToastPayload(presentation)
+      setToastOpen(true)
     })
     return () => registerCombatLogAppended(undefined)
-  }, [registerCombatLogAppended])
+  }, [registerCombatLogAppended, toastViewerInput])
 
   const { zoom, zoomControlProps, wheelContainerRef, bindResetPan } = useCanvasZoom()
   const { pan, isDragging, hasDragMoved, pointerHandlers, resetPan } = useCanvasPan()
@@ -853,12 +895,14 @@ export function useEncounterActivePlaySurface(
       toast={
         <AppToast
           open={toastOpen && toastPayload != null}
-          onClose={() => setToastOpen(false)}
+          onClose={handleToastClose}
           title={toastPayload?.title ?? ''}
           tone={toastPayload?.tone ?? 'info'}
+          variant={toastPayload?.variant ?? 'standard'}
+          autoHideDuration={toastPayload?.autoHideDuration ?? 8000}
           mechanics={toastPayload?.mechanics || undefined}
         >
-          {toastPayload?.narrative || undefined}
+          {toastPayload?.children || undefined}
         </AppToast>
       }
       wheelContainerRef={wheelContainerRef}

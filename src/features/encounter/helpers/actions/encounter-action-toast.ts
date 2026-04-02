@@ -2,6 +2,7 @@ import type { CombatLogEvent } from '@/features/mechanics/domain/combat'
 import type { EncounterState } from '@/features/mechanics/domain/combat/state/types'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/combat/state'
 import { isDefeatedCombatant } from '@/features/mechanics/domain/combat/state/combatants/combatant-participation'
+import type { ActionResolvedOutcomeMeta } from '@/features/encounter/toast/encounter-toast-types'
 import type { AppAlertTone } from '@/ui/primitives'
 
 const MAX_EFFECT_LINES = 14
@@ -74,10 +75,39 @@ function appendDefeatSuffixToTitle(
   return `${title} — ${suffix}`
 }
 
-export function buildEncounterActionToastPayload(
+export function computeActionResolvedDedupeKey(events: CombatLogEvent[]): string {
+  if (events.length === 0) return 'empty'
+  const first = events[0]
+  const round = first.round
+  const turn = first.turn
+  const ids = [...new Set(events.map((e) => e.id))].sort()
+  return `r${round}-t${turn}-${ids.join(':')}`
+}
+
+function computeOutcomeMeta(events: CombatLogEvent[]): ActionResolvedOutcomeMeta {
+  const hits = events.filter((e) => e.type === 'attack-hit')
+  const misses = events.filter((e) => e.type === 'attack-missed')
+  return {
+    hitCount: hits.length,
+    missCount: misses.length,
+    hasNat1Miss: misses.some((m) => /natural 1/i.test(m.summary)),
+  }
+}
+
+/**
+ * Viewer-agnostic action resolution: title, body lines, outcome metadata, dedupe key.
+ * **No tone** — policy applies viewer-specific tone.
+ */
+export function buildActionResolvedNeutralContent(
   events: CombatLogEvent[],
   encounterState?: EncounterState,
-): { title: string; tone: AppAlertTone; narrative: string; mechanics: string } | null {
+): {
+  title: string
+  narrative: string
+  mechanics: string
+  outcome: ActionResolvedOutcomeMeta
+  dedupeKey: string
+} | null {
   if (events.length === 0) return null
 
   const hits = events.filter((e) => e.type === 'attack-hit')
@@ -222,17 +252,39 @@ export function buildEncounterActionToastPayload(
 
   const { narrative, mechanics } = splitNarrativeAndMechanics(coreLines.filter((l) => l.trim().length > 0))
 
-  let tone: AppAlertTone = 'info'
-  if (hits.length > 0 && misses.length === 0) tone = 'success'
-  else if (hits.length === 0 && misses.length > 0) {
-    const nat1 = misses.some((m) => /natural 1/i.test(m.summary))
-    tone = nat1 ? 'danger' : 'warning'
-  } else if (hits.length > 0 && misses.length > 0) tone = 'warning'
-  else tone = 'info'
+  const outcome = computeOutcomeMeta(events)
+  const dedupeKey = computeActionResolvedDedupeKey(events)
 
   if (!narrative.trim() && !mechanics.trim() && effectLines.length === 0) {
-    return { title, tone, narrative: '', mechanics: '' }
+    return { title, narrative: '', mechanics: '', outcome, dedupeKey }
   }
 
-  return { title, tone, narrative, mechanics }
+  return { title, narrative, mechanics, outcome, dedupeKey }
+}
+
+/** Legacy actor-only tone (pre–viewer-aware); for tests and backward-compat wrappers. */
+export function deriveLegacyActorOnlyTone(outcome: ActionResolvedOutcomeMeta): AppAlertTone {
+  const { hitCount: hits, missCount: misses, hasNat1Miss } = outcome
+  if (hits > 0 && misses === 0) return 'success'
+  if (hits === 0 && misses > 0) return hasNat1Miss ? 'danger' : 'warning'
+  if (hits > 0 && misses > 0) return 'warning'
+  return 'info'
+}
+
+/**
+ * @deprecated Prefer `buildActionResolvedNeutralContent` + viewer-aware policy.
+ * Legacy: actor-only tone (simulator / single-operator behavior).
+ */
+export function buildEncounterActionToastPayload(
+  events: CombatLogEvent[],
+  encounterState?: EncounterState,
+): { title: string; tone: AppAlertTone; narrative: string; mechanics: string } | null {
+  const neutral = buildActionResolvedNeutralContent(events, encounterState)
+  if (!neutral) return null
+  return {
+    title: neutral.title,
+    narrative: neutral.narrative,
+    mechanics: neutral.mechanics,
+    tone: deriveLegacyActorOnlyTone(neutral.outcome),
+  }
 }

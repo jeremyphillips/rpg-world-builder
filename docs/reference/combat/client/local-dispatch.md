@@ -39,6 +39,22 @@ The same **`applyCombatIntent`** *shape* (intent in, result out) is what a serve
 
 **GameSession `/play` (persisted combat):** When **`useEncounterState`** receives **`persistedCombat`**, successful applies are mirrored to **`POST .../intents`** with **`baseRevision`**. Implementation notes (slim context, serialized POST queue, ref sync, server body limit) live in [persisted-intent-sync.md](./persisted-intent-sync.md).
 
+## Encounter toasts (viewer-aware)
+
+After a successful intent, **`registerCombatLogAppended`** receives flattened log entries. Toasts are **not** driven by inline tone logic in the play hook:
+
+1. **Neutral content** — `buildActionResolvedNeutralContent` (viewer-agnostic title/narrative/mechanics + outcome metadata + stable **`dedupeKey`** from round/turn/log entry ids). No tone.
+2. **Viewer normalization** — `normalizeToastViewerContext` (simulator vs session in one place).
+3. **Relationship** — e.g. actor vs target controller vs DM vs uninvolved, from log **`actorId` / `targetIds`** and session **`controlledCombatantIds`**.
+4. **Policy** — per-event defaults (`encounter-toast-defaults`) + `applyActionResolvedPolicyDimensions` (explicit **`show`**, tone, variant, `autoHideDuration`).
+5. **`deriveEncounterToastForViewer`** — merges into **`AppToast`** props only.
+
+**Dedupe:** A **`Set`** of shown **`dedupeKey`** values avoids duplicate toasts for the same logical batch (local dispatch and future replay-safe). Keys clear when **`encounterState`** is unset.
+
+**Queue (optional):** If a toast is already open, another presentation is **enqueued**; **on close**, the next item shows. **Adjacent duplicate keys** in the queue are not enqueued. No priority/preemption beyond FIFO.
+
+**Future toast kinds** (turn change, defeat, retreat) should follow the same pipeline: neutral payload → relationship → policy registry → presentation-only `AppToast`.
+
 ## See also
 
 - [engine/intents-and-events.md](../engine/intents-and-events.md)

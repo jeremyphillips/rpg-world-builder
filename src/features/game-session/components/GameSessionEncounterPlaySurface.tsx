@@ -296,6 +296,7 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
   const playSurface = useEncounterActivePlaySurface(
     {
       encounterState: encounter.encounterState,
+      viewerContext,
       capabilities,
       activeHeader,
       activeCombatant: encounter.activeCombatant,
