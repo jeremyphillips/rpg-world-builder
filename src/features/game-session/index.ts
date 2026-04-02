@@ -20,3 +20,6 @@ export {
   campaignGameSessionsListPath,
 } from './routes/gameSessionPaths'
 export { canEditGameSessionSetup } from './utils/canEditGameSessionSetup'
+export { resolveExpectedSessionCharacterIds } from './utils/resolveExpectedSessionCharacterIds'
+export { useGameSessionLobbyPresence } from './hooks/useGameSessionLobbyPresence'
+export type { GameSessionLobbyPresencePayload } from './hooks/useGameSessionLobbyPresence'

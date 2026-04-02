@@ -453,6 +453,7 @@ export async function getPartyCharacters(
     return {
       ...card,
       status: memberStatus,
+      ownerUserId: (c.userId as mongoose.Types.ObjectId).toString(),
       ownerName: owner?.username ?? 'Unknown',
       ownerAvatarUrl: owner?.avatarUrl ?? null,
       campaignMemberId: m?._id?.toString() ?? null,

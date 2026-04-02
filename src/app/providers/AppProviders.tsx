@@ -7,6 +7,7 @@ import { AuthProvider } from './AuthProvider'
 import { NotificationProvider } from './NotificationProvider'
 import { ActiveCampaignProvider } from './ActiveCampaignProvider'
 import { CampaignRulesProvider } from './CampaignRulesProvider'
+import { SocketConnectionProvider } from './SocketConnectionProvider'
 import { MessagingProvider } from './MessagingProvider'
 
 interface AppProvidersProps {
@@ -18,17 +19,19 @@ export function AppProviders({ children }: AppProvidersProps) {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <ActiveCampaignProvider>
-          <CampaignRulesProvider>
-          <MessagingProvider>
-          <NotificationProvider>
-            <CharacterBuilderProvider>
-              {children}
-            </CharacterBuilderProvider>
-          </NotificationProvider>
-          </MessagingProvider>
-          </CampaignRulesProvider>
-        </ActiveCampaignProvider>
+        <SocketConnectionProvider>
+          <ActiveCampaignProvider>
+            <CampaignRulesProvider>
+              <MessagingProvider>
+                <NotificationProvider>
+                  <CharacterBuilderProvider>
+                    {children}
+                  </CharacterBuilderProvider>
+                </NotificationProvider>
+              </MessagingProvider>
+            </CampaignRulesProvider>
+          </ActiveCampaignProvider>
+        </SocketConnectionProvider>
       </AuthProvider>
     </ThemeProvider>
   )

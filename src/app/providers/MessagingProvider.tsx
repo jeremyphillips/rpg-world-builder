@@ -8,10 +8,8 @@ import {
   useCallback,
   type ReactNode,
 } from 'react'
-import { io, type Socket } from 'socket.io-client'
 import { apiFetch } from '../api'
-
-const SOCKET_URL = import.meta.env.DEV ? '' : window.location.origin
+import { useSocketConnection } from './SocketConnectionProvider'
 
 export interface DraftTarget {
   campaignId: string
@@ -64,41 +62,31 @@ interface MessagingContextType {
 const MessagingContext = createContext<MessagingContextType | undefined>(undefined)
 
 export const MessagingProvider = ({ children }: { children: ReactNode }) => {
+  const { socket } = useSocketConnection()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [newConversationModalOpen, setNewConversationModalOpen] = useState(false)
   const [draftTarget, setDraftTarget] = useState<DraftTarget | null>(null)
-  const socketRef = useRef<Socket | null>(null)
+  const socketRef = useRef(socket)
   const campaignIdRef = useRef<string | null>(null)
 
-  useEffect(() => {
-    const connect = async () => {
-      try {
-        const { token } = await apiFetch<{ token: string }>('/api/auth/socket-token')
-        const socket = io(SOCKET_URL, {
-          auth: { token },
-          path: '/socket.io',
-        })
-        socketRef.current = socket
+  socketRef.current = socket
 
-        socket.on('new_message', (msg: Message) => {
-          setMessages((prev) => {
-            if (prev.some((m) => m._id === msg._id)) return prev
-            return [...prev, msg]
-          })
-        })
-      } catch {
-        // Not logged in or token expired
-      }
+  useEffect(() => {
+    if (!socket) return
+    const onNewMessage = (msg: Message) => {
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === msg._id)) return prev
+        return [...prev, msg]
+      })
     }
-    connect()
+    socket.on('new_message', onNewMessage)
     return () => {
-      socketRef.current?.disconnect()
-      socketRef.current = null
+      socket.off('new_message', onNewMessage)
     }
-  }, [])
+  }, [socket])
 
   const loadConversations = useCallback(async (campaignId: string) => {
     campaignIdRef.current = campaignId
@@ -133,9 +121,10 @@ export const MessagingProvider = ({ children }: { children: ReactNode }) => {
 
   const selectConversation = useCallback((id: string | null) => {
     setSelectedConversationId((prev) => {
-      if (socketRef.current) {
-        if (prev) socketRef.current.emit('leave_conversation', prev)
-        if (id) socketRef.current.emit('join_conversation', id)
+      const s = socketRef.current
+      if (s) {
+        if (prev) s.emit('leave_conversation', prev)
+        if (id) s.emit('join_conversation', id)
       }
       if (id !== prev) {
         setMessages([])

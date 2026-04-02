@@ -63,6 +63,8 @@ export type CharacterCardSummary = {
  */
 export type CharacterRosterSummary = CharacterCardSummary & {
   status: 'pending' | 'approved'
+  /** Account that owns this character (party roster / lobby presence mapping). */
+  ownerUserId: string
   ownerName: string
   ownerAvatarUrl?: string | null
   campaignMemberId?: string | null

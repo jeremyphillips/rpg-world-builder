@@ -13,6 +13,8 @@ interface CharacterMediaTopCardProps {
   description?: string
   imageUrl?: string
   status?: 'pending' | 'approved'
+  /** Appended before character approval status badges (e.g. lobby presence). */
+  extraBadges?: CardBadgeProps[]
   attribution?: string | { name: string; imageUrl?: string }
   link?: string
   isEditable?: boolean
@@ -28,6 +30,7 @@ const CharacterMediaTopCard = ({
   description,
   imageUrl,
   status,
+  extraBadges,
   attribution,
   link,
   isEditable,
@@ -38,7 +41,10 @@ const CharacterMediaTopCard = ({
   const subheadline = [race, classLine]
     .filter(Boolean)
     .join(' · ')
-  const badges: CardBadgeProps[] = status ? [{ type: 'status', value: status }] : []
+  const badges: CardBadgeProps[] = [
+    ...(extraBadges ?? []),
+    ...(status ? [{ type: 'status' as const, value: status }] : []),
+  ]
 
   const placeholder = (
     <Box

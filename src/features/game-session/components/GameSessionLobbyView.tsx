@@ -1,16 +1,19 @@
+import { useMemo } from 'react'
+import { useAuth } from '@/app/providers/AuthProvider'
+import type { CharacterRosterSummary } from '@/features/character/read-model'
+import { CharacterMediaTopCard } from '@/features/character/components'
 import type { GameSession } from '../domain/game-session.types'
 import { formatSessionDateTime } from '@/features/session/dates'
 import { getLobbyStatusBanner } from '../utils/lobbyStatusPresentation'
+import { resolveExpectedSessionCharacterIds } from '../utils/resolveExpectedSessionCharacterIds'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Chip from '@mui/material/Chip'
+import CircularProgress from '@mui/material/CircularProgress'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import ListItemText from '@mui/material/ListItemText'
 
 const STATUS_LABEL: Record<GameSession['status'], string> = {
   draft: 'Draft',
@@ -23,10 +26,26 @@ const STATUS_LABEL: Record<GameSession['status'], string> = {
 
 type GameSessionLobbyViewProps = {
   session: GameSession
+  campaignCharacters: CharacterRosterSummary[]
+  campaignPartyLoading: boolean
+  presentUserIdSet: ReadonlySet<string>
 }
 
-export function GameSessionLobbyView({ session }: GameSessionLobbyViewProps) {
+export function GameSessionLobbyView({
+  session,
+  campaignCharacters,
+  campaignPartyLoading,
+  presentUserIdSet,
+}: GameSessionLobbyViewProps) {
+  const { user } = useAuth()
   const banner = getLobbyStatusBanner(session)
+
+  const dmIsYou = user?.id === session.dmUserId
+
+  const expectedCharacterRows = useMemo(() => {
+    const expectedIds = new Set(resolveExpectedSessionCharacterIds(session, campaignCharacters))
+    return campaignCharacters.filter((c) => expectedIds.has(c.id))
+  }, [session, campaignCharacters])
 
   return (
     <Stack spacing={2}>
@@ -76,24 +95,73 @@ export function GameSessionLobbyView({ session }: GameSessionLobbyViewProps) {
       <Card variant="outlined">
         <CardContent>
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            Participants
+            Host
           </Typography>
-          <List dense disablePadding>
-            {session.participants.map((p) => (
-              <ListItem key={`${p.userId}-${p.role}`} disableGutters>
-                <ListItemText
-                  primary={p.role === 'dm' ? 'Dungeon Master' : p.role === 'observer' ? 'Observer' : 'Player'}
-                  secondary={
-                    p.characterId
-                      ? `User ${p.userId} · Character ${p.characterId}`
-                      : `User ${p.userId}`
-                  }
-                />
-              </ListItem>
-            ))}
-          </List>
+          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" useFlexGap>
+            <Chip size="small" label="Dungeon Master" color="secondary" variant="outlined" />
+            <Typography variant="body2" color="text.secondary">
+              {dmIsYou
+                ? 'You are running this session (not shown as a player character).'
+                : 'Session host is not listed with the party cards below.'}
+            </Typography>
+          </Stack>
         </CardContent>
       </Card>
+
+      <Box>
+        <Typography variant="subtitle1" gutterBottom>
+          Expected party
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Live presence is ephemeral. Who is here updates while this lobby is open; it is not saved on
+          the session record.
+        </Typography>
+
+        {campaignPartyLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={32} />
+          </Box>
+        ) : expectedCharacterRows.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No campaign characters to show yet.
+          </Typography>
+        ) : (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+              gap: 2,
+            }}
+          >
+            {expectedCharacterRows.map((char) => {
+              const isPresent = presentUserIdSet.has(char.ownerUserId)
+              return (
+                <Box
+                  key={char.id}
+                  sx={{
+                    opacity: isPresent ? 1 : 0.45,
+                    transition: 'opacity 0.2s ease',
+                  }}
+                >
+                  <CharacterMediaTopCard
+                    characterId={char.id}
+                    name={char.name}
+                    race={char.race?.name ?? '—'}
+                    classes={char.classes}
+                    imageUrl={char.imageUrl ?? undefined}
+                    status={char.status}
+                    extraBadges={[
+                      { type: 'tag', value: isPresent ? 'Here now' : 'Not here' },
+                    ]}
+                    attribution={{ name: char.ownerName, imageUrl: char.ownerAvatarUrl ?? undefined }}
+                    link={`/characters/${char.id}`}
+                  />
+                </Box>
+              )
+            })}
+          </Box>
+        )}
+      </Box>
 
       {session.activeEncounterId && (
         <Typography variant="body2" color="text.secondary">
