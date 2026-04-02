@@ -11,6 +11,7 @@ Documents the **client-side** viewer identity and capability model for the share
 - **`deriveEncounterCapabilities`** is a **pure policy** over `EncounterState` + context: simulator grants full turn + DM-tool capabilities; in session, turn actions require **controlling the active combatant**; DM-seat **tools** (hidden info, DM chrome, etc.) stay available for the DM regardless of whose turn it is.
 - **`EncounterActiveHeader`** `toolbarVariant` is **presentation only**, derived from **`viewerContext.mode`**, not a separate permission input.
 - **`useEncounterActivePlaySurface`** applies the same capability flags to grid movement, action selection, resolve, and end turn so the shell matches the header.
+- **Action-resolved toasts** (`registerCombatLogAppended` → `deriveEncounterToastForViewer`) combine **`EncounterViewerContext`** (mode, `controlledCombatantIds`) with log **`actorId` / `targetIds`** so tone, variant, and **`show`** match the viewer’s relationship to the event. Simulator normalization is centralized so one operator still sees actor-facing feedback. Details: [local-dispatch.md § Encounter toasts (viewer-aware)](./local-dispatch.md#encounter-toasts-viewer-aware).
 
 ## Server authorization (complement, not duplicate)
 

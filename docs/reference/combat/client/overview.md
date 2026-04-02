@@ -141,6 +141,8 @@ It should not become the new owner of combat truth.
 
 Details: [local-dispatch.md](./local-dispatch.md) — intents, `applyCombatIntent`, and Encounter’s role as composer.
 
+**Action-resolved toasts** on the active play surface use a **viewer pipeline** (simulator vs session normalization, actor/target/DM/uninvolved relationship, explicit `show`, dedupe keys, optional FIFO queue). They live in Encounter (`src/features/encounter/toast/`, `useEncounterActivePlaySurface`), not in `src/features/combat`. See [local-dispatch.md § Encounter toasts (viewer-aware)](./local-dispatch.md#encounter-toasts-viewer-aware).
+
 ## GameSession `/play` (shared shell, session policy)
 
 **GameSession** (`src/features/game-session`) composes the same **`CombatPlayView`** shell for live table play. Turn-level affordances (movement, end turn, etc.) depend on **viewer seat** and **controlled combatants**, not on this package’s components alone—see [encounter-viewer-permissions.md](./encounter-viewer-permissions.md).

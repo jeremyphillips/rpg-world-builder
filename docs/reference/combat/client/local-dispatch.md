@@ -55,6 +55,8 @@ After a successful intent, **`registerCombatLogAppended`** receives flattened lo
 
 **Future toast kinds** (turn change, defeat, retreat) should follow the same pipeline: neutral payload → relationship → policy registry → presentation-only `AppToast`.
 
+**Source (in-repo):** neutral builder and dedupe key in [`encounter-action-toast.ts`](../../../../src/features/encounter/helpers/actions/encounter-action-toast.ts); viewer pipeline modules under [`src/features/encounter/toast/`](../../../../src/features/encounter/toast/) (`normalize-toast-viewer.ts`, `derive-viewer-relationship.ts`, `encounter-toast-defaults.ts`, `encounter-toast-policy.ts`, `derive-encounter-toast-for-viewer.ts`); wiring in [`useEncounterActivePlaySurface.tsx`](../../../../src/features/encounter/hooks/useEncounterActivePlaySurface.tsx).
+
 ## See also
 
 - [engine/intents-and-events.md](../engine/intents-and-events.md)

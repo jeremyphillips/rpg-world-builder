@@ -1,29 +1,52 @@
 ---
 name: Viewer-aware encounter toasts
 overview: Neutral action-resolved content, viewer relationship + typed policy defaults, explicit suppression, stable dedupe keys, centralized simulator normalization, optional queue contract; AppToast stays presentation-only. No message-copy rewrites in scope.
+status: completed
 todos:
   - id: neutral-content
     content: "buildActionResolvedNeutralContent: title/narrative/mechanics + outcomeMeta + stable dedupeKey; no tone or viewer phrasing"
+    status: completed
   - id: event-identity
     content: "EncounterToastEvent includes dedupeKey (or eventId); hook skips if same key shown for viewer"
+    status: completed
   - id: viewer-context-normalize
     content: "Centralize simulator session branching in normalizeToastViewerContext (or deriveEffectiveRelationship); one place only"
+    status: completed
   - id: relationship
     content: "deriveViewerRelationshipForActionResolved (actor/target/dm/uninvolved) using log actorId/targetIds"
+    status: completed
   - id: defaults-registry
     content: "Typed per-kind defaults (variant, autoHideDuration, suppression baseline); policy overrides per dimension"
+    status: completed
   - id: policy-output
     content: "Policy returns explicit dimensions + show boolean; no suppression as hook special-case"
+    status: completed
   - id: derive-toast
     content: "deriveEncounterToastForViewer orchestrates defaults + overrides; single entry from registerCombatLogAppended"
+    status: completed
   - id: wire-hook
     content: "useEncounterActivePlaySurface + deps; optional queue (enqueue on open, next on close, adjacent dedupe)"
+    status: completed
   - id: tests-docs
     content: "Unit tests dedupe/suppression/relationship; local-dispatch.md + pipeline note for future event kinds"
+    status: completed
 isProject: true
 ---
 
 # Viewer-aware encounter play-surface toasts (refined plan)
+
+## Implementation status (2026)
+
+Shipped in-repo:
+
+- **Neutral + legacy wrapper:** [`src/features/encounter/helpers/actions/encounter-action-toast.ts`](../../src/features/encounter/helpers/actions/encounter-action-toast.ts) — `buildActionResolvedNeutralContent`, `computeActionResolvedDedupeKey`, `buildEncounterActionToastPayload` (tests).
+- **Pipeline:** [`src/features/encounter/toast/`](../../src/features/encounter/toast/) — types, `normalizeToastViewerContext`, `deriveActionResolvedViewerRelationship`, defaults, `applyActionResolvedPolicyDimensions`, `deriveEncounterToastForViewer`; tests under `toast/__tests__/`.
+- **Hook:** [`useEncounterActivePlaySurface`](../../src/features/encounter/hooks/useEncounterActivePlaySurface.tsx) — `viewerContext` + `toastViewerInput`, dedupe `Set`, FIFO queue with adjacent key skip, `AppToast` from presentation.
+- **Callers:** [`GameSessionEncounterPlaySurface`](../../src/features/game-session/components/GameSessionEncounterPlaySurface.tsx) passes `viewerContext`; simulator active route supplies runtime (includes viewer context).
+
+**Dedupe** is inline refs (no separate `useEncounterToastDedupe` module). **Docs:** [local-dispatch.md](../../docs/reference/combat/client/local-dispatch.md) — *Encounter toasts (viewer-aware)*.
+
+---
 
 ## Problem (unchanged)
 
@@ -118,22 +141,22 @@ flowchart TD
 
 ---
 
-## Files (expected)
+## Files (expected) — **done**
 
 | Action | Path |
 |--------|------|
-| Add | `src/features/encounter/toast/encounter-toast-types.ts` — events, `dedupeKey`, `EncounterToastViewerContext`, policy I/O with explicit dimensions |
-| Add | `src/features/encounter/toast/normalize-toast-viewer.ts` — **simulator normalization only** |
+| Add | `src/features/encounter/toast/encounter-toast-types.ts` — events, `dedupeKey`, viewer input, policy I/O with explicit dimensions |
+| Add | `src/features/encounter/toast/normalize-toast-viewer.ts` — simulator vs session normalization |
 | Add | `src/features/encounter/toast/derive-viewer-relationship.ts` |
 | Add | `src/features/encounter/toast/encounter-toast-defaults.ts` — per-kind defaults |
 | Add | `src/features/encounter/toast/encounter-toast-policy.ts` — composable policy for `action_resolved` |
 | Add | `src/features/encounter/toast/derive-encounter-toast-for-viewer.ts` |
-| Add | `src/features/encounter/toast/useEncounterToastDedupe.ts` or inline ref in hook — last-shown key per viewer |
-| Refactor | [`encounter-action-toast.ts`](src/features/encounter/helpers/actions/encounter-action-toast.ts) — neutral builder + re-export thin wrapper for tests |
+| — | Dedupe: **inline** `shownToastDedupeKeysRef` in hook (no separate `useEncounterToastDedupe` module) |
+| Refactor | [`encounter-action-toast.ts`](src/features/encounter/helpers/actions/encounter-action-toast.ts) — neutral builder + legacy wrapper for tests |
 | Update | [`useEncounterActivePlaySurface.tsx`](src/features/encounter/hooks/useEncounterActivePlaySurface.tsx) |
-| Update | [`GameSessionEncounterPlaySurface.tsx`](src/features/game-session/components/GameSessionEncounterPlaySurface.tsx) + simulator caller |
-| Add | `src/features/encounter/toast/__tests__/*.test.ts` |
-| Update | [`local-dispatch.md`](docs/reference/combat/client/local-dispatch.md) — dedupe, queue contract, future pipeline |
+| Update | [`GameSessionEncounterPlaySurface.tsx`](src/features/game-session/components/GameSessionEncounterPlaySurface.tsx) + simulator runtime |
+| Add | `src/features/encounter/toast/__tests__/derive-encounter-toast-for-viewer.test.ts` |
+| Update | [`local-dispatch.md`](docs/reference/combat/client/local-dispatch.md) — *Encounter toasts (viewer-aware)* |
 
 ---
 

@@ -26,6 +26,7 @@ Then branch by concern:
 | Intents, events, engine concepts | [engine/overview.md](./engine/overview.md), [engine/intents-and-events.md](./engine/intents-and-events.md) |
 | Client UI | [client/overview.md](./client/overview.md), [client/grid.md](./client/grid.md) |
 | Encounter Simulator → mechanics today | [client/local-dispatch.md](./client/local-dispatch.md) |
+| Action-resolved encounter toasts (viewer pipeline, dedupe, queue) | [client/local-dispatch.md](./client/local-dispatch.md#encounter-toasts-viewer-aware) |
 | Persisted session intent mirror (GameSession `/play`, HTTP, revision queue) | [client/persisted-intent-sync.md](./client/persisted-intent-sync.md) |
 | Viewer identity, controlled combatants, client capabilities (simulator vs session) | [client/encounter-viewer-permissions.md](./client/encounter-viewer-permissions.md) |
 | Deferred client hooks | [client/feedback-followups.md](./client/feedback-followups.md) |

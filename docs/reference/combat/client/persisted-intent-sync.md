@@ -12,6 +12,8 @@ For product placement of GameSession vs Encounter Simulator, see [../game-sessio
 2. On success, the client **mirrors** the same **`intent`** (and a JSON-safe **`context`**) to the server with **`baseRevision`** equal to the last acknowledged server revision.
 3. The server checks **`session.revision === baseRevision`**, runs **`applyCombatIntent`** with the same shape, persists **`nextState`**, and returns the new **`revision`**.
 
+**Local feedback after success** (combat log, action-resolved toasts) is driven by the same local apply path as the simulator; for GameSession **`/play`**, viewer-aware toast policy still uses **`EncounterViewerContext`** (seat, controlled combatants). See [local-dispatch.md § Encounter toasts (viewer-aware)](./local-dispatch.md#encounter-toasts-viewer-aware).
+
 ## Client: `postPersistedCombatIntent` (`combatSessionApi.ts`)
 
 - **Slim context:** Before send, **`monstersById`** is stripped from nested **`ApplyCombatIntentContext`** fields (`resolveCombatActionOptions`, `advanceEncounterTurnOptions.battlefieldInterval`, `moveCombatantSpellContext`, `spatialEntryAfterMove`). The catalog is large and was dominating POST body size; functions (**`spellLookup`**, **`buildSummonAllyCombatant`**, **`rng`**) are already absent on the wire because JSON cannot serialize them.
