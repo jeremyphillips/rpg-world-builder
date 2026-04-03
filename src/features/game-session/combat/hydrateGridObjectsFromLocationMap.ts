@@ -18,7 +18,7 @@ import { authorCellIdToCombatCellId } from './encounterMapCellIds';
 
 /**
  * Resolves palette / runtime kind from persisted map cell object data.
- * Prefer stored `authoredPlaceKindId`; otherwise infer a **lossy** default from `kind` (legacy maps).
+ * Prefer stored `authoredPlaceKindId`; otherwise infer only from non-ambiguous persisted `kind` (see switch).
  */
 export function inferAuthoredPlaceKindFromMapCellObject(o: LocationMapCellObjectEntry): LocationPlacedObjectKindId | null {
   const stored = parseLocationPlacedObjectKindId(o.authoredPlaceKindId);
@@ -29,9 +29,8 @@ export function inferAuthoredPlaceKindFromMapCellObject(o: LocationMapCellObject
       return 'stairs';
     case 'treasure':
       return 'treasure';
-    case 'obstacle':
-      // Transitional: persisted `obstacle` → tree-shaped runtime defaults until palette id is always stored.
-      return 'tree';
+    case 'table':
+      return 'table';
     case 'door':
     case 'marker':
       return null;

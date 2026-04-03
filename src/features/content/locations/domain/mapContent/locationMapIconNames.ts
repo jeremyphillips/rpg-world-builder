@@ -25,7 +25,7 @@ export const LOCATION_MAP_ICON_NAME_IDS = [
   'map_room',
   // Persisted cell object kinds
   'marker',
-  'obstacle',
+  'table',
   'treasure',
   'door',
   'stairs',

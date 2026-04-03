@@ -3,9 +3,9 @@ import type { LocationPlacedObjectKindId } from '@/features/content/locations/do
 import type { LocationScaleId } from '@/shared/domain/locations';
 
 import { LOCATION_PLACED_OBJECT_KIND_META } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
+import { buildPersistedPlacedObjectPayload } from '@/features/content/locations/domain/mapContent/locationPlacedObject.persistence';
 
 import type { LocationMapActivePlaceSelection } from '../types/locationMapEditor.types';
-import { mapPlacedObjectKindToPersistedMapObjectKind } from './placeObjectBridge';
 
 export type ResolvedPlacedKindAction =
   | {
@@ -16,7 +16,6 @@ export type ResolvedPlacedKindAction =
   | {
       type: 'object';
       objectKind: LocationMapObjectKindId;
-      /** When palette id should be stored alongside persisted `kind` (e.g. table → obstacle, tree → marker). */
       authoredPlaceKindId?: LocationPlacedObjectKindId;
     }
   | { type: 'unsupported'; reason?: string };
@@ -41,18 +40,14 @@ export function resolvePlacedKindToAction(
   if (placedKind === 'site' && hostScale === 'city') {
     return { type: 'link', objectKind: 'site', linkedScale: 'site' };
   }
-  const mapped = mapPlacedObjectKindToPersistedMapObjectKind(placedKind, hostScale);
-  if (mapped) {
-    const authoredPlaceKindId =
-      placedKind === 'table' && mapped === 'obstacle'
-        ? ('table' as const)
-        : placedKind === 'tree' && mapped === 'marker'
-          ? ('tree' as const)
-          : undefined;
+  const payload = buildPersistedPlacedObjectPayload(placedKind, hostScale);
+  if (payload) {
     return {
       type: 'object',
-      objectKind: mapped,
-      ...(authoredPlaceKindId !== undefined ? { authoredPlaceKindId } : {}),
+      objectKind: payload.kind,
+      ...(payload.authoredPlaceKindId !== undefined
+        ? { authoredPlaceKindId: payload.authoredPlaceKindId }
+        : {}),
     };
   }
   return { type: 'unsupported', reason: 'no_mapping' };
@@ -80,8 +75,8 @@ export function resolveLocationPlacedKindToAction(
   const meta = LOCATION_PLACED_OBJECT_KIND_META[placedKind];
   const cat =
     'linkedScale' in meta && meta.linkedScale
-    ? ('linked-content' as const)
-    : ('map-object' as const);
+      ? ('linked-content' as const)
+      : ('map-object' as const);
   const r = resolvePlacedKindToAction({ category: cat, kind: placedKind }, hostScale);
   if (r.type === 'link') {
     return {

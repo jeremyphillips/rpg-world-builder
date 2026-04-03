@@ -45,7 +45,7 @@ describe('cellAuthoringMappers', () => {
   it('round-trips object authoredPlaceKindId', () => {
     const entries = cellDraftToCellEntries(
       {},
-      { '0,0': [{ id: 'x', kind: 'obstacle', authoredPlaceKindId: 'table' }] },
+      { '0,0': [{ id: 'x', kind: 'table', authoredPlaceKindId: 'table' }] },
     );
     expect(entries[0]?.objects?.[0]?.authoredPlaceKindId).toBe('table');
     const back = cellEntriesToDraft(entries);

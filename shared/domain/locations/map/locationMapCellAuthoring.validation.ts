@@ -6,7 +6,7 @@ import { parseGridCellId } from '../../grid/gridCellIds';
 import { LOCATION_MAP_CELL_FILL_KIND_IDS } from './locationMapCellFill.constants';
 import { LOCATION_MAP_OBJECT_KIND_IDS } from './locationMap.constants';
 
-const OBJECT_KIND_SET = new Set(LOCATION_MAP_OBJECT_KIND_IDS as readonly string[]);
+const OBJECT_KIND_SET = new Set<string>(LOCATION_MAP_OBJECT_KIND_IDS as readonly string[]);
 const CELL_FILL_KIND_SET = new Set(LOCATION_MAP_CELL_FILL_KIND_IDS as readonly string[]);
 
 export type LocationMapCellAuthoringValidationError = {

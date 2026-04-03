@@ -55,7 +55,7 @@ describe('locationMapPlacement.policy — object kinds', () => {
     expect(ALLOWED_MAP_OBJECT_KINDS_BY_HOST_SCALE.world).toEqual(['marker']);
     expect(getAllowedObjectKindsForHostScale('building')).toEqual([]);
     expect(getAllowedObjectKindsForHostScale('floor')).toEqual([
-      'obstacle',
+      'table',
       'door',
       'treasure',
       'stairs',

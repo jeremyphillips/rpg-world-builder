@@ -26,7 +26,7 @@ export const LOCATION_MAP_OBJECT_KIND_ICON_NAME: Record<
   LocationMapIconName
 > = {
   marker: 'marker',
-  obstacle: 'obstacle',
+  table: 'table',
   treasure: 'treasure',
   door: 'door',
   stairs: 'stairs',

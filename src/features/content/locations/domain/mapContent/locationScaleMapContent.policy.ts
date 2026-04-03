@@ -4,6 +4,7 @@ import type { LocationCellFillKindId } from './locationCellFill.types';
 import type { LocationEdgeFeatureKindId } from './locationEdgeFeature.types';
 import type { LocationPathFeatureKindId } from './locationPathFeature.types';
 import type { LocationPlacedObjectKindId } from './locationPlacedObject.types';
+import { getPlacedObjectKindsForScale } from './locationPlacedObject.selectors';
 
 /**
  * Per-scale vocabulary for **authored map content** (fills, paths, edges, placed objects).
@@ -48,19 +49,19 @@ export const LOCATION_SCALE_MAP_CONTENT_POLICY: Record<
     ],
     pathKinds: ['road', 'river'],
     edgeKinds: [],
-    objectKinds: ['city'],
+    objectKinds: [...getPlacedObjectKindsForScale('world')],
   },
   city: {
     cellFillKinds: [],
     pathKinds: ['road'],
     edgeKinds: [],
-    objectKinds: ['building', 'site', 'tree'],
+    objectKinds: [...getPlacedObjectKindsForScale('city')],
   },
   floor: {
     cellFillKinds: ['stone_floor'],
     pathKinds: [],
     edgeKinds: ['wall', 'window', 'door'],
-    objectKinds: ['table', 'stairs', 'treasure'],
+    objectKinds: [...getPlacedObjectKindsForScale('floor')],
   },
   region: EMPTY_LOCATION_SCALE_MAP_CONTENT_POLICY,
   subregion: EMPTY_LOCATION_SCALE_MAP_CONTENT_POLICY,
@@ -97,5 +98,5 @@ export function getAllowedEdgeKindsForScale(
 export function getAllowedPlacedObjectKindsForScale(
   scale: LocationScaleId,
 ): readonly LocationPlacedObjectKindId[] {
-  return getLocationScaleMapContentPolicy(scale).objectKinds;
+  return getPlacedObjectKindsForScale(scale);
 }

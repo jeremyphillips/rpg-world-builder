@@ -6,7 +6,6 @@ import type { ComponentType } from 'react';
 import type { SvgIconProps } from '@mui/material/SvgIcon';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ApartmentIcon from '@mui/icons-material/Apartment';
-import BlockIcon from '@mui/icons-material/Block';
 import DoorFrontIcon from '@mui/icons-material/DoorFront';
 import ForestIcon from '@mui/icons-material/Forest';
 import GrassIcon from '@mui/icons-material/Grass';
@@ -21,6 +20,7 @@ import ParkIcon from '@mui/icons-material/Park';
 import PublicIcon from '@mui/icons-material/Public';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import StairsIcon from '@mui/icons-material/Stairs';
+import TableRestaurantIcon from '@mui/icons-material/TableRestaurant';
 import TerrainIcon from '@mui/icons-material/Terrain';
 import WaterDamageIcon from '@mui/icons-material/WaterDamage';
 import WaterIcon from '@mui/icons-material/Water';
@@ -57,7 +57,7 @@ export const LOCATION_MAP_ICON_COMPONENT_BY_NAME: Record<
   map_floor: ApartmentIcon,
   map_room: MeetingRoomIcon,
   marker: RadioButtonUncheckedIcon,
-  obstacle: BlockIcon,
+  table: TableRestaurantIcon,
   treasure: Inventory2Icon,
   door: DoorFrontIcon,
   stairs: StairsIcon,
