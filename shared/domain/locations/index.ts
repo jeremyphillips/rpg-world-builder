@@ -10,6 +10,7 @@ export * from './scale/locationScale.rules';
 export * from './scale/locationScaleUi.policy';
 export * from './scale/locationParent.validation';
 export * from './map/locationMap.constants';
+export * from './map/locationMapCellFill.facets';
 export * from './map/locationMapCellFill.constants';
 export * from './map/locationMapRecordUtils';
 export * from './map/locationMapRegion.constants';

@@ -15,6 +15,12 @@ import type {
   MapPlacePaletteItem,
 } from '../types/locationMapEditor.types';
 
+/**
+ * Paint palette rows for surface fills — label + swatch from concrete fill meta.
+ *
+ * @remarks **TODO:** does not yet group/order by fill facets (`category`, `family`, …); policy +
+ * flat id list only.
+ */
 export function getPaintPaletteItemsForScale(scale: LocationScaleId): MapPaintPaletteItem[] {
   const kinds = getAllowedCellFillKindsForScale(scale);
   return kinds.map((fillKind) => {

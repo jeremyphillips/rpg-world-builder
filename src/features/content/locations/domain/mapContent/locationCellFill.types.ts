@@ -11,9 +11,18 @@
  * / `mapSwatchColors` in `src/app/theme/mapColors.ts`). They are not rendered as MUI icons.
  *
  * Canonical fill-kind ids and metadata live in `shared/domain/locations/map/locationMapCellFill.constants.ts`.
+ * Structured facets (category, family, …) are defined in `locationMapCellFill.facets.ts`.
  */
 
 import type { LocationMapCellFillKindId as SharedCellFillKindId } from '@/shared/domain/locations/map/locationMapCellFill.constants';
+
+export type {
+  LocationCellFillBiome,
+  LocationCellFillCategory,
+  LocationCellFillDensity,
+  LocationCellFillFamily,
+  LocationCellFillMaterial,
+} from '@/shared/domain/locations/map/locationMapCellFill.facets';
 
 export type {
   LocationCellFillKindMeta,
