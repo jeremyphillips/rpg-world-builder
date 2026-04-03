@@ -65,7 +65,9 @@ export function useLocationAuthoringGridLayout(
   const cellCenterPx = useCallback(
     (cellId: string): { cx: number; cy: number } | null => {
       if (isHex && hexGridGeometry) return hexCellCenterPx(cellId, hexGridGeometry.hexSize);
-      if (squareGridGeometry) return squareCellCenterPx(cellId, squareGridGeometry.cellPx);
+      if (squareGridGeometry) {
+        return squareCellCenterPx(cellId, squareGridGeometry.cellPx, GRID_GAP_PX);
+      }
       return null;
     },
     [isHex, hexGridGeometry, squareGridGeometry],

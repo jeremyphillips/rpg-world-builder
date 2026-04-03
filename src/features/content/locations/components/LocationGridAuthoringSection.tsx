@@ -52,7 +52,10 @@ import {
   selectedCellIdForMapSelection,
   type LocationMapSelection,
 } from './workspace/locationEditorRail.types';
-import { resolveSquareCellIdFromGridLocalPx } from './squareGridMapOverlayGeometry';
+import {
+  resolveSquareAnchorCellIdForSelectPx,
+  SQUARE_GRID_GAP_PX,
+} from './squareGridMapOverlayGeometry';
 import { edgeEntriesToSegmentGeometrySquare } from '@/shared/domain/locations/map/locationMapEdgeGeometry.helpers';
 import {
   pathEntriesToPolylineGeometry,
@@ -317,7 +320,11 @@ export function LocationGridAuthoringSection({
   /** Committed edge features (square grid only): shared geometry layer → SVG lines below. */
   const committedEdgeSegmentGeometry = useMemo(() => {
     if (!squareGridGeometry || isHex) return [];
-    return edgeEntriesToSegmentGeometrySquare(draft.edgeEntries, squareGridGeometry.cellPx);
+    return edgeEntriesToSegmentGeometrySquare(
+      draft.edgeEntries,
+      squareGridGeometry.cellPx,
+      SQUARE_GRID_GAP_PX,
+    );
   }, [draft.edgeEntries, squareGridGeometry, isHex]);
 
   const pathPickPolys = useMemo(() => {
@@ -326,7 +333,11 @@ export function LocationGridAuthoringSection({
 
   const edgePickGeoms = useMemo(() => {
     if (!squareGridGeometry || isHex) return null;
-    return edgeEntriesToSegmentGeometrySquare(draft.edgeEntries, squareGridGeometry.cellPx);
+    return edgeEntriesToSegmentGeometrySquare(
+      draft.edgeEntries,
+      squareGridGeometry.cellPx,
+      SQUARE_GRID_GAP_PX,
+    );
   }, [draft.edgeEntries, squareGridGeometry, isHex]);
 
   const mapUi = useMemo(() => resolveLocationMapUiStyles(theme), [theme]);
@@ -539,12 +550,13 @@ export function LocationGridAuthoringSection({
         cellEl?.getAttribute('data-cell-id') ??
         resolveHexCellFromClient(e.clientX, e.clientY) ??
         (!isHex && squareGridGeometry
-          ? resolveSquareCellIdFromGridLocalPx(
+          ? resolveSquareAnchorCellIdForSelectPx(
               gx,
               gy,
               squareGridGeometry.cellPx,
               cols,
               rows,
+              SQUARE_GRID_GAP_PX,
             )
           : null);
       if (!anchorCellId) {
@@ -573,6 +585,57 @@ export function LocationGridAuthoringSection({
       cols,
       rows,
       resolveHexCellFromClient,
+    ],
+  );
+
+  const handleSelectGridContainerClick = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      if (mapEditorMode !== 'select' || !validPreview) return;
+      if (hasDragMoved?.()) return;
+      if (isHex) return;
+      if ((e.target as HTMLElement).closest('[role="gridcell"]')) return;
+      if (!gridContainerRef.current || !squareGridGeometry) return;
+      const rect = gridContainerRef.current.getBoundingClientRect();
+      const gx = e.clientX - rect.left;
+      const gy = e.clientY - rect.top;
+      const anchorCellId = resolveSquareAnchorCellIdForSelectPx(
+        gx,
+        gy,
+        squareGridGeometry.cellPx,
+        cols,
+        rows,
+        SQUARE_GRID_GAP_PX,
+      );
+      if (!anchorCellId) return;
+      setDraft((d) => {
+        const resolved = resolveSelectModeInteractiveTarget({
+          targetElement: e.target as HTMLElement,
+          gx,
+          gy,
+          anchorCellId,
+          ...buildSelectModeInteractiveTargetInput(d, pathPickPolys, edgePickGeoms, isHex),
+        });
+        const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, anchorCellId);
+        return {
+          ...d,
+          mapSelection: ms,
+          selectedCellId: selectedCellIdForMapSelection(ms),
+        };
+      });
+      onCellFocusRail?.();
+    },
+    [
+      mapEditorMode,
+      validPreview,
+      hasDragMoved,
+      isHex,
+      squareGridGeometry,
+      cols,
+      rows,
+      pathPickPolys,
+      edgePickGeoms,
+      setDraft,
+      onCellFocusRail,
     ],
   );
 
@@ -832,7 +895,13 @@ export function LocationGridAuthoringSection({
             '& *': { cursor: 'crosshair !important' },
           } : {}),
         }}
-        onClick={isHex ? handleHexFallbackClick : undefined}
+        onClick={
+          isHex
+            ? handleHexFallbackClick
+            : mapEditorMode === 'select'
+              ? handleSelectGridContainerClick
+              : undefined
+        }
         onPointerDownCapture={
           edgePlaceActive || edgeEraseActive ? handleEdgePointerDown : undefined
         }
@@ -852,52 +921,79 @@ export function LocationGridAuthoringSection({
           if (mapEditorMode === 'select') setSelectHoverTarget({ type: 'none' });
         }}
       >
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-          {isHex ? (
-            <HexGridEditor
-              {...sharedGridProps}
-              hexSize={gridSizePx.hexCellPx || undefined}
-            />
-          ) : (
-            <GridEditor {...sharedGridProps} />
-          )}
-        </Box>
         {squareGridGeometry &&
         !isHex &&
         (pathSvgData.length > 0 ||
           draft.edgeEntries.length > 0 ||
           edgeHoverTarget != null ||
           edgeStrokeSnapshot.length > 0) ? (
-          <SquareMapAuthoringSvgOverlay
-            width={squareGridGeometry.width}
-            height={squareGridGeometry.height}
-            cellPx={squareGridGeometry.cellPx}
-            mapUi={mapUi}
-            pathSvgData={pathSvgData}
-            mapSelection={draft.mapSelection}
-            selectHoverTarget={selectHoverTarget}
-            edgeStrokeSnapshot={edgeStrokeSnapshot}
-            edgeHoverTarget={edgeHoverTarget}
-            edgeEraseActive={edgeEraseActive}
-            committedEdgeSegmentGeometry={committedEdgeSegmentGeometry}
-          />
+          <Box
+            sx={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              width: squareGridGeometry.width,
+              height: squareGridGeometry.height,
+              zIndex: 2,
+              pointerEvents: 'none',
+            }}
+          >
+            <SquareMapAuthoringSvgOverlay
+              width={squareGridGeometry.width}
+              height={squareGridGeometry.height}
+              cellPx={squareGridGeometry.cellPx}
+              mapUi={mapUi}
+              pathSvgData={pathSvgData}
+              mapSelection={draft.mapSelection}
+              selectHoverTarget={selectHoverTarget}
+              edgeStrokeSnapshot={edgeStrokeSnapshot}
+              edgeHoverTarget={edgeHoverTarget}
+              edgeEraseActive={edgeEraseActive}
+              committedEdgeSegmentGeometry={committedEdgeSegmentGeometry}
+            />
+          </Box>
         ) : null}
         {hexGridGeometry &&
         isHex &&
         (pathSvgData.length > 0 ||
           hexSelectedRegionBoundarySegments.length > 0 ||
           hexHoverRegionBoundarySegments.length > 0) ? (
-          <HexMapAuthoringSvgOverlay
-            width={hexGridGeometry.width}
-            height={hexGridGeometry.height}
-            mapUi={mapUi}
-            pathSvgData={pathSvgData}
-            mapSelection={draft.mapSelection}
-            selectHoverTarget={selectHoverTarget}
-            hexSelectedRegionBoundarySegments={hexSelectedRegionBoundarySegments}
-            hexHoverRegionBoundarySegments={hexHoverRegionBoundarySegments}
-          />
+          <Box
+            sx={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              width: hexGridGeometry.width,
+              height: hexGridGeometry.height,
+              zIndex: 2,
+              pointerEvents: 'none',
+            }}
+          >
+            <HexMapAuthoringSvgOverlay
+              width={hexGridGeometry.width}
+              height={hexGridGeometry.height}
+              mapUi={mapUi}
+              pathSvgData={pathSvgData}
+              mapSelection={draft.mapSelection}
+              selectHoverTarget={selectHoverTarget}
+              hexSelectedRegionBoundarySegments={hexSelectedRegionBoundarySegments}
+              hexHoverRegionBoundarySegments={hexHoverRegionBoundarySegments}
+            />
+          </Box>
         ) : null}
+        <Box sx={{ position: 'relative', zIndex: 0 }}>
+          {isHex ? (
+            <HexGridEditor
+              {...sharedGridProps}
+              hexSize={gridSizePx.hexCellPx || undefined}
+            />
+          ) : (
+            <GridEditor
+              {...sharedGridProps}
+              selectModeCursor={mapEditorMode === 'select'}
+            />
+          )}
+        </Box>
       </Box>
     </Paper>
   );

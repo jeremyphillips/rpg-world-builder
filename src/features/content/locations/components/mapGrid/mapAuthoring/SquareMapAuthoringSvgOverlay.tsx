@@ -3,7 +3,10 @@ import type { EdgeSegmentGeometry } from '@/shared/domain/locations/map/location
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
 import type { ResolvedEdgeTarget } from '@/features/content/locations/domain/mapEditor';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
-import { squareEdgeSegmentPxFromEdgeId } from '@/features/content/locations/components/squareGridMapOverlayGeometry';
+import {
+  squareEdgeSegmentPxFromEdgeId,
+  SQUARE_GRID_GAP_PX,
+} from '@/features/content/locations/components/squareGridMapOverlayGeometry';
 import { LocationMapPathSvgPaths } from '@/features/content/locations/components/mapGrid/LocationMapPathSvgPaths';
 
 type PathSvgItem = { pathId: string; kind: string; d: string };
@@ -24,7 +27,8 @@ export type SquareMapAuthoringSvgOverlayProps = {
 
 /**
  * Square grid: path splines, committed edges, boundary-paint preview stroke, and hover edge dash.
- * Pointer-events none; rendered **below** the cell grid (z-index under cell layer) so cell-hosted icons stay visible.
+ * Pointer-events none; parent stacks **above** the cell grid so strokes/paths paint over terrain fill
+ * (cells remain interactive; hit-testing targets elements under this SVG).
  */
 export function SquareMapAuthoringSvgOverlay({
   width,
@@ -48,13 +52,12 @@ export function SquareMapAuthoringSvgOverlay({
         left: 0,
         top: 0,
         pointerEvents: 'none',
-        zIndex: 0,
         display: 'block',
       }}
       aria-hidden
     >
       {edgeStrokeSnapshot.map((eid) => {
-        const seg = squareEdgeSegmentPxFromEdgeId(eid, cellPx);
+        const seg = squareEdgeSegmentPxFromEdgeId(eid, cellPx, SQUARE_GRID_GAP_PX);
         if (!seg) return null;
         return (
           <line
@@ -73,7 +76,11 @@ export function SquareMapAuthoringSvgOverlay({
       {edgeHoverTarget &&
         !edgeStrokeSnapshot.includes(edgeHoverTarget.edgeId) &&
         (() => {
-          const seg = squareEdgeSegmentPxFromEdgeId(edgeHoverTarget.edgeId, cellPx);
+          const seg = squareEdgeSegmentPxFromEdgeId(
+            edgeHoverTarget.edgeId,
+            cellPx,
+            SQUARE_GRID_GAP_PX,
+          );
           if (!seg) return null;
           return (
             <line

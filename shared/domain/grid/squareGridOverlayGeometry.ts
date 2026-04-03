@@ -46,6 +46,31 @@ export function resolveSquareCellIdFromGridLocalPx(
 }
 
 /**
+ * Cell id for select-mode anchor when the pointer may be in an inter-cell gutter.
+ * Uses strict in-cell resolution first; if that returns null but `(gx,gy)` is still inside the
+ * grid bounds, maps to the cell in the grid block containing the point (same `floor` as cell
+ * origin index) so edge/path hit-testing can run in gutters.
+ */
+export function resolveSquareAnchorCellIdForSelectPx(
+  gx: number,
+  gy: number,
+  cellPx: number,
+  cols: number,
+  rows: number,
+  gapPx: number = SQUARE_GRID_GAP_PX,
+): string | null {
+  const step = cellPx + gapPx;
+  const totalW = cols * cellPx + Math.max(0, cols - 1) * gapPx;
+  const totalH = rows * cellPx + Math.max(0, rows - 1) * gapPx;
+  if (gx < 0 || gy < 0 || gx >= totalW || gy >= totalH) return null;
+  const inside = resolveSquareCellIdFromGridLocalPx(gx, gy, cellPx, cols, rows, gapPx);
+  if (inside) return inside;
+  const ix = Math.min(cols - 1, Math.max(0, Math.floor(gx / step)));
+  const iy = Math.min(rows - 1, Math.max(0, Math.floor(gy / step)));
+  return makeGridCellId(ix, iy);
+}
+
+/**
  * Pixel segment on the shared boundary between two orthogonally adjacent cells
  * (centered in the gutter).
  */

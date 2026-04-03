@@ -20,6 +20,57 @@ function groupByAuthorCellId(
   return m;
 }
 
+export type LocationMapAuthoredObjectIconsCellInlineProps = {
+  /** Items for a single cell (same `combatCellId` / `authorCellId`). */
+  items: readonly LocationMapAuthoredObjectRenderItem[];
+  cellPx: number;
+  mapUi: LocationMapUiResolvedStyles;
+};
+
+/**
+ * Same glyphs as {@link LocationMapAuthoredObjectIconsLayer}, but laid out in normal flow for use
+ * inside a flex-centered grid cell (avoids global stacking-context issues vs tactical layers).
+ */
+export function LocationMapAuthoredObjectIconsCellInline({
+  items,
+  cellPx,
+  mapUi,
+}: LocationMapAuthoredObjectIconsCellInlineProps) {
+  if (items.length === 0) return null;
+  const authorCellId = items[0]!.authorCellId;
+  return (
+    <Stack
+      direction="row"
+      flexWrap="wrap"
+      justifyContent="center"
+      alignItems="center"
+      gap={0.25}
+      sx={{ lineHeight: 0, maxWidth: cellPx }}
+    >
+      {items.map((o) => {
+        const visual = resolvePlacedObjectCellVisualFromRenderItem(o);
+        return (
+          <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
+            <Box
+              component="span"
+              data-map-object-id={o.id}
+              data-map-object-cell-id={authorCellId}
+              sx={{
+                display: 'inline-flex',
+                lineHeight: 0,
+                pointerEvents: 'auto',
+                cursor: 'default',
+              }}
+            >
+              <PlacedObjectCellVisualDisplay visual={visual} variant="overlay" mapUi={mapUi} />
+            </Box>
+          </Tooltip>
+        );
+      })}
+    </Stack>
+  );
+}
+
 export type LocationMapAuthoredObjectIconsLayerProps = {
   items: readonly LocationMapAuthoredObjectRenderItem[];
   cellPx: number;

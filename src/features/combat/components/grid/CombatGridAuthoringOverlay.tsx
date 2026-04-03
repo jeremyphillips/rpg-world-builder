@@ -3,11 +3,9 @@ import Box from '@mui/material/Box'
 
 import type { EncounterAuthoringPresentation } from '@/features/mechanics/domain/combat/space'
 import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles'
-import { LocationMapAuthoredObjectIconsLayer } from '@/features/content/locations/components/mapGrid/LocationMapAuthoredObjectIconsLayer'
 import { LocationMapPathSvgPaths } from '@/features/content/locations/components/mapGrid/LocationMapPathSvgPaths'
 import { polylinePoint2DToSmoothSvgPath } from '@/features/content/locations/components/pathOverlayRendering'
 import type { LocationMapPathAuthoringEntry } from '@/shared/domain/locations/map/locationMap.types'
-import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types'
 import { edgeEntriesToSegmentGeometrySquare } from '@/shared/domain/locations/map/locationMapEdgeGeometry.helpers'
 import { pathEntryToPolylineGeometry } from '@/shared/domain/locations/map/locationMapPathPolyline.helpers'
 import { squareCellCenterPx } from '@/shared/domain/grid/squareGridOverlayGeometry'
@@ -19,23 +17,19 @@ export const COMBAT_GRID_GAP_PX = 1
 type CombatGridAuthoringOverlayProps = {
   theme: Theme
   authoringPresentation: EncounterAuthoringPresentation
-  /**
-   * Gated authored-object list for the current viewer (defaults to presentation when omitted).
-   */
-  authoredObjectRenderItems?: readonly LocationMapAuthoredObjectRenderItem[]
   columns: number
   rows: number
   cellPx: number
 }
 
 /**
- * Read-only authored base map: paths, edges, then authored object icons (see `LocationMapAuthoredObjectIconsLayer`).
- * Pointer-events none; rendered under tactical cells and combat overlays.
+ * Read-only authored base map SVG: paths + edges only. Authored object icons render inside each
+ * {@link CombatGrid} cell so they stack with tokens/obstacles (see `LocationMapAuthoredObjectIconsCellInline`).
+ * Pointer-events none; keep this layer under tactical cells (paint order / z-index in parent).
  */
 export function CombatGridAuthoringOverlay({
   theme,
   authoringPresentation,
-  authoredObjectRenderItems: authoredObjectRenderItemsProp,
   columns,
   rows,
   cellPx,
@@ -65,7 +59,6 @@ export function CombatGridAuthoringOverlay({
 
   const w = columns * cellPx + (columns - 1) * gapPx
   const h = rows * cellPx + (rows - 1) * gapPx
-  const objectItems = authoredObjectRenderItemsProp ?? authoringPresentation.authoredObjectRenderItems ?? []
 
   return (
     <Box
@@ -86,7 +79,6 @@ export function CombatGridAuthoringOverlay({
           left: 0,
           top: 0,
           display: 'block',
-          zIndex: 0,
         }}
         aria-hidden
       >
@@ -114,7 +106,6 @@ export function CombatGridAuthoringOverlay({
           )
         })}
       </svg>
-      <LocationMapAuthoredObjectIconsLayer items={objectItems} cellPx={cellPx} gapPx={gapPx} mapUi={mapUi} />
     </Box>
   )
 }

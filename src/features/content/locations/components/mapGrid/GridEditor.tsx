@@ -17,6 +17,7 @@ import {
   shouldApplyCellHoverChrome,
   shouldApplyCellSelectedChrome,
 } from './mapGridCellVisualState';
+import { SQUARE_GRID_GAP_PX } from '@/features/content/locations/components/squareGridMapOverlayGeometry';
 
 export type GridCell = {
   cellId: string;
@@ -47,6 +48,8 @@ export type GridEditorProps = {
    * {@link shouldApplyCellHoverChrome}; omit in other modes so all cells keep normal hover.
    */
   selectHoverTarget?: LocationMapSelection;
+  /** When true, grid root uses `cursor: default` so inter-cell gutters inherit it (not `pointer`). */
+  selectModeCursor?: boolean;
 };
 
 export default function GridEditor({
@@ -65,6 +68,7 @@ export default function GridEditor({
   className,
   disabled,
   selectHoverTarget: selectHoverTargetProp,
+  selectModeCursor = false,
 }: GridEditorProps) {
   const safeCols = Math.max(0, Math.floor(columns));
   const safeRows = Math.max(0, Math.floor(rows));
@@ -79,9 +83,11 @@ export default function GridEditor({
       sx={{
         display: 'grid',
         gridTemplateColumns: `repeat(${safeCols}, minmax(0, 1fr))`,
-        gap: 0.5,
+        // Must match `SQUARE_GRID_GAP_PX` / `useLocationAuthoringGridLayout` so SVG edge geometry aligns with gutters.
+        gap: `${SQUARE_GRID_GAP_PX}px`,
         width: '100%',
         maxWidth: '100%',
+        ...(selectModeCursor ? { cursor: 'default' } : {}),
       }}
       role="grid"
       aria-colcount={safeCols}

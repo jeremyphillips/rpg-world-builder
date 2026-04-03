@@ -18,6 +18,7 @@ import { DEFEATED_PARTICIPATION_OPACITY } from '@/features/mechanics/domain/comb
 import { getCellVisualState, mergePerceptionIntoCellVisualState } from './cellVisualState'
 import { getCellVisualSx, mergeAuthoringMapUnderlayIntoCellSx } from './cellVisualStyles'
 import { CombatGridAuthoringOverlay } from './CombatGridAuthoringOverlay'
+import { LocationMapAuthoredObjectIconsCellInline } from '@/features/content/locations/components/mapGrid/LocationMapAuthoredObjectIconsLayer'
 import { PlacedObjectCellVisualCentered } from '@/features/content/locations/domain/mapPresentation/PlacedObjectCellVisualDisplay'
 import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles'
 import { filterAuthoredObjectRenderItemsForGrid } from './combatGridAuthoredObjects'
@@ -266,24 +267,13 @@ export function CombatGrid({
           }}
         >
           {grid.authoringPresentation ? (
-            <Box
-              sx={{
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                zIndex: 0,
-                pointerEvents: 'none',
-              }}
-            >
-              <CombatGridAuthoringOverlay
-                theme={theme}
-                authoringPresentation={grid.authoringPresentation}
-                authoredObjectRenderItems={visibleAuthoredObjectItems}
-                columns={grid.columns}
-                rows={grid.rows}
-                cellPx={cellSizePx}
-              />
-            </Box>
+            <CombatGridAuthoringOverlay
+              theme={theme}
+              authoringPresentation={grid.authoringPresentation}
+              columns={grid.columns}
+              rows={grid.rows}
+              cellPx={cellSizePx}
+            />
           ) : null}
           {grid.cells.map((cell) => {
             const isWall = cell.kind === 'wall' || cell.kind === 'blocking'
@@ -330,6 +320,10 @@ export function CombatGrid({
               !cell.isActive &&
               (isHoverCell || cell.isSelectedTarget)
 
+            const cellAuthoredItems = grid.authoringPresentation
+              ? visibleAuthoredObjectItems.filter((it) => it.combatCellId === cell.cellId)
+              : []
+
             const cellBox = (
               <Box
                 onPointerEnter={onCellHover ? () => onCellHover(cell.cellId) : undefined}
@@ -352,6 +346,13 @@ export function CombatGrid({
                   ...cellVisualSx,
                 }}
               >
+                {cellAuthoredItems.length > 0 ? (
+                  <LocationMapAuthoredObjectIconsCellInline
+                    items={cellAuthoredItems}
+                    cellPx={cellSizePx}
+                    mapUi={mapUi}
+                  />
+                ) : null}
                 {showOccupantToken && (
                   <Box
                     onPointerEnter={() => onCellHover?.(cell.cellId)}

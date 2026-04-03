@@ -172,7 +172,7 @@ function resolveEdgeCommittedStyles(
       strokeDasharray: tokens.edge.windowDasharray,
     },
     door: {
-      stroke: alpha(theme.palette.warning.main, edgeAlpha),
+      stroke: alpha(theme.palette.text.primary, edgeAlpha),
       strokeWidth,
     },
   };
