@@ -29,6 +29,8 @@ export type {
   LocationWindowVariantId,
 } from '@/shared/domain/locations/map/locationEdgeFeature.facets';
 
+export { LOCATION_EDGE_MATERIAL_IDS } from '@/shared/domain/locations/map/locationEdgeFeature.facets';
+
 /** Same union as {@link LocationMapEdgeKindId} — shared `LOCATION_MAP_EDGE_KIND_IDS` is the id source. */
 export type LocationEdgeFeatureKindId = LocationMapEdgeKindId;
 

@@ -11,6 +11,8 @@
  * code — they are intentional scaffolding.
  */
 
+import type { MaterialId } from '@/shared/domain/materials';
+
 /**
  * Top-level bucket: outdoor/natural land cover vs interior constructed surfaces.
  * Keeps terrain-like fills (forest, water, …) separate from floors (`stone_floor`, future `wood_floor`).
@@ -28,7 +30,7 @@ export type LocationCellFillFamily =
   | 'swamp'
   | 'desert'
   | 'water'
-  /** Interior flooring (paired with {@link LocationCellFillMaterial} on `surface` fills). */
+  /** Interior flooring (paired with {@link LocationCellFillMaterialId} on `surface` fills). */
   | 'floor';
 
 /**
@@ -48,9 +50,11 @@ export type LocationCellFillBiome = 'temperate' | 'arid' | 'tropical';
 export type LocationCellFillDensity = 'open' | 'dense';
 
 /**
- * Construction material for `surface` / `family: 'floor'` fills.
+ * Materials allowed for interior floor surface fills. Subset of {@link MaterialId}.
  *
- * @remarks **TODO:** only `stone` is used today; `wood` / `tile` support future ids like `wood_floor`
- * without schema churn.
+ * @remarks **TODO:** only `stone` is used in meta today; `wood` / `tile` support future ids like `wood_floor`
+ * without schema churn. Runtime list for validation/selects when facets are wired up.
  */
-export type LocationCellFillMaterial = 'stone' | 'wood' | 'tile';
+export const LOCATION_CELL_FILL_MATERIAL_IDS = ['stone', 'wood', 'tile'] as const satisfies readonly MaterialId[];
+
+export type LocationCellFillMaterialId = (typeof LOCATION_CELL_FILL_MATERIAL_IDS)[number];

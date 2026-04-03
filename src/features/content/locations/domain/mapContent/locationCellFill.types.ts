@@ -21,8 +21,10 @@ export type {
   LocationCellFillCategory,
   LocationCellFillDensity,
   LocationCellFillFamily,
-  LocationCellFillMaterial,
+  LocationCellFillMaterialId,
 } from '@/shared/domain/locations/map/locationMapCellFill.facets';
+
+export { LOCATION_CELL_FILL_MATERIAL_IDS } from '@/shared/domain/locations/map/locationMapCellFill.facets';
 
 export type {
   LocationCellFillKindMeta,

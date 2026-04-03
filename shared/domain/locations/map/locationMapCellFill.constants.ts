@@ -12,7 +12,7 @@ import type {
   LocationCellFillCategory,
   LocationCellFillDensity,
   LocationCellFillFamily,
-  LocationCellFillMaterial,
+  LocationCellFillMaterialId,
 } from './locationMapCellFill.facets';
 import { recordKeys } from './locationMapRecordUtils';
 
@@ -97,7 +97,7 @@ export const LOCATION_CELL_FILL_KIND_META = {
     family: LocationCellFillFamily;
     biome?: LocationCellFillBiome;
     density?: LocationCellFillDensity;
-    material?: LocationCellFillMaterial;
+    material?: LocationCellFillMaterialId;
   }
 >;
 

@@ -9,6 +9,8 @@
  * declares **supported** values per base kind as scaffolding only.
  */
 
+import type { MaterialId } from '@/shared/domain/materials';
+
 /**
  * High-level role of the edge feature for future grouping/filtering.
  *
@@ -17,11 +19,12 @@
 export type LocationEdgeFeatureCategory = 'barrier' | 'opening' | 'passage';
 
 /**
- * Wall surface / construction material (when instances gain a material facet).
- *
- * @remarks **TODO:** no per-edge material on persisted `edgeEntries` yet.
+ * Materials allowed for map edge features (walls). Subset of {@link MaterialId}.
+ * @remarks Runtime list for validation/UI; keep aligned with {@link MATERIAL_META} spellings.
  */
-export type LocationEdgeMaterialId = 'stone' | 'wood';
+export const LOCATION_EDGE_MATERIAL_IDS = ['stone', 'wood'] as const satisfies readonly MaterialId[];
+
+export type LocationEdgeMaterialId = (typeof LOCATION_EDGE_MATERIAL_IDS)[number];
 
 /**
  * Window presentation / state variants.
