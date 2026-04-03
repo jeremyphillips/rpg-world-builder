@@ -21,8 +21,8 @@ function baseCell(overrides: Partial<GridCellViewModel> = {}): GridCellViewModel
     occupantLabel: null,
     occupantSide: null,
     occupantPortraitImageKey: null,
-    obstacleKind: null,
-    obstacleLabel: null,
+    placedObjectKind: null,
+    placedObjectLabel: null,
     isActive: false,
     isSelectedTarget: false,
     isWithinSelectedActionRange: false,
@@ -95,7 +95,7 @@ describe('resolveBaseFillKind', () => {
       resolveBaseFillKind(
         baseCell({
           kind: 'blocking',
-          obstacleKind: 'tree',
+          placedObjectKind: 'tree',
         }),
       ),
     ).toBe('paper')

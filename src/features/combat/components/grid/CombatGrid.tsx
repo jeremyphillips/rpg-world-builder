@@ -85,7 +85,7 @@ function resolveCellCursor(params: {
 
     if (objectAnchorPickActive) {
       const obstaclePerceivable =
-        Boolean(cell.obstacleKind) && cell.perception?.showObstacleGlyph !== false
+        Boolean(cell.placedObjectKind) && cell.perception?.showObstacleGlyph !== false
       return obstaclePerceivable ? 'pointer' : 'not-allowed'
     }
 
@@ -385,7 +385,7 @@ export function CombatGrid({
                     />
                   </Box>
                 )}
-                {cell.obstacleLabel && cell.perception?.showObstacleGlyph !== false && (
+                {cell.placedObjectLabel && cell.perception?.showObstacleGlyph !== false && (
                   <Typography
                     variant="caption"
                     component="span"
@@ -401,15 +401,15 @@ export function CombatGrid({
                       pointerEvents: 'none',
                     }}
                   >
-                    {cell.obstacleLabel?.charAt(0).toUpperCase() ?? '·'}
+                    {cell.placedObjectLabel?.charAt(0).toUpperCase() ?? '·'}
                   </Typography>
                 )}
               </Box>
             )
 
-            if (cell.obstacleLabel && cell.perception?.showObstacleGlyph !== false) {
+            if (cell.placedObjectLabel && cell.perception?.showObstacleGlyph !== false) {
               return (
-                <Tooltip key={cell.cellId} title={cell.obstacleLabel} placement="top" arrow>
+                <Tooltip key={cell.cellId} title={cell.placedObjectLabel} placement="top" arrow>
                   {cellBox}
                 </Tooltip>
               )

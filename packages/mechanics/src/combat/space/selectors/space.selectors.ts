@@ -112,8 +112,8 @@ export type GridCellViewModel = {
   /** From `CombatantInstance.portraitImageKey` — resolve URLs in UI only. */
   occupantPortraitImageKey: string | null
   /** Authored placed-object kind on this cell (`EncounterSpace.gridObjects`), for labels / tooltips. */
-  obstacleKind: GridObjectAuthoredKindId | null
-  obstacleLabel: string | null
+  placedObjectKind: GridObjectAuthoredKindId | null
+  placedObjectLabel: string | null
   isActive: boolean
   isSelectedTarget: boolean
   /** True when this cell is within Chebyshev distance of the active combatant for the selected action's `rangeFt` (distance only; not full targeting validity). */
@@ -315,9 +315,9 @@ export function selectGridViewModel(
           ? aoe.hoverCellId!
           : aoe.originCellId ?? null
 
-  const obstacleByCellId = new Map<string, GridObjectAuthoredKindId>()
+  const placedObjectKindByCellId = new Map<string, GridObjectAuthoredKindId>()
   for (const o of getEncounterGridObjects(space)) {
-    obstacleByCellId.set(o.cellId, gridObjectPlacementKindKey(o))
+    placedObjectKindByCellId.set(o.cellId, gridObjectPlacementKindKey(o))
   }
 
   const combatantRoster = Object.values(state.combatantsById)
@@ -325,8 +325,9 @@ export function selectGridViewModel(
   const cells: GridCellViewModel[] = space.cells.map((cell) => {
     const occupantId = getOccupant(placements, cell.id) ?? null
     const combatant = occupantId ? state.combatantsById[occupantId] ?? null : null
-    const obstacleKind = obstacleByCellId.get(cell.id) ?? null
-    const obstacleLabel = obstacleKind != null ? gridObjectPlacementKindDisplayLabel(obstacleKind) : null
+    const placedObjectKind = placedObjectKindByCellId.get(cell.id) ?? null
+    const placedObjectLabel =
+      placedObjectKind != null ? gridObjectPlacementKindDisplayLabel(placedObjectKind) : null
 
     let withinSelectedActionRange = false
     if (rangeFt != null && activeCellId) {
@@ -459,8 +460,8 @@ export function selectGridViewModel(
       ),
       ...(viewerPerceivesOccupantToken !== undefined ? { viewerPerceivesOccupantToken } : {}),
       ...(viewerOccupantPresentationKind !== undefined ? { viewerOccupantPresentationKind } : {}),
-      obstacleKind,
-      obstacleLabel,
+      placedObjectKind,
+      placedObjectLabel,
       isActive: occupantId !== null && occupantId === activeId,
       isSelectedTarget: occupantId !== null && occupantId === selectedTargetId,
       isWithinSelectedActionRange: withinSelectedActionRange,
