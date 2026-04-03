@@ -20,10 +20,11 @@ describe('resolvePlacedKindToAction', () => {
     ).toEqual({ type: 'link', objectKind: 'city', linkedScale: 'city' });
   });
 
-  it('map-object tree on city maps to marker object', () => {
+  it('map-object tree on city maps to marker with authoredPlaceKindId tree', () => {
     expect(resolvePlacedKindToAction({ category: 'map-object', kind: 'tree' }, 'city')).toEqual({
       type: 'object',
       objectKind: 'marker',
+      authoredPlaceKindId: 'tree',
     });
   });
 });
@@ -37,10 +38,11 @@ describe('resolveLocationPlacedKindToAction', () => {
     });
   });
 
-  it('tree on city places marker', () => {
+  it('tree on city places marker with authoredPlaceKindId tree', () => {
     expect(resolveLocationPlacedKindToAction('tree', 'city')).toEqual({
       kind: 'place-object',
       mapObjectKind: 'marker',
+      authoredPlaceKindId: 'tree',
     });
   });
 

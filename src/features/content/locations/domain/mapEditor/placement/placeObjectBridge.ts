@@ -10,6 +10,7 @@ export function mapPlacedObjectKindToPersistedMapObjectKind(
   placedKind: LocationPlacedObjectKindId,
   hostScale: LocationScaleId,
 ): LocationMapObjectKindId | null {
+  /** POI vegetation: persisted as `marker`; pair with `authoredPlaceKindId: 'tree'` at save (see resolver). */
   if (placedKind === 'tree' && hostScale === 'city') {
     return 'marker';
   }

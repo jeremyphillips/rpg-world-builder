@@ -16,7 +16,7 @@ export type ResolvedPlacedKindAction =
   | {
       type: 'object';
       objectKind: LocationMapObjectKindId;
-      /** When palette kind differs from persisted `kind` (e.g. table → obstacle). */
+      /** When palette id should be stored alongside persisted `kind` (e.g. table → obstacle, tree → marker). */
       authoredPlaceKindId?: LocationPlacedObjectKindId;
     }
   | { type: 'unsupported'; reason?: string };
@@ -43,12 +43,16 @@ export function resolvePlacedKindToAction(
   }
   const mapped = mapPlacedObjectKindToPersistedMapObjectKind(placedKind, hostScale);
   if (mapped) {
+    const authoredPlaceKindId =
+      placedKind === 'table' && mapped === 'obstacle'
+        ? ('table' as const)
+        : placedKind === 'tree' && mapped === 'marker'
+          ? ('tree' as const)
+          : undefined;
     return {
       type: 'object',
       objectKind: mapped,
-      ...(placedKind === 'table' && mapped === 'obstacle'
-        ? { authoredPlaceKindId: 'table' as const }
-        : {}),
+      ...(authoredPlaceKindId !== undefined ? { authoredPlaceKindId } : {}),
     };
   }
   return { type: 'unsupported', reason: 'no_mapping' };
