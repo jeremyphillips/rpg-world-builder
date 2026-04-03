@@ -4,7 +4,7 @@
  * (`LOCATION_SCALE_MAP_ICON_NAME`, `LOCATION_MAP_OBJECT_KIND_TO_ICON_NAME`).
  */
 import type { LocationMapObjectKindId, LocationScaleId } from '@/shared/domain/locations';
-import type { LocationMapGlyphIconName } from '@/features/content/locations/domain/mapContent';
+import type { LocationMapGlyphIconName } from './locationMapIconNameMap';
 import {
   getMapObjectKindIconName,
   LOCATION_MAP_OBJECT_KIND_TO_ICON_NAME,

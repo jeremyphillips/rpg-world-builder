@@ -5,7 +5,7 @@
 import type { LocationMapObjectKindId } from '@/shared/domain/locations';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 
-import type { LocationMapGlyphIconName } from '../mapContent/locationMapIconNames';
+import type { LocationMapGlyphIconName } from './locationMapIconNameMap';
 import type { LocationPlacedObjectKindId } from '../mapContent/locationPlacedObject.registry';
 import {
   getMapObjectKindIconName,

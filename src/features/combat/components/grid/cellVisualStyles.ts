@@ -3,7 +3,10 @@ import { alpha } from '@mui/material/styles'
 import type { SystemStyleObject } from '@mui/system'
 import type { GridCellViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
 import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types'
-import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/mapContent/locationCellFill.types'
+import {
+  LOCATION_CELL_FILL_KIND_META,
+  type LocationMapCellFillKindId,
+} from '@/features/content/locations/domain/mapContent/locationCellFill.types'
 import { getMapRegionColor, resolveCellFillSwatchColor } from '@/app/theme/mapColors'
 import type { CellBaseFillKind, CellMovementVisual, CellVisualState } from './cellVisualState'
 
@@ -120,7 +123,7 @@ export function mergeAuthoringMapUnderlayIntoCellSx(
   if (!fillKind && !regionKey) return baseSx
 
   const fillMeta = fillKind
-    ? LOCATION_CELL_FILL_KIND_META[fillKind as keyof typeof LOCATION_CELL_FILL_KIND_META]
+    ? LOCATION_CELL_FILL_KIND_META[fillKind as LocationMapCellFillKindId]
     : undefined
 
   let stacked: string = theme.palette.background.paper
