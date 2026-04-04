@@ -50,6 +50,7 @@ import {
   type BattlefieldIntervalResolutionOptions,
 } from './battlefield/battlefield-interval-resolution'
 import { reconcileBattlefieldEffectAnchors } from './auras/battlefield-effect-anchor-reconciliation'
+import { syncEncounterSpaceToActiveCombatant } from '../space/encounter-spaces'
 
 function resetCombatantTurnState(
   state: EncounterState,
@@ -367,6 +368,8 @@ export function createEncounterState(
     ? generateInitialPlacements(options.space, seededCombatants, options.placementOptions)
     : undefined
 
+  const spacesById = options.space ? { [options.space.id]: options.space } : undefined
+
   const monstersById = options.monstersById ?? options.battlefieldSpell?.monstersById
   const traitAuras = collectMonsterTraitAttachedAuras(
     seededCombatants,
@@ -386,6 +389,7 @@ export function createEncounterState(
     started: true,
     log: [],
     space: options.space,
+    spacesById,
     placements,
     attachedAuraInstances: traitAuras,
     environmentBaseline: options.environmentBaseline ?? DEFAULT_ENCOUNTER_ENVIRONMENT_BASELINE,
@@ -506,15 +510,17 @@ function advanceEncounterTurnOnce(
     options.rng ?? Math.random,
   )
 
-  return reconcileBattlefieldEffectAnchors(
-    executeTurnHooks(
-      processMarkerBoundary(
-        processRuntimeEffectBoundary(withRecharge, withRecharge.activeCombatantId, 'start'),
+  return syncEncounterSpaceToActiveCombatant(
+    reconcileBattlefieldEffectAnchors(
+      executeTurnHooks(
+        processMarkerBoundary(
+          processRuntimeEffectBoundary(withRecharge, withRecharge.activeCombatantId, 'start'),
+          withRecharge.activeCombatantId,
+          'start',
+        ),
         withRecharge.activeCombatantId,
         'start',
       ),
-      withRecharge.activeCombatantId,
-      'start',
     ),
   )
 }

@@ -26,6 +26,7 @@ import {
 } from '../space.helpers'
 import { orthogonalMovementEdgeBlocked } from './edgeCrossing'
 import type { CombatantPosition, EncounterSpace } from '../space.types'
+import type { EncounterState } from '../../state/types'
 
 const NEIGHBOR_DELTAS: ReadonlyArray<readonly [number, number]> = [
   [-1, -1],
@@ -47,8 +48,9 @@ function isOccupiedByOther(
   placements: CombatantPosition[],
   cellId: string,
   movingCombatantId: string,
+  state?: EncounterState,
 ): boolean {
-  const occ = getOccupant(placements, cellId, space)
+  const occ = getOccupant(placements, cellId, space, state)
   return occ !== undefined && occ !== movingCombatantId
 }
 
@@ -77,6 +79,7 @@ function diagonalMovementStepLegal(
   toCellId: string,
   placements: CombatantPosition[],
   movingCombatantId: string,
+  state?: EncounterState,
 ): boolean {
   const from = getCellById(space, fromCellId)
   const to = getCellById(space, toCellId)
@@ -90,12 +93,12 @@ function diagonalMovementStepLegal(
 
   const pathA =
     orthogonalMovementStepLegal(space, fromCellId, orth1.id) &&
-    !isOccupiedByOther(space, placements, orth1.id, movingCombatantId) &&
+    !isOccupiedByOther(space, placements, orth1.id, movingCombatantId, state) &&
     orthogonalMovementStepLegal(space, orth1.id, toCellId)
 
   const pathB =
     orthogonalMovementStepLegal(space, fromCellId, orth2.id) &&
-    !isOccupiedByOther(space, placements, orth2.id, movingCombatantId) &&
+    !isOccupiedByOther(space, placements, orth2.id, movingCombatantId, state) &&
     orthogonalMovementStepLegal(space, orth2.id, toCellId)
 
   return pathA || pathB
@@ -111,6 +114,7 @@ export function movementStepLegal(
   toCellId: string,
   placements: CombatantPosition[],
   movingCombatantId: string,
+  state?: EncounterState,
 ): boolean {
   const from = getCellById(space, fromCellId)
   const to = getCellById(space, toCellId)
@@ -122,7 +126,7 @@ export function movementStepLegal(
   if (dx + dy === 1) {
     return orthogonalMovementStepLegal(space, fromCellId, toCellId)
   }
-  return diagonalMovementStepLegal(space, fromCellId, toCellId, placements, movingCombatantId)
+  return diagonalMovementStepLegal(space, fromCellId, toCellId, placements, movingCombatantId, state)
 }
 
 /**
@@ -136,6 +140,7 @@ export function minMovementCostFtToCell(
   targetCellId: string,
   placements: CombatantPosition[],
   movingCombatantId: string,
+  state?: EncounterState,
 ): number | undefined {
   if (startCellId === targetCellId) return 0
 
@@ -153,8 +158,8 @@ export function minMovementCostFtToCell(
         const next = getCellAt(space, cell.x + dx, cell.y + dy)
         if (!next) continue
         if (visited.has(next.id)) continue
-        if (!movementStepLegal(space, id, next.id, placements, movingCombatantId)) continue
-        if (isOccupiedByOther(space, placements, next.id, movingCombatantId)) continue
+        if (!movementStepLegal(space, id, next.id, placements, movingCombatantId, state)) continue
+        if (isOccupiedByOther(space, placements, next.id, movingCombatantId, state)) continue
         if (next.id === targetCellId) return (hops + 1) * cf
         visited.add(next.id)
         nextFrontier.push(next.id)
@@ -176,6 +181,7 @@ export function cellsReachableWithinMovementBudget(
   budgetFt: number,
   placements: CombatantPosition[],
   movingCombatantId: string,
+  state?: EncounterState,
 ): Set<string> {
   const out = new Set<string>()
   if (budgetFt <= 0) return out
@@ -194,8 +200,8 @@ export function cellsReachableWithinMovementBudget(
         const next = getCellAt(space, cell.x + dx, cell.y + dy)
         if (!next) continue
         if (visited.has(next.id)) continue
-        if (!movementStepLegal(space, id, next.id, placements, movingCombatantId)) continue
-        if (isOccupiedByOther(space, placements, next.id, movingCombatantId)) continue
+        if (!movementStepLegal(space, id, next.id, placements, movingCombatantId, state)) continue
+        if (isOccupiedByOther(space, placements, next.id, movingCombatantId, state)) continue
         const nextCost = (hops + 1) * cf
         if (nextCost > budgetFt) continue
         visited.add(next.id)

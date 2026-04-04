@@ -41,7 +41,21 @@ export interface EncounterState {
   roundNumber: number
   started: boolean
   log: CombatLogEvent[]
+  /**
+   * **Transitional** tactical space for legacy single-space call sites (movement, reachability, grid VM).
+   * Prefer resolving space per combatant via `getEncounterSpaceForCombatant` (`encounter-spaces.ts`) when multiple spaces exist.
+   *
+   * **Authoritative** layout for multi-space encounters is `spacesById` + per-placement `encounterSpaceId`.
+   * This field is synced to the **active combatant’s** space when possible (`syncEncounterSpaceToActiveCombatant`).
+   *
+   * TODO: Long-term callers should stop using `space` alone; multi-space LOS/pathing across scenes remains future work.
+   */
   space?: EncounterSpace
+  /**
+   * Authoritative tactical spaces keyed by `EncounterSpace.id`. Supports split-party / multi-scene encounters.
+   * When absent, legacy behavior uses `space` only (single tactical grid).
+   */
+  spacesById?: Record<string, EncounterSpace>
   placements?: CombatantPosition[]
   /** Persistent battlefield effects (e.g. emanation auras). */
   attachedAuraInstances?: BattlefieldEffectInstance[]

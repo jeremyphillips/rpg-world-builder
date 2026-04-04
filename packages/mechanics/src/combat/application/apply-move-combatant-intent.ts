@@ -35,7 +35,7 @@ export function applyMoveCombatantIntent(
     }
   }
 
-  const fromCellId = getCellForCombatant(state.placements, intent.combatantId, state.space)
+  const fromCellId = getCellForCombatant(state.placements, intent.combatantId, state.space, state)
   const afterMove = moveCombatant(
     state,
     intent.combatantId,
@@ -58,7 +58,7 @@ export function applyMoveCombatantIntent(
     }
   }
 
-  const toCellId = getCellForCombatant(afterMove.placements!, intent.combatantId, afterMove.space)
+  const toCellId = getCellForCombatant(afterMove.placements!, intent.combatantId, afterMove.space, afterMove)
   const hadStealthBookkeeping = Object.values(afterMove.combatantsById).some(
     (c) => (c.stealth?.hiddenFromObserverIds?.length ?? 0) > 0,
   )

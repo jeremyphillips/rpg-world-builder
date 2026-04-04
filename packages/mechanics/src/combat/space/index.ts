@@ -1,4 +1,5 @@
 export * from './space.types'
+export * from './encounter-spaces'
 export * from './gridObject/gridObject.defaults'
 export * from './gridObject/gridObject.fromAuthored'
 export * from './space.helpers'

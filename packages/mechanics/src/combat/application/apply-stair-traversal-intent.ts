@@ -1,5 +1,6 @@
 import type { CombatIntent } from '../intents';
 import type { CombatEvent, CombatIntentResult } from '../results';
+import { mergeSpacesIntoRegistry, syncEncounterSpaceToActiveCombatant } from '../space/encounter-spaces'
 import {
   cellMovementBlockedForEntering,
   getCellById,
@@ -72,7 +73,7 @@ export function applyStairTraversalIntent(
     };
   }
 
-  const fromCellId = getCellForCombatant(state.placements, intent.combatantId, space);
+  const fromCellId = getCellForCombatant(state.placements, intent.combatantId, space, state);
   if (!fromCellId) {
     return {
       ok: false,
@@ -118,7 +119,8 @@ export function applyStairTraversalIntent(
   const withoutMover = tagged.filter((p) => p.combatantId !== intent.combatantId);
 
   if (
-    getOccupant(placementsOnSpace(destSpace, withoutMover), intent.destinationCellId, destSpace) !== undefined
+    getOccupant(placementsOnSpace(destSpace, withoutMover, state), intent.destinationCellId, destSpace, state) !==
+    undefined
   ) {
     return {
       ok: false,
@@ -142,10 +144,13 @@ export function applyStairTraversalIntent(
 
   const dist = intent.movementCostFt;
   const spellCtx: BattlefieldSpellContext | undefined = ctx.moveCombatantSpellContext;
+  const spacesById = mergeSpacesIntoRegistry(state, space, destSpace);
+
   const moverPlacement = {
     combatantId: intent.combatantId,
     cellId: intent.destinationCellId,
     floorLocationId: intent.destinationFloorLocationId,
+    encounterSpaceId: destSpace.id,
   };
   const placementsNext = [...withoutMover, moverPlacement];
 
@@ -153,6 +158,7 @@ export function applyStairTraversalIntent(
     const spent = (combatant.turnContext?.movementSpentThisTurn ?? 0) + dist;
     const nextStateBase: EncounterState = {
       ...state,
+      spacesById,
       space: destSpace,
       placements: placementsNext,
     };
@@ -185,6 +191,7 @@ export function applyStairTraversalIntent(
       },
     };
     next = reconcileBattlefieldEffectAnchors(next);
+    next = syncEncounterSpaceToActiveCombatant(next);
     const events: CombatEvent[] = [
       {
         kind: 'combatant-moved',
@@ -214,6 +221,7 @@ export function applyStairTraversalIntent(
 
   let next: EncounterState = {
     ...state,
+    spacesById,
     space: destSpace,
     placements: placementsNext,
     combatantsById: {
@@ -225,6 +233,7 @@ export function applyStairTraversalIntent(
     },
   };
   next = reconcileBattlefieldEffectAnchors(next);
+  next = syncEncounterSpaceToActiveCombatant(next);
 
   const events: CombatEvent[] = [
     {

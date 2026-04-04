@@ -76,7 +76,11 @@ export function generateInitialPlacements(
       })
 
       if (slot) {
-        placements.push({ combatantId: combatant.instanceId, cellId: `c-${slot.x}-${slot.y}` })
+        placements.push({
+          combatantId: combatant.instanceId,
+          cellId: `c-${slot.x}-${slot.y}`,
+          encounterSpaceId: space.id,
+        })
       }
     }
   }

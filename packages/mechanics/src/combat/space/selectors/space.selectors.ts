@@ -59,7 +59,7 @@ export function selectCombatantCell(
   combatantId: string,
 ): EncounterCell | undefined {
   if (!state.space || !state.placements) return undefined
-  const cellId = getCellForCombatant(state.placements, combatantId, state.space)
+  const cellId = getCellForCombatant(state.placements, combatantId, state.space, state)
   if (!cellId) return undefined
   return getCellById(state.space, cellId)
 }
@@ -70,8 +70,8 @@ export function selectDistanceBetween(
   idB: string,
 ): number | undefined {
   if (!state.space || !state.placements) return undefined
-  const cellA = getCellForCombatant(state.placements, idA, state.space)
-  const cellB = getCellForCombatant(state.placements, idB, state.space)
+  const cellA = getCellForCombatant(state.placements, idA, state.space, state)
+  const cellB = getCellForCombatant(state.placements, idB, state.space, state)
   if (!cellA || !cellB) return undefined
   return gridDistanceFt(state.space, cellA, cellB)
 }
@@ -95,7 +95,7 @@ export function selectCombatantIdsInAoeFootprint(
 ): string[] {
   if (!state.space || !state.placements) return []
   const out: string[] = []
-  for (const p of placementsOnSpace(state.space, state.placements)) {
+  for (const p of placementsOnSpace(state.space, state.placements, state)) {
     const d = gridDistanceFt(state.space, originCellId, p.cellId)
     if (d !== undefined && d <= areaRadiusFt) out.push(p.combatantId)
   }
@@ -208,13 +208,14 @@ export function isValidSingleCellPlacementPick(
   casterCellId: string,
   targetCellId: string,
   req: { rangeFt: number; lineOfSightRequired: boolean; mustBeUnoccupied: boolean },
+  state?: EncounterState,
 ): boolean {
   const cell = getCellById(space, targetCellId)
   if (!cell || cellMovementBlockedForEntering(space, targetCellId)) return false
   const d = gridDistanceFt(space, casterCellId, targetCellId)
   if (d === undefined || d > req.rangeFt) return false
   if (req.lineOfSightRequired && !hasLineOfSight(space, casterCellId, targetCellId)) return false
-  if (req.mustBeUnoccupied && getOccupant(placements, targetCellId, space) !== undefined) return false
+  if (req.mustBeUnoccupied && getOccupant(placements, targetCellId, space, state) !== undefined) return false
   return true
 }
 
@@ -290,7 +291,7 @@ export function selectGridViewModel(
   const rangeFt = opts?.selectedActionRangeFt ?? null
   const selectedAction = opts?.selectedAction ?? null
 
-  const activeCellId = activeId ? getCellForCombatant(placements, activeId, space) : undefined
+  const activeCellId = activeId ? getCellForCombatant(placements, activeId, space, state) : undefined
 
   const reachableSet = opts?.showReachable && activeId
     ? selectCellsWithinDistance(state, activeId)
@@ -329,7 +330,7 @@ export function selectGridViewModel(
   const combatantRoster = Object.values(state.combatantsById)
 
   const cells: GridCellViewModel[] = space.cells.map((cell) => {
-    const occupantId = getOccupant(placements, cell.id, space) ?? null
+    const occupantId = getOccupant(placements, cell.id, space, state) ?? null
     const combatant = occupantId ? state.combatantsById[occupantId] ?? null : null
     const placedObjectKind = placedObjectKindByCellId.get(cell.id) ?? null
     const placedObjectVisual =
@@ -403,6 +404,7 @@ export function selectGridViewModel(
             placementPick.casterCellId,
             cell.id,
             req,
+            state,
           ),
       )
       placementSelected = placementPick.selectedCellId === cell.id
@@ -535,9 +537,13 @@ export function placeCombatant(
 
   const filtered = state.placements.filter((p) => p.combatantId !== combatantId)
   const floorLocationId = state.space.locationId ?? undefined
+  const encounterSpaceId = state.space.id
   return reconcileBattlefieldEffectAnchors({
     ...state,
-    placements: [...filtered, { combatantId, cellId, ...(floorLocationId ? { floorLocationId } : {}) }],
+    placements: [
+      ...filtered,
+      { combatantId, cellId, encounterSpaceId, ...(floorLocationId ? { floorLocationId } : {}) },
+    ],
   })
 }
 
@@ -563,7 +569,7 @@ export function selectCellsWithinDistance(
   const movementRemaining = combatant.turnResources?.movementRemaining ?? 0
   if (movementRemaining <= 0) return new Set()
 
-  const currentCellId = getCellForCombatant(placements, combatantId, space)
+  const currentCellId = getCellForCombatant(placements, combatantId, space, state)
   if (!currentCellId) return new Set()
 
   return cellsReachableWithinMovementBudget(
@@ -572,6 +578,7 @@ export function selectCellsWithinDistance(
     movementRemaining,
     placements,
     combatantId,
+    state,
   )
 }
 
@@ -596,9 +603,9 @@ export function canMoveTo(
 
   const cell = getCellById(space, targetCellId)
   if (!cell || cellMovementBlockedForEntering(space, targetCellId)) return false
-  if (isCellOccupied(placements, targetCellId, space)) return false
+  if (isCellOccupied(placements, targetCellId, space, state)) return false
 
-  const currentCellId = getCellForCombatant(placements, combatantId, space)
+  const currentCellId = getCellForCombatant(placements, combatantId, space, state)
   if (!currentCellId) return false
 
   const pathCostFt = minMovementCostFtToCell(
@@ -607,6 +614,7 @@ export function canMoveTo(
     targetCellId,
     placements,
     combatantId,
+    state,
   )
   return pathCostFt !== undefined && pathCostFt <= movementRemaining
 }
@@ -635,9 +643,9 @@ export function getMoveRejectionReason(
   const cell = getCellById(space, targetCellId)
   if (!cell || cellMovementBlockedForEntering(space, targetCellId)) return 'Terrain blocked'
 
-  if (isCellOccupied(placements, targetCellId, space)) return 'Cell occupied'
+  if (isCellOccupied(placements, targetCellId, space, state)) return 'Cell occupied'
 
-  const currentCellId = getCellForCombatant(placements, combatantId, space)
+  const currentCellId = getCellForCombatant(placements, combatantId, space, state)
   if (!currentCellId) return null
 
   const pathCostFt = minMovementCostFtToCell(
@@ -646,6 +654,7 @@ export function getMoveRejectionReason(
     targetCellId,
     placements,
     combatantId,
+    state,
   )
   if (pathCostFt === undefined) return 'No path'
   if (pathCostFt > movementRemaining) return 'Out of range'
@@ -670,18 +679,23 @@ export function moveCombatant(
   if (!canMoveTo(state, combatantId, targetCellId)) return state
 
   const { space, placements } = state
-  const currentCellId = getCellForCombatant(placements!, combatantId, space!)!
+  const currentCellId = getCellForCombatant(placements!, combatantId, space!, state)!
   const dist = minMovementCostFtToCell(
     space!,
     currentCellId,
     targetCellId,
     placements!,
     combatantId,
+    state,
   )!
 
   const combatant = state.combatantsById[combatantId]
   const filteredPlacements = placements!.filter((p) => p.combatantId !== combatantId)
-  const placementsNext = [...filteredPlacements, { combatantId, cellId: targetCellId }]
+  const prevPlacement = placements!.find((p) => p.combatantId === combatantId)
+  const placementsNext = [
+    ...filteredPlacements,
+    { ...prevPlacement, combatantId, cellId: targetCellId },
+  ]
 
   if (options?.spellLookup) {
     const spent = (combatant.turnContext?.movementSpentThisTurn ?? 0) + dist

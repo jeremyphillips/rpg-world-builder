@@ -137,6 +137,11 @@ export type CombatantPosition = {
   combatantId: string;
   cellId: string;
   /**
+   * Which {@link EncounterSpace} in {@link EncounterState.spacesById} this token occupies.
+   * When omitted, resolved from `floorLocationId` + registry or legacy single `EncounterState.space`.
+   */
+  encounterSpaceId?: string | null;
+  /**
    * Campaign floor location id (`scale === 'floor'`) for this token when multiple floors share one encounter.
    * When omitted, treated as {@link EncounterSpace.locationId} for the active tactical space (legacy single-floor).
    */

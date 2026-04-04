@@ -7,7 +7,8 @@ import type { SceneFocus } from './sceneFocus.types'
  * should use, given authoritative encounter state and viewer-local {@link SceneFocus}.
  *
  * - **Authoritative** `EncounterState` from mechanics / hydration is always the truth for
- *   combat resolution, intents, and persistence.
+ *   combat resolution, intents, and persistence (including multi-space `spacesById` + per-placement
+ *   `encounterSpaceId` when present).
  * - **Presentation** state may diverge when `sceneFocus` pins a different tactical space than
  *   `authoritative.space` (future); Phase A returns the authoritative state unchanged for
  *   `followEncounterSpace`.
