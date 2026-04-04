@@ -1,6 +1,6 @@
 ---
 name: Location workspace dirty state
-overview: Phases 1–4 complete; refactor A–B–C–**D**–**E** done (cleanup + **State ownership** in docs/reference/location-workspace.md). Contributor detail there.
+overview: Phases 1–4 + refactor A–**E** complete (dirty snapshot, state ownership in docs/reference/location-workspace.md). **Follow-up plan:** [location_workspace_authoring_contract.plan.md](location_workspace_authoring_contract.plan.md) (shared editor contract, system vs homebrew adapters).
 todos:
   - id: snapshot-helper
     content: Add workspacePersistableSnapshot (form + normalized map + building stairs) aligned with save
@@ -512,4 +512,8 @@ This refactor is successful when all of the following are true:
 - Dirty state is trustworthy because it is based on workspace-owned draft state.
 - Nested inspectors are simpler in responsibility: they edit draft state rather than privately owning unsaved persistable data.
 - The workspace has a durable state ownership rule that can support future richer tools (objects, edges, metadata, etc.) without reintroducing split dirty-state behavior.
+
+### Related plan
+
+**Shared location workspace authoring contract** (system vs **homebrew** adapters, editor-facing contract, vocabulary migration): [location_workspace_authoring_contract.plan.md](location_workspace_authoring_contract.plan.md). Separate from this file’s dirty snapshot work; **no** DB or persisted shape migration — codebase architecture only.
 
