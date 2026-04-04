@@ -106,6 +106,26 @@ export default function LocationEditRoute() {
     loc: loc ?? null,
   });
 
+  const {
+    flushDebouncedPersistableFieldsRef,
+    handleHomebrewFormSaveClick,
+    handlePatchSave,
+  } = model;
+
+  const handleHeaderSaveHomebrew = useCallback(() => {
+    flushSync(() => {
+      flushDebouncedPersistableFieldsRef.current?.();
+    });
+    handleHomebrewFormSaveClick();
+  }, [handleHomebrewFormSaveClick]);
+
+  const handleHeaderSavePatch = useCallback(() => {
+    flushSync(() => {
+      flushDebouncedPersistableFieldsRef.current?.();
+    });
+    handlePatchSave();
+  }, [handlePatchSave]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -172,12 +192,9 @@ export default function LocationEditRoute() {
     policyCharacters,
     driver,
     validationApiRef,
-    flushDebouncedPersistableFieldsRef,
     hasExistingPatch,
     handleHomebrewSubmit,
-    handleHomebrewFormSaveClick,
     handleAddFloor,
-    handlePatchSave,
     handleRemovePatch,
     handleDelete,
     handleValidateDelete,
@@ -238,20 +255,6 @@ export default function LocationEditRoute() {
           onUnlink: handleUnlinkStairEndpoint,
         }
       : undefined;
-
-  const handleHeaderSaveHomebrew = useCallback(() => {
-    flushSync(() => {
-      flushDebouncedPersistableFieldsRef.current?.();
-    });
-    handleHomebrewFormSaveClick();
-  }, [handleHomebrewFormSaveClick]);
-
-  const handleHeaderSavePatch = useCallback(() => {
-    flushSync(() => {
-      flushDebouncedPersistableFieldsRef.current?.();
-    });
-    handlePatchSave();
-  }, [handlePatchSave]);
 
   const mapAuthoringPanel = (
     <Stack spacing={2}>
