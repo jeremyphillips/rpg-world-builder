@@ -161,9 +161,9 @@ When you introduce new data that must be **saved** from this editor:
 3. **Baselines** — Update **baseline** callers if the new state is **not** already covered by existing hydration/save paths: [`useLocationMapHydration.ts`](src/features/content/locations/routes/locationEdit/useLocationMapHydration.ts) (after load) and post-save baseline in [`useLocationEditSaveActions.ts`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts).
 4. **Tests** — Add a **matrix** row or focused case in [`workspacePersistableSnapshot.test.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.test.ts) proving the snapshot changes when that field changes; for map changes, cross-mode parity is covered in [`locationWorkspaceAuthoringAdapters.test.ts`](src/features/content/locations/routes/locationEdit/locationWorkspaceAuthoringAdapters.test.ts).
 
-**Whitespace:** `toLocationInput` and map normalization may trim strings; user-visible spacing-only edits might not dirty the snapshot—document behavior if you add fields where that matters.
+**Whitespace / normalization:** `toLocationInput` and map normalization may trim strings; spacing-only edits might not dirty the snapshot. Treat that as **policy**, not accident — declare compare vs save behavior for new fields; see [.cursor/plans/location-workspace/location_workspace_normalization_policy.plan.md](.cursor/plans/location-workspace/location_workspace_normalization_policy.plan.md) (planned work) and the plan bundle [README](.cursor/plans/location-workspace/README.md).
 
-**Plan:** `.cursor/plans/location_workspace_persistable_slice_participation.plan.md` (persistable slice participation / shared map token).
+**Plan (slice participation):** `.cursor/plans/location-workspace/location_workspace_persistable_slice_participation.plan.md` (shared map token / assembly).
 
 ### State ownership (authoring standard)
 
@@ -218,7 +218,7 @@ The nested **submit-to-commit** persistable gap (region metadata only) was remov
 | Stair pairing / endpoint | `FormProvider` + draft callbacks | Replaces former noop form shells |
 | Path / edge / paint rail | Route handlers → `gridDraft` or remove-only | |
 
-Plan archive: `.cursor/plans/location_workspace_dirty_state_4d54eedc.plan.md`.
+Plan archive: `.cursor/plans/location-workspace/location_workspace_dirty_state_4d54eedc.plan.md`. Related plans are grouped under `.cursor/plans/location-workspace/` ([README](.cursor/plans/location-workspace/README.md)).
 
 ---
 
@@ -401,9 +401,10 @@ Both hooks are used at the route level; derived values are passed down to canvas
 7. **Select mode / region hover:** resolver and grid chrome live under `domain/mapEditor/select-mode/` (`resolveSelectModeInteractiveTarget`, `buildSelectModeInteractiveTargetInput`, `resolveSelectModeRegionOrCellSelection`, `refineSelectModeClickAfterRegionDrill`, `locationMapSelectionHitTest`) plus `mapGridCellVisualState.ts`. See **Location map styling → Select mode** and **Open issues §4** before changing hover behavior.
 8. **Persistable dirty snapshot:** when adding new state that is **saved** from this editor but not part of `LocationFormValues` or `gridDraft` (e.g. parallel `useState` merged in `handleHomebrewSubmit`), extend **`buildHomebrewWorkspacePersistableParts`** (shared by save + **`serializeLocationWorkspacePersistableSnapshot`**) and baseline updates in **`useLocationMapHydration`** / **`useLocationEditSaveActions`**. Tests: `workspacePersistableSnapshot.test.ts`.
 9. **System location edit:** dirty uses **`isSystemLocationWorkspaceDirty`** (`patchDriver.isDirty()` OR **`isGridDraftDirty`**), not the homebrew snapshot — see **Dirty state — system location patch** above. Tests: `systemLocationWorkspaceDirty.test.ts`.
-10. **State ownership:** persistable rail edits must live in **`gridDraft` / location form / stairs** (see **State ownership (authoring standard)**). Plan: `.cursor/plans/location_workspace_dirty_state_4d54eedc.plan.md`.
-11. **Shared authoring contract:** extend editor-facing behavior via **`LocationWorkspaceAuthoringContract`** (`locationWorkspaceAuthoringContract.ts`); keep mode-specific persistence in adapters. Plan: `.cursor/plans/location_workspace_authoring_contract.plan.md`.
-12. **Debounced persistable fields:** use **`useDebouncedPersistableField`** + **`flushDebouncedPersistableFieldsRef`** + **`flushSync`** before save as in region metadata; see **Debounced persistable fields** above. Plan: `.cursor/plans/location_workspace_debounced_persistable_flush.plan.md`.
-13. **Persistable slice participation:** shared map assembly in **`buildMapWorkspacePersistablePayloadFromGridDraft`** / **`mapWorkspacePersistableTokenFromGridDraft`** ([`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts)); system adapters consume the same map token. See **Adding persisted workspace state** and plan: `.cursor/plans/location_workspace_persistable_slice_participation.plan.md`.
+10. **State ownership:** persistable rail edits must live in **`gridDraft` / location form / stairs** (see **State ownership (authoring standard)**). Plan: `.cursor/plans/location-workspace/location_workspace_dirty_state_4d54eedc.plan.md`.
+11. **Shared authoring contract:** extend editor-facing behavior via **`LocationWorkspaceAuthoringContract`** (`locationWorkspaceAuthoringContract.ts`); keep mode-specific persistence in adapters. Plan: `.cursor/plans/location-workspace/location_workspace_authoring_contract.plan.md`.
+12. **Debounced persistable fields:** use **`useDebouncedPersistableField`** + **`flushDebouncedPersistableFieldsRef`** + **`flushSync`** before save as in region metadata; see **Debounced persistable fields** above. Plan: `.cursor/plans/location-workspace/location_workspace_debounced_persistable_flush.plan.md`.
+13. **Persistable slice participation:** shared map assembly in **`buildMapWorkspacePersistablePayloadFromGridDraft`** / **`mapWorkspacePersistableTokenFromGridDraft`** ([`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts)); system adapters consume the same map token. See **Adding persisted workspace state** and plan: `.cursor/plans/location-workspace/location_workspace_persistable_slice_participation.plan.md`.
+14. **Normalization policy (dirty vs save):** explicit rules for trim/compare vs save — [.cursor/plans/location-workspace/location_workspace_normalization_policy.plan.md](.cursor/plans/location-workspace/location_workspace_normalization_policy.plan.md). Bundle: [.cursor/plans/location-workspace/README.md](.cursor/plans/location-workspace/README.md).
 
 For domain, map policy, transitions, grid geometry policy, and hex rendering math, see [locations.md](./locations.md) (section *Pointers for the next agent*).

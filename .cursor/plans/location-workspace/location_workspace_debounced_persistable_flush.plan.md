@@ -35,7 +35,7 @@ It does **not** supersede [Location workspace authoring contract](location_works
 
 ### Problem statement
 
-Region metadata (including `**description`**) updates the workspace draft via `**onPatchRegion**` / adapters. `**description**` syncs on a **debounce** for typing ergonomics.
+Region metadata (including `**description`**) updates the workspace draft via `**onPatchRegion`** / adapters. `**description**` syncs on a **debounce** for typing ergonomics.
 
 A **very fast destructive transition** can still drop the last buffered value before it reaches `**gridDraft.regionEntries`**, so the persistable snapshot never sees that edit.
 

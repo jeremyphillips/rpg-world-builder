@@ -11,7 +11,7 @@
  *
  * @see `docs/reference/location-workspace.md` — *Shared authoring contract*
  * @see `locationWorkspaceAuthoringAdapters.ts` — **system** / **homebrew** builders
- * @see `.cursor/plans/location_workspace_authoring_contract.plan.md` — Phase A–B
+ * @see `.cursor/plans/location-workspace/location_workspace_authoring_contract.plan.md` — Phase A–B
  */
 
 /**
