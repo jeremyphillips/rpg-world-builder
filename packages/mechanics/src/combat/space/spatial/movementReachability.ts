@@ -43,11 +43,12 @@ function cellFeet(space: EncounterSpace): number {
 }
 
 function isOccupiedByOther(
+  space: EncounterSpace,
   placements: CombatantPosition[],
   cellId: string,
   movingCombatantId: string,
 ): boolean {
-  const occ = getOccupant(placements, cellId)
+  const occ = getOccupant(placements, cellId, space)
   return occ !== undefined && occ !== movingCombatantId
 }
 
@@ -89,12 +90,12 @@ function diagonalMovementStepLegal(
 
   const pathA =
     orthogonalMovementStepLegal(space, fromCellId, orth1.id) &&
-    !isOccupiedByOther(placements, orth1.id, movingCombatantId) &&
+    !isOccupiedByOther(space, placements, orth1.id, movingCombatantId) &&
     orthogonalMovementStepLegal(space, orth1.id, toCellId)
 
   const pathB =
     orthogonalMovementStepLegal(space, fromCellId, orth2.id) &&
-    !isOccupiedByOther(placements, orth2.id, movingCombatantId) &&
+    !isOccupiedByOther(space, placements, orth2.id, movingCombatantId) &&
     orthogonalMovementStepLegal(space, orth2.id, toCellId)
 
   return pathA || pathB
@@ -153,7 +154,7 @@ export function minMovementCostFtToCell(
         if (!next) continue
         if (visited.has(next.id)) continue
         if (!movementStepLegal(space, id, next.id, placements, movingCombatantId)) continue
-        if (isOccupiedByOther(placements, next.id, movingCombatantId)) continue
+        if (isOccupiedByOther(space, placements, next.id, movingCombatantId)) continue
         if (next.id === targetCellId) return (hops + 1) * cf
         visited.add(next.id)
         nextFrontier.push(next.id)
@@ -194,7 +195,7 @@ export function cellsReachableWithinMovementBudget(
         if (!next) continue
         if (visited.has(next.id)) continue
         if (!movementStepLegal(space, id, next.id, placements, movingCombatantId)) continue
-        if (isOccupiedByOther(placements, next.id, movingCombatantId)) continue
+        if (isOccupiedByOther(space, placements, next.id, movingCombatantId)) continue
         const nextCost = (hops + 1) * cf
         if (nextCost > budgetFt) continue
         visited.add(next.id)

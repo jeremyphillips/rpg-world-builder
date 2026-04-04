@@ -8,3 +8,10 @@ export function authorCellIdToCombatCellId(authorCellId: string): string {
   if (m) return `c-${m[1]}-${m[2]}`;
   return t;
 }
+
+/** Inverse of {@link authorCellIdToCombatCellId} for `c-x-y` ids. */
+export function combatCellIdToAuthorCellId(combatCellId: string): string | null {
+  const m = /^c-(\d+)-(\d+)$/.exec(combatCellId.trim());
+  if (!m) return null;
+  return `${m[1]},${m[2]}`;
+}

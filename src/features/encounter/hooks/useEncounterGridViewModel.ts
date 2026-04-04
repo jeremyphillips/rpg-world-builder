@@ -70,7 +70,11 @@ export function useEncounterGridViewModel({
     if (!encounterState?.space || !encounterState.placements || !activeCombatantId) return null
     if (!selectedAction || !isAreaGridAction(selectedAction, selectedCasterOptions) || aoeStep === 'none')
       return null
-    const casterCellId = getCellForCombatant(encounterState.placements, activeCombatantId)
+    const casterCellId = getCellForCombatant(
+      encounterState.placements,
+      activeCombatantId,
+      encounterState.space,
+    )
     if (!casterCellId || !selectedAction.areaTemplate) return null
     const castRangeFt = selectedAction.targeting?.rangeFt ?? 0
     const areaRadiusFt = areaTemplateRadiusFt(selectedAction.areaTemplate)
@@ -98,7 +102,11 @@ export function useEncounterGridViewModel({
     if (!selectedAction) return null
     const req = getSingleCellPlacementRequirement(selectedAction)
     if (!req) return null
-    const casterCellId = getCellForCombatant(encounterState.placements, activeCombatantId)
+    const casterCellId = getCellForCombatant(
+      encounterState.placements,
+      activeCombatantId,
+      encounterState.space,
+    )
     if (!casterCellId) return null
     return {
       casterCellId,

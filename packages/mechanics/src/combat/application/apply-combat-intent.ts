@@ -15,6 +15,7 @@ import type { EncounterState } from '../state/types'
 import type { ApplyCombatIntentContext } from './apply-combat-intent-context.types'
 import { applyMoveCombatantIntent } from './apply-move-combatant-intent'
 import { applyResolveActionIntent } from './apply-resolve-action-intent'
+import { applyStairTraversalIntent } from './apply-stair-traversal-intent'
 
 export function applyCombatIntent(
   state: EncounterState | null,
@@ -36,6 +37,8 @@ export function applyCombatIntent(
       return applyEndTurnIntent(state, intent, ctx)
     case 'move-combatant':
       return applyMoveCombatantIntent(state, intent, ctx)
+    case 'stair-traversal':
+      return applyStairTraversalIntent(state, intent, ctx)
     case 'resolve-action':
       return applyResolveActionIntent(state, intent, ctx)
     case 'place-area':

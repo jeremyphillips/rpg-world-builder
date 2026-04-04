@@ -130,6 +130,11 @@ export type EncounterSpaceRenderMeta = {
 export type CombatantPosition = {
   combatantId: string;
   cellId: string;
+  /**
+   * Campaign floor location id (`scale === 'floor'`) for this token when multiple floors share one encounter.
+   * When omitted, treated as {@link EncounterSpace.locationId} for the active tactical space (legacy single-floor).
+   */
+  floorLocationId?: string | null;
   /** Footprint in cells (1 = Medium/Small, 2 = Large, 3 = Huge, 4 = Gargantuan). Default 1. */
   size?: number;
 };

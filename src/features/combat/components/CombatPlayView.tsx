@@ -16,6 +16,8 @@ export type CombatPlayViewProps = {
   /** Pixel fallback when the CSS variable is unset. */
   activeHeaderOffsetFallbackPx: number
   activeHeader: ReactNode
+  /** Movement-adjacent affordances (e.g. stair traversal), not standard combat actions. */
+  contextualMovementBar?: ReactNode
   gridHoverStatusMessage: string | null
   gameOverModal: ReactNode
   toast: ReactNode
@@ -30,6 +32,7 @@ export function CombatPlayView({
   activeHeaderOffsetCssVar,
   activeHeaderOffsetFallbackPx,
   activeHeader,
+  contextualMovementBar,
   gridHoverStatusMessage,
   gameOverModal,
   toast,
@@ -42,6 +45,8 @@ export function CombatPlayView({
   return (
     <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {activeHeader}
+
+      {contextualMovementBar}
 
       {gridHoverStatusMessage && (
         <Typography

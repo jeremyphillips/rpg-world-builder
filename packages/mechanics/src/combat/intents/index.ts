@@ -6,6 +6,7 @@ export type {
   MoveCombatantIntent,
   PlaceAreaIntent,
   ResolveActionIntent,
+  StairTraversalIntent,
 } from './combat-intent.types'
 export {
   isChooseSpawnCellIntent,

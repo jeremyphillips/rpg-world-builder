@@ -115,7 +115,8 @@ export function connectionWouldDuplicateEndpoint(
 
 /**
  * Resolution for inspector / workspace: canonical connection vs stale object state.
- * **Traversal** does not use this yet.
+ * **Play traversal** uses `resolveStairPlayTraversalFromCellObjects` plus session/orchestration to build
+ * the `stair-traversal` combat intent payload; mechanics does not resolve links from raw building data.
  */
 export type StairEndpointPairingResolution =
   | {

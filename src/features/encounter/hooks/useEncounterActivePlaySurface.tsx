@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { useTheme } from '@mui/material/styles'
@@ -100,7 +100,10 @@ export type EncounterActivePlaySurfaceDeps = Pick<
   | 'spellsById'
   | 'capabilities'
   | 'viewerContext'
->
+> & {
+  /** Optional contextual movement UI (e.g. stair traversal) — not part of the action deck. */
+  contextualMovementBar?: ReactNode
+}
 
 function placementReasonMessage(reason: PlacementValidationReason): string {
   switch (reason) {
@@ -172,6 +175,7 @@ export function useEncounterActivePlaySurface(
     spellsById,
     capabilities,
     viewerContext,
+    contextualMovementBar,
   }: EncounterActivePlaySurfaceDeps,
   options?: UseEncounterActivePlaySurfaceOptions,
 ) {
@@ -924,6 +928,7 @@ export function useEncounterActivePlaySurface(
     <CombatPlayView
       {...playSurfaceHeaderOffset}
       activeHeader={activeHeader}
+      contextualMovementBar={contextualMovementBar}
       gridHoverStatusMessage={gridHoverStatusMessage}
       gameOverModal={
         <EncounterGameOverModal

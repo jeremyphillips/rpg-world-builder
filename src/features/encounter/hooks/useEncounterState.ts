@@ -567,6 +567,31 @@ export function useEncounterState({
     syncPersistedAfterApply(intent, context)
   }
 
+  function handleStairTraversal(intent: Extract<CombatIntent, { kind: 'stair-traversal' }>) {
+    const prev = encounterStateRef.current
+    if (!prev?.activeCombatantId) return
+    const context: ApplyCombatIntentContext = {
+      moveCombatantSpellContext:
+        spellsById != null
+          ? { spellLookup: (id) => spellsById[id], suppressSameSideHostile }
+          : undefined,
+      spatialEntryAfterMove:
+        spellsById != null
+          ? {
+              spellLookup: (id) => spellsById[id],
+              suppressSameSideHostile,
+              monstersById,
+            }
+          : undefined,
+    }
+    const result = applyCombatIntent(prev, intent, context)
+    if (!result.ok) return
+    encounterStateRef.current = result.nextState
+    setEncounterState(result.nextState)
+    notifyLogAppendedFromIntentSuccess(result)
+    syncPersistedAfterApply(intent, context)
+  }
+
   function handleMonsterManualTriggerChange(
     runtimeId: string,
     trigger: keyof ManualMonsterTriggerContext,
@@ -650,6 +675,7 @@ export function useEncounterState({
     handleRemoveState,
     handleTriggerReducedToZeroHook,
     handleMoveCombatant,
+    handleStairTraversal,
     handleMonsterFormChange,
     handleMonsterManualTriggerChange,
     registerCombatLogAppended,

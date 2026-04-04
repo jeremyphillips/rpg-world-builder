@@ -23,25 +23,46 @@ export function getCellById(
 // Occupancy
 // ---------------------------------------------------------------------------
 
+/** Effective floor id for placement when {@link CombatantPosition.floorLocationId} is unset. */
+export function placementFloorLocationId(
+  p: CombatantPosition,
+  space: EncounterSpace,
+): string | null {
+  if (p.floorLocationId != null && p.floorLocationId !== '') return p.floorLocationId
+  return space.locationId ?? null
+}
+
+/** Placements whose floor matches the tactical space (see {@link placementFloorLocationId}). */
+export function placementsOnSpace(space: EncounterSpace, placements: CombatantPosition[]): CombatantPosition[] {
+  const sid = space.locationId ?? null
+  if (sid == null) return placements
+  return placements.filter((p) => placementFloorLocationId(p, space) === sid)
+}
+
 export function getOccupant(
   placements: CombatantPosition[],
   cellId: string,
+  space?: EncounterSpace,
 ): string | undefined {
-  return placements.find((p) => p.cellId === cellId)?.combatantId
+  const list = space ? placementsOnSpace(space, placements) : placements
+  return list.find((p) => p.cellId === cellId)?.combatantId
 }
 
 export function getCellForCombatant(
   placements: CombatantPosition[],
   combatantId: string,
+  space?: EncounterSpace,
 ): string | undefined {
-  return placements.find((p) => p.combatantId === combatantId)?.cellId
+  const list = space ? placementsOnSpace(space, placements) : placements
+  return list.find((p) => p.combatantId === combatantId)?.cellId
 }
 
 export function isCellOccupied(
   placements: CombatantPosition[],
   cellId: string,
+  space?: EncounterSpace,
 ): boolean {
-  return placements.some((p) => p.cellId === cellId)
+  return getOccupant(placements, cellId, space) !== undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -81,8 +102,8 @@ export function isWithinRange(
   combatantIdB: string,
   rangeFt: number,
 ): boolean {
-  const cellA = getCellForCombatant(placements, combatantIdA)
-  const cellB = getCellForCombatant(placements, combatantIdB)
+  const cellA = getCellForCombatant(placements, combatantIdA, space)
+  const cellB = getCellForCombatant(placements, combatantIdB, space)
   if (!cellA || !cellB) return true
 
   const dist = gridDistanceFt(space, cellA, cellB)

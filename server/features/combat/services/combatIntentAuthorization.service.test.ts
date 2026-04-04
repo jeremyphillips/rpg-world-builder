@@ -199,6 +199,38 @@ describe('authorizeCombatIntentForGameSession', () => {
     expect(r).toEqual({ allowed: true })
   })
 
+  it('allows DM stair-traversal for active combatant', () => {
+    const gs = baseGameSession({
+      participants: [{ userId: 'user-dm', characterId: null, role: 'dm' }],
+    })
+    const intent: CombatIntent = {
+      kind: 'stair-traversal',
+      combatantId: 'm1',
+      connectionId: 'conn',
+      sourceFloorLocationId: 'f1',
+      destinationFloorLocationId: 'f2',
+      destinationCellId: 'c-0-0',
+      movementCostFt: 5,
+      destinationEncounterSpace: {
+        id: 'dest',
+        name: 'Dest',
+        mode: 'square-grid',
+        width: 1,
+        height: 1,
+        cells: [{ id: 'c-0-0', x: 0, y: 0 }],
+        scale: { kind: 'grid', cellFeet: 5 },
+        locationId: 'f2',
+      },
+    }
+    const r = authorizeCombatIntentForGameSession({
+      userId: 'user-dm',
+      state: encounterMonsterActive(),
+      intent,
+      gameSession: gs,
+    })
+    expect(r).toEqual({ allowed: true })
+  })
+
   it('denies non-controlling player for move-combatant on monster', () => {
     const gs = baseGameSession({
       participants: [{ userId: 'u-pl', characterId: 'char-rogue', role: 'player' }],

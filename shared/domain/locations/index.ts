@@ -3,6 +3,8 @@ export * from './location.types';
 export * from './building/locationBuilding.types';
 export * from './building/locationBuildingStairConnection.types';
 export * from './building/locationBuildingStairConnection.helpers';
+export * from './building/locationBuildingStairTraversalPlay.helpers';
+export * from './transitions/stairTraversal.constants';
 export * from './locationEntity.types';
 export * from './transitions/locationTransition.constants';
 export * from './transitions/locationTransition.types';

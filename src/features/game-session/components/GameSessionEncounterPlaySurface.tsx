@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Button from '@mui/material/Button'
+import Stack from '@mui/material/Stack'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import Alert from '@mui/material/Alert'
@@ -25,8 +27,12 @@ import { useEncounterCombatActiveHeader } from '@/features/encounter/hooks/useEn
 import { useEncounterActivePlaySurface } from '@/features/encounter/hooks/useEncounterActivePlaySurface'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
 
+import type { Location } from '@/features/content/locations/domain/types'
+import { listCampaignLocations } from '@/features/content/locations/domain/repo/locationRepo'
+import { STAIR_TRAVERSAL_MOVEMENT_COST_FT } from '@/shared/domain/locations/transitions/stairTraversal.constants'
 import type { GameSession } from '../domain/game-session.types'
 import { summarizeEncounterSpaceForLog } from '../combat/buildEncounterSpaceFromLocationMap'
+import { resolveGameSessionStairTraversalPayload } from '../combat/resolveGameSessionStairTraversalPayload'
 import { campaignGameSessionLobbyPath } from '../routes/gameSessionPaths'
 import { useGameSessionSync } from '../routes/GameSessionSyncContext'
 import { resolveGameSessionEncounterSeat } from '../utils/resolveGameSessionEncounterSeat'
@@ -74,6 +80,19 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
   }, [party, npcs])
 
   const monstersById = catalog.monstersById
+
+  const [campaignLocations, setCampaignLocations] = useState<Location[]>([])
+
+  useEffect(() => {
+    if (!campaignId) return
+    let cancelled = false
+    void listCampaignLocations(campaignId).then((locs) => {
+      if (!cancelled) setCampaignLocations(locs)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [campaignId])
 
   const [persisted, setPersisted] = useState<Awaited<ReturnType<typeof fetchPersistedCombatSession>> | null>(
     null,
@@ -294,6 +313,56 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
     suppressSameSideHostile,
   })
 
+  const [stairPayloadRes, setStairPayloadRes] = useState<
+    Awaited<ReturnType<typeof resolveGameSessionStairTraversalPayload>> | null
+  >(null)
+
+  useEffect(() => {
+    let cancelled = false
+    if (!campaignId || !encounter.encounterState || campaignLocations.length === 0) {
+      setStairPayloadRes(null)
+      return
+    }
+    void resolveGameSessionStairTraversalPayload({
+      campaignId,
+      session,
+      locations: campaignLocations,
+      encounterState: encounter.encounterState,
+    }).then((r) => {
+      if (!cancelled) setStairPayloadRes(r)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [campaignId, session, campaignLocations, encounter.encounterState, encounter.activeCombatantId])
+
+  const contextualMovementBar = useMemo(() => {
+    if (!stairPayloadRes?.ok || !capabilities?.canSelectAction) return null
+    const moveRemain = encounter.activeCombatant?.turnResources?.movementRemaining ?? 0
+    if (moveRemain < STAIR_TRAVERSAL_MOVEMENT_COST_FT) return null
+    return (
+      <Stack
+        direction="row"
+        alignItems="center"
+        sx={{ px: 2, py: 1, gap: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover' }}
+      >
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => encounter.handleStairTraversal(stairPayloadRes.intent)}
+        >
+          Use stairs to {stairPayloadRes.destinationFloorLabel} ({STAIR_TRAVERSAL_MOVEMENT_COST_FT} ft
+          movement)
+        </Button>
+      </Stack>
+    )
+  }, [
+    stairPayloadRes,
+    capabilities?.canSelectAction,
+    encounter.activeCombatant?.turnResources?.movementRemaining,
+    encounter,
+  ])
+
   const playSurface = useEncounterActivePlaySurface(
     {
       encounterState: encounter.encounterState,
@@ -342,6 +411,7 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
       setObjectAnchorHoverCellId: encounter.setObjectAnchorHoverCellId,
       suppressSameSideHostile,
       spellsById: catalog.spellsById,
+      contextualMovementBar,
     },
     { setupPathWhenEmpty: null },
   )

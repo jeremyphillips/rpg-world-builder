@@ -1,4 +1,5 @@
 import type { ResolveCombatActionSelection } from '../resolution/action-resolution.types'
+import type { EncounterSpace } from '../space/space.types'
 
 /**
  * Truth-changing combat requests. Serializable, UI-agnostic.
@@ -35,11 +36,29 @@ export type ChooseSpawnCellIntent = {
   cellId: string
 }
 
+/**
+ * Cross-floor stair transition: **resolved** destination space + cell are assembled outside mechanics
+ * (session/orchestration). Mechanics only validates budget, occupancy on the destination space, and applies.
+ *
+ * TODO: Cross-floor line-of-sight preview and stacked multi-hop stair chains are not implemented.
+ */
+export type StairTraversalIntent = {
+  kind: 'stair-traversal'
+  combatantId: string
+  connectionId: string
+  sourceFloorLocationId: string
+  destinationFloorLocationId: string
+  destinationCellId: string
+  movementCostFt: number
+  destinationEncounterSpace: EncounterSpace
+}
+
 export type CombatIntent =
   | EndTurnIntent
   | MoveCombatantIntent
   | ResolveActionIntent
   | PlaceAreaIntent
   | ChooseSpawnCellIntent
+  | StairTraversalIntent
 
 export type CombatIntentKind = CombatIntent['kind']
