@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
+import { stableStringify } from '@/features/content/locations/components/locationGridDraft.utils';
 import { INITIAL_LOCATION_GRID_DRAFT } from '@/features/content/locations/components/locationGridDraft.types';
 import { LOCATION_FORM_DEFAULTS } from '@/features/content/locations/domain';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 
-import { serializeLocationWorkspacePersistableSnapshot } from './workspacePersistableSnapshot';
+import {
+  buildCampaignWorkspacePersistableParts,
+  serializeLocationWorkspacePersistableSnapshot,
+} from './workspacePersistableSnapshot';
 
 const baseForm = () => structuredClone(LOCATION_FORM_DEFAULTS);
 
@@ -103,5 +107,19 @@ describe('serializeLocationWorkspacePersistableSnapshot', () => {
       loc,
     );
     expect(empty).not.toBe(withConn);
+  });
+
+  it('serialize matches stableStringify of buildCampaignWorkspacePersistableParts', () => {
+    const form = baseForm();
+    form.scale = 'world';
+    const parts = buildCampaignWorkspacePersistableParts(
+      form,
+      INITIAL_LOCATION_GRID_DRAFT,
+      [],
+      null,
+    );
+    expect(serializeLocationWorkspacePersistableSnapshot(form, INITIAL_LOCATION_GRID_DRAFT, [], null)).toBe(
+      stableStringify({ location: parts.locationInput, map: parts.mapBootstrapPayload }),
+    );
   });
 });

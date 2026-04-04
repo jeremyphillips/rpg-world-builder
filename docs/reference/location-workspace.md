@@ -99,12 +99,14 @@ The workspace is composed of feature-owned components:
 
 ### Dirty state and Save (campaign edit)
 
-The header **Save** button is driven by **`isWorkspaceDirty`** from `useLocationEditWorkspaceModel`, not React Hook Form’s `isDirty` alone. **Dirty** means the **persistable workspace snapshot** differs from the last baseline:
+The header **Save** button is driven by **`isWorkspaceDirty`** from `useLocationEditWorkspaceModel`, not React Hook Form’s `isDirty` alone. **Dirty** means the **persistable workspace snapshot** differs from the last baseline.
 
-- **Location slice:** `toLocationInput(form values)`, with building saves merging `buildingProfile` and **`stairConnections`** the same way as `handleCampaignSubmit` in `useLocationEditSaveActions`.
-- **Map slice:** `excludedCellIds` plus `normalizedAuthoringPayloadFromGridDraft` (same normalization as save / `gridDraftPersistableEquals`).
+**Single source of truth:** **`buildCampaignWorkspacePersistableParts`** (`routes/locationEdit/workspacePersistableSnapshot.ts`) builds the same **`locationInput`** (for `locationRepo.updateEntry`) and **`mapBootstrapPayload`** (for `bootstrapDefaultLocationMap`) that **`handleCampaignSubmit`** uses. **`serializeLocationWorkspacePersistableSnapshot`** stringifies those parts for dirty comparison, so save and dirty cannot drift.
 
-Implementation: **`serializeLocationWorkspacePersistableSnapshot`** (`routes/locationEdit/workspacePersistableSnapshot.ts`). The **baseline** string is set after successful map hydration and after a successful campaign save. Until the first baseline is recorded, Save stays disabled (not dirty).
+- **Location slice:** `toLocationInput(form values)`, with building saves merging `buildingProfile` and **`stairConnections`** when `loc` is a campaign building.
+- **Map slice:** sorted `excludedCellIds` plus `normalizedAuthoringPayloadFromGridDraft` (same normalization as `gridDraftPersistableEquals`).
+
+The **baseline** string is set after successful map hydration and after a successful campaign save. Until the first baseline is recorded, Save stays disabled (not dirty).
 
 The three right-rail tabs (**Location**, **Map**, **Selection**) are not separate dirty stores: they all feed the shared form, `LocationGridDraftState`, and (for buildings) stair-connection state. **Map-only** UI such as toolbar mode, paint selection, and `mapSelection` is not part of the persistable snapshot (see `locationGridDraft.utils.ts`).
 
@@ -289,6 +291,6 @@ Both hooks are used at the route level; derived values are passed down to canvas
 5. **Edge authoring:** edge logic lives under `domain/mapEditor/edge/` with tests in `domain/mapEditor/__tests__/edge/`; grid wiring uses `useSquareEdgeBoundaryPaint` in `LocationGridAuthoringSection.tsx`. Before changing behavior, read **Edge authoring** and **Open issues** above (hex edge gap).
 6. **Path preview performance:** if the chain preview feels sluggish, consider caching the committed chain curve and only recomputing the tail segments on hover. See **Open issues §3**.
 7. **Select mode / region hover:** resolver and grid chrome live under `domain/mapEditor/select-mode/` (`resolveSelectModeInteractiveTarget`, `buildSelectModeInteractiveTargetInput`, `resolveSelectModeRegionOrCellSelection`, `refineSelectModeClickAfterRegionDrill`, `locationMapSelectionHitTest`) plus `mapGridCellVisualState.ts`. See **Location map styling → Select mode** and **Open issues §4** before changing hover behavior.
-8. **Persistable dirty snapshot:** when adding new state that is **saved** from this editor but not part of `LocationFormValues` or `gridDraft` (e.g. parallel `useState` merged in `handleCampaignSubmit`), extend **`serializeLocationWorkspacePersistableSnapshot`** and baseline updates in **`useLocationMapHydration`** / **`useLocationEditSaveActions`** so Save stays correct. Tests: `workspacePersistableSnapshot.test.ts`.
+8. **Persistable dirty snapshot:** when adding new state that is **saved** from this editor but not part of `LocationFormValues` or `gridDraft` (e.g. parallel `useState` merged in `handleCampaignSubmit`), extend **`buildCampaignWorkspacePersistableParts`** (shared by save + **`serializeLocationWorkspacePersistableSnapshot`**) and baseline updates in **`useLocationMapHydration`** / **`useLocationEditSaveActions`**. Tests: `workspacePersistableSnapshot.test.ts`.
 
 For domain, map policy, transitions, grid geometry policy, and hex rendering math, see [locations.md](./locations.md) (section *Pointers for the next agent*).

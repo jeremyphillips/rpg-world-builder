@@ -1,33 +1,70 @@
 ---
 name: Location workspace dirty state
-overview: Replace the split `isDirty || isGridDraftDirty` model with a single **canonical persistable snapshot** (matching what `handleCampaignSubmit` actually persists), compared to a baseline updated on hydration and successful save. This is DRY, scales to new rail tools and parallel state, and avoids per-field wiring.
+overview: Phase 1 shipped a canonical persistable snapshot + baseline for campaign edit dirty state. Phases 2–4 consolidate save/dirty into one builder, expand tests and docs, and align system patch / performance / process.
 todos:
   - id: snapshot-helper
     content: Add workspacePersistableSnapshot (form + normalized map + building stairs) aligned with save
-    status: pending
+    status: completed
   - id: baseline-lifecycle
     content: Set baseline on hydration + post-save; replace isDirty||isGridDraftDirty with isWorkspaceDirty in route
-    status: pending
+    status: completed
   - id: subscribe-form
     content: Ensure watch()/useWatch covers all saved form fields so header re-renders
-    status: pending
+    status: completed
   - id: tests
     content: Unit tests for snapshot equality across representative edits
-    status: pending
+    status: completed
   - id: docs-location-workspace
     content: Update docs/reference/location-workspace.md with dirty/save architecture and pointers
+    status: completed
+  - id: phase2-shared-payload
+    content: Extract shared buildCampaignWorkspacePersistablePayload used by save + snapshot serialization
+    status: completed
+  - id: phase3-tests-matrix-docs-checklist
+    content: Expand snapshot test matrix; add contributor checklist in location-workspace.md
+    status: pending
+  - id: phase3-nested-forms-ux
+    content: Decide and document/implement nested submit-to-commit rail forms (e.g. region metadata)
+    status: pending
+  - id: phase4-system-patch-parity
+    content: Document or unify system patch dirty rules vs campaign snapshot
+    status: pending
+  - id: phase4-perf-memo
+    content: Profile and memoize workspace snapshot string if needed
     status: pending
 isProject: true
 ---
 
 # Location map workspace: scalable dirty-state plan
 
+## Phased roadmap
+
+```mermaid
+flowchart LR
+  p1[Phase1_Shipped]
+  p2[Phase2_SharedPayload]
+  p3[Phase3_TestsUxDocs]
+  p4[Phase4_ParityPerf]
+  p1 --> p2
+  p2 --> p3
+  p3 --> p4
+```
+
+| Phase | Goal | Primary outcome |
+| ----- | ---- | --------------- |
+| **1** | Persistable snapshot + baseline | `isWorkspaceDirty`, [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts), hydration/save baseline, [`location-workspace.md`](docs/reference/location-workspace.md) — **done** |
+| **2** | Single source of truth | One builder for “what would be persisted” consumed by **both** dirty snapshot and `handleCampaignSubmit` — eliminates save vs dirty drift |
+| **3** | Quality + rail UX | Table/matrix tests, contributor checklist in docs, explicit policy for nested **submit-to-commit** inspectors |
+| **4** | Parity + polish | System patch rules documented or aligned; optional snapshot memoization if profiling says so |
+
+---
+
 ## Current behavior (as implemented)
 
-- Campaign edit header uses `[LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx)`: `dirty={isDirty || isGridDraftDirty}`.
-- `**isDirty**`: from React Hook Form in `[useLocationEditWorkspaceModel.ts](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts)` (`formState.isDirty`).
-- `**isGridDraftDirty**`: `!gridDraftPersistableEquals(gridDraft, gridDraftBaseline)` in the same hook; `[gridDraftPersistableEquals](src/features/content/locations/components/locationGridDraft.utils.ts)` compares **normalized, persisted map payload** (and intentionally ignores UI-only fields like `mapSelection` / `selectedCellId`).
-- **Save path** (`[useLocationEditSaveActions.ts](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts)`): `toLocationInput(values)` + `bootstrapDefaultLocationMap(..., { excludedCellIds, ...normalizedAuthoringPayloadFromGridDraft(draft) })`, and for **building** scale, `**buildingStairConnectionsRef.current`** merged into `buildingProfile.stairConnections`.
+- **Campaign** edit header uses `[LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx)`: `dirty={isWorkspaceDirty}` (persistable snapshot + baseline from [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts), [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts)).
+- **System** patch branch: `dirty={driver.isDirty() || isGridDraftDirty}` — map draft still compared via [`gridDraftPersistableEquals`](src/features/content/locations/components/locationGridDraft.utils.ts); **not** the full workspace snapshot (see Phase 4).
+- **`isGridDraftDirty`** remains in the model for the system branch; campaign dirty no longer uses RHF `formState.isDirty` for the Save button.
+- **Save path** (`[useLocationEditSaveActions.ts](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts)`): `toLocationInput(values)` + `bootstrapDefaultLocationMap(..., { excludedCellIds, ...normalizedAuthoringPayloadFromGridDraft(draft) })`, and for **building** scale, `buildingStairConnectionsRef.current` merged into `buildingProfile.stairConnections` — **Phase 2** should reuse the same structural pieces as [`serializeLocationWorkspacePersistableSnapshot`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts).
 
 Rail tabs (**Location / Map / Selection**) are not separate stores: they all feed the same `FormProvider` form, `gridDraft`, and (for buildings) `buildingStairConnections`. There is no need for tab-specific dirty flags if the **aggregate snapshot** is correct.
 
@@ -60,9 +97,23 @@ Rail tabs (**Location / Map / Selection**) are not separate stores: they all fee
   - Location slice: align with `toLocationInput(getValues())` or a shared `pick` list so new saved fields automatically join the snapshot when someone extends `toLocationInput`.
   - Building slice: include **normalized** `buildingStairConnections` (stable sort + stable stringify) when building save applies.
 
-### Optional follow-up (not required for dirty, but reduces drift)
+### Phase 2 — Single source of truth (anti-drift)
 
-- Extract `**buildCampaignLocationPersistPayload(...)`** (or similar) used by both `**handleCampaignSubmit**` and `**workspaceSnapshotEquals**` so dirty and save **cannot diverge**.
+- Introduce a shared helper (name TBD, e.g. `buildCampaignWorkspacePersistableParts` or `buildCampaignLocationPersistablePayload`) that returns the **same** structured inputs the save path needs: merged `LocationInput` (including building stair merge rules), plus map bootstrap fields derived from `gridDraft`.
+- [`serializeLocationWorkspacePersistableSnapshot`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) should **call** that helper then `stableStringify` (or the helper returns the pre-string object used for both stringify and API assembly).
+- [`useLocationEditSaveActions.ts`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) `handleCampaignSubmit` should **use** the helper for the location + map **payload construction** so any future field added for persistence is wired once.
+
+### Phase 3 — Tests, docs checklist, nested rail UX
+
+- **Tests:** Expand [`workspacePersistableSnapshot.test.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.test.ts) (or a small table-driven suite) to cover a **matrix**: form field, cell fill, object metadata, path/edge, building stairs; optionally add a regression for “stairs-only” delta if product allows it.
+- **Docs:** Add a short **“Adding persisted workspace state”** checklist to [`location-workspace.md`](docs/reference/location-workspace.md) (update snapshot + baseline touchpoints + one test case).
+- **Nested forms:** Pick a product approach for [`LocationMapRegionMetadataForm`](src/features/content/locations/components/workspace/LocationMapRegionMetadataForm.tsx) and similar **submit-to-commit** UIs: sync-on-change into `gridDraft`, panel-level dirty indicator, or explicit copy that header Save does not include unsubmitted panel edits — then implement or document.
+
+### Phase 4 — System patch parity and performance
+
+- **System patch:** Either document the **two-rule** model (`driver.isDirty()` + `isGridDraftDirty`) in [`location-workspace.md`](docs/reference/location-workspace.md) with when to use which, **or** introduce a patch-aware snapshot slice if product requires parity with campaign semantics.
+- **Performance:** Only if profiling shows cost: memoize the snapshot string in [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts) (deps: `watch` output, `gridDraft`, `buildingStairConnections`, `loc` id).
+- **Optional:** Custom lint / PR checklist item for “new ref merged in save → update snapshot” — usually **Phase 3 checklist** is enough.
 
 ## Technical limitations
 
@@ -76,51 +127,52 @@ Rail tabs (**Location / Map / Selection**) are not separate stores: they all fee
 - **False negatives** if a new persisted field is added **outside** `toLocationInput` / map bootstrap and not added to the snapshot.
 - **System patch route** (`[LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx)` `isSystem` branch) uses `driver.isDirty() || isGridDraftDirty` — apply the same **snapshot** idea for campaign path first; patch driver may still need its own dirty source unless the snapshot includes patch state.
 
-## Files likely touched
+## Files touched (Phase 1 — completed)
 
-- `[useLocationEditWorkspaceModel.ts](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts)` — compute `isWorkspaceDirty`, baseline refs/state, subscribe via `watch`.
-- `[useLocationEditSaveActions.ts](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts)` — align baseline updates after save with snapshot baseline (or pass `onSaveSuccess` callback that sets one baseline).
-- `[LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx)` — pass `dirty={isWorkspaceDirty}` (name TBD).
-- New small module under `routes/locationEdit/` or `components/` e.g. `workspacePersistableSnapshot.ts` + unit tests comparing before/after known edits (form field, cell fill, object label, stair connection array).
+- [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts) — `isWorkspaceDirty`, `workspacePersistBaseline`, `watch()`, hydration/save baseline wiring.
+- [`useLocationEditSaveActions.ts`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) — `setWorkspacePersistBaseline` after successful save.
+- [`useLocationMapHydration.ts`](src/features/content/locations/routes/locationEdit/useLocationMapHydration.ts) — baseline after hydrate / reset.
+- [`hydrateDefaultLocationMap.ts`](src/features/content/locations/routes/hydrateDefaultLocationMap.ts) — returns `LocationGridDraftState`.
+- [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx) — campaign `dirty={isWorkspaceDirty}`.
+- [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts), [`locationGridDraft.utils.ts`](src/features/content/locations/components/locationGridDraft.utils.ts) (`stableStringify` export), [`workspacePersistableSnapshot.test.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.test.ts), [`location-workspace.md`](docs/reference/location-workspace.md), [`routes/locationEdit/index.ts`](src/features/content/locations/routes/locationEdit/index.ts).
 
-## Tests to add
+## Files likely touched (Phase 2+)
 
-- **Unit:** snapshot equality after hydration mock; after changing one of: form field, `cellFillByCellId`, object metadata, `pathEntries`, `buildingStairConnections` (building mode).
-- **Regression:** Save enables when only building stair connections change without a corresponding grid diff (if that scenario is possible in product rules).
+- **Phase 2:** [`useLocationEditSaveActions.ts`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts), [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) (or new sibling module for shared `build*`).
+- **Phase 3:** [`workspacePersistableSnapshot.test.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.test.ts), [`location-workspace.md`](docs/reference/location-workspace.md), optional [`LocationMapRegionMetadataForm`](src/features/content/locations/components/workspace/LocationMapRegionMetadataForm.tsx).
+- **Phase 4:** [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx) (system branch), [`location-workspace.md`](docs/reference/location-workspace.md), [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts) (memoization).
 
-## Documentation scope
+## Tests (Phase 1 — done; Phase 3 — expand)
 
-Update `[docs/reference/location-workspace.md](docs/reference/location-workspace.md)` as part of the same change set (or immediately after merge) so the reference stays the single place for workspace behavior.
+- **Phase 1:** [`workspacePersistableSnapshot.test.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.test.ts) covers stability, form name change, cell fill, building stair connections.
+- **Phase 3:** Table/matrix expansion; optional hydration mock test; regression for stairs-only if valid.
 
-**Suggested content to add or extend (Client feature touchpoints / new subsection):**
+## Documentation (Phase 1 — done; Phase 3–4 — extend)
 
-- **Dirty state and Save:** Explain that the header Save button reflects **persistable workspace** changes (location form values + map authoring draft + building stair connections when applicable), not per-tab or per–react-hook-form `isDirty` alone. Point to the snapshot module / `useLocationEditWorkspaceModel` (or whatever names ship).
-- **Rail tabs vs persistence:** Clarify that Location / Map / Selection share the same underlying state; “dirty” is aggregate. Map-only UI (mode, swatch selection, `mapSelection`) stays excluded from persistable compare where documented in code.
-- **Baseline lifecycle:** Short note: baseline resets after successful save and after map+form hydration for the active location/floor.
-- **Pointers for the next agent:** Add a bullet to extend the snapshot when adding new **saved** state that is not on `LocationFormValues` or `gridDraft` (parallel `useState`, refs merged at save).
+- **Phase 1:** [`location-workspace.md`](docs/reference/location-workspace.md) includes **Dirty state and Save (campaign edit)**, rail tab aggregate model, baseline lifecycle, pointer #8 for extending snapshot.
+- **Phase 3:** Contributor checklist; trim/normalization note if needed.
+- **Phase 4:** System patch two-rule section if not already sufficient.
 
-This satisfies “obvious wiring” for future contributors without duplicating full API docs.
+## Gaps and risks (iteration backlog, mapped to phases)
 
-## Gaps and risks (iteration backlog)
+| Backlog item | Suggested phase |
+| ------------- | --------------- |
+| Save vs snapshot drift | **Phase 2** (shared payload builder) |
+| New parallel `useState` / ref at save | **Phase 3** (docs checklist + tests matrix) |
+| Nested submit-to-commit rails | **Phase 3** (UX decision + doc or code) |
+| System patch vs campaign semantics | **Phase 4** (document two-rule model or extend snapshot) |
+| Whitespace / trim vs visible edits | **Phase 3** (document in [`location-workspace.md`](docs/reference/location-workspace.md)) |
+| False positives (prune / preset / hydration) | **Phase 3–4** (tests + tune baseline; see risks below) |
+| False negatives (Save stuck off) | **Phase 3** (matrix tests + manual rail-tab passes) |
+| Performance (large maps) | **Phase 4** (memoize if profiled) |
+| Building floor switching baseline | **Phase 1** should already hydrate on `activeFloorId`; re-verify in **Phase 3** tests if regressions appear |
 
-Use this list to prioritize follow-up work after the initial snapshot ships.
+### Risks (ongoing)
 
-### Gaps (product / architecture)
-
-- **Nested rail forms:** Region metadata (`LocationMapRegionMetadataForm`) and any similar **submit-to-commit** inspectors can leave edits in local form state while the header snapshot stays “clean.” Options to iterate: auto-sync on change, dirty flag on nested form, or explicit “unsaved changes in panel” copy.
-- **System patch workspace:** Campaign snapshot work may not cover `driver.isDirty()` + grid for system locations; verify parity or document a second rule.
-- **Save vs snapshot drift:** Until `buildCampaignLocationPersistPayload` is shared, two code paths can diverge; treat unifying as a follow-up when touching save again.
-- **New parallel state:** Any future `useState` / ref merged in `handleCampaignSubmit` must be added to the snapshot and baseline; consider a lint or checklist in the doc.
-- **Whitespace / normalization:** Persistable normalization may treat some user-visible string edits as equal (e.g. trim); document if that is intentional.
-
-### Risks (correctness / UX)
-
-- **False positives:** User sees Save enabled with “no obvious change” after grid prune, preset changes, or hydration race; collect cases and tune baseline timing.
-- **False negatives:** Save stays disabled after a real edit; regression tests and manual passes on all three rail tabs after each release touching workspace.
-- **Performance:** Large maps or many stair connections; if snapshot stringification becomes hot, profile and memoize.
-- **Building + floor switching:** Ensure baseline updates when `activeFloorId` changes so dirty does not leak between floors.
+- **False positives** after grid prune, preset changes, or hydration race — collect cases; adjust baseline timing only with tests.
+- **False negatives** if a new persisted field bypasses both `toLocationInput` / map bootstrap and the snapshot — **Phase 2** reduces this; **Phase 3** checklist catches omissions.
 
 ### Process
 
-- After implementation, **link from** the doc’s “Pointers for the next agent” to the snapshot module and to this gaps list for ongoing iteration.
+- Keep **Pointers for the next agent** in [`location-workspace.md`](docs/reference/location-workspace.md) linked to [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) and this phased plan for roadmap context.
 

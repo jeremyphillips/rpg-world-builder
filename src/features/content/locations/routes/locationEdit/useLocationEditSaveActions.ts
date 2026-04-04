@@ -13,7 +13,6 @@ import {
   type LocationInput,
   LOCATION_FORM_DEFAULTS,
   locationToFormValues,
-  toLocationInput,
   validateGridBootstrap,
   bootstrapDefaultLocationMap,
   pickMapGridFormValues,
@@ -23,10 +22,12 @@ import {
 } from '@/features/content/locations/domain';
 import type { BuildingWorkspaceFloorItem } from '@/features/content/locations/domain/building/buildingWorkspaceFloors';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
-import { normalizedAuthoringPayloadFromGridDraft } from '@/features/content/locations/components/locationGridDraft.utils';
 import { INITIAL_LOCATION_GRID_DRAFT } from '@/features/content/locations/components/locationGridDraft.types';
 import type { LocationGridDraftState } from '@/features/content/locations/components/locationGridDraft.types';
-import { serializeLocationWorkspacePersistableSnapshot } from '@/features/content/locations/routes/locationEdit/workspacePersistableSnapshot';
+import {
+  buildCampaignWorkspacePersistableParts,
+  serializeLocationWorkspacePersistableSnapshot,
+} from '@/features/content/locations/routes/locationEdit/workspacePersistableSnapshot';
 import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
 import type { PatchDriver } from '@/features/content/shared/editor/patchDriver';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
@@ -112,15 +113,13 @@ export function useLocationEditSaveActions({
       setErrors([]);
       try {
         const draft = gridDraftRef.current;
-        const input = toLocationInput(values);
-        if (isBuilding) {
-          input.buildingProfile = {
-            ...(loc.buildingProfile ?? {}),
-            ...(input.buildingProfile ?? {}),
-            stairConnections: buildingStairConnectionsRef.current,
-          };
-        }
-        const updated = await locationRepo.updateEntry(campaignId, locationId, input);
+        const { locationInput, mapBootstrapPayload } = buildCampaignWorkspacePersistableParts(
+          values,
+          draft,
+          buildingStairConnectionsRef.current,
+          loc,
+        );
+        const updated = await locationRepo.updateEntry(campaignId, locationId, locationInput);
         if (isBuilding) {
           setBuildingStairConnections(updated.buildingProfile?.stairConnections ?? []);
         }
@@ -137,10 +136,7 @@ export function useLocationEditSaveActions({
           mapBootstrapName,
           mapBootstrapScale,
           values,
-          {
-            excludedCellIds: draft.excludedCellIds,
-            ...normalizedAuthoringPayloadFromGridDraft(draft),
-          },
+          mapBootstrapPayload,
         );
         reset({
           ...locationToFormValues(updated),
@@ -225,16 +221,19 @@ export function useLocationEditSaveActions({
         gridCellUnit: v.gridCellUnit || getDefaultCellUnitForScale('floor'),
         gridGeometry: getDefaultGeometryForScale('floor'),
       };
+      const { mapBootstrapPayload: newFloorMapPayload } = buildCampaignWorkspacePersistableParts(
+        bootstrapValues,
+        INITIAL_LOCATION_GRID_DRAFT,
+        [],
+        null,
+      );
       await bootstrapDefaultLocationMap(
         campaignId,
         created.id,
         created.name,
         'floor',
         bootstrapValues,
-        {
-          excludedCellIds: INITIAL_LOCATION_GRID_DRAFT.excludedCellIds,
-          ...normalizedAuthoringPayloadFromGridDraft(INITIAL_LOCATION_GRID_DRAFT),
-        },
+        newFloorMapPayload,
       );
       onFloorCreated();
       setActiveFloorId(created.id);
