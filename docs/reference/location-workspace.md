@@ -110,6 +110,17 @@ The **baseline** string is set after successful map hydration and after a succes
 
 The three right-rail tabs (**Location**, **Map**, **Selection**) are not separate dirty stores: they all feed the shared form, `LocationGridDraftState`, and (for buildings) stair-connection state. **Map-only** UI such as toolbar mode, paint selection, and `mapSelection` is not part of the persistable snapshot (see `locationGridDraft.utils.ts`).
 
+### Dirty vs saveable (campaign header)
+
+These are **separate** concepts:
+
+| Concept | Meaning |
+| ------- | ------- |
+| **Dirty** (`isWorkspaceDirty`) | The persistable workspace snapshot differs from the last baseline — unsaved work. |
+| **Saveable** (`campaignWorkspaceCanSave`) | The same **gates** as [`handleCampaignSubmit`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) before persistence: see [`getCampaignWorkspaceSaveBlockReason`](src/features/content/locations/routes/locationEdit/campaignWorkspaceSaveGate.ts) — e.g. campaign **building** locations need an **active floor**; [`validateGridBootstrap`](src/features/content/locations/domain/mapAuthoring/bootstrapDefaultLocationMap.ts) must pass for grid bootstrap fields. |
+
+The header **Save** button uses **`saveDisabled={!campaignWorkspaceCanSave}`** in addition to the usual **not dirty** / **saving** rules. A draft can be **dirty** while **not** saveable (e.g. invalid grid columns); Save stays disabled until the block reason is cleared. When blocked, [`LocationEditorHeader`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx) can show a **tooltip** (`saveDisabledReason`) explaining why.
+
 ### Dirty state — system location patch
 
 System entries (`source === 'system'`) are **not** saved through the campaign `handleCampaignSubmit` pipeline. The header **Save** button uses a **two-part** dirty rule in [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx):

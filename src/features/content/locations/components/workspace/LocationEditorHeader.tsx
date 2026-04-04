@@ -30,8 +30,10 @@ type LocationEditorHeaderProps = {
   onToggleRightRail: () => void
   /** Extra actions rendered before the save button (e.g. delete). */
   actions?: ReactNode
-  /** When true, Save/Create stays disabled regardless of dirty (e.g. building with no floor yet). */
+  /** When true, Save/Create stays disabled regardless of dirty (validation, building with no floor, etc.). */
   saveDisabled?: boolean
+  /** Explains why Save is disabled when `saveDisabled` is set (shown as tooltip). */
+  saveDisabledReason?: string | null
 }
 
 export function LocationEditorHeader({
@@ -50,8 +52,11 @@ export function LocationEditorHeader({
   onToggleRightRail,
   actions,
   saveDisabled = false,
+  saveDisabledReason,
 }: LocationEditorHeaderProps) {
   const busy = saving
+  const saveBlockedTooltip =
+    saveDisabled && saveDisabledReason ? saveDisabledReason : ''
 
   return (
     <Box
@@ -100,24 +105,33 @@ export function LocationEditorHeader({
         </Tooltip>
 
         {!hideSaveButton && (
-          <Button
-            variant="contained"
-            size="medium"
-            disabled={busy || saveDisabled || (!dirty && !isNew)}
-            {...(onSave
-              ? { type: 'button' as const, onClick: onSave }
-              : formId
-                ? {
-                    type: 'button' as const,
-                    onClick: () => {
-                      const el = document.getElementById(formId);
-                      if (el instanceof HTMLFormElement) el.requestSubmit();
-                    },
-                  }
-                : {})}
+          <Tooltip
+            title={saveBlockedTooltip}
+            disableHoverListener={!saveBlockedTooltip}
+            disableFocusListener={!saveBlockedTooltip}
+            disableTouchListener={!saveBlockedTooltip}
           >
-            {saving ? 'Saving…' : isNew ? 'Create' : 'Save'}
-          </Button>
+            <span style={{ display: 'inline-flex' }}>
+              <Button
+                variant="contained"
+                size="medium"
+                disabled={busy || saveDisabled || (!dirty && !isNew)}
+                {...(onSave
+                  ? { type: 'button' as const, onClick: onSave }
+                  : formId
+                    ? {
+                        type: 'button' as const,
+                        onClick: () => {
+                          const el = document.getElementById(formId);
+                          if (el instanceof HTMLFormElement) el.requestSubmit();
+                        },
+                      }
+                    : {})}
+              >
+                {saving ? 'Saving…' : isNew ? 'Create' : 'Save'}
+              </Button>
+            </span>
+          </Tooltip>
         )}
         {actions}
         

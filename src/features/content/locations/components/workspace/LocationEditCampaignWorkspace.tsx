@@ -34,7 +34,10 @@ export type LocationEditCampaignWorkspaceProps = {
   onToggleRightRail: () => void;
   onSaveClick: () => void;
   onBack: () => void;
+  /** When true, Save stays disabled (invalid grid bootstrap, building with no floor, etc.). */
   saveDisabled?: boolean;
+  /** Tooltip when Save is disabled while `dirty` (why save is blocked). */
+  saveDisabledReason?: string | null;
   canDelete?: boolean;
   /** Validate then open delete confirmation (e.g. async gate + set modal open). */
   onRequestDelete?: () => void | Promise<void>;
@@ -74,6 +77,7 @@ export function LocationEditCampaignWorkspace({
   onSaveClick,
   onBack,
   saveDisabled,
+  saveDisabledReason,
   canDelete,
   onRequestDelete,
   deleteLoading,
@@ -137,6 +141,7 @@ export function LocationEditCampaignWorkspace({
             rightRailOpen={rightRailOpen}
             onToggleRightRail={onToggleRightRail}
             saveDisabled={saveDisabled}
+            saveDisabledReason={saveDisabledReason}
             actions={
               canDelete ? (
                 <Button

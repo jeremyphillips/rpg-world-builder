@@ -121,6 +121,8 @@ export default function LocationEditRoute() {
     success,
     errors,
     isWorkspaceDirty,
+    campaignWorkspaceCanSave,
+    campaignWorkspaceSaveBlockReason,
     gridDraft,
     setGridDraft,
     isGridDraftDirty,
@@ -413,7 +415,8 @@ export default function LocationEditRoute() {
       onToggleRightRail={() => setRightRailOpen((o) => !o)}
       onSaveClick={handleCampaignFormSaveClick}
       onBack={handleBack}
-      saveDisabled={isBuildingWorkspace && !activeFloorId}
+      saveDisabled={!campaignWorkspaceCanSave}
+      saveDisabledReason={campaignWorkspaceSaveBlockReason}
       canDelete={canDelete}
       onRequestDelete={() => void handleRequestDelete()}
       deleteLoading={deleting}

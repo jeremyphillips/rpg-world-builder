@@ -1,6 +1,6 @@
 ---
 name: Location workspace dirty state
-overview: Phases 1–4 are complete (snapshot + baseline, shared builder, tests/docs, system dirty helper + memo). **Refactor follow-up:** Phase A (draft ownership inventory) is done; Phases B–E migrate nested inspectors — start with `LocationMapRegionMetadataForm`. See § Refactor-first plan. Contributor detail in docs/reference/location-workspace.md.
+overview: Phases 1–4 complete. Refactor follow-up A–B done; **Phase C done** (`campaignWorkspaceSaveGate`, `campaignWorkspaceCanSave`, header tooltip, docs). Phases D–E pending. Contributor detail in docs/reference/location-workspace.md.
 todos:
   - id: snapshot-helper
     content: Add workspacePersistableSnapshot (form + normalized map + building stairs) aligned with save
@@ -38,9 +38,18 @@ todos:
   - id: refactor-phaseB-reference-inspector
     content: "Refactor follow-up B: migrate one representative nested inspector end-to-end to workspace draft"
     status: completed
-  - id: refactor-phaseC-header-contract
-    content: "Refactor follow-up C: header dirty/save from draft vs snapshot only; separate dirty from valid"
-    status: pending
+  - id: refactor-phaseC-save-gate
+    content: "Phase C: add campaignWorkspaceSaveGate helper; refactor handleCampaignSubmit to use it"
+    status: completed
+  - id: refactor-phaseC-can-save-wire
+    content: "Phase C: expose canSave/reason in useLocationEditWorkspaceModel; wire LocationEditRoute saveDisabled"
+    status: completed
+  - id: refactor-phaseC-header-tooltip
+    content: "Phase C: optional Tooltip on Save when dirty but save blocked (validation/floor)"
+    status: completed
+  - id: refactor-phaseC-docs
+    content: "Phase C: Dirty vs saveable in location-workspace.md; Phase C status in this plan"
+    status: completed
   - id: refactor-phaseD-migrate-rest
     content: "Refactor follow-up D: migrate remaining nested inspectors slice-by-slice"
     status: pending
@@ -253,27 +262,74 @@ Choose the highest-value nested inspector that currently creates the dirty-state
 - Header Save reflects the current edited state without requiring panel Submit.
 - Closing or switching away from the panel does not silently discard persistable work.
 
-### Phase C — make header dirty/save depend on draft ownership only
+### Phase C — make header dirty/save depend on draft ownership only (refinement)
 
-Once the reference slice works, tighten the workspace contract.
+**Status: completed** — [`campaignWorkspaceSaveGate.ts`](src/features/content/locations/routes/locationEdit/campaignWorkspaceSaveGate.ts), `campaignWorkspaceCanSave` / `campaignWorkspaceSaveBlockReason` in [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts), [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx) `saveDisabled` + `saveDisabledReason`, [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx) tooltip; docs **Dirty vs saveable**.
 
-**Implementation goals:**
+Campaign location edit already derives **dirty** from `serializeLocationWorkspacePersistableSnapshot` vs `workspacePersistBaseline` in [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts). Phase B removed panel-local submit for region metadata. Phase C **tightens the contract**: name **dirty** vs **saveable** explicitly, centralize the same gates as the submit path, and wire the header so Save is disabled when save is blocked while **dirty** stays accurate.
 
-- Ensure header dirty is derived from workspace draft vs persisted snapshot.
-- Remove assumptions that panel-local submit is required before header Save can be trusted.
-- Keep validation behavior explicit: draft may be dirty while save may still be blocked by validation.
+#### Current state (audit)
 
-**Design guidance:**
+| Concern | Where | Behavior today |
+| -------- | ------ | ---------------- |
+| **Dirty** | `useLocationEditWorkspaceModel` | `isWorkspaceDirty` = baseline ≠ `serializeLocationWorkspacePersistableSnapshot(watch(), gridDraft, buildingStairConnections, loc)`. |
+| **Save** | [`useLocationEditSaveActions.ts`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) | `handleCampaignSubmit`: building floor gate, then `validateGridBootstrap` ([`bootstrapDefaultLocationMap.ts`](src/features/content/locations/domain/mapAuthoring/bootstrapDefaultLocationMap.ts)). |
+| **Header Save** | [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx), [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx) | `disabled = busy \|\| saveDisabled \|\| (!dirty && !isNew)`. **`saveDisabled`** = `!campaignWorkspaceCanSave` ([`getCampaignWorkspaceSaveBlockReason`](src/features/content/locations/routes/locationEdit/campaignWorkspaceSaveGate.ts): floor + `validateGridBootstrap`). Tooltip when blocked via `saveDisabledReason`. |
+| **System branch** | `LocationEditRoute` | `dirty` = `isSystemLocationWorkspaceDirty(patch, gridDraft)` — **out of scope** for this Phase C unless a follow-up adds parallel saveable for patch. |
 
-- Separate “dirty” from “valid.”
-- Dirty means the draft differs from persisted state.
-- Valid means the draft is currently saveable.
-- Do not conflate these in the header model.
+**Gap:** **Dirty** and **saveable** are not **named** separately in the workspace API; saveability is implicit inside `handleCampaignSubmit`.
 
-**Acceptance criteria:**
+**Secondary audit:** `useEffect` resetting `gridDraft` / baseline when `gridColumns`/`gridRows` are invalid (~369–386 in `useLocationEditWorkspaceModel`) — document as stability behavior or follow-up if it ever fights “dirty + invalid” UX.
 
-- Header Save is truthful for all migrated slices.
-- Dirty-state computation no longer depends on hidden local panel state for migrated inspectors.
+```mermaid
+flowchart LR
+  subgraph dirtyPath [Dirty path]
+    draft[draft_form_grid_stairs]
+    snap[serializeSnapshot]
+    base[workspacePersistBaseline]
+    cmp[isWorkspaceDirty]
+    draft --> snap
+    snap --> cmp
+    base --> cmp
+  end
+  subgraph savePath [Save path]
+    submit[handleCampaignSubmit]
+    vg[validateGridBootstrap]
+    floor[building_floor_gate]
+    submit --> floor
+    submit --> vg
+  end
+```
+
+#### Target contract
+
+- **Dirty** (unchanged): persistable snapshot differs from last baseline — keep centralized in [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts).
+- **Saveable / canSave**: same **logical** gates as a successful campaign save (building needs active floor when editing building maps; `validateGridBootstrap(getValues())` passes). **Independent** from dirty.
+- **Header:** `dirty` = unsaved work; **Save disabled** when **not** saveable (structural + validation). **Do not** infer dirty from saveability.
+
+**Recommended Save button:** `Save` enabled when `dirty && canSave && !saving` (plus existing flags). **Dirty && !canSave** → Save **disabled**, optional **Tooltip** with reason (grid bootstrap, add floor, etc.).
+
+#### Implementation steps
+
+1. **Extract shared “campaign save gate”** — new module e.g. [`campaignWorkspaceSaveGate.ts`](src/features/content/locations/routes/locationEdit/campaignWorkspaceSaveGate.ts): `getCampaignWorkspaceSaveBlockReason(params): string | null` or `{ canSave; reason }` using `getValues()`, `loc`, `activeFloorId` — **mirror** early returns in `handleCampaignSubmit`. Refactor `handleCampaignSubmit` to call this helper so validation cannot drift.
+2. **Expose from `useLocationEditWorkspaceModel`** (memoized): `campaignWorkspaceCanSave` / `campaignWorkspaceSaveBlockReason` (or equivalent).
+3. **Wire [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx):** replace `saveDisabled={isBuildingWorkspace && !activeFloorId}` with a single expression that includes **floor + grid bootstrap** (same as gate).
+4. **Header (minimal):** optional `saveDisabledReason` + `Tooltip` on Save in [`LocationEditCampaignWorkspace.tsx`](src/features/content/locations/components/workspace/LocationEditCampaignWorkspace.tsx) / [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx) when `dirty && !canSave`.
+5. **Docs:** “Dirty vs saveable” in [`location-workspace.md`](docs/reference/location-workspace.md). **Transitional:** system patch may still use `validationApiRef` — isolated from campaign snapshot dirty.
+
+#### Acceptance mapping (Phase C)
+
+| Criterion | How it is met |
+| --------- | ---------------- |
+| Dirty from draft vs snapshot | Already; document only if needed. |
+| Dirty vs valid separate | New `canSave` / `saveBlockReason`; header uses both. |
+| No hidden panel state for migrated slices | True post–Phase B; reaffirm in docs. |
+| Centralized comparison | Snapshot in `workspacePersistableSnapshot.ts`; **save gate** in new module beside it. |
+
+#### Out of scope (Phase C)
+
+- Rebuilding inspectors, object/edge tools, imperative flush-all-panels.
+- **System** patch `saveable` parity unless added as follow-up.
 
 ### Phase D — migrate remaining nested inspectors slice-by-slice
 

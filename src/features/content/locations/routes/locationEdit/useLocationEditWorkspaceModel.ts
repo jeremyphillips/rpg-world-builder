@@ -89,6 +89,7 @@ import { patchFloorStairConnectionIdOnDefaultMap } from '@/features/content/loca
 
 import { useLocationMapHydration } from './useLocationMapHydration';
 import { useLocationEditSaveActions } from './useLocationEditSaveActions';
+import { getCampaignWorkspaceSaveBlockReason } from './campaignWorkspaceSaveGate';
 import { serializeLocationWorkspacePersistableSnapshot } from './workspacePersistableSnapshot';
 
 /**
@@ -421,6 +422,12 @@ export function useLocationEditWorkspaceModel({
   const isWorkspaceDirty =
     workspacePersistBaseline !== null &&
     currentWorkspaceSnapshot !== workspacePersistBaseline;
+
+  const campaignWorkspaceSaveBlockReason = useMemo(
+    () => getCampaignWorkspaceSaveBlockReason(loc, activeFloorId, watchAll),
+    [loc, activeFloorId, watchAll],
+  );
+  const campaignWorkspaceCanSave = campaignWorkspaceSaveBlockReason === null;
 
   const fieldConfigs = useMemo(
     () =>
@@ -1071,6 +1078,8 @@ export function useLocationEditWorkspaceModel({
     success,
     errors,
     isWorkspaceDirty,
+    campaignWorkspaceCanSave,
+    campaignWorkspaceSaveBlockReason,
     gridDraft,
     setGridDraft,
     isGridDraftDirty,

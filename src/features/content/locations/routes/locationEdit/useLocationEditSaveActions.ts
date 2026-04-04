@@ -13,7 +13,6 @@ import {
   type LocationInput,
   LOCATION_FORM_DEFAULTS,
   locationToFormValues,
-  validateGridBootstrap,
   bootstrapDefaultLocationMap,
   pickMapGridFormValues,
   getDefaultCellUnitForScale,
@@ -24,6 +23,7 @@ import type { BuildingWorkspaceFloorItem } from '@/features/content/locations/do
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 import { INITIAL_LOCATION_GRID_DRAFT } from '@/features/content/locations/components/locationGridDraft.types';
 import type { LocationGridDraftState } from '@/features/content/locations/components/locationGridDraft.types';
+import { getCampaignWorkspaceSaveBlockReason } from '@/features/content/locations/routes/locationEdit/campaignWorkspaceSaveGate';
 import {
   buildCampaignWorkspacePersistableParts,
   serializeLocationWorkspacePersistableSnapshot,
@@ -92,22 +92,12 @@ export function useLocationEditSaveActions({
   const handleCampaignSubmit = useCallback(
     async (values: LocationFormValues) => {
       if (!campaignId || !locationId || !loc) return;
+      const blockReason = getCampaignWorkspaceSaveBlockReason(loc, activeFloorId, values);
+      if (blockReason) {
+        setErrors([{ path: '', code: 'VALIDATION', message: blockReason }]);
+        return;
+      }
       const isBuilding = loc.source === 'campaign' && loc.scale === 'building';
-      if (isBuilding && !activeFloorId) {
-        setErrors([
-          {
-            path: '',
-            code: 'VALIDATION',
-            message: 'Add a floor before saving.',
-          },
-        ]);
-        return;
-      }
-      const err = validateGridBootstrap(values);
-      if (err) {
-        setErrors([{ path: '', code: 'VALIDATION', message: err }]);
-        return;
-      }
       setSaving(true);
       setSuccess(false);
       setErrors([]);

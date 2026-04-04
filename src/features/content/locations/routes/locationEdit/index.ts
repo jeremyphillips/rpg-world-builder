@@ -8,3 +8,4 @@ export {
 } from './workspacePersistableSnapshot';
 export type { CampaignWorkspacePersistableParts } from './workspacePersistableSnapshot';
 export { isSystemLocationWorkspaceDirty } from './systemLocationWorkspaceDirty';
+export { getCampaignWorkspaceSaveBlockReason } from './campaignWorkspaceSaveGate';
