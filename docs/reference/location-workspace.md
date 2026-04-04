@@ -153,7 +153,20 @@ When you introduce new data that must be **saved** from this editor:
 
 **Region metadata (Selection → region):** [`LocationMapRegionMetadataForm`](src/features/content/locations/components/workspace/LocationMapRegionMetadataForm.tsx) syncs **name** and **color** into `gridDraft.regionEntries` immediately; **description** syncs on a short debounce. Header **Save** / `isWorkspaceDirty` see those edits without a panel Submit. Helpers: [`regionMetadataDraftAdapter.ts`](src/features/content/locations/components/workspace/regionMetadataDraftAdapter.ts).
 
-Other inspectors that still use nested `AppForm` shells may use **noop** `onSubmit` only to host fields whose updates go through **`onAfterChange`** or similar (e.g. stair direction) — persistable data still flows through workspace draft callbacks.
+**Stair pairing / stair endpoint** ([`LocationMapSelectionInspectors.tsx`](src/features/content/locations/components/workspace/LocationMapSelectionInspectors.tsx)): nested **React Hook Form** via `FormProvider` + `useForm` (no HTML form submit). Persistable stair fields update `gridDraft` through **`onAfterChange`** or the **Link endpoints** action; ephemeral picker state stays in the nested form.
+
+### Phase D — migration inventory (nested inspectors)
+
+| Slice | Persistable path | Status |
+| ----- | ---------------- | ------ |
+| Region metadata (Selection → region) | `onPatchRegion` → `gridDraft.regionEntries` (adapter) | **Migrated** (Phase B) |
+| Cell (link + objects) | Callbacks → `gridDraft` | Draft-sync; labels/objects update immediately |
+| Placed object (incl. stairs) | `onUpdateCellObjects` | Draft-sync |
+| Stair pairing / stair endpoint | `FormProvider`; `onAfterChange` / link button | Draft-sync; **Phase D** removed noop `AppForm` wrappers |
+| Path / edge / edge-run | Remove actions only | N/A |
+| Map paint rail | Handlers from route → `gridDraft` | Draft-sync |
+
+**Phase C** header: **dirty** vs **saveable** — see **Dirty vs saveable (campaign header)**. New rail panels should follow the Phase A/B ownership rule and extend [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) when adding persistable state.
 
 ### Workspace draft ownership (Phase A)
 
@@ -161,7 +174,9 @@ Other inspectors that still use nested `AppForm` shells may use **noop** `onSubm
 
 **Canonical sources** for the campaign persistable snapshot: see **Dirty state and Save (campaign edit)** and `buildCampaignWorkspacePersistableParts` in `routes/locationEdit/workspacePersistableSnapshot.ts`.
 
-**Phase B (reference inspector):** region metadata (above) uses [`regionMetadataDraftAdapter.ts`](src/features/content/locations/components/workspace/regionMetadataDraftAdapter.ts) for read/write normalization. Further migration order: `.cursor/plans/location_workspace_dirty_state_4d54eedc.plan.md` (Refactor-first plan).
+**Phase B (reference inspector):** region metadata (above) uses [`regionMetadataDraftAdapter.ts`](src/features/content/locations/components/workspace/regionMetadataDraftAdapter.ts) for read/write normalization.
+
+**Phase D:** re-audit complete — all listed Selection / map rail slices are draft-backed or N/A; see **Phase D — migration inventory** above. Plan: `.cursor/plans/location_workspace_dirty_state_4d54eedc.plan.md`.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: Location workspace dirty state
-overview: Phases 1–4 complete. Refactor follow-up A–B done; **Phase C done** (`campaignWorkspaceSaveGate`, `campaignWorkspaceCanSave`, header tooltip, docs). Phases D–E pending. Contributor detail in docs/reference/location-workspace.md.
+overview: Phases 1–4 complete; refactor A–B–C–**D** done (re-audit + stair `FormProvider` cleanup + migration inventory in docs). **Phase E next:** codify authoring guideline. Contributor detail in docs/reference/location-workspace.md.
 todos:
   - id: snapshot-helper
     content: Add workspacePersistableSnapshot (form + normalized map + building stairs) aligned with save
@@ -51,8 +51,8 @@ todos:
     content: "Phase C: Dirty vs saveable in location-workspace.md; Phase C status in this plan"
     status: completed
   - id: refactor-phaseD-migrate-rest
-    content: "Refactor follow-up D: migrate remaining nested inspectors slice-by-slice"
-    status: pending
+    content: "Phase D: re-audit nested inspectors; FormProvider for stairs; migration inventory in docs"
+    status: completed
   - id: refactor-phaseE-cleanup-guideline
     content: "Refactor follow-up E: remove transitional patterns; codify authoring guideline"
     status: pending
@@ -331,26 +331,90 @@ flowchart LR
 - Rebuilding inspectors, object/edge tools, imperative flush-all-panels.
 - **System** patch `saveable` parity unless added as follow-up.
 
-### Phase D — migrate remaining nested inspectors slice-by-slice
+### Phase D — migrate remaining nested inspectors slice-by-slice (refinement)
 
-Apply the same ownership pattern to the rest of the affected rail inspectors.
+**Status: completed** — Re-audit found **no** additional persistable submit-to-commit gaps beyond Phase B (region metadata). **Code:** [`LocationMapSelectionInspectors.tsx`](src/features/content/locations/components/workspace/LocationMapSelectionInspectors.tsx) — replaced noop **`AppForm`** wrappers (**StairPairingLinkForm**, **LocationMapStairEndpointInspectForm**) with **`FormProvider` + `useForm`** + `Stack` (no fake form submit). **Docs:** [`location-workspace.md`](docs/reference/location-workspace.md) **Phase D — migration inventory** table.
 
-**Implementation goals:**
+Phase C established the **campaign** header contract: **dirty** = workspace draft vs persisted snapshot; **saveable** = separate (`getCampaignWorkspaceSaveBlockReason`); header Save truthful for **migrated** slices without panel-local Submit.
 
-- Migrate one inspector at a time.
-- Reuse shared adapter/helpers for reading and writing draft slices.
-- Reduce local form ownership to UI-only concerns.
+#### Objective
 
-**Suggested migration order:**
+Convert each **remaining** inspector that still holds **persistable** edits in **local** panel state into the **workspace-owned draft** model (same as the Phase B reference). **Repeat the pattern safely** — do not invent a new pattern per inspector.
 
-- Inspectors with the highest risk of silent data loss first.
-- Then most frequently used authoring panels.
-- Then lower-risk or more specialized panels.
+#### Required migration rule (every inspector in scope)
 
-**Acceptance criteria:**
+- Persistable fields **read/write** workspace-owned draft state.
+- Ephemeral panel UI may stay **local** (open/closed, hover, picker loading, etc.).
+- Header dirty/save must reflect persistable edits **without** requiring panel-local Submit.
+- Debounce freeform fields **intentionally** and **document** (as with region description in Phase B).
+- Panel-local Submit must **not** be the only commit path for persistable changes.
 
-- For each migrated inspector, persistable edits are visible to workspace dirty/save immediately or via intentional debounce.
-- Panel-local submit buttons are removed, repurposed, or clearly no longer the only commit path.
+#### Migration process (one inspector at a time)
+
+1. Identify local state held only until panel Submit.
+2. Classify each piece: **persistable authoring** vs **ephemeral UI**.
+3. Move persistable state into workspace draft ownership.
+4. Keep ephemeral-only state local.
+5. Remove or repurpose panel-local Submit.
+6. Verify header dirty/save for that slice.
+7. Add/update tests or docs if needed.
+
+**Do not** batch multiple inspectors into one broad refactor unless trivially coupled.
+
+#### Reuse the reference pattern (Phase B)
+
+- Reuse [`regionMetadataDraftAdapter.ts`](src/features/content/locations/components/workspace/regionMetadataDraftAdapter.ts)-style helpers and **`onAfterChange` / debounced `useWatch`** patterns where practical.
+- **Consistent** read from draft, patch slice, separate ephemeral state.
+- Extend shared helpers **carefully** for new shapes — avoid cloning mutation logic.
+
+#### Prioritization order
+
+1. Highest risk of **silent data loss**
+2. Most **frequently used** authoring panels
+3. **Simpler** state shapes (reinforce the pattern)
+4. Lower-risk / specialized **last**
+
+Prefer **user-risk reduction** over convenience.
+
+#### Panel button behavior
+
+Per inspector, resolve old panel Submit **intentionally**:
+
+- **Remove** if unnecessary
+- **Repurpose** to Done / Close / non-commit UX
+- **Keep** only with clear UX purpose — must **not** be the sole path for persistable data to reach draft
+
+Do not leave misleading Submit buttons that imply private edits when draft-backed.
+
+#### Validation behavior (keep Phase C contract)
+
+- Dirty and saveable stay **separate**
+- Migrated inspectors may write **incomplete** or **temporarily invalid** values into draft; **save** validation remains authoritative
+- Local field validation is OK for UX; it must **not** redefine ownership
+- Do **not** reintroduce hidden local buffering to avoid temporary invalid draft values
+
+#### Transitional handling
+
+- **Migrated** inspectors: full ownership model
+- **Unmigrated**: explicitly **transitional**; temporary protections **isolated** — must not weaken the canonical draft-based contract
+- Avoid mixing migrated + unmigrated semantics **inside one inspector**
+
+#### Migration inventory (checklist — update as slices complete)
+
+Post–Phase A audit + Phase B: the only **submit-to-commit persistable** gap was **region metadata** — **migrated** in Phase B. Other Selection inspectors (**cell, object, path, edge, stairs, pairing**) already **sync** to `gridDraft` via callbacks (see § Phase A inventory in this plan). Phase D work is therefore:
+
+| Area | Phase D outcome |
+| ---- | ---------------- |
+| **Region metadata** | Already migrated (Phase B) |
+| **Selection inspectors** | Re-audited — all draft-sync; stair forms no longer use noop `AppForm` |
+| **Map rail** | Handlers touch draft only — confirmed |
+| **New / future rail panels** | Use checklist in **location-workspace.md** |
+
+**Phase-level deliverables:** migration inventory in docs; noop `AppForm` removed from stair inspectors.
+
+#### Acceptance criteria
+
+**Met for this codebase:** no persistable-only-local Submit path in campaign rail inspectors; stair pairing / stair endpoint use `FormProvider` and draft callbacks; inventory documented.
 
 ### Phase E — remove transitional patterns and codify the standard
 

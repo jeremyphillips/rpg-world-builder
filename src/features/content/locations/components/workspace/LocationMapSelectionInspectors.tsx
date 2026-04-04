@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useFormContext } from 'react-hook-form';
+import { FormProvider, useForm, useFormContext } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -29,7 +29,7 @@ import {
   type LocationVerticalStairConnection,
 } from '@/shared/domain/locations';
 
-import { AppForm, FormSelectField } from '@/ui/patterns';
+import { FormSelectField } from '@/ui/patterns';
 import type { SelectOption } from '@/ui/patterns/form/form.types';
 
 import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
@@ -191,22 +191,22 @@ function StairPairingLinkForm({
   ) => Promise<void>;
 }) {
   const floorOptions: SelectOption[] = floors.map((f) => ({ value: f.id, label: f.label }));
+  const methods = useForm<StairPairingLinkFormValues>({
+    defaultValues: { remoteFloorId: '', remoteStairKey: '' },
+  });
 
   return (
-    <AppForm<StairPairingLinkFormValues>
-      key={`${cellId}-${objectId}-pair`}
-      defaultValues={{ remoteFloorId: '', remoteStairKey: '' }}
-      onSubmit={() => {}}
-      spacing={2}
-    >
-      <StairPairingLinkFormFields
-        floorOptions={floorOptions}
-        campaignId={campaignId}
-        cellId={cellId}
-        objectId={objectId}
-        onLinkPair={onLinkPair}
-      />
-    </AppForm>
+    <FormProvider key={`${cellId}-${objectId}-pair`} {...methods}>
+      <Stack spacing={2}>
+        <StairPairingLinkFormFields
+          floorOptions={floorOptions}
+          campaignId={campaignId}
+          cellId={cellId}
+          objectId={objectId}
+          onLinkPair={onLinkPair}
+        />
+      </Stack>
+    </FormProvider>
   );
 }
 
@@ -352,78 +352,78 @@ function LocationMapStairEndpointInspectForm({
     label: f.label,
   }));
 
-  const defaultValues: StairInspectorFormValues = {
-    direction: stairEndpoint?.direction ?? LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION,
-    targetFloorId: stairEndpoint?.targetLocationId ?? '',
-  };
+  const stairMethods = useForm<StairInspectorFormValues>({
+    defaultValues: {
+      direction: stairEndpoint?.direction ?? LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION,
+      targetFloorId: stairEndpoint?.targetLocationId ?? '',
+    },
+  });
 
   return (
-    <AppForm<StairInspectorFormValues>
-      defaultValues={defaultValues}
-      onSubmit={() => {}}
-      spacing={2}
-    >
-      <FormSelectField
-        name="direction"
-        label="Direction"
-        options={directionOptions}
-        size="small"
-        onAfterChange={(direction) => {
-          onUpdateCellObjects(
-            cellId,
-            objs.map((o) => {
-              if (o.id !== objectId || o.kind !== 'stairs') return o;
-              const base = o.stairEndpoint ?? { direction: LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION };
-              return {
-                ...o,
-                stairEndpoint: {
-                  ...base,
-                  direction: direction as (typeof LOCATION_MAP_STAIR_ENDPOINT_DIRECTION_IDS)[number],
-                },
-              };
-            }),
-          );
-        }}
-      />
-      {!hideLegacyTargetFloor ? (
-        <>
-          <FormSelectField
-            name="targetFloorId"
-            label="Target floor (draft)"
-            options={targetOptions}
-            placeholder="None"
-            size="small"
-            onAfterChange={(v) => {
-              const trimmed = v.trim();
-              onUpdateCellObjects(
-                cellId,
-                objs.map((o) => {
-                  if (o.id !== objectId || o.kind !== 'stairs') return o;
-                  const base = o.stairEndpoint ?? { direction: LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION };
-                  return {
-                    ...o,
-                    stairEndpoint: {
-                      direction: base.direction,
-                      ...(base.connectionId ? { connectionId: base.connectionId } : {}),
-                      ...(trimmed !== '' ? { targetLocationId: trimmed } : {}),
-                    },
-                  };
-                }),
-              );
-            }}
-          />
+    <FormProvider {...stairMethods}>
+      <Stack spacing={2}>
+        <FormSelectField
+          name="direction"
+          label="Direction"
+          options={directionOptions}
+          size="small"
+          onAfterChange={(direction) => {
+            onUpdateCellObjects(
+              cellId,
+              objs.map((o) => {
+                if (o.id !== objectId || o.kind !== 'stairs') return o;
+                const base = o.stairEndpoint ?? { direction: LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION };
+                return {
+                  ...o,
+                  stairEndpoint: {
+                    ...base,
+                    direction: direction as (typeof LOCATION_MAP_STAIR_ENDPOINT_DIRECTION_IDS)[number],
+                  },
+                };
+              }),
+            );
+          }}
+        />
+        {!hideLegacyTargetFloor ? (
+          <>
+            <FormSelectField
+              name="targetFloorId"
+              label="Target floor (draft)"
+              options={targetOptions}
+              placeholder="None"
+              size="small"
+              onAfterChange={(v) => {
+                const trimmed = v.trim();
+                onUpdateCellObjects(
+                  cellId,
+                  objs.map((o) => {
+                    if (o.id !== objectId || o.kind !== 'stairs') return o;
+                    const base = o.stairEndpoint ?? { direction: LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION };
+                    return {
+                      ...o,
+                      stairEndpoint: {
+                        direction: base.direction,
+                        ...(base.connectionId ? { connectionId: base.connectionId } : {}),
+                        ...(trimmed !== '' ? { targetLocationId: trimmed } : {}),
+                      },
+                    };
+                  }),
+                );
+              }}
+            />
+            <Typography variant="caption" color="text.secondary" component="div">
+              {stairWorkspaceInspect.candidateTargetFloors.length === 0
+                ? 'Add another floor to this building to choose a target floor. You can still place stairs while drafting.'
+                : 'Optional draft hint when not using a paired connection below. Prefer pairing for a canonical link.'}
+            </Typography>
+          </>
+        ) : (
           <Typography variant="caption" color="text.secondary" component="div">
-            {stairWorkspaceInspect.candidateTargetFloors.length === 0
-              ? 'Add another floor to this building to choose a target floor. You can still place stairs while drafting.'
-              : 'Optional draft hint when not using a paired connection below. Prefer pairing for a canonical link.'}
+            Paired connection is the source of truth for the other endpoint. Combat traversal is still TODO.
           </Typography>
-        </>
-      ) : (
-        <Typography variant="caption" color="text.secondary" component="div">
-          Paired connection is the source of truth for the other endpoint. Combat traversal is still TODO.
-        </Typography>
-      )}
-    </AppForm>
+        )}
+      </Stack>
+    </FormProvider>
   );
 }
 
