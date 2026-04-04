@@ -20,10 +20,10 @@ import { LocationEditorRailSectionTabs } from './LocationEditorRailSectionTabs';
 import { LocationEditorRightRail } from './LocationEditorRightRail';
 import { LocationEditorWorkspace } from './LocationEditorWorkspace';
 
-export type LocationEditCampaignWorkspaceProps = {
+export type LocationEditHomebrewWorkspaceProps = {
   form: UseFormReturn<LocationFormValues>;
   formId: string;
-  onCampaignSubmit: (values: LocationFormValues) => void | Promise<void>;
+  onHomebrewSubmit: (values: LocationFormValues) => void | Promise<void>;
   headerTitle: string;
   ancestryBreadcrumbs: ReactNode;
   saving: boolean;
@@ -34,7 +34,10 @@ export type LocationEditCampaignWorkspaceProps = {
   onToggleRightRail: () => void;
   onSaveClick: () => void;
   onBack: () => void;
+  /** When true, Save stays disabled (invalid grid bootstrap, building with no floor, etc.). */
   saveDisabled?: boolean;
+  /** Tooltip when Save is disabled while `dirty` (why save is blocked). */
+  saveDisabledReason?: string | null;
   canDelete?: boolean;
   /** Validate then open delete confirmation (e.g. async gate + set modal open). */
   onRequestDelete?: () => void | Promise<void>;
@@ -59,10 +62,11 @@ export type LocationEditCampaignWorkspaceProps = {
   };
 };
 
-export function LocationEditCampaignWorkspace({
+/** User-authored location edit shell (`source === 'campaign'` in storage). */
+export function LocationEditHomebrewWorkspace({
   form,
   formId,
-  onCampaignSubmit,
+  onHomebrewSubmit,
   headerTitle,
   ancestryBreadcrumbs,
   saving,
@@ -74,6 +78,7 @@ export function LocationEditCampaignWorkspace({
   onSaveClick,
   onBack,
   saveDisabled,
+  saveDisabledReason,
   canDelete,
   onRequestDelete,
   deleteLoading,
@@ -89,7 +94,7 @@ export function LocationEditCampaignWorkspace({
   selectionPanel,
   linkedLocationModal,
   deleteConfirm,
-}: LocationEditCampaignWorkspaceProps) {
+}: LocationEditHomebrewWorkspaceProps) {
   const canvas =
     buildingFloorStrip != null ? (
       <Box
@@ -137,6 +142,7 @@ export function LocationEditCampaignWorkspace({
             rightRailOpen={rightRailOpen}
             onToggleRightRail={onToggleRightRail}
             saveDisabled={saveDisabled}
+            saveDisabledReason={saveDisabledReason}
             actions={
               canDelete ? (
                 <Button
@@ -168,7 +174,7 @@ export function LocationEditCampaignWorkspace({
                   <form
                     key="location-form"
                     id={formId}
-                    onSubmit={form.handleSubmit(onCampaignSubmit)}
+                    onSubmit={form.handleSubmit(onHomebrewSubmit)}
                     noValidate
                   >
                     <ConditionalFormRenderer fields={fieldConfigs} />

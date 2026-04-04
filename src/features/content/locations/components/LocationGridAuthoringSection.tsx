@@ -9,6 +9,7 @@ import {
   type SetStateAction,
 } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import { useTheme } from '@mui/material/styles';
@@ -110,8 +111,8 @@ type LocationGridAuthoringSectionProps = {
    * across cells places on each cell. Path / edge / link still use click-only flows.
    */
   placeObjectDragStrokeEnabled?: boolean;
-  /** When provided, cell clicks are suppressed if a canvas drag gesture is active. */
-  hasDragMoved?: () => boolean;
+  /** From {@link useCanvasPan#consumeClickSuppressionAfterPan}; skip cell click after pan drag. */
+  consumeClickSuppressionAfterPan?: () => boolean;
 };
 
 export function LocationGridAuthoringSection({
@@ -137,7 +138,7 @@ export function LocationGridAuthoringSection({
   onEraseEdge,
   suppressCanvasPanOnCells = false,
   placeObjectDragStrokeEnabled = false,
-  hasDragMoved,
+  consumeClickSuppressionAfterPan,
 }: LocationGridAuthoringSectionProps) {
   void campaignId;
   void hostLocationId;
@@ -594,7 +595,7 @@ export function LocationGridAuthoringSection({
   const handleSelectGridContainerClick = useCallback(
     (e: React.MouseEvent<HTMLElement>) => {
       if (mapEditorMode !== 'select' || !validPreview) return;
-      if (hasDragMoved?.()) return;
+      if (consumeClickSuppressionAfterPan?.()) return;
       if (isHex) return;
       if ((e.target as HTMLElement).closest('[role="gridcell"]')) return;
       if (!gridContainerRef.current || !squareGridGeometry) return;
@@ -632,7 +633,7 @@ export function LocationGridAuthoringSection({
     [
       mapEditorMode,
       validPreview,
-      hasDragMoved,
+      consumeClickSuppressionAfterPan,
       isHex,
       squareGridGeometry,
       cols,
@@ -721,7 +722,7 @@ export function LocationGridAuthoringSection({
   );
 
   const onCellClick = (cell: GridCell, e: ReactMouseEvent<HTMLElement>) => {
-    if (hasDragMoved?.()) return;
+    if (consumeClickSuppressionAfterPan?.()) return;
     if (mapEditorMode === 'place') {
       if (placeObjectStrokeMode) return;
       onPlaceCellClick?.(cell.cellId);
@@ -793,7 +794,7 @@ export function LocationGridAuthoringSection({
         mapEditorMode === 'place' ||
         (mapEditorMode === 'draw' && activeDraw?.category === 'path');
       if (!hexGapPlaceOrPath) return;
-      if (hasDragMoved?.()) return;
+      if (consumeClickSuppressionAfterPan?.()) return;
       const target = e.target as HTMLElement;
       if (target.closest('[role="gridcell"]')) return;
       const cellId = resolveHexCellFromClient(e.clientX, e.clientY);
@@ -805,7 +806,7 @@ export function LocationGridAuthoringSection({
       activeDraw,
       edgePlaceActive,
       placeObjectStrokeMode,
-      hasDragMoved,
+      consumeClickSuppressionAfterPan,
       resolveHexCellFromClient,
       onPlaceCellClick,
     ],
@@ -891,6 +892,14 @@ export function LocationGridAuthoringSection({
         },
       }}
     >
+      {isHex && draft.edgeEntries.length > 0 ? (
+        <Alert severity="info" sx={{ mb: 1 }} variant="outlined">
+          This hex map has {draft.edgeEntries.length} stored edge segment
+          {draft.edgeEntries.length === 1 ? '' : 's'} (walls / windows / doors). Hex grids do not
+          show or edit boundary edges yet; data is kept when you save. Use a square grid to view or
+          change edges.
+        </Alert>
+      ) : null}
       <Box
         ref={gridContainerRef}
         sx={{

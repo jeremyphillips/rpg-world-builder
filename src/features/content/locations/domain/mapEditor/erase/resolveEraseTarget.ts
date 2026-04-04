@@ -78,13 +78,25 @@ export function resolveEraseEdgeByEdgeId(
   return null;
 }
 
+export type ResolveEraseTargetAtCellOptions = {
+  /**
+   * When true (e.g. hex maps), do not prioritize boundary edges — they are not rendered/selectable
+   * on hex yet; avoids silently erasing stored `edgeEntries` without user-visible feedback.
+   */
+  skipEdgeTargets?: boolean;
+};
+
 export function resolveEraseTargetAtCell(
   cellId: string,
   draft: EraseDraftLike,
   gridColumns: number,
   gridRows: number,
+  options?: ResolveEraseTargetAtCellOptions,
 ): EraseTarget {
-  const edgesHere = edgeEntriesOnCellEdges(draft, cellId, gridColumns, gridRows);
+  const edgesHere =
+    options?.skipEdgeTargets === true
+      ? []
+      : edgeEntriesOnCellEdges(draft, cellId, gridColumns, gridRows);
   if (edgesHere.length > 0) {
     return { type: 'edge', edgeId: edgesHere[0].edgeId };
   }

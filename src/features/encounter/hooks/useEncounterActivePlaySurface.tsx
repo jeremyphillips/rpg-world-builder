@@ -341,7 +341,7 @@ export function useEncounterActivePlaySurface(
   }, [encounterState, encounterState?.log.length, toastViewerInput])
 
   const { zoom, zoomControlProps, wheelContainerRef, bindResetPan } = useCanvasZoom()
-  const { pan, isDragging, hasDragMoved, pointerHandlers, resetPan } = useCanvasPan()
+  const { pan, isDragging, consumeClickSuppressionAfterPan, pointerHandlers, resetPan } = useCanvasPan()
   useEffect(() => { bindResetPan(resetPan) }, [bindResetPan, resetPan])
 
   const combatantRoster = useMemo(
@@ -1071,7 +1071,7 @@ export function useEncounterActivePlaySurface(
               pan={pan}
               panPointerHandlers={pointerHandlers}
               isDragging={isDragging}
-              hasDragMoved={hasDragMoved}
+              consumeClickSuppressionAfterPan={consumeClickSuppressionAfterPan}
               renderTokenPopover={renderTokenPopover}
               onCellClick={handleCellClick}
               onCellHover={handleCellHover}

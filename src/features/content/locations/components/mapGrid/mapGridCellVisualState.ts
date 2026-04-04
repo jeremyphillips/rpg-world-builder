@@ -4,6 +4,8 @@ import type { LocationMapSelection } from '@/features/content/locations/componen
  * Whether the grid cell at `cellId` should show default `:hover` background/border chrome
  * (the dimmed hover treatment on the cell button / hex ring).
  *
+ * **Policy:** see `SELECT_MODE_CHROME_POLICY_DOC` in `selectModeChrome.policy.ts`.
+ *
  * **Select mode:** pass `selectHoverTarget` from {@link resolveSelectModeInteractiveTarget} /
  * pointer resolution. Cell-level hover applies only when the hover **winner** is `cell` for this
  * `cellId`. When the winner is region, object, path, or edge, returns `false` so the cell does
@@ -29,6 +31,27 @@ export function shouldApplyCellHoverChrome(
     return selectHoverTarget.cellId === cellId;
   }
   return false;
+}
+
+/**
+ * Select mode: when there is a non-`none` hover winner and this cell is **not** the cell-level
+ * hover target, enhanced cell `:hover` chrome is suppressed; callers should mirror idle border/fill
+ * on `:hover` so native `<button>` styling does not compete with region/path/object emphasis.
+ *
+ * **Policy:** see `SELECT_MODE_CHROME_POLICY_DOC`. Used by {@link GridEditor} and
+ * {@link HexGridEditor} for equivalent feedback.
+ */
+export function isSelectHoverChromeSuppressed(
+  cellId: string,
+  selectHoverTarget: LocationMapSelection | undefined,
+  disabled: boolean,
+): boolean {
+  return (
+    !disabled &&
+    selectHoverTarget !== undefined &&
+    selectHoverTarget.type !== 'none' &&
+    !shouldApplyCellHoverChrome(cellId, selectHoverTarget)
+  );
 }
 
 /**

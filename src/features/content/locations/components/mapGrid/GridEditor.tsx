@@ -15,6 +15,7 @@ import {
 } from './gridCellStyles';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
 import {
+  isSelectHoverChromeSuppressed,
   shouldApplyCellHoverChrome,
   shouldApplyCellSelectedChrome,
 } from './mapGridCellVisualState';
@@ -106,6 +107,21 @@ export default function GridEditor({
         const excluded = excludedSet.has(cellId);
         const fillBg = getCellBackgroundColor?.(cell);
         const allowHover = shouldApplyCellHoverChrome(cellId, selectHoverTargetProp);
+        const selectHoverChromeSuppressed = isSelectHoverChromeSuppressed(
+          cellId,
+          selectHoverTargetProp,
+          !!disabled,
+        );
+        const baseBorderColor = selected
+          ? gridCellPalette.border.selected
+          : excluded
+            ? gridCellPalette.border.excluded
+            : GRID_CELL_BORDER_COLOR;
+        const baseBg = selected
+          ? gridCellPalette.background.selected
+          : excluded
+            ? gridCellPalette.background.excluded
+            : fillBg ?? gridCellPalette.background.default;
 
         return (
           <Box
@@ -140,17 +156,9 @@ export default function GridEditor({
               minHeight: 0,
               border: 1,
               borderRadius: 0.5,
-              borderColor: selected
-                ? gridCellPalette.border.selected
-                : excluded
-                  ? gridCellPalette.border.excluded
-                  : GRID_CELL_BORDER_COLOR,
+              borderColor: baseBorderColor,
               borderStyle: excluded && !selected ? 'dashed' : 'solid',
-              bgcolor: selected
-                ? gridCellPalette.background.selected
-                : excluded
-                  ? gridCellPalette.background.excluded
-                  : fillBg ?? gridCellPalette.background.default,
+              bgcolor: baseBg,
               backgroundImage: excluded
                 ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
                 : undefined,
@@ -163,18 +171,26 @@ export default function GridEditor({
               lineHeight: 1.2,
               color: excluded ? 'rgba(0,0,0,0.45)' : colorPrimitives.black,
               boxShadow: selected ? gridCellSelectedShadow() : undefined,
-              '&:hover': disabled || !allowHover
+              '&:hover': disabled
                 ? undefined
-                : {
-                    borderColor: selected
-                      ? gridCellPalette.border.selected
-                      : GRID_CELL_BORDER_COLOR_HOVER,
-                    bgcolor: selected
-                      ? gridCellPalette.background.selected
-                      : excluded
-                        ? gridCellPalette.background.excluded
-                        : fillBg ?? gridCellPalette.background.hover,
-                  },
+                : selectHoverTargetProp?.type === 'none'
+                  ? undefined
+                  : selectHoverChromeSuppressed
+                    ? {
+                        borderColor: baseBorderColor,
+                        bgcolor: baseBg,
+                        boxShadow: selected ? gridCellSelectedShadow() : undefined,
+                      }
+                    : {
+                        borderColor: selected
+                          ? gridCellPalette.border.selected
+                          : GRID_CELL_BORDER_COLOR_HOVER,
+                        bgcolor: selected
+                          ? gridCellPalette.background.selected
+                          : excluded
+                            ? gridCellPalette.background.excluded
+                            : fillBg ?? gridCellPalette.background.hover,
+                      },
             }}
           >
             {custom != null && custom !== false ? (

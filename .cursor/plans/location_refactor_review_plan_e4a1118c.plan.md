@@ -3,7 +3,7 @@ name: Location refactor review plan
 overview: "Pre-implementation review: refine the split strategy for [LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx) and [LocationGridAuthoringSection.tsx](src/features/content/locations/components/LocationGridAuthoringSection.tsx) toward maintainable ownership—fewer strong seams over many tiny hooks—with a staged, low-regression extraction order. Line count is a guideline, not a target."
 todos:
   - id: pass-a-workspaces
-    content: "Pass A: LocationEditSystemPatchWorkspace + LocationEditCampaignWorkspace; thin LocationEditRoute"
+    content: "Pass A: LocationEditSystemPatchWorkspace + LocationEditHomebrewWorkspace; thin LocationEditRoute"
     status: pending
   - id: pass-b-model-save
     content: "Pass B: useLocationEditWorkspaceModel + useLocationMapHydration + useLocationEditSaveActions"
@@ -34,7 +34,7 @@ The preliminary direction (hooks + shells + SVG) is sound; the refinement below 
 
 **Verdict:** Prefer **workspace shells first**, then **one route-level model hook**, then **grouped hooks**—not five narrow hooks in parallel.
 
-- **Shells** (`LocationEditCampaignWorkspace`, `LocationEditSystemPatchWorkspace`) are **low coupling**: props in, JSX out. They do not hide side effects or duplicate domain rules. They immediately answer “where is the edit UI?”
+- **Shells** (`LocationEditHomebrewWorkspace`, `LocationEditSystemPatchWorkspace`) are **low coupling**: props in, JSX out. They do not hide side effects or duplicate domain rules. They immediately answer “where is the edit UI?”
 - A single `**useLocationEditRouteModel`** (name refined below) can own **form + grid draft + rail + map editor + derived map host IDs + palette memos** without forcing every consumer to know RHF internals—**if** its return type is explicit (see contracts).
 - **Save / hydration / draft mutations** are legitimate **second-tier** extractions *after* shells + model, because they touch IO (`locationRepo`, `bootstrapDefaultLocationMap`) and are where regressions concentrate—better to extract when the route is already thinner.
 
@@ -69,12 +69,12 @@ This reduces duplication and stabilizes future refactors (region paint / selecti
 
 | Artifact                           | Responsibility                                                                                                                                        | Why first                                                     |
 | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `LocationEditSystemPatchWorkspace` | System patch: `LocationEditorWorkspace` + patch header + `mapCanvasColumn` slot + patch rail + `mapAuthoringPanel` / `selectionPanel` props passed in | Isolated branch; no `FormProvider`; fewer props than campaign |
-| `LocationEditCampaignWorkspace`    | Campaign: `FormProvider` + building strip wrapper + `LocationEditorWorkspace` + location form stack + modals (linked location, delete confirm)        | Largest JSX block; clarifies “campaign edit shell”            |
-| Thin **route file** after pass     | `LocationEditRoute` loads data, calls hooks, chooses `SystemPatchWorkspace` vs `CampaignWorkspace`                                                    | Ownership: route = router + entry fetch + branch only         |
+| `LocationEditSystemPatchWorkspace` | System patch: `LocationEditorWorkspace` + patch header + `mapCanvasColumn` slot + patch rail + `mapAuthoringPanel` / `selectionPanel` props passed in | Isolated branch; no `FormProvider`; fewer props than homebrew |
+| `LocationEditHomebrewWorkspace`    | Homebrew: `FormProvider` + building strip wrapper + `LocationEditorWorkspace` + location form stack + modals (linked location, delete confirm)        | Largest JSX block; user-authored edit shell            |
+| Thin **route file** after pass     | `LocationEditRoute` loads data, calls hooks, chooses `SystemPatchWorkspace` vs `LocationEditHomebrewWorkspace`                                                    | Ownership: route = router + entry fetch + branch only         |
 
 
-**Optional in the same pass only if small:** move `mapAuthoringPanel` / `selectionPanel` / `mapCanvasColumn` assembly into the campaign workspace as **children or render props** so the route does not build large React nodes.
+**Optional in the same pass only if small:** move `mapAuthoringPanel` / `selectionPanel` / `mapCanvasColumn` assembly into the homebrew workspace as **children or render props** so the route does not build large React nodes.
 
 **Why this is safest:** No change to save logic, hydration, or grid behavior if props are passed **explicitly** (same handlers, same child trees). PR is mostly **move JSX** + prop typing.
 
@@ -129,7 +129,7 @@ src/features/content/locations/
       useLocationEditSaveActions.ts
   components/
     workspace/
-      LocationEditCampaignWorkspace.tsx
+      LocationEditHomebrewWorkspace.tsx
       LocationEditSystemPatchWorkspace.tsx
       LocationEditorMapCanvasColumn.tsx  # existing
     mapGrid/
@@ -187,7 +187,7 @@ src/features/content/locations/
 
 **Pass A — Shells (highest safety, clarity)**  
 
-1. Add `LocationEditSystemPatchWorkspace` + `LocationEditCampaignWorkspace` with explicit props.
+1. Add `LocationEditSystemPatchWorkspace` + `LocationEditHomebrewWorkspace` with explicit props.
 2. Slim `LocationEditRoute` to fetch + branch + compose.
 
 **Exit criteria:** No behavior change; file size drops; code review focuses on prop contracts.
@@ -230,7 +230,7 @@ flowchart LR
     useLocationEditSaveActions
   end
   subgraph shells [workspace presentation]
-    LocationEditCampaignWorkspace
+    LocationEditHomebrewWorkspace
     LocationEditSystemPatchWorkspace
   end
   subgraph grid [map grid]
@@ -243,7 +243,7 @@ flowchart LR
     Resolvers[resolveSelectModeInteractiveTarget etc]
   end
   LocationEditRoute --> useLocationEditWorkspaceModel
-  LocationEditRoute --> LocationEditCampaignWorkspace
+  LocationEditRoute --> LocationEditHomebrewWorkspace
   LocationEditRoute --> LocationEditSystemPatchWorkspace
   useLocationEditWorkspaceModel --> shells
   LocationGridAuthoringSection --> SquareHexOverlays

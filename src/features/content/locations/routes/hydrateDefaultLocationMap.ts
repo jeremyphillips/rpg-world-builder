@@ -23,7 +23,7 @@ export async function hydrateDefaultLocationMapState(
   setValue: UseFormSetValue<LocationFormValues>,
   setGridDraft: Dispatch<SetStateAction<LocationGridDraftState>>,
   setGridDraftBaseline: Dispatch<SetStateAction<LocationGridDraftState>>,
-): Promise<void> {
+): Promise<LocationGridDraftState> {
   const maps = await listLocationMaps(campaignId, mapOwnerLocationId);
   const def = maps.find((m) => m.isDefault) ?? maps[0];
   if (def) {
@@ -47,10 +47,11 @@ export async function hydrateDefaultLocationMapState(
     };
     setGridDraft(next);
     setGridDraftBaseline(structuredClone(next));
-  } else {
-    setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
-    setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
+    return next;
   }
+  setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
+  setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
+  return INITIAL_LOCATION_GRID_DRAFT;
 }
 
 export function resetGridDraftToInitial(

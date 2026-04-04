@@ -24,6 +24,7 @@ import { makeGridCellId } from '@/shared/domain/grid';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
 import { gridCellPalette } from './gridCellStyles';
 import {
+  isSelectHoverChromeSuppressed,
   shouldApplyCellHoverChrome,
   shouldApplyCellSelectedChrome,
 } from './mapGridCellVisualState';
@@ -137,6 +138,11 @@ export default function HexGridEditor({
             : fillBg ?? gridCellPalette.background.default;
 
         const allowHover = shouldApplyCellHoverChrome(cellId, selectHoverTargetProp);
+        const selectHoverChromeSuppressed = isSelectHoverChromeSuppressed(
+          cellId,
+          selectHoverTargetProp,
+          !!disabled,
+        );
 
         return (
           <Box
@@ -182,22 +188,36 @@ export default function HexGridEditor({
               lineHeight: 1.2,
               color: excluded ? 'rgba(0,0,0,0.45)' : colorPrimitives.black,
               bgcolor: outerRingColor,
-              '&:hover:not(:disabled)': allowHover
-                ? {
-                    bgcolor: selected
-                      ? gridCellPalette.border.selected
-                      : gridCellPalette.border.hover,
-                  }
-                : {},
-              '&:hover:not(:disabled) .hex-inner': allowHover
-                ? {
-                    bgcolor: selected
-                      ? gridCellPalette.background.selected
-                      : excluded
-                        ? gridCellPalette.background.excluded
-                        : fillBg ?? gridCellPalette.background.hover,
-                  }
-                : {},
+              '&:hover:not(:disabled)':
+                disabled
+                  ? undefined
+                  : selectHoverTargetProp?.type === 'none'
+                    ? undefined
+                    : selectHoverChromeSuppressed
+                      ? { bgcolor: outerRingColor }
+                      : allowHover
+                        ? {
+                            bgcolor: selected
+                              ? gridCellPalette.border.selected
+                              : gridCellPalette.border.hover,
+                          }
+                        : undefined,
+              '&:hover:not(:disabled) .hex-inner':
+                disabled
+                  ? undefined
+                  : selectHoverTargetProp?.type === 'none'
+                    ? undefined
+                    : selectHoverChromeSuppressed
+                      ? { bgcolor: innerFillColor }
+                      : allowHover
+                        ? {
+                            bgcolor: selected
+                              ? gridCellPalette.background.selected
+                              : excluded
+                                ? gridCellPalette.background.excluded
+                                : fillBg ?? gridCellPalette.background.hover,
+                          }
+                        : undefined,
             }}
           >
             <Box

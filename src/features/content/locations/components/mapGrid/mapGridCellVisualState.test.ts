@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  isSelectHoverChromeSuppressed,
   shouldApplyCellHoverChrome,
   shouldApplyCellSelectedChrome,
 } from './mapGridCellVisualState';
@@ -43,6 +44,28 @@ describe('shouldApplyCellHoverChrome', () => {
         anchorEdgeId: 'a',
       }),
     ).toBe(false);
+  });
+});
+
+describe('isSelectHoverChromeSuppressed', () => {
+  it('is false when Select rules are not active, none-target, disabled, or this cell wins hover', () => {
+    expect(isSelectHoverChromeSuppressed('0,0', undefined, false)).toBe(false);
+    expect(isSelectHoverChromeSuppressed('0,0', { type: 'none' }, false)).toBe(false);
+    expect(
+      isSelectHoverChromeSuppressed('0,0', { type: 'region', regionId: 'r1' }, true),
+    ).toBe(false);
+    expect(
+      isSelectHoverChromeSuppressed('0,0', { type: 'cell', cellId: '0,0' }, false),
+    ).toBe(false);
+  });
+
+  it('is true when there is a non-none winner and this cell does not get cell hover', () => {
+    expect(
+      isSelectHoverChromeSuppressed('1,0', { type: 'cell', cellId: '0,0' }, false),
+    ).toBe(true);
+    expect(
+      isSelectHoverChromeSuppressed('0,0', { type: 'region', regionId: 'r1' }, false),
+    ).toBe(true);
   });
 });
 

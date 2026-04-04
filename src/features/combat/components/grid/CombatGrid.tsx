@@ -36,7 +36,8 @@ export type CombatGridProps = {
     onPointerUp: () => void
   }
   isDragging: boolean
-  hasDragMoved: () => boolean
+  /** From {@link useCanvasPan}; returns true once if the prior gesture was a pan drag — skip cell click. */
+  consumeClickSuppressionAfterPan: () => boolean
   onCellClick?: (cellId: string) => void
   onCellHover?: (cellId: string | null) => void
   renderTokenPopover?: (occupantId: string) => ReactNode
@@ -140,7 +141,7 @@ export function CombatGrid({
   pan,
   panPointerHandlers,
   isDragging,
-  hasDragMoved,
+  consumeClickSuppressionAfterPan,
   onCellClick,
   onCellHover,
   renderTokenPopover,
@@ -330,7 +331,8 @@ export function CombatGrid({
                 onClick={
                   clickable
                     ? () => {
-                        if (!hasDragMoved()) onCellClick?.(cell.cellId)
+                        if (consumeClickSuppressionAfterPan()) return
+                        onCellClick?.(cell.cellId)
                       }
                     : undefined
                 }

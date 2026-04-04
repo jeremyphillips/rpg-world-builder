@@ -20,11 +20,12 @@ export type {
   LocationGridDraftState,
 } from './locationGridDraft.types'
 export {
+  buildPersistableMapPayloadFromGridDraft,
   gridDraftPersistableEquals,
   normalizedAuthoringPayloadFromGridDraft,
 } from './locationGridDraft.utils';
 export {
-  LocationEditCampaignWorkspace,
+  LocationEditHomebrewWorkspace,
   LocationEditSystemPatchWorkspace,
   LocationEditorWorkspace,
   LocationEditorHeader,
@@ -43,7 +44,7 @@ export {
   LOCATION_EDITOR_DRAW_TRAY_WIDTH_PX,
 } from './workspace'
 export type {
-  LocationEditCampaignWorkspaceProps,
+  LocationEditHomebrewWorkspaceProps,
   LocationEditSystemPatchWorkspaceProps,
   LocationEditorRailSection,
   LocationMapSelection,

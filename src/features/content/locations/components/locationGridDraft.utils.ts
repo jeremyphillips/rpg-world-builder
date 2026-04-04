@@ -3,24 +3,8 @@ import { cellDraftToCellEntries, cellEntriesToDraft } from '@/features/content/l
 
 import type { LocationGridDraftState } from './locationGridDraft.types';
 
-/** Draft snapshots may omit path/edge arrays (older persisted client state, partial spreads). */
-function pathEntriesForCompare(d: LocationGridDraftState) {
-  return Array.isArray(d.pathEntries) ? d.pathEntries : [];
-}
-
-function edgeEntriesForCompare(d: LocationGridDraftState) {
-  return Array.isArray(d.edgeEntries) ? d.edgeEntries : [];
-}
-
-function sortPathEntriesForCompare(d: LocationGridDraftState) {
-  return [...pathEntriesForCompare(d)].sort((x, y) => x.id.localeCompare(y.id));
-}
-
-function sortEdgeEntriesForCompare(d: LocationGridDraftState) {
-  return [...edgeEntriesForCompare(d)].sort((x, y) => x.edgeId.localeCompare(y.edgeId));
-}
-
-function stableStringify(value: unknown): string {
+/** Deterministic JSON-like string for deep equality (sorted object keys). */
+export function stableStringify(value: unknown): string {
   if (value === undefined) return 'undefined';
   if (value === null || typeof value !== 'object') {
     return JSON.stringify(value) as string;
@@ -50,6 +34,23 @@ export function normalizedAuthoringPayloadFromGridDraft(draft: LocationGridDraft
 }
 
 /**
+ * Map slice used for homebrew dirty snapshot, save/bootstrap, and `gridDraftPersistableEquals`.
+ * Sorts path/edge/region arrays by stable ids so ordering-only differences do not dirty or block save.
+ */
+export function buildPersistableMapPayloadFromGridDraft(gridDraft: LocationGridDraftState): {
+  excludedCellIds: string[];
+} & ReturnType<typeof normalizedAuthoringPayloadFromGridDraft> {
+  const normalized = normalizedAuthoringPayloadFromGridDraft(gridDraft);
+  return {
+    excludedCellIds: [...gridDraft.excludedCellIds].sort(),
+    cellEntries: normalized.cellEntries,
+    pathEntries: [...normalized.pathEntries].sort((a, b) => a.id.localeCompare(b.id)),
+    edgeEntries: [...normalized.edgeEntries].sort((a, b) => a.edgeId.localeCompare(b.edgeId)),
+    regionEntries: [...normalized.regionEntries].sort((a, b) => a.id.localeCompare(b.id)),
+  };
+}
+
+/**
  * Canonical shape for cell-linked maps (matches server round-trip via cellEntries).
  * Aligns UI-only fields (e.g. empty object labels) with persisted payloads.
  */
@@ -66,43 +67,13 @@ export function normalizePersistableCellMaps(d: LocationGridDraftState) {
   };
 }
 
-/** Compare persisted map fields only (ignores selectedCellId). */
+/** Compare persisted map fields only (ignores selectedCellId). Same payload as save + snapshot map slice. */
 export function gridDraftPersistableEquals(
   a: LocationGridDraftState,
   b: LocationGridDraftState,
 ): boolean {
-  const excludedA = [...a.excludedCellIds].sort();
-  const excludedB = [...b.excludedCellIds].sort();
-  if (stableStringify(excludedA) !== stableStringify(excludedB)) return false;
-
-  const na = normalizePersistableCellMaps(a);
-  const nb = normalizePersistableCellMaps(b);
-  if (
-    stableStringify(na.linkedLocationByCellId) !==
-      stableStringify(nb.linkedLocationByCellId) ||
-    stableStringify(na.objectsByCellId) !== stableStringify(nb.objectsByCellId) ||
-    stableStringify(na.cellFillByCellId) !== stableStringify(nb.cellFillByCellId) ||
-    stableStringify(na.regionIdByCellId) !== stableStringify(nb.regionIdByCellId)
-  ) {
-    return false;
-  }
-  if (
-    stableStringify([...na.regionEntries].sort((x, y) => x.id.localeCompare(y.id))) !==
-    stableStringify([...nb.regionEntries].sort((x, y) => x.id.localeCompare(y.id)))
-  ) {
-    return false;
-  }
-  if (
-    stableStringify(sortPathEntriesForCompare(a)) !==
-    stableStringify(sortPathEntriesForCompare(b))
-  ) {
-    return false;
-  }
-  if (
-    stableStringify(sortEdgeEntriesForCompare(a)) !==
-    stableStringify(sortEdgeEntriesForCompare(b))
-  ) {
-    return false;
-  }
-  return true;
+  return (
+    stableStringify(buildPersistableMapPayloadFromGridDraft(a)) ===
+    stableStringify(buildPersistableMapPayloadFromGridDraft(b))
+  );
 }

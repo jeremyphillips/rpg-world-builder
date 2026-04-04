@@ -21,6 +21,9 @@ export type LocationEditSystemPatchWorkspaceProps = {
   ancestryBreadcrumbs: ReactNode;
   saving: boolean;
   dirty: boolean;
+  /** Same contract as homebrew edit: block Save when false (e.g. patch validation). */
+  saveDisabled?: boolean;
+  saveDisabledReason?: string | null;
   errors: ValidationError[];
   success: boolean;
   rightRailOpen: boolean;
@@ -45,6 +48,8 @@ export function LocationEditSystemPatchWorkspace({
   ancestryBreadcrumbs,
   saving,
   dirty,
+  saveDisabled = false,
+  saveDisabledReason = null,
   errors,
   success,
   rightRailOpen,
@@ -77,6 +82,8 @@ export function LocationEditSystemPatchWorkspace({
           success={success}
           rightRailOpen={rightRailOpen}
           onToggleRightRail={onToggleRightRail}
+          saveDisabled={saveDisabled}
+          saveDisabledReason={saveDisabledReason}
         />
       }
       canvas={mapCanvasColumn}

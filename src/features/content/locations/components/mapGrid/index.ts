@@ -10,6 +10,7 @@ export {
   gridCellSelectedShadow,
 } from './gridCellStyles';
 export {
+  isSelectHoverChromeSuppressed,
   shouldApplyCellHoverChrome,
   shouldApplyCellSelectedChrome,
 } from './mapGridCellVisualState';

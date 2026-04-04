@@ -13,6 +13,8 @@ type FormTextFieldProps = {
   type?: 'text' | 'email' | 'password' | 'number' | 'datetime-local';
   rules?: RegisterOptions;
   size?: 'small' | 'medium';
+  /** Fires after the field value updates (e.g. sync workspace draft without form submit). */
+  onAfterChange?: (value: string) => void;
 };
 
 export default function FormTextField({
@@ -26,6 +28,7 @@ export default function FormTextField({
   type = 'text',
   rules,
   size = 'medium',
+  onAfterChange,
 }: FormTextFieldProps) {
   const { control } = useFormContext();
 
@@ -40,6 +43,11 @@ export default function FormTextField({
       render={({ field, fieldState }) => (
         <TextField
           {...field}
+          onChange={(e) => {
+            const v = e.target.value;
+            field.onChange(e);
+            onAfterChange?.(v);
+          }}
           label={label}
           required={required}
           fullWidth

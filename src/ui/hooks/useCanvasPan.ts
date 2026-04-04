@@ -12,8 +12,16 @@ export type UseCanvasPanReturn = {
   pan: CanvasPoint
   setPan: React.Dispatch<React.SetStateAction<CanvasPoint>>
   isDragging: boolean
-  /** Returns true if the pointer moved past the drag threshold during the current gesture. Read in click handlers to distinguish click from drag. */
+  /**
+   * Returns true if the pointer moved past the drag threshold during the current gesture (before
+   * pointerup clears it). Prefer {@link consumeClickSuppressionAfterPan} in click handlers.
+   */
   hasDragMoved: () => boolean
+  /**
+   * After a pan gesture that moved past the threshold, the following `click` should be ignored.
+   * Call once from the cell/grid click handler; returns true once and clears the flag.
+   */
+  consumeClickSuppressionAfterPan: () => boolean
   pointerHandlers: {
     onPointerDown: (e: React.PointerEvent) => void
     onPointerMove: (e: React.PointerEvent) => void
@@ -28,6 +36,8 @@ export function useCanvasPan(options?: UseCanvasPanOptions): UseCanvasPanReturn 
   const [pan, setPan] = useState<CanvasPoint>({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const dragMovedRef = useRef(false)
+  /** Set on pointerup when the pan gesture exceeded the drag threshold; consumed by the next click. */
+  const suppressNextClickAfterPanRef = useRef(false)
   const dragState = useRef<{
     startX: number
     startY: number
@@ -38,6 +48,7 @@ export function useCanvasPan(options?: UseCanvasPanOptions): UseCanvasPanReturn 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+      suppressNextClickAfterPanRef.current = false
       dragState.current = {
         startX: e.clientX,
         startY: e.clientY,
@@ -66,10 +77,18 @@ export function useCanvasPan(options?: UseCanvasPanOptions): UseCanvasPanReturn 
     [threshold],
   )
 
-  const onPointerUp = useCallback(() => {
+  const finalizePointerUp = useCallback(() => {
+    if (dragMovedRef.current) {
+      suppressNextClickAfterPanRef.current = true
+    }
+    dragMovedRef.current = false
     dragState.current = null
     setIsDragging(false)
   }, [])
+
+  const onPointerUp = useCallback(() => {
+    finalizePointerUp()
+  }, [finalizePointerUp])
 
   // Window-level safety net: clears drag state even when a child calls
   // stopPropagation on pointerup, which would prevent the wrapper's
@@ -77,22 +96,28 @@ export function useCanvasPan(options?: UseCanvasPanOptions): UseCanvasPanReturn 
   useEffect(() => {
     const handleWindowPointerUp = () => {
       if (dragState.current) {
-        dragState.current = null
-        setIsDragging(false)
+        finalizePointerUp()
       }
     }
     window.addEventListener('pointerup', handleWindowPointerUp)
     return () => window.removeEventListener('pointerup', handleWindowPointerUp)
-  }, [])
+  }, [finalizePointerUp])
 
   const resetPan = useCallback(() => setPan({ x: 0, y: 0 }), [])
   const hasDragMoved = useCallback(() => dragMovedRef.current, [])
+
+  const consumeClickSuppressionAfterPan = useCallback(() => {
+    if (!suppressNextClickAfterPanRef.current) return false
+    suppressNextClickAfterPanRef.current = false
+    return true
+  }, [])
 
   return {
     pan,
     setPan,
     isDragging,
     hasDragMoved,
+    consumeClickSuppressionAfterPan,
     pointerHandlers: { onPointerDown, onPointerMove, onPointerUp },
     resetPan,
   }

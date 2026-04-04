@@ -33,6 +33,7 @@ import {
   resolvePlacedKindToAction,
   applyEraseTargetToDraft,
   resolveEraseTargetAtCell,
+  computeHexEdgeConstraintPatch,
   useLocationMapEditorState,
 } from '@/features/content/locations/domain';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
@@ -89,6 +90,12 @@ import { patchFloorStairConnectionIdOnDefaultMap } from '@/features/content/loca
 
 import { useLocationMapHydration } from './useLocationMapHydration';
 import { useLocationEditSaveActions } from './useLocationEditSaveActions';
+import { serializeLocationWorkspacePersistableSnapshot } from './workspacePersistableSnapshot';
+import type { LocationWorkspaceAuthoringContract } from './locationWorkspaceAuthoringContract';
+import {
+  buildHomebrewLocationWorkspaceAuthoringContract,
+  buildSystemLocationWorkspaceAuthoringContract,
+} from './locationWorkspaceAuthoringAdapters';
 
 /**
  * Remove the current map selection from the draft when it is a deletable entity.
@@ -214,7 +221,6 @@ export function useLocationEditWorkspaceModel({
     watch,
     getValues,
     handleSubmit,
-    formState: { isDirty },
   } = methods;
 
   const {
@@ -237,6 +243,7 @@ export function useLocationEditWorkspaceModel({
   const [gridDraftBaseline, setGridDraftBaseline] = useState<LocationGridDraftState>(() =>
     structuredClone(INITIAL_LOCATION_GRID_DRAFT),
   );
+  const [workspacePersistBaseline, setWorkspacePersistBaseline] = useState<string | null>(null);
   const isGridDraftDirty = useMemo(
     () => !gridDraftPersistableEquals(gridDraft, gridDraftBaseline),
     [gridDraft, gridDraftBaseline],
@@ -252,7 +259,7 @@ export function useLocationEditWorkspaceModel({
   buildingStairConnectionsRef.current = buildingStairConnections;
 
   const { zoom, zoomControlProps, wheelContainerRef, bindResetPan } = useCanvasZoom();
-  const { pan, isDragging, hasDragMoved, pointerHandlers, resetPan } = useCanvasPan();
+  const { pan, isDragging, consumeClickSuppressionAfterPan, pointerHandlers, resetPan } = useCanvasPan();
   useEffect(() => {
     bindResetPan(resetPan);
   }, [bindResetPan, resetPan]);
@@ -373,8 +380,16 @@ export function useLocationEditWorkspaceModel({
     if (!valid) {
       setGridDraft(INITIAL_LOCATION_GRID_DRAFT);
       setGridDraftBaseline(structuredClone(INITIAL_LOCATION_GRID_DRAFT));
+      setWorkspacePersistBaseline(
+        serializeLocationWorkspacePersistableSnapshot(
+          getValues(),
+          INITIAL_LOCATION_GRID_DRAFT,
+          buildingStairConnectionsRef.current,
+          loc,
+        ),
+      );
     }
-  }, [gridColumns, gridRows]);
+  }, [gridColumns, gridRows, getValues, loc]);
 
   useEffect(() => {
     if (!gridPreset) return;
@@ -391,9 +406,14 @@ export function useLocationEditWorkspaceModel({
     loc,
     activeFloorId,
     setValue,
+    getValues,
     setGridDraft,
     setGridDraftBaseline,
+    buildingStairConnectionsRef,
+    setWorkspacePersistBaseline,
   });
+
+  const watchAll = watch();
 
   const fieldConfigs = useMemo(
     () =>
@@ -456,7 +476,7 @@ export function useLocationEditWorkspaceModel({
   const handleUpdateRegionEntry = useCallback(
     (
       regionId: string,
-      patch: Pick<LocationMapRegionAuthoringEntry, 'name' | 'description' | 'colorKey'>,
+      patch: Partial<Pick<LocationMapRegionAuthoringEntry, 'name' | 'description' | 'colorKey'>>,
     ) => {
       setGridDraft((prev) => {
         const cur = prev.regionEntries.find((r) => r.id === regionId);
@@ -592,6 +612,23 @@ export function useLocationEditWorkspaceModel({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [mapEditor.mode, mapEditor.setPathAnchorCellId]);
 
+  /** Hex maps do not support edge tools/selection; clear stale edge draw + selection (data preserved). */
+  useEffect(() => {
+    if (gridGeometry !== 'hex') return;
+    const draft = gridDraftRef.current;
+    const { draftPatch, clearActiveDrawEdge } = computeHexEdgeConstraintPatch(
+      gridGeometry,
+      draft.mapSelection,
+      mapEditor.activeDraw,
+    );
+    if (clearActiveDrawEdge) {
+      mapEditor.setActiveDraw(null);
+    }
+    if (draftPatch) {
+      setGridDraft((prev) => ({ ...prev, ...draftPatch }));
+    }
+  }, [gridGeometry, mapEditor.activeDraw, mapEditor.setActiveDraw]);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Delete' && e.key !== 'Backspace') return;
@@ -656,6 +693,57 @@ export function useLocationEditWorkspaceModel({
 
   const validationApiRef = useRef<{ validateAll: () => boolean } | null>(null);
 
+  /** Region metadata (and future debounced persistable fields) register `flush` here for Save / boundaries. */
+  const flushDebouncedPersistableFieldsRef = useRef<(() => void) | null>(null);
+
+  const authoringContract = useMemo((): LocationWorkspaceAuthoringContract | null => {
+    if (!loc) return null;
+    if (loc.source === 'system') {
+      if (!driver) return null;
+      return buildSystemLocationWorkspaceAuthoringContract({
+        isPatchDriverDirty: driver.isDirty(),
+        isGridDraftDirty,
+        patchDocument: driver.getPatch(),
+        patchBaseline: initialPatch,
+        gridDraft,
+        gridDraftBaseline,
+        validationApiRef,
+      });
+    }
+    if (loc.source === 'campaign') {
+      return buildHomebrewLocationWorkspaceAuthoringContract({
+        loc,
+        activeFloorId,
+        values: watchAll,
+        gridDraft,
+        buildingStairConnections,
+        workspacePersistBaseline,
+      });
+    }
+    return null;
+  }, [
+    loc,
+    driver,
+    initialPatch,
+    isGridDraftDirty,
+    gridDraft,
+    gridDraftBaseline,
+    validationApiRef,
+    activeFloorId,
+    watchAll,
+    buildingStairConnections,
+    workspacePersistBaseline,
+  ]);
+
+  const isWorkspaceDirty = Boolean(
+    authoringContract?.mode === 'homebrew' && authoringContract.isDirty,
+  );
+
+  const homebrewWorkspaceSaveBlockReason =
+    authoringContract?.mode === 'homebrew' ? authoringContract.saveBlockReason : null;
+
+  const homebrewWorkspaceCanSave = homebrewWorkspaceSaveBlockReason === null;
+
   const saveActions = useLocationEditSaveActions({
     campaignId,
     locationId,
@@ -676,12 +764,13 @@ export function useLocationEditWorkspaceModel({
     setActiveFloorId,
     buildingStairConnectionsRef,
     setBuildingStairConnections,
+    setWorkspacePersistBaseline,
   });
 
   const {
     addingFloor,
-    handleCampaignSubmit,
-    handleCampaignFormSaveClick,
+    handleHomebrewSubmit,
+    handleHomebrewFormSaveClick,
     handleAddFloor,
     handlePatchSave,
     handleRemovePatch,
@@ -749,13 +838,16 @@ export function useLocationEditWorkspaceModel({
     (cellId: string) => {
       const cols = Number(gridColumns);
       const rows = Number(gridRows);
+      const skipEdgeTargets = gridGeometry === 'hex';
       setGridDraft((prev) => {
-        const target = resolveEraseTargetAtCell(cellId, prev, cols, rows);
+        const target = resolveEraseTargetAtCell(cellId, prev, cols, rows, {
+          skipEdgeTargets,
+        });
         if (!target) return prev;
         return applyEraseTargetToDraft(prev, target, cellId, () => crypto.randomUUID());
       });
     },
-    [gridColumns, gridRows],
+    [gridColumns, gridRows, gridGeometry],
   );
 
   const handleRemovePlacedObject = useCallback(
@@ -1042,7 +1134,10 @@ export function useLocationEditWorkspaceModel({
     saving,
     success,
     errors,
-    isDirty,
+    isWorkspaceDirty,
+    homebrewWorkspaceCanSave,
+    homebrewWorkspaceSaveBlockReason,
+    authoringContract,
     gridDraft,
     setGridDraft,
     isGridDraftDirty,
@@ -1062,7 +1157,7 @@ export function useLocationEditWorkspaceModel({
     wheelContainerRef,
     pan,
     isDragging,
-    hasDragMoved,
+    consumeClickSuppressionAfterPan,
     pointerHandlers,
     isSystem,
     isBuildingWorkspace,
@@ -1095,9 +1190,10 @@ export function useLocationEditWorkspaceModel({
     policyCharacters,
     driver,
     validationApiRef,
+    flushDebouncedPersistableFieldsRef,
     hasExistingPatch,
-    handleCampaignSubmit,
-    handleCampaignFormSaveClick,
+    handleHomebrewSubmit,
+    handleHomebrewFormSaveClick,
     handleAddFloor,
     handlePatchSave,
     handleRemovePatch,

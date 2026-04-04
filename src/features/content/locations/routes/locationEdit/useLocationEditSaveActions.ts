@@ -13,8 +13,6 @@ import {
   type LocationInput,
   LOCATION_FORM_DEFAULTS,
   locationToFormValues,
-  toLocationInput,
-  validateGridBootstrap,
   bootstrapDefaultLocationMap,
   pickMapGridFormValues,
   getDefaultCellUnitForScale,
@@ -23,9 +21,13 @@ import {
 } from '@/features/content/locations/domain';
 import type { BuildingWorkspaceFloorItem } from '@/features/content/locations/domain/building/buildingWorkspaceFloors';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
-import { normalizedAuthoringPayloadFromGridDraft } from '@/features/content/locations/components/locationGridDraft.utils';
 import { INITIAL_LOCATION_GRID_DRAFT } from '@/features/content/locations/components/locationGridDraft.types';
 import type { LocationGridDraftState } from '@/features/content/locations/components/locationGridDraft.types';
+import { getHomebrewWorkspaceSaveBlockReason } from '@/features/content/locations/routes/locationEdit/homebrewWorkspaceSaveGate';
+import {
+  buildHomebrewWorkspacePersistableParts,
+  serializeLocationWorkspacePersistableSnapshot,
+} from '@/features/content/locations/routes/locationEdit/workspacePersistableSnapshot';
 import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
 import type { PatchDriver } from '@/features/content/shared/editor/patchDriver';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
@@ -60,6 +62,7 @@ type UseLocationEditSaveActionsParams = {
   /** Canonical stair pairings for building saves; merged into `buildingProfile.stairConnections`. */
   buildingStairConnectionsRef: RefObject<LocationVerticalStairConnection[]>;
   setBuildingStairConnections: Dispatch<SetStateAction<LocationVerticalStairConnection[]>>;
+  setWorkspacePersistBaseline: (snapshot: string) => void;
 };
 
 export function useLocationEditSaveActions({
@@ -82,42 +85,31 @@ export function useLocationEditSaveActions({
   setActiveFloorId,
   buildingStairConnectionsRef,
   setBuildingStairConnections,
+  setWorkspacePersistBaseline,
 }: UseLocationEditSaveActionsParams) {
   const [addingFloor, setAddingFloor] = useState(false);
 
-  const handleCampaignSubmit = useCallback(
+  const handleHomebrewSubmit = useCallback(
     async (values: LocationFormValues) => {
       if (!campaignId || !locationId || !loc) return;
+      const blockReason = getHomebrewWorkspaceSaveBlockReason(loc, activeFloorId, values);
+      if (blockReason) {
+        setErrors([{ path: '', code: 'VALIDATION', message: blockReason }]);
+        return;
+      }
       const isBuilding = loc.source === 'campaign' && loc.scale === 'building';
-      if (isBuilding && !activeFloorId) {
-        setErrors([
-          {
-            path: '',
-            code: 'VALIDATION',
-            message: 'Add a floor before saving.',
-          },
-        ]);
-        return;
-      }
-      const err = validateGridBootstrap(values);
-      if (err) {
-        setErrors([{ path: '', code: 'VALIDATION', message: err }]);
-        return;
-      }
       setSaving(true);
       setSuccess(false);
       setErrors([]);
       try {
         const draft = gridDraftRef.current;
-        const input = toLocationInput(values);
-        if (isBuilding) {
-          input.buildingProfile = {
-            ...(loc.buildingProfile ?? {}),
-            ...(input.buildingProfile ?? {}),
-            stairConnections: buildingStairConnectionsRef.current,
-          };
-        }
-        const updated = await locationRepo.updateEntry(campaignId, locationId, input);
+        const { locationInput, mapBootstrapPayload } = buildHomebrewWorkspacePersistableParts(
+          values,
+          draft,
+          buildingStairConnectionsRef.current,
+          loc,
+        );
+        const updated = await locationRepo.updateEntry(campaignId, locationId, locationInput);
         if (isBuilding) {
           setBuildingStairConnections(updated.buildingProfile?.stairConnections ?? []);
         }
@@ -134,16 +126,24 @@ export function useLocationEditSaveActions({
           mapBootstrapName,
           mapBootstrapScale,
           values,
-          {
-            excludedCellIds: draft.excludedCellIds,
-            ...normalizedAuthoringPayloadFromGridDraft(draft),
-          },
+          mapBootstrapPayload,
         );
         reset({
           ...locationToFormValues(updated),
           ...pickMapGridFormValues(values),
         });
         setGridDraftBaseline(structuredClone(gridDraftRef.current));
+        const stairConnectionsForSnapshot = isBuilding
+          ? (updated.buildingProfile?.stairConnections ?? [])
+          : buildingStairConnectionsRef.current;
+        setWorkspacePersistBaseline(
+          serializeLocationWorkspacePersistableSnapshot(
+            getValues(),
+            gridDraftRef.current,
+            stairConnectionsForSnapshot,
+            loc,
+          ),
+        );
         setSuccess(true);
       } catch (e) {
         setErrors([
@@ -161,18 +161,20 @@ export function useLocationEditSaveActions({
       locations,
       gridDraftRef,
       setGridDraftBaseline,
+      getValues,
       reset,
       setSaving,
       setSuccess,
       setErrors,
       buildingStairConnectionsRef,
       setBuildingStairConnections,
+      setWorkspacePersistBaseline,
     ],
   );
 
-  const handleCampaignFormSaveClick = useCallback(() => {
-    void handleSubmit(handleCampaignSubmit)();
-  }, [handleSubmit, handleCampaignSubmit]);
+  const handleHomebrewFormSaveClick = useCallback(() => {
+    void handleSubmit(handleHomebrewSubmit)();
+  }, [handleSubmit, handleHomebrewSubmit]);
 
   const handleAddFloor = useCallback(async () => {
     if (!campaignId || !locationId || !loc || loc.source !== 'campaign' || loc.scale !== 'building') {
@@ -209,16 +211,19 @@ export function useLocationEditSaveActions({
         gridCellUnit: v.gridCellUnit || getDefaultCellUnitForScale('floor'),
         gridGeometry: getDefaultGeometryForScale('floor'),
       };
+      const { mapBootstrapPayload: newFloorMapPayload } = buildHomebrewWorkspacePersistableParts(
+        bootstrapValues,
+        INITIAL_LOCATION_GRID_DRAFT,
+        [],
+        null,
+      );
       await bootstrapDefaultLocationMap(
         campaignId,
         created.id,
         created.name,
         'floor',
         bootstrapValues,
-        {
-          excludedCellIds: INITIAL_LOCATION_GRID_DRAFT.excludedCellIds,
-          ...normalizedAuthoringPayloadFromGridDraft(INITIAL_LOCATION_GRID_DRAFT),
-        },
+        newFloorMapPayload,
       );
       onFloorCreated();
       setActiveFloorId(created.id);
@@ -254,8 +259,8 @@ export function useLocationEditSaveActions({
 
   return {
     addingFloor,
-    handleCampaignSubmit,
-    handleCampaignFormSaveClick,
+    handleHomebrewSubmit,
+    handleHomebrewFormSaveClick,
     handleAddFloor,
     handlePatchSave,
     handleRemovePatch,

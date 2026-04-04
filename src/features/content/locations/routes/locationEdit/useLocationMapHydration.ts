@@ -1,14 +1,35 @@
-import { useEffect, type Dispatch, type SetStateAction } from 'react';
-import type { UseFormSetValue } from 'react-hook-form';
+import { useEffect, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import type { UseFormGetValues, UseFormSetValue } from 'react-hook-form';
 
+import { INITIAL_LOCATION_GRID_DRAFT } from '@/features/content/locations/components/locationGridDraft.types';
+import type { LocationGridDraftState } from '@/features/content/locations/components/locationGridDraft.types';
 import type { LocationFormValues } from '@/features/content/locations/domain';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
-import type { LocationGridDraftState } from '@/features/content/locations/components/locationGridDraft.types';
+import type { LocationVerticalStairConnection } from '@/shared/domain/locations';
 
 import {
   hydrateDefaultLocationMapState,
   resetGridDraftToInitial,
 } from '../hydrateDefaultLocationMap';
+
+import { serializeLocationWorkspacePersistableSnapshot } from './workspacePersistableSnapshot';
+
+function applyWorkspacePersistBaseline(
+  getValues: UseFormGetValues<LocationFormValues>,
+  setWorkspacePersistBaseline: (snapshot: string) => void,
+  draft: LocationGridDraftState,
+  buildingStairConnectionsRef: RefObject<LocationVerticalStairConnection[]>,
+  loc: LocationContentItem | null,
+): void {
+  setWorkspacePersistBaseline(
+    serializeLocationWorkspacePersistableSnapshot(
+      getValues(),
+      draft,
+      buildingStairConnectionsRef.current ?? [],
+      loc,
+    ),
+  );
+}
 
 type UseLocationMapHydrationParams = {
   campaignId: string | null | undefined;
@@ -16,8 +37,11 @@ type UseLocationMapHydrationParams = {
   loc: LocationContentItem | null;
   activeFloorId: string | null;
   setValue: UseFormSetValue<LocationFormValues>;
+  getValues: UseFormGetValues<LocationFormValues>;
   setGridDraft: Dispatch<SetStateAction<LocationGridDraftState>>;
   setGridDraftBaseline: Dispatch<SetStateAction<LocationGridDraftState>>;
+  buildingStairConnectionsRef: RefObject<LocationVerticalStairConnection[]>;
+  setWorkspacePersistBaseline: (snapshot: string) => void;
 };
 
 /**
@@ -30,8 +54,11 @@ export function useLocationMapHydration({
   loc,
   activeFloorId,
   setValue,
+  getValues,
   setGridDraft,
   setGridDraftBaseline,
+  buildingStairConnectionsRef,
+  setWorkspacePersistBaseline,
 }: UseLocationMapHydrationParams): void {
   useEffect(() => {
     if (!campaignId || !locationId || !loc || loc.source !== 'campaign') return;
@@ -44,20 +71,57 @@ export function useLocationMapHydration({
       setValue,
       setGridDraft,
       setGridDraftBaseline,
-    ).catch(() => {
-      if (cancelled) return;
-      resetGridDraftToInitial(setGridDraft, setGridDraftBaseline);
-    });
+    )
+      .then((draft) => {
+        if (cancelled) return;
+        applyWorkspacePersistBaseline(
+          getValues,
+          setWorkspacePersistBaseline,
+          draft,
+          buildingStairConnectionsRef,
+          loc,
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
+        resetGridDraftToInitial(setGridDraft, setGridDraftBaseline);
+        applyWorkspacePersistBaseline(
+          getValues,
+          setWorkspacePersistBaseline,
+          INITIAL_LOCATION_GRID_DRAFT,
+          buildingStairConnectionsRef,
+          loc,
+        );
+      });
     return () => {
       cancelled = true;
     };
-  }, [campaignId, locationId, loc?.scale, loc?.source, setValue, setGridDraft, setGridDraftBaseline]);
+  }, [
+    campaignId,
+    locationId,
+    loc?.id,
+    loc?.scale,
+    loc?.source,
+    setValue,
+    getValues,
+    setGridDraft,
+    setGridDraftBaseline,
+    buildingStairConnectionsRef,
+    setWorkspacePersistBaseline,
+  ]);
 
   useEffect(() => {
     if (!campaignId || !locationId || !loc || loc.source !== 'campaign') return;
     if (loc.scale !== 'building') return;
     if (!activeFloorId) {
       resetGridDraftToInitial(setGridDraft, setGridDraftBaseline);
+      applyWorkspacePersistBaseline(
+        getValues,
+        setWorkspacePersistBaseline,
+        INITIAL_LOCATION_GRID_DRAFT,
+        buildingStairConnectionsRef,
+        loc,
+      );
       return;
     }
     let cancelled = false;
@@ -68,10 +132,28 @@ export function useLocationMapHydration({
       setValue,
       setGridDraft,
       setGridDraftBaseline,
-    ).catch(() => {
-      if (cancelled) return;
-      resetGridDraftToInitial(setGridDraft, setGridDraftBaseline);
-    });
+    )
+      .then((draft) => {
+        if (cancelled) return;
+        applyWorkspacePersistBaseline(
+          getValues,
+          setWorkspacePersistBaseline,
+          draft,
+          buildingStairConnectionsRef,
+          loc,
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
+        resetGridDraftToInitial(setGridDraft, setGridDraftBaseline);
+        applyWorkspacePersistBaseline(
+          getValues,
+          setWorkspacePersistBaseline,
+          INITIAL_LOCATION_GRID_DRAFT,
+          buildingStairConnectionsRef,
+          loc,
+        );
+      });
     return () => {
       cancelled = true;
     };
@@ -79,10 +161,14 @@ export function useLocationMapHydration({
     campaignId,
     activeFloorId,
     locationId,
+    loc?.id,
     loc?.scale,
     loc?.source,
     setValue,
+    getValues,
     setGridDraft,
     setGridDraftBaseline,
+    buildingStairConnectionsRef,
+    setWorkspacePersistBaseline,
   ]);
 }

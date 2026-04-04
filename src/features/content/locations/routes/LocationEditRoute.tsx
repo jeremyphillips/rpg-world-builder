@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -13,7 +15,7 @@ import { VisibilityField } from '@/ui/patterns';
 import { AppAlert } from '@/ui/primitives';
 import {
   LocationGridAuthoringSection,
-  LocationEditCampaignWorkspace,
+  LocationEditHomebrewWorkspace,
   LocationEditSystemPatchWorkspace,
   LocationEditorMapCanvasColumn,
   LocationEditorSelectionPanel,
@@ -104,6 +106,26 @@ export default function LocationEditRoute() {
     loc: loc ?? null,
   });
 
+  const {
+    flushDebouncedPersistableFieldsRef,
+    handleHomebrewFormSaveClick,
+    handlePatchSave,
+  } = model;
+
+  const handleHeaderSaveHomebrew = useCallback(() => {
+    flushSync(() => {
+      flushDebouncedPersistableFieldsRef.current?.();
+    });
+    handleHomebrewFormSaveClick();
+  }, [handleHomebrewFormSaveClick]);
+
+  const handleHeaderSavePatch = useCallback(() => {
+    flushSync(() => {
+      flushDebouncedPersistableFieldsRef.current?.();
+    });
+    handlePatchSave();
+  }, [handlePatchSave]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -120,10 +142,9 @@ export default function LocationEditRoute() {
     saving,
     success,
     errors,
-    isDirty,
+    authoringContract,
     gridDraft,
     setGridDraft,
-    isGridDraftDirty,
     railSection,
     setRailSection,
     rightRailOpen,
@@ -141,7 +162,7 @@ export default function LocationEditRoute() {
     wheelContainerRef,
     pan,
     isDragging,
-    hasDragMoved,
+    consumeClickSuppressionAfterPan,
     pointerHandlers,
     isSystem,
     isBuildingWorkspace,
@@ -172,10 +193,8 @@ export default function LocationEditRoute() {
     driver,
     validationApiRef,
     hasExistingPatch,
-    handleCampaignSubmit,
-    handleCampaignFormSaveClick,
+    handleHomebrewSubmit,
     handleAddFloor,
-    handlePatchSave,
     handleRemovePatch,
     handleDelete,
     handleValidateDelete,
@@ -281,6 +300,7 @@ export default function LocationEditRoute() {
       pathEntries={gridDraft.pathEntries}
       edgeEntries={gridDraft.edgeEntries}
       regionEntries={gridDraft.regionEntries}
+      debouncedPersistableFlushRef={flushDebouncedPersistableFieldsRef}
       onUpdateRegionEntry={handleUpdateRegionEntry}
       onRemovePlacedObjectFromMap={handleRemovePlacedObject}
       onRemovePathFromMap={handleRemovePathFromMap}
@@ -325,7 +345,7 @@ export default function LocationEditRoute() {
       onEraseEdge={handleEraseEdge}
       suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
       placeObjectDragStrokeEnabled={mapPlaceObjectDragStrokeEnabled}
-      hasDragMoved={hasDragMoved}
+      consumeClickSuppressionAfterPan={consumeClickSuppressionAfterPan}
     />
   ) : null;
 
@@ -377,12 +397,14 @@ export default function LocationEditRoute() {
         locationPatched={loc.patched}
         ancestryBreadcrumbs={ancestryBreadcrumbs}
         saving={saving}
-        dirty={driver.isDirty() || isGridDraftDirty}
+        dirty={authoringContract?.isDirty ?? false}
+        saveDisabled={!authoringContract?.canSave}
+        saveDisabledReason={authoringContract?.saveBlockReason ?? null}
         errors={errors}
         success={success}
         rightRailOpen={rightRailOpen}
         onToggleRightRail={() => setRightRailOpen((o) => !o)}
-        onSave={handlePatchSave}
+        onSave={handleHeaderSavePatch}
         onBack={handleBack}
         fieldConfigs={fieldConfigs}
         patchDriver={driver}
@@ -399,21 +421,22 @@ export default function LocationEditRoute() {
   }
 
   return (
-    <LocationEditCampaignWorkspace
+    <LocationEditHomebrewWorkspace
       form={methods}
       formId={FORM_ID}
-      onCampaignSubmit={handleCampaignSubmit}
+      onHomebrewSubmit={handleHomebrewSubmit}
       headerTitle={loc.name}
       ancestryBreadcrumbs={ancestryBreadcrumbs}
       saving={saving}
-      dirty={isDirty || isGridDraftDirty}
+      dirty={authoringContract?.isDirty ?? false}
       errors={errors}
       success={success}
       rightRailOpen={rightRailOpen}
       onToggleRightRail={() => setRightRailOpen((o) => !o)}
-      onSaveClick={handleCampaignFormSaveClick}
+      onSaveClick={handleHeaderSaveHomebrew}
       onBack={handleBack}
-      saveDisabled={isBuildingWorkspace && !activeFloorId}
+      saveDisabled={!authoringContract?.canSave}
+      saveDisabledReason={authoringContract?.saveBlockReason ?? null}
       canDelete={canDelete}
       onRequestDelete={() => void handleRequestDelete()}
       deleteLoading={deleting}
