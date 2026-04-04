@@ -45,6 +45,7 @@ import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDe
 import {
   canPlaceObjectKindOnHostScale,
   getAllowedLinkedLocationOptions,
+  LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION,
   type LocationScaleId,
 } from '@/shared/domain/locations';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
@@ -775,6 +776,13 @@ export function useLocationEditWorkspaceModel({
               kind: res.objectKind,
               ...(res.authoredPlaceKindId !== undefined
                 ? { authoredPlaceKindId: res.authoredPlaceKindId }
+                : {}),
+              ...(res.objectKind === 'stairs'
+                ? {
+                    stairEndpoint: {
+                      direction: LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION,
+                    },
+                  }
                 : {}),
             };
             return {

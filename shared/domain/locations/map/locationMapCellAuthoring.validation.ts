@@ -5,8 +5,10 @@
 import { parseGridCellId } from '../../grid/gridCellIds';
 import { LOCATION_MAP_CELL_FILL_KIND_IDS } from './locationMapCellFill.constants';
 import { LOCATION_MAP_OBJECT_KIND_IDS } from './locationMap.constants';
+import { LOCATION_MAP_STAIR_ENDPOINT_DIRECTION_IDS } from './locationMapStairEndpoint.types';
 
 const OBJECT_KIND_SET = new Set<string>(LOCATION_MAP_OBJECT_KIND_IDS as readonly string[]);
+const STAIR_DIRECTION_SET = new Set<string>(LOCATION_MAP_STAIR_ENDPOINT_DIRECTION_IDS as readonly string[]);
 const CELL_FILL_KIND_SET = new Set(LOCATION_MAP_CELL_FILL_KIND_IDS as readonly string[]);
 
 export type LocationMapCellAuthoringValidationError = {
@@ -128,6 +130,61 @@ export function validateCellEntriesStructure(
                 code: 'INVALID',
                 message: 'authoredPlaceKindId must be a non-empty string when set',
               });
+            }
+          }
+
+          const kindStr = typeof oro.kind === 'string' ? oro.kind : '';
+          const se = oro.stairEndpoint;
+          if (se !== undefined && se !== null) {
+            if (kindStr !== 'stairs') {
+              errors.push({
+                path: `${op}.stairEndpoint`,
+                code: 'INVALID',
+                message: 'stairEndpoint is only allowed when object kind is stairs',
+              });
+            } else if (typeof se !== 'object') {
+              errors.push({
+                path: `${op}.stairEndpoint`,
+                code: 'INVALID',
+                message: 'stairEndpoint must be an object when set',
+              });
+            } else {
+              const ser = se as Record<string, unknown>;
+              if (typeof ser.direction !== 'string' || !STAIR_DIRECTION_SET.has(ser.direction)) {
+                errors.push({
+                  path: `${op}.stairEndpoint.direction`,
+                  code: 'INVALID',
+                  message: `direction must be one of: ${LOCATION_MAP_STAIR_ENDPOINT_DIRECTION_IDS.join(', ')}`,
+                });
+              }
+              if (ser.targetLocationId !== undefined && ser.targetLocationId !== null) {
+                if (typeof ser.targetLocationId !== 'string' || ser.targetLocationId.trim() === '') {
+                  errors.push({
+                    path: `${op}.stairEndpoint.targetLocationId`,
+                    code: 'INVALID',
+                    message: 'targetLocationId must be a non-empty string when set',
+                  });
+                }
+              }
+              if (ser.connectionId !== undefined && ser.connectionId !== null) {
+                if (typeof ser.connectionId !== 'string' || ser.connectionId.trim() === '') {
+                  errors.push({
+                    path: `${op}.stairEndpoint.connectionId`,
+                    code: 'INVALID',
+                    message: 'connectionId must be a non-empty string when set',
+                  });
+                }
+              }
+              const allowed = new Set(['direction', 'targetLocationId', 'connectionId']);
+              for (const k of Object.keys(ser)) {
+                if (!allowed.has(k)) {
+                  errors.push({
+                    path: `${op}.stairEndpoint.${k}`,
+                    code: 'INVALID',
+                    message: `unknown stairEndpoint field "${k}"`,
+                  });
+                }
+              }
             }
           }
         }

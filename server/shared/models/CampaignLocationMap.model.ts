@@ -28,11 +28,22 @@ const layoutSchema = new Schema(
   { _id: false },
 );
 
+const mapStairEndpointSchema = new Schema(
+  {
+    direction: { type: String, required: true },
+    targetLocationId: { type: String },
+    connectionId: { type: String },
+  },
+  { _id: false },
+);
+
 const mapCellObjectEntrySchema = new Schema(
   {
     id: { type: String, required: true },
     kind: { type: String, required: true },
     label: { type: String },
+    authoredPlaceKindId: { type: String },
+    stairEndpoint: { type: mapStairEndpointSchema },
   },
   { _id: false },
 );

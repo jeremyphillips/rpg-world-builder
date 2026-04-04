@@ -51,4 +51,30 @@ describe('cellAuthoringMappers', () => {
     const back = cellEntriesToDraft(entries);
     expect(back.objectsByCellId['0,0']?.[0]?.authoredPlaceKindId).toBe('table');
   });
+
+  it('round-trips stairs stairEndpoint', () => {
+    const entries = cellDraftToCellEntries(
+      {},
+      {
+        '1,1': [
+          {
+            id: 's1',
+            kind: 'stairs',
+            authoredPlaceKindId: 'stairs',
+            stairEndpoint: {
+              direction: 'up',
+              targetLocationId: 'floor-b',
+              connectionId: 'conn-1',
+            },
+          },
+        ],
+      },
+    );
+    expect(entries[0]?.objects?.[0]?.stairEndpoint?.direction).toBe('up');
+    expect(entries[0]?.objects?.[0]?.stairEndpoint?.targetLocationId).toBe('floor-b');
+    const back = cellEntriesToDraft(entries);
+    expect(back.objectsByCellId['1,1']?.[0]?.stairEndpoint?.direction).toBe('up');
+    expect(back.objectsByCellId['1,1']?.[0]?.stairEndpoint?.targetLocationId).toBe('floor-b');
+    expect(back.objectsByCellId['1,1']?.[0]?.stairEndpoint?.connectionId).toBe('conn-1');
+  });
 });

@@ -7,6 +7,7 @@ import type { LocationMapCellFillKindId } from './locationMapCellFill.constants'
 import type { LocationMapRegionColorKey } from './locationMapRegion.constants';
 import type { LocationMapEdgeKindId } from './locationMapEdgeFeature.constants';
 import type { LocationMapPathKindId } from './locationMapPathFeature.constants';
+import type { LocationMapStairEndpointAuthoring } from './locationMapStairEndpoint.types';
 import type { GridGeometryId } from '../../grid/gridGeometry';
 
 export type { LocationCellUnitId };
@@ -50,6 +51,12 @@ export type LocationMapCellObjectEntry = {
    * Legacy maps omit this; encounter build may infer a lossy default from `kind` instead.
    */
   authoredPlaceKindId?: string;
+  /**
+   * When `kind === 'stairs'`, optional vertical-link metadata for this **floor endpoint**.
+   * Ignored for other object kinds. See {@link LocationMapStairEndpointAuthoring}; full paired linking and
+   * traversal are **TODO**.
+   */
+  stairEndpoint?: LocationMapStairEndpointAuthoring;
 };
 
 export type LocationMapCellAuthoringEntry = {

@@ -46,6 +46,21 @@ export function cellDraftToCellEntries(
         ...(o.authoredPlaceKindId !== undefined && String(o.authoredPlaceKindId).trim() !== ''
           ? { authoredPlaceKindId: String(o.authoredPlaceKindId).trim() }
           : {}),
+        ...(o.kind === 'stairs' && o.stairEndpoint !== undefined
+          ? {
+              stairEndpoint: {
+                direction: o.stairEndpoint.direction,
+                ...(o.stairEndpoint.targetLocationId !== undefined &&
+                String(o.stairEndpoint.targetLocationId).trim() !== ''
+                  ? { targetLocationId: String(o.stairEndpoint.targetLocationId).trim() }
+                  : {}),
+                ...(o.stairEndpoint.connectionId !== undefined &&
+                String(o.stairEndpoint.connectionId).trim() !== ''
+                  ? { connectionId: String(o.stairEndpoint.connectionId).trim() }
+                  : {}),
+              },
+            }
+          : {}),
       }));
     }
     if (hasFill) {
@@ -88,6 +103,21 @@ export function cellEntriesToDraft(entries: LocationMapCellAuthoringEntry[] | un
         ...(o.label !== undefined && o.label !== '' ? { label: o.label } : {}),
         ...(o.authoredPlaceKindId !== undefined && String(o.authoredPlaceKindId).trim() !== ''
           ? { authoredPlaceKindId: String(o.authoredPlaceKindId).trim() }
+          : {}),
+        ...(o.kind === 'stairs' && o.stairEndpoint !== undefined
+          ? {
+              stairEndpoint: {
+                direction: o.stairEndpoint.direction,
+                ...(o.stairEndpoint.targetLocationId !== undefined &&
+                String(o.stairEndpoint.targetLocationId).trim() !== ''
+                  ? { targetLocationId: String(o.stairEndpoint.targetLocationId).trim() }
+                  : {}),
+                ...(o.stairEndpoint.connectionId !== undefined &&
+                String(o.stairEndpoint.connectionId).trim() !== ''
+                  ? { connectionId: String(o.stairEndpoint.connectionId).trim() }
+                  : {}),
+              },
+            }
           : {}),
       }));
     }

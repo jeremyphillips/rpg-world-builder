@@ -21,6 +21,8 @@ export * from './map/locationMapEdgeFeature.constants';
 export * from './map/locationMap.helpers';
 export * from './map/locationMapPlacement.policy';
 export * from './map/locationMap.types';
+export * from './map/locationMapStairEndpoint.types';
+export * from './map/locationMapStairEndpoint.helpers';
 export * from './map/locationMapAuthoring.normalize';
 export * from './map/locationMapRegionAuthoring.normalize';
 export * from './map/locationMapPathAuthoring.helpers';
