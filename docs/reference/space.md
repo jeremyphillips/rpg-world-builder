@@ -75,6 +75,16 @@ The `showReachable` option is driven by movement budget (`movementRemaining > 0`
 
 **Grid hover status:** `deriveGridHoverStatusMessage` (encounter helpers) composes a single line for illegal hover (movement, creature targeting, or invalid AoE origin) to show under the encounter header.
 
+### Cross-space scene transitions
+
+Stairs today; future **doors**, **portals**, or other one-shot space swaps can follow the same client pattern.
+
+Some intents **replace the entire tactical `EncounterSpace`** in one apply — e.g. **`stair-traversal`** (`CombatIntent` in `packages/mechanics`) moves the active combatant to a resolved **`destinationEncounterSpace`** on another floor. Mechanically this is still a single **`applyCombatIntent`** step; there is no separate async “hydration phase” in the client handler today.
+
+**Client UX:** Active encounter play (**`useEncounterActivePlaySurface`**) may show a short, **non-dismissible** transition overlay — **`EncounterSceneTransitionModal`** (`src/features/encounter/components/active/modals/EncounterSceneTransitionModal.tsx`) — while that swap runs. It wraps **`AppModal`** with no close button, backdrop dismiss, or Escape dismiss; copy is generic (“Changing scene” + destination subtitle + optional detail). Stairs wiring supplies detail at the orchestration layer; the component stays **kind-agnostic** so other transition kinds can reuse it later. Because the underlying apply is **synchronous**, the handler **defers** work with **`setTimeout(..., 0)`** so React can paint the modal before state updates clear it.
+
+See also: [Combat grid vs encounter orchestration](../combat/client/grid.md), [GameSession and combat § Shared active play shell](../combat/game-session.md#shared-active-play-shell).
+
 **Grid cell visuals:** The tactical grid is rendered by **`CombatGrid`** (`src/features/combat/components/grid/CombatGrid.tsx`). Active encounter play wires it from **`useEncounterActivePlaySurface`**; `src/features/encounter/components/index.ts` may re-export **`CombatGrid` as `EncounterGrid`** as an alias only. Cell fill and movement outlines come from `getCellVisualState` and `getCellVisualSx` in `src/features/combat/components/grid/cellVisualState.ts` and `cellVisualStyles.ts`. **Overlay precedence** (highest first): blocked tile → placement (invalid hover, selected, cast-range band) → AoE (invalid origin hover, locked origin, area template) → **AoE cast-range band** (cells within spell cast distance when no higher-priority AoE tint applies) → default paper. **Movement** (reachable border / green fill / illegal-move hover) is applied after that stack. The AoE cast-range band is modeled as a first-class overlay kind; its style entry uses the same paper fill as open ground (matching prior behavior) while still participating in precedence so **movement fill suppression** on those cells is explicit in the resolver, not a separate ad hoc suppression flag in the component. Persistent auras or emanations can extend the same overlay list later.
 
 ### Battlefield presence, occupancy, and return placement (mechanics linkage)

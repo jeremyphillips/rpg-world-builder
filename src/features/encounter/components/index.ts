@@ -60,6 +60,11 @@ export {
 } from '@/features/combat/components'
 export { EncounterEditModal } from './shared/modals/EncounterEditModal'
 export { CombatTargetSelectModal, buildTargetOptions } from './active/modals/CombatTargetSelectModal'
+export {
+  EncounterSceneTransitionModal,
+  type EncounterSceneTransitionKind,
+  type EncounterSceneTransitionModalProps,
+} from './active/modals/EncounterSceneTransitionModal'
 export { CombatLogModal } from './active/combat-log/CombatLogModal'
 export { SelectEncounterAllyModal } from './setup/modals/SelectEncounterAllyModal'
 export { SelectEncounterOpponentModal } from './setup/modals/SelectEncounterOpponentModal'

@@ -27,6 +27,10 @@ import { deriveEncounterToastsFromNewLogSlice } from '../toast/derive-encounter-
 import type { EncounterToastPresentation, EncounterToastViewerInput } from '../toast/encounter-toast-types'
 import { deriveEncounterSideOutcome } from '../helpers/state'
 import { EncounterGameOverModal } from '../components/active/modals/EncounterGameOverModal'
+import {
+  EncounterSceneTransitionModal,
+  type EncounterSceneTransitionModalProps,
+} from '../components/active/modals/EncounterSceneTransitionModal'
 import { canResolveCombatActionSelection, selectValidActionIdsForTarget } from '../domain'
 import {
   isAreaGridAction,
@@ -56,6 +60,9 @@ import type { EncounterContextPromptEnvironment } from '../domain/encounterConte
 import type { CombatIntent } from '@/features/mechanics/domain/combat'
 import type { EncounterState } from '@/features/mechanics/domain/combat'
 import { useEncounterContextPromptStrip } from './useEncounterContextPrompt'
+
+/** Keeps {@link EncounterSceneTransitionModal} on screen long enough to read; the apply itself is synchronous and would otherwise dismiss in the same frame. */
+const MIN_SCENE_TRANSITION_MODAL_MS = 1000
 
 export type EncounterActivePlaySurfaceDeps = Pick<
   EncounterRuntimeContextValue,
@@ -216,6 +223,12 @@ export function useEncounterActivePlaySurface(
 
   const [toastPayload, setToastPayload] = useState<EncounterToastPresentation | null>(null)
   const [toastOpen, setToastOpen] = useState(false)
+  /** Drives {@link EncounterSceneTransitionModal} during synchronous scene swaps (stairs today; extend for doors/portals). */
+  const [sceneTransition, setSceneTransition] = useState<
+    Omit<EncounterSceneTransitionModalProps, 'open'> | null
+  >(null)
+  /** Browser timer handle (`number`); avoid `ReturnType<typeof setTimeout>` which can be Node `Timeout` under `@types/node`. */
+  const sceneTransitionDismissTimerRef = useRef<number | null>(null)
   const toastOpenRef = useRef(false)
   const toastQueueRef = useRef<EncounterToastPresentation[]>([])
   const shownToastDedupeKeysRef = useRef<Set<string>>(new Set())
@@ -225,6 +238,15 @@ export function useEncounterActivePlaySurface(
   useEffect(() => {
     toastOpenRef.current = toastOpen
   }, [toastOpen])
+
+  useEffect(() => {
+    return () => {
+      if (sceneTransitionDismissTimerRef.current != null) {
+        clearTimeout(sceneTransitionDismissTimerRef.current)
+        sceneTransitionDismissTimerRef.current = null
+      }
+    }
+  }, [])
 
   const toastViewerInput = useMemo((): EncounterToastViewerInput => {
     const mode: EncounterToastViewerInput['viewerMode'] =
@@ -557,10 +579,10 @@ export function useEncounterActivePlaySurface(
       return { names: [] as string[], total: 0, overflow: 0 }
     }
     const ids = selectCombatantIdsInAoeFootprint(sceneEncounterState, previewOrigin, r)
-    const roster = Object.values(encounterState.combatantsById)
+    const roster = Object.values(sceneEncounterState.combatantsById)
     const names = ids
       .map((id) => {
-        const c = encounterState.combatantsById[id]
+        const c = sceneEncounterState.combatantsById[id]
         return c ? getCombatantDisplayLabel(c, roster) : undefined
       })
       .filter((n): n is string => Boolean(n))
@@ -568,7 +590,7 @@ export function useEncounterActivePlaySurface(
     const shown = names.slice(0, AFFECTED_NAME_MAX)
     const overflow = Math.max(0, total - shown.length)
     return { names: shown, total, overflow }
-  }, [sceneEncounterState, encounterState, selectedAction, aoeOriginCellId, aoeHoverCellId, aoeStep, activeCombatantId])
+  }, [sceneEncounterState, selectedAction, aoeOriginCellId, aoeHoverCellId, aoeStep, activeCombatantId])
 
   const canResolveAction = useMemo(
     () =>
@@ -899,12 +921,47 @@ export function useEncounterActivePlaySurface(
     [encounterState, spellsById, suppressSameSideHostile],
   )
 
+  /**
+   * Defers synchronous stair application to the next task so the transition modal can paint first,
+   * then enforces a minimum open time so the overlay does not flash subliminally.
+   * TODO: If other transition kinds share this path, lift payload construction next to each intent resolver.
+   */
+  const handleStairTraversalForContextPrompt = useMemo(() => {
+    if (!handleStairTraversal) return undefined
+    return (intent: Extract<CombatIntent, { kind: 'stair-traversal' }>) => {
+      if (sceneTransitionDismissTimerRef.current != null) {
+        clearTimeout(sceneTransitionDismissTimerRef.current)
+        sceneTransitionDismissTimerRef.current = null
+      }
+      const shownAt = performance.now()
+      setSceneTransition({
+        title: 'Changing scene',
+        subtitle: intent.destinationEncounterSpace.name,
+        detail: 'Via stairs',
+        transitionKind: 'stairs',
+        loading: true,
+      })
+      window.setTimeout(() => {
+        try {
+          handleStairTraversal(intent)
+        } finally {
+          const elapsed = performance.now() - shownAt
+          const rest = Math.max(0, MIN_SCENE_TRANSITION_MODAL_MS - elapsed)
+          sceneTransitionDismissTimerRef.current = window.setTimeout(() => {
+            sceneTransitionDismissTimerRef.current = null
+            setSceneTransition(null)
+          }, rest)
+        }
+      }, 0)
+    }
+  }, [handleStairTraversal])
+
   const contextualPromptStrip = useEncounterContextPromptStrip({
     env: contextualPromptEnvironment ?? null,
     viewerRole: viewerContext.viewerRole ?? 'dm',
     capabilities,
     activeCombatantMovementRemainingFt: activeCombatant?.turnResources?.movementRemaining ?? 0,
-    handleStairTraversal,
+    handleStairTraversal: handleStairTraversalForContextPrompt,
   })
 
   /** Unified under-header strip: exceptional override → shared contextual prompts → default directive. */
@@ -973,90 +1030,93 @@ export function useEncounterActivePlaySurface(
   }
 
   return (
-    <CombatPlayView
-      {...playSurfaceHeaderOffset}
-      activeHeader={activeHeader}
-      contextualStrip={contextualStrip}
-      gridHoverStatusMessage={gridHoverStatusMessage}
-      gameOverModal={
-        <EncounterGameOverModal
-          open={gameOverOpen}
-          outcome={encounterOutcome}
-          onClose={() => setGameOverDismissed(true)}
-          onResetEncounter={() => {
-            setGameOverDismissed(false)
-            handleResetEncounter()
-          }}
-        />
-      }
-      toast={
-        <AppToast
-          open={toastOpen && toastPayload != null}
-          onClose={handleToastClose}
-          title={toastPayload?.title ?? ''}
-          tone={toastPayload?.tone ?? 'info'}
-          variant={toastPayload?.variant ?? 'standard'}
-          autoHideDuration={toastPayload?.autoHideDuration ?? 8000}
-          mechanics={toastPayload?.mechanics || undefined}
-        >
-          {toastPayload?.children || undefined}
-        </AppToast>
-      }
-      wheelContainerRef={wheelContainerRef}
-      zoomControlProps={zoomControlProps}
-      encounterGrid={
-        gridViewModel ? (
-          <CombatGrid
-            grid={gridViewModel}
-            zoom={zoom}
-            pan={pan}
-            panPointerHandlers={pointerHandlers}
-            isDragging={isDragging}
-            hasDragMoved={hasDragMoved}
-            renderTokenPopover={renderTokenPopover}
-            onCellClick={handleCellClick}
-            onCellHover={handleCellHover}
-            hoveredCellId={
-              interactionMode === 'single-cell-place'
-                ? singleCellPlacementHoverCellId
-                : interactionMode === 'object-anchor-select'
-                  ? objectAnchorHoverCellId
-                  : aoeHoverCellId
-            }
-            movementHighlightActive={movementHighlightActive}
-            hasMovementRemaining={(activeCombatant?.turnResources?.movementRemaining ?? 0) > 0}
-            creatureTargetingActive={creatureTargetingActive}
-            singleCellPlacementPickActive={interactionMode === 'single-cell-place'}
-            objectAnchorPickActive={interactionMode === 'object-anchor-select'}
+    <>
+      <EncounterSceneTransitionModal open={sceneTransition != null} {...(sceneTransition ?? {})} />
+      <CombatPlayView
+        {...playSurfaceHeaderOffset}
+        activeHeader={activeHeader}
+        contextualStrip={contextualStrip}
+        gridHoverStatusMessage={gridHoverStatusMessage}
+        gameOverModal={
+          <EncounterGameOverModal
+            open={gameOverOpen}
+            outcome={encounterOutcome}
+            onClose={() => setGameOverDismissed(true)}
+            onResetEncounter={() => {
+              setGameOverDismissed(false)
+              handleResetEncounter()
+            }}
           />
-        ) : null
-      }
-      encounterActiveSidebar={
-        <EncounterActiveSidebar
-          encounterState={encounterState}
-          monstersById={monstersById}
-          characterPortraitById={characterPortraitById}
-          activeCombatantId={activeCombatantId}
-          selectedTargetId={selectedActionTargetId}
-          spellsById={spellsById}
-          suppressSameSideHostile={suppressSameSideHostile}
-          combatantViewerPresentationKindById={combatantViewerPresentationKindById}
-          onSelectTarget={(combatantId) => {
-            if (!capabilities?.canSelectAction) return
-            handleSelectTarget(combatantId)
-            setActionDrawerOpen(true)
-          }}
-        />
-      }
-      actionDrawer={
-        actionDrawerCombatant ? (
-          actionDrawerCombatant.side === 'party' ? (
-            <AllyActionDrawer {...drawerProps} />
-          ) : (
-            <OpponentActionDrawer {...drawerProps} />
-          )
-        ) : null
-      }
-    />
+        }
+        toast={
+          <AppToast
+            open={toastOpen && toastPayload != null}
+            onClose={handleToastClose}
+            title={toastPayload?.title ?? ''}
+            tone={toastPayload?.tone ?? 'info'}
+            variant={toastPayload?.variant ?? 'standard'}
+            autoHideDuration={toastPayload?.autoHideDuration ?? 8000}
+            mechanics={toastPayload?.mechanics || undefined}
+          >
+            {toastPayload?.children || undefined}
+          </AppToast>
+        }
+        wheelContainerRef={wheelContainerRef}
+        zoomControlProps={zoomControlProps}
+        encounterGrid={
+          gridViewModel ? (
+            <CombatGrid
+              grid={gridViewModel}
+              zoom={zoom}
+              pan={pan}
+              panPointerHandlers={pointerHandlers}
+              isDragging={isDragging}
+              hasDragMoved={hasDragMoved}
+              renderTokenPopover={renderTokenPopover}
+              onCellClick={handleCellClick}
+              onCellHover={handleCellHover}
+              hoveredCellId={
+                interactionMode === 'single-cell-place'
+                  ? singleCellPlacementHoverCellId
+                  : interactionMode === 'object-anchor-select'
+                    ? objectAnchorHoverCellId
+                    : aoeHoverCellId
+              }
+              movementHighlightActive={movementHighlightActive}
+              hasMovementRemaining={(activeCombatant?.turnResources?.movementRemaining ?? 0) > 0}
+              creatureTargetingActive={creatureTargetingActive}
+              singleCellPlacementPickActive={interactionMode === 'single-cell-place'}
+              objectAnchorPickActive={interactionMode === 'object-anchor-select'}
+            />
+          ) : null
+        }
+        encounterActiveSidebar={
+          <EncounterActiveSidebar
+            encounterState={encounterState}
+            monstersById={monstersById}
+            characterPortraitById={characterPortraitById}
+            activeCombatantId={activeCombatantId}
+            selectedTargetId={selectedActionTargetId}
+            spellsById={spellsById}
+            suppressSameSideHostile={suppressSameSideHostile}
+            combatantViewerPresentationKindById={combatantViewerPresentationKindById}
+            onSelectTarget={(combatantId) => {
+              if (!capabilities?.canSelectAction) return
+              handleSelectTarget(combatantId)
+              setActionDrawerOpen(true)
+            }}
+          />
+        }
+        actionDrawer={
+          actionDrawerCombatant ? (
+            actionDrawerCombatant.side === 'party' ? (
+              <AllyActionDrawer {...drawerProps} />
+            ) : (
+              <OpponentActionDrawer {...drawerProps} />
+            )
+          ) : null
+        }
+      />
+    </>
   )
 }

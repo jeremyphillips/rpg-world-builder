@@ -33,6 +33,7 @@ There is **no** separate `EncounterGrid.tsx` component file: the encounter barre
 
 - supplying the grid view model and callbacks (pan/zoom, hover, token popover renderer, interaction flags)
 - feature-specific orchestration around the grid (selected actor/target, modals, drawers, DM workflow) — **not** inside `CombatGrid`
+- **scene transition overlay** when the tactical space swaps in one shot (e.g. stair traversal): **`EncounterSceneTransitionModal`** — a compact, non-closable wrapper around **`AppModal`**, owned here rather than in `CombatGrid`; see [space.md § Cross-space scene transitions](../../space.md#cross-space-scene-transitions)
 
 ## What `CombatGrid` must not own
 
