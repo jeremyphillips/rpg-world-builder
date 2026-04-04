@@ -361,6 +361,37 @@ Edges (walls, windows, doors) use a **boundary-paint** interaction model on **sq
 
 ---
 
+## Performance — workspace snapshot (profiling pass)
+
+**Pass:** evidence-first measurement of **homebrew persistable snapshot** cost (`serializeLocationWorkspacePersistableSnapshot` → `buildHomebrewWorkspacePersistableParts` → `toLocationInput` + `buildPersistableMapPayloadFromGridDraft` + `stableStringify`). No speculative optimization was applied.
+
+### What was measured
+
+1. **Synthetic Node benchmarks** — `workspacePersistableSnapshot.perf.test.ts` (Vitest) times repeated serialization for **minimal** (empty draft), **medium** (dozens of path chains, ~100+ edges, regions, sparse cell fills), and **stress** (very long chains, hundreds of edges). Median single-call time stays within loose CI thresholds (minimal sub-millisecond; medium and stress sub–tens of ms on typical dev hardware).
+2. **Call frequency (code)** — `useLocationEditWorkspaceModel` builds `authoringContract` in `useMemo` with **`watch()`** (full form) as a dependency. Any **location form** field change recomputes the memo and runs the full homebrew snapshot for dirty comparison. **`gridDraft`** changes do the same. This is **breadth of subscription**, not a separate bug: the snapshot must reflect the whole persistable workspace.
+
+### Cost centers (in order of work per call)
+
+| Stage | Role |
+|--------|------|
+| `toLocationInput(values)` | Location slice from form values. |
+| `mergeBuildingProfileForSave` | Stairs / building profile only when editing a **building** campaign location. |
+| `buildPersistableMapPayloadFromGridDraft` | `cellDraftToCellEntries` + `normalizeLocationMapAuthoringFields` + stable sorts on path/edge/region ids + sorted `excludedCellIds`. |
+| `stableStringify({ location, map })` | Deterministic string for baseline comparison. |
+
+Downstream **React** render cost from `watch()`-driven updates is outside this micro-benchmark; it can dominate perceived latency before snapshot serialization does.
+
+### Recommendation
+
+- **No action** — for typical and medium-sized maps, snapshot derivation is **not** a material hot path in Node tests; keep the current single-source-of-truth pipeline.
+- **Monitor** — if real maps routinely approach **stress**-sized payloads (very long path chains, huge edge sets), re-run profiling in the browser (Performance panel) and consider a **targeted** follow-up (e.g. memoizing snapshot on narrower form slices only if proven necessary).
+
+### Path preview performance (deferred)
+
+Smooth path **preview** (hover → full Catmull-Rom chain recompute on move) is **not** part of the persistable snapshot. It remains a **known future review** item in **Open issues §3** — optimize only if **profiling** or **clear user pain** (long chains, low-end devices) justifies a dedicated pass. This profiling pass does **not** change that.
+
+---
+
 ## Open issues
 
 ### 1. Hex maps: constrained boundary-edge support (Option B)
@@ -385,9 +416,11 @@ Map pan is implemented with `useCanvasPan` on the canvas wrapper. Three layers o
 
 **Remaining scope:** optional `pointerup`-based placement for non–Select tools on trackpads can build on the same hook.
 
-### 3. Path chain preview responsiveness
+### 3. Path chain preview responsiveness (**deferred**)
 
 The smooth curve preview (hover → smooth Catmull-Rom spline) recalculates the full chain curve on every pointer move. On long chains or slower machines this can feel choppy. A potential optimization would be to cache the committed portion of the chain curve and only recompute the last 2–3 segments when the hover cell changes.
+
+**Status:** **Deferred** — do **not** implement unless browser profiling or reported user pain shows path preview as a real bottleneck. Workspace snapshot profiling (see **Performance — workspace snapshot**) did not target this path; it remains roadmap-only until justified.
 
 ### 4. Region vs cell hover chrome (hardened; edge cases remain)
 
@@ -431,7 +464,7 @@ Both hooks are used at the route level; derived values are passed down to canvas
 3. **Focus-mode routes:** add new full-width routes by extending the regex in `src/app/layouts/auth/auth-main-path.ts`.
 4. **Path authoring:** persisted model is `pathEntries` on `LocationMap` (ordered `cellIds` per chain). Chain-building UX lives in `LocationEditRoute.tsx` (`handleAuthoringCellClick` in **Draw** mode); smooth curve rendering in `pathOverlayRendering.ts` (`pathEntriesToSvgPaths`); hex geometry helpers in `hexGridMapOverlayGeometry.ts`. The `pathSvgData` memo in `LocationGridAuthoringSection` unifies committed and preview curves. Tests in `pathOverlayRendering.test.ts` and `hexGridMapOverlayGeometry.test.ts`.
 5. **Edge authoring:** edge logic lives under `domain/mapEditor/edge/` with tests in `domain/mapEditor/__tests__/edge/`; grid wiring uses `useSquareEdgeBoundaryPaint` in `LocationGridAuthoringSection.tsx`. Before changing behavior, read **Edge authoring** and **Open issues** above (hex edge gap).
-6. **Path preview performance:** if the chain preview feels sluggish, consider caching the committed chain curve and only recomputing the tail segments on hover. See **Open issues §3**.
+6. **Path preview performance:** deferred unless profiling or user pain justifies work — see **Open issues §3** and **Performance — workspace snapshot** (path preview called out as out-of-scope there).
 7. **Select mode / region hover:** resolver and grid chrome live under `domain/mapEditor/select-mode/` (`resolveSelectModeInteractiveTarget`, `buildSelectModeInteractiveTargetInput`, `resolveSelectModeRegionOrCellSelection`, `refineSelectModeClickAfterRegionDrill`, `locationMapSelectionHitTest`) plus `mapGridCellVisualState.ts`. See **Location map styling → Select mode** and **Open issues §4** before changing hover behavior.
 8. **Persistable dirty snapshot:** when adding new state that is **saved** from this editor but not part of `LocationFormValues` or `gridDraft` (e.g. parallel `useState` merged in `handleHomebrewSubmit`), extend **`buildHomebrewWorkspacePersistableParts`** (shared by save + **`serializeLocationWorkspacePersistableSnapshot`**) and baseline updates in **`useLocationMapHydration`** / **`useLocationEditSaveActions`**. Tests: `workspacePersistableSnapshot.test.ts`.
 9. **System location edit:** dirty uses **`isSystemLocationWorkspaceDirty`** (`patchDriver.isDirty()` OR **`isGridDraftDirty`**), not the homebrew snapshot — see **Dirty state — system location patch** above. Tests: `systemLocationWorkspaceDirty.test.ts`.
