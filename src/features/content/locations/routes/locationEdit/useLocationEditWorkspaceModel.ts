@@ -771,8 +771,6 @@ export function useLocationEditWorkspaceModel({
     addingFloor,
     handleHomebrewSubmit,
     handleHomebrewFormSaveClick,
-    handleCampaignSubmit,
-    handleCampaignFormSaveClick,
     handleAddFloor,
     handlePatchSave,
     handleRemovePatch,
@@ -1139,10 +1137,6 @@ export function useLocationEditWorkspaceModel({
     isWorkspaceDirty,
     homebrewWorkspaceCanSave,
     homebrewWorkspaceSaveBlockReason,
-    /** @deprecated Use `homebrewWorkspaceCanSave`. */
-    campaignWorkspaceCanSave: homebrewWorkspaceCanSave,
-    /** @deprecated Use `homebrewWorkspaceSaveBlockReason`. */
-    campaignWorkspaceSaveBlockReason: homebrewWorkspaceSaveBlockReason,
     authoringContract,
     gridDraft,
     setGridDraft,
@@ -1200,10 +1194,6 @@ export function useLocationEditWorkspaceModel({
     hasExistingPatch,
     handleHomebrewSubmit,
     handleHomebrewFormSaveClick,
-    /** @deprecated Use `handleHomebrewSubmit`. */
-    handleCampaignSubmit,
-    /** @deprecated Use `handleHomebrewFormSaveClick`. */
-    handleCampaignFormSaveClick,
     handleAddFloor,
     handlePatchSave,
     handleRemovePatch,

@@ -1,6 +1,6 @@
 ---
 name: Location workspace dirty state
-overview: Phases 1–4 + refactor A–**E** complete (dirty snapshot, state ownership in docs/reference/location-workspace.md). **Follow-up plans (same directory — [README](README.md)):** [location_workspace_authoring_contract.plan.md](location_workspace_authoring_contract.plan.md); [location_workspace_debounced_persistable_flush.plan.md](location_workspace_debounced_persistable_flush.plan.md); [location_workspace_persistable_slice_participation.plan.md](location_workspace_persistable_slice_participation.plan.md); [location_workspace_normalization_policy.plan.md](location_workspace_normalization_policy.plan.md) (planned).
+overview: Phases 1–4 + refactor A–**E** complete (dirty snapshot, state ownership in docs/reference/location-workspace.md). **Follow-up plans (same directory — [README](README.md)):** [location_workspace_authoring_contract.plan.md](location_workspace_authoring_contract.plan.md); [location_workspace_debounced_persistable_flush.plan.md](location_workspace_debounced_persistable_flush.plan.md); [location_workspace_persistable_slice_participation.plan.md](location_workspace_persistable_slice_participation.plan.md); [location_workspace_normalization_policy.plan.md](location_workspace_normalization_policy.plan.md) (done). **Deprecated `Campaign*` workspace aliases** (shim components, re-exports, hook fields) were removed in favor of **homebrew** names only.
 todos:
   - id: snapshot-helper
     content: Add workspacePersistableSnapshot (form + normalized map + building stairs) aligned with save
@@ -88,7 +88,7 @@ flowchart LR
 - **Campaign** edit header uses [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx): `dirty={isWorkspaceDirty}` (persistable snapshot vs baseline from [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts), [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts)).
 - **System** patch branch: `dirty={isSystemLocationWorkspaceDirty(driver.isDirty(), isGridDraftDirty)}` ([`systemLocationWorkspaceDirty.ts`](src/features/content/locations/routes/locationEdit/systemLocationWorkspaceDirty.ts)) — patch JSON dirty **or** grid draft dirty; **not** the campaign persistable snapshot (intentional).
 - **`isGridDraftDirty`** remains for the system branch; campaign Save no longer relies on RHF `formState.isDirty` alone.
-- **Save path (campaign):** [`handleCampaignSubmit`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) builds payloads via **`buildCampaignWorkspacePersistableParts`** (same helper as [`serializeLocationWorkspacePersistableSnapshot`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts)).
+- **Save path (homebrew):** [`handleHomebrewSubmit`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) builds payloads via **`buildHomebrewWorkspacePersistableParts`** (same helper as [`serializeLocationWorkspacePersistableSnapshot`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts)).
 
 Rail tabs (**Location / Map / Selection**) are not separate stores: they feed the same `FormProvider` form, `gridDraft`, and (for buildings) `buildingStairConnections`. Tab-specific dirty flags are unnecessary if the **aggregate snapshot** (campaign) or **patch + grid** (system) is correct.
 
@@ -100,7 +100,7 @@ Rail tabs (**Location / Map / Selection**) are not separate stores: they feed th
 
 ## Shipped design (summary)
 
-**Campaign:** `buildCampaignWorkspacePersistableParts` feeds both [`handleCampaignSubmit`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) and [`serializeLocationWorkspacePersistableSnapshot`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts); baseline string is set after successful map hydration and after successful campaign save. **Dirty:** `isWorkspaceDirty` compares current snapshot to baseline.
+**Homebrew:** `buildHomebrewWorkspacePersistableParts` feeds both [`handleHomebrewSubmit`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) and [`serializeLocationWorkspacePersistableSnapshot`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts); baseline string is set after successful map hydration and after successful homebrew save. **Dirty:** `isWorkspaceDirty` compares current snapshot to baseline.
 
 **System:** `isSystemLocationWorkspaceDirty(patchDriver.isDirty(), isGridDraftDirty)` in [`systemLocationWorkspaceDirty.ts`](src/features/content/locations/routes/locationEdit/systemLocationWorkspaceDirty.ts) — not the campaign snapshot.
 
@@ -110,14 +110,14 @@ Full architecture, nested-form policy, and pointers **#8–#9** live in [`locati
 
 ### In good shape
 
-- **Campaign save vs dirty drift** is largely mitigated by the shared **`buildCampaignWorkspacePersistableParts`** path.
+- **Homebrew save vs dirty drift** is largely mitigated by the shared **`buildHomebrewWorkspacePersistableParts`** path.
 - **Contributor-facing** detail: [`location-workspace.md`](docs/reference/location-workspace.md) (campaign snapshot, system two-rule dirty, nested rails, whitespace, performance).
 
 ### Risks
 
 | Risk | Notes |
 | ---- | ----- |
-| **New persistence without updating the builder** | If a field is persisted outside `buildCampaignWorkspacePersistableParts` / `toLocationInput` / map bootstrap, expect **false negatives** (Save stays off) or inconsistent dirty behavior. Mitigation: extend the shared builder and the checklist in `location-workspace.md`; no automated lint today. |
+| **New persistence without updating the builder** | If a field is persisted outside `buildHomebrewWorkspacePersistableParts` / `toLocationInput` / map bootstrap, expect **false negatives** (Save stays off) or inconsistent dirty behavior. Mitigation: extend the shared builder and the checklist in `location-workspace.md`; no automated lint today. |
 | **Hydration / grid layout ordering** | **False positives** after prune or dimension changes if draft and baseline update in different orders. Mitigate with baseline only at hydration/save boundaries; add focused tests when changing [`useLocationMapHydration.ts`](src/features/content/locations/routes/locationEdit/useLocationMapHydration.ts) or grid reset. |
 | **Post-save baseline uses `loc`, not `updated`** | After campaign save, baseline serialization uses `loc` from closure while the form was reset from `updated`. [`mergeBuildingProfileForSave`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) layers `loc.buildingProfile` under form input; **server-only** keys not in the form could theoretically skew the snapshot until the route refetches `loc`. Low risk if the form owns those fields. |
 | **Whitespace / normalization** | Spacing-only edits may not dirty the snapshot if `toLocationInput` / normalization trims — documented in `location-workspace.md`. |
@@ -264,7 +264,7 @@ Choose the highest-value nested inspector that currently creates the dirty-state
 
 ### Phase C — make header dirty/save depend on draft ownership only (refinement)
 
-**Status: completed** — [`campaignWorkspaceSaveGate.ts`](src/features/content/locations/routes/locationEdit/campaignWorkspaceSaveGate.ts), `campaignWorkspaceCanSave` / `campaignWorkspaceSaveBlockReason` in [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts), [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx) `saveDisabled` + `saveDisabledReason`, [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx) tooltip; docs **Dirty vs saveable**.
+**Status: completed** — [`homebrewWorkspaceSaveGate.ts`](src/features/content/locations/routes/locationEdit/homebrewWorkspaceSaveGate.ts), `homebrewWorkspaceCanSave` / `homebrewWorkspaceSaveBlockReason` in [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts), [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx) `saveDisabled` + `saveDisabledReason`, [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx) tooltip; docs **Dirty vs saveable**. (Deprecated `Campaign*` workspace aliases removed in a later cleanup.)
 
 Campaign location edit already derives **dirty** from `serializeLocationWorkspacePersistableSnapshot` vs `workspacePersistBaseline` in [`useLocationEditWorkspaceModel.ts`](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts). Phase B removed panel-local submit for region metadata. Phase C **tightens the contract**: name **dirty** vs **saveable** explicitly, centralize the same gates as the submit path, and wire the header so Save is disabled when save is blocked while **dirty** stays accurate.
 
@@ -274,7 +274,7 @@ Campaign location edit already derives **dirty** from `serializeLocationWorkspac
 | -------- | ------ | ---------------- |
 | **Dirty** | `useLocationEditWorkspaceModel` | `isWorkspaceDirty` = baseline ≠ `serializeLocationWorkspacePersistableSnapshot(watch(), gridDraft, buildingStairConnections, loc)`. |
 | **Save** | [`useLocationEditSaveActions.ts`](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) | `handleCampaignSubmit`: building floor gate, then `validateGridBootstrap` ([`bootstrapDefaultLocationMap.ts`](src/features/content/locations/domain/mapAuthoring/bootstrapDefaultLocationMap.ts)). |
-| **Header Save** | [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx), [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx) | `disabled = busy \|\| saveDisabled \|\| (!dirty && !isNew)`. **`saveDisabled`** = `!campaignWorkspaceCanSave` ([`getCampaignWorkspaceSaveBlockReason`](src/features/content/locations/routes/locationEdit/campaignWorkspaceSaveGate.ts): floor + `validateGridBootstrap`). Tooltip when blocked via `saveDisabledReason`. |
+| **Header Save** | [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx), [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx) | `disabled = busy \|\| saveDisabled \|\| (!dirty && !isNew)`. **`saveDisabled`** = `!authoringContract.canSave` / `!homebrewWorkspaceCanSave` ([`getHomebrewWorkspaceSaveBlockReason`](src/features/content/locations/routes/locationEdit/homebrewWorkspaceSaveGate.ts): floor + `validateGridBootstrap`). Tooltip when blocked via `saveDisabledReason`. |
 | **System branch** | `LocationEditRoute` | `dirty` = `isSystemLocationWorkspaceDirty(patch, gridDraft)` — **out of scope** for this Phase C unless a follow-up adds parallel saveable for patch. |
 
 **Gap:** **Dirty** and **saveable** are not **named** separately in the workspace API; saveability is implicit inside `handleCampaignSubmit`.
@@ -311,10 +311,10 @@ flowchart LR
 
 #### Implementation steps
 
-1. **Extract shared “campaign save gate”** — new module e.g. [`campaignWorkspaceSaveGate.ts`](src/features/content/locations/routes/locationEdit/campaignWorkspaceSaveGate.ts): `getCampaignWorkspaceSaveBlockReason(params): string | null` or `{ canSave; reason }` using `getValues()`, `loc`, `activeFloorId` — **mirror** early returns in `handleCampaignSubmit`. Refactor `handleCampaignSubmit` to call this helper so validation cannot drift.
-2. **Expose from `useLocationEditWorkspaceModel`** (memoized): `campaignWorkspaceCanSave` / `campaignWorkspaceSaveBlockReason` (or equivalent).
+1. **Extract shared homebrew save gate** — [`homebrewWorkspaceSaveGate.ts`](src/features/content/locations/routes/locationEdit/homebrewWorkspaceSaveGate.ts): `getHomebrewWorkspaceSaveBlockReason` using `getValues()`, `loc`, `activeFloorId` — **mirror** early returns in `handleHomebrewSubmit`.
+2. **Expose from `useLocationEditWorkspaceModel`** (memoized): `homebrewWorkspaceCanSave` / `homebrewWorkspaceSaveBlockReason` (or equivalent).
 3. **Wire [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx):** replace `saveDisabled={isBuildingWorkspace && !activeFloorId}` with a single expression that includes **floor + grid bootstrap** (same as gate).
-4. **Header (minimal):** optional `saveDisabledReason` + `Tooltip` on Save in [`LocationEditCampaignWorkspace.tsx`](src/features/content/locations/components/workspace/LocationEditCampaignWorkspace.tsx) / [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx) when `dirty && !canSave`.
+4. **Header (minimal):** optional `saveDisabledReason` + `Tooltip` on Save in [`LocationEditHomebrewWorkspace.tsx`](src/features/content/locations/components/workspace/LocationEditHomebrewWorkspace.tsx) / [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx) when `dirty && !canSave`.
 5. **Docs:** “Dirty vs saveable” in [`location-workspace.md`](docs/reference/location-workspace.md). **Transitional:** system patch may still use `validationApiRef` — isolated from campaign snapshot dirty.
 
 #### Acceptance mapping (Phase C)
@@ -335,7 +335,7 @@ flowchart LR
 
 **Status: completed** — Re-audit found **no** additional persistable submit-to-commit gaps beyond Phase B (region metadata). **Code:** [`LocationMapSelectionInspectors.tsx`](src/features/content/locations/components/workspace/LocationMapSelectionInspectors.tsx) — replaced noop **`AppForm`** wrappers (**StairPairingLinkForm**, **LocationMapStairEndpointInspectForm**) with **`FormProvider` + `useForm`** + `Stack` (no fake form submit). **Docs:** [`location-workspace.md`](docs/reference/location-workspace.md) **Phase D — migration inventory** table.
 
-Phase C established the **campaign** header contract: **dirty** = workspace draft vs persisted snapshot; **saveable** = separate (`getCampaignWorkspaceSaveBlockReason`); header Save truthful for **migrated** slices without panel-local Submit.
+Phase C established the **homebrew** header contract: **dirty** = workspace draft vs persisted snapshot; **saveable** = separate (`getHomebrewWorkspaceSaveBlockReason`); header Save truthful for **migrated** slices without panel-local Submit.
 
 #### Objective
 

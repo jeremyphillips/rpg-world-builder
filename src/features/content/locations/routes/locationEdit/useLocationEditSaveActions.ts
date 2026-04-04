@@ -261,10 +261,6 @@ export function useLocationEditSaveActions({
     addingFloor,
     handleHomebrewSubmit,
     handleHomebrewFormSaveClick,
-    /** @deprecated Use `handleHomebrewSubmit`. */
-    handleCampaignSubmit: handleHomebrewSubmit,
-    /** @deprecated Use `handleHomebrewFormSaveClick`. */
-    handleCampaignFormSaveClick: handleHomebrewFormSaveClick,
     handleAddFloor,
     handlePatchSave,
     handleRemovePatch,

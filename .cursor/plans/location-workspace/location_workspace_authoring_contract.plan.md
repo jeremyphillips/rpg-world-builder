@@ -1,6 +1,6 @@
 ---
 name: Location workspace authoring contract
-overview: Shared **editor-facing** workspace contract; **system** (patch) + **homebrew** (full-draft) **thin adapters**. Unify contract only — not persistence. Vocabulary `campaign`→`homebrew` where safe; explicit internal vs storage compatibility boundaries. **No** DB/API/storage migration. Prerequisite — [Location workspace dirty state](location_workspace_dirty_state_4d54eedc.plan.md).
+overview: Shared **editor-facing** workspace contract; **system** (patch) + **homebrew** (full-draft) **thin adapters**. Unify contract only — not persistence. Vocabulary `campaign`→`homebrew` where safe; explicit internal vs storage compatibility boundaries. **No** DB/API/storage migration. Prerequisite — [Location workspace dirty state](location_workspace_dirty_state_4d54eedc.plan.md). **Deprecated `Campaign*` workspace API aliases** removed from exports and `useLocationEditWorkspaceModel` — use homebrew names only.
 todos:
   - id: authoring-contract-phaseA-surface
     content: "Phase A: define shared contract (types/interface + shared vs mode-specific note)"
@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: authoring-contract-tests
     content: "Tests: contract shape per adapter; dirty/saveability; header via contract; no-regression"
-    status: pending
+    status: completed
 isProject: true
 ---
 

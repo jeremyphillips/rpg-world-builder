@@ -97,9 +97,3 @@ function mergeBuildingProfileForSave(
     },
   };
 }
-
-/** @deprecated Use {@link HomebrewWorkspacePersistableParts}. */
-export type CampaignWorkspacePersistableParts = HomebrewWorkspacePersistableParts;
-
-/** @deprecated Use {@link buildHomebrewWorkspacePersistableParts}. */
-export const buildCampaignWorkspacePersistableParts = buildHomebrewWorkspacePersistableParts;

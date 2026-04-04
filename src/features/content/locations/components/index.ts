@@ -26,7 +26,6 @@ export {
 } from './locationGridDraft.utils';
 export {
   LocationEditHomebrewWorkspace,
-  LocationEditCampaignWorkspace,
   LocationEditSystemPatchWorkspace,
   LocationEditorWorkspace,
   LocationEditorHeader,
@@ -46,7 +45,6 @@ export {
 } from './workspace'
 export type {
   LocationEditHomebrewWorkspaceProps,
-  LocationEditCampaignWorkspaceProps,
   LocationEditSystemPatchWorkspaceProps,
   LocationEditorRailSection,
   LocationMapSelection,
