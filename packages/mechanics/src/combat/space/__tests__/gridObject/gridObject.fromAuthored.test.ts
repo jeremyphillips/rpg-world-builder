@@ -17,4 +17,15 @@ describe('buildGridObjectFromAuthoredPlacedObject', () => {
     expect(o.coverKind).toBe(expected.coverKind)
     expect(o.isMovable).toBe(expected.isMovable)
   })
+
+  it('includes interaction metadata for stairs (transition surface)', () => {
+    const o = buildGridObjectFromAuthoredPlacedObject({
+      id: 'go-stairs',
+      cellId: 'c-1-1',
+      authoredPlaceKindId: 'stairs',
+    })
+    expect(o.interaction).toEqual({ role: 'transition', transitionKind: 'stairs' })
+    expect(o.blocksMovement).toBe(false)
+    expect(o.blocksLineOfSight).toBe(false)
+  })
 })

@@ -18,6 +18,24 @@ export type AuthoredPlacedObjectRuntimeFields = {
 /** Alias for combat/runtime hydration — same shape as registry `runtime` on each definition. */
 export type LocationPlacedObjectKindRuntimeDefaults = AuthoredPlacedObjectRuntimeFields;
 
+/**
+ * Interaction / transition semantics for authored placed objects — **not** collision geometry.
+ * Use with {@link AuthoredPlacedObjectRuntimeFields} (`blocksMovement`, etc.); do not infer transitions
+ * from `blocksMovement: false` alone.
+ *
+ * TODO: Broader world/campaign interaction surfaces (inspect, use, dialogue) will extend this shape;
+ * not every placed kind will define interaction metadata yet.
+ */
+export type AuthoredPlacedObjectInteractionRole = 'transition';
+
+/** Known transition kinds for contextual prompts (stairs, ladders, …). Extend as new transitions ship. */
+export type AuthoredPlacedObjectTransitionKind = 'stairs';
+
+export type AuthoredPlacedObjectInteraction = {
+  role: AuthoredPlacedObjectInteractionRole;
+  transitionKind: AuthoredPlacedObjectTransitionKind;
+};
+
 export type AuthoredPlacedObjectDefinition = {
   label: string;
   description?: string;
@@ -27,6 +45,11 @@ export type AuthoredPlacedObjectDefinition = {
   /** Host scales where this kind is offered in the place palette. */
   allowedScales: readonly LocationScaleId[];
   runtime: AuthoredPlacedObjectRuntimeFields;
+  /**
+   * Optional: contextual interaction / transition role for play and future systems.
+   * Distinct from {@link AuthoredPlacedObjectRuntimeFields} spatial blocking.
+   */
+  interaction?: AuthoredPlacedObjectInteraction;
 };
 
 /**
@@ -102,11 +125,12 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     iconName: 'stairs',
     allowedScales: ['floor'],
     runtime: {
-      blocksMovement: true,
-      blocksLineOfSight: true,
+      blocksMovement: false,
+      blocksLineOfSight: false,
       coverKind: 'none',
       isMovable: false,
     },
+    interaction: { role: 'transition', transitionKind: 'stairs' },
   },
   treasure: {
     label: 'Treasure',

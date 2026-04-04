@@ -4,6 +4,7 @@ import { isValidLocationScaleId } from '@/shared/domain/locations/scale/location
 import {
   AUTHORED_PLACED_OBJECT_DEFINITIONS,
   type AuthoredPlacedObjectDefinition,
+  type AuthoredPlacedObjectInteraction,
   type LocationPlacedObjectKindId,
   type LocationPlacedObjectKindRuntimeDefaults,
 } from './locationPlacedObject.registry';
@@ -61,6 +62,13 @@ export function getPlacedObjectRuntimeDefaults(
   kind: LocationPlacedObjectKindId,
 ): LocationPlacedObjectKindRuntimeDefaults {
   return AUTHORED_PLACED_OBJECT_DEFINITIONS[kind].runtime;
+}
+
+/** Interaction / transition hint when defined on the registry entry; `undefined` if none. */
+export function getPlacedObjectInteraction(
+  kind: LocationPlacedObjectKindId,
+): AuthoredPlacedObjectInteraction | undefined {
+  return AUTHORED_PLACED_OBJECT_DEFINITIONS[kind].interaction;
 }
 
 export function getPlacedObjectIconName(kind: LocationPlacedObjectKindId): LocationMapGlyphIconName {

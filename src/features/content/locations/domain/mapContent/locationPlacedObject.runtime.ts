@@ -1,12 +1,16 @@
 /**
- * Combat/runtime defaults for {@link LocationPlacedObjectKindId} — movement, line-of-sight, cover, movability.
+ * Combat/runtime defaults for {@link LocationPlacedObjectKindId} — movement, line-of-sight, cover, movability,
+ * plus optional {@link resolveLocationPlacedObjectKindInteraction} for transition/interaction hints.
  *
  * **Source of truth:** {@link ./locationPlacedObject.registry} — do not duplicate behavior keys elsewhere.
  */
 
-import type { LocationPlacedObjectKindId } from './locationPlacedObject.registry';
-import type { LocationPlacedObjectKindRuntimeDefaults } from './locationPlacedObject.registry';
-import { getPlacedObjectRuntimeDefaults } from './locationPlacedObject.selectors';
+import type {
+  AuthoredPlacedObjectInteraction,
+  LocationPlacedObjectKindId,
+  LocationPlacedObjectKindRuntimeDefaults,
+} from './locationPlacedObject.registry';
+import { getPlacedObjectInteraction, getPlacedObjectRuntimeDefaults } from './locationPlacedObject.selectors';
 
 export type { LocationPlacedObjectKindRuntimeDefaults } from './locationPlacedObject.registry';
 
@@ -27,4 +31,13 @@ export function resolveLocationPlacedObjectKindRuntimeDefaults(
   kind: LocationPlacedObjectKindId,
 ): LocationPlacedObjectKindRuntimeDefaults {
   return getPlacedObjectRuntimeDefaults(kind);
+}
+
+export type { AuthoredPlacedObjectInteraction } from './locationPlacedObject.registry';
+
+/** Optional interaction/transition semantics for combat {@link GridObject} hydration. */
+export function resolveLocationPlacedObjectKindInteraction(
+  kind: LocationPlacedObjectKindId,
+): AuthoredPlacedObjectInteraction | undefined {
+  return getPlacedObjectInteraction(kind);
 }

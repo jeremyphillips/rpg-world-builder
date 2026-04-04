@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Button from '@mui/material/Button'
-import Stack from '@mui/material/Stack'
+import StairsIcon from '@mui/icons-material/Stairs'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import Alert from '@mui/material/Alert'
@@ -25,6 +24,7 @@ import { useEncounterState } from '@/features/encounter/hooks/useEncounterState'
 import { useEncounterGridViewModel } from '@/features/encounter/hooks/useEncounterGridViewModel'
 import { useEncounterCombatActiveHeader } from '@/features/encounter/hooks/useEncounterCombatActiveHeader'
 import { useEncounterActivePlaySurface } from '@/features/encounter/hooks/useEncounterActivePlaySurface'
+import { EncounterContextPrompt } from '@/features/encounter/components'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
 
 import type { Location } from '@/features/content/locations/domain/types'
@@ -337,28 +337,36 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
   }, [campaignId, session, campaignLocations, encounter.encounterState, encounter.activeCombatantId])
 
   const contextualMovementBar = useMemo(() => {
-    if (!stairPayloadRes?.ok || !capabilities?.canSelectAction) return null
+    if (!stairPayloadRes?.ok || viewerRole === 'observer') return null
     const moveRemain = encounter.activeCombatant?.turnResources?.movementRemaining ?? 0
-    if (moveRemain < STAIR_TRAVERSAL_MOVEMENT_COST_FT) return null
+    const controlsActive = Boolean(capabilities?.canMoveActiveCombatant)
+    const canAfford = moveRemain >= STAIR_TRAVERSAL_MOVEMENT_COST_FT
+    const canUse = controlsActive && canAfford
     return (
-      <Stack
-        direction="row"
-        alignItems="center"
-        sx={{ px: 2, py: 1, gap: 1, borderBottom: 1, borderColor: 'divider', bgcolor: 'action.hover' }}
-      >
-        <Button
-          size="small"
-          variant="outlined"
-          onClick={() => encounter.handleStairTraversal(stairPayloadRes.intent)}
-        >
-          Use stairs to {stairPayloadRes.destinationFloorLabel} ({STAIR_TRAVERSAL_MOVEMENT_COST_FT} ft
-          movement)
-        </Button>
-      </Stack>
+      <EncounterContextPrompt
+        title="Use stairs"
+        subtitle={stairPayloadRes.destinationFloorLabel}
+        icon={<StairsIcon fontSize="small" color="action" aria-hidden />}
+        primaryAction={{
+          label: 'Go',
+          onClick: () => encounter.handleStairTraversal(stairPayloadRes.intent),
+        }}
+        disabled={!canUse}
+        unavailableReason={
+          canUse
+            ? null
+            : !controlsActive
+              ? viewerRole === 'dm'
+                ? 'Only the controlling player can move this combatant.'
+                : 'You cannot control this combatant right now.'
+              : `Need at least ${STAIR_TRAVERSAL_MOVEMENT_COST_FT} ft of movement remaining to use stairs.`
+        }
+      />
     )
   }, [
     stairPayloadRes,
-    capabilities?.canSelectAction,
+    viewerRole,
+    capabilities?.canMoveActiveCombatant,
     encounter.activeCombatant?.turnResources?.movementRemaining,
     encounter,
   ])

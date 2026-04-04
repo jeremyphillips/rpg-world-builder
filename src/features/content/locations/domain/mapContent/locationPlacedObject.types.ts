@@ -6,7 +6,11 @@
  * **Persisted cell-object kinds** remain `LOCATION_MAP_OBJECT_KIND_IDS` in shared `map/locationMap.constants.ts`.
  */
 
-export type { LocationPlacedObjectKindId } from './locationPlacedObject.registry';
+export type {
+  AuthoredPlacedObjectInteraction,
+  AuthoredPlacedObjectTransitionKind,
+  LocationPlacedObjectKindId,
+} from './locationPlacedObject.registry';
 
 export {
   getMapObjectKindIconName,

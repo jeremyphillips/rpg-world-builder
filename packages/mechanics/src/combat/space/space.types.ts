@@ -1,3 +1,4 @@
+import type { AuthoredPlacedObjectInteraction } from '@/features/content/locations/domain/mapContent/locationPlacedObject.registry';
 import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 
@@ -23,6 +24,9 @@ export type GridObjectCoverKind = 'none' | 'half' | 'three-quarters';
  * **Authored-only:** Created from location map placement via `buildGridObjectFromAuthoredPlacedObject`.
  * `authoredPlaceKindId` identifies the palette/registry kind; runtime fields must match
  * `resolveLocationPlacedObjectKindRuntimeDefaults(authoredPlaceKindId)` at hydration time.
+ *
+ * **`interaction`:** Optional transition/interaction hint from the registry — not implied by `blocksMovement`
+ * alone. TODO: extend for ladders, portals, hatches; not all kinds populate this field yet.
  */
 export type GridObject = {
   id: string;
@@ -34,6 +38,8 @@ export type GridObject = {
   isMovable: boolean;
   /** Palette / registry kind from authored map placement (`LocationPlacedObjectKindId`). */
   authoredPlaceKindId: LocationPlacedObjectKindId;
+  /** When set, object may drive contextual encounter prompts (e.g. stair traversal). */
+  interaction?: AuthoredPlacedObjectInteraction;
 };
 
 /** Alias for grid VM / labels — same as {@link GridObject.authoredPlaceKindId}. */

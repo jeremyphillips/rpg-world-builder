@@ -19,6 +19,7 @@ export {
 } from '@/features/combat/components'
 export { EncounterView } from './shared/layout/EncounterView'
 export { EncounterSetupView } from './setup/layout/EncounterSetupView'
+export { EncounterContextPrompt } from './active/context/EncounterContextPrompt'
 export { EncounterActiveHeader } from './active/layout/EncounterActiveHeader'
 export { EncounterPresentationPovField } from './active/layout/EncounterPresentationPovField'
 export { EncounterActiveFooter } from './active/layout/EncounterActiveFooter'
