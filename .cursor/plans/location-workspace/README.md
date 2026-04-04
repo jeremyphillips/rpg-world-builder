@@ -12,7 +12,7 @@ Cursor plans for the **location editor workspace**: persistence/dirty state, she
 2. **Reference doc** — `location-workspace.md` for runtime behavior, Open issues, and contributor pointers.
 3. **Interaction & hex** — Select mode, hover parity, hex edge Option B (mostly done child plans).
 4. **Performance** — snapshot profiling outcomes; path preview remains deferred in the reference doc.
-5. **UX & shell** — [location_workspace_ux_refactor.plan.md](location_workspace_ux_refactor.plan.md) (placeholder parent — scope to be defined).
+5. **Object authoring** — shared prefix `location_workspace_object_authoring_*`: **roadmap** [location_workspace_object_authoring_roadmap.plan.md](location_workspace_object_authoring_roadmap.plan.md); **Phase 1** [location_workspace_object_authoring_phase1_palette_foundation.plan.md](location_workspace_object_authoring_phase1_palette_foundation.plan.md); **Phase 2** [location_workspace_object_authoring_phase2_variants.plan.md](location_workspace_object_authoring_phase2_variants.plan.md); **Phase 3** [location_workspace_object_authoring_phase3_edge_placement.plan.md](location_workspace_object_authoring_phase3_edge_placement.plan.md); **Phase 4** [location_workspace_object_authoring_phase4_config_editing.plan.md](location_workspace_object_authoring_phase4_config_editing.plan.md).
 
 ---
 
@@ -46,10 +46,14 @@ Cursor plans for the **location editor workspace**: persistence/dirty state, she
 
 ---
 
-## UX & shell (planned parent)
+## Object authoring UX (parent + child plans)
 
 | Plan | Status | Role |
 |------|--------|------|
-| [location_workspace_ux_refactor.plan.md](location_workspace_ux_refactor.plan.md) | **Placeholder** | Parent plan for workspace **UX refactor** (rail, header, canvas column, tool palettes, building/floor chrome, etc.). Scope, todos, and acceptance criteria TBD — replace placeholder content when work starts. |
+| [location_workspace_object_authoring_roadmap.plan.md](location_workspace_object_authoring_roadmap.plan.md) | **Parent (roadmap)** | **Object authoring modernization** — registry-driven palette (toolbar drawer), loaded placement state, variants, edge placement for doors/windows, rail-heavy inspection/editing. Phases 1–4, layer boundaries, risks, guardrails. |
+| [location_workspace_object_authoring_phase1_palette_foundation.plan.md](location_workspace_object_authoring_phase1_palette_foundation.plan.md) | **Child (Phase 1)** | **Palette foundation** — central registry, toolbar drawer palette, loaded object state, click-to-place continuity; **not** variants, edge placement, or deep inspector redesign. |
+| [location_workspace_object_authoring_phase2_variants.plan.md](location_workspace_object_authoring_phase2_variants.plan.md) | **Child (Phase 2)** | **Variants** — registry variant/family model, palette affordances, popover vs modal picker rules, registry-driven tooltips, loaded-object integration; **not** edge placement or deep rail editing. |
+| [location_workspace_object_authoring_phase3_edge_placement.plan.md](location_workspace_object_authoring_phase3_edge_placement.plan.md) | **Child (Phase 3)** | **Edge placement** (placeholder) — mode, hit-testing/snapping, doors/windows off Draw, selected-edge rail; refine after Phases 1–2. **Not** full Phase 4 config depth. |
+| [location_workspace_object_authoring_phase4_config_editing.plan.md](location_workspace_object_authoring_phase4_config_editing.plan.md) | **Child (Phase 4)** | **Config and editing** (placeholder) — rail inspector depth, door/window states, stairs linking, richer metadata; refine after Phases 1–3. **Not** full workspace/runtime redesign. |
 
-**Intent:** UX refactors sit **beside** the foundation plans above; they should reference `location-workspace.md` and avoid changing dirty/save contracts unless explicitly in scope.
+**Intent:** Sits **beside** foundation and interaction plans; must reference `location-workspace.md` and **must not** change dirty/save or authoring-contract semantics unless a child plan explicitly scopes persistence work.
