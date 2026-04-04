@@ -87,7 +87,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   table: {
     label: 'Table',
     description: 'Furniture or surface.',
-    iconName: 'map_room',
+    iconName: 'table',
     allowedScales: ['floor'],
     runtime: {
       blocksMovement: false,

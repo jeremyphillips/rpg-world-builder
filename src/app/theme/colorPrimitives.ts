@@ -70,6 +70,15 @@ export const colorPrimitives = {
     500: '#9A6B45', // placeholder — scrutinize
   },
 
+  /** Map soil / dirt / clay — warmer and redder than `mapSand`; mid tone for canonical cell fill. */
+  mapEarth: {
+    100: '#EFEBE3',
+    200: '#D7C4A8',
+    300: '#B0895A',
+    400: '#8B5E3C',
+    500: '#5C3D28',
+  },
+
   /**
    * Overlay / chroma accents (region presets, UI hints). Not terrain — use `mapGreen` /
    * `mapBlue` etc. for cell-fill geography.
