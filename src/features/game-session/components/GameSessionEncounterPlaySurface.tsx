@@ -13,6 +13,7 @@ import { useCharacters } from '@/features/character/hooks'
 import { fetchPersistedCombatSession } from '@/features/combat/api/combatSessionApi'
 import type { OpponentRosterEntry } from '@/features/encounter/types'
 import type { EncounterState } from '@/features/mechanics/domain/combat'
+import { getCellForCombatant } from '@/features/mechanics/domain/combat/space/space.helpers'
 import {
   deriveEncounterPresentationGridPerceptionInput,
   resolveSessionControlledCombatantIds,
@@ -285,7 +286,7 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
     }
   }, [campaignId, navigate, session.id])
 
-  const { activeHeader, capabilities } = useEncounterCombatActiveHeader({
+  const { activeHeader, capabilities, encounterDirective, contextStripTitleTone } = useEncounterCombatActiveHeader({
     encounterState: encounter.encounterState,
     activeCombatant: encounter.activeCombatant,
     availableActions: encounter.availableActions,
@@ -317,6 +318,13 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
     Awaited<ReturnType<typeof resolveGameSessionStairTraversalPayload>> | null
   >(null)
 
+  /** Ensures stair eligibility re-resolves when the mover steps onto a stair cell (not only on encounter ref churn). */
+  const activeCombatantCellId = useMemo(() => {
+    const es = encounter.encounterState
+    if (!es?.space || !es.activeCombatantId || !es.placements?.length) return null
+    return getCellForCombatant(es.placements, es.activeCombatantId, es.space)
+  }, [encounter.encounterState?.placements, encounter.encounterState?.space, encounter.encounterState?.activeCombatantId])
+
   useEffect(() => {
     let cancelled = false
     if (!campaignId || !encounter.encounterState || campaignLocations.length === 0) {
@@ -334,9 +342,16 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
     return () => {
       cancelled = true
     }
-  }, [campaignId, session, campaignLocations, encounter.encounterState, encounter.activeCombatantId])
+  }, [
+    campaignId,
+    session,
+    campaignLocations,
+    encounter.encounterState,
+    encounter.activeCombatantId,
+    activeCombatantCellId,
+  ])
 
-  const contextualMovementBar = useMemo(() => {
+  const contextualStripOverride = useMemo(() => {
     if (!stairPayloadRes?.ok || viewerRole === 'observer') return null
     const moveRemain = encounter.activeCombatant?.turnResources?.movementRemaining ?? 0
     const controlsActive = Boolean(capabilities?.canMoveActiveCombatant)
@@ -419,7 +434,9 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
       setObjectAnchorHoverCellId: encounter.setObjectAnchorHoverCellId,
       suppressSameSideHostile,
       spellsById: catalog.spellsById,
-      contextualMovementBar,
+      encounterDirective,
+      contextStripTitleTone,
+      contextualStripOverride,
     },
     { setupPathWhenEmpty: null },
   )

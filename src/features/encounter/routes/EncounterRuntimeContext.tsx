@@ -518,7 +518,7 @@ function useEncounterRuntimeValue() {
     </Box>
   )
 
-  const { activeHeader, capabilities } = useEncounterCombatActiveHeader({
+  const { activeHeader, capabilities, encounterDirective, contextStripTitleTone } = useEncounterCombatActiveHeader({
     encounterState,
     activeCombatant,
     availableActions,
@@ -559,6 +559,8 @@ function useEncounterRuntimeValue() {
     presentationGridPerceptionInput,
     presentationViewerCombatantId: presentationGridPerceptionInput?.viewerCombatantId ?? null,
     capabilities,
+    encounterDirective,
+    contextStripTitleTone,
     campaignId,
     locations,
     locationsLoading,

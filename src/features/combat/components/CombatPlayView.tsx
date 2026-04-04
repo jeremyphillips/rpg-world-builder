@@ -1,10 +1,38 @@
 import type { ReactNode, Ref } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 
 import { ZoomControl } from '@/ui/patterns'
 import type { ZoomControlProps } from '@/ui/patterns'
+
+/** Publishes measured strip height so grid hover status clears the contextual strip (see layout below). */
+const ENCOUNTER_CONTEXT_STRIP_HEIGHT_CSS_VAR = '--encounter-context-strip-height'
+
+function EncounterContextStripMeasure({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const sync = () => {
+      const h = Math.ceil(el.getBoundingClientRect().height)
+      document.documentElement.style.setProperty(ENCOUNTER_CONTEXT_STRIP_HEIGHT_CSS_VAR, `${h}px`)
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(el)
+    return () => {
+      ro.disconnect()
+      document.documentElement.style.removeProperty(ENCOUNTER_CONTEXT_STRIP_HEIGHT_CSS_VAR)
+    }
+  }, [children])
+  return (
+    <Box ref={ref} sx={{ flexShrink: 0 }}>
+      {children}
+    </Box>
+  )
+}
 
 /**
  * Shared active play shell: header, grid canvas, sidebar, action drawers, toasts.
@@ -16,8 +44,10 @@ export type CombatPlayViewProps = {
   /** Pixel fallback when the CSS variable is unset. */
   activeHeaderOffsetFallbackPx: number
   activeHeader: ReactNode
-  /** Movement-adjacent affordances (e.g. stair traversal), not standard combat actions. */
-  contextualMovementBar?: ReactNode
+  /**
+   * Under-header contextual strip (turn/movement guidance, stairs, future portals) — not the action deck.
+   */
+  contextualStrip?: ReactNode
   gridHoverStatusMessage: string | null
   gameOverModal: ReactNode
   toast: ReactNode
@@ -32,7 +62,7 @@ export function CombatPlayView({
   activeHeaderOffsetCssVar,
   activeHeaderOffsetFallbackPx,
   activeHeader,
-  contextualMovementBar,
+  contextualStrip,
   gridHoverStatusMessage,
   gameOverModal,
   toast,
@@ -42,11 +72,15 @@ export function CombatPlayView({
   encounterActiveSidebar,
   actionDrawer,
 }: CombatPlayViewProps) {
+  const gridHoverTop = `calc(var(${activeHeaderOffsetCssVar}, ${activeHeaderOffsetFallbackPx}px) + var(${ENCOUNTER_CONTEXT_STRIP_HEIGHT_CSS_VAR}, 0px))`
+
   return (
     <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
       {activeHeader}
 
-      {contextualMovementBar}
+      {contextualStrip != null ? (
+        <EncounterContextStripMeasure>{contextualStrip}</EncounterContextStripMeasure>
+      ) : null}
 
       {gridHoverStatusMessage && (
         <Typography
@@ -57,7 +91,7 @@ export function CombatPlayView({
             position: 'absolute',
             left: 0,
             right: 0,
-            top: `calc(var(${activeHeaderOffsetCssVar}, ${activeHeaderOffsetFallbackPx}px))`,
+            top: gridHoverTop,
             zIndex: (theme) => theme.zIndex.appBar,
             px: 2,
             py: 0.5,

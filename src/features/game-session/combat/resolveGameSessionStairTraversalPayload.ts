@@ -11,17 +11,21 @@ import { resolveStairPlayTraversalFromCellObjects } from '@/shared/domain/locati
 import { STAIR_TRAVERSAL_MOVEMENT_COST_FT } from '@/shared/domain/locations/transitions/stairTraversal.constants';
 import type { GameSession } from '../domain/game-session.types';
 import { buildEncounterSpaceFromLocationMap } from './buildEncounterSpaceFromLocationMap';
-import { pickEncounterGridMap } from './encounterSpaceResolution';
+import {
+  buildFallbackEncounterSpaceContainingCell,
+  pickEncounterGridMap,
+  pickEncounterGridMapForSpace,
+} from './encounterSpaceResolution';
 
-/** Composite id from {@link buildGridObjectsFromLocationMapCellEntries}: `go-{mapId}-{combatCellId}-{objectId}` */
-function parseAuthoredObjectIdFromGridObjectId(
-  gridObjectId: string,
-  mapId: string,
-  combatCellId: string,
-): string | null {
-  const prefix = `go-${mapId}-${combatCellId}-`;
-  if (!gridObjectId.startsWith(prefix)) return null;
-  const rest = gridObjectId.slice(prefix.length);
+/**
+ * Composite id from {@link buildGridObjectsFromLocationMapCellEntries}: `go-{mapId}-{combatCellId}-{objectId}`.
+ * Map id may contain dashes; locate the authored object id by the combat cell segment.
+ */
+function parseAuthoredObjectIdFromGridObjectId(gridObjectId: string, combatCellId: string): string | null {
+  const needle = `-${combatCellId}-`;
+  const idx = gridObjectId.indexOf(needle);
+  if (idx === -1) return null;
+  const rest = gridObjectId.slice(idx + needle.length);
   return rest.length > 0 ? rest : null;
 }
 
@@ -63,21 +67,24 @@ function objectsOnCellForAuthorCell(
   return row?.objects;
 }
 
+function isGridObjectStairs(g: GridObject): boolean {
+  if (g.authoredPlaceKindId === 'stairs') return true;
+  return g.interaction?.role === 'transition' && g.interaction.transitionKind === 'stairs';
+}
+
 function resolveStairsObjectsOnCell(
-  map: LocationMapBase,
+  map: LocationMapBase | undefined,
   authorCellId: string,
   combatCellId: string,
   encounterGridObjects: GridObject[] | undefined,
 ): readonly LocationMapCellObjectEntry[] | undefined {
-  const fromEntries = objectsOnCellForAuthorCell(map, authorCellId);
+  const fromEntries = map ? objectsOnCellForAuthorCell(map, authorCellId) : undefined;
   if (fromEntries?.some((o) => o.kind === 'stairs')) {
     return fromEntries;
   }
-  const gridStair = encounterGridObjects?.find(
-    (g) => g.cellId === combatCellId && g.authoredPlaceKindId === 'stairs',
-  );
+  const gridStair = encounterGridObjects?.find((g) => g.cellId === combatCellId && isGridObjectStairs(g));
   if (!gridStair) return fromEntries;
-  const oid = parseAuthoredObjectIdFromGridObjectId(gridStair.id, map.id, combatCellId);
+  const oid = parseAuthoredObjectIdFromGridObjectId(gridStair.id, combatCellId);
   if (!oid) return fromEntries;
   return [{ id: oid, kind: 'stairs' as const }];
 }
@@ -129,13 +136,15 @@ export async function resolveGameSessionStairTraversalPayload(args: {
   }
 
   const maps = await listLocationMaps(campaignId, floorLocationId);
-  const chosen = pickEncounterGridMap(maps);
-  if (!chosen) {
+  const chosen =
+    pickEncounterGridMapForSpace(maps, encounterState.space.id) ?? pickEncounterGridMap(maps);
+  /** Without a map we can still detect stairs from persisted {@link EncounterState.space.gridObjects}. */
+  if (!chosen && !(encounterState.space.gridObjects?.length)) {
     return { ok: false, reason: 'no encounter map for current floor' };
   }
 
   const objectsOnCell = resolveStairsObjectsOnCell(
-    chosen,
+    chosen ?? undefined,
     authorCellId,
     combatCellId,
     encounterState.space.gridObjects,
@@ -154,18 +163,24 @@ export async function resolveGameSessionStairTraversalPayload(args: {
   const { counterpart } = resolution;
   const destFloorId = counterpart.floorLocationId;
 
-  const destMaps = await listLocationMaps(campaignId, destFloorId);
-  const destMap = pickEncounterGridMap(destMaps);
-  if (!destMap) {
-    return { ok: false, reason: 'no encounter map for destination floor' };
+  const destinationCellId = authorCellIdToCombatCellId(counterpart.cellId);
+  if (!destinationCellId) {
+    return { ok: false, reason: 'invalid destination stair cell' };
   }
 
-  const destinationEncounterSpace = buildEncounterSpaceFromLocationMap({
-    mapHostLocationId: destFloorId,
-    map: destMap,
-  });
-
-  const destinationCellId = authorCellIdToCombatCellId(counterpart.cellId);
+  const destMaps = await listLocationMaps(campaignId, destFloorId);
+  const destMap = pickEncounterGridMap(destMaps);
+  const destinationEncounterSpace = destMap
+    ? buildEncounterSpaceFromLocationMap({
+        mapHostLocationId: destFloorId,
+        map: destMap,
+      })
+    : buildFallbackEncounterSpaceContainingCell({
+        id: `stair-dest-fallback-${destFloorId}`,
+        name: 'Destination floor',
+        locationId: destFloorId,
+        combatCellId: destinationCellId,
+      });
 
   const intent: StairTraversalIntent = {
     kind: 'stair-traversal',

@@ -12,7 +12,8 @@ export function patchStairObjectConnectionIdInCellEntries(
   connectionId: string | null,
 ): LocationMapCellAuthoringEntry[] {
   const list = [...(cellEntries ?? [])];
-  const rowIdx = list.findIndex((e) => e.cellId === ref.cellId);
+  const refCell = ref.cellId.trim();
+  const rowIdx = list.findIndex((e) => e.cellId.trim() === refCell);
   if (rowIdx < 0) return list;
 
   const row = list[rowIdx];

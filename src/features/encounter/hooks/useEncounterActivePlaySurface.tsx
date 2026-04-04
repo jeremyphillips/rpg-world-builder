@@ -43,6 +43,7 @@ import {
   AllyCombatantActivePreviewCard,
   AllyActionDrawer,
   EncounterActiveSidebar,
+  EncounterContextPrompt,
   OpponentCombatantActivePreviewCard,
   OpponentActionDrawer,
   useCloseCombatantActionDrawerOnActiveCombatantChange,
@@ -100,9 +101,14 @@ export type EncounterActivePlaySurfaceDeps = Pick<
   | 'spellsById'
   | 'capabilities'
   | 'viewerContext'
+  | 'encounterDirective'
+  | 'contextStripTitleTone'
 > & {
-  /** Optional contextual movement UI (e.g. stair traversal) — not part of the action deck. */
-  contextualMovementBar?: ReactNode
+  /**
+   * When set (non-null), replaces the default directive strip — e.g. stair traversal affordance.
+   * Omitted/`null` shows turn/movement guidance from {@link encounterDirective}.
+   */
+  contextualStripOverride?: ReactNode | null
 }
 
 function placementReasonMessage(reason: PlacementValidationReason): string {
@@ -175,7 +181,9 @@ export function useEncounterActivePlaySurface(
     spellsById,
     capabilities,
     viewerContext,
-    contextualMovementBar,
+    encounterDirective,
+    contextStripTitleTone,
+    contextualStripOverride,
   }: EncounterActivePlaySurfaceDeps,
   options?: UseEncounterActivePlaySurfaceOptions,
 ) {
@@ -871,6 +879,17 @@ export function useEncounterActivePlaySurface(
     [encounterState, spellsById, suppressSameSideHostile],
   )
 
+  /** Unified under-header strip: optional host override (e.g. stairs) or default turn/movement directive. */
+  const contextualStrip = useMemo(() => {
+    if (contextualStripOverride != null) return contextualStripOverride
+    return (
+      <EncounterContextPrompt
+        title={encounterDirective}
+        titleTone={contextStripTitleTone}
+      />
+    )
+  }, [contextualStripOverride, encounterDirective, contextStripTitleTone])
+
   if (!encounterState) {
     if (options?.setupPathWhenEmpty) return <Navigate to={options.setupPathWhenEmpty} replace />
     return null
@@ -928,7 +947,7 @@ export function useEncounterActivePlaySurface(
     <CombatPlayView
       {...playSurfaceHeaderOffset}
       activeHeader={activeHeader}
-      contextualMovementBar={contextualMovementBar}
+      contextualStrip={contextualStrip}
       gridHoverStatusMessage={gridHoverStatusMessage}
       gameOverModal={
         <EncounterGameOverModal

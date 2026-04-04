@@ -51,7 +51,6 @@ export type EncounterActiveHeaderProps = {
   monstersById: Record<string, Monster | undefined>
   turnResources: CombatantTurnResources | null
   baseMovementFt: number
-  directive: string
   endTurnEmphasis: EndTurnEmphasis
   /** When false, the Actions control is hidden (e.g. action and bonus action both spent). */
   canOpenActions: boolean
@@ -85,7 +84,6 @@ export function EncounterActiveHeader({
   monstersById,
   turnResources,
   baseMovementFt,
-  directive,
   endTurnEmphasis,
   canOpenActions,
   onOpenActions,
@@ -106,7 +104,6 @@ export function EncounterActiveHeader({
   const showSimulatorChrome = toolbarVariant === 'simulator'
   const move = turnResources?.movementRemaining ?? 0
   const headerRootRef = useRef<HTMLDivElement>(null)
-  const resourcesExhausted = !turnResources || (turnResources.actionAvailable === false && turnResources.bonusActionAvailable === false && turnResources.movementRemaining === 0)
   const actionBonusBadges = useMemo(() => {
     if (!turnResources || !activeCombatant) return null
     const { actionDefs, bonusDefs } = partitionCombatantActionBuckets(activeCombatant.actions)
@@ -293,19 +290,6 @@ export function EncounterActiveHeader({
             justifyContent: 'center',
           }}
         >
-          <Typography
-            variant="subtitle1"
-            sx={{
-              fontWeight: 700,
-              lineHeight: 1.35,
-              textAlign: { xs: 'left', md: 'right' },
-              color: resourcesExhausted
-                ? encounterUiStateTheme.header.chrome.directive.resourcesExhaustedTextColor
-                : 'inherit',
-            }}
-          >
-            {directive}
-          </Typography>
           <Stack
             direction="row"
             spacing={1}

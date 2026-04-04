@@ -829,6 +829,7 @@ export function useLocationEditWorkspaceModel({
           objectsByCellId: { ...prev.objectsByCellId, [localCellId]: nextObjs },
         };
       });
+      await patchFloorStairConnectionIdOnDefaultMap(campaignId, a, connectionId);
       await patchFloorStairConnectionIdOnDefaultMap(campaignId, b, connectionId);
     },
     [

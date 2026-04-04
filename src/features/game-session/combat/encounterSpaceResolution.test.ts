@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest'
 import type { LocationMapBase } from '@/shared/domain/locations/map/locationMap.types'
 
 import {
+  buildFallbackEncounterSpaceContainingCell,
   getFirstFloorLocationIdForBuilding,
   pickEncounterGridMap,
+  pickEncounterGridMapForSpace,
   resolveSimulatorMapHostLocationId,
 } from './encounterSpaceResolution'
 
@@ -35,6 +37,34 @@ describe('pickEncounterGridMap', () => {
     const a = mapStub({ id: 'x', kind: 'encounter-grid' })
     const b = mapStub({ id: 'y', kind: 'encounter-grid' })
     expect(pickEncounterGridMap([a, b])?.id).toBe('x')
+  })
+})
+
+describe('buildFallbackEncounterSpaceContainingCell', () => {
+  it('expands grid to include large combat cell coordinates', () => {
+    const space = buildFallbackEncounterSpaceContainingCell({
+      id: 'fb',
+      name: 'Dest',
+      locationId: 'floor-1',
+      combatCellId: 'c-12-14',
+    })
+    expect(space.width).toBe(13)
+    expect(space.height).toBe(15)
+    expect(space.cells.some((c) => c.id === 'c-12-14')).toBe(true)
+  })
+})
+
+describe('pickEncounterGridMapForSpace', () => {
+  it('prefers the encounter-grid map whose id matches the tactical space id', () => {
+    const first = mapStub({ id: 'map-a', kind: 'encounter-grid', isDefault: true })
+    const second = mapStub({ id: 'map-b', kind: 'encounter-grid', isDefault: false })
+    expect(pickEncounterGridMapForSpace([first, second], 'map-b')?.id).toBe('map-b')
+  })
+
+  it('falls back to default/first when space id does not match any map', () => {
+    const def = mapStub({ id: 'default-map', kind: 'encounter-grid', isDefault: true })
+    const other = mapStub({ id: 'other', kind: 'encounter-grid', isDefault: false })
+    expect(pickEncounterGridMapForSpace([other, def], 'unknown-space')?.id).toBe('default-map')
   })
 })
 
