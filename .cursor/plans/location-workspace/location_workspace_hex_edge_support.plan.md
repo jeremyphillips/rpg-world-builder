@@ -4,19 +4,19 @@ overview: Resolve the hex-edge ambiguity in the location editor. Audit current h
 todos:
   - id: audit-current-hex-edge-behavior
     content: Trace current hex edge storage, load, render, hit-testing, selection, and authoring behavior; identify where square-edge assumptions break hex visibility/editing
-    status: pending
+    status: completed
   - id: choose-product-path
-    content: Make an explicit decision — first-class hex edge support now, or constrained/guarded support until complete
-    status: pending
+    content: Document chosen option (A or B) with rationale before implementation; no coding until decision record is filled
+    status: completed
   - id: implement-supported-or-constrained-path
     content: Implement the chosen path cleanly so hex edge data is either visible/editable or explicitly constrained without silent disappearance
-    status: pending
+    status: completed
   - id: preserve-data-integrity
     content: Ensure existing stored hex edge data is preserved and surfaced safely; no DB migration or silent dropping
-    status: pending
+    status: completed
   - id: tests-and-docs
     content: Add focused tests and document the current hex edge support level and constraints
-    status: pending
+    status: completed
 isProject: true
 ---
 
@@ -24,7 +24,9 @@ isProject: true
 
 **Parent context:** The location workspace dirty/save architecture has been stabilized, persistable slice participation has been hardened, and normalization policy has been documented. This pass is **not** about dirty state; it is about a remaining map-editor/product integrity gap: **hex edges**.
 
-**Reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) (e.g. **Open issues §1 — Hex maps: no edge overlay**).
+**Reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) (**Open issues §1 — Hex maps: constrained boundary-edge support**).
+
+**Status:** **Done** (Option B — April 2026). Implementation: `computeHexEdgeConstraintPatch`, hex `skipEdgeTargets` erase, grid alert for stored edges, tests + doc update.
 
 ## Problem
 
@@ -43,28 +45,7 @@ because it creates the risk of **silent invisible authored data**.
 
 ## Objective
 
-Resolve hex edge behavior explicitly by choosing and implementing **one** of these product paths:
-
-### Option A — first-class hex edge support now
-
-Support hex edges as real editor entities:
-
-- visible overlays
-- correct geometry
-- hit-testing
-- selection/editing
-- authored data rendering parity where appropriate
-
-### Option B — explicit constrained support
-
-If full support is too large for this pass:
-
-- do **not** leave hex edge data silently invisible
-- surface existing stored hex edge data in a safe fallback way if feasible
-- prevent or gate unsupported hex edge authoring/editing flows
-- make current limitations explicit in editor behavior and docs
-
-Do **not** leave the editor in a half-supported state where hex edge data can exist but users cannot reliably see or manage it.
+This pass must explicitly choose **one** support level (**Option A** or **Option B** below), record that choice and rationale **before implementation**, then deliver that path completely enough that users are not left with ambiguous hex-edge behavior. Full definitions, required outcomes, and the acceptance gate live in **Required product decision** — do not treat Option A/B as separate informal summaries elsewhere in this document.
 
 ## Core principle
 
@@ -85,33 +66,76 @@ The editor must make one of these truths clear:
 - Do not conflate this with dirty/save architecture work
 - Prefer clarity and data integrity over partial hidden support
 
-## Required decision
+## Required product decision: choose one support level before implementation
 
-Before implementation, make and document an explicit decision between:
+This pass must explicitly choose **one** of the following outcomes and implement it completely enough that users are not left with ambiguous hex-edge behavior.
 
-### A. Support hex edges properly in this pass
+### Option A — first-class hex edge support now
 
-Choose this only if the geometry/rendering/interaction model can be implemented coherently now.
+Choose this only if the audit shows hex edges can be implemented as a coherent first-class geometry/editor feature in this pass.
 
-**Minimum required outcome:**
+**Required outcomes:**
 
-- visible hex edge overlays
-- correct edge hit-testing for hex cells
-- reliable selection/editing behavior
-- authored edge state is not silently lost or hidden
+- visible hex edge overlays for authored data
+- correct hex edge geometry model
+- reliable hit-testing for hover / selection / placement
+- selection and inspector/editing flows that work for hex edges
+- authored data rendering parity with square-edge behavior where appropriate
+- no silent invisible stored hex edge state
 
-### B. Constrain hex edges explicitly in this pass
+**Implementation expectation:**
 
-Choose this if full support is too large or too risky right now.
+- treat hex edges as a first-class hex geometry problem
+- centralize edge geometry / render / hit-test logic
+- do not solve this through square-edge exceptions or fragile per-component hacks
 
-**Minimum required outcome:**
+**Eligibility:** Only choose Option A if the pass can deliver a **user-trustworthy result end-to-end**.
 
-- users cannot create or rely on silently invisible hex edge state
-- existing stored hex edge data is surfaced somehow if technically feasible, or explicitly warned about
-- unsupported authoring flows are blocked/gated clearly
-- docs/comments/UI state make the limitation explicit
+### Option B — explicit constrained support
 
-Do not pick a vague middle ground.
+Choose this if full first-class hex edge support is too large, too risky, or too incomplete for this pass.
+
+**Required outcomes:**
+
+- no silent invisible hex edge data
+- existing stored hex edge data is surfaced safely if technically feasible, even if read-only or via fallback treatment
+- unsupported hex edge authoring/editing flows are blocked, gated, or clearly disabled
+- the editor makes the limitation explicit in behavior and docs
+- square-edge support remains intact
+
+**Implementation expectation:**
+
+- prefer honest constraints over ambiguous half-support
+- protect users from creating or relying on hex edge data that the editor cannot reliably render/manage
+
+### Decision rule
+
+Do **not** leave the pass in a mixed state where:
+
+- some hex edge data can exist
+- but users cannot reliably see, select, or manage it
+
+Before implementation, document which option is being chosen and why.
+
+### Decision record (required before implementation)
+
+Fill this **after** the audit (`audit-current-hex-edge-behavior`) and **before** `implement-supported-or-constrained-path`. No implementation work until this block is completed.
+
+| Field | Value |
+|-------|--------|
+| **Chosen option** | **B** — explicit constrained support |
+| **Rationale (audit findings)** | Full hex edge support requires hex boundary geometry, SVG overlay, and hit-testing beyond square `edgeEntriesToSegmentGeometrySquare` / `useSquareEdgeBoundaryPaint`. Current code already hides edge draw tools on hex and skips edge picking when `isHex`. Remaining gaps: stored `edgeEntries` invisible with no user messaging; erase could still remove edges via `resolveEraseTargetAtCell` square adjacency without visible feedback; edge selection could persist when switching grid to hex. Option B closes those gaps without a multi-week geometry project. |
+| **Date or PR link** | 2026-04 |
+
+### Acceptance gate for the chosen option
+
+The chosen option is only complete when **all** of the following are true:
+
+- users cannot end up with silently invisible authored hex edge data
+- the editor behavior is explicit and consistent with the chosen support level (A or B)
+- tests and docs reflect the chosen support boundary
+- existing stored data is preserved (no silent drop or corruption)
+- square edge behavior remains stable (overlay, hit-testing, authoring/editing)
 
 ## Implementation goals
 
@@ -141,7 +165,7 @@ Identify specifically:
 
 ### 2. Define the supported product contract
 
-Write down the intended editor behavior for hex maps after this pass.
+Write down the intended editor behavior for hex maps after this pass. **Must match** the recorded **Decision record** and the chosen option’s required outcomes.
 
 Examples:
 
@@ -154,7 +178,7 @@ This should be explicit enough that a contributor or QA pass can tell whether be
 
 ### 3. Implement the chosen path cleanly
 
-#### If choosing full support
+#### If choosing full support (Option A)
 
 Implement hex edge behavior as a first-class geometry problem:
 
@@ -165,7 +189,7 @@ Implement hex edge behavior as a first-class geometry problem:
 
 Do not solve hex edges as a fragile extension of square-edge assumptions.
 
-#### If choosing constrained support
+#### If choosing constrained support (Option B)
 
 Implement safe product constraints:
 
@@ -212,7 +236,8 @@ If the result is constrained support, make the limitation visible enough that fu
 ## Suggested deliverables
 
 - audit of current hex edge behavior
-- explicit product decision: full support now vs constrained support
+- **Decision record (filled)** — chosen option A or B with rationale
+- explicit product contract aligned with the decision record
 - implementation of chosen path
 - preservation of stored data integrity
 - focused tests
@@ -222,14 +247,14 @@ If the result is constrained support, make the limitation visible enough that fu
 
 Add focused tests that prove the chosen support level:
 
-### If supporting hex edges
+### If supporting hex edges (Option A)
 
 - hex edge overlay renders for authored data
 - hex edge hit-testing/selection works as intended
 - square edge behavior remains unchanged
 - stored hex edge data round-trips safely
 
-### If constraining hex edges
+### If constraining hex edges (Option B)
 
 - unsupported authoring is blocked or gated on hex maps
 - existing stored hex edge data is not silently invisible without explanation
@@ -237,19 +262,6 @@ Add focused tests that prove the chosen support level:
 - stored data is preserved and not corrupted
 
 Do not rely only on broad snapshot tests; add behavior-focused coverage.
-
-## Acceptance criteria
-
-This pass is complete when all of the following are true:
-
-- hex edge behavior is explicit, not ambiguous
-- users cannot end up with silently invisible authored hex edge data
-- the editor either:
-  - properly supports hex edge rendering/authoring
-  - or clearly constrains unsupported hex-edge behavior
-- existing stored data is preserved
-- square edge behavior remains stable
-- docs/tests reflect the chosen support boundary
 
 ## Non-goals
 

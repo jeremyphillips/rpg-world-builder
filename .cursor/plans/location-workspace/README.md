@@ -9,6 +9,6 @@ Related Cursor plans for the **location editor workspace** (dirty/save, authorin
 | [location_workspace_debounced_persistable_flush.plan.md](location_workspace_debounced_persistable_flush.plan.md) | Debounced persistable fields; flush-on-boundary before save |
 | [location_workspace_persistable_slice_participation.plan.md](location_workspace_persistable_slice_participation.plan.md) | Central map payload + `mapWorkspacePersistableTokenFromGridDraft`; cross-mode parity |
 | [location_workspace_normalization_policy.plan.md](location_workspace_normalization_policy.plan.md) | Explicit normalization policy for dirty vs save semantics |
-| [location_workspace_hex_edge_support.plan.md](location_workspace_hex_edge_support.plan.md) | **Child (planned):** hex edge support vs explicit constraints; no silent invisible authored data |
+| [location_workspace_hex_edge_support.plan.md](location_workspace_hex_edge_support.plan.md) | **Child (done):** Option B constrained hex edges — alert + erase guard + selection clear; decision record filled |
 
 **Canonical reference doc:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md).

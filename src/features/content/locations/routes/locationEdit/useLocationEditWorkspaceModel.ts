@@ -33,6 +33,7 @@ import {
   resolvePlacedKindToAction,
   applyEraseTargetToDraft,
   resolveEraseTargetAtCell,
+  computeHexEdgeConstraintPatch,
   useLocationMapEditorState,
 } from '@/features/content/locations/domain';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
@@ -611,6 +612,23 @@ export function useLocationEditWorkspaceModel({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [mapEditor.mode, mapEditor.setPathAnchorCellId]);
 
+  /** Hex maps do not support edge tools/selection; clear stale edge draw + selection (data preserved). */
+  useEffect(() => {
+    if (gridGeometry !== 'hex') return;
+    const draft = gridDraftRef.current;
+    const { draftPatch, clearActiveDrawEdge } = computeHexEdgeConstraintPatch(
+      gridGeometry,
+      draft.mapSelection,
+      mapEditor.activeDraw,
+    );
+    if (clearActiveDrawEdge) {
+      mapEditor.setActiveDraw(null);
+    }
+    if (draftPatch) {
+      setGridDraft((prev) => ({ ...prev, ...draftPatch }));
+    }
+  }, [gridGeometry, mapEditor.activeDraw, mapEditor.setActiveDraw]);
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Delete' && e.key !== 'Backspace') return;
@@ -822,13 +840,16 @@ export function useLocationEditWorkspaceModel({
     (cellId: string) => {
       const cols = Number(gridColumns);
       const rows = Number(gridRows);
+      const skipEdgeTargets = gridGeometry === 'hex';
       setGridDraft((prev) => {
-        const target = resolveEraseTargetAtCell(cellId, prev, cols, rows);
+        const target = resolveEraseTargetAtCell(cellId, prev, cols, rows, {
+          skipEdgeTargets,
+        });
         if (!target) return prev;
         return applyEraseTargetToDraft(prev, target, cellId, () => crypto.randomUUID());
       });
     },
-    [gridColumns, gridRows],
+    [gridColumns, gridRows, gridGeometry],
   );
 
   const handleRemovePlacedObject = useCallback(

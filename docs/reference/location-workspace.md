@@ -29,7 +29,7 @@ Location create and edit routes render inside a full-width workspace via `AuthMa
 **Square vs hex (as implemented today)**
 
 - **Paths:** cell-chain authoring and centerline geometry work for **both** square and hex (neighbor rules in `gridHelpers`).
-- **Edges:** boundary authoring, hit-testing, and segment geometry are **square-first** (`edgeEntriesToSegmentGeometrySquare`; hex edge boundaries are not modeled in shared geometry). Hex maps may still **store** `edgeEntries`, but overlay and tools are square-oriented; see **Open issues** for hex edges.
+- **Edges:** boundary authoring, hit-testing, and segment geometry are **square-first** (`edgeEntriesToSegmentGeometrySquare`; hex edge boundaries are not modeled in shared geometry). Hex maps may still **store** `edgeEntries`; the editor uses **constrained** hex behavior (no edge overlay/tools; info alert when stored edges exist). See **Open issues §1**.
 
 **Where things live**
 
@@ -361,11 +361,17 @@ Edges (walls, windows, doors) use a **boundary-paint** interaction model on **sq
 
 ## Open issues
 
-### 1. Hex maps: no edge overlay — edge palette entries hidden
+### 1. Hex maps: constrained boundary-edge support (Option B)
 
-Edge authoring (walls, windows, doors) is implemented for **square grids only**. The boundary-paint pointer model, edge geometry resolution, and SVG overlay all assume square cell boundaries. On **hex** geometry, edge palette items are filtered out so users cannot select tools that have no visual feedback. Existing edge data stored against a hex grid is preserved but not rendered.
+Edge authoring (walls, windows, doors) is implemented for **square grids only**. The boundary-paint pointer model, edge geometry resolution, and SVG overlay assume square cell boundaries. On **hex** geometry:
 
-**Direction:** hex edge authoring would require hex-specific boundary resolution (6 edges per cell with 3 orientations), hit-testing against hex edge geometry, and a hex edge SVG overlay. The `EdgeOrientation` type already includes placeholder values for hex (`'hex-a' | 'hex-b' | 'hex-c'`).
+- **Draw palette** — edge tools are hidden (`useLocationEditWorkspaceModel` filters `getGroupedDrawPaletteForScale` to paths only).
+- **Rendering / hit-testing** — `LocationGridAuthoringSection` does not render committed edges or edge pick geometry on hex; Select mode skips edge hits (`resolveSelectModeInteractiveTarget` when `isHex`).
+- **Stored data** — `edgeEntries` on a hex map are **preserved on save** but not shown or edited in the map. When any stored edges exist, an **info alert** above the grid explains that segments are kept but require a square grid to view or edit.
+- **Erase** — cell erase does **not** prioritize removing invisible edges on hex (`resolveEraseTargetAtCell` with `skipEdgeTargets`), so users cannot silently delete stored edge data without visible feedback.
+- **Stale UI** — switching to hex clears edge draw tool and edge/edge-run selection (`computeHexEdgeConstraintPatch`).
+
+**Future (first-class hex edges):** hex-specific boundary resolution (6 edges per cell), hit-testing, and a hex edge SVG overlay. The `EdgeOrientation` type includes placeholder values for hex (`'hex-a' | 'hex-b' | 'hex-c'`).
 
 ### 2. Canvas pan vs reliable clicks (place / draw path)
 

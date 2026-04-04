@@ -9,6 +9,7 @@ import {
   type SetStateAction,
 } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import { useTheme } from '@mui/material/styles';
@@ -891,6 +892,14 @@ export function LocationGridAuthoringSection({
         },
       }}
     >
+      {isHex && draft.edgeEntries.length > 0 ? (
+        <Alert severity="info" sx={{ mb: 1 }} variant="outlined">
+          This hex map has {draft.edgeEntries.length} stored edge segment
+          {draft.edgeEntries.length === 1 ? '' : 's'} (walls / windows / doors). Hex grids do not
+          show or edit boundary edges yet; data is kept when you save. Use a square grid to view or
+          change edges.
+        </Alert>
+      ) : null}
       <Box
         ref={gridContainerRef}
         sx={{

@@ -8,3 +8,4 @@ export * from './draw';
 export * from './erase';
 export * from './edge';
 export * from './select-mode';
+export * from './hex/hexMapEdgeConstraint.policy';

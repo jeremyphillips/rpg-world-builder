@@ -9,6 +9,25 @@ describe('resolveEraseTargetAtCell', () => {
   const cols = 4;
   const rows = 4;
 
+  it('skipEdgeTargets skips edge priority so hex maps do not silently erase stored edges', () => {
+    const a = '0,0';
+    const b = '1,0';
+    const edgeId = makeUndirectedSquareEdgeKey(a, b);
+    const draft = {
+      pathEntries: [],
+      edgeEntries: [{ edgeId, kind: 'wall' as const }],
+      objectsByCellId: { [a]: [{ id: 'o1' }] },
+      linkedLocationByCellId: {},
+    };
+    expect(
+      resolveEraseTargetAtCell(a, draft, cols, rows, { skipEdgeTargets: true }),
+    ).toEqual({
+      type: 'object',
+      cellId: a,
+      objectId: 'o1',
+    });
+  });
+
   it('prefers an edge entry when present on that cell boundary', () => {
     const a = '0,0';
     const b = '1,0';
