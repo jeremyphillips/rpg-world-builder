@@ -23,7 +23,7 @@ export function regionMetadataToFormValues(
   };
 }
 
-/** Aligns with prior submit behavior: trim; empty description → undefined. */
+/** Normalization for persisted region fields: trim name; empty description → undefined. */
 export function normalizeRegionNameForDraft(raw: string): string {
   const t = raw.trim();
   return t === '' ? LOCATION_MAP_DEFAULT_REGION_NAME : t;

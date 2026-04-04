@@ -388,7 +388,7 @@ function LocationMapStairEndpointInspectForm({
           <>
             <FormSelectField
               name="targetFloorId"
-              label="Target floor (draft)"
+              label="Target floor (unpaired)"
               options={targetOptions}
               placeholder="None"
               size="small"
@@ -414,7 +414,7 @@ function LocationMapStairEndpointInspectForm({
             <Typography variant="caption" color="text.secondary" component="div">
               {stairWorkspaceInspect.candidateTargetFloors.length === 0
                 ? 'Add another floor to this building to choose a target floor. You can still place stairs while drafting.'
-                : 'Optional draft hint when not using a paired connection below. Prefer pairing for a canonical link.'}
+                : 'Optional target when not using a paired connection below. Prefer pairing for a canonical link.'}
             </Typography>
           </>
         ) : (

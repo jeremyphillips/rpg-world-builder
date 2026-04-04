@@ -1,6 +1,6 @@
 ---
 name: Location workspace dirty state
-overview: Phases 1–4 complete; refactor A–B–C–**D** done (re-audit + stair `FormProvider` cleanup + migration inventory in docs). **Phase E next:** codify authoring guideline. Contributor detail in docs/reference/location-workspace.md.
+overview: Phases 1–4 complete; refactor A–B–C–**D**–**E** done (cleanup + **State ownership** in docs/reference/location-workspace.md). Contributor detail there.
 todos:
   - id: snapshot-helper
     content: Add workspacePersistableSnapshot (form + normalized map + building stairs) aligned with save
@@ -54,8 +54,8 @@ todos:
     content: "Phase D: re-audit nested inspectors; FormProvider for stairs; migration inventory in docs"
     status: completed
   - id: refactor-phaseE-cleanup-guideline
-    content: "Refactor follow-up E: remove transitional patterns; codify authoring guideline"
-    status: pending
+    content: "Phase E: cleanup stale submit-to-commit language/APIs; state-ownership doc + checklist in location-workspace.md"
+    status: completed
 isProject: true
 ---
 
@@ -416,37 +416,93 @@ Post–Phase A audit + Phase B: the only **submit-to-commit persistable** gap wa
 
 **Met for this codebase:** no persistable-only-local Submit path in campaign rail inspectors; stair pairing / stair endpoint use `FormProvider` and draft callbacks; inventory documented.
 
-### Phase E — remove transitional patterns and codify the standard
+### Phase E — remove transitional patterns and codify the standard (refinement)
 
-After the main inspectors are migrated, clean up any temporary compatibility logic.
+**Status: completed** (todo `refactor-phaseE-cleanup-guideline`). **Docs:** [`location-workspace.md`](docs/reference/location-workspace.md) **State ownership (authoring standard)**; **code:** region metadata `Box` wrapper (no fake `<form>` submit); adapter + stair label copy.
 
-**Implementation goals:**
+Phase D confirmed the old **submit-to-commit** persistable gap is gone and remaining inspector flows commit through **workspace draft ownership**. Phase E is **cleanup and standardization**, not another behavioral redesign.
 
-- Remove stale “nested submit-to-commit” assumptions.
-- Simplify panel APIs that existed only to support local commit workflows.
-- Add a lightweight authoring guideline for future workspace panels.
+#### Objective
 
-**Authoring guideline should state:**
+- Remove stale compatibility assumptions from the old nested submit-to-commit model
+- Simplify panel/component APIs that still reflect that model
+- Document the **canonical ownership rule** for future workspace authoring
 
-- Persistable field → workspace draft
-- Ephemeral panel UI → local state
-- Header dirty/save → workspace draft only
-- Validation and dirty are separate concerns
+#### Required outcomes
 
-**Acceptance criteria:**
+- No hidden persistable edits outside the canonical draft model (`LocationFormValues`, `gridDraft`, building stairs, etc.)
+- Panel APIs **do not imply** persistable changes are privately buffered until local Submit
+- Contributors have a **short, clear rule set** for workspace panel state
 
-- The workspace no longer has hidden persistable edits outside its canonical draft model.
-- New panel work has a clear standard to follow.
+#### Cleanup targets
 
-### Transitional note during migration
+Audit and remove or simplify where applicable:
 
-During the migration window, not every inspector may be converted at once. For any still-unmigrated inspector:
+- Stale **“Submit to commit”** terminology in code, props, comments, or docs
+- No-op form wrappers that existed only to preserve a submit shell (**largely addressed** in Phase D for stairs)
+- Props/callbacks whose only purpose was coordinating **local commit** workflows
+- Compatibility comments **no longer true** after Phases B–D
+- Misleading button labels implying persistable edits stay local until confirmed
+- Helper names that still reflect the old ownership model if they now operate on workspace draft directly
 
-- explicitly document that it still uses local commit semantics
-- add temporary protection only if needed to prevent silent loss
-- remove that protection once the inspector is migrated
+**Do not** remove useful RHF usage where it improves field handling; only remove the implication that **form submission** is the persistable commit boundary.
 
-**Important:** Treat such protections as temporary migration aids, not the target architecture.
+#### API simplification guidance
+
+Review panel APIs and simplify where the old local-commit model is no longer needed.
+
+**Preferred:** panel inputs read **draft-backed** values; persistable updates call **explicit draft helpers/actions**; local UI stays local.
+
+**Look for:** redundant “initial values + submit” shapes → draft-backed props; rename callbacks to **immediate / draft** updates; reduce indirection that existed only because local submit was the commit point.
+
+**Keep refactors modest** — avoid churn without clarity gain.
+
+#### Codify the authoring standard (document)
+
+Add an explicit guideline stating:
+
+| Rule | Summary |
+| ---- | -------- |
+| **Persistable field → workspace draft** | Any value included in save must **not** live only in local panel state |
+| **Ephemeral panel UI → local state** | Open/closed, hover/preview, non-persisting search/filter, temporary picker chrome |
+| **Header dirty/save → workspace draft only** | Dirty = draft vs persisted snapshot; save = current draft; **no** hidden child-local persistable state for save truth |
+| **Validation vs dirty** | Dirty = changed; saveable = allowed to persist; draft may be **dirty** while **invalid** |
+
+Expand each rule **just enough** to be actionable (see deliverable in [`location-workspace.md`](docs/reference/location-workspace.md)).
+
+#### Documentation expectations
+
+- Concise **state ownership** subsection
+- Short **when to use local state vs workspace draft** checklist
+- **One or two** concrete examples from current inspectors (e.g. region metadata adapter, stair `FormProvider`)
+- Migration history: **brief**, clearly marked **historical** if kept
+
+#### Scope constraints
+
+**Do:** remove stale assumptions; simplify APIs that encode the old commit model; document clearly; keep RHF where valuable.
+
+**Do not:** reopen completed migration work unnecessarily; redesign the full inspector system; replace working draft-backed flows just to remove forms; broaden into unrelated object-tool / workspace UX.
+
+#### Suggested deliverables
+
+- Cleanup pass: old submit-to-commit language / scaffolding
+- Simplified panel APIs where transitional commit assumptions remain
+- **Explicit state-ownership guideline** in workspace docs
+- Small **naming** cleanups so code reflects the new model
+
+#### Acceptance criteria (Phase E)
+
+- No hidden persistable edits outside the canonical draft model
+- Stale nested submit-to-commit assumptions **removed or clearly retired**
+- Panel APIs **do not imply** private buffering until local Submit
+- Documentation includes a **clear authoring standard** for future panels
+- A new inspector can follow: **persistable → workspace draft**; **ephemeral → local**; **header dirty/save trusts workspace draft only**
+
+### Transitional note during migration (historical)
+
+Phases B–D addressed the migration. Any **remaining** transitional protections should be **isolated** and retired in Phase E. Older notes in this plan about “unmigrated inspectors” refer to **pre–Phase D** state unless a new panel explicitly opts into a transitional path.
+
+**Important:** Target architecture is workspace-owned draft for all persistable authoring state.
 
 ### Success criteria for the overall refactor
 

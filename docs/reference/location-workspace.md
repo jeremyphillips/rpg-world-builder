@@ -149,34 +149,41 @@ When you introduce new data that must be **saved** from this editor:
 
 **Whitespace:** `toLocationInput` and map normalization may trim strings; user-visible spacing-only edits might not dirty the snapshot—document behavior if you add fields where that matters.
 
-### Nested rail forms (submit-to-commit)
+### State ownership (authoring standard)
 
-**Region metadata (Selection → region):** [`LocationMapRegionMetadataForm`](src/features/content/locations/components/workspace/LocationMapRegionMetadataForm.tsx) syncs **name** and **color** into `gridDraft.regionEntries` immediately; **description** syncs on a short debounce. Header **Save** / `isWorkspaceDirty` see those edits without a panel Submit. Helpers: [`regionMetadataDraftAdapter.ts`](src/features/content/locations/components/workspace/regionMetadataDraftAdapter.ts).
+Persistable authoring state for campaign edit lives in **workspace-owned** structures: `LocationFormValues` (RHF), `LocationGridDraftState` (`gridDraft`), building stair connections, and related route-held state. **Header dirty** (`isWorkspaceDirty`) and **Save** compare and persist that model — not private panel-local buffers.
 
-**Stair pairing / stair endpoint** ([`LocationMapSelectionInspectors.tsx`](src/features/content/locations/components/workspace/LocationMapSelectionInspectors.tsx)): nested **React Hook Form** via `FormProvider` + `useForm` (no HTML form submit). Persistable stair fields update `gridDraft` through **`onAfterChange`** or the **Link endpoints** action; ephemeral picker state stays in the nested form.
+| Rule | Meaning |
+| ---- | ------- |
+| **Persistable field → workspace draft** | Any value that must be included when the user saves must be reflected in the workspace draft (or the shared snapshot builder). It must **not** exist only in a panel’s `useState` or a nested form’s values until some secondary action. |
+| **Ephemeral panel UI → local state** | Open/closed sections, hover or preview, search/filter text that does not persist, async loading flags, picker chrome, stair floor/stair dropdown options while resolving — keep local. |
+| **Header dirty / Save → workspace draft only** | **Dirty** = current persistable snapshot ≠ baseline. **Save** = persist current workspace draft (subject to gates). No child panel should hold a second hidden persistable source required for “truth.” |
+| **Validation vs dirty** | **Dirty** means “changed from baseline.” **Saveable** means “allowed to persist” (see **Dirty vs saveable**). A draft can be dirty while invalid (e.g. bad grid dimensions); Save stays disabled until fixed. |
 
-### Phase D — migration inventory (nested inspectors)
+**When to use local state vs workspace draft (checklist)**
 
-| Slice | Persistable path | Status |
-| ----- | ---------------- | ------ |
-| Region metadata (Selection → region) | `onPatchRegion` → `gridDraft.regionEntries` (adapter) | **Migrated** (Phase B) |
-| Cell (link + objects) | Callbacks → `gridDraft` | Draft-sync; labels/objects update immediately |
-| Placed object (incl. stairs) | `onUpdateCellObjects` | Draft-sync |
-| Stair pairing / stair endpoint | `FormProvider`; `onAfterChange` / link button | Draft-sync; **Phase D** removed noop `AppForm` wrappers |
-| Path / edge / edge-run | Remove actions only | N/A |
-| Map paint rail | Handlers from route → `gridDraft` | Draft-sync |
+- **Workspace draft / form / snapshot:** anything that should appear in `buildCampaignWorkspacePersistableParts` / `serializeLocationWorkspacePersistableSnapshot` or `handleCampaignSubmit` output — including map cells, paths, edges, regions, placed objects, location fields, building stairs.
+- **Local state only:** UI that would be wrong to save (tool mode, selection, zoom, rail tab, transient modal fields) or derived UI lists (e.g. stair options fetched for a picked floor).
 
-**Phase C** header: **dirty** vs **saveable** — see **Dirty vs saveable (campaign header)**. New rail panels should follow the Phase A/B ownership rule and extend [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) when adding persistable state.
+**Concrete examples (current inspectors)**
 
-### Workspace draft ownership (Phase A)
+1. **Region metadata (Selection → region):** [`LocationMapRegionMetadataForm`](src/features/content/locations/components/workspace/LocationMapRegionMetadataForm.tsx) uses RHF for field UX; **`onPatchRegion`** writes through [`regionMetadataDraftAdapter.ts`](src/features/content/locations/components/workspace/regionMetadataDraftAdapter.ts) into **`gridDraft.regionEntries`** as the user edits (description debounced). No separate “apply” step for persistable data.
+2. **Stair pairing / stair endpoint:** [`LocationMapSelectionInspectors.tsx`](src/features/content/locations/components/workspace/LocationMapSelectionInspectors.tsx) uses **`FormProvider` + `useForm`** for controlled fields and **`onAfterChange`** / **Link endpoints** to update **`gridDraft`** (e.g. `onUpdateCellObjects`). RHF handles inputs; **persistable** updates are immediate draft writes, not a nested HTML form submit to the workspace.
 
-**Target rule (refactor follow-up):** anything that affects **saved** location or map data should live in workspace-owned draft state (`LocationFormValues`, `gridDraft`, building `stairConnections`, or system patch document) — not only in nested `AppForm` local state. **Ephemeral** UI (tool mode, selection chrome, zoom/pan, rail open, async picker loading) stays component-local.
+**Rails using RHF:** Nested `FormProvider` is fine for validation and controlled fields. The rule is that **persistable** values must not be gated on `handleSubmit` / panel Submit — they flow into **`gridDraft` / location form / stairs** through explicit callbacks or subscriptions.
 
-**Canonical sources** for the campaign persistable snapshot: see **Dirty state and Save (campaign edit)** and `buildCampaignWorkspacePersistableParts` in `routes/locationEdit/workspacePersistableSnapshot.ts`.
+#### Historical context (migration Phases B–D)
 
-**Phase B (reference inspector):** region metadata (above) uses [`regionMetadataDraftAdapter.ts`](src/features/content/locations/components/workspace/regionMetadataDraftAdapter.ts) for read/write normalization.
+The nested **submit-to-commit** persistable gap (region metadata only) was removed in Phase B; Phase D re-audited Selection / map rails and removed noop `AppForm` wrappers from stair inspectors in favor of `FormProvider`. Inventory for that migration:
 
-**Phase D:** re-audit complete — all listed Selection / map rail slices are draft-backed or N/A; see **Phase D — migration inventory** above. Plan: `.cursor/plans/location_workspace_dirty_state_4d54eedc.plan.md`.
+| Slice | Persistable path | Notes |
+| ----- | ---------------- | ----- |
+| Region metadata | `onPatchRegion` → `gridDraft.regionEntries` | Adapter normalization |
+| Cell / objects / stairs | Callbacks → `gridDraft` | |
+| Stair pairing / endpoint | `FormProvider` + draft callbacks | Replaces former noop form shells |
+| Path / edge / paint rail | Route handlers → `gridDraft` or remove-only | |
+
+Plan archive: `.cursor/plans/location_workspace_dirty_state_4d54eedc.plan.md`.
 
 ---
 
@@ -359,6 +366,6 @@ Both hooks are used at the route level; derived values are passed down to canvas
 7. **Select mode / region hover:** resolver and grid chrome live under `domain/mapEditor/select-mode/` (`resolveSelectModeInteractiveTarget`, `buildSelectModeInteractiveTargetInput`, `resolveSelectModeRegionOrCellSelection`, `refineSelectModeClickAfterRegionDrill`, `locationMapSelectionHitTest`) plus `mapGridCellVisualState.ts`. See **Location map styling → Select mode** and **Open issues §4** before changing hover behavior.
 8. **Persistable dirty snapshot:** when adding new state that is **saved** from this editor but not part of `LocationFormValues` or `gridDraft` (e.g. parallel `useState` merged in `handleCampaignSubmit`), extend **`buildCampaignWorkspacePersistableParts`** (shared by save + **`serializeLocationWorkspacePersistableSnapshot`**) and baseline updates in **`useLocationMapHydration`** / **`useLocationEditSaveActions`**. Tests: `workspacePersistableSnapshot.test.ts`.
 9. **System location edit:** dirty uses **`isSystemLocationWorkspaceDirty`** (`patchDriver.isDirty()` OR **`isGridDraftDirty`**), not the campaign snapshot — see **Dirty state — system location patch** above. Tests: `systemLocationWorkspaceDirty.test.ts`.
-10. **Workspace draft ownership:** persistable rail edits should sync into **`gridDraft` / form / stairs** (see **Workspace draft ownership (Phase A)**). Phase B+ migrates nested submit-to-commit panels; plan: `.cursor/plans/location_workspace_dirty_state_4d54eedc.plan.md`.
+10. **State ownership:** persistable rail edits must live in **`gridDraft` / location form / stairs** (see **State ownership (authoring standard)**). Plan: `.cursor/plans/location_workspace_dirty_state_4d54eedc.plan.md`.
 
 For domain, map policy, transitions, grid geometry policy, and hex rendering math, see [locations.md](./locations.md) (section *Pointers for the next agent*).

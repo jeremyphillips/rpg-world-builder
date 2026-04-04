@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { FormProvider, useForm, useWatch, type UseFormReset } from 'react-hook-form';
 
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
@@ -29,13 +30,13 @@ type LocationMapRegionMetadataFormProps = {
   /** Writes persistable fields into workspace `gridDraft.regionEntries` as the user edits. */
   onPatchRegion: (patch: RegionMetadataPersistablePatch) => void;
   formId?: string;
-  /** When true (default), explains draft vs header Save. */
+  /** When true (default), explains that edits apply to the workspace map draft and header Save persists. */
   showPersistHint?: boolean;
 };
 
 /**
- * Name / description / colorKey for authored map regions. Persistable fields sync into workspace draft
- * (no panel Submit required for dirty/header Save).
+ * Name / description / colorKey for authored map regions. Persistable fields sync into workspace
+ * `gridDraft` as the user edits; header Save persists the location and map.
  */
 export function LocationMapRegionMetadataForm({
   region,
@@ -83,13 +84,7 @@ export function LocationMapRegionMetadataForm({
 
   return (
     <FormProvider {...methods}>
-      <form
-        id={formId}
-        onSubmit={(e) => {
-          e.preventDefault();
-        }}
-        noValidate
-      >
+      <Box id={formId} component="div">
         <Stack spacing={2}>
           {showPersistHint ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
@@ -120,7 +115,7 @@ export function LocationMapRegionMetadataForm({
             onAfterChange={patchColor}
           />
         </Stack>
-      </form>
+      </Box>
     </FormProvider>
   );
 }
