@@ -48,7 +48,7 @@ export function isAreaGridCombatAction(
   return isAreaGridAction(action, selectedCasterOptions)
 }
 
-/** True when the action needs a grid object id (`EncounterSpace.gridObjects` / legacy `obstacles`) for resolve. */
+/** True when the action needs a grid object id (`EncounterSpace.gridObjects`) for resolve. */
 export function actionRequiresObjectAnchorForResolve(
   action: CombatActionDefinition | undefined | null,
   selectedCasterOptions?: Record<string, string>,
@@ -124,7 +124,7 @@ export type ActionResolutionReadinessContext = {
   selectedCasterOptions: Record<string, string>
   /** Grid cell when the action requires single-cell map placement. */
   selectedSingleCellPlacementCellId?: string | null
-  /** Grid object id from {@link EncounterSpace.gridObjects} (or legacy `obstacles`) when attached emanation `anchorMode === 'object'`. */
+  /** Grid object id from {@link EncounterSpace.gridObjects} when attached emanation `anchorMode === 'object'`. */
   selectedObjectAnchorId?: string | null
   encounterState: EncounterState | null | undefined
   activeCombatant: CombatantInstance | null | undefined

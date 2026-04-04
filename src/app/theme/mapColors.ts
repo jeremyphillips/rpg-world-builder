@@ -31,7 +31,12 @@ export function getMapSwatchColor(key: LocationMapSwatchColorKey): string {
   return mapSwatchColors[key];
 }
 
-/** Resolved swatch hex for cell-fill metadata (optional `swatchColor` overrides theme key). */
+/**
+ * Resolved swatch hex for cell-fill metadata (optional `swatchColor` overrides theme key).
+ *
+ * @remarks Fill **facets** (`category`, `family`, `biome`, …) are ignored here on purpose — color
+ * remains driven by `swatchColorKey` until a deliberate design maps facets → palette.
+ */
 export function resolveCellFillSwatchColor(meta: LocationCellFillKindMeta): string {
   return meta.swatchColor ?? getMapSwatchColor(meta.swatchColorKey);
 }

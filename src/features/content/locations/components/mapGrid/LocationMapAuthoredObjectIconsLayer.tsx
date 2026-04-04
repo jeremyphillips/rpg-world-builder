@@ -1,8 +1,10 @@
-import { createElement } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 
-import { getLocationMapObjectKindIcon } from '@/features/content/locations/domain';
+import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
+import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/mapPresentation/PlacedObjectCellVisualDisplay';
+import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/mapPresentation/resolvePlacedObjectCellVisual';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 import { squareCellCenterPx } from '@/shared/domain/grid/squareGridOverlayGeometry';
 
@@ -18,31 +20,76 @@ function groupByAuthorCellId(
   return m;
 }
 
+export type LocationMapAuthoredObjectIconsCellInlineProps = {
+  /** Items for a single cell (same `combatCellId` / `authorCellId`). */
+  items: readonly LocationMapAuthoredObjectRenderItem[];
+  cellPx: number;
+  mapUi: LocationMapUiResolvedStyles;
+};
+
+/**
+ * Same glyphs as {@link LocationMapAuthoredObjectIconsLayer}, but laid out in normal flow for use
+ * inside a flex-centered grid cell (avoids global stacking-context issues vs tactical layers).
+ */
+export function LocationMapAuthoredObjectIconsCellInline({
+  items,
+  cellPx,
+  mapUi,
+}: LocationMapAuthoredObjectIconsCellInlineProps) {
+  if (items.length === 0) return null;
+  const authorCellId = items[0]!.authorCellId;
+  return (
+    <Stack
+      direction="row"
+      flexWrap="wrap"
+      justifyContent="center"
+      alignItems="center"
+      gap={0.25}
+      sx={{ lineHeight: 0, maxWidth: cellPx }}
+    >
+      {items.map((o) => {
+        const visual = resolvePlacedObjectCellVisualFromRenderItem(o);
+        return (
+          <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
+            <Box
+              component="span"
+              data-map-object-id={o.id}
+              data-map-object-cell-id={authorCellId}
+              sx={{
+                display: 'inline-flex',
+                lineHeight: 0,
+                pointerEvents: 'auto',
+                cursor: 'default',
+              }}
+            >
+              <PlacedObjectCellVisualDisplay visual={visual} variant="overlay" mapUi={mapUi} />
+            </Box>
+          </Tooltip>
+        );
+      })}
+    </Stack>
+  );
+}
+
 export type LocationMapAuthoredObjectIconsLayerProps = {
   items: readonly LocationMapAuthoredObjectRenderItem[];
   cellPx: number;
   gapPx: number;
+  mapUi: LocationMapUiResolvedStyles;
 };
-
-const ICON_FONT_PX = 22;
 
 /**
  * Cell-anchored authored object icons in grid-local pixels. Uses {@link squareCellCenterPx} with **author** cell ids (`x,y`).
- * Sits above path/edge SVG within the authored base-map stack; below tactical cell chrome in combat.
+ * Same icon/label resolution as tactical grid (`resolvePlacedObjectCellVisualFromRenderItem`).
  */
 export function LocationMapAuthoredObjectIconsLayer({
   items,
   cellPx,
   gapPx,
+  mapUi,
 }: LocationMapAuthoredObjectIconsLayerProps) {
   if (items.length === 0) return null;
   const groups = groupByAuthorCellId(items);
-  const iconSx = {
-    fontSize: ICON_FONT_PX,
-    width: ICON_FONT_PX,
-    height: ICON_FONT_PX,
-    display: 'block' as const,
-  };
   return (
     <Box
       sx={{
@@ -75,21 +122,26 @@ export function LocationMapAuthoredObjectIconsLayer({
               gap={0.25}
               sx={{ lineHeight: 0, maxWidth: cellPx }}
             >
-              {cellItems.map((o) => (
-                <Box
-                  key={o.id}
-                  component="span"
-                  data-map-object-id={o.id}
-                  data-map-object-cell-id={authorCellId}
-                  sx={{ display: 'inline-flex', lineHeight: 0 }}
-                >
-                  {createElement(getLocationMapObjectKindIcon(o.kind), {
-                    sx: iconSx,
-                    color: 'action',
-                    'aria-hidden': true,
-                  })}
-                </Box>
-              ))}
+              {cellItems.map((o) => {
+                const visual = resolvePlacedObjectCellVisualFromRenderItem(o);
+                return (
+                  <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
+                    <Box
+                      component="span"
+                      data-map-object-id={o.id}
+                      data-map-object-cell-id={authorCellId}
+                      sx={{
+                        display: 'inline-flex',
+                        lineHeight: 0,
+                        pointerEvents: 'auto',
+                        cursor: 'default',
+                      }}
+                    >
+                      <PlacedObjectCellVisualDisplay visual={visual} variant="overlay" mapUi={mapUi} />
+                    </Box>
+                  </Tooltip>
+                );
+              })}
             </Stack>
           </Box>
         );

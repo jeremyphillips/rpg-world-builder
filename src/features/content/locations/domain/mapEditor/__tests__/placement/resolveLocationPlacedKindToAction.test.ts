@@ -46,21 +46,23 @@ describe('resolveLocationPlacedKindToAction', () => {
     });
   });
 
-  it('stairs and treasure on floor map to persisted kinds', () => {
+  it('stairs and treasure on floor map to persisted kinds with authoredPlaceKindId', () => {
     expect(resolveLocationPlacedKindToAction('stairs', 'floor')).toEqual({
       kind: 'place-object',
       mapObjectKind: 'stairs',
+      authoredPlaceKindId: 'stairs',
     });
     expect(resolveLocationPlacedKindToAction('treasure', 'floor')).toEqual({
       kind: 'place-object',
       mapObjectKind: 'treasure',
+      authoredPlaceKindId: 'treasure',
     });
   });
 
-  it('table on floor maps to obstacle (authoredPlaceKindId carries table)', () => {
+  it('table on floor maps to persisted table with authoredPlaceKindId', () => {
     expect(resolveLocationPlacedKindToAction('table', 'floor')).toEqual({
       kind: 'place-object',
-      mapObjectKind: 'obstacle',
+      mapObjectKind: 'table',
       authoredPlaceKindId: 'table',
     });
   });

@@ -81,8 +81,8 @@ export type LocationMapPathAuthoringEntry = {
 };
 
 /**
- * One authored feature on a shared cell boundary. `edgeId` is the canonical
- * undirected key (see `makeUndirectedSquareEdgeKey` in grid edge helpers).
+ * One authored feature on a cell boundary segment. `edgeId` is canonical:
+ * interior `between:cellA|cellB`, or outer map edge `perimeter:cellId|N|E|S|W`.
  */
 export type LocationMapEdgeAuthoringEntry = {
   edgeId: string;

@@ -95,6 +95,7 @@ export function LocationEditorMapCanvasColumn({
           pan={pan}
           panHandlers={panHandlers}
           isDragging={isDragging}
+          panCursor={mode === 'select' ? 'default' : 'grab'}
           wheelContainerRef={wheelContainerRef}
           zoomControlProps={zoomControlProps}
         >

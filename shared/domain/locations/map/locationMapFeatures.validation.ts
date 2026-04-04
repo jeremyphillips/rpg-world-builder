@@ -2,6 +2,11 @@
  * Structural validation for map-level path entries and edge entries.
  */
 import { parseGridCellId } from '../../grid/gridCellIds';
+import {
+  neighborSquareCellId,
+  parseSquareEdgeId,
+  type SquareCellSide,
+} from '../../grid/gridEdgeIds';
 import type { GridGeometryId } from '../../grid/gridGeometry';
 import { getNeighborPoints } from '../../grid/gridHelpers';
 import {
@@ -43,6 +48,15 @@ function cellInBounds(cellId: string, width: number, height: number): boolean {
   const p = parseGridCellId(cellId);
   if (!p) return false;
   return p.x >= 0 && p.y >= 0 && p.x < width && p.y < height;
+}
+
+function neighborExistsOnSide(
+  cellId: string,
+  side: SquareCellSide,
+  width: number,
+  height: number,
+): boolean {
+  return neighborSquareCellId(cellId, side, width, height) !== null;
 }
 
 export function validatePathEntriesStructure(
@@ -127,8 +141,6 @@ export function validatePathEntriesStructure(
   return errors;
 }
 
-const BETWEEN_EDGE = /^between:([^|]+)\|([^|]+)$/;
-
 export function validateEdgeEntriesStructure(
   edgeEntries: unknown,
   width: number,
@@ -169,27 +181,44 @@ export function validateEdgeEntriesStructure(
     } else {
       seenEdgeIds.add(eid);
     }
-    const m = BETWEEN_EDGE.exec(eid);
-    if (!m) {
+    const parsed = parseSquareEdgeId(eid);
+    if (!parsed) {
       errors.push({
         path: `${prefix}.edgeId`,
         code: 'INVALID',
-        message: 'edgeId must match between:cellA|cellB',
+        message: 'edgeId must be a valid square edge id (between:cellA|cellB or perimeter:cellId|side)',
       });
       continue;
     }
-    const ca = m[1].trim();
-    const cb = m[2].trim();
-    if (
-      !cellInBounds(ca, width, height) ||
-      !cellInBounds(cb, width, height) ||
-      !isOrthogonalAdjacentSquare(ca, cb)
-    ) {
-      errors.push({
-        path: `${prefix}.edgeId`,
-        code: 'INVALID',
-        message: 'edgeId must reference two orthogonally adjacent in-bounds cells',
-      });
+    if (parsed.kind === 'between') {
+      const ca = parsed.cellA;
+      const cb = parsed.cellB;
+      if (
+        !cellInBounds(ca, width, height) ||
+        !cellInBounds(cb, width, height) ||
+        !isOrthogonalAdjacentSquare(ca, cb)
+      ) {
+        errors.push({
+          path: `${prefix}.edgeId`,
+          code: 'INVALID',
+          message: 'edgeId must reference two orthogonally adjacent in-bounds cells',
+        });
+      }
+    } else {
+      const cid = parsed.cellId;
+      if (!cellInBounds(cid, width, height)) {
+        errors.push({
+          path: `${prefix}.edgeId`,
+          code: 'INVALID',
+          message: 'perimeter edgeId must reference an in-bounds cell',
+        });
+      } else if (neighborExistsOnSide(cid, parsed.side, width, height)) {
+        errors.push({
+          path: `${prefix}.edgeId`,
+          code: 'INVALID',
+          message: 'perimeter edgeId must use a side on the outer map boundary (no neighbor)',
+        });
+      }
     }
   }
   return errors;

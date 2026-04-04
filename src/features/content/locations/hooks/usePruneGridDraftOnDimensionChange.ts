@@ -7,7 +7,7 @@ import {
 } from '@/features/content/locations/domain/mapAuthoring/gridLayoutDraft';
 import type { LocationGridDraftState } from '@/features/content/locations/components/locationGridDraft.types';
 import { selectedCellIdForMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
-import { BETWEEN_EDGE_ID_RE } from '@/features/content/locations/components/squareGridMapOverlayGeometry';
+import { isSquareEdgeIdInBoundsForGrid } from '@/shared/domain/grid/gridEdgeIds';
 
 export function usePruneGridDraftOnDimensionChange(
   validPreview: boolean,
@@ -31,11 +31,9 @@ export function usePruneGridDraftOnDimensionChange(
       const prunedPaths = prev.pathEntries.filter((pe) =>
         pe.cellIds.every((cid) => cellInBounds(cid.trim())),
       );
-      const prunedEdges = prev.edgeEntries.filter((e) => {
-        const m = BETWEEN_EDGE_ID_RE.exec(e.edgeId);
-        if (!m) return false;
-        return cellInBounds(m[1]) && cellInBounds(m[2]);
-      });
+      const prunedEdges = prev.edgeEntries.filter((e) =>
+        isSquareEdgeIdInBoundsForGrid(e.edgeId, cols, rows),
+      );
 
       let nextMapSelection = prev.mapSelection;
       const ms = prev.mapSelection;

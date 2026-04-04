@@ -1,34 +1,19 @@
 /**
- * Semantic icon tokens for location map presentation. UI maps these to MUI `SvgIcon`
- * components — this module does not reference React or MUI.
+ * Re-exports icon **name** ids and unions. The canonical owner of object/scale glyph vocabulary is
+ * the MUI component maps in `mapPresentation/locationMapIconNameMap.tsx` (keys are derived, not
+ * duplicated here).
+ *
+ * Cell **fills** use swatch colors only (`LOCATION_CELL_FILL_KIND_META`); they do not participate
+ * in these icon namespaces.
  */
 
-export const LOCATION_MAP_ICON_NAME_IDS = [
-  // Cell fill kinds (terrain / surface)
-  'mountain',
-  'plains',
-  'forest_light',
-  'forest_heavy',
-  'swamp',
-  'desert',
-  'water',
-  'stone_floor',
-  // Map scale affordances (linked location / marker by scale)
-  'map_world',
-  'map_region',
-  'map_subregion',
-  'map_city',
-  'map_district',
-  'map_site',
-  'map_building',
-  'map_floor',
-  'map_room',
-  // Persisted cell object kinds
-  'marker',
-  'obstacle',
-  'treasure',
-  'door',
-  'stairs',
-] as const;
+export type {
+  LocationMapGlyphIconName,
+  LocationMapObjectIconName,
+  LocationMapScaleIconName,
+} from '../mapPresentation/locationMapIconNameMap';
 
-export type LocationMapIconName = (typeof LOCATION_MAP_ICON_NAME_IDS)[number];
+export {
+  LOCATION_MAP_OBJECT_ICON_NAME_IDS,
+  LOCATION_MAP_SCALE_ICON_NAME_IDS,
+} from '../mapPresentation/locationMapIconNameMap';

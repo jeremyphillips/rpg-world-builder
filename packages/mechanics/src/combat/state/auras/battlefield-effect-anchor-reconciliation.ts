@@ -19,7 +19,7 @@ import type { BattlefieldEffectInstance, EncounterState } from '../types'
  * removed, object id gone), the battlefield effect **ends** — we do not leave a stale origin or
  * “suspended” ghost row.
  *
- * Call after mutations that can move or remove anchor targets: placements, obstacles, or turn boundaries.
+ * Call after mutations that can move or remove anchor targets: placements, grid objects, or turn boundaries.
  *
  * Ends with {@link reconcileStealthAfterMovementOrEnvironmentChange} after zone projection so
  * placement/aura-driven environment changes update hidden state consistently.
@@ -96,15 +96,4 @@ export function moveGridObjectInEncounterState(
   const nextSpace = moveGridObjectToCell(state.space, objectId, cellId)
   if (!nextSpace) return state
   return reconcileBattlefieldEffectAnchors({ ...state, space: nextSpace })
-}
-
-/**
- * @deprecated Use {@link moveGridObjectInEncounterState}.
- */
-export function moveGridObstacleInEncounterState(
-  state: EncounterState,
-  obstacleId: string,
-  cellId: string,
-): EncounterState {
-  return moveGridObjectInEncounterState(state, obstacleId, cellId)
 }

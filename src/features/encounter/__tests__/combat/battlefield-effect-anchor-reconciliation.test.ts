@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/creation/createSquareGridSpace'
+import { buildGridObjectFromAuthoredPlacedObject } from '@/features/mechanics/domain/combat/space/gridObject/gridObject.fromAuthored'
 import { placeCombatant } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
-import type { GridObstacle } from '@/features/mechanics/domain/combat/space/space.types'
 
 import { resolveCombatAction } from '@/features/mechanics/domain/combat/resolution'
 import {
   reconcileBattlefieldEffectAnchors,
-  moveGridObstacleInEncounterState,
+  moveGridObjectInEncounterState,
 } from '@/features/mechanics/domain/combat/state/auras/battlefield-effect-anchor-reconciliation'
 import { resolveBattlefieldEffectOriginCellId } from '@/features/mechanics/domain/combat/state/battlefield/battlefield-effect-anchor'
 import { createEncounterState } from '@/features/mechanics/domain/combat/state/runtime'
@@ -16,20 +16,18 @@ import type { BattlefieldEffectInstance } from '@/features/mechanics/domain/comb
 import { createCombatant } from '@/features/mechanics/domain/combat/tests/action-resolution.test-helpers'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 
-function treeObstacle(id: string, cellId: string): GridObstacle {
-  return {
+function authoredGridObject(id: string, cellId: string) {
+  return buildGridObjectFromAuthoredPlacedObject({
     id,
-    kind: 'tree',
     cellId,
-    blocksLineOfSight: true,
-    blocksMovement: true,
-  }
+    authoredPlaceKindId: 'tree',
+  })
 }
 
 describe('reconcileBattlefieldEffectAnchors', () => {
   it('refreshes object anchor snapshot when the obstacle moves', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 10, rows: 10 })
-    const withObs = { ...space, obstacles: [treeObstacle('obs-1', 'c-2-2')] }
+    const withObs = { ...space, gridObjects: [authoredGridObject('obs-1', 'c-2-2')] }
 
     const base = createEncounterState(
       [
@@ -56,7 +54,7 @@ describe('reconcileBattlefieldEffectAnchors', () => {
 
     const state: typeof base = { ...base, attachedAuraInstances: [aura] }
 
-    const next = moveGridObstacleInEncounterState(state, 'obs-1', 'c-5-5')
+    const next = moveGridObjectInEncounterState(state, 'obs-1', 'c-5-5')
     const a = next.attachedAuraInstances?.[0]
     expect(a?.anchor.kind).toBe('object')
     if (a?.anchor.kind !== 'object') return
@@ -66,7 +64,7 @@ describe('reconcileBattlefieldEffectAnchors', () => {
 
   it('removes object-anchored spell aura and drops concentration when the obstacle is gone', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
-    const withObs = { ...space, obstacles: [treeObstacle('obs-x', 'c-1-1')] }
+    const withObs = { ...space, gridObjects: [authoredGridObject('obs-x', 'c-1-1')] }
 
     const wiz = createCombatant({
       instanceId: 'wiz',
@@ -106,7 +104,7 @@ describe('reconcileBattlefieldEffectAnchors', () => {
       },
     }
 
-    const noObstacle = { ...state, space: { ...state.space!, obstacles: [] } }
+    const noObstacle = { ...state, space: { ...state.space!, gridObjects: [] } }
     const next = reconcileBattlefieldEffectAnchors(noObstacle)
 
     expect(next.attachedAuraInstances?.length ?? 0).toBe(0)
@@ -199,7 +197,7 @@ describe('reconcileBattlefieldEffectAnchors', () => {
 describe('resolveBattlefieldEffectOriginCellId — object anchor', () => {
   it('prefers live obstacle cell over stale snapshot', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 8, rows: 8 })
-    const withObs = { ...space, obstacles: [treeObstacle('o1', 'c-5-5')] }
+    const withObs = { ...space, gridObjects: [authoredGridObject('o1', 'c-5-5')] }
 
     const origin = resolveBattlefieldEffectOriginCellId(
       withObs,
@@ -229,8 +227,8 @@ describe('object-anchored emanation via resolveCombatAction + obstacle move', ()
     })
 
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 10, rows: 10 })
-    const pillar = treeObstacle('obj-anchor-test', 'c-2-2')
-    const withObs = { ...space, obstacles: [pillar] }
+    const anchored = authoredGridObject('obj-anchor-test', 'c-2-2')
+    const withObs = { ...space, gridObjects: [anchored] }
 
     const state = createEncounterState(
       [
@@ -268,7 +266,7 @@ describe('object-anchored emanation via resolveCombatAction + obstacle move', ()
       snapshotCellId: 'c-2-2',
     })
 
-    const moved = moveGridObstacleInEncounterState(resolved, 'obj-anchor-test', 'c-7-7')
+    const moved = moveGridObjectInEncounterState(resolved, 'obj-anchor-test', 'c-7-7')
     const aura2 = moved.attachedAuraInstances?.[0]
     expect(aura2?.anchor.kind).toBe('object')
     if (aura2?.anchor.kind !== 'object') return

@@ -1,20 +1,20 @@
 /**
  * Pure helpers for edge-boundary authoring on square grids.
  *
- * Edges (walls, windows, doors) live on shared cell boundaries, not through
- * cell centers. This module provides:
- * - pointer-to-edge resolution (which boundary is nearest?)
- * - stroke application with replace/no-op rules
+ * Edges (walls, windows, doors) live on cell boundary segments:
+ * - **Interior**: shared boundary between two adjacent cells (`between:cellA|cellB`).
+ * - **Perimeter**: outer map boundary where a cell has no neighbor (`perimeter:cellId|side`).
+ *
+ * This module provides pointer-to-edge resolution, stroke application, and adjacency for runs.
  */
 import { makeGridCellId, parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import {
   edgeKeyFromCellAndSide,
+  parseSquareEdgeId,
   type SquareCellSide,
 } from '@/shared/domain/grid/gridEdgeIds';
 import type { LocationMapEdgeAuthoringEntry } from '@/shared/domain/locations';
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
-
-const BETWEEN_RE = /^between:([^|]+)\|([^|]+)$/;
 
 export type ResolvedEdgeTarget = {
   cellId: string;
@@ -47,10 +47,9 @@ export function resolveNearestCellEdgeSide(
  * From a pointer position relative to the grid container origin, resolves the
  * canonical edge target (cell boundary) that the pointer is nearest to.
  *
- * Handles three zones:
- * - **In-cell**: pointer inside a cell rectangle; delegates to nearest side.
- * - **In gap**: pointer in the gutter between cells; directly identifies the shared edge.
- * - **Out of bounds / grid border with no neighbor**: returns `null`.
+ * Handles:
+ * - **In-cell**: pointer inside a cell rectangle; delegates to nearest side (interior or perimeter).
+ * - **In gap**: pointer in the gutter between cells (interior) or along the outer gutter (perimeter).
  */
 export function resolveEdgeTargetFromGridPosition(
   gridX: number,
@@ -85,9 +84,8 @@ export function resolveEdgeTargetFromGridPosition(
   }
 
   if (!inCellX && inCellY) {
-    // Vertical gap between columns
-    const rightCol = col + 1;
-    if (rightCol >= cols) return null;
+    // Vertical gap: interior column boundary, or outer gutter east of the last column
+    if (col < 0 || col >= cols || row < 0 || row >= rows) return null;
     const cellId = makeGridCellId(col, row);
     const edgeId = edgeKeyFromCellAndSide(cellId, 'E', cols, rows);
     if (!edgeId) return null;
@@ -95,9 +93,8 @@ export function resolveEdgeTargetFromGridPosition(
   }
 
   if (inCellX && !inCellY) {
-    // Horizontal gap between rows
-    const bottomRow = row + 1;
-    if (bottomRow >= rows) return null;
+    // Horizontal gap: interior row boundary, or outer gutter south of the bottom row
+    if (col < 0 || col >= cols || row < 0 || row >= rows) return null;
     const cellId = makeGridCellId(col, row);
     const edgeId = edgeKeyFromCellAndSide(cellId, 'S', cols, rows);
     if (!edgeId) return null;
@@ -110,13 +107,10 @@ export function resolveEdgeTargetFromGridPosition(
   const rightCol = col + 1;
   const bottomRow = row + 1;
 
-  // Prefer horizontal (south/north) vs vertical (east/west) based on which
-  // gap axis the pointer is closer to center on.
   const dxFromCenter = Math.abs(gridX - gapCenterX);
   const dyFromCenter = Math.abs(gridY - gapCenterY);
 
   if (dyFromCenter <= dxFromCenter) {
-    // Closer to the horizontal gap line -> south edge of top row or north edge of bottom row
     if (gridX <= gapCenterX && col < cols) {
       const cellId = makeGridCellId(col, row);
       const edgeId = edgeKeyFromCellAndSide(cellId, 'S', cols, rows);
@@ -128,7 +122,6 @@ export function resolveEdgeTargetFromGridPosition(
       if (edgeId) return { cellId, side: 'S', edgeId };
     }
   } else {
-    // Closer to the vertical gap line -> east edge of left col or west edge of right col
     if (gridY <= gapCenterY && row < rows) {
       const cellId = makeGridCellId(col, row);
       const edgeId = edgeKeyFromCellAndSide(cellId, 'E', cols, rows);
@@ -193,12 +186,12 @@ export function getSquareEdgeOrientation(side: SquareCellSide): EdgeOrientation 
 }
 
 /**
- * Parse the two cell IDs from a canonical `between:cellA|cellB` edge ID.
+ * Parse the two cell IDs from a canonical `between:cellA|cellB` edge ID (interior only).
  */
 export function parseSquareEdgeCells(edgeId: string): [string, string] | null {
-  const m = BETWEEN_RE.exec(edgeId);
-  if (!m) return null;
-  return [m[1].trim(), m[2].trim()];
+  const p = parseSquareEdgeId(edgeId);
+  if (!p || p.kind !== 'between') return null;
+  return [p.cellA, p.cellB];
 }
 
 /**
@@ -206,9 +199,12 @@ export function parseSquareEdgeCells(edgeId: string): [string, string] | null {
  * Vertical cell neighbors (N/S) → horizontal segment; horizontal neighbors (E/W) → vertical segment.
  */
 export function getSquareEdgeOrientationFromEdgeId(edgeId: string): EdgeOrientation | null {
-  const cells = parseSquareEdgeCells(edgeId);
-  if (!cells) return null;
-  const [a, b] = cells;
+  const p = parseSquareEdgeId(edgeId);
+  if (!p) return null;
+  if (p.kind === 'perimeter') {
+    return getSquareEdgeOrientation(p.side);
+  }
+  const [a, b] = [p.cellA, p.cellB];
   const pa = parseGridCellId(a);
   const pb = parseGridCellId(b);
   if (!pa || !pb) return null;
@@ -224,12 +220,19 @@ export function getSquareEdgeOrientationFromEdgeId(edgeId: string): EdgeOrientat
  * Two cell IDs are orthogonal neighbors if their Manhattan distance is exactly 1.
  */
 function cellsAreNeighbors(a: string, b: string): boolean {
-  const pa = a.split(',');
-  const pb = b.split(',');
-  if (pa.length !== 2 || pb.length !== 2) return false;
-  const dx = Math.abs(Number(pa[0]) - Number(pb[0]));
-  const dy = Math.abs(Number(pa[1]) - Number(pb[1]));
+  const pa = parseGridCellId(a);
+  const pb = parseGridCellId(b);
+  if (!pa || !pb) return false;
+  const dx = Math.abs(pa.x - pb.x);
+  const dy = Math.abs(pa.y - pb.y);
   return dx + dy === 1;
+}
+
+function participatingCellIds(edgeId: string): string[] {
+  const p = parseSquareEdgeId(edgeId);
+  if (!p) return [];
+  if (p.kind === 'between') return [p.cellA, p.cellB];
+  return [p.cellId];
 }
 
 /**
@@ -239,11 +242,11 @@ function cellsAreNeighbors(a: string, b: string): boolean {
  * along the same boundary that meet at a corner point).
  */
 export function areEdgesAdjacent(edgeIdA: string, edgeIdB: string): boolean {
-  const a = parseSquareEdgeCells(edgeIdA);
-  const b = parseSquareEdgeCells(edgeIdB);
-  if (!a || !b) return false;
-  for (const ca of a) {
-    for (const cb of b) {
+  const cellsA = participatingCellIds(edgeIdA);
+  const cellsB = participatingCellIds(edgeIdB);
+  if (cellsA.length === 0 || cellsB.length === 0) return false;
+  for (const ca of cellsA) {
+    for (const cb of cellsB) {
       if (ca === cb || cellsAreNeighbors(ca, cb)) return true;
     }
   }
@@ -256,16 +259,28 @@ export function areEdgesAdjacent(edgeIdA: string, edgeIdB: string): boolean {
  * column boundary (the max x). Returns null if the edge can't be parsed.
  */
 export function squareEdgeBoundaryIndex(edgeId: string, orientation: EdgeOrientation): number | null {
-  const cells = parseSquareEdgeCells(edgeId);
-  if (!cells) return null;
-  const [a, b] = cells;
-  const pa = a.split(',').map(Number);
-  const pb = b.split(',').map(Number);
-  if (pa.length !== 2 || pb.length !== 2) return null;
-  if (orientation === 'horizontal') {
-    return Math.max(pa[1], pb[1]);
+  const p = parseSquareEdgeId(edgeId);
+  if (!p) return null;
+  if (p.kind === 'perimeter') {
+    const cell = parseGridCellId(p.cellId);
+    if (!cell) return null;
+    if (orientation === 'horizontal') {
+      if (p.side === 'N') return cell.y;
+      if (p.side === 'S') return cell.y + 1;
+      return null;
+    }
+    if (p.side === 'W') return cell.x;
+    if (p.side === 'E') return cell.x + 1;
+    return null;
   }
-  return Math.max(pa[0], pb[0]);
+  const [a, b] = [p.cellA, p.cellB];
+  const pa = parseGridCellId(a);
+  const pb = parseGridCellId(b);
+  if (!pa || !pb) return null;
+  if (orientation === 'horizontal') {
+    return Math.max(pa.y, pb.y);
+  }
+  return Math.max(pa.x, pb.x);
 }
 
 /**
@@ -274,16 +289,22 @@ export function squareEdgeBoundaryIndex(edgeId: string, orientation: EdgeOrienta
  * topmost cell. Used to verify the candidate is the next segment in line.
  */
 export function squareEdgeRunningIndex(edgeId: string, orientation: EdgeOrientation): number | null {
-  const cells = parseSquareEdgeCells(edgeId);
-  if (!cells) return null;
-  const [a, b] = cells;
-  const pa = a.split(',').map(Number);
-  const pb = b.split(',').map(Number);
-  if (pa.length !== 2 || pb.length !== 2) return null;
-  if (orientation === 'horizontal') {
-    return Math.min(pa[0], pb[0]);
+  const p = parseSquareEdgeId(edgeId);
+  if (!p) return null;
+  if (p.kind === 'perimeter') {
+    const cell = parseGridCellId(p.cellId);
+    if (!cell) return null;
+    if (orientation === 'horizontal') return cell.x;
+    return cell.y;
   }
-  return Math.min(pa[1], pb[1]);
+  const [a, b] = [p.cellA, p.cellB];
+  const pa = parseGridCellId(a);
+  const pb = parseGridCellId(b);
+  if (!pa || !pb) return null;
+  if (orientation === 'horizontal') {
+    return Math.min(pa.x, pb.x);
+  }
+  return Math.min(pa.y, pb.y);
 }
 
 /**
@@ -313,7 +334,6 @@ export function shouldAcceptStrokeEdge(
     return { accept: false, newAxis: effectiveAxis };
   }
 
-  // Same axis — require collinear (same boundary line) and sequential
   const lastBoundary = squareEdgeBoundaryIndex(lastTarget.edgeId, effectiveAxis);
   const candBoundary = squareEdgeBoundaryIndex(candidate.edgeId, effectiveAxis);
   if (lastBoundary == null || candBoundary == null || lastBoundary !== candBoundary) {

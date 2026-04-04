@@ -11,9 +11,6 @@ export type EncounterSpaceScale =
   | { kind: 'zone' }
   | { kind: 'grid'; cellFeet: 5 | 10 };
 
-/** Procedural-only placement kinds (encounter bootstrap); not part of {@link LocationPlacedObjectKindId}. */
-export type GridProceduralPlacementKind = 'tree' | 'pillar';
-
 /**
  * Cover from a placed object for attack targeting (first pass; full combat cover rules TBD).
  */
@@ -23,10 +20,9 @@ export type GridObjectCoverKind = 'none' | 'half' | 'three-quarters';
  * Runtime record for a placed map object on the tactical grid (single-cell footprint today).
  * Distinct from {@link EncounterEdge} / {@link EncounterAuthoringPresentation} wall segments.
  *
- * **Authored → runtime bridge:** When hydrating from map placement, set `authoredPlaceKindId` and build with
- * `buildGridObjectFromAuthoredPlacedObject` (`gridObject.fromAuthored.ts`). Resolve combat behavior only through
- * `resolveLocationPlacedObjectKindRuntimeDefaults` — not ad hoc per-kind logic. Display metadata stays in
- * `LOCATION_PLACED_OBJECT_KIND_META`.
+ * **Authored-only:** Created from location map placement via `buildGridObjectFromAuthoredPlacedObject`.
+ * `authoredPlaceKindId` identifies the palette/registry kind; runtime fields must match
+ * `resolveLocationPlacedObjectKindRuntimeDefaults(authoredPlaceKindId)` at hydration time.
  */
 export type GridObject = {
   id: string;
@@ -36,34 +32,12 @@ export type GridObject = {
   coverKind: GridObjectCoverKind;
   /** Whether the object can be repositioned by combat rules (e.g. shove); not “structural immovability”. */
   isMovable: boolean;
-  /**
-   * Present when this object was created from authored placed-object placement (`LocationPlacedObjectKindId`).
-   * Optional for procedural props and legacy `GridObstacle` migration. Runtime fields for this kind must match
-   * `resolveLocationPlacedObjectKindRuntimeDefaults(authoredPlaceKindId)` at hydration time.
-   */
-  authoredPlaceKindId?: LocationPlacedObjectKindId;
-  /** Procedural encounter props (tree/pillar) when not from authored map data. */
-  proceduralPlacementKind?: GridProceduralPlacementKind;
+  /** Palette / registry kind from authored map placement (`LocationPlacedObjectKindId`). */
+  authoredPlaceKindId: LocationPlacedObjectKindId;
 };
 
-/** Key used for labels / grid VM when an object is tree, pillar, or an authored placed kind. */
-export type GridObjectPlacementKindKey = GridProceduralPlacementKind | LocationPlacedObjectKindId;
-
-/**
- * @deprecated Use {@link GridProceduralPlacementKind}.
- */
-export type GridObstacleKind = GridProceduralPlacementKind;
-
-/**
- * @deprecated Use {@link GridObject} for runtime placed-object records. Do not introduce new usages; read legacy data via `getEncounterGridObjects` (`space.helpers`).
- */
-export type GridObstacle = {
-  id: string;
-  kind: GridObstacleKind;
-  cellId: string;
-  blocksLineOfSight: boolean;
-  blocksMovement: boolean;
-};
+/** Alias for grid VM / labels — same as {@link GridObject.authoredPlaceKindId}. */
+export type GridObjectAuthoredKindId = LocationPlacedObjectKindId;
 
 /**
  * Serialized authored map chrome for combat **presentation only** (fills, region tint, paths, wall strokes, authored object icons).
@@ -79,7 +53,7 @@ export type EncounterAuthoringPresentation = {
   regionColorKeyByCombatCellId?: Record<string, string>;
   /**
    * Authored map objects for display only (same shape as `LocationMapAuthoredObjectRenderItem` in shared domain).
-   * Distinct from runtime `GridObject` and tactical obstacle glyphs on the grid view model.
+   * Distinct from runtime `GridObject` and tactical object glyphs on the grid view model.
    */
   authoredObjectRenderItems?: LocationMapAuthoredObjectRenderItem[];
 };
@@ -99,13 +73,8 @@ export type EncounterSpace = {
   cells: EncounterCell[];
   edges?: EncounterEdge[];
   features?: EncounterFeature[];
-  /** Placed runtime objects (trees, furniture, …). Canonical list for new code. */
+  /** Placed runtime objects from authored map hydration only. */
   gridObjects?: GridObject[];
-  /**
-   * @deprecated Use {@link EncounterSpace.gridObjects}. Persisted state may still populate this;
-   * use {@link getEncounterGridObjects} from `space.helpers` when reading.
-   */
-  obstacles?: GridObstacle[];
   scale: EncounterSpaceScale;
 
   render?: EncounterSpaceRenderMeta;

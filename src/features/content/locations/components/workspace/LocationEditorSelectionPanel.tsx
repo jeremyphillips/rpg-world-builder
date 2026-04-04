@@ -28,6 +28,14 @@ export type LocationEditorSelectionPanelProps = {
     regionId: string,
     patch: Pick<LocationMapRegionAuthoringEntry, 'name' | 'description' | 'colorKey'>,
   ) => void;
+  /** Uses erase/delete draft path (same as Erase on that object); clears map selection when it matches. */
+  onRemovePlacedObjectFromMap?: (cellId: string, objectId: string) => void;
+  /** Removes the whole path chain (same as Delete when a path is selected). */
+  onRemovePathFromMap?: (pathId: string) => void;
+  /** Single boundary edge (same as Erase / Delete for that edge). */
+  onRemoveEdgeFromMap?: (edgeId: string) => void;
+  /** All segments in the selected straight run (same as Delete for edge-run). */
+  onRemoveEdgeRunFromMap?: (edgeIds: readonly string[]) => void;
 };
 
 /**
@@ -40,6 +48,10 @@ export function LocationEditorSelectionPanel({
   edgeEntries,
   regionEntries,
   onUpdateRegionEntry,
+  onRemovePlacedObjectFromMap,
+  onRemovePathFromMap,
+  onRemoveEdgeFromMap,
+  onRemoveEdgeRunFromMap,
 }: LocationEditorSelectionPanelProps) {
   switch (selection.type) {
     case 'none':
@@ -77,7 +89,13 @@ export function LocationEditorSelectionPanel({
       );
     }
     case 'path':
-      return <LocationMapPathInspector pathId={selection.pathId} pathEntries={pathEntries} />;
+      return (
+        <LocationMapPathInspector
+          pathId={selection.pathId}
+          pathEntries={pathEntries}
+          onRemovePathFromMap={onRemovePathFromMap}
+        />
+      );
     case 'object':
       return (
         <LocationMapObjectInspector
@@ -85,10 +103,17 @@ export function LocationEditorSelectionPanel({
           objectId={selection.objectId}
           objectsByCellId={cellPanelProps.objectsByCellId}
           onUpdateCellObjects={cellPanelProps.onUpdateCellObjects}
+          onRemovePlacedObjectFromMap={onRemovePlacedObjectFromMap}
         />
       );
     case 'edge':
-      return <LocationMapEdgeInspector edgeId={selection.edgeId} edgeEntries={edgeEntries} />;
+      return (
+        <LocationMapEdgeInspector
+          edgeId={selection.edgeId}
+          edgeEntries={edgeEntries}
+          onRemoveEdgeFromMap={onRemoveEdgeFromMap}
+        />
+      );
     case 'edge-run':
       return (
         <LocationMapEdgeRunInspector
@@ -96,6 +121,7 @@ export function LocationEditorSelectionPanel({
           edgeIds={selection.edgeIds}
           axis={selection.axis}
           anchorEdgeId={selection.anchorEdgeId}
+          onRemoveEdgeRunFromMap={onRemoveEdgeRunFromMap}
         />
       );
   }

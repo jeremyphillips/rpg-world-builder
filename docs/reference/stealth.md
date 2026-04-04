@@ -121,7 +121,7 @@ These keep stored **`hiddenFromObserverIds`** aligned with the **shared percepti
 
 **Runtime integration (deterministic order):**
 
-1. **`reconcileBattlefieldEffectAnchors`** (placement mutations, obstacle moves, aura anchor refresh) ends with **`reconcileStealthAfterMovementOrEnvironmentChange`** after environment-zone projection — covers **`placeCombatant`**, **`moveGridObstacleInEncounterState`**, and any path that runs this anchor pass.
+1. **`reconcileBattlefieldEffectAnchors`** (placement mutations, grid-object moves, aura anchor refresh) ends with **`reconcileStealthAfterMovementOrEnvironmentChange`** after environment-zone projection — covers **`placeCombatant`**, **`moveGridObjectInEncounterState`**, and any path that runs this anchor pass.
 2. **`useEncounterState` `handleMoveCombatant`** — after **`moveCombatant`**, runs **`reconcileBattlefieldEffectAnchors`** (so creature-anchored zones + stealth stay aligned), then **`resolveAttachedAuraSpatialEntryAfterMovement`** when spell context is present.
 3. **`resolveCombatActionInternal`** — still runs **`reconcileStealthHiddenForPerceivedObservers`** **before** resolving the declared action (unchanged).
 

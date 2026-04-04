@@ -15,11 +15,30 @@ import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locati
 
 import type { LocationCellObjectDraft } from '../locationGridDraft.types';
 
+/** Divider + “Remove from map” for map selection inspectors (shared styling). */
+function MapInspectorRemoveFromMapButton({ onClick }: { onClick: () => void }) {
+  return (
+    <>
+      <Divider />
+      <Button size="small" color="error" variant="outlined" onClick={onClick}>
+        Remove from map
+      </Button>
+    </>
+  );
+}
+
+function MapInspectorRemoveFromMapIfHandler({ onRemove }: { onRemove?: () => void }) {
+  if (!onRemove) return null;
+  return <MapInspectorRemoveFromMapButton onClick={onRemove} />;
+}
+
 export type LocationMapObjectInspectorProps = {
   cellId: string;
   objectId: string;
   objectsByCellId: Record<string, LocationCellObjectDraft[]>;
   onUpdateCellObjects: (cellId: string, objects: LocationCellObjectDraft[]) => void;
+  /** When set, “Remove from map” uses the same draft path as Erase (and clears selection when it matches). */
+  onRemovePlacedObjectFromMap?: (cellId: string, objectId: string) => void;
 };
 
 export function LocationMapObjectInspector({
@@ -27,6 +46,7 @@ export function LocationMapObjectInspector({
   objectId,
   objectsByCellId,
   onUpdateCellObjects,
+  onRemovePlacedObjectFromMap,
 }: LocationMapObjectInspectorProps) {
   const objs = objectsByCellId[cellId] ?? [];
   const obj = objs.find((o) => o.id === objectId);
@@ -64,18 +84,16 @@ export function LocationMapObjectInspector({
       <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
         id: {objectId}
       </Typography>
-      <Divider />
-      <Button
-        size="small"
-        color="error"
-        variant="outlined"
+      <MapInspectorRemoveFromMapButton
         onClick={() => {
+          if (onRemovePlacedObjectFromMap) {
+            onRemovePlacedObjectFromMap(cellId, objectId);
+            return;
+          }
           const next = objs.filter((o) => o.id !== objectId);
           onUpdateCellObjects(cellId, next);
         }}
-      >
-        Remove from map
-      </Button>
+      />
     </Stack>
   );
 }
@@ -83,9 +101,15 @@ export function LocationMapObjectInspector({
 export type LocationMapPathInspectorProps = {
   pathId: string;
   pathEntries: readonly LocationMapPathAuthoringEntry[];
+  /** When set, “Remove from map” removes the whole chain (same as map Delete for paths). */
+  onRemovePathFromMap?: (pathId: string) => void;
 };
 
-export function LocationMapPathInspector({ pathId, pathEntries }: LocationMapPathInspectorProps) {
+export function LocationMapPathInspector({
+  pathId,
+  pathEntries,
+  onRemovePathFromMap,
+}: LocationMapPathInspectorProps) {
   const entry = pathEntries.find((p) => p.id === pathId);
   if (!entry) {
     return (
@@ -107,6 +131,9 @@ export function LocationMapPathInspector({ pathId, pathEntries }: LocationMapPat
       <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
         id: {pathId}
       </Typography>
+      <MapInspectorRemoveFromMapIfHandler
+        onRemove={onRemovePathFromMap ? () => onRemovePathFromMap(pathId) : undefined}
+      />
     </Stack>
   );
 }
@@ -114,9 +141,15 @@ export function LocationMapPathInspector({ pathId, pathEntries }: LocationMapPat
 export type LocationMapEdgeInspectorProps = {
   edgeId: string;
   edgeEntries: readonly LocationMapEdgeAuthoringEntry[];
+  /** When set, “Remove from map” uses the same draft path as Erase on that edge. */
+  onRemoveEdgeFromMap?: (edgeId: string) => void;
 };
 
-export function LocationMapEdgeInspector({ edgeId, edgeEntries }: LocationMapEdgeInspectorProps) {
+export function LocationMapEdgeInspector({
+  edgeId,
+  edgeEntries,
+  onRemoveEdgeFromMap,
+}: LocationMapEdgeInspectorProps) {
   const entry = edgeEntries.find((e) => e.edgeId === edgeId);
   if (!entry) {
     return (
@@ -135,6 +168,9 @@ export function LocationMapEdgeInspector({ edgeId, edgeEntries }: LocationMapEdg
       <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
         {edgeId}
       </Typography>
+      <MapInspectorRemoveFromMapIfHandler
+        onRemove={onRemoveEdgeFromMap ? () => onRemoveEdgeFromMap(edgeId) : undefined}
+      />
     </Stack>
   );
 }
@@ -155,6 +191,8 @@ export type LocationMapEdgeRunInspectorProps = {
   edgeIds: readonly string[];
   axis: 'horizontal' | 'vertical';
   anchorEdgeId: string;
+  /** When set, removes every segment in this run (same as map Delete for edge-run). */
+  onRemoveEdgeRunFromMap?: (edgeIds: readonly string[]) => void;
 };
 
 export function LocationMapEdgeRunInspector({
@@ -162,6 +200,7 @@ export function LocationMapEdgeRunInspector({
   edgeIds,
   axis,
   anchorEdgeId,
+  onRemoveEdgeRunFromMap,
 }: LocationMapEdgeRunInspectorProps) {
   return (
     <Stack spacing={1.5}>
@@ -178,6 +217,9 @@ export function LocationMapEdgeRunInspector({
       <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
         Anchor: {anchorEdgeId}
       </Typography>
+      <MapInspectorRemoveFromMapIfHandler
+        onRemove={onRemoveEdgeRunFromMap ? () => onRemoveEdgeRunFromMap(edgeIds) : undefined}
+      />
     </Stack>
   );
 }

@@ -117,7 +117,7 @@ export function useEncounterState({
   /** Grid cell id for summon / single-cell placement readiness (when required by spawn metadata). */
   const [selectedSingleCellPlacementCellId, setSelectedSingleCellPlacementCellId] = useState<string | null>(null)
   const [singleCellPlacementHoverCellId, setSingleCellPlacementHoverCellId] = useState<string | null>(null)
-  /** `EncounterSpace.gridObjects` (or legacy `obstacles`) id for attached emanation `anchorMode === 'object'`. */
+  /** `EncounterSpace.gridObjects` id for attached emanation `anchorMode === 'object'`. */
   const [selectedObjectAnchorId, setSelectedObjectAnchorId] = useState<string | null>(null)
   const [objectAnchorHoverCellId, setObjectAnchorHoverCellId] = useState<string | null>(null)
 

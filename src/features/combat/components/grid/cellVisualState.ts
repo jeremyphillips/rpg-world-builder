@@ -65,8 +65,8 @@ export function movementFillSuppressedByOverlay(cell: GridCellViewModel): boolea
  */
 export function resolveBaseFillKind(cell: GridCellViewModel): CellBaseFillKind {
   if (cell.kind === 'wall') return 'blocked'
-  /** Structural blocking terrain — not a grid prop cell (tree/pillar), which keeps authored floor + glyph. */
-  if (cell.kind === 'blocking' && cell.obstacleKind == null) return 'blocked'
+  /** Structural blocking terrain — not a cell with a runtime placed object, which keeps authored floor + glyph. */
+  if (cell.kind === 'blocking' && cell.placedObjectKind == null) return 'blocked'
   if (cell.placementInvalidHover) return 'placement-invalid-hover'
   if (cell.placementSelected) return 'placement-selected'
   if (cell.placementCastRange) return 'placement-cast-range'

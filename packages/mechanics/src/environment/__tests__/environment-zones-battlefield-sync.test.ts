@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/creation/createSquareGridSpace'
-import type { GridObstacle } from '@/features/mechanics/domain/combat/space/space.types'
+import { buildGridObjectFromAuthoredPlacedObject } from '@/features/mechanics/domain/combat/space/gridObject/gridObject.fromAuthored'
 import { removeAttachedAurasForSpell } from '@/features/mechanics/domain/combat/state/auras/attached-aura-mutations'
 import {
-  moveGridObstacleInEncounterState,
+  moveGridObjectInEncounterState,
   reconcileBattlefieldEffectAnchors,
 } from '@/features/mechanics/domain/combat/state/auras/battlefield-effect-anchor-reconciliation'
 import { resolveWorldEnvironmentFromEncounterState } from '@/features/mechanics/domain/environment/environment.resolve'
@@ -14,14 +14,12 @@ import {
 } from '@/features/mechanics/domain/environment/environment-zones-battlefield-sync'
 import type { EncounterState } from '@/features/mechanics/domain/combat/state/types/encounter-state.types'
 
-function treeObstacle(id: string, cellId: string): GridObstacle {
-  return {
+function authoredGridObject(id: string, cellId: string) {
+  return buildGridObjectFromAuthoredPlacedObject({
     id,
-    kind: 'tree',
     cellId,
-    blocksLineOfSight: true,
-    blocksMovement: true,
-  }
+    authoredPlaceKindId: 'tree',
+  })
 }
 
 function baseState(overrides: Partial<EncounterState> = {}): EncounterState {
@@ -277,7 +275,7 @@ describe('reconcileEnvironmentZonesFromAttachedAuras', () => {
 describe('object-anchored zone follows obstacle move', () => {
   it('updates sphere-ft origin when obstacle cell changes', () => {
     const space = createSquareGridSpace({ id: 'm', name: 'M', columns: 10, rows: 10 })
-    const withObs = { ...space, obstacles: [treeObstacle('o1', 'c-2-2')] }
+    const withObs = { ...space, gridObjects: [authoredGridObject('o1', 'c-2-2')] }
     const instanceId = 'attached-emanation-darkness-wiz'
     const s0 = reconcileBattlefieldEffectAnchors(
       baseState({
@@ -303,7 +301,7 @@ describe('object-anchored zone follows obstacle move', () => {
       radiusFt: 15,
     })
 
-    const moved = moveGridObstacleInEncounterState(s0, 'o1', 'c-8-8')
+    const moved = moveGridObjectInEncounterState(s0, 'o1', 'c-8-8')
     expect(moved.environmentZones?.find((z) => z.id === zid)?.area).toEqual({
       kind: 'sphere-ft',
       originCellId: 'c-8-8',

@@ -5,8 +5,7 @@ import CardActionArea from '@mui/material/CardActionArea';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { getLocationMapIconByName } from '@/features/content/locations/domain';
-import type { LocationMapIconName } from '@/features/content/locations/domain/mapContent';
+import { getLocationMapGlyphIconByName } from '@/features/content/locations/domain';
 import type {
   LocationMapActivePlaceSelection,
   MapPlacePaletteItem,
@@ -47,8 +46,8 @@ export function LocationMapEditorPlacePanel({
     const key = itemKey(item);
     const selected = activeKey === key;
     const Icon = item.iconName
-      ? getLocationMapIconByName(item.iconName as LocationMapIconName)
-      : getLocationMapIconByName('marker');
+      ? getLocationMapGlyphIconByName(item.iconName)
+      : getLocationMapGlyphIconByName('marker');
     const onClick = () => {
       if (item.category === 'linked-content') {
         onSelectPlace({ category: 'linked-content', kind: item.kind });

@@ -67,4 +67,22 @@ describe('validateEdgeEntriesStructure', () => {
     );
     expect(errors.some((e) => e.code === 'DUPLICATE')).toBe(true);
   });
+
+  it('accepts perimeter edge on outer boundary', () => {
+    const errors = validateEdgeEntriesStructure(
+      [{ edgeId: 'perimeter:0,0|N', kind: 'wall' }],
+      w,
+      h,
+    );
+    expect(errors).toHaveLength(0);
+  });
+
+  it('rejects perimeter edge on interior side (neighbor exists)', () => {
+    const errors = validateEdgeEntriesStructure(
+      [{ edgeId: 'perimeter:0,0|E', kind: 'wall' }],
+      w,
+      h,
+    );
+    expect(errors.some((e) => e.message.includes('outer map boundary'))).toBe(true);
+  });
 });

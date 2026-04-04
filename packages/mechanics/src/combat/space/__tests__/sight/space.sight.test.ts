@@ -94,6 +94,7 @@ describe('hasLineOfSight', () => {
           blocksLineOfSight: true,
           coverKind: 'none' as const,
           isMovable: false,
+          authoredPlaceKindId: 'table' as const,
         },
       ],
     }

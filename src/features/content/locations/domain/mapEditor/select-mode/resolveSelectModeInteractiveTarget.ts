@@ -17,6 +17,13 @@ type Objectish = { id: string };
 export type ResolveSelectModeInteractiveTargetParams = {
   /** Event target (or elementFromPoint) for DOM hits on object / linked icons. */
   targetElement: HTMLElement | null;
+  /**
+   * Viewport coordinates for `document.elementsFromPoint`. When set with {@link clientY}, the
+   * resolver walks the hit-test stack so `[data-map-object-id]` wins over SVG paths/edges drawn
+   * above the cell grid (same priority as topmost pixel alone would miss the icon).
+   */
+  clientX?: number;
+  clientY?: number;
   /** Pointer position in grid-local pixels. */
   gx: number;
   gy: number;
@@ -65,15 +72,49 @@ function edgeHitToSelection(
   return null;
 }
 
+function pickDomMapSelectionFromStack(
+  clientX: number,
+  clientY: number,
+  anchorCellId: string,
+): LocationMapSelection | null {
+  if (typeof document === 'undefined' || typeof document.elementsFromPoint !== 'function') {
+    return null;
+  }
+  const stack = document.elementsFromPoint(clientX, clientY);
+  for (const node of stack) {
+    const el = node instanceof HTMLElement ? node : null;
+    if (!el) continue;
+    const objWrap = el.closest('[data-map-object-id]');
+    if (objWrap) {
+      const objectId = objWrap.getAttribute('data-map-object-id');
+      const cellId = objWrap.getAttribute('data-map-object-cell-id') ?? anchorCellId;
+      if (objectId) {
+        return { type: 'object', cellId, objectId };
+      }
+    }
+    const linkedWrap = el.closest('[data-map-linked-cell]');
+    if (linkedWrap) {
+      const cellId = linkedWrap.getAttribute('data-map-linked-cell') ?? anchorCellId;
+      return { type: 'cell', cellId };
+    }
+  }
+  return null;
+}
+
 /**
  * Single winning interactive target for Select mode: same priority for hover preview and click.
  *
- * Priority: object (DOM) → linked cell (DOM) → edge (square geometry) → path (geometry) →
- * draft interior (object → linked → region → cell) via {@link resolveSelectModeAfterPathEdgeHits}.
+ * Priority: object / linked (DOM stack at client coords when provided) → single targetElement DOM →
+ * edge (square geometry) → path (geometry) → draft interior via {@link resolveSelectModeAfterPathEdgeHits}.
  */
 export function resolveSelectModeInteractiveTarget(
   p: ResolveSelectModeInteractiveTargetParams,
 ): LocationMapSelection {
+  if (p.clientX != null && p.clientY != null) {
+    const fromStack = pickDomMapSelectionFromStack(p.clientX, p.clientY, p.anchorCellId);
+    if (fromStack) return fromStack;
+  }
+
   const el = p.targetElement;
   if (el) {
     const objWrap = el.closest('[data-map-object-id]');

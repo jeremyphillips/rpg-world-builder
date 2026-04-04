@@ -5,7 +5,7 @@ import CardActionArea from '@mui/material/CardActionArea';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-import { getLocationMapIconByName } from '@/features/content/locations/domain';
+import { getLocationMapObjectIconByName } from '@/features/content/locations/domain';
 import type {
   LocationMapActiveDrawSelection,
   MapDrawPaletteItem,
@@ -41,7 +41,7 @@ export function LocationMapEditorDrawPanel({
   const renderCard = (item: MapDrawPaletteItem) => {
     const key = itemKey(item);
     const selected = activeKey === key;
-    const Icon = getLocationMapIconByName('marker');
+    const Icon = getLocationMapObjectIconByName('marker');
     const onClick = () => {
       if (item.category === 'path') {
         onSelectDraw({ category: 'path', kind: item.kind });

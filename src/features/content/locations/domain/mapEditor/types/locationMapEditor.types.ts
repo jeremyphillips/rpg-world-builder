@@ -2,6 +2,7 @@ import type { LocationCellFillKindId } from '@/features/content/locations/domain
 import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
 import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
+import type { LocationMapGlyphIconName } from '@/features/content/locations/domain/mapPresentation/locationMapIconNameMap';
 import type { LocationMapSwatchColorKey } from '@/features/content/locations/domain/mapContent/locationMapSwatchColors.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
@@ -70,7 +71,6 @@ export type MapPaintPaletteItem = {
   fillKind: LocationCellFillKindId;
   label: string;
   description?: string;
-  iconName: string;
   swatchColorKey: LocationMapSwatchColorKey;
 };
 
@@ -81,7 +81,7 @@ export type MapPlacePaletteItem =
       kind: LocationPlacedObjectKindId;
       label: string;
       description?: string;
-      iconName?: string;
+      iconName?: LocationMapGlyphIconName;
       linkedScale: LocationScaleId;
     }
   | {
@@ -89,7 +89,7 @@ export type MapPlacePaletteItem =
       kind: LocationPlacedObjectKindId;
       label: string;
       description?: string;
-      iconName?: string;
+      iconName?: LocationMapGlyphIconName;
     };
 
 /** Draw palette: paths and edges (policy + meta). */

@@ -57,7 +57,7 @@ describe('buildEncounterSpaceFromLocationMap', () => {
           },
           {
             cellId: '1,0',
-            objects: [{ id: 't1', kind: 'obstacle', authoredPlaceKindId: 'table' }],
+            objects: [{ id: 't1', kind: 'table', authoredPlaceKindId: 'table' }],
           },
         ],
         pathEntries: [],
@@ -85,7 +85,7 @@ describe('buildEncounterSpaceFromLocationMap', () => {
     expect(space.authoringPresentation?.authoredObjectRenderItems).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: 'a1', authorCellId: '0,0', combatCellId: 'c-0-0', kind: 'treasure' }),
-        expect.objectContaining({ id: 't1', authorCellId: '1,0', combatCellId: 'c-1-0', kind: 'obstacle' }),
+        expect.objectContaining({ id: 't1', authorCellId: '1,0', combatCellId: 'c-1-0', kind: 'table' }),
       ]),
     )
   })

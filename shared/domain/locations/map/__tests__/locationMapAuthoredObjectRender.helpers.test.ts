@@ -19,7 +19,7 @@ describe('deriveLocationMapAuthoredObjectRenderItems', () => {
           cellId: '0,0',
           objects: [
             { id: 'o1', kind: 'stairs', label: 'Up' },
-            { id: 'o2', kind: 'obstacle', authoredPlaceKindId: 'table' },
+            { id: 'o2', kind: 'table', authoredPlaceKindId: 'table' },
           ],
         },
         { cellId: '1,0', objects: [{ id: 'o3', kind: 'treasure' }] },
@@ -41,7 +41,7 @@ describe('deriveLocationMapAuthoredObjectRenderItems', () => {
       id: 'o2',
       authorCellId: '0,0',
       combatCellId: 'c-0-0',
-      kind: 'obstacle',
+      kind: 'table',
       authoredPlaceKindId: 'table',
     });
     expect(items[2]).toMatchObject({
@@ -78,7 +78,7 @@ describe('deriveLocationMapAuthoredObjectRenderItemsFromObjectsByCellId', () => 
       grid: { width: 2, height: 2, cellUnit: '5ft' },
       cellEntries: [
         { cellId: '0,0', objects: [{ id: 'a', kind: 'door' }] },
-        { cellId: '1,1', objects: [{ id: 'b', kind: 'obstacle' }] },
+        { cellId: '1,1', objects: [{ id: 'b', kind: 'table' }] },
       ],
       pathEntries: [],
       edgeEntries: [],
@@ -87,7 +87,7 @@ describe('deriveLocationMapAuthoredObjectRenderItemsFromObjectsByCellId', () => 
     const fromMap = deriveLocationMapAuthoredObjectRenderItems(map);
     const fromDraft = deriveLocationMapAuthoredObjectRenderItemsFromObjectsByCellId({
       '0,0': [{ id: 'a', kind: 'door' }],
-      '1,1': [{ id: 'b', kind: 'obstacle' }],
+      '1,1': [{ id: 'b', kind: 'table' }],
     });
     expect(fromDraft).toEqual(fromMap);
   });

@@ -12,7 +12,6 @@ describe('buildGridObjectFromAuthoredPlacedObject', () => {
     })
     const expected = resolveLocationPlacedObjectKindRuntimeDefaults('table')
     expect(o.authoredPlaceKindId).toBe('table')
-    expect(o.proceduralPlacementKind).toBeUndefined()
     expect(o.blocksMovement).toBe(expected.blocksMovement)
     expect(o.blocksLineOfSight).toBe(expected.blocksLineOfSight)
     expect(o.coverKind).toBe(expected.coverKind)

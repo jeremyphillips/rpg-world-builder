@@ -15,7 +15,7 @@ export type BattlefieldEffectAnchor =
  * Returns undefined when spatial data is missing or the anchor cannot be placed.
  *
  * **Object anchors:** Prefer the **live** grid object position from {@link EncounterSpace.gridObjects}
- * (or legacy {@link EncounterSpace.obstacles}) so the origin tracks when the object moves. If the id is no longer present, the anchor cannot be
+ * so the origin tracks when the object moves. If the id is no longer present, the anchor cannot be
  * resolved (cast-time `snapshotCellId` is not used as a stale fallback — see
  * {@link reconcileBattlefieldEffectAnchors}).
  */

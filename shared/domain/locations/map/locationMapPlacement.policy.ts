@@ -101,12 +101,12 @@ export const ALLOWED_MAP_OBJECT_KINDS_BY_HOST_SCALE: Record<
   world: ['marker'],
   region: ['marker'],
   subregion: ['marker'],
-  city: ['marker', 'obstacle'],
-  district: ['marker', 'obstacle'],
-  site: ['marker', 'obstacle', 'treasure'],
+  city: ['marker', 'table'],
+  district: ['marker', 'table'],
+  site: ['marker', 'table', 'treasure'],
   building: [],
-  floor: ['obstacle', 'door', 'treasure', 'stairs'],
-  room: ['marker', 'obstacle', 'door', 'treasure'],
+  floor: ['table', 'door', 'treasure', 'stairs'],
+  room: ['marker', 'table', 'door', 'treasure'],
 };
 
 export function getAllowedObjectKindsForHostScale(

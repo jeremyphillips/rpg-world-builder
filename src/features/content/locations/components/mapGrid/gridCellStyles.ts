@@ -1,36 +1,39 @@
 /**
  * Shared grid cell styling tokens for location map `GridEditor` and `HexGridEditor`.
- * Keeps visual parity between square and hex renderers.
+ * Fixed colors from `colorPrimitives` so map chrome does not follow MUI light/dark mode.
  */
-import type { Theme } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 
-/** MUI `sx` palette path for default square/hex grid cell borders. */
-export const GRID_CELL_BORDER_COLOR = 'divider';
+import { colorPrimitives } from '@/app/theme/colorPrimitives';
 
-/** MUI `sx` palette path for grid cell border on hover (non-selected). */
-export const GRID_CELL_BORDER_COLOR_HOVER = 'primary.main';
+/** Default grid line between cells. */
+export const GRID_CELL_BORDER_COLOR = alpha(colorPrimitives.black, 0.14);
+
+/** Hover ring accent (matches map primary accent). */
+export const GRID_CELL_BORDER_COLOR_HOVER = colorPrimitives.blue[300];
 
 /**
- * MUI palette paths for `borderColor` / `bgcolor` in `sx` (nested for readability).
+ * Border and background fills for grid cells (hex rings + square buttons).
  */
 export const gridCellPalette = {
   border: {
     default: GRID_CELL_BORDER_COLOR,
-    excluded: 'text.disabled',
+    excluded: alpha(colorPrimitives.gray[200], 0.45),
     hover: GRID_CELL_BORDER_COLOR_HOVER,
-    selected: 'primary.main',
+    selected: colorPrimitives.blue[300],
   },
   background: {
-    default: 'background.paper',
-    excluded: 'action.disabledBackground',
-    selected: 'none',
-    hover: 'background.paper',
+    default: colorPrimitives.gray[100],
+    excluded: alpha(colorPrimitives.black, 0.06),
+    /** Let terrain / selection styling show through. */
+    selected: 'transparent',
+    hover: colorPrimitives.gray[100],
   },
 } as const;
 
 /** Inset ring width when a square cell is selected (`boxShadow`). */
 export const gridCellSelectedInsetPx = 2;
 
-export function gridCellSelectedShadow(theme: Theme) {
-  return `inset 0 0 0 ${gridCellSelectedInsetPx}px ${theme.palette.primary.main}`;
+export function gridCellSelectedShadow(): string {
+  return `inset 0 0 0 ${gridCellSelectedInsetPx}px ${colorPrimitives.blue[300]}`;
 }

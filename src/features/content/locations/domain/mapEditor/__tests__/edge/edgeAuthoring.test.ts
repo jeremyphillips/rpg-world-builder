@@ -1,7 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { makeUndirectedSquareEdgeKey } from '@/shared/domain/grid/gridEdgeIds';
+import {
+  makePerimeterSquareEdgeKey,
+  makeUndirectedSquareEdgeKey,
+} from '@/shared/domain/grid/gridEdgeIds';
 
 import {
   applyEdgeStrokeToDraft,
@@ -82,10 +85,29 @@ describe('resolveEdgeTargetFromGridPosition', () => {
     expect(result!.edgeId).toBe(makeUndirectedSquareEdgeKey('0,0', '0,1'));
   });
 
-  it('returns null for grid boundary with no neighbor', () => {
-    // Pointer at top edge of cell (0,0): nearest side is N, but no neighbor above
+  it('resolves perimeter edge on outer north side of top row', () => {
+    // Pointer at top edge of cell (0,0): nearest side is N — perimeter segment
     const result = resolveEdgeTargetFromGridPosition(20, 1, cellPx, gapPx, cols, rows);
-    expect(result).toBeNull();
+    expect(result).not.toBeNull();
+    expect(result!.cellId).toBe('0,0');
+    expect(result!.side).toBe('N');
+    expect(result!.edgeId).toBe(makePerimeterSquareEdgeKey('0,0', 'N'));
+  });
+
+  it('resolves perimeter E from inside last column cell (no outer gutter past grid width)', () => {
+    const lastCol = cols - 1;
+    const x = lastCol * step + cellPx - 1;
+    const result = resolveEdgeTargetFromGridPosition(x, 20, cellPx, gapPx, cols, rows);
+    expect(result).not.toBeNull();
+    expect(result!.edgeId).toBe(makePerimeterSquareEdgeKey(`${lastCol},0`, 'E'));
+  });
+
+  it('resolves perimeter S from inside last row cell', () => {
+    const lastRow = rows - 1;
+    const y = lastRow * step + cellPx - 1;
+    const result = resolveEdgeTargetFromGridPosition(20, y, cellPx, gapPx, cols, rows);
+    expect(result).not.toBeNull();
+    expect(result!.edgeId).toBe(makePerimeterSquareEdgeKey(`0,${lastRow}`, 'S'));
   });
 
   it('returns null when pointer is outside grid bounds', () => {
@@ -349,6 +371,16 @@ describe('getSquareEdgeOrientationFromEdgeId', () => {
 
   it('classifies horizontal cell neighbors (E/W boundary) as vertical axis', () => {
     expect(getSquareEdgeOrientationFromEdgeId('between:0,0|1,0')).toBe('vertical');
+  });
+
+  it('classifies perimeter N/S as horizontal', () => {
+    expect(getSquareEdgeOrientationFromEdgeId('perimeter:0,0|N')).toBe('horizontal');
+    expect(getSquareEdgeOrientationFromEdgeId('perimeter:1,1|S')).toBe('horizontal');
+  });
+
+  it('classifies perimeter E/W as vertical', () => {
+    expect(getSquareEdgeOrientationFromEdgeId('perimeter:0,0|E')).toBe('vertical');
+    expect(getSquareEdgeOrientationFromEdgeId('perimeter:1,1|W')).toBe('vertical');
   });
 
   it('returns null for non-adjacent cells', () => {

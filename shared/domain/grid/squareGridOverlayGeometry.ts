@@ -1,7 +1,12 @@
 import { makeGridCellId, parseGridCellId } from './gridCellIds';
+import {
+  BETWEEN_EDGE_ID_RE,
+  PERIMETER_EDGE_ID_RE,
+  parseSquareEdgeId,
+  type SquareCellSide,
+} from './gridEdgeIds';
 
-/** Matches {@link makeUndirectedSquareEdgeKey} persisted edge ids. */
-export const BETWEEN_EDGE_ID_RE = /^between:([^|]+)\|([^|]+)$/;
+export { BETWEEN_EDGE_ID_RE, PERIMETER_EDGE_ID_RE } from './gridEdgeIds';
 
 export const SQUARE_GRID_GAP_PX = 4;
 
@@ -37,6 +42,31 @@ export function resolveSquareCellIdFromGridLocalPx(
   const ry = gy - iy * step;
   if (rx >= cellPx || ry >= cellPx) return null;
   if (ix < 0 || ix >= cols || iy < 0 || iy >= rows) return null;
+  return makeGridCellId(ix, iy);
+}
+
+/**
+ * Cell id for select-mode anchor when the pointer may be in an inter-cell gutter.
+ * Uses strict in-cell resolution first; if that returns null but `(gx,gy)` is still inside the
+ * grid bounds, maps to the cell in the grid block containing the point (same `floor` as cell
+ * origin index) so edge/path hit-testing can run in gutters.
+ */
+export function resolveSquareAnchorCellIdForSelectPx(
+  gx: number,
+  gy: number,
+  cellPx: number,
+  cols: number,
+  rows: number,
+  gapPx: number = SQUARE_GRID_GAP_PX,
+): string | null {
+  const step = cellPx + gapPx;
+  const totalW = cols * cellPx + Math.max(0, cols - 1) * gapPx;
+  const totalH = rows * cellPx + Math.max(0, rows - 1) * gapPx;
+  if (gx < 0 || gy < 0 || gx >= totalW || gy >= totalH) return null;
+  const inside = resolveSquareCellIdFromGridLocalPx(gx, gy, cellPx, cols, rows, gapPx);
+  if (inside) return inside;
+  const ix = Math.min(cols - 1, Math.max(0, Math.floor(gx / step)));
+  const iy = Math.min(rows - 1, Math.max(0, Math.floor(gy / step)));
   return makeGridCellId(ix, iy);
 }
 
@@ -84,13 +114,50 @@ export function squareSharedEdgeSegmentPx(
   return null;
 }
 
-/** Pixel segment for a canonical `between:cellA|cellB` edge id. */
+/**
+ * Pixel segment on the **outer** boundary of the grid for a cell side with no neighbor
+ * (along the cell's outer edge — matches map border).
+ */
+export function squarePerimeterEdgeSegmentPx(
+  cellId: string,
+  side: SquareCellSide,
+  cellPx: number,
+  gapPx: number = SQUARE_GRID_GAP_PX,
+): { x1: number; y1: number; x2: number; y2: number } | null {
+  const p = parseGridCellId(cellId);
+  if (!p) return null;
+  const step = cellPx + gapPx;
+  const x0 = p.x * step;
+  const y0 = p.y * step;
+  if (side === 'N') {
+    const y = y0;
+    return { x1: x0, y1: y, x2: x0 + cellPx, y2: y };
+  }
+  if (side === 'S') {
+    const y = y0 + cellPx;
+    return { x1: x0, y1: y, x2: x0 + cellPx, y2: y };
+  }
+  if (side === 'W') {
+    const x = x0;
+    return { x1: x, y1: y0, x2: x, y2: y0 + cellPx };
+  }
+  if (side === 'E') {
+    const x = x0 + cellPx;
+    return { x1: x, y1: y0, x2: x, y2: y0 + cellPx };
+  }
+  return null;
+}
+
+/** Pixel segment for a canonical interior `between:` or outer `perimeter:` edge id. */
 export function squareEdgeSegmentPxFromEdgeId(
   edgeId: string,
   cellPx: number,
   gapPx: number = SQUARE_GRID_GAP_PX,
 ): { x1: number; y1: number; x2: number; y2: number } | null {
-  const m = BETWEEN_EDGE_ID_RE.exec(edgeId);
-  if (!m) return null;
-  return squareSharedEdgeSegmentPx(m[1].trim(), m[2].trim(), cellPx, gapPx);
+  const parsed = parseSquareEdgeId(edgeId);
+  if (!parsed) return null;
+  if (parsed.kind === 'between') {
+    return squareSharedEdgeSegmentPx(parsed.cellA, parsed.cellB, cellPx, gapPx);
+  }
+  return squarePerimeterEdgeSegmentPx(parsed.cellId, parsed.side, cellPx, gapPx);
 }

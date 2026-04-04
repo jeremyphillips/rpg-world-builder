@@ -2,7 +2,11 @@ import type { LocationMapBase, LocationMapCellObjectEntry } from './locationMap.
 import { authorCellIdToCombatCellId } from './locationMapCombatCellIds';
 import type { LocationMapAuthoredObjectRenderItem } from './locationMapAuthoredObjectRender.types';
 
-function objectEntryToRenderItem(authorCellId: string, o: LocationMapCellObjectEntry): LocationMapAuthoredObjectRenderItem {
+/** One cell object → same render item shape as {@link deriveLocationMapAuthoredObjectRenderItems} (for editor overlay + combat). */
+export function mapCellObjectEntryToAuthoredRenderItem(
+  authorCellId: string,
+  o: LocationMapCellObjectEntry,
+): LocationMapAuthoredObjectRenderItem {
   return {
     id: o.id,
     authorCellId,
@@ -25,7 +29,7 @@ export function deriveLocationMapAuthoredObjectRenderItems(
   for (const row of map.cellEntries ?? []) {
     const authorCellId = row.cellId;
     for (const o of row.objects ?? []) {
-      out.push(objectEntryToRenderItem(authorCellId, o));
+      out.push(mapCellObjectEntryToAuthoredRenderItem(authorCellId, o));
     }
   }
   return out.sort((a, b) => {
@@ -47,7 +51,7 @@ export function deriveLocationMapAuthoredObjectRenderItemsFromObjectsByCellId(
   });
   for (const authorCellId of keys) {
     for (const o of objectsByCellId[authorCellId] ?? []) {
-      out.push(objectEntryToRenderItem(authorCellId, o));
+      out.push(mapCellObjectEntryToAuthoredRenderItem(authorCellId, o));
     }
   }
   return out.sort((a, b) => {

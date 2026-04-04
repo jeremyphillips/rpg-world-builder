@@ -19,6 +19,7 @@ import {
   type ReactNode,
 } from 'react';
 import Box from '@mui/material/Box';
+import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { makeGridCellId } from '@/shared/domain/grid';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
 import { gridCellPalette } from './gridCellStyles';
@@ -179,7 +180,7 @@ export default function HexGridEditor({
               cursor: disabled ? 'default' : 'pointer',
               fontSize: '0.6rem',
               lineHeight: 1.2,
-              color: excluded ? 'text.secondary' : 'text.primary',
+              color: excluded ? 'rgba(0,0,0,0.45)' : colorPrimitives.black,
               bgcolor: outerRingColor,
               '&:hover:not(:disabled)': allowHover
                 ? {

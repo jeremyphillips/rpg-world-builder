@@ -10,16 +10,9 @@ import {
   applyEncounterCellBlockingFlagsForAuthoredGridObjects,
   buildGridObjectsFromLocationMapCellEntries,
 } from './hydrateGridObjectsFromLocationMap'
-
-const BETWEEN_EDGE_RE = /^between:([^|]+)\|([^|]+)$/
+import { parseSquareEdgeId } from '@/shared/domain/grid/gridEdgeIds'
 
 export { authorCellIdToCombatCellId } from './encounterMapCellIds'
-
-function parseBetweenEdgeKey(edgeId: string): [string, string] | null {
-  const m = BETWEEN_EDGE_RE.exec(edgeId.trim())
-  if (!m) return null
-  return [m[1]!.trim(), m[2]!.trim()]
-}
 
 function cellUnitToCombatCellFeet(cellUnit: unknown): 5 | 10 {
   const s = String(cellUnit ?? '')
@@ -102,9 +95,10 @@ export function buildEncounterSpaceFromLocationMap(
 
   const edges: EncounterEdge[] = []
   for (const e of map.edgeEntries ?? []) {
-    const ends = parseBetweenEdgeKey(e.edgeId)
-    if (!ends) continue
-    const [a, b] = ends
+    const parsed = parseSquareEdgeId(e.edgeId)
+    // Encounter edges are pairwise cell adjacency; outer-boundary (perimeter) segments are UI-only here.
+    if (!parsed || parsed.kind !== 'between') continue
+    const [a, b] = [parsed.cellA, parsed.cellB]
     const fromCombat = authorCellIdToCombatCellId(a)
     const toCombat = authorCellIdToCombatCellId(b)
     if (!byId.has(fromCombat) || !byId.has(toCombat)) continue

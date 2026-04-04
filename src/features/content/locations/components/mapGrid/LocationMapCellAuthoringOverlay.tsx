@@ -1,11 +1,16 @@
 import { createElement } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import { alpha } from '@mui/material/styles';
 
-import { getLocationMapObjectKindIcon, getLocationScaleMapIcon } from '@/features/content/locations/domain';
+import { getLocationScaleMapIcon } from '@/features/content/locations/domain';
+import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/mapPresentation/PlacedObjectCellVisualDisplay';
+import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/mapPresentation/resolvePlacedObjectCellVisual';
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
 import type { Location } from '@/features/content/locations/domain/types';
+import { mapCellObjectEntryToAuthoredRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.helpers';
+import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { getMapRegionColor } from '@/app/theme/mapColors';
 
 import type { GridCell } from './GridEditor';
@@ -14,12 +19,9 @@ import type { LocationMapSelection } from '@/features/content/locations/componen
 
 /**
  * Per-cell overlay for region tint, linked-location icon, and authored object icons.
- *
- * **Duplication note:** Object icons here read `draft.objectsByCellId` directly. Combat and shared serialization
- * use `deriveLocationMapAuthoredObjectRenderItems` / `deriveLocationMapAuthoredObjectRenderItemsFromObjectsByCellId`
- * (`shared/domain/locations/map/locationMapAuthoredObjectRender.helpers.ts`) so the **same** kinds and ids render
- * consistently; a future pass may pass pre-derived `LocationMapAuthoredObjectRenderItem[]` from the parent to avoid
- * two code paths.
+ * Placed objects use {@link mapCellObjectEntryToAuthoredRenderItem} +
+ * {@link resolvePlacedObjectCellVisualFromRenderItem} (same path as combat
+ * {@link LocationMapAuthoredObjectIconsCellInline}).
  */
 type LocationMapCellAuthoringOverlayProps = {
   cell: GridCell;
@@ -127,37 +129,38 @@ export function LocationMapCellAuthoringOverlay({
             >
               {createElement(getLocationScaleMapIcon(linked.scale), {
                 sx: iconSx,
-                color: 'action',
+                color: colorPrimitives.black,
                 'aria-hidden': true,
               })}
             </Box>
           ) : null}
-          {objs?.map((o) => (
-            <Box
-              key={o.id}
-              component="span"
-              data-map-object-id={o.id}
-              data-map-object-cell-id={cell.cellId}
-              sx={{
-                display: 'inline-flex',
-                lineHeight: 0,
-                outline: (theme) =>
-                  selectHoverTarget.type === 'object' &&
-                  selectHoverTarget.cellId === cell.cellId &&
-                  selectHoverTarget.objectId === o.id
-                    ? `2px solid ${theme.palette.primary.main}`
-                    : 'none',
-                outlineOffset: 2,
-                borderRadius: 0.5,
-              }}
-            >
-              {createElement(getLocationMapObjectKindIcon(o.kind), {
-                sx: iconSx,
-                color: 'action',
-                'aria-hidden': true,
-              })}
-            </Box>
-          ))}
+          {objs?.map((o) => {
+            const item = mapCellObjectEntryToAuthoredRenderItem(cell.cellId, o);
+            const visual = resolvePlacedObjectCellVisualFromRenderItem(item);
+            return (
+              <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
+                <Box
+                  component="span"
+                  data-map-object-id={o.id}
+                  data-map-object-cell-id={cell.cellId}
+                  sx={{
+                    display: 'inline-flex',
+                    lineHeight: 0,
+                    outline:
+                      selectHoverTarget.type === 'object' &&
+                      selectHoverTarget.cellId === cell.cellId &&
+                      selectHoverTarget.objectId === o.id
+                        ? `2px solid ${colorPrimitives.blue[300]}`
+                        : 'none',
+                    outlineOffset: 2,
+                    borderRadius: 0.5,
+                  }}
+                >
+                  <PlacedObjectCellVisualDisplay visual={visual} variant="overlay" mapUi={mapUi} />
+                </Box>
+              </Tooltip>
+            );
+          })}
         </Stack>
       ) : null}
     </Box>
