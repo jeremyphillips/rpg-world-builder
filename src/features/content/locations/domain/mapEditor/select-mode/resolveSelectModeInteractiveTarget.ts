@@ -1,7 +1,7 @@
 import type { LocationMapEdgeAuthoringEntry } from '@/shared/domain/locations';
 import type { EdgeSegmentGeometry, PathPolylineGeometry } from '@/shared/domain/locations/map/locationMapGeometry.types';
 
-import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
+import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/locationEditorRail.types';
 import { getSquareEdgeOrientationFromEdgeId } from '../edge';
 import {
   DEFAULT_EDGE_PICK_HALF_WIDTH_PX,

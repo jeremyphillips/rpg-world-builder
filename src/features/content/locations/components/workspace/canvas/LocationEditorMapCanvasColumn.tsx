@@ -18,7 +18,7 @@ import {
   LocationMapEditorPaintTray,
   LocationMapEditorToolTrayShell,
   LocationMapEditorToolbar,
-} from '@/features/content/locations/components/mapEditor';
+} from '@/features/content/locations/components/workspace/leftTools';
 
 export type LocationEditorMapCanvasColumnProps = {
   showMapEditorChrome: boolean;

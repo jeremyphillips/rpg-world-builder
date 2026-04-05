@@ -1,7 +1,7 @@
 import type { LineSegment2D } from '@/shared/domain/locations/map/locationMapGeometry.types';
 
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
-import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
+import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/locationEditorRail.types';
 import { LocationMapPathSvgPaths } from '@/features/content/locations/components/mapGrid/LocationMapPathSvgPaths';
 
 type PathSvgItem = { pathId: string; kind: string; d: string };

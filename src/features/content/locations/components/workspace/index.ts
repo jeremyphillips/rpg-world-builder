@@ -1,32 +1,32 @@
-export { LocationEditHomebrewWorkspace } from './LocationEditHomebrewWorkspace'
-export type { LocationEditHomebrewWorkspaceProps } from './LocationEditHomebrewWorkspace'
-export { LocationEditSystemPatchWorkspace } from './LocationEditSystemPatchWorkspace'
-export type { LocationEditSystemPatchWorkspaceProps } from './LocationEditSystemPatchWorkspace'
-export { LocationEditorWorkspace } from './LocationEditorWorkspace'
-export { LocationEditorHeader } from './LocationEditorHeader'
-export { LocationEditorCanvas } from './LocationEditorCanvas'
-export { LocationEditorMapCanvasColumn } from './LocationEditorMapCanvasColumn'
-export type { LocationEditorMapCanvasColumnProps } from './LocationEditorMapCanvasColumn'
-export { LocationEditorRightRail } from './LocationEditorRightRail'
-export { LocationEditorRailSectionTabs } from './LocationEditorRailSectionTabs'
-export type { LocationEditorRailSectionTabsProps } from './LocationEditorRailSectionTabs'
-export { LocationEditorSelectionPanel } from './LocationEditorSelectionPanel'
-export type { LocationEditorSelectionPanelProps } from './LocationEditorSelectionPanel'
+export { LocationEditHomebrewWorkspace } from './LocationEditHomebrewWorkspace';
+export type { LocationEditHomebrewWorkspaceProps } from './LocationEditHomebrewWorkspace';
+export { LocationEditSystemPatchWorkspace } from './LocationEditSystemPatchWorkspace';
+export type { LocationEditSystemPatchWorkspaceProps } from './LocationEditSystemPatchWorkspace';
+export { LocationEditorWorkspace } from './LocationEditorWorkspace';
+export { LocationEditorHeader, LocationAncestryBreadcrumbs } from './header';
+export { LocationEditorCanvas, LocationEditorMapCanvasColumn } from './canvas';
+export type { LocationEditorMapCanvasColumnProps } from './canvas';
+export {
+  LocationEditorRightRail,
+  LocationEditorRailSectionTabs,
+  LocationEditorSelectionPanel,
+} from './rightRail';
 export type {
+  LocationEditorRailSectionTabsProps,
+  LocationEditorSelectionPanelProps,
   LocationEditorRailSection,
   LocationMapSelection,
-} from './locationEditorRail.types'
+} from './rightRail';
 export {
   shouldAutoSwitchRailToMapForMode,
   selectedCellIdForMapSelection,
   mapSelectionEqual,
-} from './locationEditorRail.types'
-export { LocationCreateSetupFormDialog } from './LocationCreateSetupFormDialog'
-export type { LocationCreateSetupFormDialogProps } from './LocationCreateSetupFormDialog'
-export { BuildingFloorStrip } from './BuildingFloorStrip'
-export type { BuildingFloorStripProps } from './BuildingFloorStrip'
-export { LocationAncestryBreadcrumbs } from './LocationAncestryBreadcrumbs'
+} from './rightRail';
+export { LocationCreateSetupFormDialog } from './setup';
+export type { LocationCreateSetupFormDialogProps } from './setup';
+export { BuildingFloorStrip } from './BuildingFloorStrip';
+export type { BuildingFloorStripProps } from './BuildingFloorStrip';
 export {
   locationEditorWorkspaceUiTokens,
   resolveLeftMapChromeWidthPx,
-} from '@/features/content/locations/domain/mapPresentation/locationEditorWorkspaceUiTokens'
+} from '@/features/content/locations/domain/mapPresentation/locationEditorWorkspaceUiTokens';

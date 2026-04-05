@@ -14,10 +14,10 @@ import { LocationMapEditorLinkedLocationModal } from '@/features/content/locatio
 
 import type { BuildingFloorStripProps } from './BuildingFloorStrip';
 import { BuildingFloorStrip } from './BuildingFloorStrip';
-import type { LocationEditorRailSection } from './locationEditorRail.types';
-import { LocationEditorHeader } from './LocationEditorHeader';
-import { LocationEditorRailSectionTabs } from './LocationEditorRailSectionTabs';
-import { LocationEditorRightRail } from './LocationEditorRightRail';
+import type { LocationEditorRailSection } from './rightRail/locationEditorRail.types';
+import { LocationEditorHeader } from './header/LocationEditorHeader';
+import { LocationEditorRailSectionTabs } from './rightRail/LocationEditorRailSectionTabs';
+import { LocationEditorRightRail } from './rightRail/LocationEditorRightRail';
 import { LocationEditorWorkspace } from './LocationEditorWorkspace';
 
 export type LocationEditHomebrewWorkspaceProps = {

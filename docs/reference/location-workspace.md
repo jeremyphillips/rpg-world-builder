@@ -81,6 +81,8 @@ App-wide MUI theme (`palette`, etc.) still applies; map-specific tuning should g
 
 ## Workspace layout (`components/workspace/`)
 
+**Subfolders (ownership):** `header/` (header + ancestry breadcrumbs), `canvas/` (pan/zoom shell + map column), `leftTools/` (map toolbar + paint/draw trays), `rightRail/` (rail shell, tabs, selection panel, rail types, region metadata adapter), `setup/` (location create setup dialog). Top-level files include the edit shells, `LocationEditorWorkspace`, `LocationGridAuthoringSection`, and `BuildingFloorStrip`. Map rail-only panels remain under `components/mapEditor/` for now; the map editor barrel re-exports left tools from `workspace/leftTools/`.
+
 The workspace is composed of feature-owned components:
 
 | Component | Role |

@@ -10,7 +10,7 @@ import type { LocationMapRegionColorKey } from '@/features/content/locations/dom
 import { resolveActiveRegionEntry, type LocationMapPaintState } from '@/features/content/locations/domain/mapEditor';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 
-import { RegionPaintActiveRegionSelect } from './RegionPaintActiveRegionSelect';
+import { RegionPaintActiveRegionSelect } from '@/features/content/locations/components/workspace/leftTools';
 
 type LocationMapEditorPaintMapPanelProps = {
   paint: LocationMapPaintState;

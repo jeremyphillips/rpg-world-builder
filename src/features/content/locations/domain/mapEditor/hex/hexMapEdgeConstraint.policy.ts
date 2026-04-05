@@ -1,5 +1,5 @@
 import type { LocationMapActiveDrawSelection } from '../types/locationMapEditor.types';
-import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
+import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/locationEditorRail.types';
 
 /**
  * Hex maps do not support square boundary-edge authoring, rendering, or selection (see docs).

@@ -21,7 +21,7 @@ import {
 import Box from '@mui/material/Box';
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { makeGridCellId } from '@/shared/domain/grid';
-import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
+import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/locationEditorRail.types';
 import { gridCellPalette } from './gridCellStyles';
 import {
   isSelectHoverChromeSuppressed,

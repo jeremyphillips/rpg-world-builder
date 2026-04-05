@@ -9,10 +9,10 @@ import { ConditionalFormRenderer } from '@/ui/patterns';
 import type { FieldConfig } from '@/ui/patterns/form/form.types';
 import { AppBadge } from '@/ui/primitives';
 
-import type { LocationEditorRailSection } from './locationEditorRail.types';
-import { LocationEditorHeader } from './LocationEditorHeader';
-import { LocationEditorRailSectionTabs } from './LocationEditorRailSectionTabs';
-import { LocationEditorRightRail } from './LocationEditorRightRail';
+import type { LocationEditorRailSection } from './rightRail/locationEditorRail.types';
+import { LocationEditorHeader } from './header/LocationEditorHeader';
+import { LocationEditorRailSectionTabs } from './rightRail/LocationEditorRailSectionTabs';
+import { LocationEditorRightRail } from './rightRail/LocationEditorRightRail';
 import { LocationEditorWorkspace } from './LocationEditorWorkspace';
 
 export type LocationEditSystemPatchWorkspaceProps = {

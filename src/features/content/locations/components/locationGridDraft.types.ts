@@ -6,7 +6,7 @@ import type {
   LocationMapRegionAuthoringEntry,
 } from '@/shared/domain/locations';
 
-import type { LocationMapSelection } from './workspace/locationEditorRail.types';
+import type { LocationMapSelection } from './workspace/rightRail/locationEditorRail.types';
 
 /** Same shape as persisted map cell objects. */
 export type LocationCellObjectDraft = LocationMapCellObjectEntry;

@@ -16,7 +16,7 @@ import {
 import {
   LocationCellAuthoringPanel,
   type LocationCellAuthoringPanelProps,
-} from '../LocationCellAuthoringPanel';
+} from '../../LocationCellAuthoringPanel';
 import { LocationMapRegionMetadataForm } from './LocationMapRegionMetadataForm';
 
 export type { StairWorkspaceInspect, StairPairingContext };

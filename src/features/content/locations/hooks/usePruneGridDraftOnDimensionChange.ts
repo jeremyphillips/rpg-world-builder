@@ -6,7 +6,7 @@ import {
   pruneExcludedCellIdsForGrid,
 } from '@/features/content/locations/domain/mapAuthoring/gridLayoutDraft';
 import type { LocationGridDraftState } from '@/features/content/locations/components/locationGridDraft.types';
-import { selectedCellIdForMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
+import { selectedCellIdForMapSelection } from '@/features/content/locations/components/workspace/rightRail/locationEditorRail.types';
 import { isSquareEdgeIdInBoundsForGrid } from '@/shared/domain/grid/gridEdgeIds';
 
 export function usePruneGridDraftOnDimensionChange(

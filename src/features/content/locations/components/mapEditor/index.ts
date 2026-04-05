@@ -1,9 +1,11 @@
-export { LocationMapEditorToolbar } from './LocationMapEditorToolbar';
-export { LocationMapEditorToolTrayShell } from './LocationMapEditorToolTrayShell';
-export { LocationMapEditorPaintTray } from './LocationMapEditorPaintTray';
+export {
+  LocationMapEditorToolbar,
+  LocationMapEditorToolTrayShell,
+  LocationMapEditorPaintTray,
+  RegionPaintActiveRegionSelect,
+  LocationMapEditorDrawTray,
+} from '../workspace/leftTools';
 export { LocationMapEditorPaintMapPanel } from './LocationMapEditorPaintMapPanel';
-export { RegionPaintActiveRegionSelect } from './RegionPaintActiveRegionSelect';
-export { LocationMapEditorDrawTray } from './LocationMapEditorDrawTray';
 export { LocationMapEditorDrawPanel } from './LocationMapEditorDrawPanel';
 export { LocationMapEditorPlacePanel } from './LocationMapEditorPlacePanel';
 export {

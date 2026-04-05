@@ -34,7 +34,7 @@ import type { SelectOption } from '@/ui/patterns/form/form.types';
 
 import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
 
-import type { LocationCellObjectDraft } from '../locationGridDraft.types';
+import type { LocationCellObjectDraft } from '../../locationGridDraft.types';
 
 /** Divider + “Remove from map” for map selection inspectors (shared styling). */
 function MapInspectorRemoveFromMapButton({ onClick }: { onClick: () => void }) {

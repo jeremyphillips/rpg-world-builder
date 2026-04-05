@@ -2,7 +2,7 @@ import type { EdgeSegmentGeometry } from '@/shared/domain/locations/map/location
 
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
 import type { ResolvedEdgeTarget } from '@/features/content/locations/domain/mapEditor';
-import type { LocationMapSelection } from '@/features/content/locations/components/workspace/locationEditorRail.types';
+import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/locationEditorRail.types';
 import {
   squareEdgeSegmentPxFromEdgeId,
   SQUARE_GRID_GAP_PX,

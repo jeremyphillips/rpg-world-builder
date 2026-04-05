@@ -4,7 +4,7 @@ overview: Ownership-based subtrees under components/workspace (header, setup, ca
 todos:
   - id: subtree-boundaries
     content: Document and adopt workspace/header, setup, canvas, leftTools, rightRail boundaries; keep LocationGridAuthoringSection at workspace root
-    status: pending
+    status: completed
   - id: subtree-tests
     content: Co-locate subtree-owned tests under __tests__ per subtree (e.g. rightRail/__tests__)
     status: pending
