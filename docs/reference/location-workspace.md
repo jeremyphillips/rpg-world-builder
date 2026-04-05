@@ -75,7 +75,7 @@ App-wide MUI theme (`palette`, etc.) still applies; map-specific tuning should g
 |------|---------|
 | `src/features/content/locations/routes/` | Create and edit routes compose the workspace; `LocationEditRoute` uses `locationEdit/` hooks (`useLocationEditWorkspaceModel`, `useLocationMapHydration`, `useLocationEditSaveActions`) then branches to **`LocationEditHomebrewWorkspace`** vs `LocationEditSystemPatchWorkspace`. Detail views stay content-width. |
 | `components/workspace/` | Map-first editor shell — see below. |
-| `components/workspace/LocationGridAuthoringSection.tsx` | Interactive grid preview; dispatches to `GridEditor` or `HexGridEditor` by geometry. SVG layers: `mapGrid/mapAuthoring/SquareMapAuthoringSvgOverlay` (paths + edges + boundary-paint preview) and `HexMapAuthoringSvgOverlay` (paths + hex region outlines). Select-mode resolver input: `domain/mapEditor/select-mode/` (`buildSelectModeInteractiveTargetInput`, `resolveSelectModeInteractiveTarget`). |
+| `components/workspace/LocationGridAuthoringSection.tsx` | Interactive grid preview; dispatches to `GridEditor` or `HexGridEditor` by geometry. SVG layers: `mapGrid/authoring/SquareMapAuthoringSvgOverlay` (paths + edges + boundary-paint preview) and `HexMapAuthoringSvgOverlay` (paths + hex region outlines). Select-mode resolver input: `domain/mapEditor/select-mode/` (`buildSelectModeInteractiveTargetInput`, `resolveSelectModeInteractiveTarget`). |
 
 ---
 
@@ -350,7 +350,7 @@ Edges (walls, windows, doors) use a **boundary-paint** interaction model on **sq
 | `domain/mapEditor/edge/edgeAuthoring.ts` | `resolveNearestCellEdgeSide`, `resolveEdgeTargetFromGridPosition`, `applyEdgeStrokeToDraft` (replace/no-op rules), `shouldAcceptStrokeEdge` (axis lock + collinearity + adjacency), `areEdgesAdjacent`, `getSquareEdgeOrientation`, types `ResolvedEdgeTarget`, `EdgeOrientation` |
 | `authoring/geometry/squareGridMapOverlayGeometry.ts` | `squareEdgeSegmentPxFromEdgeId` for rendering committed and preview edges |
 | `domain/mapEditor/erase/resolveEraseTarget.ts` | `resolveEraseTargetAtCell` (priority stack); `resolveEraseEdgeByEdgeId` for precise edge-only erase |
-| `LocationGridAuthoringSection` | Composes **`useSquareEdgeBoundaryPaint`** (`mapGrid/mapAuthoring/useSquareEdgeBoundaryPaint.ts`) for capture-phase edge place/erase + stroke state; **`SquareMapAuthoringSvgOverlay`** for preview and committed segments |
+| `LocationGridAuthoringSection` | Composes **`useSquareEdgeBoundaryPaint`** (`mapGrid/authoring/useSquareEdgeBoundaryPaint.ts`) for capture-phase edge place/erase + stroke state; **`SquareMapAuthoringSvgOverlay`** for preview and committed segments |
 
 **Stroke constraint rules (`shouldAcceptStrokeEdge`):**
 1. **Axis lock** — the initial click locks the axis (horizontal or vertical). Subsequent edges must match unless Shift is held.

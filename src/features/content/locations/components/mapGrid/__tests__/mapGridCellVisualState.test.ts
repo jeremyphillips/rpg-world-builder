@@ -5,7 +5,7 @@ import {
   isSelectHoverChromeSuppressed,
   shouldApplyCellHoverChrome,
   shouldApplyCellSelectedChrome,
-} from './mapGridCellVisualState';
+} from '../mapGridCellVisualState';
 
 describe('shouldApplyCellHoverChrome', () => {
   it('applies to all cells when Select rules are not active (undefined target)', () => {

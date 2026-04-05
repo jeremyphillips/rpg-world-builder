@@ -1,6 +1,6 @@
 ---
 name: Location workspace ownership reorg
-overview: Ownership-based subtrees under components/workspace (header, setup, canvas, leftTools, rightRail), subtree __tests__, LocationGridAuthoringSection under workspace/ as orchestrator—not canvas—authoring/draft + authoring/geometry for helpers, no components/mapEditor barrel; incremental migration guidance.
+overview: Ownership-based subtrees under components/workspace (header, setup, canvas, leftTools, rightRail), subtree __tests__, LocationGridAuthoringSection under workspace/ as orchestrator—not canvas—authoring/draft + authoring/geometry for helpers, mapGrid/ with authoring/ + __tests__ (no mapAuthoring name), no components/mapEditor barrel; incremental migration guidance.
 todos:
   - id: subtree-boundaries
     content: Document and adopt workspace/header, setup, canvas, leftTools, rightRail boundaries; keep LocationGridAuthoringSection at workspace root
@@ -19,6 +19,9 @@ todos:
     status: completed
   - id: phase3-feature-root
     content: authoring/draft + authoring/geometry; LocationGridAuthoringSection under workspace/; remove components/mapEditor barrel (inline in components/index.ts)
+    status: completed
+  - id: phase4-mapgrid-layout
+    content: mapGrid/mapAuthoring → mapGrid/authoring; mapGridCellVisualState.test → __tests__; document target tree
     status: completed
 isProject: false
 ---
@@ -264,7 +267,7 @@ components/
 │   ├── draft/                                 # locationGridDraft.types + .utils (+ tests)
 │   ├── geometry/                              # hex/square overlay geometry, path overlay, region boundaries (+ tests)
 │   └── index.ts                               # re-exports draft types + utils only
-├── mapGrid/                                   # grid implementation (unchanged name this pass)
+├── mapGrid/                                   # grid implementation — see §13
 ├── workspace/
 │   ├── LocationGridAuthoringSection.tsx        # workspace-level orchestrator (phase 3: moved here from components root)
 │   ├── LocationEditHomebrewWorkspace.tsx
@@ -316,5 +319,44 @@ components/
 - Feature root lists fewer one-off helpers; draft and geometry modules have stable subtrees.
 - Imports updated to `@/features/content/locations/components/authoring/draft/...` and `.../authoring/geometry/...` where applicable.
 - No unexplained `mapEditor/` folder under `components/`.
+
+---
+
+## 13. Phase 4: `mapGrid/` layout (`authoring/` + `__tests__/`)
+
+**Goal:** Align **`components/mapGrid/`** with a predictable split: **grid shell + cells + shared presentation** at the subtree root, **SVG / edge interaction** under a short, obvious **`authoring/`** folder (replacing the transitional **`mapAuthoring/`** name), and **grid-local tests** under **`__tests__/`** so the main list stays implementation-focused.
+
+### Target tree
+
+```text
+mapGrid/
+├── GridEditor.tsx
+├── HexGridEditor.tsx
+├── gridCellStyles.ts
+├── mapGridCellVisualState.ts
+├── LocationMapAuthoredObjectIconsLayer.tsx
+├── LocationMapCellAuthoringOverlay.tsx
+├── LocationMapPathSvgPaths.tsx
+├── authoring/
+│   ├── HexMapAuthoringSvgOverlay.tsx
+│   ├── SquareMapAuthoringSvgOverlay.tsx
+│   └── useSquareEdgeBoundaryPaint.ts
+├── __tests__/
+│   └── mapGridCellVisualState.test.ts
+└── index.ts
+```
+
+### Decisions
+
+| Topic | Decision |
+|-------|----------|
+| **`mapAuthoring/` → `authoring/`** | Same responsibility (location map SVG overlays + square edge boundary-paint hook); shorter path and consistent with **`components/authoring/`** (feature-level helpers) without colliding—**`mapGrid/authoring/`** is grid subtree–scoped. |
+| **`__tests__/`** | Holds **`mapGridCellVisualState.test.ts`** next to **`mapGridCellVisualState.ts`** ownership, matching other subtrees’ test placement. |
+| **Root files** | Editors, cell styles, visual-state helpers, path/object presentation layers stay at **`mapGrid/`** root for discoverability and stable imports from routes/combat. |
+
+### Acceptance (phase 4)
+
+- No **`mapAuthoring/`** folder under **`components/mapGrid/`**; imports use **`mapGrid/authoring/...`**.
+- **`mapGridCellVisualState`** tests live under **`mapGrid/__tests__/`** with updated relative imports to the implementation module.
 
 

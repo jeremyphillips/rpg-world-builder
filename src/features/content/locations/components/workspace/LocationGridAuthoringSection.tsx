@@ -41,9 +41,9 @@ import type { Location } from '@/features/content/locations/domain/types';
 import { useLocationAuthoringGridLayout } from '@/features/content/locations/hooks/useLocationAuthoringGridLayout';
 import { usePruneGridDraftOnDimensionChange } from '@/features/content/locations/hooks/usePruneGridDraftOnDimensionChange';
 import { hexBoundarySegmentsForRegionCells } from '../authoring/geometry/hexRegionBoundaryForAuthoring';
-import { HexMapAuthoringSvgOverlay } from '../mapGrid/mapAuthoring/HexMapAuthoringSvgOverlay';
-import { SquareMapAuthoringSvgOverlay } from '../mapGrid/mapAuthoring/SquareMapAuthoringSvgOverlay';
-import { useSquareEdgeBoundaryPaint } from '../mapGrid/mapAuthoring/useSquareEdgeBoundaryPaint';
+import { HexMapAuthoringSvgOverlay } from '../mapGrid/authoring/HexMapAuthoringSvgOverlay';
+import { SquareMapAuthoringSvgOverlay } from '../mapGrid/authoring/SquareMapAuthoringSvgOverlay';
+import { useSquareEdgeBoundaryPaint } from '../mapGrid/authoring/useSquareEdgeBoundaryPaint';
 import { LocationMapCellAuthoringOverlay } from '../mapGrid/LocationMapCellAuthoringOverlay';
 
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
