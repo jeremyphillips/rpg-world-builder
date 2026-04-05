@@ -24,9 +24,6 @@ import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domai
 import {
   buildSelectModeInteractiveTargetInput,
   buildSelectModeInteractiveTargetInputSkipGeometry,
-  canApplyAnyPaintStroke,
-  canApplyRegionPaint,
-  getActiveSurfaceFillKind,
   refineSelectModeClickAfterRegionDrill,
   resolveSelectModeInteractiveTarget,
   type LocationMapActiveDrawSelection,
@@ -39,7 +36,6 @@ import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/
 import type { Location } from '@/features/content/locations/domain/model/location';
 import { useLocationAuthoringGridLayout } from '@/features/content/locations/hooks/useLocationAuthoringGridLayout';
 import { usePruneGridDraftOnDimensionChange } from '@/features/content/locations/hooks/usePruneGridDraftOnDimensionChange';
-import { hexBoundarySegmentsForRegionCells } from '../authoring/geometry/hexRegionBoundaryForAuthoring';
 import { HexMapAuthoringSvgOverlay } from '../mapGrid/authoring/HexMapAuthoringSvgOverlay';
 import { SquareMapAuthoringSvgOverlay } from '../mapGrid/authoring/SquareMapAuthoringSvgOverlay';
 import { useSquareEdgeBoundaryPaint } from '../mapGrid/authoring/useSquareEdgeBoundaryPaint';
@@ -61,7 +57,9 @@ import { edgeEntriesToSegmentGeometrySquare } from '@/shared/domain/locations/ma
 import { pathEntriesToPolylineGeometry } from '@/shared/domain/locations/map/locationMapPathPolyline.helpers';
 import { resolveNearestHexCell } from '../authoring/geometry/hexGridMapOverlayGeometry';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
+import { buildHexAuthoringRegionBoundarySegments } from './locationGridAuthoringHexRegionOverlays';
 import { buildLocationGridPathSvgPreviewData } from './locationGridAuthoringPathSvgPreview';
+import { useLocationGridPaintStroke } from './useLocationGridPaintStroke';
 
 type LocationGridAuthoringSectionProps = {
   gridColumns: string;
@@ -152,8 +150,6 @@ export function LocationGridAuthoringSection({
     [cols, rows],
   );
 
-  const paintStrokeActive = useRef(false);
-  const strokeSeen = useRef<Set<string>>(new Set());
   const placeObjectStrokeActive = useRef(false);
   const placeObjectStrokeSeen = useRef<Set<string>>(new Set());
 
@@ -204,31 +200,33 @@ export function LocationGridAuthoringSection({
     onEraseEdge,
   });
 
-  const hexSelectedRegionBoundarySegments = useMemo(() => {
-    if (!isHex || !hexGridGeometry || draft.mapSelection.type !== 'region') {
-      return [];
-    }
-    return hexBoundarySegmentsForRegionCells(
-      cols,
-      rows,
-      hexGridGeometry.hexSize,
-      draft.mapSelection.regionId,
-      draft.regionIdByCellId,
-    );
-  }, [isHex, hexGridGeometry, draft.mapSelection, draft.regionIdByCellId, cols, rows]);
+  const hexSelectedRegionBoundarySegments = useMemo(
+    () =>
+      buildHexAuthoringRegionBoundarySegments({
+        isHex,
+        hexGridGeometry,
+        cols,
+        rows,
+        activeRegionId:
+          draft.mapSelection.type === 'region' ? draft.mapSelection.regionId : null,
+        regionIdByCellId: draft.regionIdByCellId,
+      }),
+    [isHex, hexGridGeometry, draft.mapSelection, draft.regionIdByCellId, cols, rows],
+  );
 
-  const hexHoverRegionBoundarySegments = useMemo(() => {
-    if (!isHex || !hexGridGeometry || selectHoverTarget.type !== 'region') {
-      return [];
-    }
-    return hexBoundarySegmentsForRegionCells(
-      cols,
-      rows,
-      hexGridGeometry.hexSize,
-      selectHoverTarget.regionId,
-      draft.regionIdByCellId,
-    );
-  }, [isHex, hexGridGeometry, selectHoverTarget, draft.regionIdByCellId, cols, rows]);
+  const hexHoverRegionBoundarySegments = useMemo(
+    () =>
+      buildHexAuthoringRegionBoundarySegments({
+        isHex,
+        hexGridGeometry,
+        cols,
+        rows,
+        activeRegionId:
+          selectHoverTarget.type === 'region' ? selectHoverTarget.regionId : null,
+        regionIdByCellId: draft.regionIdByCellId,
+      }),
+    [isHex, hexGridGeometry, selectHoverTarget, draft.regionIdByCellId, cols, rows],
+  );
 
   const activePathKind: LocationMapPathKindId | null =
     activeDraw?.category === 'path' ? activeDraw.kind : null;
@@ -323,46 +321,18 @@ export function LocationGridAuthoringSection({
     [draft.cellFillByCellId],
   );
 
-  const applyStrokeCell = useCallback(
-    (cellId: string) => {
-      if (strokeSeen.current.has(cellId)) return;
-      strokeSeen.current.add(cellId);
-      if (mapEditorMode === 'paint') {
-        const surfaceFill = getActiveSurfaceFillKind(activePaint ?? null);
-        if (surfaceFill) {
-          setDraft((d) => ({
-            ...d,
-            cellFillByCellId: { ...d.cellFillByCellId, [cellId]: surfaceFill },
-          }));
-          return;
-        }
-        if (canApplyRegionPaint(activePaint ?? null, draft.regionEntries)) {
-          const paint = activePaint!;
-          const rid = paint.activeRegionId!.trim();
-          setDraft((prevDraft) => ({
-            ...prevDraft,
-            regionIdByCellId: { ...prevDraft.regionIdByCellId, [cellId]: rid },
-          }));
-        }
-        return;
-      }
-      if (mapEditorMode === 'erase') {
-        setDraft((d) => {
-          const nextFill = { ...d.cellFillByCellId };
-          delete nextFill[cellId];
-          const nextRegion = { ...d.regionIdByCellId };
-          delete nextRegion[cellId];
-          return { ...d, cellFillByCellId: nextFill, regionIdByCellId: nextRegion };
-        });
-      }
-    },
-    [activePaint, draft.regionEntries, mapEditorMode, setDraft],
-  );
-
-  const endPaintStroke = useCallback(() => {
-    paintStrokeActive.current = false;
-    strokeSeen.current.clear();
-  }, []);
+  const {
+    paintStrokeActive,
+    endPaintStroke,
+    handlePaintPointerDown,
+    handlePaintPointerEnter,
+    handlePaintPointerUp,
+  } = useLocationGridPaintStroke({
+    mapEditorMode,
+    activePaint,
+    regionEntries: draft.regionEntries,
+    setDraft,
+  });
 
   const endPlaceObjectStroke = useCallback(() => {
     placeObjectStrokeActive.current = false;
@@ -378,42 +348,6 @@ export function LocationGridAuthoringSection({
     window.addEventListener('pointerup', onWindowPointerUp);
     return () => window.removeEventListener('pointerup', onWindowPointerUp);
   }, [endPaintStroke, endPlaceObjectStroke, commitEdgeStroke, edgeStrokeActive]);
-
-  const handlePaintPointerDown = useCallback(
-    (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      if (mapEditorMode !== 'paint' && mapEditorMode !== 'erase') return;
-      if (mapEditorMode === 'paint' && !canApplyAnyPaintStroke(activePaint ?? null, draft.regionEntries)) {
-        return;
-      }
-      e.stopPropagation();
-      paintStrokeActive.current = true;
-      strokeSeen.current = new Set();
-      applyStrokeCell(cell.cellId);
-    },
-    [activePaint, applyStrokeCell, draft.regionEntries, mapEditorMode],
-  );
-
-  const handlePaintPointerEnter = useCallback(
-    (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      if (!paintStrokeActive.current) return;
-      if (e.buttons !== 1) return;
-      if (mapEditorMode === 'paint' && !canApplyAnyPaintStroke(activePaint ?? null, draft.regionEntries)) {
-        return;
-      }
-      e.stopPropagation();
-      applyStrokeCell(cell.cellId);
-    },
-    [activePaint, applyStrokeCell, draft.regionEntries, mapEditorMode],
-  );
-
-  const handlePaintPointerUp = useCallback(
-    (e: ReactPointerEvent<HTMLElement>) => {
-      if (mapEditorMode !== 'paint' && mapEditorMode !== 'erase') return;
-      e.stopPropagation();
-      endPaintStroke();
-    },
-    [endPaintStroke, mapEditorMode],
-  );
 
   const paintStrokeOrEraseFill =
     mapEditorMode === 'paint' || mapEditorMode === 'erase';

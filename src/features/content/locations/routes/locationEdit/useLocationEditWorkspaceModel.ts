@@ -49,7 +49,6 @@ import {
   createVerticalStairConnection,
   findStairConnectionForEndpoint,
   getCounterpartStairEndpoint,
-  getAllowedLinkedLocationOptions,
   LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION,
   removeStairConnectionsInvolvingEndpoint,
   validateStairEndpointsCanPair,
@@ -101,6 +100,7 @@ import {
   applyRemovePathFromDraft,
   applyRemovePlacedObjectToDraft,
 } from './mapSessionDraft.helpers';
+import { buildLocationEditLinkModalSelectOptions } from './locationEditLinkModalOptions';
 
 export type UseLocationEditWorkspaceModelParams = {
   locationId: string | undefined;
@@ -557,33 +557,25 @@ export function useLocationEditWorkspaceModel({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [mapEditor.mode]);
 
-  const linkModalSelectOptions = useMemo(() => {
-    if (!campaignId || !loc || loc.source !== 'campaign') return [];
-    const p = mapEditor.pendingPlacement;
-    if (!p || p.type !== 'linked-location') return [];
-    const targetScale = p.linkedScale;
-    const campaignLocations = locations.filter((l) => l.source === 'campaign');
-    const host = {
-      id: mapHostLocationIdResolved || '__host__',
-      scale: mapHostScaleResolved,
-      name: loc.name,
-      source: 'campaign' as const,
+  const linkModalSelectOptions = useMemo(
+    () =>
+      buildLocationEditLinkModalSelectOptions({
+        campaignId,
+        loc,
+        locations,
+        mapHostLocationIdResolved,
+        mapHostScaleResolved,
+        pendingPlacement: mapEditor.pendingPlacement,
+      }),
+    [
       campaignId,
-    };
-    return getAllowedLinkedLocationOptions(host, campaignLocations, {
-      campaignId,
-      excludeLocationId: mapHostLocationIdResolved || undefined,
-    })
-      .filter((l) => l.scale === targetScale)
-      .map((l) => ({ value: l.id, label: l.name }));
-  }, [
-    campaignId,
-    loc,
-    locations,
-    mapHostLocationIdResolved,
-    mapHostScaleResolved,
-    mapEditor.pendingPlacement,
-  ]);
+      loc,
+      locations,
+      mapHostLocationIdResolved,
+      mapHostScaleResolved,
+      mapEditor.pendingPlacement,
+    ],
+  );
 
   const showMapEditorChrome = showMapGridAuthoring;
 
