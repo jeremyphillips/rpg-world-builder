@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
   hexExposedRegionBoundarySegments,
   sharedEdgeBetweenHexCells,
-} from './hexRegionBoundarySegments';
+} from '../hexRegionBoundarySegments';
 
 describe('hexRegionBoundarySegments', () => {
   const hexSize = 48;

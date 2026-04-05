@@ -10,7 +10,7 @@ import {
   pathEntriesToSvgPaths,
   polylinePoint2DToSmoothSvgPath,
   sampleSmoothPathCenterlineForPicking,
-} from './pathOverlayRendering';
+} from '../pathOverlayRendering';
 
 function distSqToPolyline(
   px: number,

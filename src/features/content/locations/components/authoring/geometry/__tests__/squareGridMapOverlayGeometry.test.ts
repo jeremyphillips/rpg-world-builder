@@ -7,7 +7,7 @@ import {
   resolveSquareCellIdFromGridLocalPx,
   squareCellCenterPx,
   squareSharedEdgeSegmentPx,
-} from './squareGridMapOverlayGeometry';
+} from '../squareGridMapOverlayGeometry';
 
 describe('squareGridMapOverlayGeometry', () => {
   const cellPx = 40;

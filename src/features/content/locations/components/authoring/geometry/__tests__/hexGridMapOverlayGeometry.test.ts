@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { hexCellCenterPx, hexOverlayDimensions, resolveNearestHexCell } from './hexGridMapOverlayGeometry';
+import { hexCellCenterPx, hexOverlayDimensions, resolveNearestHexCell } from '../hexGridMapOverlayGeometry';
 
 describe('hexGridMapOverlayGeometry', () => {
   const hexSize = 48;

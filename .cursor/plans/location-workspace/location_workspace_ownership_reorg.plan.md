@@ -306,7 +306,7 @@ components/
 |-------|----------|
 | **Rail cell panel** | `LocationCellAuthoringPanel` stays under **`workspace/rightRail/panels/`** (rail-owned; not a feature-root stray). |
 | **`authoring/draft/`** | Home for **`locationGridDraft.types.ts`**, **`locationGridDraft.utils.ts`**, and **`locationGridDraft.utils.test.ts`**. |
-| **`authoring/geometry/`** | Home for **`hexGridMapOverlayGeometry`**, **`squareGridMapOverlayGeometry`**, **`pathOverlayRendering`**, **`hexRegionBoundaryForAuthoring`**, **`hexRegionBoundarySegments`**, and co-located `*.test.ts`. |
+| **`authoring/geometry/`** | Home for **`hexGridMapOverlayGeometry`**, **`squareGridMapOverlayGeometry`**, **`pathOverlayRendering`**, **`hexRegionBoundaryForAuthoring`**, **`hexRegionBoundarySegments`**; tests under **`authoring/geometry/__tests__/`**. |
 | **`LocationGridAuthoringSection`** | **`workspace/LocationGridAuthoringSection.tsx`** — still the workspace-level authoring orchestrator / bridge; **not** under `canvas/`; co-location with `LocationEditorWorkspace` and peers clarifies ownership without implying a narrow canvas child. |
 | **`components/mapEditor/`** | **Removed (option B).** Re-exports inlined into **`components/index.ts`** from `workspace/leftTools` and `workspace/rightRail/...`. |
 | **Scope** | No broad filename shortening; **`mapGrid/`** name unchanged in this pass. |
