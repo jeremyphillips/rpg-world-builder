@@ -7,10 +7,10 @@ todos:
     status: completed
   - id: subtree-tests
     content: Co-locate subtree-owned tests under __tests__ per subtree (e.g. rightRail/__tests__)
-    status: pending
+    status: completed
   - id: phased-moves
     content: Execute subtree moves in phases (ownership first, renames later); preserve barrel exports at each step
-    status: pending
+    status: completed
   - id: readme-plan-bundle
     content: Update .cursor/plans/location-workspace/README.md — link the ownership reorg plan, short subtree summary, reading order
     status: completed

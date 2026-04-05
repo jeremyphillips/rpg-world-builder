@@ -6,7 +6,7 @@ import {
   normalizeRegionDescriptionForDraft,
   normalizeRegionNameForDraft,
   regionMetadataToFormValues,
-} from './regionMetadataDraftAdapter';
+} from '../regionMetadataDraftAdapter';
 
 describe('regionMetadataDraftAdapter', () => {
   it('regionMetadataToFormValues maps description undefined to empty string', () => {

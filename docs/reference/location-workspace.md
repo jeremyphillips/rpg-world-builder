@@ -81,7 +81,7 @@ App-wide MUI theme (`palette`, etc.) still applies; map-specific tuning should g
 
 ## Workspace layout (`components/workspace/`)
 
-**Subfolders (ownership):** `header/` (header + ancestry breadcrumbs), `canvas/` (pan/zoom shell + map column), `leftTools/` (map toolbar + paint/draw trays), `rightRail/` (rail shell, tabs, selection panel, rail types, region metadata adapter), `setup/` (location create setup dialog). Top-level files include the edit shells, `LocationEditorWorkspace`, `LocationGridAuthoringSection`, and `BuildingFloorStrip`. Map rail-only panels remain under `components/mapEditor/` for now; the map editor barrel re-exports left tools from `workspace/leftTools/`.
+**Subfolders (ownership):** `header/` (header + ancestry breadcrumbs), `canvas/` (pan/zoom shell + map column), `leftTools/` (map toolbar + paint/draw trays), `rightRail/` (rail shell, tabs, selection panel, rail types, region metadata adapter, **`panels/`** for Map-rail place/draw/paint panels + linked-location modal), `setup/` (location create setup dialog). `rightRail/__tests__/` holds rail-local tests. Top-level files include the edit shells, `LocationEditorWorkspace`, `LocationGridAuthoringSection`, and `BuildingFloorStrip`. The **`components/mapEditor/`** barrel only re-exports left tools from `workspace/leftTools/` and rail panels from `workspace/rightRail/panels/` for stable import paths.
 
 The workspace is composed of feature-owned components:
 
@@ -265,7 +265,7 @@ The long-term direction is a **registry-driven** object authoring system: **tool
 
 | | |
 |---|---|
-| **File** | `src/features/content/locations/components/mapEditor/LocationMapEditorToolbar.tsx` |
+| **File** | `src/features/content/locations/components/workspace/leftTools/LocationMapEditorToolbar.tsx` |
 | **Width** | `locationEditorWorkspaceUiTokens.mapToolbarWidthPx` |
 | **Control** | MUI vertical `ToggleButtonGroup` (exclusive), icon-only buttons |
 

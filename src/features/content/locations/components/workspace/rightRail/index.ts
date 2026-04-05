@@ -9,3 +9,10 @@ export {
   selectedCellIdForMapSelection,
   mapSelectionEqual,
 } from './locationEditorRail.types';
+export {
+  LocationMapEditorPaintMapPanel,
+  LocationMapEditorDrawPanel,
+  LocationMapEditorPlacePanel,
+  LocationMapEditorLinkedLocationModal,
+  type LocationMapEditorLinkedLocationModalProps,
+} from './panels';

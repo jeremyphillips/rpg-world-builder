@@ -5,10 +5,10 @@ export {
   RegionPaintActiveRegionSelect,
   LocationMapEditorDrawTray,
 } from '../workspace/leftTools';
-export { LocationMapEditorPaintMapPanel } from './LocationMapEditorPaintMapPanel';
-export { LocationMapEditorDrawPanel } from './LocationMapEditorDrawPanel';
-export { LocationMapEditorPlacePanel } from './LocationMapEditorPlacePanel';
 export {
+  LocationMapEditorPaintMapPanel,
+  LocationMapEditorDrawPanel,
+  LocationMapEditorPlacePanel,
   LocationMapEditorLinkedLocationModal,
   type LocationMapEditorLinkedLocationModalProps,
-} from './LocationMapEditorLinkedLocationModal';
+} from '../workspace/rightRail/panels';

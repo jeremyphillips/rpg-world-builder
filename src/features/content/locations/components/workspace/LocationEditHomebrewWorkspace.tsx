@@ -9,8 +9,10 @@ import type { LocationFormValues } from '@/features/content/locations/domain';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
 import { ConditionalFormRenderer, ConfirmModal } from '@/ui/patterns';
 import type { FieldConfig } from '@/ui/patterns/form/form.types';
-import type { LocationMapEditorLinkedLocationModalProps } from '@/features/content/locations/components/mapEditor/LocationMapEditorLinkedLocationModal';
-import { LocationMapEditorLinkedLocationModal } from '@/features/content/locations/components/mapEditor/LocationMapEditorLinkedLocationModal';
+import {
+  LocationMapEditorLinkedLocationModal,
+  type LocationMapEditorLinkedLocationModalProps,
+} from './rightRail/panels';
 
 import type { BuildingFloorStripProps } from './BuildingFloorStrip';
 import { BuildingFloorStrip } from './BuildingFloorStrip';
