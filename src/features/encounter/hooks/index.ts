@@ -5,6 +5,10 @@ export { useEncounterGridViewModel } from './useEncounterGridViewModel'
 export { useEncounterSceneFocus, DEFAULT_SCENE_FOCUS } from './useEncounterSceneFocus'
 export { useEncounterSceneViewer, type UseEncounterSceneViewerArgs } from './useEncounterSceneViewer'
 export {
+  useEncounterSceneViewerPresentation,
+  resolveEncounterSceneViewerControlsVisibility,
+} from './useEncounterSceneViewerPresentation'
+export {
   useEncounterActivePlaySurface,
   type EncounterActivePlaySurfaceDeps,
   type UseEncounterActivePlaySurfaceOptions,

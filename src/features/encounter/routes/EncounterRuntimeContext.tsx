@@ -32,9 +32,7 @@ import {
   type EncounterViewerContext,
 } from '../domain'
 import { SIMULATOR_ENCOUNTER_SETUP_POLICY } from '../domain/setup'
-import { resolveViewerSceneEncounterState } from '../domain'
-import { EncounterSceneViewerControls } from '../components/active/scene/EncounterSceneViewerControls'
-import { useEncounterState, useEncounterOptions, useEncounterRoster, useEncounterSceneViewer } from '../hooks'
+import { useEncounterState, useEncounterOptions, useEncounterRoster, useEncounterSceneViewerPresentation } from '../hooks'
 import { useEncounterCombatActiveHeader } from '../hooks/useEncounterCombatActiveHeader'
 import { useEncounterGridViewModel } from '../hooks/useEncounterGridViewModel'
 import type { GridInteractionMode } from '../domain'
@@ -277,7 +275,14 @@ function useEncounterRuntimeValue() {
     [simulatorViewerMode, presentationSelectedCombatantId],
   )
 
-  const { followMode, setFollowMode, sceneFocus, setSceneFocus } = useEncounterSceneViewer({
+  const {
+    followMode,
+    setFollowMode,
+    sceneFocus,
+    setSceneFocus,
+    presentationEncounterState,
+    sceneViewerSlot,
+  } = useEncounterSceneViewerPresentation({
     encounterState,
     controlledCombatantIds: [],
     selectedActionTargetId,
@@ -286,25 +291,6 @@ function useEncounterRuntimeValue() {
     viewerRole: 'dm',
     hostMode: 'simulator',
   })
-
-  const presentationEncounterState = useMemo(
-    () => resolveViewerSceneEncounterState(encounterState, sceneFocus),
-    [encounterState, sceneFocus],
-  )
-
-  const sceneViewerSlot = useMemo(
-    () =>
-      encounterState ? (
-        <EncounterSceneViewerControls
-          encounterState={encounterState}
-          sceneFocus={sceneFocus}
-          setSceneFocus={setSceneFocus}
-          followMode={followMode}
-          setFollowMode={setFollowMode}
-        />
-      ) : null,
-    [encounterState, sceneFocus, setSceneFocus, followMode, setFollowMode],
-  )
 
   const contextualPromptEnvironment = useMemo((): EncounterContextPromptEnvironment | null => {
     if (!campaignId) return null

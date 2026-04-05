@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import Alert from '@mui/material/Alert'
@@ -15,15 +15,13 @@ import type { EncounterState } from '@/features/mechanics/domain/combat'
 import {
   deriveEncounterPresentationGridPerceptionInput,
   resolveSessionControlledCombatantIds,
-  resolveViewerSceneEncounterState,
   type EncounterViewerContext,
 } from '@/features/encounter/domain'
 import { isAreaGridAction } from '@/features/encounter/helpers/actions'
 import type { GridInteractionMode } from '@/features/encounter/domain'
 import { useEncounterState } from '@/features/encounter/hooks/useEncounterState'
-import { EncounterSceneViewerControls } from '@/features/encounter/components/active/scene/EncounterSceneViewerControls'
 import { useEncounterGridViewModel } from '@/features/encounter/hooks/useEncounterGridViewModel'
-import { useEncounterSceneViewer } from '@/features/encounter/hooks/useEncounterSceneViewer'
+import { useEncounterSceneViewerPresentation } from '@/features/encounter/hooks/useEncounterSceneViewerPresentation'
 import { useEncounterCombatActiveHeader } from '@/features/encounter/hooks/useEncounterCombatActiveHeader'
 import { useEncounterActivePlaySurface } from '@/features/encounter/hooks/useEncounterActivePlaySurface'
 import type { EncounterContextPromptEnvironment } from '@/features/encounter/domain/encounterContextPrompt.types'
@@ -232,7 +230,7 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
     [viewerRole, user?.id, controlledCombatantIds],
   )
 
-  const { followMode, setFollowMode, sceneFocus, setSceneFocus } = useEncounterSceneViewer({
+  const { presentationEncounterState, sceneViewerSlot } = useEncounterSceneViewerPresentation({
     encounterState: encounter.encounterState,
     controlledCombatantIds,
     selectedActionTargetId: encounter.selectedActionTargetId,
@@ -241,25 +239,6 @@ export function GameSessionEncounterPlaySurface({ session }: { session: GameSess
     viewerRole,
     hostMode: 'session',
   })
-
-  const presentationEncounterState = useMemo(
-    () => resolveViewerSceneEncounterState(encounter.encounterState, sceneFocus),
-    [encounter.encounterState, sceneFocus],
-  )
-
-  const sceneViewerSlot: ReactNode = useMemo(
-    () =>
-      encounter.encounterState ? (
-        <EncounterSceneViewerControls
-          encounterState={encounter.encounterState}
-          sceneFocus={sceneFocus}
-          setSceneFocus={setSceneFocus}
-          followMode={followMode}
-          setFollowMode={setFollowMode}
-        />
-      ) : null,
-    [encounter.encounterState, sceneFocus, setSceneFocus, followMode, setFollowMode],
-  )
 
   const presentationGridPerceptionInput = useMemo(
     () =>
