@@ -74,6 +74,10 @@ export function useLocationGridSelectMode({
     }
   }, [mapEditorMode]);
 
+  const clearSelectHoverTarget = useCallback(() => {
+    setSelectHoverTarget({ type: 'none' });
+  }, []);
+
   const handleSelectPointerMove = useCallback(
     (e: ReactPointerEvent<HTMLElement>) => {
       if (mapEditorMode !== 'select' || !validPreview) return;
@@ -239,6 +243,7 @@ export function useLocationGridSelectMode({
 
   return {
     selectHoverTarget,
+    clearSelectHoverTarget,
     handleSelectPointerMove,
     handleSelectGridContainerClick,
     onSelectModeCellClick,

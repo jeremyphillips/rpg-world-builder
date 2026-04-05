@@ -32,8 +32,10 @@ import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/
 import type { Location } from '@/features/content/locations/domain/model/location';
 import { useLocationAuthoringGridLayout } from '@/features/content/locations/hooks/useLocationAuthoringGridLayout';
 import { usePruneGridDraftOnDimensionChange } from '@/features/content/locations/hooks/usePruneGridDraftOnDimensionChange';
-import { HexMapAuthoringSvgOverlay } from '../mapGrid/authoring/HexMapAuthoringSvgOverlay';
-import { SquareMapAuthoringSvgOverlay } from '../mapGrid/authoring/SquareMapAuthoringSvgOverlay';
+import {
+  LocationGridAuthoringHexMapOverlayLayer,
+  LocationGridAuthoringSquareMapOverlayLayer,
+} from './locationGridAuthoringMapOverlayLayers';
 import { useSquareEdgeBoundaryPaint } from '../mapGrid/authoring/useSquareEdgeBoundaryPaint';
 import { LocationMapCellAuthoringOverlay } from '../mapGrid/LocationMapCellAuthoringOverlay';
 
@@ -207,6 +209,7 @@ export function LocationGridAuthoringSection({
 
   const {
     selectHoverTarget,
+    clearSelectHoverTarget,
     handleSelectPointerMove,
     handleSelectGridContainerClick,
     onSelectModeCellClick,
@@ -661,69 +664,44 @@ export function LocationGridAuthoringSection({
         onPointerLeave={() => {
           if (edgePlaceActive || edgeEraseActive) handleEdgePointerLeave();
           if (placePathPlacement) setPlaceHoverCellId(null);
-          if (mapEditorMode === 'select') setSelectHoverTarget({ type: 'none' });
+          if (mapEditorMode === 'select') clearSelectHoverTarget();
         }}
       >
-        {squareGridGeometry &&
-        !isHex &&
-        (pathSvgData.length > 0 ||
-          draft.edgeEntries.length > 0 ||
-          edgeHoverTarget != null ||
-          edgeStrokeSnapshot.length > 0) ? (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              width: squareGridGeometry.width,
-              height: squareGridGeometry.height,
-              zIndex: 2,
-              pointerEvents: 'none',
-            }}
-          >
-            <SquareMapAuthoringSvgOverlay
-              width={squareGridGeometry.width}
-              height={squareGridGeometry.height}
-              cellPx={squareGridGeometry.cellPx}
-              mapUi={mapUi}
-              pathSvgData={pathSvgData}
-              mapSelection={draft.mapSelection}
-              selectHoverTarget={selectHoverTarget}
-              edgeStrokeSnapshot={edgeStrokeSnapshot}
-              edgeHoverTarget={edgeHoverTarget}
-              edgeEraseActive={edgeEraseActive}
-              committedEdgeSegmentGeometry={committedEdgeSegmentGeometry}
-            />
-          </Box>
-        ) : null}
-        {hexGridGeometry &&
-        isHex &&
-        (pathSvgData.length > 0 ||
-          hexSelectedRegionBoundarySegments.length > 0 ||
-          hexHoverRegionBoundarySegments.length > 0) ? (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              width: hexGridGeometry.width,
-              height: hexGridGeometry.height,
-              zIndex: 2,
-              pointerEvents: 'none',
-            }}
-          >
-            <HexMapAuthoringSvgOverlay
-              width={hexGridGeometry.width}
-              height={hexGridGeometry.height}
-              mapUi={mapUi}
-              pathSvgData={pathSvgData}
-              mapSelection={draft.mapSelection}
-              selectHoverTarget={selectHoverTarget}
-              hexSelectedRegionBoundarySegments={hexSelectedRegionBoundarySegments}
-              hexHoverRegionBoundarySegments={hexHoverRegionBoundarySegments}
-            />
-          </Box>
-        ) : null}
+        <LocationGridAuthoringSquareMapOverlayLayer
+          visible={
+            !!squareGridGeometry &&
+            !isHex &&
+            (pathSvgData.length > 0 ||
+              draft.edgeEntries.length > 0 ||
+              edgeHoverTarget != null ||
+              edgeStrokeSnapshot.length > 0)
+          }
+          squareGridGeometry={squareGridGeometry}
+          mapUi={mapUi}
+          pathSvgData={pathSvgData}
+          mapSelection={draft.mapSelection}
+          selectHoverTarget={selectHoverTarget}
+          edgeStrokeSnapshot={edgeStrokeSnapshot}
+          edgeHoverTarget={edgeHoverTarget}
+          edgeEraseActive={edgeEraseActive}
+          committedEdgeSegmentGeometry={committedEdgeSegmentGeometry}
+        />
+        <LocationGridAuthoringHexMapOverlayLayer
+          visible={
+            !!hexGridGeometry &&
+            isHex &&
+            (pathSvgData.length > 0 ||
+              hexSelectedRegionBoundarySegments.length > 0 ||
+              hexHoverRegionBoundarySegments.length > 0)
+          }
+          hexGridGeometry={hexGridGeometry}
+          mapUi={mapUi}
+          pathSvgData={pathSvgData}
+          mapSelection={draft.mapSelection}
+          selectHoverTarget={selectHoverTarget}
+          hexSelectedRegionBoundarySegments={hexSelectedRegionBoundarySegments}
+          hexHoverRegionBoundarySegments={hexHoverRegionBoundarySegments}
+        />
         <Box sx={{ position: 'relative', zIndex: 0 }}>
           {isHex ? (
             <HexGridEditor
