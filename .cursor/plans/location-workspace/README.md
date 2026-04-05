@@ -37,7 +37,7 @@ Cursor plans for the **location editor workspace**: persistence/dirty state, she
 | Plan | Status | Role |
 |------|--------|------|
 | [location_workspace_ownership_reorg.plan.md](location_workspace_ownership_reorg.plan.md) | Active / incremental | Folder ownership (`header`, `leftTools`, `rightRail`, `canvas`), layout tokens in domain, plan-bundle README |
-| [../location_workspace_cleanup_94269d45.plan.md](../location_workspace_cleanup_94269d45.plan.md) | Active | Orchestration cleanup: concern-based extractions, rail panel assembly in `routes/locationEdit`, draft helpers; pre–object-authoring navigability |
+| [../location_workspace_cleanup_94269d45.plan.md](../location_workspace_cleanup_94269d45.plan.md) | Done (core) | Orchestration cleanup: grid section + rail panels + draft/stair helpers (`mapSessionDraft.helpers`, `useLocationEditBuildingStairHandlers`); optional follow-ups in plan |
 | [location_workspace_hex_edge_support.plan.md](location_workspace_hex_edge_support.plan.md) | Done | Option B constrained hex edges — alert + erase guard + selection clear |
 | [location_workspace_select_mode_interaction_hardening.plan.md](location_workspace_select_mode_interaction_hardening.plan.md) | Done | Select mode — pan vs click, region vs cell chrome |
 | [location_workspace_hex_hover_parity_followup.plan.md](location_workspace_hex_hover_parity_followup.plan.md) | Done | Hex `HexGridEditor` — suppressed-hover idle `:hover` parity with square |

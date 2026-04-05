@@ -4,22 +4,22 @@ overview: "Pre–feature navigability pass: decompose LocationGridAuthoringSecti
 todos:
   - id: phase1-grid-section
     content: "LocationGridAuthoringSection: concern-based extractions (square/hex, overlays, mode handlers, viewport glue)—no arbitrary fragments"
-    status: pending
+    status: completed
   - id: phase2-workspace-model
     content: "useLocationEditWorkspaceModel: colocated helpers/modules; one primary return object; preserve top-level field names"
-    status: pending
+    status: completed
   - id: phase3-workspace-panels
     content: Extract workspace map/selection panel assembly from LocationEditRoute to routes/locationEdit module
-    status: pending
+    status: completed
   - id: phase4-authoring-boundary
     content: "components/authoring vs domain/authoring: comments/docs first; move files only if confusion remains"
-    status: pending
+    status: completed
   - id: plan-bundle-readme
     content: Link this plan in .cursor/plans/location-workspace/README.md with short summary
-    status: pending
+    status: completed
   - id: phase5-optional-rail-types
     content: "Optional: rightRail types vs helpers split; barrel hygiene for new imports"
-    status: pending
+    status: cancelled
 isProject: false
 ---
 
@@ -36,9 +36,9 @@ This plan implements **navigability and ownership clarity** for the location edi
 
 | Area                   | File                                                                                                                     | Approx. size | Issue                                                                                            |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------ |
-| Canvas orchestration   | [LocationGridAuthoringSection.tsx](src/features/content/locations/components/workspace/LocationGridAuthoringSection.tsx) | ~1k lines    | Mixes tool modes, select-mode wiring, hex/square, overlays, draft updates                        |
-| Workspace session hook | [useLocationEditWorkspaceModel.ts](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts)  | ~1.2k lines  | Aggregates form, grid draft, map editor, palettes, zoom/pan, building/stairs, save, system patch |
-| Route composition      | [LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx)                                     | ~500 lines   | Large inline JSX for map authoring / selection panels and related wiring                         |
+| Canvas orchestration   | [LocationGridAuthoringSection.tsx](src/features/content/locations/components/workspace/LocationGridAuthoringSection.tsx) | ~620 lines   | Mixes tool modes, select-mode wiring, hex/square, overlays, draft updates (helpers colocated)     |
+| Workspace session hook | [useLocationEditWorkspaceModel.ts](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts)  | ~1k lines    | Aggregates form, grid draft, map editor, palettes, zoom/pan, building/stairs, save, system patch (see `mapSessionDraft.helpers`, `useLocationEditBuildingStairHandlers`) |
+| Route composition      | [LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx)                                     | ~470 lines   | Map authoring / selection rail assembly in `locationEditWorkspaceRailPanels`                       |
 
 
 ```mermaid
@@ -151,7 +151,7 @@ Do **not** split the file into fragments that still require hopping across many 
 
 **Stability:** Keep **public props** of `LocationGridAuthoringSection` stable for callers unless there is a strong, documented reason to change them.
 
-**Optional directory shape:** A subfolder is justified only if it reflects **real containment** (e.g. `locationGridAuthoring/` with a thin entry file). See [Sample tree](#sample-tree-substantial-directory-changes) below.
+**Optional directory shape:** A `locationGridAuthoring/` subfolder is **not** assumed—see [Optional follow-ups § folder shape](#locationgridauthoring--workspace-folder-shape-illustrative-only) and [Sample tree](#sample-tree-substantial-directory-changes).
 
 ---
 
@@ -176,6 +176,8 @@ Do **not** split the file into fragments that still require hopping across many 
 **Keep persistence seams concentrated:** Authoring contract assembly, hydration, and save coordination stay tied to [useLocationEditSaveActions.ts](src/features/content/locations/routes/locationEdit/useLocationEditSaveActions.ts) / [useLocationMapHydration.ts](src/features/content/locations/routes/locationEdit/useLocationMapHydration.ts) patterns—do not scatter baseline/save logic across new files without reason.
 
 **Domain vs route:** Pure rules that are **editor-global** and testable without route → `**domain/authoring/editor/`**. Glue that needs `loc`, campaign, system vs homebrew → `**routes/locationEdit/`**.
+
+**After the first pass:** Further slicing is **optional**—see [Optional follow-ups § further hook slicing](#further-uselocationeditworkspacemodel-slicing-phase-2-follow-up).
 
 ---
 
@@ -205,22 +207,90 @@ Do **not** split the file into fragments that still require hopping across many 
 **Start with:**
 
 - Comments on [components/authoring/index.ts](src/features/content/locations/components/authoring/index.ts) (draft types, persist/compare, overlay geometry adapters vs editor semantics in `domain/authoring/`)
-- Optional one-line pointer in [docs/reference/location-workspace.md](docs/reference/location-workspace.md) if confusion persists
+
+**Optional:** A short docs pointer in [docs/reference/location-workspace.md](docs/reference/location-workspace.md) is **not** part of “done” for this plan—see [Optional / incremental follow-ups § Docs pointer](#docs-pointer-phase-4-follow-up).
 
 **Only move files** if, after the above, **boundary confusion remains** in review or imports—then move the **smallest** set of files with a clear rule, not a broad reshuffle.
 
 ---
 
-## Phase 5 — Optional polish
+## Phase 5 — Polish (non-blocking)
 
-- Split [rightRail/types/](src/features/content/locations/components/workspace/rightRail/types/) so **types** and **helpers** are not mixed under a misleading folder name—only if the rename improves clarity at low cost.
-- **Barrel hygiene:** Prefer targeted imports for new code; avoid expanding [domain/index.ts](src/features/content/locations/domain/index.ts) without need.
+**Phase 5 items are cleanup polish, not prerequisites** for closing the main plan. See [Optional / incremental follow-ups § rightRail and barrels](#rightrailtypes-and-barrel-hygiene-phase-5-polish).
+
+---
+
+## Optional / incremental follow-ups (not required to close the main plan)
+
+This section is **intentionally subordinate** to Phases 1–4 above. It captures **worthwhile** follow-ups that may still make sense **after** the high-leverage work lands—without turning them into hidden required phases.
+
+**Standard:** Do these only when the codebase **still feels noisy** after the main phases, and when each change is guided by **readability and ownership**, not abstraction for its own sake. **Skipping this entire section is a valid outcome.**
+
+---
+
+### Further `useLocationEditWorkspaceModel` slicing (Phase 2 follow-up)
+
+The hook may remain large even after colocated helpers (`mapSessionDraft.helpers.ts`, link-modal options, etc.). **Additional extraction is optional** and should stay **disciplined**:
+
+**Each extraction must:**
+
+- Have a **clear concern boundary** (what file owns, what callers need)
+- Have a **stable, descriptive name** (module or helper name tells you why it exists)
+- **Improve navigability**—a reader understands the main hook **faster**, not slower
+
+**Avoid:**
+
+- Replacing one large hook with **many peer hooks** or **scattered helpers** whose ownership is **harder** to follow than the status quo
+- **File-size anxiety** as the primary driver (line count is a weak signal on its own)
+
+**Examples of plausible extractions** (do **only** if each one makes the main hook easier to reason about):
+
+- Stair / building–related blocks
+- Palette wiring (memoized lists, mode side effects)
+- Keyboard-delete / map-selection delete wiring
+
+If an extraction does not clearly pass the “easier to reason about” test, **leave it inline**.
+
+---
+
+### Docs pointer (Phase 4 follow-up)
+
+**Optional** one-line note in [docs/reference/location-workspace.md](docs/reference/location-workspace.md) pointing contributors at:
+
+- [components/authoring/](src/features/content/locations/components/authoring/) (draft + overlay geometry adapters for this feature)
+- vs [domain/authoring/](src/features/content/locations/domain/authoring/) (editor semantics, palettes, select-mode, etc.)
+
+**Worth doing only if** contributors still confuse the boundary **after** the [components/authoring/index.ts](src/features/content/locations/components/authoring/index.ts) comment. **Documentation-only** and **small**—not a substitute for clear code ownership.
+
+---
+
+### `rightRail/types` and barrel hygiene (Phase 5 polish)
+
+**Cleanup polish, not a prerequisite** for the main plan.
+
+- **Split [rightRail/types/](src/features/content/locations/components/workspace/rightRail/types/)** if **types** and **helpers** remain mixed under a **misleading** folder name—only when the rename/split **reduces confusion** at acceptable cost (import churn).
+- **Barrel hygiene:** Prefer **narrow imports** for new code; avoid **unnecessary growth** of [domain/index.ts](src/features/content/locations/domain/index.ts) (re-export surface).
+
+**Worth doing only if** naming or ownership still feels **misleading** after the main cleanup—not as a default chore.
+
+---
+
+### `locationGridAuthoring/` / `workspace/` folder shape (illustrative only)
+
+The [sample tree](#sample-tree-substantial-directory-changes) `locationGridAuthoring/` subtree was **illustrative**, not a commitment.
+
+**Introduce a subfolder** only if:
+
+- The flat [components/workspace/](src/features/content/locations/components/workspace/) area **still feels noisy** after decomposition of `LocationGridAuthoringSection`, **and**
+- A **real ownership boundary** emerges (e.g. a stable cluster of grid-authoring files that belong together).
+
+**Do not** create a folder **only** because it appeared in the sketch. Prefer **fewer** folders unless a boundary is obvious. Co-located files with **explicit names** next to `LocationGridAuthoringSection.tsx` remain the default when a subfolder is not justified.
 
 ---
 
 ## Sample tree (substantial directory changes)
 
-Illustrative only—**adopt pieces that match Phase 1–3 outcomes**; do not treat as mandatory layout.
+Illustrative only—**adopt pieces that match Phase 1–3 outcomes**; do not treat as mandatory layout. The `locationGridAuthoring/` subtree is **one possible shape**; see [Optional follow-ups § folder shape](#locationgridauthoring--workspace-folder-shape-illustrative-only) before adding it.
 
 ```
 src/features/content/locations/
@@ -236,7 +306,7 @@ src/features/content/locations/
 └── components/
     └── workspace/
         ├── LocationGridAuthoringSection.tsx            # thinner entry, or re-export only
-        └── locationGridAuthoring/                      # OPTIONAL subtree if concern-based
+        └── locationGridAuthoring/                      # OPTIONAL only if flat workspace/ is still noisy
             ├── LocationGridAuthoringSection.tsx
             ├── SquareLocationGridAuthoring.tsx         # example: square branch
             ├── HexLocationGridAuthoring.tsx            # example: hex branch
@@ -267,6 +337,8 @@ When a milestone lands, add a row to [.cursor/plans/location-workspace/README.md
 - A contributor can trace a **mode-specific interaction path** (e.g. select vs place) without opening a **single ~1k-line file**—seams correspond to **named concerns**, not arbitrary chunks.
 - Extractions **improve ownership clarity**: domain vs route vs workspace responsibilities are **easier to explain** after the pass, not muddier.
 
+**Definition of done for the main plan** does **not** require completing [Optional / incremental follow-ups](#optional--incremental-follow-ups-not-required-to-close-the-main-plan) (further hook slicing, docs pointer, `rightRail/types` polish, or a `locationGridAuthoring/` folder).
+
 ---
 
 ## Acceptance checklist (refinement complete)
@@ -276,4 +348,5 @@ When a milestone lands, add a row to [.cursor/plans/location-workspace/README.md
 - Phase 3 is clearly **workspace panel / rail assembly** ownership, with the route retaining route-only concerns.
 - **Non-goals** block feature work and unrelated migrations from sneaking into this pass.
 - **Success criteria** include **navigability and ownership**, not only file size.
+- **[Optional / incremental follow-ups](#optional--incremental-follow-ups-not-required-to-close-the-main-plan)** are labeled **non-blocking**; further `useLocationEditWorkspaceModel` work is framed by **readability and ownership**, not file-size anxiety; docs pointer, `rightRail/types` / barrel polish, and `locationGridAuthoring/` folder are **conditional**, not assumed scope.
 
