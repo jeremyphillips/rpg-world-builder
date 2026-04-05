@@ -1,5 +1,5 @@
 import type { PickerOption } from '@/ui/patterns/form/OptionPickerField'
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 
 export type BuildParentLocationPickerOptionsArgs = {
   /** Exclude this id (e.g. current location when editing) */

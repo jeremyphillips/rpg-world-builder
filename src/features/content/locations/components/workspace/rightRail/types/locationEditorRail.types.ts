@@ -1,4 +1,4 @@
-import type { LocationMapEditorMode } from '@/features/content/locations/domain/mapEditor';
+import type { LocationMapEditorMode } from '@/features/content/locations/domain/authoring/editor';
 import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
 
 /** Which section of the location editor right rail is visible. Kept separate from toolbar `LocationMapEditorMode`. */

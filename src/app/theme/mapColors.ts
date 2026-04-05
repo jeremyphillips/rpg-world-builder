@@ -2,7 +2,7 @@ import type {
   LocationCellFillKindMeta,
   LocationMapRegionColorKey,
   LocationMapSwatchColorKey,
-} from '@/features/content/locations/domain/mapContent';
+} from '@/features/content/locations/domain/model/map';
 
 import { colorPrimitives } from './colorPrimitives';
 

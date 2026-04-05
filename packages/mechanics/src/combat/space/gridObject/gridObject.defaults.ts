@@ -1,4 +1,4 @@
-import { getPlacedObjectMeta } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
+import { getPlacedObjectMeta } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 
 import type { GridObject, GridObjectAuthoredKindId } from '../space.types';
 

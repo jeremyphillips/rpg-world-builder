@@ -10,7 +10,7 @@ This project uses a **two-layer** color model for the app shell and MUI theme.
 2. **Semantic palette** — `src/app/theme/palette.ts`  
    MUI roles: `primary`, `secondary`, `background`, `text`, `divider`, etc. This is what components should consume via the theme (`theme.palette.*`). **Do not** rename semantic keys for drive-by refactors.
 
-3. **Map UI styles** — `src/features/content/locations/domain/mapPresentation/locationMapUiStyles.ts`  
+3. **Map UI styles** — `src/features/content/locations/domain/presentation/map/locationMapUiStyles.ts`  
    Presentation layer: stroke widths, overlay/border relationships, hover/selection emphasis, cell outline pixels. Static tokens live in `locationMapUiStyleTokens`; theme-dependent strokes resolve via `resolveLocationMapUiStyles(theme)`. Keeps map drawing rules out of raw `sx` where practical.
 
 ## Guidelines

@@ -27,7 +27,7 @@ import { useEncounterActivePlaySurface } from '@/features/encounter/hooks/useEnc
 import type { EncounterContextPromptEnvironment } from '@/features/encounter/domain/encounterContextPrompt.types'
 import type { CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
 
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 import { listCampaignLocations } from '@/features/content/locations/domain/repo/locationRepo'
 import type { GameSession } from '../domain/game-session.types'
 import { summarizeEncounterSpaceForLog } from '../combat/buildEncounterSpaceFromLocationMap'

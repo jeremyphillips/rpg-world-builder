@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolvePlacedObjectCellVisualFromPlacedKind } from '@/features/content/locations/domain/mapPresentation/resolvePlacedObjectCellVisual'
+import { resolvePlacedObjectCellVisualFromPlacedKind } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual'
 import type { GridCellViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
 import type { EncounterGridCellRenderState } from '@/features/mechanics/domain/perception/perception.render.projection'
 

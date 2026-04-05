@@ -6,7 +6,7 @@
 import type { GridObjectCoverKind } from '@/features/mechanics/domain/combat/space/space.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
-import type { LocationMapGlyphIconName } from './locationMapIconNames';
+import type { LocationMapGlyphIconName } from '../map/locationMapIconNames';
 
 export type AuthoredPlacedObjectRuntimeFields = {
   blocksMovement: boolean;

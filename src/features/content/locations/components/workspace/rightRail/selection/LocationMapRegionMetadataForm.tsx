@@ -7,8 +7,8 @@ import Typography from '@mui/material/Typography';
 
 import { useDebouncedPersistableField } from '@/ui/hooks';
 
-import { LOCATION_MAP_REGION_COLOR_KEYS } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
-import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
+import { LOCATION_MAP_REGION_COLOR_KEYS } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
+import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 import FormSelectField from '@/ui/patterns/form/FormSelectField';
 import FormTextField from '@/ui/patterns/form/FormTextField';

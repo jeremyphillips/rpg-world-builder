@@ -1,4 +1,4 @@
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import { listLocationMaps } from '@/features/content/locations/domain/repo/locationMapRepo';
 import type { EncounterState } from '@/features/mechanics/domain/combat';
 import type { StairTraversalIntent } from '@/features/mechanics/domain/combat';

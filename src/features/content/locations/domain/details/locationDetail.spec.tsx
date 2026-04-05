@@ -1,4 +1,4 @@
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { AppBadge } from '@/ui/primitives';
 import { VisibilityBadge } from '@/ui/patterns';

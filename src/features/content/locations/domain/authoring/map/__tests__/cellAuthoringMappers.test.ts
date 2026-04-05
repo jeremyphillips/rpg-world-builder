@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 
-import { cellDraftToCellEntries, cellEntriesToDraft } from './cellAuthoringMappers';
+import { cellDraftToCellEntries, cellEntriesToDraft } from '../cellAuthoringMappers';
 
 describe('cellAuthoringMappers', () => {
   it('round-trips cell fill with links and objects', () => {

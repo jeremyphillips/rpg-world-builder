@@ -6,10 +6,10 @@
 import type { LocationMapObjectKindId, LocationScaleId } from '@/shared/domain/locations';
 import type { LocationMapGlyphIconName } from './locationMapIconNameMap';
 import {
-  getMapObjectKindIconName,
   LOCATION_MAP_OBJECT_KIND_TO_ICON_NAME,
   LOCATION_SCALE_MAP_ICON_NAME,
-} from '@/features/content/locations/domain/mapContent';
+} from '@/features/content/locations/domain/model/map/locationMapPresentation.constants';
+import { getMapObjectKindIconName } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors';
 
 import {
   getLocationMapGlyphIconByName,

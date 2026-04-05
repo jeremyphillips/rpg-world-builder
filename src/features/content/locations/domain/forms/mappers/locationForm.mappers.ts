@@ -8,11 +8,11 @@ import type {
   LocationBuildingPrimaryTypeId,
   LocationBuildingProfile,
 } from '@/shared/domain/locations';
-import type { Location, LocationInput } from '@/features/content/locations/domain/types';
+import type { Location, LocationInput } from '@/features/content/locations/domain/model/location';
 import {
   characterRefsToPickerValues,
   pickerValuesToCharacterRefs,
-} from '@/features/content/locations/domain/forms/utils/locationEntityRefPicker';
+} from '@/features/content/locations/domain/forms/setup/locationEntityRefPicker';
 import {
   buildDefaultFormValues,
   buildToFormValues,
@@ -20,7 +20,7 @@ import {
 } from '@/features/content/shared/forms/registry';
 import { LOCATION_FORM_FIELDS } from '../registry/locationForm.registry';
 import type { LocationFormValues } from '../types/locationForm.types';
-import { sanitizeLocationFormValues } from '@/features/content/locations/domain/forms/utils/locationDependentFieldsPolicy';
+import { sanitizeLocationFormValues } from '@/features/content/locations/domain/forms/rules/locationFormSanitize';
 
 const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 

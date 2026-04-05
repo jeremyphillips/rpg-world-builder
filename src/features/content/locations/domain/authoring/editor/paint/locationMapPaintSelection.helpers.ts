@@ -1,4 +1,4 @@
-import type { LocationCellFillKindId } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
+import type { LocationCellFillKindId } from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 
 import type { LocationMapActivePaintSelection, LocationMapPaintState } from '../types/locationMapEditor.types';

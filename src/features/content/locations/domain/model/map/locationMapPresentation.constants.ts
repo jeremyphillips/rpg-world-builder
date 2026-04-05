@@ -5,7 +5,7 @@ import type { LocationMapObjectIconName, LocationMapScaleIconName } from './loca
 /**
  * Scale affordance icon id per location scale (markers / linked-location UI).
  * UI resolves via `getLocationMapScaleIconByName` / `getLocationMapGlyphIconByName`
- * (`domain/mapPresentation/locationMapIconNameMap.tsx`).
+ * (`domain/presentation/map/locationMapIconNameMap.tsx`).
  */
 export const LOCATION_SCALE_MAP_ICON_NAME: Record<LocationScaleId, LocationMapScaleIconName> = {
   world: 'map_world',

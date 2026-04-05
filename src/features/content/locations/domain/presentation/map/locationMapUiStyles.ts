@@ -1,7 +1,7 @@
 import { alpha, type Theme } from '@mui/material/styles';
 
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
-import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
+import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 
 // ---------------------------------------------------------------------------
 // Static tokens (widths, opacities, font knobs)

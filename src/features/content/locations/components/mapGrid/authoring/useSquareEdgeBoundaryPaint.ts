@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject, type RefObject } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 
-import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
+import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 import {
   getSquareEdgeOrientation,
   resolveEdgeTargetFromGridPosition,
@@ -9,7 +9,7 @@ import {
   type EdgeOrientation,
   type LocationMapActiveDrawSelection,
   type ResolvedEdgeTarget,
-} from '@/features/content/locations/domain/mapEditor';
+} from '@/features/content/locations/domain/authoring/editor';
 
 import { SQUARE_GRID_GAP_PX } from '@/features/content/locations/components/authoring/geometry/squareGridMapOverlayGeometry';
 

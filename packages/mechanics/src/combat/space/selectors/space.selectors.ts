@@ -12,7 +12,7 @@ import type {
 import {
   type PlacedObjectCellVisual,
   resolvePlacedObjectCellVisualFromPlacedKind,
-} from '@/features/content/locations/domain/mapPresentation/resolvePlacedObjectCellVisual'
+} from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual'
 import { gridObjectPlacementKindKey } from '../gridObject/gridObject.defaults'
 import {
   cellMovementBlockedForEntering,

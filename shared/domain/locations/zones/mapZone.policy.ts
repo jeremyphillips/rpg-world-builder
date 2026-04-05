@@ -4,7 +4,7 @@
  * Separate from:
  * - `LOCATION_SCALE_FIELD_POLICY` (form fields, geometry, cell unit)
  * - `ALLOWED_LINKED_LOCATION_SCALES_BY_HOST_SCALE` (cell-linked child locations)
- * - feature `mapContent` policy (fills, paths, placed objects)
+ * - feature map model / map content policy (`domain/model/map`, `placedObjects`, `policies`)
  *
  * Future: zones are authored with a paint / area tool (not cell-link picks).
  */

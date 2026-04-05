@@ -15,7 +15,7 @@ import type { EncounterCell, GridObject } from '@/features/mechanics/domain/comb
 import {
   parseLocationPlacedObjectKindId,
   type LocationPlacedObjectKindId,
-} from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
+} from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationMapBase, LocationMapCellObjectEntry } from '@/shared/domain/locations/map/locationMap.types';
 
 import { authorCellIdToCombatCellId } from './encounterMapCellIds';

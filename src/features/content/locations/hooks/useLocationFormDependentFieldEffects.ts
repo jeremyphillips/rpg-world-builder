@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import type { UseFormGetValues, UseFormSetValue } from 'react-hook-form';
 
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import type { LocationFormValues } from '@/features/content/locations/domain/forms/types/locationForm.types';
-import { sanitizeLocationFormValues } from '@/features/content/locations/domain/forms/utils/locationDependentFieldsPolicy';
+import { sanitizeLocationFormValues } from '@/features/content/locations/domain/forms/rules/locationDependentFieldsPolicy';
 
 /**
  * Keeps category, parent, grid cell unit, and building profile fields aligned with scale,

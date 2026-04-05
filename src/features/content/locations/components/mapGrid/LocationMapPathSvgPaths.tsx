@@ -1,4 +1,4 @@
-import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
+import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/types';
 
 type PathSvgItem = {

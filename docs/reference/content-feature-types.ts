@@ -3,7 +3,7 @@
  *
  * Locations is the first template: see `shared/domain/locations/locationEntity.types.ts`,
  * `shared/domain/locations/building/locationBuilding.types.ts`, client
- * `src/features/content/locations/domain/types/location.types.ts`, and server
+ * `src/features/content/locations/domain/model/location/location.types.ts`, and server
  * `server/features/content/locations/services/locations.service.ts` (`LocationDoc`).
  */
 

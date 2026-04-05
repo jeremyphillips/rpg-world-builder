@@ -7,7 +7,7 @@ import {
   getAllowedPlacedObjectKindsForScale,
   getLocationScaleMapContentPolicy,
   LOCATION_SCALE_MAP_CONTENT_POLICY,
-} from './locationScaleMapContent.policy';
+} from '../locationScaleMapContent.policy';
 
 describe('locationScaleMapContent.policy', () => {
   it('maps world / city / floor as specified; other scales are empty', () => {

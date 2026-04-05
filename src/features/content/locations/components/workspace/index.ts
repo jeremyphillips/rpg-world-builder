@@ -29,4 +29,4 @@ export type { BuildingFloorStripProps } from './BuildingFloorStrip';
 export {
   locationEditorWorkspaceUiTokens,
   resolveLeftMapChromeWidthPx,
-} from '@/features/content/locations/domain/mapPresentation/locationEditorWorkspaceUiTokens';
+} from '@/features/content/locations/domain/presentation/map/locationEditorWorkspaceUiTokens';

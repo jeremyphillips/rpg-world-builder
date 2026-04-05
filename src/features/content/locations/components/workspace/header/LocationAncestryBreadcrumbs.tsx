@@ -4,7 +4,7 @@ import MuiBreadcrumbs from '@mui/material/Breadcrumbs'
 import MuiLink from '@mui/material/Link'
 import Typography from '@mui/material/Typography'
 
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 
 type LocationAncestryBreadcrumbsProps = {
   locations: Location[]

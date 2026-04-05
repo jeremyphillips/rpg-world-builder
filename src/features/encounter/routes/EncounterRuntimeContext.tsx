@@ -43,7 +43,7 @@ import {
 } from '../hooks'
 import { AppPageHeader } from '@/ui/patterns'
 import type { SelectEntityOption } from '@/ui/patterns'
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 import { listCampaignLocations } from '@/features/content/locations/domain/repo/locationRepo'
 import { resolveEncounterSpaceForSimulatorStart } from '@/features/game-session/combat/resolveEncounterSpaceForSimulatorStart'
 import {

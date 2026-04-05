@@ -7,5 +7,5 @@ export * from './placement';
 export * from './draw';
 export * from './erase';
 export * from './edge';
-export * from './select-mode';
+export * from './selectMode';
 export * from './hex/hexMapEdgeConstraint.policy';

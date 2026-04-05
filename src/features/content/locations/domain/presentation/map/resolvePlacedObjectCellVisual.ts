@@ -6,13 +6,13 @@ import type { LocationMapObjectKindId } from '@/shared/domain/locations';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 
 import type { LocationMapGlyphIconName } from './locationMapIconNameMap';
-import type { LocationPlacedObjectKindId } from '../mapContent/locationPlacedObject.registry';
+import type { LocationPlacedObjectKindId } from '../../model/placedObjects/locationPlacedObject.registry';
 import {
   getMapObjectKindIconName,
   getPlacedObjectIconName,
   getPlacedObjectMeta,
   parseLocationPlacedObjectKindId,
-} from '../mapContent/locationPlacedObject.selectors';
+} from '../../model/placedObjects/locationPlacedObject.selectors';
 
 export type PlacedObjectCellVisual = {
   /** Human-readable name (registry or map default). */

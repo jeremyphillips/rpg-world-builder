@@ -5,10 +5,10 @@ import Tooltip from '@mui/material/Tooltip';
 import { alpha } from '@mui/material/styles';
 
 import { getLocationScaleMapIcon } from '@/features/content/locations/domain';
-import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/mapPresentation/PlacedObjectCellVisualDisplay';
-import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/mapPresentation/resolvePlacedObjectCellVisual';
-import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
-import type { Location } from '@/features/content/locations/domain/types';
+import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
+import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
+import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import { mapCellObjectEntryToAuthoredRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.helpers';
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { getMapRegionColor } from '@/app/theme/mapColors';

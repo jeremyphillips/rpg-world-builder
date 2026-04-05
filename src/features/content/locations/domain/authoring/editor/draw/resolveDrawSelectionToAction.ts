@@ -1,5 +1,5 @@
-import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
-import type { LocationPathFeatureKindId } from '@/features/content/locations/domain/mapContent/locationPathFeature.types';
+import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
+import type { LocationPathFeatureKindId } from '@/features/content/locations/domain/model/map/locationPathFeature.types';
 
 import type { LocationMapActiveDrawSelection } from '../types/locationMapEditor.types';
 

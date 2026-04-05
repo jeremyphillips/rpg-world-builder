@@ -9,11 +9,11 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import {
   listStairObjectOptionsForFloor,
   parseStairObjectOptionValue,
-} from '@/features/content/locations/domain/building/listStairObjectsOnFloorMap';
+} from '@/features/content/locations/domain/model/building/listStairObjectsOnFloorMap';
 
 import type {
   LocationMapEdgeAuthoringEntry,

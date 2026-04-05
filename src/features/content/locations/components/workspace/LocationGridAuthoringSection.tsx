@@ -21,7 +21,7 @@ import {
 } from '@/features/content/locations/components/mapGrid';
 import type { GridGeometryId } from '@/shared/domain/grid/gridGeometry';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
-import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
+import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import {
   buildSelectModeInteractiveTargetInput,
   buildSelectModeInteractiveTargetInputSkipGeometry,
@@ -33,11 +33,11 @@ import {
   type LocationMapActiveDrawSelection,
   type LocationMapActivePaintSelection,
   type LocationMapEditorMode,
-} from '@/features/content/locations/domain/mapEditor';
+} from '@/features/content/locations/domain/authoring/editor';
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { resolveCellFillSwatchColor } from '@/app/theme/mapColors';
-import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
-import type { Location } from '@/features/content/locations/domain/types';
+import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import { useLocationAuthoringGridLayout } from '@/features/content/locations/hooks/useLocationAuthoringGridLayout';
 import { usePruneGridDraftOnDimensionChange } from '@/features/content/locations/hooks/usePruneGridDraftOnDimensionChange';
 import { hexBoundarySegmentsForRegionCells } from '../authoring/geometry/hexRegionBoundaryForAuthoring';
@@ -46,7 +46,7 @@ import { SquareMapAuthoringSvgOverlay } from '../mapGrid/authoring/SquareMapAuth
 import { useSquareEdgeBoundaryPaint } from '../mapGrid/authoring/useSquareEdgeBoundaryPaint';
 import { LocationMapCellAuthoringOverlay } from '../mapGrid/LocationMapCellAuthoringOverlay';
 
-import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
+import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 
 import type { LocationGridDraftState } from '../authoring/draft/locationGridDraft.types';
 import {

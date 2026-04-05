@@ -7,7 +7,7 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import { LocationSummaryCard } from '@/features/content/locations/components'
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 import { SelectedEntitiesLane, SelectEntityModal, type SelectEntityOption } from '@/ui/patterns'
 import { resolveImageUrl } from '@/shared/lib/media'
 

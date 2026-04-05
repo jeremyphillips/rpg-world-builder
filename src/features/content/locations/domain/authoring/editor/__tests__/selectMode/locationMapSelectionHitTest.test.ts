@@ -8,7 +8,7 @@ import {
   distancePointToSegmentSquared,
   resolveNearestEdgeHit,
   resolveNearestPathHit,
-} from '../../select-mode';
+} from '../../selectMode';
 
 describe('distancePointToSegmentSquared', () => {
   it('is zero for a point on the segment', () => {

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { listCampaignLocations } from '@/features/content/locations/domain/repo/locationRepo';
-import type { Location } from '@/features/content/locations/domain/types';
-import { buildParentLocationPickerOptions } from '@/features/content/locations/domain/forms/utils/parentLocationPickerOptions';
-import { getFilteredParentLocationsForChildScale } from '@/features/content/locations/domain/forms/utils/locationFormUiRules';
+import type { Location } from '@/features/content/locations/domain/model/location';
+import { buildParentLocationPickerOptions } from '@/features/content/locations/domain/forms/rules/parentLocationPickerOptions';
+import { getFilteredParentLocationsForChildScale } from '@/features/content/locations/domain/forms/rules/locationFormUiRules';
 
 /**
  * Campaign locations + derived parent-picker options filtered by child scale (shared create/edit).

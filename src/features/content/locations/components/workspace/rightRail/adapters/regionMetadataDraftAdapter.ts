@@ -1,6 +1,6 @@
 import { LOCATION_MAP_DEFAULT_REGION_NAME } from '@/shared/domain/locations/map/locationMapRegion.constants';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
-import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
+import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
 
 export type RegionMetadataFormValues = {
   name: string;

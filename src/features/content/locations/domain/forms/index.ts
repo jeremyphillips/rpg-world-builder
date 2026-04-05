@@ -7,7 +7,7 @@ export {
 export {
   buildParentLocationPickerOptions,
   type BuildParentLocationPickerOptionsArgs,
-} from './utils/parentLocationPickerOptions';
+} from './rules/parentLocationPickerOptions';
 export {
   isCategoryAllowedForScale,
   isCellUnitAllowedForScale,
@@ -41,11 +41,11 @@ export {
   type LocationFormUiMode,
   type LocationFormUiPolicy,
   type LocationFormUiPolicyBase,
-} from './utils/locationFormUiRules';
+} from './rules/locationFormUiRules';
 export {
   buildLocationFormValuesFromSetup,
   type LocationCreateSetupDraft,
-} from './utils/locationCreateSetupForm';
+} from './setup/locationCreateSetupForm';
 export {
   getDefaultGeometryForScale,
   normalizeGridGeometryForScale,
@@ -55,7 +55,7 @@ export {
   sanitizeLocationDraftForScale,
   sanitizeLocationFormValues,
   type LocationFormSanitizeContext,
-} from './utils/locationFormSanitize';
+} from './rules/locationFormSanitize';
 export {
   getDefaultCellUnitForScale,
   getDefaultMapKindForScale,
@@ -65,14 +65,14 @@ export {
   isParentIdAllowedForScale,
   shouldClearCategoryForScale,
   shouldClearParentForScale,
-} from './utils/locationDependentFieldsPolicy';
+} from './rules/locationDependentFieldsPolicy';
 export { locationToFormValues, toLocationInput } from './mappers/locationForm.mappers';
-export { buildBuildingSubtypeSelectOptions } from './utils/buildingSubtypeSelectOptions';
+export { buildBuildingSubtypeSelectOptions } from './rules/buildingSubtypeSelectOptions';
 export {
   buildCharacterEntityPickerOptions,
   characterRefsToPickerValues,
   decodeLocationEntityRef,
   encodeLocationEntityRef,
   pickerValuesToCharacterRefs,
-} from './utils/locationEntityRefPicker';
+} from './setup/locationEntityRefPicker';
 export { LOCATION_DETAIL_SPECS, type LocationDetailCtx } from '../details/locationDetail.spec';

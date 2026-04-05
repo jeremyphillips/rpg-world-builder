@@ -8,7 +8,7 @@ import {
 } from './encounterSpaceResolution'
 
 import type { EncounterSpace } from '@/features/mechanics/domain/combat/space'
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 
 export type SimulatorEncounterSpaceResolution = {
   space: EncounterSpace

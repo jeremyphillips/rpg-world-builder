@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildSelectModeInteractiveTargetInput,
   buildSelectModeInteractiveTargetInputSkipGeometry,
-} from '../../select-mode';
+} from '../../selectMode';
 
 describe('buildSelectModeInteractiveTargetInput', () => {
   const draft = {

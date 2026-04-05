@@ -1,8 +1,8 @@
-import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
+import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import {
   resolveLocationPlacedObjectKindInteraction,
   resolveLocationPlacedObjectKindRuntimeDefaults,
-} from '@/features/content/locations/domain/mapContent/locationPlacedObject.runtime';
+} from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.runtime';
 
 import type { GridObject } from '../space.types';
 

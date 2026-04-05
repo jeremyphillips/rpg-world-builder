@@ -6,7 +6,7 @@ import {
   pathEntriesToPolylineGeometry,
 } from '@/shared/domain/locations';
 
-import { cellDraftToCellEntries, cellEntriesToDraft } from './cellAuthoringMappers';
+import { cellDraftToCellEntries, cellEntriesToDraft } from '../cellAuthoringMappers';
 
 /**
  * Seam: same mapping chain as load → grid draft → save/bootstrap payload

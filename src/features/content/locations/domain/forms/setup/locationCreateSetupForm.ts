@@ -6,10 +6,10 @@ import {
   type LocationScaleId,
 } from '@/shared/domain/locations';
 
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import { LOCATION_FORM_DEFAULTS } from '../config/locationForm.config';
 import type { LocationFormValues } from '../types/locationForm.types';
-import { sanitizeLocationFormValues } from './locationDependentFieldsPolicy';
+import { sanitizeLocationFormValues } from '../rules/locationFormSanitize';
 
 export type LocationCreateSetupDraft = {
   name: string;

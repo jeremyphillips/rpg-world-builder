@@ -8,8 +8,8 @@ import {
   type LocationPlacedObjectKindId,
   type LocationPlacedObjectKindRuntimeDefaults,
 } from './locationPlacedObject.registry';
-import type { LocationMapGlyphIconName, LocationMapObjectIconName } from './locationMapIconNames';
-import { LOCATION_MAP_OBJECT_KIND_TO_ICON_NAME } from './locationMapPresentation.constants';
+import type { LocationMapGlyphIconName, LocationMapObjectIconName } from '../map/locationMapIconNames';
+import { LOCATION_MAP_OBJECT_KIND_TO_ICON_NAME } from '../map/locationMapPresentation.constants';
 import { mapValuesStrict, recordKeys } from './locationPlacedObject.recordUtils';
 
 /** Stable list of authored placed-object ids — derived from registry keys (no manual mirror). */
@@ -68,7 +68,7 @@ export function getPlacedObjectRuntimeDefaults(
 export function getPlacedObjectInteraction(
   kind: LocationPlacedObjectKindId,
 ): AuthoredPlacedObjectInteraction | undefined {
-  return AUTHORED_PLACED_OBJECT_DEFINITIONS[kind].interaction;
+  return (AUTHORED_PLACED_OBJECT_DEFINITIONS[kind] as AuthoredPlacedObjectDefinition).interaction;
 }
 
 export function getPlacedObjectIconName(kind: LocationPlacedObjectKindId): LocationMapGlyphIconName {

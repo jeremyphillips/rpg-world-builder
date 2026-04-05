@@ -2,11 +2,11 @@ import {
   getAllowedCellFillKindsForScale,
   getAllowedEdgeKindsForScale,
   getAllowedPathKindsForScale,
-} from '@/features/content/locations/domain/mapContent/locationScaleMapContent.policy';
-import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
-import { LOCATION_EDGE_FEATURE_KIND_META } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
-import { LOCATION_PATH_FEATURE_KIND_META } from '@/features/content/locations/domain/mapContent/locationPathFeature.types';
-import { getPlacedObjectPaletteOptionsForScale } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
+} from '@/features/content/locations/domain/model/policies/locationScaleMapContent.policy';
+import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/model/map/locationCellFill.types';
+import { LOCATION_EDGE_FEATURE_KIND_META } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
+import { LOCATION_PATH_FEATURE_KIND_META } from '@/features/content/locations/domain/model/map/locationPathFeature.types';
+import { getPlacedObjectPaletteOptionsForScale } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
 import type {

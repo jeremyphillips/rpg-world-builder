@@ -19,8 +19,8 @@ import { getCellVisualState, mergePerceptionIntoCellVisualState } from './cellVi
 import { getCellVisualSx, mergeAuthoringMapUnderlayIntoCellSx } from './cellVisualStyles'
 import { CombatGridAuthoringOverlay } from './CombatGridAuthoringOverlay'
 import { LocationMapAuthoredObjectIconsCellInline } from '@/features/content/locations/components/mapGrid/LocationMapAuthoredObjectIconsLayer'
-import { PlacedObjectCellVisualCentered } from '@/features/content/locations/domain/mapPresentation/PlacedObjectCellVisualDisplay'
-import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles'
+import { PlacedObjectCellVisualCentered } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay'
+import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles'
 import { filterAuthoredObjectRenderItemsForGrid } from './combatGridAuthoredObjects'
 
 const BASE_CELL_SIZE = 48

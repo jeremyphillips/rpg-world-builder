@@ -1,9 +1,9 @@
 import type { LocationMapObjectKindId } from '@/shared/domain/locations';
-import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
+import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
-import { getPlacedObjectMeta } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
-import { buildPersistedPlacedObjectPayload } from '@/features/content/locations/domain/mapContent/locationPlacedObject.persistence';
+import { getPlacedObjectMeta } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
+import { buildPersistedPlacedObjectPayload } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.persistence';
 
 import type { LocationMapActivePlaceSelection } from '../types/locationMapEditor.types';
 

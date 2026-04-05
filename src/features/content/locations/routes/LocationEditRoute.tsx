@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { locationRepo } from '@/features/content/locations/domain';
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { VisibilityField } from '@/ui/patterns';
@@ -30,7 +30,7 @@ import {
   floorTabLabelFromIndex,
   listFloorChildren,
   type BuildingWorkspaceFloorItem,
-} from '@/features/content/locations/domain/building/buildingWorkspaceFloors';
+} from '@/features/content/locations/domain/model/building/buildingWorkspaceFloors';
 
 import { useLocationEditWorkspaceModel } from './locationEdit';
 

@@ -11,7 +11,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import FormSelectField from '@/ui/patterns/form/FormSelectField';
 import OptionPickerField from '@/ui/patterns/form/OptionPickerField';
 import type { PickerOption } from '@/ui/patterns/form/OptionPickerField';

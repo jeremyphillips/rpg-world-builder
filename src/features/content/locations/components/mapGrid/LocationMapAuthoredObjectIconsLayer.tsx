@@ -2,9 +2,9 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 
-import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
-import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/mapPresentation/PlacedObjectCellVisualDisplay';
-import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/mapPresentation/resolvePlacedObjectCellVisual';
+import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
+import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
+import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 import { squareCellCenterPx } from '@/shared/domain/grid/squareGridOverlayGeometry';
 

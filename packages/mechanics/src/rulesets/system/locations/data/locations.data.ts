@@ -2,7 +2,7 @@
  * System location catalog — code-defined defaults per ruleset (may be empty).
  * Campaign-owned locations are merged at runtime by locationRepo.
  */
-import type { Location, LocationBaseFields } from '@/features/content/locations/domain/types';
+import type { Location, LocationBaseFields } from '@/features/content/locations/domain/model/location';
 import type { SystemRulesetId } from '../../../types/ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from '../../../ids/systemIds';
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { resolveLocationPlacedObjectKindRuntimeDefaults } from '@/features/content/locations/domain/mapContent/locationPlacedObject.runtime'
+import { resolveLocationPlacedObjectKindRuntimeDefaults } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.runtime'
 
 import { authorCellIdToCombatCellId, buildEncounterSpaceFromLocationMap } from './buildEncounterSpaceFromLocationMap'
 

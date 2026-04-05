@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 import type { SelectEntityOption } from '@/ui/patterns'
 
 import { AllyRosterLane } from '../roster/AllyRosterLane'

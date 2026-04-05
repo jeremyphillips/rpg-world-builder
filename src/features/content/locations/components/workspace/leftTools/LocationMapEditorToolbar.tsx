@@ -9,8 +9,8 @@ import FormatColorFillIcon from '@mui/icons-material/FormatColorFill';
 import DrawIcon from '@mui/icons-material/Draw';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
-import type { LocationMapEditorMode } from '@/features/content/locations/domain/mapEditor';
-import { locationEditorWorkspaceUiTokens } from '@/features/content/locations/domain/mapPresentation/locationEditorWorkspaceUiTokens';
+import type { LocationMapEditorMode } from '@/features/content/locations/domain/authoring/editor';
+import { locationEditorWorkspaceUiTokens } from '@/features/content/locations/domain/presentation/map/locationEditorWorkspaceUiTokens';
 
 type LocationMapEditorToolbarProps = {
   mode: LocationMapEditorMode;

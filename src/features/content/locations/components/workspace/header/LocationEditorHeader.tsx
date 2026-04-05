@@ -11,7 +11,7 @@ import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined'
 
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types'
 import { AppAlert } from '@/ui/primitives'
-import { locationEditorWorkspaceUiTokens } from '@/features/content/locations/domain/mapPresentation/locationEditorWorkspaceUiTokens'
+import { locationEditorWorkspaceUiTokens } from '@/features/content/locations/domain/presentation/map/locationEditorWorkspaceUiTokens'
 
 type LocationEditorHeaderProps = {
   title: string

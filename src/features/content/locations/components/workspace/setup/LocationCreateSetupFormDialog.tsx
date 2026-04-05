@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { UseFormReturn } from 'react-hook-form';
 
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import {
   buildParentLocationPickerOptions,
   getAllowedLocationScaleOptionsForCreate,
@@ -12,7 +12,7 @@ import {
   shouldShowCellUnitChoiceInLocationSetup,
   shouldShowParentFieldForScale,
 } from '@/features/content/locations/domain';
-import type { LocationCreateSetupDraft } from '@/features/content/locations/domain/forms/utils/locationCreateSetupForm';
+import type { LocationCreateSetupDraft } from '@/features/content/locations/domain/forms/setup/locationCreateSetupForm';
 import {
   getAllowedCategoryOptionsForScale,
   getAllowedCellUnitOptionsForScale,

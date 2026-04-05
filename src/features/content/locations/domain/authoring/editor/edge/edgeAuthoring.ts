@@ -14,7 +14,7 @@ import {
   type SquareCellSide,
 } from '@/shared/domain/grid/gridEdgeIds';
 import type { LocationMapEdgeAuthoringEntry } from '@/shared/domain/locations';
-import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/mapContent/locationEdgeFeature.types';
+import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 
 export type ResolvedEdgeTarget = {
   cellId: string;

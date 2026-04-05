@@ -10,8 +10,8 @@ import { getMapSwatchColor } from '@/app/theme/mapColors';
 import type {
   LocationMapPaintState,
   MapPaintPaletteItem,
-} from '@/features/content/locations/domain/mapEditor';
-import type { LocationCellFillKindId } from '@/features/content/locations/domain/mapContent/locationCellFill.types';
+} from '@/features/content/locations/domain/authoring/editor';
+import type { LocationCellFillKindId } from '@/features/content/locations/domain/model/map/locationCellFill.types';
 
 type LocationMapEditorPaintTrayProps = {
   items: MapPaintPaletteItem[];

@@ -1,5 +1,5 @@
-import type { AuthoredPlacedObjectInteraction } from '@/features/content/locations/domain/mapContent/locationPlacedObject.registry';
-import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/mapContent/locationPlacedObject.types';
+import type { AuthoredPlacedObjectInteraction } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry';
+import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 
 export type EncounterSpaceMode =

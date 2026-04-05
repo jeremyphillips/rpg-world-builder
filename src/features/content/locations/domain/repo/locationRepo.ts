@@ -11,7 +11,7 @@ import type {
   LocationBaseFields,
   LocationInput,
   LocationSummary,
-} from '@/features/content/locations/domain/types';
+} from '@/features/content/locations/domain/model/location';
 import { getSystemLocation, getSystemLocations } from '@/features/mechanics/domain/rulesets/system/locations';
 import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
 import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';

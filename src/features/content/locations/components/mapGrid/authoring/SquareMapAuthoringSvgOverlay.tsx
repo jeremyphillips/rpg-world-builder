@@ -1,7 +1,7 @@
 import type { EdgeSegmentGeometry } from '@/shared/domain/locations/map/locationMapGeometry.types';
 
-import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles';
-import type { ResolvedEdgeTarget } from '@/features/content/locations/domain/mapEditor';
+import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
+import type { ResolvedEdgeTarget } from '@/features/content/locations/domain/authoring/editor';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/types';
 import {
   squareEdgeSegmentPxFromEdgeId,

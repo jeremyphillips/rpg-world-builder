@@ -8,7 +8,7 @@ import type {
   LocationMapPaintState,
   MapDrawPaletteItem,
   MapPaintPaletteItem,
-} from '@/features/content/locations/domain/mapEditor';
+} from '@/features/content/locations/domain/authoring/editor';
 import type { ZoomControlProps } from '@/ui/patterns';
 import type { CanvasPoint, UseCanvasPanReturn } from '@/ui/hooks';
 

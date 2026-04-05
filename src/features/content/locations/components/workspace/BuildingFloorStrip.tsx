@@ -3,8 +3,8 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 
-import type { BuildingWorkspaceFloorItem } from '@/features/content/locations/domain/building/buildingWorkspaceFloors';
-import { floorTabLabelFromIndex } from '@/features/content/locations/domain/building/buildingWorkspaceFloors';
+import type { BuildingWorkspaceFloorItem } from '@/features/content/locations/domain/model/building/buildingWorkspaceFloors';
+import { floorTabLabelFromIndex } from '@/features/content/locations/domain/model/building/buildingWorkspaceFloors';
 
 export type BuildingFloorStripProps = {
   floors: BuildingWorkspaceFloorItem[];

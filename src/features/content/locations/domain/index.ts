@@ -12,11 +12,11 @@ export {
   validateGridBootstrap,
   bootstrapDefaultLocationMap,
   pickMapGridFormValues,
-} from './mapAuthoring/bootstrapDefaultLocationMap';
-export { cellDraftToCellEntries, cellEntriesToDraft } from './mapAuthoring/cellAuthoringMappers';
-export * from './mapEditor';
-export * from './mapContent';
-export * from './mapPresentation';
+} from './authoring/map/bootstrapDefaultLocationMap';
+export { cellDraftToCellEntries, cellEntriesToDraft } from './authoring/map/cellAuthoringMappers';
+export * from './authoring/editor';
+export * from './model';
+export * from './presentation/map';
 export {
   validateLocationChange,
   type LocationValidationMode,
@@ -27,5 +27,3 @@ export { useLocationFormCampaignData } from '../hooks/useLocationFormCampaignDat
 export { useLocationFormDependentFieldEffects } from '../hooks/useLocationFormDependentFieldEffects';
 export { useLocationFormDefaultWorldScale } from '../hooks/useLocationFormDefaultWorldScale';
 export * from './list';
-export * from './types';
-export * from './building';

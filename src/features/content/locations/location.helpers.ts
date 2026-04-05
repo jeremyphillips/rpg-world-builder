@@ -3,7 +3,7 @@ import {
   LOCATION_SCALE_RANK_ORDER_LEGACY,
 } from '@/shared/domain/locations';
 
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 
 /**
  * Sort locations by structural scale, then name. Uses `scale` for ordering.

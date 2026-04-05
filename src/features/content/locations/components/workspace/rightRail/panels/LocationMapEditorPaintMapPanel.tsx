@@ -5,9 +5,9 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import { getMapRegionColor } from '@/app/theme/mapColors';
-import { LOCATION_MAP_REGION_COLOR_KEYS } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
-import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types';
-import { resolveActiveRegionEntry, type LocationMapPaintState } from '@/features/content/locations/domain/mapEditor';
+import { LOCATION_MAP_REGION_COLOR_KEYS } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
+import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
+import { resolveActiveRegionEntry, type LocationMapPaintState } from '@/features/content/locations/domain/authoring/editor';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 
 import { RegionPaintActiveRegionSelect } from '@/features/content/locations/components/workspace/leftTools';

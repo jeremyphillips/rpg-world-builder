@@ -13,7 +13,7 @@ import type { LocationFormValues } from '../types/locationForm.types';
 import {
   type LocationFormUiPolicy,
   shouldShowCategoryEditableInCreateRail,
-} from '../utils/locationFormUiRules';
+} from '../rules/locationFormUiRules';
 
 export type GetLocationFieldConfigsOptions = {
   policyCharacters?: { id: string; name: string }[];

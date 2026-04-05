@@ -1,10 +1,10 @@
 import type { LocationScaleId } from '@/shared/domain/locations';
 
-import type { LocationCellFillKindId } from './locationCellFill.types';
-import type { LocationEdgeFeatureKindId } from './locationEdgeFeature.types';
-import type { LocationPathFeatureKindId } from './locationPathFeature.types';
-import type { LocationPlacedObjectKindId } from './locationPlacedObject.types';
-import { getPlacedObjectKindsForScale } from './locationPlacedObject.selectors';
+import type { LocationCellFillKindId } from '../map/locationCellFill.types';
+import type { LocationEdgeFeatureKindId } from '../map/locationEdgeFeature.types';
+import type { LocationPathFeatureKindId } from '../map/locationPathFeature.types';
+import type { LocationPlacedObjectKindId } from '../placedObjects/locationPlacedObject.types';
+import { getPlacedObjectKindsForScale } from '../placedObjects/locationPlacedObject.selectors';
 
 /**
  * Per-scale vocabulary for **authored map content** (fills, paths, edges, placed objects).

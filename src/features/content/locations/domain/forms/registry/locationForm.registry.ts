@@ -14,13 +14,13 @@ import {
   GRID_SIZE_PRESETS,
   type GridSizePreset,
 } from '@/shared/domain/grid/gridPresets';
-import type { Location } from '@/features/content/locations/domain/types';
-import type { LocationInput } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
+import type { LocationInput } from '@/features/content/locations/domain/model/location';
 import {
   LOCATION_BUILDING_FUNCTION_META,
   LOCATION_BUILDING_PRIMARY_SUBTYPE_META,
   LOCATION_BUILDING_PRIMARY_TYPE_META,
-} from '../../building/locationBuilding.meta';
+} from '../../model/building/locationBuilding.meta';
 import { DEFAULT_VISIBILITY_PUBLIC, when } from '@/ui/patterns';
 import { getNameDescriptionFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import type { FieldSpec } from '@/features/content/shared/forms/registry';

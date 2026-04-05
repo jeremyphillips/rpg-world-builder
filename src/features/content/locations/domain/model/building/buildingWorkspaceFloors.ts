@@ -1,7 +1,7 @@
 /**
  * Building edit workspace: floor child locations (first pass — positive floors only).
  */
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 
 export type BuildingWorkspaceFloorItem = {
   id: string;

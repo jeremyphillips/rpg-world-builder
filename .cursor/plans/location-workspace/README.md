@@ -4,6 +4,8 @@ Cursor plans for the **location editor workspace**: persistence/dirty state, she
 
 **Canonical reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md).
 
+**Note:** Older plans in this bundle may still cite legacy `src/features/content/locations/domain/` paths (`mapEditor/`, `mapContent/`, `mapPresentation/`, …). Prefer [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) and [docs/reference/locations.md](../../../docs/reference/locations.md) for current folder names (`model/`, `authoring/`, `presentation/`, …).
+
 ---
 
 ## Reading order (onboarding)

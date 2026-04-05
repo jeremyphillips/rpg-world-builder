@@ -2,7 +2,7 @@ import type { Theme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 
 import type { EncounterAuthoringPresentation } from '@/features/mechanics/domain/combat/space'
-import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/mapPresentation/locationMapUiStyles'
+import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles'
 import { LocationMapPathSvgPaths } from '@/features/content/locations/components/mapGrid/LocationMapPathSvgPaths'
 import { polylinePoint2DToSmoothSvgPath } from '@/features/content/locations/components/authoring/geometry/pathOverlayRendering'
 import type { LocationMapPathAuthoringEntry } from '@/shared/domain/locations/map/locationMap.types'

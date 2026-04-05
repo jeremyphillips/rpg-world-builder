@@ -2,11 +2,11 @@ import type { Theme } from '@mui/material/styles'
 import { alpha } from '@mui/material/styles'
 import type { SystemStyleObject } from '@mui/system'
 import type { GridCellViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
-import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/mapContent/locationMapRegionColors.types'
+import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types'
 import {
   LOCATION_CELL_FILL_KIND_META,
   type LocationMapCellFillKindId,
-} from '@/features/content/locations/domain/mapContent/locationCellFill.types'
+} from '@/features/content/locations/domain/model/map/locationCellFill.types'
 import { getMapRegionColor, resolveCellFillSwatchColor } from '@/app/theme/mapColors'
 import type { CellBaseFillKind, CellMovementVisual, CellVisualState } from './cellVisualState'
 

@@ -1,5 +1,5 @@
 import type { EncounterState } from '@/features/mechanics/domain/combat'
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 
 /**
  * Building / floor hints for resolving vertical links (stairs, future portals).

@@ -1,5 +1,5 @@
 import type { AppDataGridFilter } from '@/ui/patterns';
-import type { LocationSummary } from '../types';
+import type { LocationSummary } from '../model/location';
 import { LOCATION_SCALE_FILTER_OPTIONS, LOCATION_SOURCE_FILTER_OPTIONS } from './locationList.options';
 import type { LocationListRow } from './locationList.types';
 

@@ -2,7 +2,7 @@ import type { LocationMapBase } from '@/shared/domain/locations/map/locationMap.
 import type { EncounterSpace } from '@/features/mechanics/domain/combat/space'
 import { createSquareGridSpace } from '@/features/mechanics/domain/combat/space/creation/createSquareGridSpace'
 
-import type { Location } from '@/features/content/locations/domain/types'
+import type { Location } from '@/features/content/locations/domain/model/location'
 
 /**
  * Picks the encounter-grid map to use for tactical combat: default map when marked, else first

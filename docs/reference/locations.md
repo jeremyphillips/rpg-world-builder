@@ -69,18 +69,19 @@ Shared MUI styling tokens consumed by both `GridEditor` and `HexGridEditor` to k
 |--------|----------------|
 | `scale/` | Scale **business policy** (who may parent whom), **field policy** (categories, cell units, **grid geometries**, which form fields apply per scale), **rules** (valid scale id, rank, world check), **UI policy** (`locationScaleUi.policy.ts` — campaign list vs standalone create vs interior), **parent validation** (`validateParentChildScales` for hierarchy). |
 | `map/` | Map **constants** (kinds, cell units by kind, object kinds), **types** (`LocationMapBase`, grid, cells, cell authoring, **`LocationMapAuthoredObjectRenderItem`**), **helpers** (`mapKindForLocationScale`, `getDefaultMapKindForScale` — derives map kind during save/bootstrap, `isCellUnitAllowedForScale`), **authored-object render derivation** (`deriveLocationMapAuthoredObjectRenderItems`, `locationMapAuthoredObjectRender.helpers.ts`), **placement policy** (what can be placed / linked on cells by scale), **validation** (grid, cells, map input, cell authoring structure). |
-| `zones/` | **MapZone** — painted named areas on a map (`MapZone`, `MapZoneKindId`, `MAP_ZONE_KIND_META`). **`ALLOWED_MAP_ZONE_KINDS_BY_HOST_SCALE`** / helpers: which zone kinds may be authored for each host location scale. Separate from `LOCATION_SCALE_FIELD_POLICY`, linked-location policy (`locationMapPlacement.policy.ts`), and feature `mapContent`. Phase 1: shared types/policy only; paint UI and persistence deferred. |
+| `zones/` | **MapZone** — painted named areas on a map (`MapZone`, `MapZoneKindId`, `MAP_ZONE_KIND_META`). **`ALLOWED_MAP_ZONE_KINDS_BY_HOST_SCALE`** / helpers: which zone kinds may be authored for each host location scale. Separate from `LOCATION_SCALE_FIELD_POLICY`, linked-location policy (`locationMapPlacement.policy.ts`), and the feature **map model** (`domain/model/map`, `domain/model/placedObjects`, `domain/model/policies`). Phase 1: shared types/policy only; paint UI and persistence deferred. |
 | `transitions/` | Transition **kinds** (`LOCATION_TRANSITION_KIND_IDS`) and **shared types** (`LocationTransitionBase`, `from` / `to` shapes). |
 
 ### Shared vs feature: where map authoring content lives
 
 - **`shared/domain/locations`** holds **cross-environment** domain code: vocabulary and types used by **client and server**, pure **validation**, persisted map **shapes**, **placement** and **transition** rules, and scale **policy** that APIs rely on. Prefer importing from `@/shared/domain/locations` here.
-- **`src/features/content/locations/domain/mapContent/`** holds **authoring / presentation** for future map tools: cell fill / path / edge / placed-object **kind ids and metadata**, **`LOCATION_SCALE_MAP_CONTENT_POLICY`**, semantic **`LocationMapGlyphIconName`** / object–scale icon tokens, swatch **keys**, and **`LOCATION_SCALE_MAP_ICON_NAME` / `LOCATION_MAP_OBJECT_KIND_ICON_NAME`**. The server does **not** consume this folder today. Import from `@/features/content/locations/domain` (barrel re-exports `mapContent`) or `.../domain/mapContent` directly. Map swatch hex values stay in `src/app/theme/mapColors.ts`.
+- **Feature map model** (no legacy `mapContent/` folder): split under `src/features/content/locations/domain/model/` — **`model/map/`** (cell fill / path / edge vocabulary, swatch and region keys, icon name ids, presentation constants), **`model/placedObjects/`** (placed-object registry, selectors, persistence, runtime), **`model/policies/`** (`LOCATION_SCALE_MAP_CONTENT_POLICY`). The server does **not** consume these modules today. Import from `@/features/content/locations/domain` (barrel re-exports `model`) or subpaths such as `.../domain/model/map` / `.../model/placedObjects`. **Presentation** (MUI icon maps, UI stroke tokens) lives under `domain/presentation/map/`. Map swatch hex values stay in `src/app/theme/mapColors.ts`.
+- **`locationMap.types.ts` (two files):** Shared wire shapes live in **`shared/domain/locations/map/locationMap.types.ts`**. The locations feature also has **feature-local** map entity types in **`src/features/content/locations/domain/model/map/locationMap.types.ts`** (`LocationMap` with `campaignId`, etc.). Do not import the wrong one — prefer explicit paths or the barrel that matches your layer.
 - If server-side validation of authored map payloads is added later, consider **promoting** policy and kind-id unions back into `shared` (or keep validation in the feature — avoid `server/` importing `src/features/` unless that is an explicit product decision).
 
 ### Tests
 
-Under `shared/domain/locations/__tests__/`, mirroring source: e.g. `__tests__/scale/`, `__tests__/map/`, `__tests__/zones/`. **`mapContent`** policy tests live next to the feature module: `src/features/content/locations/domain/mapContent/*.test.ts`.
+Under `shared/domain/locations/__tests__/`, mirroring source: e.g. `__tests__/scale/`, `__tests__/map/`, `__tests__/zones/`. Feature map policy tests: `src/features/content/locations/domain/model/policies/__tests__/`; placed-object selector tests: `model/placedObjects/__tests__/`.
 
 ---
 
@@ -100,13 +101,13 @@ Under `shared/domain/locations/__tests__/`, mirroring source: e.g. `__tests__/sc
 - **Pure validation:** `map/locationMap.validation.ts`, `map/locationMapCellAuthoring.validation.ts` — no database; safe for client and server.
 - **Placement rules (gameplay policy):** `map/locationMapPlacement.policy.ts` — e.g. which object kinds / link rules apply on a host scale (complements field policy). Linked targets still include region/subregion/district during migration; see file comment and `zones/` for **MapZone** direction.
 - **Map zones (phase 1):** `zones/` — `MapZone` shape and host-scale zone-kind policy. Future: paint/area tool; not wired to storage yet.
-- **Authored map content (types + per-scale policy):** `src/features/content/locations/domain/mapContent/` — four **categories** of future editor content, each with stable ids and lightweight display metadata (`LOCATION_*_KIND_META`):
+- **Authored map content (types + per-scale policy):** `src/features/content/locations/domain/model/map/`, `model/placedObjects/`, and `model/policies/` — four **categories** of future editor content, each with stable ids and lightweight display metadata (`LOCATION_*_KIND_META`):
   1. **Cell fills** — whole-cell terrain / surface (`LOCATION_CELL_FILL_KIND_IDS`).
   2. **Path features** — linear / network strokes (`LOCATION_PATH_FEATURE_KIND_IDS`).
   3. **Edge features** — boundary features (`LOCATION_EDGE_FEATURE_KIND_IDS`).
   4. **Placed objects** — anchored / footprint props (`LOCATION_PLACED_OBJECT_KIND_IDS`).
   **`LOCATION_SCALE_MAP_CONTENT_POLICY`** lists which ids apply at **world**, **city**, and **floor** (other scales are empty until extended). Intended future tools: **paint** (fills + paths), **edge** (edges), **place** (objects). Not wired to persistence or UI in the first pass.
-- **Client:** default map bootstrap, grid drafting, cell authoring mappers under `src/features/content/locations/domain/mapAuthoring/`; map content vocabulary under `domain/mapContent/`; display icons under `domain/mapPresentation/`; repo helpers `locationMapRepo.ts`.
+- **Client:** default map bootstrap, grid drafting, cell authoring mappers under `src/features/content/locations/domain/authoring/map/`; map model under `domain/model/`; display icons and map chrome under `domain/presentation/map/`; repo helpers `locationMapRepo.ts`.
 
 ### Transition layer
 
@@ -132,7 +133,7 @@ Under `shared/domain/locations/__tests__/`, mirroring source: e.g. `__tests__/sc
 
 Several folders use “authoring” in the name; they are **not** interchangeable:
 
-- **`domain/mapAuthoring/`** — Client map bootstrap, `cellDraftToCellEntries` / `cellEntriesToDraft`, `gridLayoutDraft` (prune cell keys when grid dimensions change).
+- **`domain/authoring/map/`** — Client map bootstrap, `cellDraftToCellEntries` / `cellEntriesToDraft`, `gridLayoutDraft` (prune cell keys when grid dimensions change).
 - **`components/authoring/`** — UI-adjacent helpers: **`draft/`** (grid draft types + persist/compare utilities), **`geometry/`** (hex/square overlay math and path SVG adapters).
 - **`components/mapGrid/authoring/`** — Grid subtree only: hex/square **SVG authoring overlays** and **`useSquareEdgeBoundaryPaint`** (square edge tooling).
 
@@ -143,11 +144,12 @@ Several folders use “authoring” in the name; they are **not** interchangeabl
 | Area | Purpose |
 |------|---------|
 | `routes/` | List, create, edit, detail routes. Create and edit use the full-width workspace shell ([location-workspace.md](./location-workspace.md)); detail stays content-width for now. |
-| `domain/forms/` | Form types, registry (`locationForm.registry.ts`), mappers, sanitize, dependent-field policy / UI rules. |
+| `domain/forms/` | Form types, registry, mappers, config; **`rules/`** (sanitize, dependent-field policy, UI rules); **`setup/`** (create-flow helpers, entity ref picker). |
 | `domain/repo/` | `locationRepo`, `locationMapRepo` — API/data access for lists and maps. |
-| `domain/mapAuthoring/` | `bootstrapDefaultLocationMap` (client-side default map creation/update), `gridLayoutDraft` (prune cell keys when dimensions change), `cellAuthoringMappers` (draft ↔ `cellEntries`). Uses `getDefaultMapKindForScale` from shared domain to derive map kind. |
-| `domain/mapContent/` | Authored-map vocabulary, per-scale map content policy, presentation tokens (icon names, swatch keys, cell-fill meta). See **Shared vs feature** above. |
-| `domain/mapPresentation/` | `locationMapUiStyles`, `locationMapIconNameMap`, `locationMapDisplayIcons` — map chrome styling and semantic icon name → MUI resolution. |
+| `domain/authoring/map/` | `bootstrapDefaultLocationMap` (client-side default map creation/update), `gridLayoutDraft` (prune cell keys when dimensions change), `cellAuthoringMappers` (draft ↔ `cellEntries`). Uses `getDefaultMapKindForScale` from shared domain to derive map kind. |
+| `domain/model/` | **`model/map`**, **`model/placedObjects`**, **`model/policies`**, **`model/location`**, **`model/building`** — feature map vocabulary, placed-object registry, per-scale map content policy, location/transition types, building floor helpers. See **Shared vs feature** above. |
+| `domain/authoring/editor/` | Map editor modes, tools (paint, draw, erase, place, select), palette/rail helpers, `useLocationMapEditorState`. |
+| `domain/presentation/map/` | `locationMapUiStyles`, `locationMapIconNameMap`, `locationMapDisplayIcons` — map chrome styling and semantic icon name → MUI resolution. |
 | `components/mapGrid/` | Shared **`GridEditor`** / **`HexGridEditor`**, cell/path/object layers, and **`mapGrid/authoring/`** (SVG overlays, square edge boundary-paint hook). |
 | `components/workspace/` | Full-width map editor shell, **`LocationGridAuthoringSection`** (workspace-level orchestrator; dispatches to `GridEditor` or `HexGridEditor`), rail/header/canvas — [location-workspace.md](./location-workspace.md). |
 | `components/` (other) | Cards, summaries, and presentation not covered above; prefer stable imports via `components/index.ts` where exported. |
@@ -217,10 +219,10 @@ Both renderers share the same callback shapes (`onCellClick`, `renderCellContent
 ## Pointers for the next agent
 
 1. **Extend scale rules:** edit `scale/locationScale.policy.ts` and `scale/locationParent.validation.ts`; keep `locationScaleField.policy.ts` in sync for categories/cell units/UI.
-2. **Extend map rules:** prefer `map/locationMap.validation.ts` / `locationMapCellAuthoring.validation.ts` for structural checks; `locationMapPlacement.policy.ts` for “what may appear on a cell” by scale. For **authored map content** categories (fills, paths, edges, placed objects), extend `src/features/content/locations/domain/mapContent/` and `LOCATION_SCALE_MAP_CONTENT_POLICY` — keep it separate from `LOCATION_SCALE_FIELD_POLICY`. For **painted map zones** (region/subregion/district/hazard/territory/custom), extend `zones/mapZone.policy.ts` and `MAP_ZONE_KIND_IDS` — separate from linked-location lists.
+2. **Extend map rules:** prefer `map/locationMap.validation.ts` / `locationMapCellAuthoring.validation.ts` for structural checks; `locationMapPlacement.policy.ts` for “what may appear on a cell” by scale. For **authored map content** categories (fills, paths, edges, placed objects), extend `src/features/content/locations/domain/model/map/`, `model/placedObjects/`, and `model/policies/` (`LOCATION_SCALE_MAP_CONTENT_POLICY`) — keep it separate from `LOCATION_SCALE_FIELD_POLICY`. For **painted map zones** (region/subregion/district/hazard/territory/custom), extend `zones/mapZone.policy.ts` and `MAP_ZONE_KIND_IDS` — separate from linked-location lists.
 3. **New transition kinds:** add to `LOCATION_TRANSITION_KIND_IDS` and any server checks; shared types in `transitions/`.
-4. **Imports:** use the **barrel** `@/shared/domain/locations` for shared vocabulary and validation; use `@/features/content/locations/domain` (or `.../domain/mapContent`) for authored map content and presentation tokens. Canvas hooks: `@/ui/hooks` (see [location-workspace.md](./location-workspace.md) for how the editor uses them).
-5. **Tests:** add shared tests under `shared/domain/locations/__tests__/scale/` or `__tests__/map/`; **mapContent** tests under `src/features/content/locations/domain/mapContent/`; server tests next to services/domain in `server/features/content/locations/`.
+4. **Imports:** use the **barrel** `@/shared/domain/locations` for shared vocabulary and validation; use `@/features/content/locations/domain` (or `.../domain/model/...` / `.../domain/presentation/map/...`) for feature map model and presentation tokens. Canvas hooks: `@/ui/hooks` (see [location-workspace.md](./location-workspace.md) for how the editor uses them).
+5. **Tests:** add shared tests under `shared/domain/locations/__tests__/scale/` or `__tests__/map/`; feature policy tests under `src/features/content/locations/domain/model/policies/__tests__/` (and related `model/` test folders); server tests next to services/domain in `server/features/content/locations/`.
 6. **Hex geometry extensions:** geometry policy lives in `locationScaleField.policy.ts` (`allowedGeometries`, `defaultGeometry`). Grid math helpers are in `shared/domain/grid/gridHelpers.ts`. Rendering is in `mapGrid/HexGridEditor.tsx`. Do not add hex logic to encounter systems without a dedicated plan.
 7. **Grid styling parity:** both `GridEditor` and `HexGridEditor` import border/shadow tokens from `src/features/content/locations/components/mapGrid/gridCellStyles.ts`. Keep this file updated when changing cell visuals.
 8. **Workspace UI:** layout shell, building floors, zoom/pan route wiring — [location-workspace.md](./location-workspace.md).

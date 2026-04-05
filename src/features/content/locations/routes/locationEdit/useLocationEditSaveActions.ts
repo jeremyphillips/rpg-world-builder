@@ -19,7 +19,7 @@ import {
   getDefaultGeometryForScale,
   nextSortOrder,
 } from '@/features/content/locations/domain';
-import type { BuildingWorkspaceFloorItem } from '@/features/content/locations/domain/building/buildingWorkspaceFloors';
+import type { BuildingWorkspaceFloorItem } from '@/features/content/locations/domain/model/building/buildingWorkspaceFloors';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 import { INITIAL_LOCATION_GRID_DRAFT } from '@/features/content/locations/components/authoring/draft/locationGridDraft.types';
 import type { LocationGridDraftState } from '@/features/content/locations/components/authoring/draft/locationGridDraft.types';
@@ -31,7 +31,7 @@ import {
 import { useSystemPatchActions } from '@/features/content/shared/hooks/useSystemPatchActions';
 import type { PatchDriver } from '@/features/content/shared/editor/patchDriver';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
-import type { Location } from '@/features/content/locations/domain/types';
+import type { Location } from '@/features/content/locations/domain/model/location';
 import type { LocationScaleId, LocationVerticalStairConnection } from '@/shared/domain/locations';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 
