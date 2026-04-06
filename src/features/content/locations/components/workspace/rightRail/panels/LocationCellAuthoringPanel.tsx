@@ -8,14 +8,12 @@ import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import type { Location } from '@/features/content/locations/domain/model/location';
 import FormSelectField from '@/ui/patterns/form/FormSelectField';
 import OptionPickerField from '@/ui/patterns/form/OptionPickerField';
 import type { PickerOption } from '@/ui/patterns/form/OptionPickerField';
-import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import {
   getAllowedLinkedLocationOptions,
   getAllowedObjectKindsForHostScale,
@@ -23,6 +21,9 @@ import {
 import type { LocationMapObjectKindId, LocationScaleId } from '@/shared/domain/locations';
 
 import type { LocationCellObjectDraft } from '../../../authoring/draft/locationGridDraft.types';
+
+import { SelectionRailIdentityBlock } from '../selection/PlacedObjectRailTemplate';
+import { formatCellPlacementLine } from '../selection/placedObjectRail.helpers';
 
 function buildLocationByIdMap(locations: Location[]): Map<string, Location> {
   return new Map(locations.map((l) => [l.id, l]));
@@ -93,7 +94,6 @@ export function LocationCellAuthoringPanel({
   }, [hostForPolicy, locations, campaignId, hostLocationId, byId]);
 
   const cellId = selectedCellId;
-  const parsed = cellId ? parseGridCellId(cellId) : null;
   const linkedId = cellId ? linkedLocationByCellId[cellId] : undefined;
   const linkedLoc = linkedId ? byId.get(linkedId) : undefined;
   const cellObjects = cellId ? objectsByCellId[cellId] ?? [] : [];
@@ -136,17 +136,6 @@ export function LocationCellAuthoringPanel({
     [cellId, cellObjects, onUpdateCellObjects],
   );
 
-  const handleLabelChange = useCallback(
-    (objectId: string, label: string) => {
-      if (!cellId) return;
-      onUpdateCellObjects(
-        cellId,
-        cellObjects.map((o) => (o.id === objectId ? { ...o, label } : o)),
-      );
-    },
-    [cellId, cellObjects, onUpdateCellObjects],
-  );
-
   const kindsAvailableToAdd = useMemo(
     () => [...allowedObjectKinds],
     [allowedObjectKinds],
@@ -171,35 +160,24 @@ export function LocationCellAuthoringPanel({
     );
   }
 
+  const hostCaption =
+    hostName || hostScale
+      ? `${hostName ? `${hostName} · ` : ''}${hostScale} map`
+      : undefined;
+
   return (
     <Stack spacing={2}>
-      <Box>
-        <Typography variant="subtitle2" fontWeight={600}>
-          Cell
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          <Box component="span" sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-            {selectedCellId}
-          </Box>
-          {parsed ? (
-            <>
-              {' · '}
-              x {parsed.x}, y {parsed.y}
-            </>
-          ) : null}
-        </Typography>
-        {(hostName || hostScale) && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-            {hostName ? `${hostName} · ` : ''}
-            {hostScale} map
-          </Typography>
-        )}
-      </Box>
+      <SelectionRailIdentityBlock
+        categoryLabel="Map"
+        title="Cell"
+        placementLine={cellId ? formatCellPlacementLine(cellId) : ''}
+        secondaryCaption={hostCaption}
+      />
 
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
         {linkedLoc
-          ? `Linked: ${linkedLoc.name}`
-          : 'No location linked'}
+          ? `Cell-linked location: ${linkedLoc.name}`
+          : 'No campaign location linked to this cell'}
         {cellObjects.length > 0
           ? ` · ${cellObjects.length} object${cellObjects.length === 1 ? '' : 's'}`
           : ''}
@@ -231,7 +209,8 @@ export function LocationCellAuthoringPanel({
           Cell objects
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-          Simple markers and props allowed on this scale.
+          Simple markers and props allowed on this scale. Select an object on the map to edit label and details in
+          the Selection rail.
         </Typography>
 
         {cellObjects.length > 0 ? (
@@ -241,33 +220,23 @@ export function LocationCellAuthoringPanel({
                 key={obj.id}
                 disableGutters
                 sx={{
-                  flexDirection: 'column',
-                  alignItems: 'stretch',
-                  gap: 0.75,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 1,
                   py: 1,
                   borderBottom: 1,
                   borderColor: 'divider',
                 }}
               >
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Chip size="small" label={obj.kind} variant="outlined" />
-                  <Box sx={{ flex: 1 }} />
-                  <Button
-                    size="small"
-                    onClick={() => handleRemoveObject(obj.id)}
-                    aria-label={`Remove ${obj.kind}`}
-                  >
-                    Remove
-                  </Button>
-                </Stack>
-                <TextField
+                <Chip size="small" label={obj.kind} variant="outlined" />
+                <Box sx={{ flex: 1 }} />
+                <Button
                   size="small"
-                  fullWidth
-                  label="Label (optional)"
-                  value={obj.label ?? ''}
-                  onChange={(e) => handleLabelChange(obj.id, e.target.value)}
-                  placeholder="Short note"
-                />
+                  onClick={() => handleRemoveObject(obj.id)}
+                  aria-label={`Remove ${obj.kind}`}
+                >
+                  Remove
+                </Button>
               </ListItem>
             ))}
           </List>

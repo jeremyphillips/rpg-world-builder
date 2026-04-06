@@ -621,22 +621,16 @@ export function LocationMapPathInspector({
     );
   }
 
+  const metadata = <Chip size="small" label={entry.kind} variant="outlined" />;
+
   return (
-    <Stack spacing={1.5}>
-      <Typography variant="subtitle2" fontWeight={600}>
-        Path
-      </Typography>
-      <Chip size="small" label={entry.kind} variant="outlined" />
-      <Typography variant="body2" color="text.secondary">
-        {entry.cellIds.length} cells in chain
-      </Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-        id: {pathId}
-      </Typography>
-      <MapInspectorRemoveFromMapIfHandler
-        onRemove={onRemovePathFromMap ? () => onRemovePathFromMap(pathId) : undefined}
-      />
-    </Stack>
+    <PlacedObjectRailTemplate
+      categoryLabel="Map"
+      objectTitle="Path"
+      placementLine={`Chain · ${entry.cellIds.length} cell${entry.cellIds.length === 1 ? '' : 's'}`}
+      metadata={metadata}
+      onRemoveFromMap={onRemovePathFromMap ? () => onRemovePathFromMap(pathId) : undefined}
+    />
   );
 }
 

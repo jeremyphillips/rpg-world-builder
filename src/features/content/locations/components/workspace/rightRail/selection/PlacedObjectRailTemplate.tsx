@@ -6,6 +6,39 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+/** Shared top block: category → title → placement — used by placed-object template and empty-cell inspector. */
+export function SelectionRailIdentityBlock({
+  categoryLabel,
+  title,
+  placementLine,
+  secondaryCaption,
+}: {
+  categoryLabel: string;
+  title: string;
+  placementLine: string;
+  /** Host map / floor context (optional) */
+  secondaryCaption?: string;
+}) {
+  return (
+    <Box>
+      <Typography variant="overline" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
+        {categoryLabel}
+      </Typography>
+      <Typography variant="h6" component="h3" sx={{ mt: 0.25, fontWeight: 600 }}>
+        {title}
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+        {placementLine}
+      </Typography>
+      {secondaryCaption ? (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+          {secondaryCaption}
+        </Typography>
+      ) : null}
+    </Box>
+  );
+}
+
 export type PlacedObjectRailTemplateProps = {
   /** e.g. Furniture, Structure — registry / product grouping */
   categoryLabel: string;
@@ -43,17 +76,11 @@ export function PlacedObjectRailTemplate({
 }: PlacedObjectRailTemplateProps) {
   return (
     <Stack spacing={2}>
-      <Box>
-        <Typography variant="overline" color="text.secondary" sx={{ display: 'block', lineHeight: 1.4 }}>
-          {categoryLabel}
-        </Typography>
-        <Typography variant="h6" component="h3" sx={{ mt: 0.25, fontWeight: 600 }}>
-          {objectTitle}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {placementLine}
-        </Typography>
-      </Box>
+      <SelectionRailIdentityBlock
+        categoryLabel={categoryLabel}
+        title={objectTitle}
+        placementLine={placementLine}
+      />
 
       {metadata ? <Box>{metadata}</Box> : null}
 
