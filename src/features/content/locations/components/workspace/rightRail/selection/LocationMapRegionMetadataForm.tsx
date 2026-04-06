@@ -73,6 +73,7 @@ export function LocationMapRegionMetadataForm({
   const prevRegionIdRef = useRef(region.id);
 
   const description = useWatch({ control, name: 'description' });
+  const nameWatch = useWatch({ control, name: 'name' });
 
   const { flush } = useDebouncedPersistableField({
     value: description,
@@ -126,7 +127,12 @@ export function LocationMapRegionMetadataForm({
     patchRef.current(region.id, { colorKey: raw as LocationMapRegionColorKey });
   };
 
-  const displayTitle = region.name?.trim() ? region.name.trim() : 'Region';
+  const displayTitle =
+    typeof nameWatch === 'string'
+      ? nameWatch.trim() || 'Region'
+      : region.name?.trim()
+        ? region.name.trim()
+        : 'Region';
 
   return (
     <FormProvider {...methods}>

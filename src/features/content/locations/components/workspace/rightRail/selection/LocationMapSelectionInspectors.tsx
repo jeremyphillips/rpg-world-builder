@@ -46,6 +46,7 @@ import type { LocationCellObjectDraft } from '../../../authoring/draft/locationG
 import { PlacedObjectRailTemplate } from './PlacedObjectRailTemplate';
 import {
   formatCellPlacementLine,
+  formatEdgePlacementLine,
   legacyMapObjectKindTitle,
   shouldShowLinkedIdentityForPlacedObject,
 } from './placedObjectRail.helpers';
@@ -664,7 +665,7 @@ export function LocationMapEdgeInspector({
   const categoryLabel = isDoorOrWindow
     ? getPlacedObjectPaletteCategoryLabel(getPlacedObjectPaletteCategoryId(entry.kind))
     : 'Structure';
-  const placementLine = `Edge ${edgeId}`;
+  const placementLine = formatEdgePlacementLine(edgeId);
 
   const metadata = isDoorOrWindow ? (
     <Typography variant="body2" color="text.secondary">
@@ -732,8 +733,8 @@ export function LocationMapEdgeRunInspector({
       <Typography variant="caption" color="text.secondary">
         Orientation: {axis} (square grid: {axis === 'horizontal' ? 'row' : 'column'} boundary line)
       </Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-        Anchor: {anchorEdgeId}
+      <Typography variant="caption" color="text.secondary">
+        Anchor: {formatEdgePlacementLine(anchorEdgeId)}
       </Typography>
     </Stack>
   );
@@ -742,7 +743,7 @@ export function LocationMapEdgeRunInspector({
     <PlacedObjectRailTemplate
       categoryLabel={categoryLabel}
       objectTitle={objectTitle}
-      placementLine={`Straight run (${edgeIds.length} segment${edgeIds.length === 1 ? '' : 's'})`}
+      placementLine={`Straight run · ${edgeIds.length} segment${edgeIds.length === 1 ? '' : 's'}`}
       metadata={metadata}
       onRemoveFromMap={onRemoveEdgeRunFromMap ? () => onRemoveEdgeRunFromMap(edgeIds) : undefined}
     />

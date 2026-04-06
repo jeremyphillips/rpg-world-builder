@@ -96,13 +96,15 @@ describe('LocationEditorSelectionPanel', () => {
   });
 
   it('edge: mounts edge inspector with door label when kind is door', () => {
+    const edgeId = 'between:0,0|1,0';
     renderSelection(
-      { type: 'edge', edgeId: 'between:0,0|1,0|E' },
+      { type: 'edge', edgeId },
       {
-        edgeEntries: [{ edgeId: 'between:0,0|1,0|E', kind: 'door' }],
+        edgeEntries: [{ edgeId, kind: 'door' }],
       },
     );
     expect(screen.getByRole('heading', { name: 'Door' })).toBeInTheDocument();
+    expect(screen.getByText('Between Cell 0,0 and Cell 1,0')).toBeInTheDocument();
   });
 
   it('path: mounts path inspector with Path title', () => {
@@ -136,24 +138,29 @@ describe('LocationEditorSelectionPanel', () => {
   });
 
   it('edge-run: wall uses geometry-style run title', () => {
+    const anchor = 'between:0,0|1,0';
     renderSelection({
       type: 'edge-run',
       kind: 'wall',
-      edgeIds: ['between:0,0|1,0|E'],
+      edgeIds: [anchor],
       axis: 'horizontal',
-      anchorEdgeId: 'between:0,0|1,0|E',
+      anchorEdgeId: anchor,
     });
     expect(screen.getByRole('heading', { name: 'Horizontal Wall run' })).toBeInTheDocument();
+    expect(screen.getByText('Straight run · 1 segment')).toBeInTheDocument();
+    expect(screen.getByText(/Anchor: Between Cell 0,0 and Cell 1,0/)).toBeInTheDocument();
   });
 
   it('edge-run: door uses registry object-first title', () => {
+    const anchor = 'perimeter:2,3|E';
     renderSelection({
       type: 'edge-run',
       kind: 'door',
-      edgeIds: ['e1'],
+      edgeIds: [anchor],
       axis: 'vertical',
-      anchorEdgeId: 'e1',
+      anchorEdgeId: anchor,
     });
     expect(screen.getByRole('heading', { name: 'Door' })).toBeInTheDocument();
+    expect(screen.getByText(/Anchor: Cell 2,3 · east edge/)).toBeInTheDocument();
   });
 });

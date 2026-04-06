@@ -6,6 +6,33 @@ import {
 } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationMapObjectKindId } from '@/shared/domain/locations';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
+import { parseSquareEdgeId } from '@/shared/domain/grid/gridEdgeIds';
+
+function cellPlacementFragment(cellId: string): string {
+  const p = parseGridCellId(cellId);
+  if (!p) return cellId;
+  return `Cell ${p.x},${p.y}`;
+}
+
+const SIDE_WORD: Record<'N' | 'E' | 'S' | 'W', string> = {
+  N: 'north',
+  E: 'east',
+  S: 'south',
+  W: 'west',
+};
+
+/**
+ * Human-readable placement for a square grid edge id (`between:…` or `perimeter:…`).
+ * Falls back to `Edge {edgeId}` when parsing fails.
+ */
+export function formatEdgePlacementLine(edgeId: string): string {
+  const p = parseSquareEdgeId(edgeId);
+  if (!p) return `Edge ${edgeId}`;
+  if (p.kind === 'between') {
+    return `Between ${cellPlacementFragment(p.cellA)} and ${cellPlacementFragment(p.cellB)}`;
+  }
+  return `${cellPlacementFragment(p.cellId)} · ${SIDE_WORD[p.side]} edge`;
+}
 
 /** Human-readable cell coordinates for the placement slot (Phase 4 shared template). */
 export function formatCellPlacementLine(cellId: string): string {

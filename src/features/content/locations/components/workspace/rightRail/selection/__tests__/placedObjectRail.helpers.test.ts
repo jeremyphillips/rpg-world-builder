@@ -4,6 +4,7 @@ import type { Location } from '@/features/content/locations/domain/model/locatio
 
 import {
   formatCellPlacementLine,
+  formatEdgePlacementLine,
   legacyMapObjectKindTitle,
   shouldShowLinkedIdentityForPlacedObject,
 } from '../placedObjectRail.helpers';
@@ -50,5 +51,19 @@ describe('legacyMapObjectKindTitle', () => {
   it('maps persisted map object kinds to display titles', () => {
     expect(legacyMapObjectKindTitle('stairs')).toBe('Stairs');
     expect(legacyMapObjectKindTitle('table')).toBe('Table');
+  });
+});
+
+describe('formatEdgePlacementLine', () => {
+  it('formats interior between edges', () => {
+    expect(formatEdgePlacementLine('between:1,1|2,1')).toBe('Between Cell 1,1 and Cell 2,1');
+  });
+
+  it('formats perimeter edges', () => {
+    expect(formatEdgePlacementLine('perimeter:11,2|E')).toBe('Cell 11,2 · east edge');
+  });
+
+  it('falls back when id is not a known square edge shape', () => {
+    expect(formatEdgePlacementLine('opaque-id')).toBe('Edge opaque-id');
   });
 });
