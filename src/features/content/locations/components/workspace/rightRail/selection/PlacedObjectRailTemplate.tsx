@@ -6,6 +6,25 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import type { PresentationMetadataRow } from './placedObjectRail.helpers';
+
+/** Key/value rows from registry `variant.presentation` (see {@link presentationRowsFromPresentation}). */
+export function PlacedObjectPresentationMetadataRows({ rows }: { rows: readonly PresentationMetadataRow[] }) {
+  if (rows.length === 0) return null;
+  return (
+    <Stack spacing={0.5}>
+      {rows.map((r, i) => (
+        <Typography key={`${r.label}-${i}`} variant="body2" color="text.secondary">
+          <Box component="span" sx={{ fontWeight: 600 }}>
+            {r.label}:
+          </Box>{' '}
+          {r.value}
+        </Typography>
+      ))}
+    </Stack>
+  );
+}
+
 /** Shared top block: category → title → placement — used by placed-object template and empty-cell inspector. */
 export function SelectionRailIdentityBlock({
   categoryLabel,

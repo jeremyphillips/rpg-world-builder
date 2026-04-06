@@ -1,4 +1,5 @@
 import type { Location } from '@/features/content/locations/domain/model/location';
+import type { AuthoredPlacedObjectVariantPresentation } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry';
 import {
   getPlacedObjectDefinition,
   parseLocationPlacedObjectKindId,
@@ -67,5 +68,33 @@ export function shouldShowLinkedIdentityForPlacedObject(
   const def = getPlacedObjectDefinition(placedKind);
   if (!def.linkedScale) return false;
   return linkedLoc.scale === def.linkedScale;
+}
+
+export type PresentationMetadataRow = { label: string; value: string };
+
+function formatPresentationKey(key: string): string {
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
+
+function formatPresentationValue(raw: string): string {
+  return raw.replace(/_/g, ' ').replace(/-/g, ' ');
+}
+
+/**
+ * First-pass metadata rows from registry `variant.presentation` — no per-object config map.
+ */
+export function presentationRowsFromPresentation(
+  presentation: AuthoredPlacedObjectVariantPresentation | undefined,
+): PresentationMetadataRow[] {
+  if (!presentation) return [];
+  const out: PresentationMetadataRow[] = [];
+  for (const [k, v] of Object.entries(presentation)) {
+    if (v === undefined || v === null || String(v).trim() === '') continue;
+    out.push({
+      label: formatPresentationKey(k),
+      value: formatPresentationValue(String(v)),
+    });
+  }
+  return out;
 }
 

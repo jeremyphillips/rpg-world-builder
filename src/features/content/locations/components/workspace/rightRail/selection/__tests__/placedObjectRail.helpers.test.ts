@@ -6,6 +6,7 @@ import {
   formatCellPlacementLine,
   formatEdgePlacementLine,
   legacyMapObjectKindTitle,
+  presentationRowsFromPresentation,
   shouldShowLinkedIdentityForPlacedObject,
 } from '../placedObjectRail.helpers';
 
@@ -65,5 +66,23 @@ describe('formatEdgePlacementLine', () => {
 
   it('falls back when id is not a known square edge shape', () => {
     expect(formatEdgePlacementLine('opaque-id')).toBe('Edge opaque-id');
+  });
+});
+
+describe('presentationRowsFromPresentation', () => {
+  it('builds title-case labels and prettifies values', () => {
+    expect(
+      presentationRowsFromPresentation({
+        material: 'wood',
+        form: 'single-leaf',
+      }),
+    ).toEqual([
+      { label: 'Material', value: 'wood' },
+      { label: 'Form', value: 'single leaf' },
+    ]);
+  });
+
+  it('returns empty when presentation is undefined', () => {
+    expect(presentationRowsFromPresentation(undefined)).toEqual([]);
   });
 });

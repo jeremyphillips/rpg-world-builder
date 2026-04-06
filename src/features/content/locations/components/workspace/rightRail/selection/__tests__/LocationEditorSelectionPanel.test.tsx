@@ -67,6 +67,12 @@ describe('LocationEditorSelectionPanel', () => {
     expect(screen.getByText('Cell 2,3')).toBeInTheDocument();
   });
 
+  it('cell: does not show generic linked-location or add-object UI on Selection tab', () => {
+    renderSelection({ type: 'cell', cellId: '0,0' }, { cellPanelProps: { selectedCellId: '0,0' } });
+    expect(screen.queryByText(/Linked location/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Add object/i)).not.toBeInTheDocument();
+  });
+
   it('object: mounts placed-object template with registry title', () => {
     renderSelection(
       { type: 'object', cellId: '1,1', objectId: 'obj-a' },
@@ -93,6 +99,10 @@ describe('LocationEditorSelectionPanel', () => {
     );
     expect(screen.getByRole('heading', { name: 'Table' })).toBeInTheDocument();
     expect(screen.getByText('Cell 1,1')).toBeInTheDocument();
+    expect(screen.getByText('Material:')).toBeInTheDocument();
+    expect(screen.getByText('wood')).toBeInTheDocument();
+    expect(screen.getByText('Shape:')).toBeInTheDocument();
+    expect(screen.getByText('rectangle')).toBeInTheDocument();
   });
 
   it('edge: mounts edge inspector with door label when kind is door', () => {
@@ -105,6 +115,8 @@ describe('LocationEditorSelectionPanel', () => {
     );
     expect(screen.getByRole('heading', { name: 'Door' })).toBeInTheDocument();
     expect(screen.getByText('Between Cell 0,0 and Cell 1,0')).toBeInTheDocument();
+    expect(screen.getByText('Material:')).toBeInTheDocument();
+    expect(screen.getByText('Form:')).toBeInTheDocument();
   });
 
   it('path: mounts path inspector with Path title', () => {
@@ -161,6 +173,8 @@ describe('LocationEditorSelectionPanel', () => {
       anchorEdgeId: anchor,
     });
     expect(screen.getByRole('heading', { name: 'Door' })).toBeInTheDocument();
-    expect(screen.getByText(/Anchor: Cell 2,3 · east edge/)).toBeInTheDocument();
+    expect(screen.getByText('Cell 2,3 · east edge')).toBeInTheDocument();
+    expect(screen.getByText('Material:')).toBeInTheDocument();
+    expect(screen.queryByText(/Straight run/i)).not.toBeInTheDocument();
   });
 });

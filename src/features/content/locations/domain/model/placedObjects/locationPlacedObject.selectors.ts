@@ -1,4 +1,4 @@
-import type { LocationMapObjectKindId, LocationScaleId } from '@/shared/domain/locations';
+import type { LocationMapCellObjectEntry, LocationMapObjectKindId, LocationScaleId } from '@/shared/domain/locations';
 import { isValidLocationScaleId } from '@/shared/domain/locations/scale/locationScale.rules';
 
 import {
@@ -78,6 +78,36 @@ export function normalizeVariantIdForFamily(
     return variantId;
   }
   return family.defaultVariantId;
+}
+
+/**
+ * Resolves registry placed kind for inspector metadata: prefers persisted `authoredPlaceKindId`, else
+ * non-ambiguous legacy `kind` (table / stairs / treasure).
+ */
+export function resolvePlacedObjectKindForCellObject(
+  obj: Pick<LocationMapCellObjectEntry, 'kind' | 'authoredPlaceKindId'>,
+): LocationPlacedObjectKindId | null {
+  const stored = parseLocationPlacedObjectKindId(obj.authoredPlaceKindId);
+  if (stored) return stored;
+  switch (obj.kind) {
+    case 'table':
+      return 'table';
+    case 'stairs':
+      return 'stairs';
+    case 'treasure':
+      return 'treasure';
+    default:
+      return null;
+  }
+}
+
+/** Default variant’s `presentation` for first-pass inspector metadata (variant not on wire for many objects). */
+export function getDefaultVariantPresentationForKind(
+  kind: LocationPlacedObjectKindId,
+): AuthoredPlacedObjectVariantPresentation | undefined {
+  const family = AUTHORED_PLACED_OBJECT_DEFINITIONS[kind];
+  const v = variantRecord(family)[family.defaultVariantId];
+  return v?.presentation;
 }
 
 export type PlacedObjectVariantPickerRow = {

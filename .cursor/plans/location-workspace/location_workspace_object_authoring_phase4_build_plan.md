@@ -1,6 +1,6 @@
 ---
 name: Object authoring Phase 4 — implementation build plan
-overview: Execution-oriented breakdown for Phase 4 (config/editing, shared placed-object rail template, inspector dispatch). Normative product/architecture remains in location_workspace_object_authoring_phase4_config_editing.plan.md.
+overview: Execution-oriented breakdown for Phase 4 (config/editing, shared placed-object rail template, inspector dispatch). Normative product/architecture remains in location_workspace_object_authoring_phase4_config_editing.plan.md. **M8** = post-build **cleanup pass** (object-first inspectors, `variant.presentation` metadata rows, empty-cell rail, edge/wall coupling note) — see that plan’s **Post-build cleanup pass** section.
 isProject: true
 ---
 
@@ -122,13 +122,35 @@ This document is a **build order** and **work breakdown**. It does not replace t
 
 ---
 
+### M8 — Post-build cleanup pass (inspector alignment)
+
+**Goal:** Close gaps between **first implementation** and the normative **shared placed-object template**; avoid drift between **authored registry edge objects** and **wall/draw/edge-run** language.
+
+**Normative detail:** [location_workspace_object_authoring_phase4_config_editing.plan.md](location_workspace_object_authoring_phase4_config_editing.plan.md) — **Post-build cleanup pass (Phase 4 follow-up)**.
+
+| Task | Notes |
+|------|-------|
+| **Door / window / edge-run** — **object-first** copy | Remove **run-first** headlines and redundant **segment** duplication as **primary** identity; **registry** category + object label + humanized **placement** + **`variant.presentation`** rows + **Label** + **Remove** |
+| **Cell objects (e.g. table)** | Ensure **metadata rows** from **presentation** so the shell matches **Furniture / Table / Cell … / Material / Shape** |
+| **Shared metadata helper** | Derive first-pass rows from **`presentation`** with **title-case keys** + optional **lightweight** value prettify — **avoid** a large new per-object metadata map |
+| **Label** | **Consistent** for **edge** placed objects — same **`PlacedObjectRailTemplate`** rules as cell |
+| **Empty-cell Selection tab** | **No** default **linked location** UI; **no** default **cell-object add/select** block — **`CellInspector`** boundary |
+| **Coupling audit** | Small code **decoupling** (registry-first path for authored door/window) **or** explicit **note** + minimal follow-up for **`LOCATION_EDGE_FEATURE_KIND_META`** / **run** inspector assumptions vs **registry variants** |
+| **Tests + doc touch-up** | RTL/unit for metadata rows and empty-cell rail; **`location-workspace.md`** if behavior changes |
+
+**Does not include:** Redesigning **wall** as non-vector geometry, **hex** parity, or **M6** persistence scope unless explicitly pulled in.
+
+---
+
 ## Suggested sequencing
 
 ```text
-M1 (audit) → M2 (shell) → M3 (cell object) → M4 (empty cell dispatch) → M5 (edge) → M6 (persistence, if needed) → M7 (tests + doc)
+M1 (audit) → M2 (shell) → M3 (cell object) → M4 (empty cell dispatch) → M5 (edge) → M6 (persistence, if needed) → M7 (tests + doc) → M8 (post-build cleanup)
 ```
 
 **Parallelizable after M2:** M4 can overlap M3 if two contributors coordinate on **`LocationCellAuthoringPanel`** contracts.
+
+**M8** typically runs **after** M3–M5 have shipped a first cut (may start in parallel with M7 for coordination).
 
 ---
 
@@ -143,6 +165,7 @@ M1 (audit) → M2 (shell) → M3 (cell object) → M4 (empty cell dispatch) → 
 | Select mode | `domain/authoring/editor/selectMode/`, `useLocationGridSelectMode.ts` |
 | Stairs | `routes/locationEdit/useLocationEditBuildingStairHandlers.ts` |
 | Registry | `domain/model/placedObjects/locationPlacedObject.registry.ts` |
+| Presentation metadata rows (M8) | Shared helper (e.g. `rightRail/selection/`) deriving rows from **`variant.presentation`** |
 | Doc | `docs/reference/location-workspace.md` |
 
 ---
@@ -157,6 +180,13 @@ Phase 4 **implementation** is **done** for a slice when:
 4. **No** default raw UUID / debug ids in the primary rail for placed objects (unless explicitly scoped diagnostics).
 5. Tests cover **dispatch → mounted inspector** for main `mapSelection` cases.
 6. **`location-workspace.md`** updated to match shipped behavior and any new persistable rules.
+
+**Post-build cleanup (M8) — definition of done** adds:
+
+7. **Door/window** (and **`edge-run`** where it represents those objects) do **not** present **run-first** or duplicated geometry copy as the **primary** inspector story; **variant `presentation`** metadata appears when resolvable.
+8. **Table** (and analogous cell objects) show **presentation** metadata rows, not only category + placement + Label.
+9. **Empty-cell** Selection tab matches **M8** boundary (no default generic link/add-object surfaces).
+10. **Architectural note** or **small decoupling** recorded for **authored edge objects** vs **edge-feature / wall** modeling.
 
 ---
 

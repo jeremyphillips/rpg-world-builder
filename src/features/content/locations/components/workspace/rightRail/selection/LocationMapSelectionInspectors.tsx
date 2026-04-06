@@ -11,11 +11,12 @@ import Typography from '@mui/material/Typography';
 
 import type { Location } from '@/features/content/locations/domain/model/location';
 import {
+  getDefaultVariantPresentationForKind,
   getPlacedObjectMeta,
   getPlacedObjectPaletteCategoryId,
   getPlacedObjectPaletteCategoryLabel,
   LOCATION_PLACED_OBJECT_KIND_META,
-  parseLocationPlacedObjectKindId,
+  resolvePlacedObjectKindForCellObject,
 } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import {
   listStairObjectOptionsForFloor,
@@ -43,11 +44,12 @@ import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locati
 
 import type { LocationCellObjectDraft } from '../../../authoring/draft/locationGridDraft.types';
 
-import { PlacedObjectRailTemplate } from './PlacedObjectRailTemplate';
+import { PlacedObjectPresentationMetadataRows, PlacedObjectRailTemplate } from './PlacedObjectRailTemplate';
 import {
   formatCellPlacementLine,
   formatEdgePlacementLine,
   legacyMapObjectKindTitle,
+  presentationRowsFromPresentation,
   shouldShowLinkedIdentityForPlacedObject,
 } from './placedObjectRail.helpers';
 
@@ -487,19 +489,21 @@ export function LocationMapObjectInspector({
     );
   }
 
-  const placedKind = parseLocationPlacedObjectKindId(obj.authoredPlaceKindId);
+  const resolvedPlacedKind = resolvePlacedObjectKindForCellObject(obj);
   const linkedLocationId = linkedLocationByCellId[cellId];
   const linkedLoc = linkedLocationId ? locationById.get(linkedLocationId) : undefined;
   const showLinkedDisplayIdentity = shouldShowLinkedIdentityForPlacedObject(
-    placedKind,
+    resolvedPlacedKind,
     linkedLocationId,
     linkedLoc,
   );
 
-  const categoryLabel = placedKind
-    ? getPlacedObjectPaletteCategoryLabel(getPlacedObjectPaletteCategoryId(placedKind))
+  const categoryLabel = resolvedPlacedKind
+    ? getPlacedObjectPaletteCategoryLabel(getPlacedObjectPaletteCategoryId(resolvedPlacedKind))
     : 'Object';
-  const objectTitle = placedKind ? getPlacedObjectMeta(placedKind).label : legacyMapObjectKindTitle(obj.kind);
+  const objectTitle = resolvedPlacedKind
+    ? getPlacedObjectMeta(resolvedPlacedKind).label
+    : legacyMapObjectKindTitle(obj.kind);
   const placementLine = formatCellPlacementLine(cellId);
 
   const showStairEndpointUi = obj.kind === 'stairs' && hostScale === 'floor';
@@ -524,6 +528,13 @@ export function LocationMapObjectInspector({
           validTargetFloorIds,
         })
       : null;
+
+  const presentationRows =
+    resolvedPlacedKind !== null
+      ? presentationRowsFromPresentation(getDefaultVariantPresentationForKind(resolvedPlacedKind))
+      : [];
+  const presentationBlock =
+    presentationRows.length > 0 ? <PlacedObjectPresentationMetadataRows rows={presentationRows} /> : null;
 
   const stairMetadata =
     showStairEndpointUi ? (
@@ -568,6 +579,14 @@ export function LocationMapObjectInspector({
       </Stack>
     ) : null;
 
+  const composedMetadata =
+    presentationBlock || stairMetadata ? (
+      <Stack spacing={2}>
+        {presentationBlock}
+        {stairMetadata}
+      </Stack>
+    ) : undefined;
+
   const labelField = showLinkedDisplayIdentity ? undefined : (
     <TextField
       label="Label"
@@ -586,7 +605,7 @@ export function LocationMapObjectInspector({
       categoryLabel={categoryLabel}
       objectTitle={objectTitle}
       placementLine={placementLine}
-      metadata={stairMetadata ?? undefined}
+      metadata={composedMetadata}
       linkedDisplayName={showLinkedDisplayIdentity && linkedLoc ? linkedLoc.name : undefined}
       labelField={labelField}
       onRemoveFromMap={() => {
@@ -656,6 +675,11 @@ export function LocationMapEdgeInspector({
     );
   }
 
+  /**
+   * Authored registry objects (`door` / `window` variants + `presentation`) are the object-first source for
+   * these inspectors. `LOCATION_EDGE_FEATURE_KIND_META` remains the draw/wall edge-feature vocabulary — keep
+   * registry-driven copy primary here so door/window rails do not drift toward wall/run semantics.
+   */
   const isDoorOrWindow = entry.kind === 'door' || entry.kind === 'window';
   const objectTitle = isDoorOrWindow
     ? entry.kind === 'door'
@@ -667,15 +691,34 @@ export function LocationMapEdgeInspector({
     : 'Structure';
   const placementLine = formatEdgePlacementLine(edgeId);
 
+  const presentationRows = isDoorOrWindow
+    ? presentationRowsFromPresentation(getDefaultVariantPresentationForKind(entry.kind))
+    : [];
+
   const metadata = isDoorOrWindow ? (
-    <Typography variant="body2" color="text.secondary">
-      Variant choice is not stored on the map in this phase — only the edge kind ({entry.kind}) is persisted.
-    </Typography>
+    <Stack spacing={1}>
+      <PlacedObjectPresentationMetadataRows rows={presentationRows} />
+      <Typography variant="caption" color="text.secondary">
+        Only edge kind is persisted on the map; values shown use the family default variant until edge storage is
+        extended.
+      </Typography>
+    </Stack>
   ) : (
     <Typography variant="body2" color="text.secondary">
       Boundary wall segment.
     </Typography>
   );
+
+  const edgeLabelField = isDoorOrWindow ? (
+    <TextField
+      label="Label"
+      size="small"
+      value=""
+      disabled
+      helperText="Not persisted for edge features in this phase."
+      fullWidth
+    />
+  ) : undefined;
 
   return (
     <PlacedObjectRailTemplate
@@ -683,6 +726,7 @@ export function LocationMapEdgeInspector({
       objectTitle={objectTitle}
       placementLine={placementLine}
       metadata={metadata}
+      labelField={edgeLabelField}
       onRemoveFromMap={onRemoveEdgeFromMap ? () => onRemoveEdgeFromMap(edgeId) : undefined}
     />
   );
@@ -725,7 +769,18 @@ export function LocationMapEdgeRunInspector({
     ? getPlacedObjectPaletteCategoryLabel(getPlacedObjectPaletteCategoryId(kind))
     : 'Structure';
 
-  const metadata = (
+  /** Object-first: anchor placement is primary for door/window; wall runs stay geometry-forward. */
+  const placementLine = isDoorOrWindow
+    ? formatEdgePlacementLine(anchorEdgeId)
+    : `Straight run · ${edgeIds.length} segment${edgeIds.length === 1 ? '' : 's'}`;
+
+  const presentationRows = isDoorOrWindow
+    ? presentationRowsFromPresentation(getDefaultVariantPresentationForKind(kind))
+    : [];
+
+  const metadata = isDoorOrWindow ? (
+    <PlacedObjectPresentationMetadataRows rows={presentationRows} />
+  ) : (
     <Stack spacing={1}>
       <Typography variant="body2" color="text.secondary">
         {edgeIds.length} segment{edgeIds.length === 1 ? '' : 's'} on this straight run
@@ -739,12 +794,24 @@ export function LocationMapEdgeRunInspector({
     </Stack>
   );
 
+  const edgeLabelField = isDoorOrWindow ? (
+    <TextField
+      label="Label"
+      size="small"
+      value=""
+      disabled
+      helperText="Not persisted for edge features in this phase."
+      fullWidth
+    />
+  ) : undefined;
+
   return (
     <PlacedObjectRailTemplate
       categoryLabel={categoryLabel}
       objectTitle={objectTitle}
-      placementLine={`Straight run · ${edgeIds.length} segment${edgeIds.length === 1 ? '' : 's'}`}
+      placementLine={placementLine}
       metadata={metadata}
+      labelField={edgeLabelField}
       onRemoveFromMap={onRemoveEdgeRunFromMap ? () => onRemoveEdgeRunFromMap(edgeIds) : undefined}
     />
   );

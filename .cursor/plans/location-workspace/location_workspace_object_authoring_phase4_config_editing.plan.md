@@ -1,6 +1,6 @@
 ---
 name: Object authoring Phase 4 — config and editing
-overview: Post-placement config/editing with **explicit inspector ownership** and a **single shared placed-object rail template** for **all** placed authored objects (cell- and edge-anchored): **CellInspector** (empty cell only); **CellObjectInspector** / **EdgeObjectInspector** share the **same structural rhythm** (identity → placement → metadata → **Label** slot: freeform if **unlinked**, linked **title/name** if **linked** → actions → remove). Not “selected cell” vs “object in cell” as one surface. Door/window state, stairs, metadata, wire migrations. Map `gridDraft.mapSelection` to modes (may evolve discriminant). Refine before implementation.
+overview: Post-placement config/editing with **explicit inspector ownership** and a **single shared placed-object rail template** for **all** placed authored objects (cell- and edge-anchored): **CellInspector** (empty cell only); **CellObjectInspector** / **EdgeObjectInspector** share the **same structural rhythm** (identity → placement → metadata → **Label** slot: freeform if **unlinked**, linked **title/name** if **linked** → actions → remove). Not “selected cell” vs “object in cell” as one surface. Door/window state, stairs, metadata, wire migrations. Map `gridDraft.mapSelection` to modes (may evolve discriminant). **Post-build cleanup pass** (follow-up): fix run-first door/window copy, restore **variant.presentation** metadata without a heavy manual map, consistent **Label** on edge objects, empty-cell rail boundary, and audit **edge features vs authored edge objects** — see **Post-build cleanup pass (Phase 4 follow-up)**.
 todos:
   - id: audit-current-post-placement-editing
     content: Audit current rail/inspector behavior for placed objects, current editable metadata/state, and any existing stairs/door/window configuration flows
@@ -25,6 +25,9 @@ todos:
     status: pending
   - id: update-location-workspace-doc
     content: Update docs/reference/location-workspace.md so the canonical reference matches Phase 4 (shared placed-object template, inspector ownership, selection rail, debounced persistable fields, any new persisted workspace rules)
+    status: pending
+  - id: phase4-post-build-cleanup-pass
+    content: Post-build cleanup — object-first door/table/edge inspectors, presentation metadata from variant.presentation (lightweight formatter), Label on all placed objects including edge, empty-cell selection tab without generic link/add-object UI, edge-feature vs wall/draw coupling note or small decoupling — see Post-build cleanup pass section
     status: pending
 isProject: true
 ---
@@ -291,6 +294,74 @@ Do **not** lead with: **`Vertical Door run`**, a redundant **`door`** badge when
 
 ---
 
+## Post-build cleanup pass (Phase 4 follow-up)
+
+**Purpose:** After the first Phase 4 implementation landed, a **focused cleanup pass** addresses **inspector behavior**, **reduces hand-maintained metadata mapping** where possible, and **documents** any remaining architecture tension between **authored edge objects** (doors/windows from the registry) and **legacy wall / draw / edge-feature** modeling (`LOCATION_EDGE_FEATURE_KIND_META`, run language, `edge-run` assumptions).
+
+**Scope:** **Not** a redesign of the whole wall/edge system or future vector-wall state — **stop drift** toward a mixed “door/window object vs wall edge-run” presentation and align UI with the normative **shared placed-object template**.
+
+### Problems observed (post-implementation)
+
+1. **Door / edge-run inspector still geometry- or run-first** — Copy such as **“Straight run”**, **“1 segment on this straight run”**, and axis/orientation-as-headline reads like **edge geometry** or **Draw** semantics, not **object-first** (**Structure** / **Door** / placement / **variant** metadata). Duplicates geometry phrasing; **does not** surface **registry variant** presentation metadata (e.g. `material`, `form`) in the same way as cell objects.
+2. **Table (and similar cell objects) — template incomplete** — Category / object / cell line may appear without **curated metadata rows**, so the **shared template** is only **partially** realized vs normative examples (**Material**, **Shape**, …).
+3. **Metadata not rendered for objects (first pass)** — **Variant `presentation`** (e.g. door: `material: 'wood'`, `form: 'single-leaf'`; table: `material`, `shape`) should appear as a **simple key/value list** after placement details and **before** the **Label** slot — without introducing **another large per-object registry** if avoidable.
+4. **Empty-cell selection still shows generic add/link UI** — Selecting an **empty** cell still surfaces **linked locations** UI and **cell-object add/select** affordances on the **Selection** tab by default. **Desired:** empty-cell rail stays **cell context** (coordinates, terrain, region, host map/floor); **does not** default to **object linking** or **generic object editing** surfaces — align with **Inspector ownership** / **`CellInspector`**.
+5. **Conceptual coupling: doors/windows vs wall / edge-feature model** — `LOCATION_EDGE_FEATURE_KIND_META` describes **wall**, **window**, **door** as **edge feature kinds** alongside **Draw** / boundary semantics. **Authored** registry objects (`door` / `window` **variants** with `presentation`) are the **product** model for placed edge objects. Risk: **implementation** continues to **conflate** these layers (run-first copy, wall-flavored meta) and **drifts** deeper into a **mixed** model. This pass should **either** apply a **small decoupling** in inspector code paths (registry-first shell for authored edge objects vs lighter geometry copy for pure wall segments) **or** leave an **explicit architectural note** + **smallest follow-up** recommendation — **not** a broad wall future-state implementation.
+
+### Goals (normative for the cleanup pass)
+
+**A. Object inspectors truly shared and object-first**
+
+- **All** placed objects follow: **{Category}** → **{Object label}** → **{Placement details}** → **{Metadata list}** → **{Label / linked identity}** → **{Actions}** → **Remove from map**.
+- **Edge-authored** objects use the **same** shell as **cell-authored** objects; **do not** use **run-first** wording as **primary** identity for doors/windows.
+- **Geometry** (orientation, segment count, anchor detail) may appear as **secondary** lines or within **placement** metadata — **after** object identity and **variant** presentation rows — **not** duplicated (“1 segment” + “Straight run” + segment blurb).
+
+**B. Metadata: prefer derivation over a new manual map**
+
+- **First-pass:** derive **metadata rows** from the **resolved variant’s** `presentation` object (or equivalent structured bag on the variant), using a **small shared helper** (e.g. iterate known keys, **title-case** key labels, display values with optional **lightweight** string prettifying — see **Nice-to-have**).
+- **Questions to answer in implementation:** Can the inspector build rows from **`variant.presentation` directly**? If formatting is needed, keep it in **one shared formatter** (e.g. `formatPresentationMetadataRows`) — **not** a parallel **per-object metadata config map** unless product later requires it.
+- **Suggested location:** a **shared helper** under `rightRail/selection/` (or `domain/presentation/` if reused beyond React) imported by **both** cell- and edge- **placed-object** inspector paths.
+
+**C. Label field consistent**
+
+- **All** placed objects that use the shared template support the **Label** slot per existing rules (**unlinked** freeform **below** metadata; **linked** hide freeform, show **linked entity** title/name). **Edge** objects are **not** excluded **only** because they are edge-authored — **wire through `PlacedObjectRailTemplate`** (or equivalent shell).
+
+**D. Empty-cell selection rail boundary**
+
+- **No** generic **Linked location** / **Link location** block by default on **empty** cell.
+- **No** **cell-object add/select** block on the **Selection** tab by default for empty cell. If **add-object** affordances remain product-required, **relocate** to another surface (e.g. tools/palette/canvas), **not** the empty-cell **Selection** inspector — **unless** explicitly scoped as a deliberate **optional** line in **`CellInspector`** (product decision).
+
+**E. Edge-feature / wall coupling — audit**
+
+- Inspect whether **door/window** inspectors still **lean too heavily** on **wall** edge-feature meta, **draw/run** language, or **`LocationMapEdgeRunInspector`** assumptions for **authored** registry objects.
+- **Acceptable outcomes:** (1) **Small cleanup** — e.g. registry-first data path for door/window **identity + presentation**, geometry copy demoted; or (2) **Short explicit note** in PR/summary: what coupling **remains**, why, and **minimal** next pass — **without** redesigning **wall** topology or **vector** future-state.
+
+### Implementation guidance (cleanup)
+
+1. **Shared object inspector shell** — The **same** **`PlacedObjectRailTemplate`** (or successor) **owns** category, object label, placement, metadata rows, Label, actions, remove; type-specific content **composes** in slots.
+2. **Placement details slot** — Generalized: **cell** → `Cell x,y`; **edge** → humanized **edge** line (e.g. **Edge between …** / **Edge perimeter …**) — **not** run-centric naming as **primary** identity for authored doors/windows.
+3. **Metadata formatting** — Simple **Key: value**; title-case keys; raw-ish values acceptable; optional prettify (see below).
+4. **Remove** — **Remove from map** remains on the **shared** placed-object template for all placed objects.
+
+### Deliverables (cleanup pass)
+
+- Inspector cleanup so **door** and **table** (and other placed objects using the shell) **match** the shared template: **object-first**, **metadata** from **presentation**, **Label** where applicable.
+- **Empty-cell** Selection tab: **no** default generic **link** / **add-object** UI (per **D**).
+- **Architectural note:** coupling between **authored edge objects** and **edge-feature / wall** model — **small fix** or **documented** residual + follow-up.
+- **Tests** adjusted or added for: metadata rows, empty-cell rail, dispatch still correct.
+
+### Nice-to-have (low risk only)
+
+- Slightly nicer **value** display: e.g. `single-leaf` → `single leaf`, `stained_glass` → `stained glass` — **only** if implemented as a **tiny** shared **value prettifier** used by the presentation-row helper (**no** new mapping table per object type).
+
+### Relation to other sections
+
+- Reinforces **Shared placed-object rail template**, **Inspector ownership**, **Guardrails** (identity before geometry; no run-first for placed edge objects with registry identity).
+- **Coarse edge persistence** risk unchanged — cleanup **does not** require variant on the wire; **resolver/default variant** may still drive **presentation** when persisted identity is lossy (document **fallback** in UI if needed).
+- Sequenced in **[location_workspace_object_authoring_phase4_build_plan.md](location_workspace_object_authoring_phase4_build_plan.md)** as **M8**.
+
+---
+
 ## Roadmap context
 
 | Phase | Focus |
@@ -324,6 +395,7 @@ Do **not** lead with: **`Vertical Door run`**, a redundant **`door`** badge when
 - **Stairs linking** workflows and authored shape (unchanged intent)
 - **Richer** authored object metadata / behavior (incremental)
 - **Documentation** — update **[docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)** so the **canonical** workspace reference stays aligned with Phase 4: Selection rail / inspector ownership (**`CellInspector`** vs placed-object inspectors), **shared placed-object rail template**, `gridDraft` / selection behavior, debounced persistable patterns, and **Adding persisted workspace state** (or equivalent sections) when new persisted fields or normalization rules ship. **Not** a full unrelated docs rewrite — **targeted** updates tied to Phase 4 deliverables.
+- **Post-build cleanup pass** — **object-first** door/window rails vs **run** copy; **`variant.presentation`** metadata rows via a **small shared helper**; **Label** on **edge** placed objects; **empty-cell** Selection tab **without** default generic **link** / **add-object** UI; **audit** of **edge-feature / wall** vs **authored registry** edge objects (**note** or **small decoupling**). See **Post-build cleanup pass (Phase 4 follow-up)**; build plan **M8**.
 
 ---
 
@@ -398,7 +470,7 @@ Decide implementation wiring: **one** placed-object rail component with modes vs
 
 #### Walls vs door/window edge inspector emphasis
 
-Edge selection UI may need **different emphasis** for **wall-like** boundary/geometry selections vs **authored edge features** (door/window). **Authored features** still use the **shared placed-object template**; **walls** may stay lighter or geometry-forward — decide copy and actions **without** giving doors/windows a **second layout paradigm**. **Placement** slot still generalized (edge context).
+Edge selection UI may need **different emphasis** for **wall-like** boundary/geometry selections vs **authored edge features** (door/window). **Authored features** still use the **shared placed-object template**; **walls** may stay lighter or geometry-forward — decide copy and actions **without** giving doors/windows a **second layout paradigm**. **Placement** slot still generalized (edge context). After first implementation, the **Post-build cleanup pass** revisits **coupling** between **`LOCATION_EDGE_FEATURE_KIND_META`** / **draw/run** copy and **registry** door/window **variants** — see **Post-build cleanup pass (Phase 4 follow-up)** and build plan **M8**.
 
 #### First-pass door/window editable state
 
