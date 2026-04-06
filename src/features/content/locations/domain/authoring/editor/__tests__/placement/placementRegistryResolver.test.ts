@@ -47,7 +47,33 @@ describe('placementRegistryResolver', () => {
 
   it('seeds stairEndpoint for stairs on floor', () => {
     const r = resolvePlacementCellClick(
-      { category: 'map-object', kind: 'stairs', variantId: 'default' },
+      { category: 'map-object', kind: 'stairs', variantId: 'straight' },
+      'c-2-2',
+      'floor',
+    );
+    expect(r.kind).toBe('append-object');
+    if (r.kind === 'append-object') {
+      expect(r.objectDraft.kind).toBe('stairs');
+      expect(r.objectDraft.stairEndpoint?.direction).toBe('both');
+    }
+  });
+
+  it('resolves building on world to marker with authoredPlaceKindId (map icon, not link modal)', () => {
+    const r = resolvePlacementCellClick(
+      { category: 'map-object', kind: 'building', variantId: 'residential' },
+      'c-0-1',
+      'world',
+    );
+    expect(r.kind).toBe('append-object');
+    if (r.kind === 'append-object') {
+      expect(r.objectDraft.kind).toBe('marker');
+      expect(r.objectDraft.authoredPlaceKindId).toBe('building');
+    }
+  });
+
+  it('stairs spiral variant still appends stairs object with stairEndpoint', () => {
+    const r = resolvePlacementCellClick(
+      { category: 'map-object', kind: 'stairs', variantId: 'spiral' },
       'c-2-2',
       'floor',
     );

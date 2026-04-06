@@ -346,35 +346,39 @@ See YAML frontmatter: audit Phase 1, define variant model, design selection UX, 
 
 ---
 
-## Refinement: variant schema (`table` + presentation + **defaultVariantId-only** defaults) — **post–Phase 2 UX**
+## Refinement: concrete variant keys + flexible `presentation` — **post–Phase 2 UX**
 
-**Status:** Implemented in registry (`locationPlacedObject.registry.ts`) + selectors/tests.
+**Status:** Implemented in registry (`locationPlacedObject.registry.ts`), persistence (`locationPlacedObject.persistence.ts`), resolver (`resolvePlacedKindToAction.ts`), selectors/tests.
 
 ### Modeling rules
 
-- **`defaultVariantId`** — **only** source of truth for which variant is primary-selected in the palette; must be a **key** of `variants`.
-- **`variants`** — **concrete** selectable definitions only (label, description, iconName, optional `presentation`). Do **not** add a redundant `variants.default` entry “because” something is default — the default row is whichever id **`defaultVariantId`** names (e.g. `table` → `rect_wood`).
-- **Presentation** — local `AuthoredObjectMaterial` / `AuthoredObjectShape` + `AuthoredPlacedObjectVariantPresentation`; not mechanics truth (**`runtime`** stays on the family). No `shared/domain/shapes` extraction until multiple families/domains reuse the vocabulary.
+- **`defaultVariantId`** — **only** source of truth for the primary palette variant; must be a key of `variants`.
+- **`variants`** — concrete entries only; **no** redundant `variants.default` when `defaultVariantId` already names a concrete id.
+- **`AuthoredPlacedObjectVariantPresentation`** — local, flexible: `material`, `shape`, plus optional `form`, `kind`, `type`, `size` (strings) for family-specific hints. **Not** mechanics truth; **`runtime`** stays on the family.
+- **`iconName`** — **`LocationMapGlyphIconName`** (place-tool glyphs), not a separate `LocationMapObjectIconNameId` type in-repo).
 
-**Place-tool glyph id:** `iconName` remains **`LocationMapGlyphIconName`** (not a separate `LocationMapObjectIconNameId` type in-repo).
+### Families migrated (no `variants.default`)
 
-### `table` family (concrete keys)
+| Family | `defaultVariantId` | Notes |
+|--------|-------------------|--------|
+| `table` | `rect_wood` | + `circle_wood` |
+| `stairs` | `straight` | + `spiral` (form-factor; direction/endpoints remain rail/editor) |
+| `treasure` | `chest` | + `hoard` |
+| `tree` | `deciduous` | + `pine`; scales `world/region/subregion/city` |
+| `building` | `residential` | + `civic`; scales `world/region/subregion/city`; **removed `linkedScale`** — places **map `marker`** + `authoredPlaceKindId: 'building'` (footprint icon), not the linked-building modal at city. |
 
-- `defaultVariantId: 'rect_wood'` — rectangular wood table (`label` “Table”, `presentation`: wood + rectangle).
-- `circle_wood` — round wood table.
-- **No** `variants.default` key.
+### Resolver / persistence
 
-**Constant `DEFAULT_PLACED_OBJECT_VARIANT_ID` (`'default'`):** still names the **variant key** used by **other** single-variant families (`city`, …); it is **not** the global “which variant is default” switch — that is always **`defaultVariantId`**.
+- **`building`** branch removed from `resolvePlacedKindToAction` (no longer city-link shortcut).
+- **`mapPlacedObjectKindToPersistedMapObjectKind`:** `tree` and `building` → `marker` on `world` \| `region` \| `subregion` \| `city` (in addition to `tree` @ `city`).
+
+### Still on legacy `variants.default`
+
+- **`city`**, **`site`** — single-row linked content; **`defaultVariantId: 'default'`** + key **`default`**.
 
 ### Tests
 
-- `table.defaultVariantId === 'rect_wood'`; `rect_wood` and `circle_wood` exist and include `presentation`; **`variants.default` absent** for `table`; default resolution via `getDefaultVariantIdForFamily('table')` → `rect_wood`.
-
-### Remaining assumptions (acceptable until extended)
-
-- **`LocationPlacedObjectKindMeta` / `toMeta`** — still flattens **default variant** to label/description/iconName only (no `presentation` on meta DTO).
-- **Other families** — may still use variant key **`default`** + `defaultVariantId: 'default'` until migrated to all-concrete keys.
-- **Resolver / persistence / map render** — unchanged; no variant id on wire; no dependency on `variants.default` for **`table`**.
+- Registry assertions for each family’s `defaultVariantId`, concrete keys, and `presentation` fields; `normalizeVariantIdForFamily` fallback; palette world row includes `building` + `city` + `tree`.
 
 ---
 

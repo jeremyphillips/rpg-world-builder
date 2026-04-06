@@ -39,9 +39,6 @@ export function resolvePlacedKindToAction(
   if (placedKind === 'city' && hostScale === 'world') {
     return { type: 'link', objectKind: 'city', linkedScale: 'city' };
   }
-  if (placedKind === 'building' && hostScale === 'city') {
-    return { type: 'link', objectKind: 'building', linkedScale: 'building' };
-  }
   if (placedKind === 'site' && hostScale === 'city') {
     return { type: 'link', objectKind: 'site', linkedScale: 'site' };
   }

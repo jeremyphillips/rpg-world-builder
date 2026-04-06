@@ -25,7 +25,7 @@ describe('resolvePlacedKindToAction', () => {
 
   it('map-object tree on city maps to marker with authoredPlaceKindId tree', () => {
     expect(
-      resolvePlacedKindToAction({ category: 'map-object', kind: 'tree', variantId: 'default' }, 'city'),
+      resolvePlacedKindToAction({ category: 'map-object', kind: 'tree', variantId: 'deciduous' }, 'city'),
     ).toEqual({
       type: 'object',
       objectKind: 'marker',
@@ -72,12 +72,15 @@ describe('resolveLocationPlacedKindToAction', () => {
     });
   });
 
-  it('building/site on city open link modal to building/site scale', () => {
+  it('building on city places map marker with authoredPlaceKindId (registry map-object family)', () => {
     expect(resolveLocationPlacedKindToAction('building', 'city')).toEqual({
-      kind: 'link-modal',
-      objectKind: 'building',
-      linkedScale: 'building',
+      kind: 'place-object',
+      mapObjectKind: 'marker',
+      authoredPlaceKindId: 'building',
     });
+  });
+
+  it('site on city still opens link modal to site scale', () => {
     expect(resolveLocationPlacedKindToAction('site', 'city')).toEqual({
       kind: 'link-modal',
       objectKind: 'site',

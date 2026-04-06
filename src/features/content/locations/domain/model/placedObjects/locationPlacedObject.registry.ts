@@ -72,8 +72,8 @@ export const PLACED_OBJECT_PALETTE_CATEGORY_LABELS: Record<PlacedObjectPaletteCa
 };
 
 /**
- * Common variant **key** for single-variant families (`variants.default`). It is **not** the global default selector:
- * that is always the family’s `defaultVariantId` field (e.g. `table` uses `rect_wood`).
+ * Common variant **key** for families still on the legacy single-row pattern (`variants.default`, e.g. `city`, `site`).
+ * Primary selection is always the family’s **`defaultVariantId`** — concrete-key families (table, stairs, …) do not use this literal.
  */
 export const DEFAULT_PLACED_OBJECT_VARIANT_ID = 'default' as const;
 export type PlacedObjectDefaultVariantId = typeof DEFAULT_PLACED_OBJECT_VARIANT_ID;
@@ -87,9 +87,17 @@ export type AuthoredObjectMaterial = 'wood' | 'stone' | 'metal';
 
 export type AuthoredObjectShape = 'rectangle' | 'circle' | 'square';
 
+/**
+ * Lightweight authoring/editor/render hints — families may use different subsets (`form`, `kind`, …).
+ * Keep local; defer `shared/domain` extraction until multiple domains reuse the same vocabulary.
+ */
 export type AuthoredPlacedObjectVariantPresentation = {
   material?: AuthoredObjectMaterial;
   shape?: AuthoredObjectShape;
+  form?: string;
+  kind?: string;
+  type?: string;
+  size?: string;
 };
 
 /**
@@ -158,20 +166,30 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   building: {
     category: 'structure',
     placementMode: 'cell',
-    allowedScales: ['city'],
-    linkedScale: 'building',
-    defaultVariantId: 'default',
+    allowedScales: ['world', 'region', 'subregion', 'city'],
+    defaultVariantId: 'residential',
     runtime: {
       blocksMovement: true,
       blocksLineOfSight: true,
-      coverKind: 'none',
+      coverKind: 'three-quarters',
       isMovable: false,
     },
     variants: {
-      default: {
+      residential: {
         label: 'Building',
-        description: 'Structure footprint or icon.',
+        description: 'Residential structure or home.',
         iconName: 'map_building',
+        presentation: {
+          kind: 'residential',
+        },
+      },
+      civic: {
+        label: 'Civic Building',
+        description: 'Public, institutional, or community structure.',
+        iconName: 'map_building',
+        presentation: {
+          kind: 'civic',
+        },
       },
     },
   },
@@ -198,19 +216,32 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   tree: {
     category: 'vegetation',
     placementMode: 'cell',
-    allowedScales: ['city'],
-    defaultVariantId: 'default',
+    allowedScales: ['world', 'region', 'subregion', 'city'],
+    defaultVariantId: 'deciduous',
     runtime: {
       blocksMovement: true,
       blocksLineOfSight: true,
-      coverKind: 'none',
+      coverKind: 'half',
       isMovable: false,
     },
     variants: {
-      default: {
+      deciduous: {
         label: 'Tree',
-        description: 'Vegetation or landmark tree.',
+        description: 'Broad-canopy deciduous tree.',
         iconName: 'tree',
+        presentation: {
+          type: 'deciduous',
+          size: 'medium',
+        },
+      },
+      pine: {
+        label: 'Pine Tree',
+        description: 'Conifer or pine-like tree.',
+        iconName: 'tree',
+        presentation: {
+          type: 'conifer',
+          size: 'medium',
+        },
       },
     },
   },
@@ -227,7 +258,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     },
     variants: {
       rect_wood: {
-        label: 'Rectangular Table (wood)',
+        label: 'Table',
         description: 'Rectangular wood table.',
         iconName: 'table',
         presentation: {
@@ -250,7 +281,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     category: 'structure',
     placementMode: 'cell',
     allowedScales: ['floor'],
-    defaultVariantId: 'default',
+    defaultVariantId: 'straight',
     runtime: {
       blocksMovement: false,
       blocksLineOfSight: false,
@@ -259,10 +290,21 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     },
     interaction: { role: 'transition', transitionKind: 'stairs' },
     variants: {
-      default: {
+      straight: {
         label: 'Stairs',
-        description: 'Vertical circulation between levels.',
+        description: 'Straight stair run for vertical circulation between levels.',
         iconName: 'stairs',
+        presentation: {
+          form: 'straight',
+        },
+      },
+      spiral: {
+        label: 'Spiral Stairs',
+        description: 'Compact spiral stair for vertical circulation between levels.',
+        iconName: 'stairs',
+        presentation: {
+          form: 'spiral',
+        },
       },
     },
   },
@@ -270,18 +312,29 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     category: 'treasure',
     placementMode: 'cell',
     allowedScales: ['floor'],
-    defaultVariantId: 'default',
+    defaultVariantId: 'chest',
     runtime: {
-      blocksMovement: true,
-      blocksLineOfSight: true,
+      blocksMovement: false,
+      blocksLineOfSight: false,
       coverKind: 'none',
-      isMovable: false,
+      isMovable: true,
     },
     variants: {
-      default: {
-        label: 'Treasure',
-        description: 'Loot, hoard, or objective.',
+      chest: {
+        label: 'Treasure Chest',
+        description: 'Chest, coffer, or locked loot container.',
         iconName: 'treasure',
+        presentation: {
+          form: 'chest',
+        },
+      },
+      hoard: {
+        label: 'Hoard',
+        description: 'Loose treasure pile, stash, or objective cache.',
+        iconName: 'treasure',
+        presentation: {
+          form: 'pile',
+        },
       },
     },
   },

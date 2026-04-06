@@ -47,32 +47,63 @@ describe('locationPlacedObject.selectors (registry-derived)', () => {
     }
   });
 
+  it('concrete variant families: defaultVariantId + presentation metadata (no variants.default)', () => {
+    const defs = AUTHORED_PLACED_OBJECT_DEFINITIONS;
+
+    expect(defs.table.defaultVariantId).toBe('rect_wood');
+    expect('default' in defs.table.variants).toBe(false);
+    expect(defs.table.variants.rect_wood.presentation?.shape).toBe('rectangle');
+    expect(defs.table.variants.circle_wood.presentation?.shape).toBe('circle');
+
+    expect(defs.stairs.defaultVariantId).toBe('straight');
+    expect('default' in defs.stairs.variants).toBe(false);
+    expect(defs.stairs.variants.spiral.presentation?.form).toBe('spiral');
+
+    expect(defs.treasure.defaultVariantId).toBe('chest');
+    expect('default' in defs.treasure.variants).toBe(false);
+    expect(defs.treasure.variants.hoard.presentation?.form).toBe('pile');
+
+    expect(defs.tree.defaultVariantId).toBe('deciduous');
+    expect('default' in defs.tree.variants).toBe(false);
+    expect(defs.tree.variants.pine.presentation?.type).toBe('conifer');
+
+    expect(defs.building.defaultVariantId).toBe('residential');
+    expect('default' in defs.building.variants).toBe(false);
+    expect(defs.building.variants.civic.presentation?.kind).toBe('civic');
+  });
+
   it('getDefaultVariantIdForFamily and getVariantCountForFamily read registry', () => {
     expect(getDefaultVariantIdForFamily('table')).toBe('rect_wood');
     expect(getVariantCountForFamily('table')).toBe(2);
     expect(getVariantCountForFamily('city')).toBe(1);
+    expect(getVariantCountForFamily('stairs')).toBe(2);
+    expect(getVariantCountForFamily('treasure')).toBe(2);
+    expect(getVariantCountForFamily('tree')).toBe(2);
+    expect(getVariantCountForFamily('building')).toBe(2);
   });
 
-  it('table: concrete variants only; defaultVariantId points at rect_wood (no variants.default)', () => {
-    const table = AUTHORED_PLACED_OBJECT_DEFINITIONS.table;
-    expect(table.defaultVariantId).toBe('rect_wood');
-    expect('default' in table.variants).toBe(false);
-    const rect = table.variants.rect_wood;
-    expect(rect.label).toBe('Table');
-    expect(rect.presentation?.material).toBe('wood');
-    expect(rect.presentation?.shape).toBe('rectangle');
-    expect(table.variants.circle_wood).toBeDefined();
-    expect(table.variants.circle_wood.presentation?.shape).toBe('circle');
-    expect(table.variants.circle_wood.presentation?.material).toBe('wood');
-    expect(getDefaultVariantIdForFamily('table')).toBe('rect_wood');
+  it('normalizeVariantIdForFamily falls back to defaultVariantId (invalid legacy id)', () => {
     expect(normalizeVariantIdForFamily('table', null)).toBe('rect_wood');
     expect(normalizeVariantIdForFamily('table', 'default')).toBe('rect_wood');
+    expect(normalizeVariantIdForFamily('stairs', 'default')).toBe('straight');
+    expect(normalizeVariantIdForFamily('treasure', 'default')).toBe('chest');
+    expect(normalizeVariantIdForFamily('tree', 'default')).toBe('deciduous');
+    expect(normalizeVariantIdForFamily('building', 'default')).toBe('residential');
   });
 
   it('variant picker rows surface presentation for consumers', () => {
-    const rows = getPlacedObjectVariantPickerRowsForFamily('table');
-    const circle = rows.find((r) => r.variantId === 'circle_wood');
-    expect(circle?.presentation?.shape).toBe('circle');
-    expect(rows.find((r) => r.variantId === 'rect_wood')?.presentation?.shape).toBe('rectangle');
+    const tableRows = getPlacedObjectVariantPickerRowsForFamily('table');
+    expect(tableRows.find((r) => r.variantId === 'circle_wood')?.presentation?.shape).toBe('circle');
+    expect(tableRows.find((r) => r.variantId === 'rect_wood')?.presentation?.shape).toBe('rectangle');
+
+    const stairRows = getPlacedObjectVariantPickerRowsForFamily('stairs');
+    expect(stairRows.find((r) => r.variantId === 'straight')?.presentation?.form).toBe('straight');
+  });
+
+  it('city and site still use the legacy `default` variant key (single-variant linked rows)', () => {
+    expect(AUTHORED_PLACED_OBJECT_DEFINITIONS.city.defaultVariantId).toBe('default');
+    expect(AUTHORED_PLACED_OBJECT_DEFINITIONS.city.variants.default).toBeDefined();
+    expect(AUTHORED_PLACED_OBJECT_DEFINITIONS.site.defaultVariantId).toBe('default');
+    expect(AUTHORED_PLACED_OBJECT_DEFINITIONS.site.variants.default).toBeDefined();
   });
 });

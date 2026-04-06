@@ -18,7 +18,16 @@ export function mapPlacedObjectKindToPersistedMapObjectKind(
   placedKind: LocationPlacedObjectKindId,
   hostScale: LocationScaleId,
 ): LocationMapObjectKindId | null {
-  if (placedKind === 'tree' && hostScale === 'city') {
+  if (
+    placedKind === 'tree' &&
+    (hostScale === 'city' || hostScale === 'world' || hostScale === 'region' || hostScale === 'subregion')
+  ) {
+    return 'marker';
+  }
+  if (
+    placedKind === 'building' &&
+    (hostScale === 'city' || hostScale === 'world' || hostScale === 'region' || hostScale === 'subregion')
+  ) {
     return 'marker';
   }
   if (placedKind === 'stairs' && hostScale === 'floor') {
@@ -41,6 +50,7 @@ export function getAuthoredPlaceKindIdForPersistedPayload(
   persistedKind: LocationMapObjectKindId,
 ): LocationPlacedObjectKindId | undefined {
   if (placedKind === 'tree' && persistedKind === 'marker') return 'tree';
+  if (placedKind === 'building' && persistedKind === 'marker') return 'building';
   if (placedKind === 'table' && persistedKind === 'table') return 'table';
   if (placedKind === 'stairs' && persistedKind === 'stairs') return 'stairs';
   if (placedKind === 'treasure' && persistedKind === 'treasure') return 'treasure';

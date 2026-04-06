@@ -24,16 +24,23 @@ describe('locationMapEditorPalette.helpers', () => {
 
   it('getPlacePaletteItemsForScale maps policy + linked-content vs map-object', () => {
     const items = getPlacePaletteItemsForScale('world');
-    expect(items.map((i) => i.kind)).toEqual(['city']);
-    expect(items[0].label).toBe('City');
-    expect(items[0].category).toBe('linked-content');
-    expect(items[0].familyId).toBe('city');
-    expect(items[0].variantId).toBe('default');
-    expect(items[0].defaultVariantId).toBe('default');
-    expect(items[0].variantCount).toBe(1);
-    expect(items[0].paletteCategory).toBe('structure');
-    if (items[0].category === 'linked-content') {
-      expect(items[0].linkedScale).toBe('city');
+    expect(items.map((i) => i.kind)).toEqual(['building', 'city', 'tree']);
+    const city = items.find((i) => i.kind === 'city');
+    expect(city?.label).toBe('City');
+    expect(city?.category).toBe('linked-content');
+    expect(city?.familyId).toBe('city');
+    expect(city?.variantId).toBe('default');
+    expect(city?.defaultVariantId).toBe('default');
+    expect(city?.variantCount).toBe(1);
+    expect(city?.paletteCategory).toBe('structure');
+    if (city?.category === 'linked-content') {
+      expect(city.linkedScale).toBe('city');
+    }
+    const building = items.find((i) => i.kind === 'building');
+    expect(building?.category).toBe('map-object');
+    if (building?.category === 'map-object') {
+      expect(building.defaultVariantId).toBe('residential');
+      expect(building.variantCount).toBe(2);
     }
   });
 
