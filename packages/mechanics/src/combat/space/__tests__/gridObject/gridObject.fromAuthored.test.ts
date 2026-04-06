@@ -14,7 +14,7 @@ describe('buildGridObjectFromAuthoredPlacedObject', () => {
     expect(o.authoredPlaceKindId).toBe('table')
     expect(o.blocksMovement).toBe(expected.blocksMovement)
     expect(o.blocksLineOfSight).toBe(expected.blocksLineOfSight)
-    expect(o.coverKind).toBe(expected.coverKind)
+    expect(o.combatCoverKind).toBe(expected.combatCoverKind)
     expect(o.isMovable).toBe(expected.isMovable)
   })
 

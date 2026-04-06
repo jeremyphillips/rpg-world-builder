@@ -8,7 +8,7 @@ import {
   LOCATION_BUILDING_PRIMARY_TYPE_IDS,
   LOCATION_CATEGORY_IDS,
   LOCATION_CELL_UNIT_IDS,
-  SURFACE_LOCATION_CONTENT_SCALE_IDS,
+  SURFACE_CONTENT_LOCATION_SCALE_IDS,
 } from '@/shared/domain/locations';
 import {
   GRID_SIZE_PRESETS,
@@ -55,7 +55,7 @@ const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const strOrEmpty = (v: unknown): string => (v != null ? String(v) : '');
 
 /** Default registry options — create uses surface-only via `getAllowedLocationScaleOptionsForCreate`; edit overrides with full scale list. */
-const SCALE_OPTIONS = SURFACE_LOCATION_CONTENT_SCALE_IDS.map((s) => ({ value: s, label: s }));
+const SCALE_OPTIONS = SURFACE_CONTENT_LOCATION_SCALE_IDS.map((s) => ({ value: s, label: s }));
 
 const CATEGORY_OPTIONS = LOCATION_CATEGORY_IDS.map((c) => ({
   value: c,

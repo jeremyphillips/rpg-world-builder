@@ -13,7 +13,7 @@ import {
   shouldShowCategoryFieldForScale,
   shouldShowGridCellUnitFieldForScale,
   shouldShowParentFieldForScale,
-  SURFACE_LOCATION_CONTENT_SCALE_IDS,
+  SURFACE_CONTENT_LOCATION_SCALE_IDS,
 } from '@/shared/domain/locations';
 import {
   getAllowedParentLocationOptions,
@@ -33,11 +33,11 @@ export const ALL_LOCATION_SCALE_OPTIONS = ALL_LOCATION_SCALE_IDS.map((s) => ({
 
 /**
  * Create flow: **surface** scales only (world, city, site, building) — no floor/room (building
- * interior) or legacy map-zone scales. Policy: `SURFACE_LOCATION_CONTENT_SCALE_IDS` +
+ * interior) or legacy map-zone scales. Policy: `SURFACE_CONTENT_LOCATION_SCALE_IDS` +
  * `locationScaleUi.policy.ts`.
  */
 export function getAllowedLocationScaleOptionsForCreate(campaignHasWorldLocation: boolean) {
-  return SURFACE_LOCATION_CONTENT_SCALE_IDS.filter(
+  return SURFACE_CONTENT_LOCATION_SCALE_IDS.filter(
     (s) => s !== 'world' || !campaignHasWorldLocation,
   ).map((s) => ({
     value: s,

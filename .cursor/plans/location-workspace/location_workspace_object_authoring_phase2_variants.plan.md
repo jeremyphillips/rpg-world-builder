@@ -39,6 +39,19 @@ Add **variant-aware object authoring** so the palette can represent **families**
 
 ---
 
+## Phase 2 modeling cleanup (content scales vs map zones + `combatCoverKind`)
+
+**Scope:** Naming and policy clarity only — no migration of legacy persisted rows, no combat-system redesign, no map-zone rendering rewrite.
+
+- **Content scales vs map zone kinds:** In `shared/domain/locations/location.constants.ts`, **first-class content scales** (`CONTENT_LOCATION_SCALE_IDS`, plus `SURFACE_CONTENT_LOCATION_SCALE_IDS` / `INTERIOR_CONTENT_LOCATION_SCALE_IDS` groupings) are separate from **map zone kinds** (`LOCATION_MAP_ZONE_KIND_IDS` — `region`, `subregion`, `district`). **`LOCATION_SCALE_RANK_ORDER_LEGACY`** is **sorting/ranking only** for historical rows; it must not imply creatable content scales. **Authoring** `allowedScales` on placed-object registry families use **content scales only** (e.g. `tree` / `building`: `world` \| `city` \| `site`).
+- **`combatCoverKind`:** Renamed from `coverKind` on `GridObject` and registry `runtime` — D&D-style tactical combat cover when the object is **used as cover**; does **not** drive movement blocking or line of sight (`blocksMovement` / `blocksLineOfSight`). Type alias `CombatCoverKind` in `packages/mechanics/.../space.types.ts`; `GridObjectCoverKind` kept deprecated.
+- **Building default:** Registry `building.runtime.combatCoverKind` defaults to **`none`** (footprint markers are not assumed to grant tactical cover until explicitly modeled).
+- **Persistence alignment:** `mapPlacedObjectKindToPersistedMapObjectKind` maps `tree` / `building` → `marker` when host scale is `world` \| `city` \| `site` (aligned with palette `allowedScales`).
+
+**Remaining legacy surface:** `region` / `subregion` / `district` may still appear as persisted `location.scale` and in **campaign list** filters (`CAMPAIGN_LOCATION_LIST_SCALE_IDS`); use **MapZone** on parent maps for new subdivisions.
+
+---
+
 ## Phase 2 decision record (authoritative)
 
 **Purpose:** Lock architectural and UX forks **before** implementation so work does not revisit persistence, id scope, linked-family scope, or interaction defaults mid-pass. This block is **normative** for Phase 2 PRs unless the roadmap is formally revised.
@@ -364,13 +377,13 @@ See YAML frontmatter: audit Phase 1, define variant model, design selection UX, 
 | `table` | `rect_wood` | + `circle_wood` |
 | `stairs` | `straight` | + `spiral` (form-factor; direction/endpoints remain rail/editor) |
 | `treasure` | `chest` | + `hoard` |
-| `tree` | `deciduous` | + `pine`; scales `world/region/subregion/city` |
-| `building` | `residential` | + `civic`; scales `world/region/subregion/city`; **removed `linkedScale`** — places **map `marker`** + `authoredPlaceKindId: 'building'` (footprint icon), not the linked-building modal at city. |
+| `tree` | `deciduous` | + `pine`; **content-scale** hosts `world/city/site` (not region/subregion — those are map zone kinds) |
+| `building` | `residential` | + `civic`; **content-scale** hosts `world/city/site`; **removed `linkedScale`** — places **map `marker`** + `authoredPlaceKindId: 'building'` (footprint icon), not the linked-building modal at city. |
 
 ### Resolver / persistence
 
 - **`building`** branch removed from `resolvePlacedKindToAction` (no longer city-link shortcut).
-- **`mapPlacedObjectKindToPersistedMapObjectKind`:** `tree` and `building` → `marker` on `world` \| `region` \| `subregion` \| `city` (in addition to `tree` @ `city`).
+- **`mapPlacedObjectKindToPersistedMapObjectKind`:** `tree` and `building` → `marker` on `world` \| `city` \| `site`.
 
 ### Still on legacy `variants.default`
 

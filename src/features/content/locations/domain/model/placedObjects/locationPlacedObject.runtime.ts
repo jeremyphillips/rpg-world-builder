@@ -1,5 +1,5 @@
 /**
- * Combat/runtime defaults for {@link LocationPlacedObjectKindId} — movement, line-of-sight, cover, movability,
+ * Combat/runtime defaults for {@link LocationPlacedObjectKindId} — movement, line-of-sight, tactical combat cover (`combatCoverKind`), movability,
  * plus optional {@link resolveLocationPlacedObjectKindInteraction} for transition/interaction hints.
  *
  * **Source of truth:** {@link ./locationPlacedObject.registry} — do not duplicate behavior keys elsewhere.

@@ -23,7 +23,7 @@ describe('locationScaleMapContent.policy', () => {
       ],
       pathKinds: ['road', 'river'],
       edgeKinds: [],
-      objectKinds: ['city'],
+      objectKinds: ['city', 'building', 'tree'],
     });
     expect(LOCATION_SCALE_MAP_CONTENT_POLICY.city).toEqual({
       cellFillKinds: [],

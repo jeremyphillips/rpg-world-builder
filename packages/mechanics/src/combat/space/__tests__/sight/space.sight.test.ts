@@ -92,7 +92,7 @@ describe('hasLineOfSight', () => {
           cellId: mid.id,
           blocksMovement: false,
           blocksLineOfSight: true,
-          coverKind: 'none' as const,
+          combatCoverKind: 'none' as const,
           isMovable: false,
           authoredPlaceKindId: 'table' as const,
         },

@@ -20,13 +20,13 @@ export function mapPlacedObjectKindToPersistedMapObjectKind(
 ): LocationMapObjectKindId | null {
   if (
     placedKind === 'tree' &&
-    (hostScale === 'city' || hostScale === 'world' || hostScale === 'region' || hostScale === 'subregion')
+    (hostScale === 'city' || hostScale === 'world' || hostScale === 'site')
   ) {
     return 'marker';
   }
   if (
     placedKind === 'building' &&
-    (hostScale === 'city' || hostScale === 'world' || hostScale === 'region' || hostScale === 'subregion')
+    (hostScale === 'city' || hostScale === 'world' || hostScale === 'site')
   ) {
     return 'marker';
   }

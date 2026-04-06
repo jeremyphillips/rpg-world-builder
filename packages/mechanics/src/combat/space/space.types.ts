@@ -13,9 +13,14 @@ export type EncounterSpaceScale =
   | { kind: 'grid'; cellFeet: 5 | 10 };
 
 /**
- * Cover from a placed object for attack targeting (first pass; full combat cover rules TBD).
+ * D&D-style tactical combat cover granted by a grid object when used as cover (half / three-quarters / none).
+ * Does **not** control movement blocking or line of sight — use {@link GridObject.blocksMovement} and
+ * {@link GridObject.blocksLineOfSight} for those concerns.
  */
-export type GridObjectCoverKind = 'none' | 'half' | 'three-quarters';
+export type CombatCoverKind = 'none' | 'half' | 'three-quarters';
+
+/** @deprecated Use {@link CombatCoverKind}. */
+export type GridObjectCoverKind = CombatCoverKind;
 
 /**
  * Runtime record for a placed map object on the tactical grid (single-cell footprint today).
@@ -33,7 +38,12 @@ export type GridObject = {
   cellId: string;
   blocksMovement: boolean;
   blocksLineOfSight: boolean;
-  coverKind: GridObjectCoverKind;
+  /**
+   * D&D-style tactical combat cover granted by this object when used as cover.
+   * This does not control collision or line of sight.
+   * Use `blocksMovement` and `blocksLineOfSight` for those concerns.
+   */
+  combatCoverKind: CombatCoverKind;
   /** Whether the object can be repositioned by combat rules (e.g. shove); not “structural immovability”. */
   isMovable: boolean;
   /** Palette / registry kind from authored map placement (`LocationPlacedObjectKindId`). */

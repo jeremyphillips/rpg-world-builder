@@ -9,8 +9,8 @@ import {
 describe('resolvePlacedObjectCellVisualFromPlacedKind', () => {
   it('resolves treasure to registry label and icon name', () => {
     const v = resolvePlacedObjectCellVisualFromPlacedKind('treasure');
-    expect(v.label).toBe('Treasure');
-    expect(v.tooltip).toBe('Treasure');
+    expect(v.label).toBe('Treasure Chest');
+    expect(v.tooltip).toBe('Treasure Chest');
     expect(v.iconName).toBe('treasure');
     expect(v.showIcon).toBe(true);
     expect(v.fallbackLetter).toBe('T');
@@ -27,7 +27,7 @@ describe('resolvePlacedObjectCellVisualFromRenderItem', () => {
       authoredPlaceKindId: 'treasure',
     });
     expect(v.iconName).toBe('treasure');
-    expect(v.label).toBe('Treasure');
+    expect(v.label).toBe('Treasure Chest');
   });
 
   it('falls back to persisted map kind when no authored place id', () => {

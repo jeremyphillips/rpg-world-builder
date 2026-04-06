@@ -4,7 +4,7 @@
  * and explicit **variants** (Phase 2: `defaultVariantId` + a record of family-scoped variant ids). Derive meta and palette via
  * {@link ./locationPlacedObject.selectors}.
  */
-import type { GridObjectCoverKind } from '@/features/mechanics/domain/combat/space/space.types';
+import type { CombatCoverKind } from '@/features/mechanics/domain/combat/space/space.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
 import type { LocationMapGlyphIconName } from '../map/locationMapIconNames';
@@ -12,7 +12,12 @@ import type { LocationMapGlyphIconName } from '../map/locationMapIconNames';
 export type AuthoredPlacedObjectRuntimeFields = {
   blocksMovement: boolean;
   blocksLineOfSight: boolean;
-  coverKind: GridObjectCoverKind;
+  /**
+   * D&D-style tactical combat cover granted by this object when used as cover.
+   * This does not control collision or line of sight.
+   * Use `blocksMovement` and `blocksLineOfSight` for those concerns.
+   */
+  combatCoverKind: CombatCoverKind;
   isMovable: boolean;
 };
 
@@ -152,7 +157,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     runtime: {
       blocksMovement: true,
       blocksLineOfSight: true,
-      coverKind: 'none',
+      combatCoverKind: 'none',
       isMovable: false,
     },
     variants: {
@@ -166,12 +171,12 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   building: {
     category: 'structure',
     placementMode: 'cell',
-    allowedScales: ['world', 'region', 'subregion', 'city'],
+    allowedScales: ['world', 'city', 'site'],
     defaultVariantId: 'residential',
     runtime: {
       blocksMovement: true,
       blocksLineOfSight: true,
-      coverKind: 'three-quarters',
+      combatCoverKind: 'none',
       isMovable: false,
     },
     variants: {
@@ -202,7 +207,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     runtime: {
       blocksMovement: true,
       blocksLineOfSight: true,
-      coverKind: 'none',
+      combatCoverKind: 'none',
       isMovable: false,
     },
     variants: {
@@ -216,12 +221,12 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   tree: {
     category: 'vegetation',
     placementMode: 'cell',
-    allowedScales: ['world', 'region', 'subregion', 'city'],
+    allowedScales: ['world', 'city', 'site'],
     defaultVariantId: 'deciduous',
     runtime: {
       blocksMovement: true,
       blocksLineOfSight: true,
-      coverKind: 'half',
+      combatCoverKind: 'half',
       isMovable: false,
     },
     variants: {
@@ -253,7 +258,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     runtime: {
       blocksMovement: false,
       blocksLineOfSight: false,
-      coverKind: 'half',
+      combatCoverKind: 'half',
       isMovable: true,
     },
     variants: {
@@ -285,7 +290,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     runtime: {
       blocksMovement: false,
       blocksLineOfSight: false,
-      coverKind: 'none',
+      combatCoverKind: 'none',
       isMovable: false,
     },
     interaction: { role: 'transition', transitionKind: 'stairs' },
@@ -316,7 +321,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     runtime: {
       blocksMovement: false,
       blocksLineOfSight: false,
-      coverKind: 'none',
+      combatCoverKind: 'none',
       isMovable: true,
     },
     variants: {

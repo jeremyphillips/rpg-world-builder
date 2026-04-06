@@ -12,7 +12,7 @@ function gridObjectStub(partial: Partial<GridObject> & Pick<GridObject, 'id' | '
   return {
     blocksMovement: false,
     blocksLineOfSight: false,
-    coverKind: 'none',
+    combatCoverKind: 'none',
     isMovable: false,
     ...partial,
   }

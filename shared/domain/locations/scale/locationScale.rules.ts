@@ -5,7 +5,7 @@
  */
 import {
   CONTENT_LOCATION_SCALE_IDS,
-  LEGACY_MAP_ZONE_LOCATION_SCALE_IDS,
+  LOCATION_MAP_ZONE_KIND_IDS,
   LOCATION_SCALE_RANK_ORDER_LEGACY,
 } from '../location.constants';
 import type {
@@ -18,7 +18,7 @@ import { isAllowedParentScale } from './locationScale.policy';
 const LEGACY_RANK = LOCATION_SCALE_RANK_ORDER_LEGACY as readonly string[];
 
 const CONTENT_SET = new Set<string>(CONTENT_LOCATION_SCALE_IDS as readonly string[]);
-const LEGACY_ZONE_SET = new Set<string>(LEGACY_MAP_ZONE_LOCATION_SCALE_IDS as readonly string[]);
+const LEGACY_ZONE_SET = new Set<string>(LOCATION_MAP_ZONE_KIND_IDS as readonly string[]);
 
 export function isContentLocationScaleId(scale: string): scale is ContentLocationScaleId {
   return CONTENT_SET.has(scale);

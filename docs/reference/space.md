@@ -179,7 +179,7 @@ These are intentional simplifications for the current milestone, not bugs:
 | Type | Location | Purpose |
 |------|----------|---------|
 | `EncounterSpace` | `space.types.ts` | Grid definition: cells, optional **`gridObjects`**, scale, dimensions |
-| `GridObject` | `space.types.ts` | Runtime placed object (authored map only): `cellId`, blocking / LoS / `coverKind`, **`isMovable`**, **`authoredPlaceKindId`** |
+| `GridObject` | `space.types.ts` | Runtime placed object (authored map only): `cellId`, blocking / LoS / tactical **`combatCoverKind`**, **`isMovable`**, **`authoredPlaceKindId`** |
 | `GridObjectAuthoredKindId` | `space.types.ts` | Alias of **`LocationPlacedObjectKindId`** — kind key for grid VM / labels |
 | `EncounterCell` | `space.types.ts` | Single cell: position, kind, terrain tags |
 | `CombatantPosition` | `space.types.ts` | Links combatant to cell |
