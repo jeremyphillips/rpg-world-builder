@@ -30,18 +30,23 @@ export type GridObjectCoverKind = CombatCoverKind;
  * `authoredPlaceKindId` identifies the palette/registry kind; runtime fields must match
  * `resolveLocationPlacedObjectKindRuntimeDefaults(authoredPlaceKindId)` at hydration time.
  *
+ * **Spatial vs cover:** `blocksMovement` and `blocksLineOfSight` drive encounter movement and sight checks.
+ * `combatCoverKind` is **only** for attack/cover when the object is used as **tactical cover** — it does not replace
+ * or duplicate the two boolean fields above.
+ *
  * **`interaction`:** Optional transition/interaction hint from the registry — not implied by `blocksMovement`
  * alone. TODO: extend for ladders, portals, hatches; not all kinds populate this field yet.
  */
 export type GridObject = {
   id: string;
   cellId: string;
+  /** Traversal / collision for this object’s footprint. */
   blocksMovement: boolean;
+  /** Line-of-sight blocking for encounter resolution (not the same as `combatCoverKind`). */
   blocksLineOfSight: boolean;
   /**
-   * D&D-style tactical combat cover granted by this object when used as cover.
-   * This does not control collision or line of sight.
-   * Use `blocksMovement` and `blocksLineOfSight` for those concerns.
+   * Tactical combat cover when used as cover (half / three-quarters / none). Does not control movement or LoS;
+   * see `blocksMovement` and `blocksLineOfSight`.
    */
   combatCoverKind: CombatCoverKind;
   /** Whether the object can be repositioned by combat rules (e.g. shove); not “structural immovability”. */

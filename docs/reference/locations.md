@@ -58,10 +58,22 @@ Shared MUI styling tokens consumed by both `GridEditor` and `HexGridEditor` to k
 
 | File | Contents |
 |------|----------|
-| `location.constants.ts` | `CONTENT_LOCATION_SCALE_IDS` (first-class content scales), `SURFACE_CONTENT_LOCATION_SCALE_IDS` / `INTERIOR_CONTENT_LOCATION_SCALE_IDS` (surface vs interior groupings), `LOCATION_MAP_ZONE_KIND_IDS` (region/subregion/district — map subdivisions, not creatable content scales), `CAMPAIGN_LOCATION_LIST_SCALE_IDS` (list filters, includes legacy ids), `LOCATION_SCALE_ORDER`, `ALL_LOCATION_SCALE_IDS`, `LOCATION_SCALE_RANK_ORDER_LEGACY` (sorting legacy rows only), `LOCATION_CATEGORY_IDS`, `LOCATION_CONNECTION_KIND_IDS`. |
+| `location.constants.ts` | `CONTENT_LOCATION_SCALE_IDS` (first-class content scales for new authoring), `SURFACE_CONTENT_LOCATION_SCALE_IDS` / `INTERIOR_CONTENT_LOCATION_SCALE_IDS` (surface vs interior groupings), `LOCATION_MAP_ZONE_KIND_IDS` (region/subregion/district — map subdivisions, not creatable content scales), `CAMPAIGN_LOCATION_LIST_SCALE_IDS` (list filters, includes legacy ids), `LOCATION_SCALE_ORDER`, `LOCATION_SCALE_IDS_WITH_LEGACY` (compatibility union incl. legacy scale-like ids), `LOCATION_SCALE_RANK_ORDER_LEGACY` (sorting legacy rows only), `LOCATION_CATEGORY_IDS`, `LOCATION_CONNECTION_KIND_IDS`. |
 | `location.types.ts` | `LocationScaleId` (content + legacy), `ContentLocationScaleId`, `LocationCategoryId`, `LocationConnection`, `LocationLabel`, etc. |
 
-**Important:** **Create/edit** and `LOCATION_SCALE_FIELD_POLICY` use **first-class content scales** only (`CONTENT_LOCATION_SCALE_IDS`). **Legacy** region/subregion/district may still appear on persisted locations; **rank/sort** uses `LOCATION_SCALE_RANK_ORDER_LEGACY`. **Linked locations** on maps no longer target those legacy scales — use **MapZone** on parent maps (`zones/`). **Allowed parent/child** pairs are **not** inferred from order alone; they live in `scale/locationScale.policy.ts` (`ALLOWED_PARENT_SCALES_BY_SCALE`).
+**Important — vocabulary sources (avoid mixing up):**
+
+| Surface | Constants / helpers |
+|--------|------------------------|
+| **New authoring** (creatable first-class scales, form field policy) | `CONTENT_LOCATION_SCALE_IDS`, `SURFACE_CONTENT_LOCATION_SCALE_IDS`, `INTERIOR_CONTENT_LOCATION_SCALE_IDS`, `isContentLocationScaleId` |
+| **Legacy compatibility** (persisted rows, API typing) | `LOCATION_SCALE_IDS_WITH_LEGACY` / `LocationScaleId`, `isValidLocationScaleId` |
+| **Map zone as legacy scale** (`region` / `subregion` / `district` on old locations) | `LOCATION_MAP_ZONE_KIND_IDS`, `isLegacyMapZoneLocationScaleId` — prefer **MapZone** on maps for new work |
+| **Campaign list filters** (match old rows) | `CAMPAIGN_LOCATION_LIST_SCALE_IDS` — not the same as “creatable scales” |
+| **Sort / rank only** | `LOCATION_SCALE_RANK_ORDER_LEGACY` — not parent/child rules |
+
+**Create/edit** and `LOCATION_SCALE_FIELD_POLICY` use **first-class content scales** only (`CONTENT_LOCATION_SCALE_IDS`). **Legacy** region/subregion/district may still appear on persisted locations; **rank/sort** uses `LOCATION_SCALE_RANK_ORDER_LEGACY`. **Linked locations** on maps no longer target those legacy scales — use **MapZone** on parent maps (`zones/`). **Allowed parent/child** pairs are **not** inferred from order alone; they live in `scale/locationScale.policy.ts` (`ALLOWED_PARENT_SCALES_BY_SCALE`).
+
+**Map content policy:** `LOCATION_SCALE_MAP_CONTENT_POLICY` is keyed by every `LocationScaleId` (including legacy keys with empty buckets) so the map model stays exhaustive — empty entries for region/subregion/district are **not** an endorsement of new authoring at those scales.
 
 ### Subfolders (re-exported by barrel)
 

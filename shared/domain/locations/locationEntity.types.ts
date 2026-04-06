@@ -12,6 +12,11 @@ export interface LocationBaseFields {
   id: LocationId;
   name: string;
   description?: string;
+  /**
+   * Persisted campaign location scale. May be a **legacy** value (`region`, `subregion`, `district`) stored as
+   * scale for older data — not necessarily a scale we offer for **new** location creation today.
+   * Prefer `CONTENT_LOCATION_SCALE_IDS` / `isContentLocationScaleId` when deciding creatable or first-class semantics.
+   */
   scale: LocationScaleId;
   category?: string;
   imageKey?: string | null;

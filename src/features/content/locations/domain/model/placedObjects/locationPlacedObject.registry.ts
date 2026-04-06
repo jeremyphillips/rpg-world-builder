@@ -9,13 +9,21 @@ import type { LocationScaleId } from '@/shared/domain/locations';
 
 import type { LocationMapGlyphIconName } from '../map/locationMapIconNames';
 
+/**
+ * Per-family spatial + tactical defaults for authored placed objects (hydrated to combat `GridObject`).
+ *
+ * - **`blocksMovement`** — traversal / occupancy: can a creature enter this cell while the object is there.
+ * - **`blocksLineOfSight`** — visibility / targeting rays for encounter resolution (distinct from decorative map art).
+ * - **`combatCoverKind`** — if this object is **used as cover** in tactical combat, what cover grade it grants
+ *   (half / three-quarters / none). Does **not** set movement blocking, LoS, or generic obstacle “solidity.”
+ * - **`isMovable`** — whether combat rules may reposition the object (e.g. shove), not map-editor placement lock.
+ */
 export type AuthoredPlacedObjectRuntimeFields = {
   blocksMovement: boolean;
   blocksLineOfSight: boolean;
   /**
-   * D&D-style tactical combat cover granted by this object when used as cover.
-   * This does not control collision or line of sight.
-   * Use `blocksMovement` and `blocksLineOfSight` for those concerns.
+   * Tactical combat cover granted when a creature uses this object **as cover** (D&D-style).
+   * Separate from movement blocking and line-of-sight blocking; see `blocksMovement` and `blocksLineOfSight`.
    */
   combatCoverKind: CombatCoverKind;
   isMovable: boolean;

@@ -3,7 +3,7 @@
  * Field visibility and options derive from `LOCATION_SCALE_FIELD_POLICY` (shared).
  */
 import {
-  ALL_LOCATION_SCALE_IDS,
+  LOCATION_SCALE_IDS_WITH_LEGACY,
   getAllowedCategoryOptionsForScale,
   getAllowedCellUnitOptionsForScale,
   isCategoryFieldReadOnlyForScale,
@@ -25,8 +25,11 @@ import { getFilteredParentLocationsForChildScale } from './locationDependentFiel
 
 export type LocationFormUiMode = 'create' | 'edit';
 
-/** All scales that may appear on a location (content + legacy) — e.g. edit display. */
-export const ALL_LOCATION_SCALE_OPTIONS = ALL_LOCATION_SCALE_IDS.map((s) => ({
+/**
+ * Read-only scale labels for **edit** display — uses `LOCATION_SCALE_IDS_WITH_LEGACY` so legacy `region` / `subregion` /
+ * `district` rows still render. **Create** uses `getAllowedLocationScaleOptionsForCreate` (content/surface only).
+ */
+export const ALL_LOCATION_SCALE_OPTIONS = LOCATION_SCALE_IDS_WITH_LEGACY.map((s) => ({
   value: s,
   label: s,
 }));

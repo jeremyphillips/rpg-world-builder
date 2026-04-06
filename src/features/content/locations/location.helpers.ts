@@ -6,7 +6,8 @@ import {
 import type { Location } from '@/features/content/locations/domain/model/location'
 
 /**
- * Sort locations by structural scale, then name. Uses `scale` for ordering.
+ * Sort locations by structural scale, then name. Ordering uses `LOCATION_SCALE_RANK_ORDER_LEGACY` **only** as a
+ * stable legacy sort key — not as product semantics for “valid” scales.
  */
 export function sortLocations(a: Location, b: Location): number {
   const scaleDiff =

@@ -50,6 +50,24 @@ Add **variant-aware object authoring** so the palette can represent **families**
 
 **Remaining legacy surface:** `region` / `subregion` / `district` may still appear as persisted `location.scale` and in **campaign list** filters (`CAMPAIGN_LOCATION_LIST_SCALE_IDS`); use **MapZone** on parent maps for new subdivisions.
 
+### Follow-up: vocabulary guardrails (docs + comments — **no behavior change**)
+
+**Goal:** Reduce future misuse of compatibility/sort/filter constants vs new-authoring vocabulary.
+
+**Done in this pass:**
+
+- **`location.constants.ts`:** Table-style “which constant for which job”; stronger per-constant docs for `LOCATION_SCALE_IDS_WITH_LEGACY`, `CAMPAIGN_LOCATION_LIST_SCALE_IDS`, `LOCATION_SCALE_RANK_ORDER_LEGACY`.
+- **`location.types.ts` / `locationEntity.types.ts`:** `LocationScaleId`, `CampaignLocationListScaleId`, and persisted `scale` field clarify compatibility vs creatable semantics.
+- **`scale/locationScale.rules.ts`:** Module doc distinguishes `isContentLocationScaleId` vs `isValidLocationScaleId` vs legacy zone id vs rank.
+- **`LOCATION_SCALE_MAP_CONTENT_POLICY`:** Comment that keys include legacy scales for exhaustive `Record<LocationScaleId, …>` — empty buckets are not “new authoring” endorsement.
+- **UI helpers:** Comments on `ALL_LOCATION_SCALE_OPTIONS` (edit display), `LOCATION_SCALE_FILTER_OPTIONS` (list chips), `sortLocations` (rank bridge only).
+- **`placed object registry` + mechanics `GridObject`:** Central docs for `blocksMovement` / `blocksLineOfSight` / `combatCoverKind` separation.
+- **`docs/reference/locations.md`:** Vocabulary table + map policy note.
+
+**Audit:** No incorrect usages found that required code changes (create/list/form paths already use the appropriate surface vs `LOCATION_SCALE_IDS_WITH_LEGACY` where legacy display/filtering is intended).
+
+**Intentionally unchanged (behavior / product):** Default `combatCoverKind` values per family (e.g. tree/table half, linked markers none); legacy ranking; persisted scale model.
+
 ---
 
 ## Phase 2 decision record (authoritative)

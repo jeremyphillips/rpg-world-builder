@@ -1,7 +1,11 @@
 /**
- * Generic scale ordering helpers.
- * Rank comparisons use `LOCATION_SCALE_RANK_ORDER_LEGACY` so legacy persisted scales sort correctly.
- * Parent *eligibility* uses explicit policy in `locationScale.policy.ts`, not rank alone.
+ * Scale helpers: **which id means what**, ordering, and broadness — not form field policy.
+ *
+ * - **`isContentLocationScaleId`** — first-class **new authoring** content scales only (`world`…`room`).
+ * - **`isLegacyMapZoneLocationScaleId`** — `region` / `subregion` / `district` persisted as scale (compatibility).
+ * - **`isValidLocationScaleId`** — any member of `LOCATION_SCALE_IDS_WITH_LEGACY` (API/DB persistence union).
+ * - **Rank** (`locationScaleRank`, `getLocationScaleRank`) uses `LOCATION_SCALE_RANK_ORDER_LEGACY` **only** for
+ *   stable sort/compare of persisted rows — not for parent validation (use `locationScale.policy.ts`).
  */
 import {
   CONTENT_LOCATION_SCALE_IDS,
@@ -37,6 +41,7 @@ export function getLocationScaleRank(scale: string): number {
   return locationScaleRank(scale);
 }
 
+/** True if `scale` is any persisted/API scale id (content + legacy map-zone-as-scale). */
 export function isValidLocationScaleId(scale: string): scale is LocationScaleId {
   return LEGACY_RANK.includes(scale);
 }

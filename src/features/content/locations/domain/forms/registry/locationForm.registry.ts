@@ -2,7 +2,7 @@
  * Location form field registry — config + mapping for create/edit.
  */
 import {
-  ALL_LOCATION_SCALE_IDS,
+  LOCATION_SCALE_IDS_WITH_LEGACY,
   LOCATION_BUILDING_FUNCTION_IDS,
   LOCATION_BUILDING_PRIMARY_SUBTYPE_IDS,
   LOCATION_BUILDING_PRIMARY_TYPE_IDS,
@@ -27,7 +27,7 @@ import type { FieldSpec } from '@/features/content/shared/forms/registry';
 import type { LocationFormValues } from '../types/locationForm.types';
 
 /** Dependent fields use ConditionalFormRenderer `visibleWhen` — shown after user picks a valid scale (includes legacy scales for edit). */
-const VISIBLE_WHEN_SCALE_SELECTED = when.in('scale', [...ALL_LOCATION_SCALE_IDS]);
+const VISIBLE_WHEN_SCALE_SELECTED = when.in('scale', [...LOCATION_SCALE_IDS_WITH_LEGACY]);
 
 const VISIBLE_WHEN_BUILDING = when.eq('scale', 'building');
 const VISIBLE_WHEN_BUILDING_TYPE_SELECTED = when.and(

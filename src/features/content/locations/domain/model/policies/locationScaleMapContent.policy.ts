@@ -9,6 +9,11 @@ import { getPlacedObjectKindsForScale } from '../placedObjects/locationPlacedObj
 /**
  * Per-scale vocabulary for **authored map content** (fills, paths, edges, placed objects).
  *
+ * **Keyed by `LocationScaleId`:** includes `region`, `subregion`, `district` so the record is exhaustive for persisted
+ * host locations — those keys currently use **empty** policy buckets (no paint/place tools) while legacy rows exist.
+ * Do **not** read “has a key” as “recommended authoring surface”; new map authoring targets **content** scales
+ * (`world`, `city`, `floor`, …) per product rules.
+ *
  * Separate from `LOCATION_SCALE_FIELD_POLICY` (form/setup: categories, cell units, geometry).
  * Separate from `locationMapPlacement.policy.ts` (which legacy cell-object kinds may appear on cells).
  *
