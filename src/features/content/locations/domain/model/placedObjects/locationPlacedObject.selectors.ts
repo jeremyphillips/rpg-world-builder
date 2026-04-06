@@ -3,16 +3,18 @@ import { isValidLocationScaleId } from '@/shared/domain/locations/scale/location
 
 import {
   AUTHORED_PLACED_OBJECT_DEFINITIONS,
-  type AuthoredPlacedObjectDefinition,
+  DEFAULT_PLACED_OBJECT_VARIANT_ID,
+  type AuthoredPlacedObjectFamilyDefinition,
   type AuthoredPlacedObjectInteraction,
   type LocationPlacedObjectKindId,
   type LocationPlacedObjectKindRuntimeDefaults,
+  type PlacedObjectPaletteCategoryId,
 } from './locationPlacedObject.registry';
 import type { LocationMapGlyphIconName, LocationMapObjectIconName } from '../map/locationMapIconNames';
 import { LOCATION_MAP_OBJECT_KIND_TO_ICON_NAME } from '../map/locationMapPresentation.constants';
 import { mapValuesStrict, recordKeys } from './locationPlacedObject.recordUtils';
 
-/** Stable list of authored placed-object ids — derived from registry keys (no manual mirror). */
+/** Stable list of authored placed-object family ids — derived from registry keys (no manual mirror). */
 export const LOCATION_PLACED_OBJECT_KIND_IDS = recordKeys(
   AUTHORED_PLACED_OBJECT_DEFINITIONS,
 ) as readonly LocationPlacedObjectKindId[];
@@ -33,25 +35,33 @@ export type LocationPlacedObjectKindMeta = {
   linkedScale?: LocationScaleId;
 };
 
-function toMeta(d: AuthoredPlacedObjectDefinition): LocationPlacedObjectKindMeta {
+function defaultVariantOf(family: AuthoredPlacedObjectFamilyDefinition) {
+  return family.variants[DEFAULT_PLACED_OBJECT_VARIANT_ID];
+}
+
+function toMeta(family: AuthoredPlacedObjectFamilyDefinition): LocationPlacedObjectKindMeta {
+  const v = defaultVariantOf(family);
   return {
-    label: d.label,
-    description: d.description,
-    iconName: d.iconName,
-    ...(d.linkedScale !== undefined ? { linkedScale: d.linkedScale } : {}),
+    label: v.label,
+    description: v.description,
+    iconName: v.iconName,
+    ...(family.linkedScale !== undefined ? { linkedScale: family.linkedScale } : {}),
   };
 }
 
-/** Display metadata derived from {@link AUTHORED_PLACED_OBJECT_DEFINITIONS}. */
+/** Display metadata derived from {@link AUTHORED_PLACED_OBJECT_DEFINITIONS} (default variant per family). */
 export const LOCATION_PLACED_OBJECT_KIND_META = mapValuesStrict(
   AUTHORED_PLACED_OBJECT_DEFINITIONS,
   toMeta,
 ) satisfies Record<LocationPlacedObjectKindId, LocationPlacedObjectKindMeta>;
 
-export function getPlacedObjectDefinition(
-  id: LocationPlacedObjectKindId,
-): AuthoredPlacedObjectDefinition {
+export function getPlacedObjectDefinition(id: LocationPlacedObjectKindId): AuthoredPlacedObjectFamilyDefinition {
   return AUTHORED_PLACED_OBJECT_DEFINITIONS[id];
+}
+
+/** Explicit palette category for toolbar grouping — not persisted map identity. */
+export function getPlacedObjectPaletteCategoryId(kind: LocationPlacedObjectKindId): PlacedObjectPaletteCategoryId {
+  return AUTHORED_PLACED_OBJECT_DEFINITIONS[kind].category;
 }
 
 export function getPlacedObjectMeta(id: LocationPlacedObjectKindId): LocationPlacedObjectKindMeta {
@@ -64,15 +74,15 @@ export function getPlacedObjectRuntimeDefaults(
   return AUTHORED_PLACED_OBJECT_DEFINITIONS[kind].runtime;
 }
 
-/** Interaction / transition hint when defined on the registry entry; `undefined` if none. */
+/** Interaction / transition hint when defined on the family; `undefined` if none. */
 export function getPlacedObjectInteraction(
   kind: LocationPlacedObjectKindId,
 ): AuthoredPlacedObjectInteraction | undefined {
-  return (AUTHORED_PLACED_OBJECT_DEFINITIONS[kind] as AuthoredPlacedObjectDefinition).interaction;
+  return AUTHORED_PLACED_OBJECT_DEFINITIONS[kind].interaction;
 }
 
 export function getPlacedObjectIconName(kind: LocationPlacedObjectKindId): LocationMapGlyphIconName {
-  return AUTHORED_PLACED_OBJECT_DEFINITIONS[kind].iconName;
+  return defaultVariantOf(AUTHORED_PLACED_OBJECT_DEFINITIONS[kind]).iconName;
 }
 
 /** Persisted map cell object kind → object icon id (separate from authored place-tool glyphs). */
@@ -86,6 +96,7 @@ export type PlacedObjectPaletteOption = {
   description?: string;
   iconName: LocationMapGlyphIconName;
   linkedScale?: LocationScaleId;
+  paletteCategory: PlacedObjectPaletteCategoryId;
 };
 
 /** Narrow DTOs for the place palette — derived from registry + `allowedScales` (via {@link getPlacedObjectKindsForScale}). */
@@ -94,13 +105,15 @@ export function getPlacedObjectPaletteOptionsForScale(
 ): readonly PlacedObjectPaletteOption[] {
   const kinds = getPlacedObjectKindsForScale(scale);
   return kinds.map((kind) => {
-    const def = getPlacedObjectDefinition(kind);
+    const family = getPlacedObjectDefinition(kind);
+    const v = defaultVariantOf(family);
     return {
       kind,
-      label: def.label,
-      description: def.description,
-      iconName: def.iconName,
-      ...(def.linkedScale !== undefined ? { linkedScale: def.linkedScale } : {}),
+      label: v.label,
+      description: v.description,
+      iconName: v.iconName,
+      paletteCategory: family.category,
+      ...(family.linkedScale !== undefined ? { linkedScale: family.linkedScale } : {}),
     };
   });
 }

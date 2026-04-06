@@ -7,15 +7,20 @@
  */
 
 export type {
+  AuthoredPlacedObjectFamilyDefinition,
   AuthoredPlacedObjectInteraction,
   AuthoredPlacedObjectTransitionKind,
+  AuthoredPlacedObjectVariantDefinition,
+  DEFAULT_PLACED_OBJECT_VARIANT_ID,
   LocationPlacedObjectKindId,
+  PlacedObjectPaletteCategoryId,
 } from './locationPlacedObject.registry';
 
 export {
   getMapObjectKindIconName,
   getPlacedObjectIconName,
   getPlacedObjectMeta,
+  getPlacedObjectPaletteCategoryId,
   getPlacedObjectPaletteOptionsForScale,
   LOCATION_PLACED_OBJECT_KIND_IDS,
   LOCATION_PLACED_OBJECT_KIND_META,

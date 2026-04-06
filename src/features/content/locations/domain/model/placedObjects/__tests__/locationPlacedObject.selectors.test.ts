@@ -5,6 +5,7 @@ import { AUTHORED_PLACED_OBJECT_DEFINITIONS } from '../locationPlacedObject.regi
 import { recordKeys } from '../locationPlacedObject.recordUtils';
 import { LOCATION_PLACED_OBJECT_KIND_RUNTIME_DEFAULTS } from '../locationPlacedObject.runtime';
 import {
+  getPlacedObjectPaletteCategoryId,
   LOCATION_PLACED_OBJECT_KIND_IDS,
   LOCATION_PLACED_OBJECT_KIND_META,
 } from '../locationPlacedObject.selectors';
@@ -26,5 +27,11 @@ describe('locationPlacedObject.selectors (registry-derived)', () => {
     expect(Object.keys(LOCATION_PLACED_OBJECT_KIND_RUNTIME_DEFAULTS).sort()).toEqual(
       recordKeys(AUTHORED_PLACED_OBJECT_DEFINITIONS).sort(),
     );
+  });
+
+  it('getPlacedObjectPaletteCategoryId returns family registry category', () => {
+    expect(getPlacedObjectPaletteCategoryId('table')).toBe('furniture');
+    expect(getPlacedObjectPaletteCategoryId('city')).toBe('linked-locations');
+    expect(getPlacedObjectPaletteCategoryId('stairs')).toBe('circulation');
   });
 });

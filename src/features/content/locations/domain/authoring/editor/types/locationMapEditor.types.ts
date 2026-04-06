@@ -1,7 +1,10 @@
 import type { LocationCellFillKindId } from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
-import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
+import type {
+  LocationPlacedObjectKindId,
+  PlacedObjectPaletteCategoryId,
+} from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 
 /** Default variant for Phase 1 single-row-per-family palette; Phase 2 adds explicit variant ids. */
 export const DEFAULT_AUTHORED_PLACE_VARIANT_ID = 'default' as const;
@@ -88,6 +91,8 @@ export type MapPlacePaletteItem =
       /** Family id for registry (Phase 1: same as `kind`). */
       familyId: LocationPlacedObjectKindId;
       variantId: string;
+      /** Registry palette grouping — not persisted. */
+      paletteCategory: PlacedObjectPaletteCategoryId;
       label: string;
       description?: string;
       iconName?: LocationMapGlyphIconName;
@@ -98,6 +103,7 @@ export type MapPlacePaletteItem =
       kind: LocationPlacedObjectKindId;
       familyId: LocationPlacedObjectKindId;
       variantId: string;
+      paletteCategory: PlacedObjectPaletteCategoryId;
       label: string;
       description?: string;
       iconName?: LocationMapGlyphIconName;
