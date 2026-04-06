@@ -15,7 +15,7 @@ export {
   normalizeGridCellUnitForScale,
 } from '@/shared/domain/locations';
 export {
-  ALL_LOCATION_SCALE_OPTIONS,
+  LOCATION_SCALE_OPTIONS_WITH_LEGACY,
   applyScaleToLocationFormUiPolicy,
   buildLocationFormUiPolicy,
   canSelectWorldScale,

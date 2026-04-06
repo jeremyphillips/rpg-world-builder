@@ -26,10 +26,11 @@ import { getFilteredParentLocationsForChildScale } from './locationDependentFiel
 export type LocationFormUiMode = 'create' | 'edit';
 
 /**
- * Read-only scale labels for **edit** display — uses `LOCATION_SCALE_IDS_WITH_LEGACY` so legacy `region` / `subregion` /
- * `district` rows still render. **Create** uses `getAllowedLocationScaleOptionsForCreate` (content/surface only).
+ * Read-only scale options for **edit** display — derived from `LOCATION_SCALE_IDS_WITH_LEGACY` so legacy
+ * `region` / `subregion` / `district` rows still render. **Create** uses `getAllowedLocationScaleOptionsForCreate`
+ * (content/surface only).
  */
-export const ALL_LOCATION_SCALE_OPTIONS = LOCATION_SCALE_IDS_WITH_LEGACY.map((s) => ({
+export const LOCATION_SCALE_OPTIONS_WITH_LEGACY = LOCATION_SCALE_IDS_WITH_LEGACY.map((s) => ({
   value: s,
   label: s,
 }));
@@ -50,7 +51,7 @@ export function getAllowedLocationScaleOptionsForCreate(campaignHasWorldLocation
 
 /** Edit: show full scale list for display; field is disabled so selection cannot change. */
 export function getLocationScaleOptionsForEditDisplay() {
-  return ALL_LOCATION_SCALE_OPTIONS;
+  return LOCATION_SCALE_OPTIONS_WITH_LEGACY;
 }
 
 export function canSelectWorldScale(campaignHasWorldLocation: boolean): boolean {

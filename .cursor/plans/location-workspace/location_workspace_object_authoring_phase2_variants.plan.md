@@ -60,7 +60,7 @@ Add **variant-aware object authoring** so the palette can represent **families**
 - **`location.types.ts` / `locationEntity.types.ts`:** `LocationScaleId`, `CampaignLocationListScaleId`, and persisted `scale` field clarify compatibility vs creatable semantics.
 - **`scale/locationScale.rules.ts`:** Module doc distinguishes `isContentLocationScaleId` vs `isValidLocationScaleId` vs legacy zone id vs rank.
 - **`LOCATION_SCALE_MAP_CONTENT_POLICY`:** Comment that keys include legacy scales for exhaustive `Record<LocationScaleId, …>` — empty buckets are not “new authoring” endorsement.
-- **UI helpers:** Comments on `ALL_LOCATION_SCALE_OPTIONS` (edit display), `LOCATION_SCALE_FILTER_OPTIONS` (list chips), `sortLocations` (rank bridge only).
+- **UI helpers:** Comments on `LOCATION_SCALE_OPTIONS_WITH_LEGACY` (edit display), `LOCATION_SCALE_FILTER_OPTIONS` (list chips), `sortLocations` (rank bridge only).
 - **`placed object registry` + mechanics `GridObject`:** Central docs for `blocksMovement` / `blocksLineOfSight` / `combatCoverKind` separation.
 - **`docs/reference/locations.md`:** Vocabulary table + map policy note.
 
