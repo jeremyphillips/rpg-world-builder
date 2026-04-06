@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { mapSelectionEqual, selectedCellIdForMapSelection } from '../types';
+import { mapSelectionEqual, selectedCellIdForMapSelection } from '../locationEditorRail.helpers';
 
 describe('mapSelectionEqual', () => {
   it('returns true for equivalent selections', () => {

@@ -3,7 +3,6 @@ import { flushSync } from 'react-dom';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
@@ -18,12 +17,7 @@ import {
   LocationEditHomebrewWorkspace,
   LocationEditSystemPatchWorkspace,
   LocationEditorMapCanvasColumn,
-  LocationEditorSelectionPanel,
-  selectedCellIdForMapSelection,
   LocationAncestryBreadcrumbs,
-  LocationMapEditorPaintMapPanel,
-  LocationMapEditorPlacePanel,
-  LocationMapEditorDrawPanel,
 } from '@/features/content/locations/components';
 
 import {
@@ -32,6 +26,10 @@ import {
   type BuildingWorkspaceFloorItem,
 } from '@/features/content/locations/domain/model/building/buildingWorkspaceFloors';
 
+import {
+  LocationEditWorkspaceMapAuthoringRailPanel,
+  LocationEditWorkspaceSelectionRailPanel,
+} from './locationEdit/locationEditWorkspaceRailPanels';
 import { useLocationEditWorkspaceModel } from './locationEdit';
 
 const FORM_ID = 'location-edit-form';
@@ -197,7 +195,6 @@ export default function LocationEditRoute() {
     handleAddFloor,
     handleRemovePatch,
     handleDelete,
-    handleValidateDelete,
     handleRequestDelete,
     handleBack,
     handleUpdateLinkedLocation,
@@ -257,67 +254,36 @@ export default function LocationEditRoute() {
       : undefined;
 
   const mapAuthoringPanel = (
-    <Stack spacing={2}>
-      {mapEditor.mode === 'place' ? (
-        <LocationMapEditorPlacePanel
-          items={placePaletteItems}
-          activePlace={mapEditor.activePlace}
-          onSelectPlace={mapEditor.setActivePlace}
-        />
-      ) : mapEditor.mode === 'draw' ? (
-        <LocationMapEditorDrawPanel
-          items={drawPaletteItems}
-          activeDraw={mapEditor.activeDraw}
-          onSelectDraw={mapEditor.setActiveDraw}
-        />
-      ) : mapEditor.mode === 'paint' && mapEditor.activePaint ? (
-        <LocationMapEditorPaintMapPanel
-          paint={mapEditor.activePaint}
-          regionEntries={gridDraft.regionEntries}
-          onCreateRegion={handleCreateRegionPaint}
-          onSelectActiveRegion={handleSelectActiveRegionPaint}
-          onActiveRegionColorKeyChange={handleActiveRegionColorKeyChange}
-          onEditRegionInSelection={handleEditRegionInSelection}
-        />
-      ) : mapEditor.mode === 'erase' ? (
-        <Typography variant="body2" color="text.secondary">
-          Click a cell to remove the topmost feature (edge, object, path segment, link, or terrain fill). Drag across
-          cells to strip terrain fill in bulk.
-        </Typography>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          Use the toolbar to choose a tool. Open Selection to inspect cells, paths, edges, and runs.
-        </Typography>
-      )}
-    </Stack>
+    <LocationEditWorkspaceMapAuthoringRailPanel
+      mapEditor={mapEditor}
+      placePaletteItems={placePaletteItems}
+      drawPaletteItems={drawPaletteItems}
+      regionEntries={gridDraft.regionEntries}
+      onCreateRegion={handleCreateRegionPaint}
+      onSelectActiveRegion={handleSelectActiveRegionPaint}
+      onActiveRegionColorKeyChange={handleActiveRegionColorKeyChange}
+      onEditRegionInSelection={handleEditRegionInSelection}
+    />
   );
 
   const selectionPanel = (
-    <LocationEditorSelectionPanel
-      selection={gridDraft.mapSelection}
+    <LocationEditWorkspaceSelectionRailPanel
+      gridDraft={gridDraft}
+      mapHostLocationId={mapHostLocationId}
+      mapHostScale={mapHostScale}
+      mapHostName={mapHostName}
+      campaignId={campaignId ?? undefined}
+      locations={locations}
+      onUpdateLinkedLocation={handleUpdateLinkedLocation}
+      onUpdateCellObjects={handleUpdateCellObjects}
       stairWorkspaceInspect={stairWorkspaceInspect}
       stairPairingContext={stairPairingContext}
-      pathEntries={gridDraft.pathEntries}
-      edgeEntries={gridDraft.edgeEntries}
-      regionEntries={gridDraft.regionEntries}
       debouncedPersistableFlushRef={flushDebouncedPersistableFieldsRef}
       onUpdateRegionEntry={handleUpdateRegionEntry}
       onRemovePlacedObjectFromMap={handleRemovePlacedObject}
       onRemovePathFromMap={handleRemovePathFromMap}
       onRemoveEdgeFromMap={handleRemoveEdgeFromMap}
       onRemoveEdgeRunFromMap={handleRemoveEdgeRunFromMap}
-      cellPanelProps={{
-        selectedCellId: selectedCellIdForMapSelection(gridDraft.mapSelection),
-        hostLocationId: mapHostLocationId,
-        hostScale: mapHostScale,
-        hostName: mapHostName,
-        campaignId: campaignId ?? undefined,
-        locations,
-        linkedLocationByCellId: gridDraft.linkedLocationByCellId,
-        objectsByCellId: gridDraft.objectsByCellId,
-        onUpdateLinkedLocation: handleUpdateLinkedLocation,
-        onUpdateCellObjects: handleUpdateCellObjects,
-      }}
     />
   );
 

@@ -45,16 +45,8 @@ import { usePatchDriverState } from '@/features/content/shared/hooks/usePatchDri
 import { useEntryDeleteAction } from '@/features/content/shared/hooks/useEntryDeleteAction';
 import {
   canPlaceObjectKindOnHostScale,
-  connectionWouldDuplicateEndpoint,
-  createVerticalStairConnection,
-  findStairConnectionForEndpoint,
-  getCounterpartStairEndpoint,
-  getAllowedLinkedLocationOptions,
   LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION,
-  removeStairConnectionsInvolvingEndpoint,
-  validateStairEndpointsCanPair,
   type LocationScaleId,
-  type LocationStairEndpointRef,
   type LocationVerticalStairConnection,
 } from '@/shared/domain/locations';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
@@ -84,8 +76,6 @@ import {
   type LocationEditorRailSection,
 } from '@/features/content/locations/components';
 
-import { patchFloorStairConnectionIdOnDefaultMap } from '@/features/content/locations/domain/model/building/patchFloorStairConnectionMap';
-
 import { useLocationMapHydration } from './useLocationMapHydration';
 import { useLocationEditSaveActions } from './useLocationEditSaveActions';
 import { serializeLocationWorkspacePersistableSnapshot } from './workspacePersistableSnapshot';
@@ -94,100 +84,15 @@ import {
   buildHomebrewLocationWorkspaceAuthoringContract,
   buildSystemLocationWorkspaceAuthoringContract,
 } from './locationWorkspaceAuthoringAdapters';
-
-/**
- * Remove the current map selection from the draft when it is a deletable entity.
- * Object/edge reuse {@link applyEraseTargetToDraft} (same mutations as Erase tool for those targets).
- * Whole-path removal is Select-only (Erase removes one segment via {@link resolveEraseTargetAtCell}).
- */
-function applyRemovePlacedObjectToDraft(
-  prev: LocationGridDraftState,
-  cellId: string,
-  objectId: string,
-): LocationGridDraftState {
-  const next = applyEraseTargetToDraft(
-    prev,
-    { type: 'object', cellId, objectId },
-    cellId,
-    () => crypto.randomUUID(),
-  );
-  const clearSelection =
-    prev.mapSelection.type === 'object' &&
-    prev.mapSelection.cellId === cellId &&
-    prev.mapSelection.objectId === objectId;
-  return clearSelection
-    ? { ...next, mapSelection: { type: 'none' }, selectedCellId: null }
-    : next;
-}
-
-/** Whole-path removal (same as Delete when a path is selected; Erase removes one segment). */
-function applyRemovePathFromDraft(prev: LocationGridDraftState, pathId: string): LocationGridDraftState {
-  const next: LocationGridDraftState = {
-    ...prev,
-    pathEntries: prev.pathEntries.filter((p) => p.id !== pathId),
-  };
-  const clearSelection =
-    prev.mapSelection.type === 'path' && prev.mapSelection.pathId === pathId;
-  return clearSelection
-    ? { ...next, mapSelection: { type: 'none' }, selectedCellId: null }
-    : next;
-}
-
-function sameEdgeIdSet(a: readonly string[], b: readonly string[]): boolean {
-  if (a.length !== b.length) return false;
-  const sb = new Set(b);
-  return a.every((id) => sb.has(id));
-}
-
-/** Single boundary edge removal (same as Erase on that edge / Delete when that edge is selected). */
-function applyRemoveEdgeFromDraft(prev: LocationGridDraftState, edgeId: string): LocationGridDraftState {
-  const next = applyEraseTargetToDraft(
-    prev,
-    { type: 'edge', edgeId },
-    '',
-    () => crypto.randomUUID(),
-  );
-  const clearSelection =
-    prev.mapSelection.type === 'edge' && prev.mapSelection.edgeId === edgeId;
-  return clearSelection
-    ? { ...next, mapSelection: { type: 'none' }, selectedCellId: null }
-    : next;
-}
-
-/** Removes every segment in a straight run (same as Delete when an edge-run is selected). */
-function applyRemoveEdgeRunFromDraft(
-  prev: LocationGridDraftState,
-  edgeIdsToRemove: readonly string[],
-): LocationGridDraftState {
-  const remove = new Set(edgeIdsToRemove);
-  const next: LocationGridDraftState = {
-    ...prev,
-    edgeEntries: prev.edgeEntries.filter((ent) => !remove.has(ent.edgeId)),
-  };
-  const clearSelection =
-    prev.mapSelection.type === 'edge-run' &&
-    sameEdgeIdSet(prev.mapSelection.edgeIds, edgeIdsToRemove);
-  return clearSelection
-    ? { ...next, mapSelection: { type: 'none' }, selectedCellId: null }
-    : next;
-}
-
-function applyDeleteForMapSelection(prev: LocationGridDraftState): LocationGridDraftState | null {
-  const ms = prev.mapSelection;
-  if (ms.type === 'object') {
-    return applyRemovePlacedObjectToDraft(prev, ms.cellId, ms.objectId);
-  }
-  if (ms.type === 'path') {
-    return applyRemovePathFromDraft(prev, ms.pathId);
-  }
-  if (ms.type === 'edge') {
-    return applyRemoveEdgeFromDraft(prev, ms.edgeId);
-  }
-  if (ms.type === 'edge-run') {
-    return applyRemoveEdgeRunFromDraft(prev, ms.edgeIds);
-  }
-  return null;
-}
+import {
+  applyDeleteForMapSelection,
+  applyRemoveEdgeFromDraft,
+  applyRemoveEdgeRunFromDraft,
+  applyRemovePathFromDraft,
+  applyRemovePlacedObjectToDraft,
+} from './mapSessionDraft.helpers';
+import { buildLocationEditLinkModalSelectOptions } from './locationEditLinkModalOptions';
+import { useLocationEditBuildingStairHandlers } from './useLocationEditBuildingStairHandlers';
 
 export type UseLocationEditWorkspaceModelParams = {
   locationId: string | undefined;
@@ -644,33 +549,25 @@ export function useLocationEditWorkspaceModel({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [mapEditor.mode]);
 
-  const linkModalSelectOptions = useMemo(() => {
-    if (!campaignId || !loc || loc.source !== 'campaign') return [];
-    const p = mapEditor.pendingPlacement;
-    if (!p || p.type !== 'linked-location') return [];
-    const targetScale = p.linkedScale;
-    const campaignLocations = locations.filter((l) => l.source === 'campaign');
-    const host = {
-      id: mapHostLocationIdResolved || '__host__',
-      scale: mapHostScaleResolved,
-      name: loc.name,
-      source: 'campaign' as const,
+  const linkModalSelectOptions = useMemo(
+    () =>
+      buildLocationEditLinkModalSelectOptions({
+        campaignId,
+        loc,
+        locations,
+        mapHostLocationIdResolved,
+        mapHostScaleResolved,
+        pendingPlacement: mapEditor.pendingPlacement,
+      }),
+    [
       campaignId,
-    };
-    return getAllowedLinkedLocationOptions(host, campaignLocations, {
-      campaignId,
-      excludeLocationId: mapHostLocationIdResolved || undefined,
-    })
-      .filter((l) => l.scale === targetScale)
-      .map((l) => ({ value: l.id, label: l.name }));
-  }, [
-    campaignId,
-    loc,
-    locations,
-    mapHostLocationIdResolved,
-    mapHostScaleResolved,
-    mapEditor.pendingPlacement,
-  ]);
+      loc,
+      locations,
+      mapHostLocationIdResolved,
+      mapHostScaleResolved,
+      mapEditor.pendingPlacement,
+    ],
+  );
 
   const showMapEditorChrome = showMapGridAuthoring;
 
@@ -847,129 +744,21 @@ export function useLocationEditWorkspaceModel({
     [gridColumns, gridRows, gridGeometry],
   );
 
-  const handleRemovePlacedObject = useCallback(
-    (cellId: string, objectId: string) => {
-      if (campaignId && isBuildingWorkspace && activeFloorId) {
-        const ref: LocationStairEndpointRef = {
-          floorLocationId: activeFloorId,
-          cellId,
-          objectId,
-        };
-        let counterpart: LocationStairEndpointRef | undefined;
-        setBuildingStairConnections((prev) => {
-          const conn = findStairConnectionForEndpoint(prev, ref);
-          counterpart = conn ? getCounterpartStairEndpoint(conn, ref) : undefined;
-          return removeStairConnectionsInvolvingEndpoint(prev, ref);
-        });
-        if (counterpart) {
-          void patchFloorStairConnectionIdOnDefaultMap(campaignId, counterpart, null);
-        }
-      }
-      setGridDraft((prev) => applyRemovePlacedObjectToDraft(prev, cellId, objectId));
-    },
-    [campaignId, isBuildingWorkspace, activeFloorId],
-  );
-
-  const handleLinkStairPair = useCallback(
-    async (
-      localCellId: string,
-      localObjectId: string,
-      remoteFloorId: string,
-      remoteCellId: string,
-      remoteObjectId: string,
-    ) => {
-      if (!campaignId || !isBuildingWorkspace || !activeFloorId || !locationId || loc?.scale !== 'building') {
-        return;
-      }
-      const allowed = new Set(floorChildren.map((f) => f.id));
-      const a: LocationStairEndpointRef = {
-        floorLocationId: activeFloorId,
-        cellId: localCellId,
-        objectId: localObjectId,
-      };
-      const b: LocationStairEndpointRef = {
-        floorLocationId: remoteFloorId,
-        cellId: remoteCellId,
-        objectId: remoteObjectId,
-      };
-      const v = validateStairEndpointsCanPair(locationId, a, b, allowed);
-      if (!v.ok) throw new Error(v.reason);
-      if (connectionWouldDuplicateEndpoint(buildingStairConnections, a, b)) {
-        throw new Error('One of these stair endpoints is already linked.');
-      }
-      const connectionId = crypto.randomUUID();
-      const conn = createVerticalStairConnection(locationId, connectionId, a, b);
-      setBuildingStairConnections((prev) => [...prev, conn]);
-      setGridDraft((prev) => {
-        const objs = prev.objectsByCellId[localCellId] ?? [];
-        const nextObjs = objs.map((o) => {
-          if (o.id !== localObjectId || o.kind !== 'stairs') return o;
-          const base = o.stairEndpoint ?? { direction: LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION };
-          return {
-            ...o,
-            stairEndpoint: {
-              direction: base.direction,
-              connectionId,
-            },
-          };
-        });
-        return {
-          ...prev,
-          objectsByCellId: { ...prev.objectsByCellId, [localCellId]: nextObjs },
-        };
-      });
-      await patchFloorStairConnectionIdOnDefaultMap(campaignId, a, connectionId);
-      await patchFloorStairConnectionIdOnDefaultMap(campaignId, b, connectionId);
-    },
-    [
-      campaignId,
-      isBuildingWorkspace,
-      activeFloorId,
-      locationId,
-      loc?.scale,
-      floorChildren,
-      buildingStairConnections,
-    ],
-  );
-
-  const handleUnlinkStairEndpoint = useCallback(
-    async (localCellId: string, localObjectId: string) => {
-      if (!campaignId || !activeFloorId) return;
-      const ref: LocationStairEndpointRef = {
-        floorLocationId: activeFloorId,
-        cellId: localCellId,
-        objectId: localObjectId,
-      };
-      let counterpart: LocationStairEndpointRef | undefined;
-      setBuildingStairConnections((prev) => {
-        const conn = findStairConnectionForEndpoint(prev, ref);
-        counterpart = conn ? getCounterpartStairEndpoint(conn, ref) : undefined;
-        return removeStairConnectionsInvolvingEndpoint(prev, ref);
-      });
-      setGridDraft((prev) => {
-        const objs = prev.objectsByCellId[localCellId] ?? [];
-        const nextObjs = objs.map((o) => {
-          if (o.id !== localObjectId || o.kind !== 'stairs') return o;
-          const base = o.stairEndpoint ?? { direction: LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION };
-          return {
-            ...o,
-            stairEndpoint: {
-              direction: base.direction,
-              ...(base.targetLocationId?.trim() ? { targetLocationId: base.targetLocationId.trim() } : {}),
-            },
-          };
-        });
-        return {
-          ...prev,
-          objectsByCellId: { ...prev.objectsByCellId, [localCellId]: nextObjs },
-        };
-      });
-      if (counterpart) {
-        await patchFloorStairConnectionIdOnDefaultMap(campaignId, counterpart, null);
-      }
-    },
-    [campaignId, activeFloorId],
-  );
+  const {
+    handleRemovePlacedObject,
+    handleLinkStairPair,
+    handleUnlinkStairEndpoint,
+  } = useLocationEditBuildingStairHandlers({
+    campaignId,
+    isBuildingWorkspace,
+    activeFloorId,
+    locationId,
+    loc,
+    floorChildren,
+    buildingStairConnections,
+    setBuildingStairConnections,
+    setGridDraft,
+  });
 
   const handleRemovePathFromMap = useCallback((pathId: string) => {
     setGridDraft((prev) => applyRemovePathFromDraft(prev, pathId));

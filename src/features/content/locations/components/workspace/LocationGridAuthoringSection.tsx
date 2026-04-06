@@ -8,7 +8,6 @@ import {
   type MouseEvent as ReactMouseEvent,
   type SetStateAction,
 } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -20,19 +19,11 @@ import {
   type GridCell,
 } from '@/features/content/locations/components/mapGrid';
 import type { GridGeometryId } from '@/shared/domain/grid/gridGeometry';
-import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/model/map/locationCellFill.types';
-import {
-  buildSelectModeInteractiveTargetInput,
-  buildSelectModeInteractiveTargetInputSkipGeometry,
-  canApplyAnyPaintStroke,
-  canApplyRegionPaint,
-  getActiveSurfaceFillKind,
-  refineSelectModeClickAfterRegionDrill,
-  resolveSelectModeInteractiveTarget,
-  type LocationMapActiveDrawSelection,
-  type LocationMapActivePaintSelection,
-  type LocationMapEditorMode,
+import type {
+  LocationMapActiveDrawSelection,
+  LocationMapActivePaintSelection,
+  LocationMapEditorMode,
 } from '@/features/content/locations/domain/authoring/editor';
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { resolveCellFillSwatchColor } from '@/app/theme/mapColors';
@@ -40,33 +31,27 @@ import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/
 import type { Location } from '@/features/content/locations/domain/model/location';
 import { useLocationAuthoringGridLayout } from '@/features/content/locations/hooks/useLocationAuthoringGridLayout';
 import { usePruneGridDraftOnDimensionChange } from '@/features/content/locations/hooks/usePruneGridDraftOnDimensionChange';
-import { hexBoundarySegmentsForRegionCells } from '../authoring/geometry/hexRegionBoundaryForAuthoring';
-import { HexMapAuthoringSvgOverlay } from '../mapGrid/authoring/HexMapAuthoringSvgOverlay';
-import { SquareMapAuthoringSvgOverlay } from '../mapGrid/authoring/SquareMapAuthoringSvgOverlay';
+import {
+  LocationGridAuthoringHexMapOverlayLayer,
+  LocationGridAuthoringSquareMapOverlayLayer,
+} from './locationGridAuthoringMapOverlayLayers';
 import { useSquareEdgeBoundaryPaint } from '../mapGrid/authoring/useSquareEdgeBoundaryPaint';
 import { LocationMapCellAuthoringOverlay } from '../mapGrid/LocationMapCellAuthoringOverlay';
 
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 
 import type { LocationGridDraftState } from '../authoring/draft/locationGridDraft.types';
-import {
-  mapSelectionEqual,
-  selectedCellIdForMapSelection,
-  type LocationMapSelection,
-} from './rightRail/types';
-import {
-  resolveSquareAnchorCellIdForSelectPx,
-  SQUARE_GRID_GAP_PX,
-} from '../authoring/geometry/squareGridMapOverlayGeometry';
+import { selectedCellIdForMapSelection } from './rightRail/locationEditorRail.helpers';
+import { SQUARE_GRID_GAP_PX } from '../authoring/geometry/squareGridMapOverlayGeometry';
 import { edgeEntriesToSegmentGeometrySquare } from '@/shared/domain/locations/map/locationMapEdgeGeometry.helpers';
-import {
-  pathEntriesToPolylineGeometry,
-  pathEntryToPolylineGeometry,
-} from '@/shared/domain/locations/map/locationMapPathPolyline.helpers';
+import { pathEntriesToPolylineGeometry } from '@/shared/domain/locations/map/locationMapPathPolyline.helpers';
 import { resolveNearestHexCell } from '../authoring/geometry/hexGridMapOverlayGeometry';
-import { polylinePoint2DToSmoothSvgPath } from '../authoring/geometry/pathOverlayRendering';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
-import { getNeighborPoints } from '@/shared/domain/grid/gridHelpers';
+import { buildHexAuthoringRegionBoundarySegments } from './locationGridAuthoringHexRegionOverlays';
+import { buildLocationGridPathSvgPreviewData } from './locationGridAuthoringPathSvgPreview';
+import { useLocationGridAuthoringCellPointers } from './useLocationGridAuthoringCellPointers';
+import { useLocationGridPaintStroke } from './useLocationGridPaintStroke';
+import { useLocationGridSelectMode } from './useLocationGridSelectMode';
 
 type LocationGridAuthoringSectionProps = {
   gridColumns: string;
@@ -157,21 +142,7 @@ export function LocationGridAuthoringSection({
     [cols, rows],
   );
 
-  const paintStrokeActive = useRef(false);
-  const strokeSeen = useRef<Set<string>>(new Set());
-  const placeObjectStrokeActive = useRef(false);
-  const placeObjectStrokeSeen = useRef<Set<string>>(new Set());
-
-  const [selectHoverTarget, setSelectHoverTarget] = useState<LocationMapSelection>({
-    type: 'none',
-  });
   const gridContainerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (mapEditorMode !== 'select') {
-      setSelectHoverTarget({ type: 'none' });
-    }
-  }, [mapEditorMode]);
 
   const edgePlaceActive = mapEditorMode === 'draw' && activeDraw?.category === 'edge';
   const edgeEraseActive = mapEditorMode === 'erase';
@@ -209,119 +180,12 @@ export function LocationGridAuthoringSection({
     onEraseEdge,
   });
 
-  const hexSelectedRegionBoundarySegments = useMemo(() => {
-    if (!isHex || !hexGridGeometry || draft.mapSelection.type !== 'region') {
-      return [];
-    }
-    return hexBoundarySegmentsForRegionCells(
-      cols,
-      rows,
-      hexGridGeometry.hexSize,
-      draft.mapSelection.regionId,
-      draft.regionIdByCellId,
-    );
-  }, [isHex, hexGridGeometry, draft.mapSelection, draft.regionIdByCellId, cols, rows]);
+  const pathPickPolys = useMemo(() => {
+    return pathEntriesToPolylineGeometry(draft.pathEntries, (cid) => cellCenterPx(cid));
+  }, [draft.pathEntries, cellCenterPx]);
 
-  const hexHoverRegionBoundarySegments = useMemo(() => {
-    if (!isHex || !hexGridGeometry || selectHoverTarget.type !== 'region') {
-      return [];
-    }
-    return hexBoundarySegmentsForRegionCells(
-      cols,
-      rows,
-      hexGridGeometry.hexSize,
-      selectHoverTarget.regionId,
-      draft.regionIdByCellId,
-    );
-  }, [isHex, hexGridGeometry, selectHoverTarget, draft.regionIdByCellId, cols, rows]);
-
-  const activePathKind: LocationMapPathKindId | null =
-    activeDraw?.category === 'path' ? activeDraw.kind : null;
-
-  const pathSvgData = useMemo(() => {
-    const chains = draft.pathEntries.map((pe) => ({
-      id: pe.id,
-      kind: pe.kind,
-      cells: [...pe.cellIds],
-    }));
-    if (chains.length === 0 && !placePathAnchorCellId) return [];
-
-    let extendIdx = -1;
-    let extendCell: string | null = null;
-    let prepend = false;
-
-    if (placePathAnchorCellId && placeHoverCellId && placePathAnchorCellId !== placeHoverCellId) {
-      const pa = parseGridCellId(placePathAnchorCellId);
-      const pb = parseGridCellId(placeHoverCellId);
-      if (pa && pb) {
-        const geom = (gridGeometry === 'hex' ? 'hex' : 'square') as 'square' | 'hex';
-        const neighbors = getNeighborPoints({ geometry: geom, columns: cols, rows }, pa);
-        if (neighbors.some((n) => n.x === pb.x && n.y === pb.y)) {
-          for (let i = 0; i < chains.length; i++) {
-            const c = chains[i];
-            if (c.cells[c.cells.length - 1] === placePathAnchorCellId) {
-              extendIdx = i;
-              extendCell = placeHoverCellId;
-              break;
-            }
-            if (c.cells[0] === placePathAnchorCellId) {
-              extendIdx = i;
-              extendCell = placeHoverCellId;
-              prepend = true;
-              break;
-            }
-          }
-          if (extendIdx < 0) {
-            extendCell = placeHoverCellId;
-          }
-        }
-      }
-    }
-
-    const centerFn = (cellId: string) => cellCenterPx(cellId);
-    const result: { pathId: string; kind: LocationMapPathKindId; d: string }[] = [];
-
-    for (let i = 0; i < chains.length; i++) {
-      let cells = chains[i].cells;
-      if (i === extendIdx && extendCell) {
-        cells = prepend ? [extendCell, ...cells] : [...cells, extendCell];
-      }
-      const poly = pathEntryToPolylineGeometry(
-        { id: chains[i].id, kind: chains[i].kind, cellIds: cells },
-        centerFn,
-      );
-      if (!poly) continue;
-      result.push({
-        pathId: chains[i].id,
-        kind: poly.kind,
-        d: polylinePoint2DToSmoothSvgPath(poly.points),
-      });
-    }
-
-    if (extendIdx < 0 && extendCell && placePathAnchorCellId) {
-      const previewPoly = pathEntryToPolylineGeometry(
-        {
-          id: 'preview',
-          kind: activePathKind ?? 'road',
-          cellIds: [placePathAnchorCellId, extendCell],
-        },
-        centerFn,
-      );
-      if (previewPoly) {
-        result.push({
-          pathId: '__preview__',
-          kind: previewPoly.kind,
-          d: polylinePoint2DToSmoothSvgPath(previewPoly.points),
-        });
-      }
-    }
-
-    return result;
-  }, [draft.pathEntries, placePathAnchorCellId, placeHoverCellId, cellCenterPx, gridGeometry, cols, rows, activePathKind]);
-
-  /** Committed edge features (square grid only): shared geometry layer → SVG lines below. */
-  const committedEdgeSegmentGeometry = useMemo(() => {
-    if (!squareGridGeometry || isHex) return [];
+  const edgePickGeoms = useMemo(() => {
+    if (!squareGridGeometry || isHex) return null;
     return edgeEntriesToSegmentGeometrySquare(
       draft.edgeEntries,
       squareGridGeometry.cellPx,
@@ -329,12 +193,98 @@ export function LocationGridAuthoringSection({
     );
   }, [draft.edgeEntries, squareGridGeometry, isHex]);
 
-  const pathPickPolys = useMemo(() => {
-    return pathEntriesToPolylineGeometry(draft.pathEntries, (cid) => cellCenterPx(cid));
-  }, [draft.pathEntries, cellCenterPx]);
+  const resolveHexCellFromClient = useCallback(
+    (clientX: number, clientY: number): string | null => {
+      if (!isHex || !gridContainerRef.current || !hexGridGeometry) return null;
+      const rect = gridContainerRef.current.getBoundingClientRect();
+      const gx = clientX - rect.left;
+      const gy = clientY - rect.top;
+      return resolveNearestHexCell(gx, gy, cols, rows, hexGridGeometry.hexSize);
+    },
+    [isHex, hexGridGeometry, cols, rows],
+  );
 
-  const edgePickGeoms = useMemo(() => {
-    if (!squareGridGeometry || isHex) return null;
+  const {
+    selectHoverTarget,
+    clearSelectHoverTarget,
+    handleSelectPointerMove,
+    handleSelectGridContainerClick,
+    onSelectModeCellClick,
+  } = useLocationGridSelectMode({
+    mapEditorMode,
+    validPreview,
+    draft,
+    setDraft,
+    pathPickPolys,
+    edgePickGeoms,
+    isHex,
+    squareGridGeometry,
+    cols,
+    rows,
+    gridContainerRef,
+    resolveHexCellFromClient,
+    consumeClickSuppressionAfterPan,
+    onCellFocusRail,
+  });
+
+  const hexSelectedRegionBoundarySegments = useMemo(
+    () =>
+      buildHexAuthoringRegionBoundarySegments({
+        isHex,
+        hexGridGeometry,
+        cols,
+        rows,
+        activeRegionId:
+          draft.mapSelection.type === 'region' ? draft.mapSelection.regionId : null,
+        regionIdByCellId: draft.regionIdByCellId,
+      }),
+    [isHex, hexGridGeometry, draft.mapSelection, draft.regionIdByCellId, cols, rows],
+  );
+
+  const hexHoverRegionBoundarySegments = useMemo(
+    () =>
+      buildHexAuthoringRegionBoundarySegments({
+        isHex,
+        hexGridGeometry,
+        cols,
+        rows,
+        activeRegionId:
+          selectHoverTarget.type === 'region' ? selectHoverTarget.regionId : null,
+        regionIdByCellId: draft.regionIdByCellId,
+      }),
+    [isHex, hexGridGeometry, selectHoverTarget, draft.regionIdByCellId, cols, rows],
+  );
+
+  const activePathKind: LocationMapPathKindId | null =
+    activeDraw?.category === 'path' ? activeDraw.kind : null;
+
+  const pathSvgData = useMemo(
+    () =>
+      buildLocationGridPathSvgPreviewData({
+        pathEntries: draft.pathEntries,
+        placePathAnchorCellId,
+        placeHoverCellId,
+        cellCenterPx,
+        gridGeometry,
+        cols,
+        rows,
+        activePathKind,
+      }),
+    [
+      draft.pathEntries,
+      placePathAnchorCellId,
+      placeHoverCellId,
+      cellCenterPx,
+      gridGeometry,
+      cols,
+      rows,
+      activePathKind,
+    ],
+  );
+
+  /** Committed edge features (square grid only): shared geometry layer → SVG lines below. */
+  const committedEdgeSegmentGeometry = useMemo(() => {
+    if (!squareGridGeometry || isHex) return [];
     return edgeEntriesToSegmentGeometrySquare(
       draft.edgeEntries,
       squareGridGeometry.cellPx,
@@ -385,97 +335,18 @@ export function LocationGridAuthoringSection({
     [draft.cellFillByCellId],
   );
 
-  const applyStrokeCell = useCallback(
-    (cellId: string) => {
-      if (strokeSeen.current.has(cellId)) return;
-      strokeSeen.current.add(cellId);
-      if (mapEditorMode === 'paint') {
-        const surfaceFill = getActiveSurfaceFillKind(activePaint ?? null);
-        if (surfaceFill) {
-          setDraft((d) => ({
-            ...d,
-            cellFillByCellId: { ...d.cellFillByCellId, [cellId]: surfaceFill },
-          }));
-          return;
-        }
-        if (canApplyRegionPaint(activePaint ?? null, draft.regionEntries)) {
-          const paint = activePaint!;
-          const rid = paint.activeRegionId!.trim();
-          setDraft((prevDraft) => ({
-            ...prevDraft,
-            regionIdByCellId: { ...prevDraft.regionIdByCellId, [cellId]: rid },
-          }));
-        }
-        return;
-      }
-      if (mapEditorMode === 'erase') {
-        setDraft((d) => {
-          const nextFill = { ...d.cellFillByCellId };
-          delete nextFill[cellId];
-          const nextRegion = { ...d.regionIdByCellId };
-          delete nextRegion[cellId];
-          return { ...d, cellFillByCellId: nextFill, regionIdByCellId: nextRegion };
-        });
-      }
-    },
-    [activePaint, draft.regionEntries, mapEditorMode, setDraft],
-  );
-
-  const endPaintStroke = useCallback(() => {
-    paintStrokeActive.current = false;
-    strokeSeen.current.clear();
-  }, []);
-
-  const endPlaceObjectStroke = useCallback(() => {
-    placeObjectStrokeActive.current = false;
-    placeObjectStrokeSeen.current.clear();
-  }, []);
-
-  useEffect(() => {
-    const onWindowPointerUp = () => {
-      if (paintStrokeActive.current) endPaintStroke();
-      if (placeObjectStrokeActive.current) endPlaceObjectStroke();
-      if (edgeStrokeActive.current) commitEdgeStroke();
-    };
-    window.addEventListener('pointerup', onWindowPointerUp);
-    return () => window.removeEventListener('pointerup', onWindowPointerUp);
-  }, [endPaintStroke, endPlaceObjectStroke, commitEdgeStroke, edgeStrokeActive]);
-
-  const handlePaintPointerDown = useCallback(
-    (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      if (mapEditorMode !== 'paint' && mapEditorMode !== 'erase') return;
-      if (mapEditorMode === 'paint' && !canApplyAnyPaintStroke(activePaint ?? null, draft.regionEntries)) {
-        return;
-      }
-      e.stopPropagation();
-      paintStrokeActive.current = true;
-      strokeSeen.current = new Set();
-      applyStrokeCell(cell.cellId);
-    },
-    [activePaint, applyStrokeCell, draft.regionEntries, mapEditorMode],
-  );
-
-  const handlePaintPointerEnter = useCallback(
-    (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      if (!paintStrokeActive.current) return;
-      if (e.buttons !== 1) return;
-      if (mapEditorMode === 'paint' && !canApplyAnyPaintStroke(activePaint ?? null, draft.regionEntries)) {
-        return;
-      }
-      e.stopPropagation();
-      applyStrokeCell(cell.cellId);
-    },
-    [activePaint, applyStrokeCell, draft.regionEntries, mapEditorMode],
-  );
-
-  const handlePaintPointerUp = useCallback(
-    (e: ReactPointerEvent<HTMLElement>) => {
-      if (mapEditorMode !== 'paint' && mapEditorMode !== 'erase') return;
-      e.stopPropagation();
-      endPaintStroke();
-    },
-    [endPaintStroke, mapEditorMode],
-  );
+  const {
+    paintStrokeActive,
+    endPaintStroke,
+    handlePaintPointerDown,
+    handlePaintPointerEnter,
+    handlePaintPointerUp,
+  } = useLocationGridPaintStroke({
+    mapEditorMode,
+    activePaint,
+    regionEntries: draft.regionEntries,
+    setDraft,
+  });
 
   const paintStrokeOrEraseFill =
     mapEditorMode === 'paint' || mapEditorMode === 'erase';
@@ -494,232 +365,35 @@ export function LocationGridAuthoringSection({
     !placeObjectStrokeMode &&
     placePathAnchorCellId != null;
 
-  const handleCellPointerDownForGrid = useCallback(
-    (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      if (paintStrokeOrEraseFill) {
-        handlePaintPointerDown(e, cell);
-        return;
-      }
-      if (placeObjectStrokeMode) {
-        e.stopPropagation();
-        placeObjectStrokeActive.current = true;
-        placeObjectStrokeSeen.current = new Set();
-        if (!placeObjectStrokeSeen.current.has(cell.cellId)) {
-          placeObjectStrokeSeen.current.add(cell.cellId);
-          onPlaceCellClick?.(cell.cellId);
-        }
-        return;
-      }
-      if (placePathPlacement) {
-        e.stopPropagation();
-        return;
-      }
-      if (suppressEdgePlacePan) {
-        e.stopPropagation();
-      }
-    },
-    [
-      paintStrokeOrEraseFill,
-      handlePaintPointerDown,
-      placeObjectStrokeMode,
-      onPlaceCellClick,
-      placePathPlacement,
-      suppressEdgePlacePan,
-    ],
-  );
+  const {
+    placeObjectStrokeActive,
+    endPlaceObjectStroke,
+    handleCellPointerDownForGrid,
+    handleCellPointerEnterForGrid,
+    handleCellPointerUpForGrid,
+    handlePlacePathEdgePointerMove,
+  } = useLocationGridAuthoringCellPointers({
+    paintStrokeOrEraseFill,
+    handlePaintPointerDown,
+    handlePaintPointerEnter,
+    handlePaintPointerUp,
+    placeObjectStrokeMode,
+    placePathPlacement,
+    suppressEdgePlacePan,
+    onPlaceCellClick,
+    resolveHexCellFromClient,
+    setPlaceHoverCellId,
+  });
 
-  const resolveHexCellFromClient = useCallback(
-    (clientX: number, clientY: number): string | null => {
-      if (!isHex || !gridContainerRef.current || !hexGridGeometry) return null;
-      const rect = gridContainerRef.current.getBoundingClientRect();
-      const gx = clientX - rect.left;
-      const gy = clientY - rect.top;
-      return resolveNearestHexCell(gx, gy, cols, rows, hexGridGeometry.hexSize);
-    },
-    [isHex, hexGridGeometry, cols, rows],
-  );
-
-  const handleSelectPointerMove = useCallback(
-    (e: React.PointerEvent<HTMLElement>) => {
-      if (mapEditorMode !== 'select' || !validPreview) return;
-      if (!gridContainerRef.current) return;
-      const rect = gridContainerRef.current.getBoundingClientRect();
-      const gx = e.clientX - rect.left;
-      const gy = e.clientY - rect.top;
-      const top = document.elementFromPoint(e.clientX, e.clientY);
-      const cellEl = top?.closest('[role="gridcell"]');
-      const anchorCellId =
-        cellEl?.getAttribute('data-cell-id') ??
-        resolveHexCellFromClient(e.clientX, e.clientY) ??
-        (!isHex && squareGridGeometry
-          ? resolveSquareAnchorCellIdForSelectPx(
-              gx,
-              gy,
-              squareGridGeometry.cellPx,
-              cols,
-              rows,
-              SQUARE_GRID_GAP_PX,
-            )
-          : null);
-      if (!anchorCellId) {
-        setSelectHoverTarget((prev) =>
-          mapSelectionEqual(prev, { type: 'none' }) ? prev : { type: 'none' },
-        );
-        return;
-      }
-      const next = resolveSelectModeInteractiveTarget({
-        targetElement: top as HTMLElement | null,
-        clientX: e.clientX,
-        clientY: e.clientY,
-        gx,
-        gy,
-        anchorCellId,
-        ...buildSelectModeInteractiveTargetInput(draft, pathPickPolys, edgePickGeoms, isHex),
-      });
-      setSelectHoverTarget((prev) => (mapSelectionEqual(prev, next) ? prev : next));
-    },
-    [
-      mapEditorMode,
-      validPreview,
-      draft,
-      pathPickPolys,
-      edgePickGeoms,
-      isHex,
-      squareGridGeometry,
-      cols,
-      rows,
-      resolveHexCellFromClient,
-    ],
-  );
-
-  const handleSelectGridContainerClick = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      if (mapEditorMode !== 'select' || !validPreview) return;
-      if (consumeClickSuppressionAfterPan?.()) return;
-      if (isHex) return;
-      if ((e.target as HTMLElement).closest('[role="gridcell"]')) return;
-      if (!gridContainerRef.current || !squareGridGeometry) return;
-      const rect = gridContainerRef.current.getBoundingClientRect();
-      const gx = e.clientX - rect.left;
-      const gy = e.clientY - rect.top;
-      const anchorCellId = resolveSquareAnchorCellIdForSelectPx(
-        gx,
-        gy,
-        squareGridGeometry.cellPx,
-        cols,
-        rows,
-        SQUARE_GRID_GAP_PX,
-      );
-      if (!anchorCellId) return;
-      setDraft((d) => {
-        const resolved = resolveSelectModeInteractiveTarget({
-          targetElement: e.target as HTMLElement,
-          clientX: e.clientX,
-          clientY: e.clientY,
-          gx,
-          gy,
-          anchorCellId,
-          ...buildSelectModeInteractiveTargetInput(d, pathPickPolys, edgePickGeoms, isHex),
-        });
-        const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, anchorCellId);
-        return {
-          ...d,
-          mapSelection: ms,
-          selectedCellId: selectedCellIdForMapSelection(ms),
-        };
-      });
-      onCellFocusRail?.();
-    },
-    [
-      mapEditorMode,
-      validPreview,
-      consumeClickSuppressionAfterPan,
-      isHex,
-      squareGridGeometry,
-      cols,
-      rows,
-      pathPickPolys,
-      edgePickGeoms,
-      setDraft,
-      onCellFocusRail,
-    ],
-  );
-
-  const updatePlaceHoverFromPointerClient = useCallback(
-    (clientX: number, clientY: number) => {
-      const top = document.elementFromPoint(clientX, clientY);
-      const cellEl = top?.closest('[role="gridcell"]');
-      const directId = cellEl?.getAttribute('data-cell-id') ?? null;
-      const next = directId ?? resolveHexCellFromClient(clientX, clientY);
-      setPlaceHoverCellId((prev) => (prev === next ? prev : next));
-    },
-    [resolveHexCellFromClient],
-  );
-
-  const handlePlacePathEdgePointerMove = useCallback(
-    (e: ReactPointerEvent<HTMLElement>) => {
-      if (!placePathPlacement) return;
-      updatePlaceHoverFromPointerClient(e.clientX, e.clientY);
-    },
-    [placePathPlacement, updatePlaceHoverFromPointerClient],
-  );
-
-  const handleCellPointerEnterForGrid = useCallback(
-    (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      if (paintStrokeOrEraseFill) {
-        handlePaintPointerEnter(e, cell);
-        return;
-      }
-      if (placePathPlacement) {
-        e.stopPropagation();
-        setPlaceHoverCellId(cell.cellId);
-        return;
-      }
-      if (!placeObjectStrokeActive.current || !placeObjectStrokeMode) return;
-      if (e.buttons !== 1) return;
-      e.stopPropagation();
-      if (placeObjectStrokeSeen.current.has(cell.cellId)) return;
-      placeObjectStrokeSeen.current.add(cell.cellId);
-      onPlaceCellClick?.(cell.cellId);
-    },
-    [
-      paintStrokeOrEraseFill,
-      handlePaintPointerEnter,
-      placePathPlacement,
-      placeObjectStrokeMode,
-      onPlaceCellClick,
-    ],
-  );
-
-  const handleCellPointerUpForGrid = useCallback(
-    (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {
-      void cell;
-      if (paintStrokeOrEraseFill) {
-        handlePaintPointerUp(e);
-        return;
-      }
-      if (placeObjectStrokeActive.current && placeObjectStrokeMode) {
-        e.stopPropagation();
-        endPlaceObjectStroke();
-        return;
-      }
-      if (placePathPlacement) {
-        e.stopPropagation();
-        return;
-      }
-      if (suppressEdgePlacePan) {
-        e.stopPropagation();
-      }
-    },
-    [
-      paintStrokeOrEraseFill,
-      handlePaintPointerUp,
-      placeObjectStrokeMode,
-      endPlaceObjectStroke,
-      placePathPlacement,
-      suppressEdgePlacePan,
-    ],
-  );
+  useEffect(() => {
+    const onWindowPointerUp = () => {
+      if (paintStrokeActive.current) endPaintStroke();
+      if (placeObjectStrokeActive.current) endPlaceObjectStroke();
+      if (edgeStrokeActive.current) commitEdgeStroke();
+    };
+    window.addEventListener('pointerup', onWindowPointerUp);
+    return () => window.removeEventListener('pointerup', onWindowPointerUp);
+  }, [endPaintStroke, endPlaceObjectStroke, commitEdgeStroke, edgeStrokeActive]);
 
   const onCellClick = (cell: GridCell, e: ReactMouseEvent<HTMLElement>) => {
     if (consumeClickSuppressionAfterPan?.()) return;
@@ -743,48 +417,7 @@ export function LocationGridAuthoringSection({
     if (mapEditorMode !== 'select') {
       return;
     }
-    if (!gridContainerRef.current) {
-      setDraft((d) => {
-        const resolved = resolveSelectModeInteractiveTarget({
-          targetElement: e.target as HTMLElement,
-          clientX: e.clientX,
-          clientY: e.clientY,
-          gx: 0,
-          gy: 0,
-          anchorCellId: cell.cellId,
-          ...buildSelectModeInteractiveTargetInputSkipGeometry(d, isHex),
-        });
-        const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, cell.cellId);
-        return {
-          ...d,
-          mapSelection: ms,
-          selectedCellId: selectedCellIdForMapSelection(ms),
-        };
-      });
-      onCellFocusRail?.();
-      return;
-    }
-    const rect = gridContainerRef.current.getBoundingClientRect();
-    const gx = e.clientX - rect.left;
-    const gy = e.clientY - rect.top;
-    setDraft((d) => {
-      const resolved = resolveSelectModeInteractiveTarget({
-        targetElement: e.target as HTMLElement,
-        clientX: e.clientX,
-        clientY: e.clientY,
-        gx,
-        gy,
-        anchorCellId: cell.cellId,
-        ...buildSelectModeInteractiveTargetInput(d, pathPickPolys, edgePickGeoms, isHex),
-      });
-      const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, cell.cellId);
-      return {
-        ...d,
-        mapSelection: ms,
-        selectedCellId: selectedCellIdForMapSelection(ms),
-      };
-    });
-    onCellFocusRail?.();
+    onSelectModeCellClick(cell, e);
   };
 
   const handleHexFallbackClick = useCallback(
@@ -933,69 +566,44 @@ export function LocationGridAuthoringSection({
         onPointerLeave={() => {
           if (edgePlaceActive || edgeEraseActive) handleEdgePointerLeave();
           if (placePathPlacement) setPlaceHoverCellId(null);
-          if (mapEditorMode === 'select') setSelectHoverTarget({ type: 'none' });
+          if (mapEditorMode === 'select') clearSelectHoverTarget();
         }}
       >
-        {squareGridGeometry &&
-        !isHex &&
-        (pathSvgData.length > 0 ||
-          draft.edgeEntries.length > 0 ||
-          edgeHoverTarget != null ||
-          edgeStrokeSnapshot.length > 0) ? (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              width: squareGridGeometry.width,
-              height: squareGridGeometry.height,
-              zIndex: 2,
-              pointerEvents: 'none',
-            }}
-          >
-            <SquareMapAuthoringSvgOverlay
-              width={squareGridGeometry.width}
-              height={squareGridGeometry.height}
-              cellPx={squareGridGeometry.cellPx}
-              mapUi={mapUi}
-              pathSvgData={pathSvgData}
-              mapSelection={draft.mapSelection}
-              selectHoverTarget={selectHoverTarget}
-              edgeStrokeSnapshot={edgeStrokeSnapshot}
-              edgeHoverTarget={edgeHoverTarget}
-              edgeEraseActive={edgeEraseActive}
-              committedEdgeSegmentGeometry={committedEdgeSegmentGeometry}
-            />
-          </Box>
-        ) : null}
-        {hexGridGeometry &&
-        isHex &&
-        (pathSvgData.length > 0 ||
-          hexSelectedRegionBoundarySegments.length > 0 ||
-          hexHoverRegionBoundarySegments.length > 0) ? (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              width: hexGridGeometry.width,
-              height: hexGridGeometry.height,
-              zIndex: 2,
-              pointerEvents: 'none',
-            }}
-          >
-            <HexMapAuthoringSvgOverlay
-              width={hexGridGeometry.width}
-              height={hexGridGeometry.height}
-              mapUi={mapUi}
-              pathSvgData={pathSvgData}
-              mapSelection={draft.mapSelection}
-              selectHoverTarget={selectHoverTarget}
-              hexSelectedRegionBoundarySegments={hexSelectedRegionBoundarySegments}
-              hexHoverRegionBoundarySegments={hexHoverRegionBoundarySegments}
-            />
-          </Box>
-        ) : null}
+        <LocationGridAuthoringSquareMapOverlayLayer
+          visible={
+            !!squareGridGeometry &&
+            !isHex &&
+            (pathSvgData.length > 0 ||
+              draft.edgeEntries.length > 0 ||
+              edgeHoverTarget != null ||
+              edgeStrokeSnapshot.length > 0)
+          }
+          squareGridGeometry={squareGridGeometry}
+          mapUi={mapUi}
+          pathSvgData={pathSvgData}
+          mapSelection={draft.mapSelection}
+          selectHoverTarget={selectHoverTarget}
+          edgeStrokeSnapshot={edgeStrokeSnapshot}
+          edgeHoverTarget={edgeHoverTarget}
+          edgeEraseActive={edgeEraseActive}
+          committedEdgeSegmentGeometry={committedEdgeSegmentGeometry}
+        />
+        <LocationGridAuthoringHexMapOverlayLayer
+          visible={
+            !!hexGridGeometry &&
+            isHex &&
+            (pathSvgData.length > 0 ||
+              hexSelectedRegionBoundarySegments.length > 0 ||
+              hexHoverRegionBoundarySegments.length > 0)
+          }
+          hexGridGeometry={hexGridGeometry}
+          mapUi={mapUi}
+          pathSvgData={pathSvgData}
+          mapSelection={draft.mapSelection}
+          selectHoverTarget={selectHoverTarget}
+          hexSelectedRegionBoundarySegments={hexSelectedRegionBoundarySegments}
+          hexHoverRegionBoundarySegments={hexHoverRegionBoundarySegments}
+        />
         <Box sx={{ position: 'relative', zIndex: 0 }}>
           {isHex ? (
             <HexGridEditor

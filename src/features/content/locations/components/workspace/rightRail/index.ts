@@ -8,7 +8,7 @@ export {
   shouldAutoSwitchRailToMapForMode,
   selectedCellIdForMapSelection,
   mapSelectionEqual,
-} from './types';
+} from './locationEditorRail.helpers';
 export {
   LocationMapEditorPaintMapPanel,
   LocationMapEditorDrawPanel,
