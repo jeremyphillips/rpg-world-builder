@@ -21,6 +21,8 @@ import {
   type RegionMetadataPersistablePatch,
 } from '../adapters';
 
+import { SelectionRailIdentityBlock } from './PlacedObjectRailTemplate';
+
 export type { RegionMetadataFormValues };
 
 const DESCRIPTION_SYNC_DEBOUNCE_MS = 300;
@@ -124,10 +126,17 @@ export function LocationMapRegionMetadataForm({
     patchRef.current(region.id, { colorKey: raw as LocationMapRegionColorKey });
   };
 
+  const displayTitle = region.name?.trim() ? region.name.trim() : 'Region';
+
   return (
     <FormProvider {...methods}>
       <Box id={formId} component="div">
         <Stack spacing={2}>
+          <SelectionRailIdentityBlock
+            categoryLabel="Map"
+            title={displayTitle}
+            placementLine="Overlay region"
+          />
           {showPersistHint ? (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
               Changes apply to the map draft as you edit. Use <strong>Save</strong> in the header to persist the

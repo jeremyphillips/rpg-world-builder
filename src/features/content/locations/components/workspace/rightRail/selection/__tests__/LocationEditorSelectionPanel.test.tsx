@@ -115,4 +115,45 @@ describe('LocationEditorSelectionPanel', () => {
     expect(screen.getByRole('heading', { name: 'Path' })).toBeInTheDocument();
     expect(screen.getByText('Chain · 2 cells')).toBeInTheDocument();
   });
+
+  it('region: mounts region form with shared Map header and region name as title', () => {
+    renderSelection(
+      { type: 'region', regionId: 'reg-1' },
+      {
+        regionEntries: [
+          {
+            id: 'reg-1',
+            name: 'Harbor District',
+            description: '',
+            colorKey: 'regionBlue',
+          },
+        ],
+      },
+    );
+    expect(screen.getByText('Map')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Harbor District' })).toBeInTheDocument();
+    expect(screen.getByText('Overlay region')).toBeInTheDocument();
+  });
+
+  it('edge-run: wall uses geometry-style run title', () => {
+    renderSelection({
+      type: 'edge-run',
+      kind: 'wall',
+      edgeIds: ['between:0,0|1,0|E'],
+      axis: 'horizontal',
+      anchorEdgeId: 'between:0,0|1,0|E',
+    });
+    expect(screen.getByRole('heading', { name: 'Horizontal Wall run' })).toBeInTheDocument();
+  });
+
+  it('edge-run: door uses registry object-first title', () => {
+    renderSelection({
+      type: 'edge-run',
+      kind: 'door',
+      edgeIds: ['e1'],
+      axis: 'vertical',
+      anchorEdgeId: 'e1',
+    });
+    expect(screen.getByRole('heading', { name: 'Door' })).toBeInTheDocument();
+  });
 });

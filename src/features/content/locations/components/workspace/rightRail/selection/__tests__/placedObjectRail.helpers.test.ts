@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import type { Location } from '@/features/content/locations/domain/model/location';
 
-import { shouldShowLinkedIdentityForPlacedObject } from '../placedObjectRail.helpers';
+import {
+  formatCellPlacementLine,
+  legacyMapObjectKindTitle,
+  shouldShowLinkedIdentityForPlacedObject,
+} from '../placedObjectRail.helpers';
 
 function loc(partial: Pick<Location, 'id' | 'name' | 'scale'>): Location {
   return partial as Location;
@@ -29,5 +33,22 @@ describe('shouldShowLinkedIdentityForPlacedObject', () => {
 
   it('returns false when no linked location id', () => {
     expect(shouldShowLinkedIdentityForPlacedObject('city', undefined, undefined)).toBe(false);
+  });
+});
+
+describe('formatCellPlacementLine', () => {
+  it('formats parsed grid cell ids as Cell x,y', () => {
+    expect(formatCellPlacementLine('3,4')).toBe('Cell 3,4');
+  });
+
+  it('falls back to raw id when parse fails', () => {
+    expect(formatCellPlacementLine('not-a-grid-cell')).toBe('Cell not-a-grid-cell');
+  });
+});
+
+describe('legacyMapObjectKindTitle', () => {
+  it('maps persisted map object kinds to display titles', () => {
+    expect(legacyMapObjectKindTitle('stairs')).toBe('Stairs');
+    expect(legacyMapObjectKindTitle('table')).toBe('Table');
   });
 });
