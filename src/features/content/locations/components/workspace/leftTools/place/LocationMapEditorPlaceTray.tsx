@@ -1,9 +1,10 @@
-import { createElement } from 'react';
+import { createElement, Fragment } from 'react';
 import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import { getLocationMapGlyphIconByName } from '@/features/content/locations/domain';
+import { getPlacedObjectPaletteCategoryLabel } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type {
   LocationMapActivePlaceSelection,
   MapPlacePaletteItem,
@@ -55,9 +56,11 @@ export function LocationMapEditorPlaceTray({
         overflow: 'auto',
       }}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const key = itemKey(item);
         const selected = activeKey === key;
+        const showSectionHeading =
+          index === 0 || item.paletteCategory !== items[index - 1]!.paletteCategory;
         const Icon = item.iconName
           ? getLocationMapGlyphIconByName(item.iconName)
           : getLocationMapGlyphIconByName('marker');
@@ -77,7 +80,26 @@ export function LocationMapEditorPlaceTray({
           }
         };
         return (
-          <Tooltip key={key} title={item.label} placement="right">
+          <Fragment key={key}>
+            {showSectionHeading ? (
+              <Typography
+                component="div"
+                variant="caption"
+                sx={{
+                  alignSelf: 'stretch',
+                  textAlign: 'center',
+                  color: 'text.secondary',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                  pt: index === 0 ? 0 : 0.75,
+                  px: 0.25,
+                }}
+              >
+                {getPlacedObjectPaletteCategoryLabel(item.paletteCategory)}
+              </Typography>
+            ) : null}
+            <Tooltip title={item.label} placement="right">
             <Box
               component="button"
               type="button"
@@ -116,6 +138,7 @@ export function LocationMapEditorPlaceTray({
               </Typography>
             </Box>
           </Tooltip>
+          </Fragment>
         );
       })}
     </Box>

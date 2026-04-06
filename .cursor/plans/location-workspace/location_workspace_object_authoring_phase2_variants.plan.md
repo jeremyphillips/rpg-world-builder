@@ -66,7 +66,8 @@ This phase preserves the same separation as the parent:
 
 Phase 1 **locks** the following — Phase 2 **must extend** them, **not** replace or bypass:
 
-- **Registry:** **Family-first** top-level keys; explicit `**variants`** container; **category/group** presentation-only vs persisted identity; family-level shared `**runtime`** with optional future variant overrides.
+- **Registry:** **Family-first** top-level keys; explicit `**variants`** container; **`category`** = **UI palette bucket only** (`structure`, `furniture`, … — see Phase 1 **Category vs `interaction` vs linking**); **`interaction`** (or equivalent) = **behavior semantics**, **not** mixed into `category`; **no** **`linked-locations`** **palette** category as behavioral catch-all; family-level shared `**runtime`** with optional future variant overrides.
+- **Link/reference:** Toolbar chooses **family + variant**; optional **linking** stays **authored configuration** (inspector / rail) per Phase 1 — Phase 2 variant UX **does not** encode link state in **`category`**.
 - `**placementRegistryResolver`:** Single seam from **family + variant identity** → **existing** authored cell payload shape.
 - **Loaded object state:** **Registry identity** (family + variant) **+** minimal placement context — **not** a second canonical copy of the full persisted cell payload as default.
 - **Palette:** Toolbar drawer consumes the **same** registry as any other placeable UI — **no** parallel placeable lists.

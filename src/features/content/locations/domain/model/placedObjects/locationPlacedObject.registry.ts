@@ -37,13 +37,39 @@ export type AuthoredPlacedObjectInteraction = {
   transitionKind: AuthoredPlacedObjectTransitionKind;
 };
 
-/** Explicit palette grouping for toolbar sections — **not** persisted map identity. */
+/**
+ * UI palette grouping buckets only — **not** persisted map identity, **not** link vs object behavior.
+ * Resolver routing (`linked-content` | `map-object` on `activePlace`) is separate; linking is `linkedScale` + policy.
+ */
 export type PlacedObjectPaletteCategoryId =
-  | 'linked-locations'
-  | 'vegetation'
+  | 'structure'
   | 'furniture'
-  | 'circulation'
-  | 'objectives';
+  | 'fixture'
+  | 'hazard'
+  | 'treasure'
+  | 'decor'
+  | 'vegetation';
+
+/** Stable toolbar section order (subset may be empty for a given scale). */
+export const PLACED_OBJECT_PALETTE_CATEGORY_ORDER = [
+  'structure',
+  'furniture',
+  'fixture',
+  'hazard',
+  'treasure',
+  'decor',
+  'vegetation',
+] as const satisfies readonly PlacedObjectPaletteCategoryId[];
+
+export const PLACED_OBJECT_PALETTE_CATEGORY_LABELS: Record<PlacedObjectPaletteCategoryId, string> = {
+  structure: 'Structure',
+  furniture: 'Furniture',
+  fixture: 'Fixtures',
+  hazard: 'Hazards',
+  treasure: 'Treasure',
+  decor: 'Decor',
+  vegetation: 'Vegetation',
+};
 
 /** Canonical default variant id for single-variant families (Phase 1). Phase 2 adds sibling variants. */
 export const DEFAULT_PLACED_OBJECT_VARIANT_ID = 'default' as const;
@@ -84,7 +110,7 @@ export type AuthoredPlacedObjectDefinition = AuthoredPlacedObjectFamilyDefinitio
  */
 export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   city: {
-    category: 'linked-locations',
+    category: 'structure',
     placementMode: 'cell',
     allowedScales: ['world'],
     linkedScale: 'city',
@@ -103,7 +129,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     },
   },
   building: {
-    category: 'linked-locations',
+    category: 'structure',
     placementMode: 'cell',
     allowedScales: ['city'],
     linkedScale: 'building',
@@ -122,7 +148,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     },
   },
   site: {
-    category: 'linked-locations',
+    category: 'structure',
     placementMode: 'cell',
     allowedScales: ['city'],
     linkedScale: 'site',
@@ -177,7 +203,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     },
   },
   stairs: {
-    category: 'circulation',
+    category: 'structure',
     placementMode: 'cell',
     allowedScales: ['floor'],
     runtime: {
@@ -196,7 +222,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     },
   },
   treasure: {
-    category: 'objectives',
+    category: 'treasure',
     placementMode: 'cell',
     allowedScales: ['floor'],
     runtime: {

@@ -4,6 +4,8 @@ import { isValidLocationScaleId } from '@/shared/domain/locations/scale/location
 import {
   AUTHORED_PLACED_OBJECT_DEFINITIONS,
   DEFAULT_PLACED_OBJECT_VARIANT_ID,
+  PLACED_OBJECT_PALETTE_CATEGORY_LABELS,
+  PLACED_OBJECT_PALETTE_CATEGORY_ORDER,
   type AuthoredPlacedObjectFamilyDefinition,
   type AuthoredPlacedObjectInteraction,
   type LocationPlacedObjectKindId,
@@ -64,6 +66,20 @@ export function getPlacedObjectPaletteCategoryId(kind: LocationPlacedObjectKindI
   return AUTHORED_PLACED_OBJECT_DEFINITIONS[kind].category;
 }
 
+export function getPlacedObjectPaletteCategoryLabel(id: PlacedObjectPaletteCategoryId): string {
+  return PLACED_OBJECT_PALETTE_CATEGORY_LABELS[id];
+}
+
+/** Sort key for palette sections (structure → … → vegetation). */
+export function comparePlacedObjectPaletteCategories(
+  a: PlacedObjectPaletteCategoryId,
+  b: PlacedObjectPaletteCategoryId,
+): number {
+  return (
+    PLACED_OBJECT_PALETTE_CATEGORY_ORDER.indexOf(a) - PLACED_OBJECT_PALETTE_CATEGORY_ORDER.indexOf(b)
+  );
+}
+
 export function getPlacedObjectMeta(id: LocationPlacedObjectKindId): LocationPlacedObjectKindMeta {
   return LOCATION_PLACED_OBJECT_KIND_META[id];
 }
@@ -78,7 +94,8 @@ export function getPlacedObjectRuntimeDefaults(
 export function getPlacedObjectInteraction(
   kind: LocationPlacedObjectKindId,
 ): AuthoredPlacedObjectInteraction | undefined {
-  return AUTHORED_PLACED_OBJECT_DEFINITIONS[kind].interaction;
+  const def = AUTHORED_PLACED_OBJECT_DEFINITIONS[kind];
+  return 'interaction' in def ? def.interaction : undefined;
 }
 
 export function getPlacedObjectIconName(kind: LocationPlacedObjectKindId): LocationMapGlyphIconName {

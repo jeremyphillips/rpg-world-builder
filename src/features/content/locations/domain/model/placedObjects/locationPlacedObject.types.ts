@@ -17,10 +17,12 @@ export type {
 } from './locationPlacedObject.registry';
 
 export {
+  comparePlacedObjectPaletteCategories,
   getMapObjectKindIconName,
   getPlacedObjectIconName,
   getPlacedObjectMeta,
   getPlacedObjectPaletteCategoryId,
+  getPlacedObjectPaletteCategoryLabel,
   getPlacedObjectPaletteOptionsForScale,
   LOCATION_PLACED_OBJECT_KIND_IDS,
   LOCATION_PLACED_OBJECT_KIND_META,

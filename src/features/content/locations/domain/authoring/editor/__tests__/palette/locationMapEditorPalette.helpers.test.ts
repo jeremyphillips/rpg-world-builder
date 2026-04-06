@@ -29,7 +29,7 @@ describe('locationMapEditorPalette.helpers', () => {
     expect(items[0].category).toBe('linked-content');
     expect(items[0].familyId).toBe('city');
     expect(items[0].variantId).toBe('default');
-    expect(items[0].paletteCategory).toBe('linked-locations');
+    expect(items[0].paletteCategory).toBe('structure');
     if (items[0].category === 'linked-content') {
       expect(items[0].linkedScale).toBe('city');
     }

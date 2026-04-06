@@ -31,7 +31,8 @@ describe('locationPlacedObject.selectors (registry-derived)', () => {
 
   it('getPlacedObjectPaletteCategoryId returns family registry category', () => {
     expect(getPlacedObjectPaletteCategoryId('table')).toBe('furniture');
-    expect(getPlacedObjectPaletteCategoryId('city')).toBe('linked-locations');
-    expect(getPlacedObjectPaletteCategoryId('stairs')).toBe('circulation');
+    expect(getPlacedObjectPaletteCategoryId('city')).toBe('structure');
+    expect(getPlacedObjectPaletteCategoryId('stairs')).toBe('structure');
+    expect(getPlacedObjectPaletteCategoryId('treasure')).toBe('treasure');
   });
 });

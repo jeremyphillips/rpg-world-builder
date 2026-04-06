@@ -1,6 +1,6 @@
 ---
 name: Object authoring Phase 1 — palette foundation
-overview: Palette foundation plus a durable family-oriented placed object registry (refactor flat AUTHORED_PLACED_OBJECT_DEFINITIONS in locationPlacedObject.registry.ts) with explicit category, family-level runtime, explicit variants (single-variant families for current placeables), and selectors/resolvers that preserve Phase 1 placement — before Phase 2 grouped variant UI. Also covers activePlace, placementRegistryResolver, thin handleAuthoringCellClick, toolbar place palette, inventory gate, and location-workspace.md. No Phase 2 variant picker UX.
+overview: Palette foundation plus a durable family-oriented placed object registry in locationPlacedObject.registry.ts — registry category is UI palette grouping only (structure, furniture, vegetation, …); interaction/behavior is a separate family-level prop; linking/reference is future rail-authored config, not a category. Selectors, placementRegistryResolver, toolbar palette, activePlace, inventory gate, docs. No Phase 2 variant picker UX; no full right-rail linking implementation.
 todos:
   - id: audit-current-object-tool
     content: Complete full placeables inventory (objects + linked-content, per plan columns) before implementation; trace rail, route/model, placement, persistence, selection
@@ -117,6 +117,89 @@ table: {
 
 ---
 
+## Category vs `interaction` vs linking (registry semantics)
+
+**Principle:** **`category`** in the family registry is **only** a **UI palette grouping bucket** — it does **not** encode persistence meaning, link behavior, or “what resolver branch runs” by itself. **Behavior semantics** (transitions, future capabilities) use a **separate** family-level **`interaction`** (or equivalent) prop. **Linking / reference configuration** belongs to **authored configuration** (future **right rail** / inspector), **not** to toolbar category.
+
+### Palette category buckets (guiding set)
+
+Use **stable, UI-oriented** bucket ids for toolbar sectioning and ordering — **not** behavioral catch-alls:
+
+| Bucket | Role |
+|--------|------|
+| **`structure`** | Buildings, shells, major structural markers the user thinks of as “built form” |
+| **`furniture`** | Tables, seating, surfaces |
+| **`fixture`** | Doors, windows, fixed installs (future) |
+| **`hazard`** | Traps, dangerous terrain (future) |
+| **`treasure`** | Loot / objectives (can align with registry family `treasure` or stay as bucket name) |
+| **`decor`** | Non-structural dressing |
+| **`vegetation`** | Trees, plants |
+
+Do **not** use **`linked-locations`** (or similar) as a **registry palette category** if it implies **behavior** (“this row always opens a link modal”). Prefer **structure** / **vegetation** / etc., and model **linkability** separately (below).
+
+### `interaction` is separate from `category`
+
+**`interaction`** (and future **`capabilities`** / **`linking`** hints at the **data** layer, not in `category`) carries **play/system semantics** — e.g. transition roles — **orthogonal** to which palette bucket the family appears under.
+
+**Guiding pattern** (bias for documentation and registry shape):
+
+```ts
+stairs: {
+  category: 'structure',       // palette bucket only
+  placementMode: 'cell',
+  runtime: { /* … */ },
+  interaction: {
+    role: 'transition',
+    transitionKind: 'stairs',
+  },
+  variants: {
+    stone: { label: 'Stairs', iconName: 'stairs', /* … */ },
+  },
+},
+```
+
+- **`category`** → where the family appears in the **toolbar palette** (grouping / filters).
+- **`interaction`** → **behavior** hints for combat/world systems (existing pattern for stairs).
+- **Variants** → explicit visual/token rows (`stone`, …); Phase 2 can expose multiple without changing this split.
+
+### Building: **structure**, not “linked-locations”
+
+**Refined recommendation:**
+
+- **`building`** (and similar **structure** families) should use **`category: 'structure'`** in the registry — **same** bucket whether the placed instance is an **empty shell**, a **visual token**, or later a **linked** child location.
+- **Toolbar selection** determines **family + variant** (building appearance / token), **not** whether a link exists.
+- **`linkedScale`** / **pending-placement link flow** remain **resolver- and product-driven** for **current** behavior where the code still branches to **link** vs **object**; those mechanics are **not** renamed “category.” Long term, **whether** a cell’s building is linked is **authored state** (inspector / rail), **not** a palette category.
+
+This supports:
+
+- A **city** map with an **unlinked** building shell **and** a **linked** building reference **without** forcing **two palette categories** for “same” building family.
+
+### Future linking and right-rail configuration
+
+**Explicit direction (plan-level, not full implementation in Phase 1):**
+
+- **Toolbar / palette** chooses **what family and variant to place** (identity for placement).
+- **Right rail** (or inspector) is the proper **future home** for **optional** **link/reference** configuration: bind to child location, portal target, stair endpoint pairing, trap behavior, etc.
+- **Linkability** is a **capability / configuration / interaction** concern — **or** persisted fields on the map object — **not** a **`category`** concern.
+
+Applies not only to **building**, but also to future **site**, **city**, **portal**, **trap door**, **stairs endpoint** pairing, etc.: **palette bucket** stays **UI**; **link/reference** is **authored later** in context, not selected by a “linked” vs “unlinked” **registry category**.
+
+**Constraints:** Phase 1 **does not** implement full right-rail linking workflows; **does** document this split so **registry** and **resolver** evolution do not reintroduce **`linked-locations`** as a behavioral catch-all.
+
+### City, building, site — registry treatment (questions resolved in plan)
+
+| Family | **Preferred palette `category` (UI)** | **Notes** |
+|--------|--------------------------------------|-----------|
+| **city** | **`structure`** (or **`decor`** if product prefers “settlement marker” away from buildings — pick one and document) | World-scale **settlement** marker; **not** a “linked-locations” bucket. Link/reference to child city location → **future rail/config**, not category. |
+| **building** | **`structure`** | Same bucket for shell vs linked; **variant** may carry visual token; **link** = authored config. |
+| **site** | **`structure`** or **`decor`** | Minor POI; same rule — **no** separate “link category.” |
+
+**What carries link behavior instead of `category`:** today **`linkedScale`** + resolver **`link`** branch + **`pendingPlacement`**; tomorrow **optional** persisted **link ids** / **inspector fields** — still **not** `PlacedObjectPaletteCategoryId`.
+
+**Placement vs link-capable:** resolver continues to distinguish **link** vs **object** **actions** from **family definition** (`linkedScale`, host scale) — that is **routing**, not **palette bucket**. Registry **`category`** must stay **orthogonal** so contributors do not confuse **“where it sits in the toolbar”** with **“whether it opens a link modal.”**
+
+---
+
 ## Audited: current placement pipeline (production)
 
 The following is **already implemented** and is the baseline Phase 1 refactors from:
@@ -194,9 +277,10 @@ flowchart LR
 
 **Explicit:** **Included** in the **same** Phase 1 palette migration and **same** `**activePlace`** / resolver model — **not** “objects only, linked-content later.”
 
-- `**getPlacePaletteItemsForScale`** already emits **both** **linked-content** and **map-object** rows; the toolbar replaces the rail as the **primary chooser** for **all** of them.
-- **Resolver:** `**resolvePlacedKindToAction`** already implements a **distinct** `**link`** branch from `**object**`. Phase 1 **keeps** that **two-family** model: **loaded placement** can resolve to **link intent** or **object payload**, not only cell objects.
-- **Out of scope still:** Deep **stairs linking** workflows, rich **post-placement** link editing — only **existing** link + object **placement** behavior.
+- `**getPlacePaletteItemsForScale`** already emits **both** **linked-content** and **map-object** **routing** rows; the toolbar replaces the rail as the **primary chooser** for **all** of them.
+- **Resolver:** `**resolvePlacedKindToAction`** implements **`link`** vs **`object`** from **family definition + host scale** (e.g. `linkedScale`), **not** from registry **palette `category`**. Registry **`category`** must **not** be used as a stand-in for “this is a linked row” — see **Category vs `interaction` vs linking**.
+- **Future:** Optional **link/reference** editing moves toward **right-rail configuration**; **not** a new palette bucket called “linked.”
+- **Out of scope still:** Full **right-rail linking** implementation, deep **stairs** pairing workflows, rich **post-placement** link editing — **existing** placement + modal behavior only unless a child plan expands scope.
 
 ---
 
@@ -208,14 +292,16 @@ flowchart LR
 
 Phase 1 **does not** intentionally change map save semantics or introduce a new persisted identity encoding in `**cellEntries`** for this phase. **Registry family + variant** lives **above** the wire: the **resolver seam** translates to the **existing** payload shape. If a future phase adds persisted variant ids, that is a **separate** migration with explicit cost — **not** Phase 1.
 
-**Category / group:** Remains **presentation metadata** in the registry for toolbar sections — **never** part of persisted authored identity on the map. **Toolbar grouping** and **placement identity** are separate concerns.
+**Registry palette `category`:** **UI grouping only** (`structure`, `furniture`, …) — **never** persisted authored identity. **Link/reference** state is **not** encoded by category; see **Category vs `interaction` vs linking**.
 
 ---
 
-## Category and grouping (UI-only, reaffirmed)
+## Category and grouping (two meanings — do not conflate)
 
-- `**category`** on `**MapPlacePaletteItem**` / `**activePlace**` (`**linked-content**` vs `**map-object**`) is **UI routing** to pick resolver branch — **not** stored on the map.
-- Registry **category/group** fields drive **toolbar sections** only; they **do not** become part of **persisted authored identity**.
+1. **Registry `category` (`PlacedObjectPaletteCategoryId`):** **Palette bucket only** — `structure`, `furniture`, `vegetation`, … See **Category vs `interaction` vs linking**.
+2. **`MapPlacePaletteItem` / `activePlace` `category` (`linked-content` \| `map-object`):** **Resolver routing** for the **current** placement pipeline (which branch: link intent vs cell object). **Not** the same field as registry palette buckets; **not** persisted on the map.
+
+**Persisted identity** never includes either category type as authored “kind” on the cell — wire shape remains **`LocationMapObjectKindId` + optional `authoredPlaceKindId`** (see **Persistence stance**).
 
 ---
 
@@ -340,7 +426,7 @@ The **starter** inventory (e.g. floor **table** / **stairs** / **treasure**) is 
 
 | Area                        | Cover                                                                                                                                                                                                                                                                   |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Registry**                | **Family-oriented** definitions in `locationPlacedObject.registry.ts` + **selectors** in `locationPlacedObject.selectors.ts`; **explicit `variants`**; current placeables as **single-variant families**; **no** second flat registry for Phase 2 to undo |
+| **Registry**                | **Family-oriented** definitions in `locationPlacedObject.registry.ts`; **`category`** = palette bucket only (`structure`, `furniture`, …); **`interaction`** separate; **no** `linked-locations` **palette** category as behavioral catch-all; **selectors** in `locationPlacedObject.selectors.ts`; **explicit `variants`**; **no** second flat registry for Phase 2 to undo |
 | **Resolver**                | `**placementRegistryResolver`** consolidates `**resolvePlacedKindToAction**` + `**buildPersistedPlacedObjectPayload**` + **identity** mapping; **no** scattered translation                                                                                             |
 | **Click handler**           | `**handleAuthoringCellClick`** delegates **resolution** to the seam; **draft/link** mutations only — **not** a second mapping layer                                                                                                                                     |
 | **UI boundaries**           | Toolbar + route **do not** add **parallel** `kind → payload` logic                                                                                                                                                                                                      |
@@ -391,7 +477,7 @@ Phase 1 **includes** updating **[docs/reference/location-workspace.md](../../../
 
 - **Abstract** “future resolver” with **no** tie to `**resolvePlacedKindToAction`**
 - **Exclude** linked-content from toolbar palette scope
-- **Persist** category/group as map identity
+- **Persist** registry palette **`category`** or conflate it with **link behavior** — **category** is **UI-only**; linking is **config/capability**, not a bucket
 - **New parallel mapping** in **toolbar components** (including palette cards, drawers, chips) or **route wiring** (`LocationEditRoute`, rail assembly) — **all** **identity → action → payload** stays in **domain** `**placementRegistryResolver`** (or helpers it owns)
 
 ---
@@ -412,6 +498,10 @@ Phase 1 **includes** updating **[docs/reference/location-workspace.md](../../../
 12. **[docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)** updated so **canonical** workspace reference matches **shipped** Phase 1 placement/palette/resolver behavior and symbols.
 13. **Family-oriented registry** is **implemented** in `**locationPlacedObject.registry.ts**` (top-level **family** keys, explicit **palette category**, family-level **`runtime`**, **`variants`** with at least **default** per current placeable); **selectors** resolve palette and meta from that shape; **no** remaining **flat-only** authoring registry that Phase 2 must replace.
 14. **Placement + palette behavior** unchanged from a **product** perspective (same wire, same link vs object semantics); identity paths go through **family + variant** → existing resolvers.
+15. **Registry `category`** is documented and implemented as **palette grouping buckets only** (`structure`, `furniture`, `fixture`, `hazard`, `treasure`, `decor`, `vegetation` — exact enum as implemented); **`interaction`** (and related) holds **behavior semantics**, **not** `category`.
+16. **`building`** (and **city** / **site** per plan table) use **UI** categories such as **`structure`** (or documented alternates) — **not** **`linked-locations`** as a registry palette category; **link/reference** is **not** encoded by palette bucket.
+17. Plan explicitly states **future linking / reference configuration** belongs in **right-rail (or inspector) authored config**, not toolbar category; Phase 1 does **not** implement full rail linking.
+18. Contributors can distinguish **palette bucket** vs **resolver routing** (`linked-content` \| `map-object`) vs **future** **link configuration** without treating **`linked-locations`** as a behavioral registry category.
 
 ---
 

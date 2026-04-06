@@ -6,7 +6,10 @@ import {
 import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import { LOCATION_EDGE_FEATURE_KIND_META } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 import { LOCATION_PATH_FEATURE_KIND_META } from '@/features/content/locations/domain/model/map/locationPathFeature.types';
-import { getPlacedObjectPaletteOptionsForScale } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
+import {
+  comparePlacedObjectPaletteCategories,
+  getPlacedObjectPaletteOptionsForScale,
+} from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
 import {
@@ -40,7 +43,7 @@ export function getPaintPaletteItemsForScale(scale: LocationScaleId): MapPaintPa
  */
 export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
   const options = getPlacedObjectPaletteOptionsForScale(scale);
-  return options.map((opt) => {
+  const items = options.map((opt) => {
     if (opt.linkedScale) {
       return {
         category: 'linked-content' as const,
@@ -64,6 +67,11 @@ export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePa
       description: opt.description,
       iconName: opt.iconName,
     };
+  });
+  return [...items].sort((a, b) => {
+    const byCat = comparePlacedObjectPaletteCategories(a.paletteCategory, b.paletteCategory);
+    if (byCat !== 0) return byCat;
+    return a.label.localeCompare(b.label);
   });
 }
 
