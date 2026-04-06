@@ -51,12 +51,14 @@ The parent plan sequences **palette foundation** before **variants**, **edge pla
 
 ## Parent layer boundaries (this phase)
 
-| Layer | Phase 1 responsibility |
-|-------|-------------------------|
-| **Registry/domain** | Stable kind ids, labels/icons, category/group metadata, `cell` placement mode, minimal defaults for current objects |
-| **Placement model** | Loaded object state, click-to-place, repeat/clear semantics, coordination with selection |
-| **Persistence model** | No change to wire meaning — **map** current placeables through registry to existing cell object shapes |
-| **UI presentation** | Toolbar drawer sections; loaded feedback; **rail** no longer primary picker (full rail redesign **not** required) |
+
+| Layer                 | Phase 1 responsibility                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Registry/domain**   | Stable kind ids, labels/icons, category/group metadata, `cell` placement mode, minimal defaults for current objects |
+| **Placement model**   | Loaded object state, click-to-place, repeat/clear semantics, coordination with selection                            |
+| **Persistence model** | No change to wire meaning — **map** current placeables through registry to existing cell object shapes              |
+| **UI presentation**   | Toolbar drawer sections; loaded feedback; **rail** no longer primary picker (full rail redesign **not** required)   |
+
 
 **Core principle:** **Palette organization is not the persistence model** — categories/groups are **presentation**.
 
@@ -66,12 +68,15 @@ The parent plan sequences **palette foundation** before **variants**, **edge pla
 
 Before building, trace and summarize:
 
-| Area | Questions |
-|------|-----------|
-| **Rail** | How `LocationMapEditorPlacePanel` / `getPlacePaletteItemsForScale` drive picking today |
-| **Placement** | How `activePlace`, `resolvePlacedKindToAction`, and cell clicks create objects |
-| **Persistence** | How table/stairs/treasure (and peers) appear in `gridDraft` / `cellEntries` |
-| **Selection** | What depends on rail-first picking vs Selection tab |
+
+| Area              | Questions                                                                                                                                                                                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Rail**          | How `LocationMapEditorPlacePanel` / `getPlacePaletteItemsForScale` drive picking today                                                                                                                                                                              |
+| **Route / model** | Where palette memos, `handleAuthoringCellClick`, and `activePlace` / `resolvePlacedKindToAction` run — today `**useLocationEditWorkspaceModel.ts`**; Map/Selection rail JSX is wired via `**locationEditWorkspaceRailPanels.tsx**` (not large inline route bodies). |
+| **Placement**     | How `activePlace`, `resolvePlacedKindToAction`, and cell clicks create objects                                                                                                                                                                                      |
+| **Persistence**   | How table/stairs/treasure (and peers) appear in `gridDraft` / `cellEntries`                                                                                                                                                                                         |
+| **Selection**     | What depends on rail-first picking vs Selection tab                                                                                                                                                                                                                 |
+
 
 **Output:** Short **migration-sensitive** notes: what must stay byte-compatible vs what is UI-only.
 
@@ -92,7 +97,7 @@ Before building, trace and summarize:
 1. What is the **stable authored identity** for each current placeable?
 2. What **minimal metadata** belongs in the registry **now** (avoid premature generalization)?
 3. How do **table / stairs / treasure** (and similar) **map** to registry entries?
-4. Where does the registry **live** (single module / small tree) — **avoid** scattered switches?
+4. Where does the registry **live** (single module / small tree) — **avoid** scattered switches? Prefer `**domain/authoring/editor/`** (or a dedicated subtree under `domain/authoring/`) for definitions; keep `**routes/locationEdit/**` for wiring only — see parent roadmap **Registry ownership** and [location-workspace.md](../../../docs/reference/location-workspace.md) **Imports and barrels**.
 
 ---
 
@@ -118,13 +123,15 @@ Define:
 
 **Explicit** semantics (implementation-ready):
 
-| Question | Phase 1 must answer |
-|----------|---------------------|
-| **Shape** | What fields identify the loaded placeable (kind id, resolver payload, etc.) |
-| **Repeat placement** | Loaded stays active after a place (**bias:** yes until clear/tool change — confirm against product) |
-| **Clear** | Mode switch, escape, picking another object, explicit clear |
-| **vs selection** | How `mapSelection` / Select mode interact — loaded is **placement**, selection is **inspect** |
-| **Cursor / feedback** | Minimal chrome reflecting loaded object |
+
+| Question              | Phase 1 must answer                                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| **Shape**             | What fields identify the loaded placeable (kind id, resolver payload, etc.)                         |
+| **Repeat placement**  | Loaded stays active after a place (**bias:** yes until clear/tool change — confirm against product) |
+| **Clear**             | Mode switch, escape, picking another object, explicit clear                                         |
+| **vs selection**      | How `mapSelection` / Select mode interact — loaded is **placement**, selection is **inspect**       |
+| **Cursor / feedback** | Minimal chrome reflecting loaded object                                                             |
+
 
 This model must **extend** later for variants (Phase 2) and edge kinds (Phase 3) without a rewrite.
 
@@ -140,10 +147,12 @@ This model must **extend** later for variants (Phase 2) and edge kinds (Phase 3)
 
 ## Toolbar vs rail responsibility split
 
-| Surface | Role in Phase 1 |
-|---------|-------------------|
-| **Toolbar drawer** | **Choose** what to place; show loaded object |
+
+| Surface                    | Role in Phase 1                                                                                                                   |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Toolbar drawer**         | **Choose** what to place; show loaded object                                                                                      |
 | **Rail (Map / Selection)** | **Not** the primary object picker; **hints**, **linked content** as today where applicable; **inspect/configure** after selection |
+
 
 Full **inspector** redesign is **out of scope** — only **clarify** ownership and stop **rail-first** object chooser for cell objects.
 
@@ -160,22 +169,26 @@ Full **inspector** redesign is **out of scope** — only **clarify** ownership a
 
 ## Cross-cutting concerns
 
-| Area | Cover |
-|------|--------|
-| **Registry ownership** | Location, id policy, how new placeables are added |
-| **Placement ownership** | Owner of loaded state; coordination with `useLocationMapEditorState` (or successor) |
-| **Persistence compatibility** | Existing maps load/save unchanged; mapping from registry → current payloads |
-| **UI migration** | Incremental move off rail picker; avoid destabilizing paint/draw/select |
+
+| Area                          | Cover                                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------------- |
+| **Registry ownership**        | Location, id policy, how new placeables are added                                   |
+| **Placement ownership**       | Owner of loaded state; coordination with `useLocationMapEditorState` (or successor) |
+| **Persistence compatibility** | Existing maps load/save unchanged; mapping from registry → current payloads         |
+| **UI migration**              | Incremental move off rail picker; avoid destabilizing paint/draw/select             |
+
 
 ---
 
 ## Risks / migration notes
 
-| Risk | Mitigation |
-|------|------------|
-| Hidden rail dependencies | **Audit** first todo |
-| Duplicate sources of truth | Registry **only** for placeable list in Phase 1 |
-| Dirty/save drift | Map-only UI for loaded/tool — **no** new persistable fields without snapshot checklist (`location-workspace.md`) |
+
+| Risk                       | Mitigation                                                                                                       |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Hidden rail dependencies   | **Audit** first todo                                                                                             |
+| Duplicate sources of truth | Registry **only** for placeable list in Phase 1                                                                  |
+| Dirty/save drift           | Map-only UI for loaded/tool — **no** new persistable fields without snapshot checklist (`location-workspace.md`) |
+
 
 ---
 
@@ -212,3 +225,5 @@ This child plan is **ready for implementation** when:
 
 - [location_workspace_object_authoring_phase2_variants.plan.md](location_workspace_object_authoring_phase2_variants.plan.md) — follows Phase 1.
 - [.cursor/plans/location-workspace/README.md](README.md) — plan bundle index.
+- [location_workspace_cleanup_94269d45.plan.md](../location_workspace_cleanup_94269d45.plan.md) — orchestration boundaries (route / workspace / domain); **imports and barrels** in [location-workspace.md](../../../docs/reference/location-workspace.md).
+

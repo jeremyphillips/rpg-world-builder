@@ -48,7 +48,7 @@ That makes ownership and import direction hard to track and encourages misleadin
 
 - Reflect **containment and role** in folder structure, not implementation history.
 - Reduce scan noise with `**__tests__/`** inside subtrees where tests are owned by that subtree.
-- Add `**setup/**` only when create/setup is a real, distinct concern with likely siblings—not a one-off rename for its own sake.
+- Add `**setup/`** only when create/setup is a real, distinct concern with likely siblings—not a one-off rename for its own sake.
 - Keep `**LocationGridAuthoringSection**` at the **correct ownership level** (workspace-level orchestrator, **not** a `canvas/` leaf).
 - Avoid a **single giant rename-and-move PR**; prefer **incremental phases** with stable public exports.
 
@@ -58,7 +58,7 @@ That makes ownership and import direction hard to track and encourages misleadin
 
 When this reorg (or a milestone phase) lands, update `**[.cursor/plans/location-workspace/README.md](README.md)`** so the plan bundle stays navigable:
 
-- Add a row or subsection for `**[location_workspace_ownership_reorg.plan.md](location_workspace_ownership_reorg.plan.md)**` (ownership subtrees, `LocationGridAuthoringSection` placement, phased moves).
+- Add a row or subsection for `**[location_workspace_ownership_reorg.plan.md](location_workspace_ownership_reorg.plan.md)`** (ownership subtrees, `LocationGridAuthoringSection` placement, phased moves).
 - Optionally add a **one-paragraph** summary of `header/` · `setup/` · `canvas/` · `leftTools/` · `rightRail/` for onboarding.
 - Adjust **reading order** if this plan should be read before/after specific foundation or interaction plans.
 
@@ -75,12 +75,12 @@ Bias toward these subtrees under `[src/features/content/locations/components/wor
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `**header/`**    | Header component and **header-contained** children (e.g. ancestry breadcrumbs), plus `index.ts` barrel.                                                                             |
 | `**setup/`**     | Create/setup flow UI when that concern is distinct and likely to gain siblings (see §3).                                                                                            |
-| `**canvas/**`    | **Presentation shells** for the map column: pan/zoom container, map column layout—**not** full authoring orchestration.                                                             |
+| `**canvas/`**    | **Presentation shells** for the map column: pan/zoom container, map column layout—**not** full authoring orchestration.                                                             |
 | `**leftTools/`** | Left-side map **tool** UI: toolbar, tray shell, paint tray, draw tray, paint-specific small pieces. Concrete name `**leftTools`** (or equivalent) avoids vague names like `chrome`. |
-| `**rightRail/**` | Right rail shell, tabs, rail-only panels, selection inspectors, rail-local adapters/types, rail-local `__tests__`.                                                                  |
+| `**rightRail/`** | Right rail shell, tabs, rail-only panels, selection inspectors, rail-local adapters/types, rail-local `__tests__`.                                                                  |
 
 
-**Orchestration boundaries:** Route-level and workspace-level **composition** (what appears in the map column vs rail vs header) stays in `**LocationEditHomebrewWorkspace`**, `**LocationEditSystemPatchWorkspace**`, and `**LocationEditRoute**` until a deliberate split. Subtrees own **UI and local wiring**, not the whole app story.
+**Orchestration boundaries:** Route-level and workspace-level **composition** (what appears in the map column vs rail vs header) stays in `**LocationEditHomebrewWorkspace`**, `**LocationEditSystemPatchWorkspace`**, and `**LocationEditRoute**` until a deliberate split. Subtrees own **UI and local wiring**, not the whole app story.
 
 ---
 
@@ -237,6 +237,7 @@ workspace/
 | `**rightRail/` for types/adapters/tests**             | Keeps rail-specific glue and verification next to rail UI; separates shell from rail internals.                                                         |
 | `**canvas/` narrow scope**                            | Only map column **shells** (pan/zoom, column layout); prevents orchestration from disappearing into a “canvas” catch-all.                               |
 
+
 ---
 
 ## 11. Phase 2 refinement (post–first ownership pass)
@@ -247,17 +248,19 @@ After `header/`, `canvas/`, `leftTools/`, `rightRail/`, and `setup/` landed, a s
 
 - Complete **subtree barrels** where the folder already implies a coherent group (`leftTools/paint`, `leftTools/draw`, `rightRail/types`, `rightRail/adapters`, `rightRail/selection`).
 - Resolve **straggler ownership**: rail-only UI moves under `rightRail/`; **orchestrators stay at workspace root** (`LocationGridAuthoringSection` remains next to edit shells—not under `canvas/`).
-- Clarify **`rightRail` internal grouping**: `panels/` = mode/tool + cell inspector; `selection/` = selection-driven UI; `linkedLocation/` = linked-location placement modal (distinct from generic map mode panels).
-- ~~Make **`components/mapEditor/index.ts` intentional**~~ **Superseded (phase 3):** removed the folder; **`components/index.ts`** re-exports toolbar and rail UI directly from `workspace/leftTools` and `workspace/rightRail/...`.
+- Clarify `**rightRail` internal grouping**: `panels/` = mode/tool + cell inspector; `selection/` = selection-driven UI; `linkedLocation/` = linked-location placement modal (distinct from generic map mode panels).
+- ~~Make `**components/mapEditor/index.ts` intentional~~** **Superseded (phase 3):** removed the folder; `**components/index.ts`** re-exports toolbar and rail UI directly from `workspace/leftTools` and `workspace/rightRail/...`.
 
 ### Recommendations (implemented)
 
-| Item | Decision | Rationale |
-|------|----------|-----------|
-| **`LocationCellAuthoringPanel.tsx`** | Move to **`rightRail/panels/`** | Used only from the Selection rail (`LocationEditorSelectionPanel`); rail-owned inspector UI, not a shared cross-feature primitive. |
-| **`LocationMapEditorLinkedLocationModal.tsx`** | Move to **`rightRail/linkedLocation/`** | Modal for place-mode linked-location picking; separate from paint/draw/place **panels**; keeps `panels/` for consistent “Map rail tool UI” and isolates modal flow. |
-| **`LocationGridAuthoringSection.tsx`** | **Moved** to **`workspace/LocationGridAuthoringSection.tsx`** (phase 3) | Still a workspace-level authoring orchestrator (draft, modes, callbacks, `leftChromeWidthPx`); **not** under `canvas/`. Co-locates the orchestrator with other workspace shells. |
-| **`mapEditor/index.ts`** | **Removed** (phase 3) | Compatibility-only barrel added little value; **`components/index.ts`** inlines re-exports from `workspace/leftTools` and `workspace/rightRail/...`. |
+
+| Item                                           | Decision                                                                | Rationale                                                                                                                                                                        |
+| ---------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `**LocationCellAuthoringPanel.tsx**`           | Move to `**rightRail/panels/**`                                         | Used only from the Selection rail (`LocationEditorSelectionPanel`); rail-owned inspector UI, not a shared cross-feature primitive.                                               |
+| `**LocationMapEditorLinkedLocationModal.tsx**` | Move to `**rightRail/linkedLocation/**`                                 | Modal for place-mode linked-location picking; separate from paint/draw/place **panels**; keeps `panels/` for consistent “Map rail tool UI” and isolates modal flow.              |
+| `**LocationGridAuthoringSection.tsx`**         | **Moved** to `**workspace/LocationGridAuthoringSection.tsx`** (phase 3) | Still a workspace-level authoring orchestrator (draft, modes, callbacks, `leftChromeWidthPx`); **not** under `canvas/`. Co-locates the orchestrator with other workspace shells. |
+| `**mapEditor/index.ts`**                       | **Removed** (phase 3)                                                   | Compatibility-only barrel added little value; `**components/index.ts`** inlines re-exports from `workspace/leftTools` and `workspace/rightRail/...`.                             |
+
 
 ### Target structure (phase 2 → phase 3)
 
@@ -301,18 +304,20 @@ components/
 
 ## 12. Phase 3: feature root tightening (authoring helpers + workspace orchestrator)
 
-**Goal:** Reduce noise at `components/` root by grouping **grid-draft** and **geometry/path** helpers under **`authoring/`**, moving **`LocationGridAuthoringSection`** next to other workspace shells, and **removing** the transitional **`components/mapEditor/`** barrel.
+**Goal:** Reduce noise at `components/` root by grouping **grid-draft** and **geometry/path** helpers under `**authoring/`**, moving `**LocationGridAuthoringSection**` next to other workspace shells, and **removing** the transitional `**components/mapEditor/`** barrel.
 
 ### Decisions
 
-| Topic | Decision |
-|-------|----------|
-| **Rail cell panel** | `LocationCellAuthoringPanel` stays under **`workspace/rightRail/panels/`** (rail-owned; not a feature-root stray). |
-| **`authoring/draft/`** | Home for **`locationGridDraft.types.ts`**, **`locationGridDraft.utils.ts`**, and **`locationGridDraft.utils.test.ts`**. |
-| **`authoring/geometry/`** | Home for **`hexGridMapOverlayGeometry`**, **`squareGridMapOverlayGeometry`**, **`pathOverlayRendering`**, **`hexRegionBoundaryForAuthoring`**, **`hexRegionBoundarySegments`**; tests under **`authoring/geometry/__tests__/`**. |
-| **`LocationGridAuthoringSection`** | **`workspace/LocationGridAuthoringSection.tsx`** — still the workspace-level authoring orchestrator / bridge; **not** under `canvas/`; co-location with `LocationEditorWorkspace` and peers clarifies ownership without implying a narrow canvas child. |
-| **`components/mapEditor/`** | **Removed (option B).** Re-exports inlined into **`components/index.ts`** from `workspace/leftTools` and `workspace/rightRail/...`. |
-| **Scope** | No broad filename shortening; **`mapGrid/`** name unchanged in this pass. |
+
+| Topic                              | Decision                                                                                                                                                                                                                                                |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Rail cell panel**                | `LocationCellAuthoringPanel` stays under `**workspace/rightRail/panels/`** (rail-owned; not a feature-root stray).                                                                                                                                      |
+| `**authoring/draft/**`             | Home for `**locationGridDraft.types.ts**`, `**locationGridDraft.utils.ts**`, and `**locationGridDraft.utils.test.ts**`.                                                                                                                                 |
+| `**authoring/geometry/**`          | Home for `**hexGridMapOverlayGeometry**`, `**squareGridMapOverlayGeometry**`, `**pathOverlayRendering**`, `**hexRegionBoundaryForAuthoring**`, `**hexRegionBoundarySegments**`; tests under `**authoring/geometry/__tests__/**`.                        |
+| `**LocationGridAuthoringSection**` | `**workspace/LocationGridAuthoringSection.tsx**` — still the workspace-level authoring orchestrator / bridge; **not** under `canvas/`; co-location with `LocationEditorWorkspace` and peers clarifies ownership without implying a narrow canvas child. |
+| `**components/mapEditor/`**        | **Removed (option B).** Re-exports inlined into `**components/index.ts`** from `workspace/leftTools` and `workspace/rightRail/...`.                                                                                                                     |
+| **Scope**                          | No broad filename shortening; `**mapGrid/`** name unchanged in this pass.                                                                                                                                                                               |
+
 
 ### Acceptance (phase 3)
 
@@ -324,7 +329,7 @@ components/
 
 ## 13. Phase 4: `mapGrid/` layout (`authoring/` + `__tests__/`)
 
-**Goal:** Align **`components/mapGrid/`** with a predictable split: **grid shell + cells + shared presentation** at the subtree root, **SVG / edge interaction** under a short, obvious **`authoring/`** folder (replacing the transitional **`mapAuthoring/`** name), and **grid-local tests** under **`__tests__/`** so the main list stays implementation-focused.
+**Goal:** Align `**components/mapGrid/`** with a predictable split: **grid shell + cells + shared presentation** at the subtree root, **SVG / edge interaction** under a short, obvious `**authoring/`** folder (replacing the transitional `**mapAuthoring/**` name), and **grid-local tests** under `**__tests__/`** so the main list stays implementation-focused.
 
 ### Target tree
 
@@ -348,15 +353,16 @@ mapGrid/
 
 ### Decisions
 
-| Topic | Decision |
-|-------|----------|
-| **`mapAuthoring/` → `authoring/`** | Same responsibility (location map SVG overlays + square edge boundary-paint hook); shorter path and consistent with **`components/authoring/`** (feature-level helpers) without colliding—**`mapGrid/authoring/`** is grid subtree–scoped. |
-| **`__tests__/`** | Holds **`mapGridCellVisualState.test.ts`** next to **`mapGridCellVisualState.ts`** ownership, matching other subtrees’ test placement. |
-| **Root files** | Editors, cell styles, visual-state helpers, path/object presentation layers stay at **`mapGrid/`** root for discoverability and stable imports from routes/combat. |
+
+| Topic                              | Decision                                                                                                                                                                                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `**mapAuthoring/` → `authoring/**` | Same responsibility (location map SVG overlays + square edge boundary-paint hook); shorter path and consistent with `**components/authoring/**` (feature-level helpers) without colliding—`**mapGrid/authoring/**` is grid subtree–scoped. |
+| `**__tests__/**`                   | Holds `**mapGridCellVisualState.test.ts**` next to `**mapGridCellVisualState.ts**` ownership, matching other subtrees’ test placement.                                                                                                     |
+| **Root files**                     | Editors, cell styles, visual-state helpers, path/object presentation layers stay at `**mapGrid/`** root for discoverability and stable imports from routes/combat.                                                                         |
+
 
 ### Acceptance (phase 4)
 
-- No **`mapAuthoring/`** folder under **`components/mapGrid/`**; imports use **`mapGrid/authoring/...`**.
-- **`mapGridCellVisualState`** tests live under **`mapGrid/__tests__/`** with updated relative imports to the implementation module.
-
+- No `**mapAuthoring/**` folder under `**components/mapGrid/**`; imports use `**mapGrid/authoring/...**`.
+- `**mapGridCellVisualState**` tests live under `**mapGrid/__tests__/**` with updated relative imports to the implementation module.
 

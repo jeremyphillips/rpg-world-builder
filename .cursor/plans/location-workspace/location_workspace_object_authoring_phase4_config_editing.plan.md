@@ -97,7 +97,7 @@ Focus: **post-placement authoring/editing**, not the entire **runtime** model.
 
 ### 3. Stairs-linking model
 
-- Floors/locations, rail editing, **authored** data shape, incomplete setup UX.
+- Floors/locations, rail editing, **authored** data shape, incomplete setup UX. **Implementation touchpoint:** building stair link/unlink and placed-object stair cleanup are colocated in **`useLocationEditBuildingStairHandlers.ts`** (`routes/locationEdit/`) — extend or delegate consistently; avoid parallel stair session logic in inspectors without a deliberate split.
 
 ### 4. Richer authored metadata
 
@@ -183,3 +183,4 @@ This placeholder is **complete** when:
 - [location_workspace_object_authoring_phase3_edge_placement.plan.md](location_workspace_object_authoring_phase3_edge_placement.plan.md) — prior phase.
 - [location_workspace_object_authoring_roadmap.plan.md](location_workspace_object_authoring_roadmap.plan.md) — parent roadmap.
 - [.cursor/plans/location-workspace/README.md](README.md) — plan bundle index.
+- [location_workspace_cleanup_94269d45.plan.md](../location_workspace_cleanup_94269d45.plan.md) — session vs domain split; [location-workspace.md](../../../docs/reference/location-workspace.md) **State ownership** and **Imports and barrels**.

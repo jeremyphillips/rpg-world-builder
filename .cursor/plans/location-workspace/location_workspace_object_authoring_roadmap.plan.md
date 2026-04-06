@@ -201,7 +201,8 @@ flowchart LR
 
 ### Registry ownership
 
-- **Where:** Prefer a dedicated module (or small tree) under `domain/mapEditor/` / `features/content/locations` — exact path is a child-plan decision; **avoid** scattering `switch` tables across routes.
+- **Where:** Prefer a dedicated module (or small tree) under **`domain/authoring/editor/`** (alongside existing palette/editor helpers such as `palette/locationMapEditorPalette.helpers.ts`) or another clearly named subtree under `domain/authoring/` — exact path is a child-plan decision; **avoid** scattering `switch` tables across routes. **Do not** use legacy `domain/mapEditor/` — that layout was superseded by `authoring/` / `model/` / `presentation/` (see [docs/reference/locations.md](../../../docs/reference/locations.md) and [location-workspace.md](../../../docs/reference/location-workspace.md)).
+- **Orchestration vs domain:** Session wiring, `useLocationMapEditorState` consumption, and click-to-place handlers live in **`routes/locationEdit/`** (e.g. `useLocationEditWorkspaceModel.ts`); Map/Selection rail assembly uses **`locationEditWorkspaceRailPanels.tsx`**. Grid hosts and toolbars stay under **`components/workspace/`**. Registry **definitions** and editor rules belong in **domain**, not in the route — see **Maintenance — orchestration cleanup** and **Imports and barrels** in [location-workspace.md](../../../docs/reference/location-workspace.md).
 - **Ids:** Authored kind ids and variant ids should be **stable strings** suitable for persistence references where needed.
 - **Extension:** New objects = **registry entries** + optional normalizers — not a new rail-only code path.
 
@@ -302,5 +303,6 @@ This parent plan is **satisfied** when all of the following are true:
 ## Related
 
 - [README.md](README.md) — plan bundle index.
-- [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) — runtime behavior, toolbar, persistence, open issues.
+- [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) — runtime behavior, toolbar, persistence, open issues, **imports/barrels**, orchestration touchpoints after cleanup.
+- [location_workspace_cleanup_94269d45.plan.md](../location_workspace_cleanup_94269d45.plan.md) — completed orchestration pass (route vs workspace vs domain boundaries); **non-blocking** optional follow-ups only.
 

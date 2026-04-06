@@ -34,11 +34,11 @@ This plan implements **navigability and ownership clarity** for the location edi
 ## Current pain (anchor files)
 
 
-| Area                   | File                                                                                                                     | Approx. size | Issue                                                                                            |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------ |
-| Canvas orchestration   | [LocationGridAuthoringSection.tsx](src/features/content/locations/components/workspace/LocationGridAuthoringSection.tsx) | ~620 lines   | Mixes tool modes, select-mode wiring, hex/square, overlays, draft updates (helpers colocated)     |
+| Area                   | File                                                                                                                     | Approx. size | Issue                                                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Canvas orchestration   | [LocationGridAuthoringSection.tsx](src/features/content/locations/components/workspace/LocationGridAuthoringSection.tsx) | ~620 lines   | Mixes tool modes, select-mode wiring, hex/square, overlays, draft updates (helpers colocated)                                                                            |
 | Workspace session hook | [useLocationEditWorkspaceModel.ts](src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts)  | ~1k lines    | Aggregates form, grid draft, map editor, palettes, zoom/pan, building/stairs, save, system patch (see `mapSessionDraft.helpers`, `useLocationEditBuildingStairHandlers`) |
-| Route composition      | [LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx)                                     | ~470 lines   | Map authoring / selection rail assembly in `locationEditWorkspaceRailPanels`                       |
+| Route composition      | [LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx)                                     | ~470 lines   | Map authoring / selection rail assembly in `locationEditWorkspaceRailPanels`                                                                                             |
 
 
 ```mermaid
@@ -266,7 +266,7 @@ If an extraction does not clearly pass the “easier to reason about” test, **
 
 ### `rightRail/types` and barrel hygiene (Phase 5 polish)
 
-**`rightRail/types` — done:** types live under **`rightRail/types/`** (`LocationEditorRailSection`, `LocationMapSelection`); helpers are **`rightRail/locationEditorRail.helpers.ts`** (`selectedCellIdForMapSelection`, `mapSelectionEqual`, `shouldAutoSwitchRailToMapForMode`). See [docs/reference/location-workspace.md](../../docs/reference/location-workspace.md).
+`**rightRail/types` — done:** types live under `**rightRail/types/`** (`LocationEditorRailSection`, `LocationMapSelection`); helpers are `**rightRail/locationEditorRail.helpers.ts**` (`selectedCellIdForMapSelection`, `mapSelectionEqual`, `shouldAutoSwitchRailToMapForMode`). See [docs/reference/location-workspace.md](../../docs/reference/location-workspace.md).
 
 **Barrel hygiene — ongoing rule (not a one-off project):** Prefer **narrow imports** for new code; avoid **unnecessary growth** of [domain/index.ts](src/features/content/locations/domain/index.ts) and new broad compatibility-style barrels unless there is a **real public-surface** reason. Documented in **location-workspace.md** (Contributor rules → Imports and barrels).
 
