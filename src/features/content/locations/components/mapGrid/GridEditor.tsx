@@ -6,19 +6,12 @@ import {
 } from 'react';
 import Box from '@mui/material/Box';
 import { makeGridCellId } from '@/shared/domain/grid';
-import { colorPrimitives } from '@/app/theme/colorPrimitives';
-import {
-  GRID_CELL_BORDER_COLOR,
-  GRID_CELL_BORDER_COLOR_HOVER,
-  gridCellPalette,
-  gridCellSelectedShadow,
-} from './gridCellStyles';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/types';
-import {
-  isSelectHoverChromeSuppressed,
-  shouldApplyCellSelectedChrome,
-} from './mapGridCellVisualState';
+import { shouldApplyCellSelectedChrome } from './mapGridCellVisualState';
 import { SQUARE_GRID_GAP_PX } from '@/features/content/locations/components/authoring/geometry/squareGridMapOverlayGeometry';
+import { buildSquareAuthoringCellVisualSx } from './mapGridAuthoringCellVisual.builder';
+import GridCellHost from './GridCellHost';
+import GridCellVisual from './GridCellVisual';
 
 export type GridCell = {
   cellId: string;
@@ -105,27 +98,11 @@ export default function GridEditor({
         const selected = shouldApplyCellSelectedChrome(selectedCellId, cellId);
         const excluded = excludedSet.has(cellId);
         const fillBg = getCellBackgroundColor?.(cell);
-        const selectHoverChromeSuppressed = isSelectHoverChromeSuppressed(
-          cellId,
-          selectHoverTargetProp,
-          !!disabled,
-        );
-        const baseBorderColor = selected
-          ? gridCellPalette.border.selected
-          : excluded
-            ? gridCellPalette.border.excluded
-            : GRID_CELL_BORDER_COLOR;
-        const baseBg = selected
-          ? gridCellPalette.background.selected
-          : excluded
-            ? gridCellPalette.background.excluded
-            : fillBg ?? gridCellPalette.background.default;
 
         return (
-          <Box
+          <GridCellHost
             key={cellId}
-            component="button"
-            type="button"
+            interactive
             role="gridcell"
             data-cell-id={cellId}
             aria-selected={selected}
@@ -152,64 +129,44 @@ export default function GridEditor({
               aspectRatio: '1',
               minWidth: 0,
               minHeight: 0,
-              border: 1,
-              borderRadius: 0.5,
-              borderColor: baseBorderColor,
-              borderStyle: excluded && !selected ? 'dashed' : 'solid',
-              bgcolor: baseBg,
-              backgroundImage: excluded
-                ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
-                : undefined,
+              width: '100%',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              p: 0.25,
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              justifyContent: 'stretch',
               cursor: disabled ? 'default' : 'pointer',
-              fontSize: '0.65rem',
-              lineHeight: 1.2,
-              color: excluded ? 'rgba(0,0,0,0.45)' : colorPrimitives.black,
-              boxShadow: selected ? gridCellSelectedShadow() : undefined,
-              '&:hover': disabled
-                ? undefined
-                : selectHoverTargetProp?.type === 'none'
-                  ? undefined
-                  : selectHoverChromeSuppressed
-                    ? {
-                        borderColor: baseBorderColor,
-                        bgcolor: baseBg,
-                        boxShadow: selected ? gridCellSelectedShadow() : undefined,
-                      }
-                    : {
-                        borderColor: selected
-                          ? gridCellPalette.border.selected
-                          : GRID_CELL_BORDER_COLOR_HOVER,
-                        bgcolor: selected
-                          ? gridCellPalette.background.selected
-                          : excluded
-                            ? gridCellPalette.background.excluded
-                            : fillBg ?? gridCellPalette.background.hover,
-                      },
             }}
           >
-            {custom != null && custom !== false ? (
-              <Box
-                sx={{
-                  px: 0.25,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  maxWidth: '100%',
-                  minHeight: 0,
-                }}
-              >
-                {custom}
-              </Box>
-            ) : label != null && label !== '' ? (
-              <Box component="span" sx={{ px: 0.25, textAlign: 'center', wordBreak: 'break-word' }}>
-                {label}
-              </Box>
-            ) : null}
-          </Box>
+            <GridCellVisual
+              sx={buildSquareAuthoringCellVisualSx({
+                cellId,
+                selected,
+                excluded,
+                fillBg,
+                disabled: !!disabled,
+                selectHoverTarget: selectHoverTargetProp,
+              })}
+            >
+              {custom != null && custom !== false ? (
+                <Box
+                  sx={{
+                    px: 0.25,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    maxWidth: '100%',
+                    minHeight: 0,
+                  }}
+                >
+                  {custom}
+                </Box>
+              ) : label != null && label !== '' ? (
+                <Box component="span" sx={{ px: 0.25, textAlign: 'center', wordBreak: 'break-word' }}>
+                  {label}
+                </Box>
+              ) : null}
+            </GridCellVisual>
+          </GridCellHost>
         );
       })}
     </Box>

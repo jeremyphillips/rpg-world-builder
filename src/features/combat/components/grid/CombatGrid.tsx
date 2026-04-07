@@ -17,6 +17,10 @@ import type { GridViewModel, GridCellViewModel } from '@/features/mechanics/doma
 import { DEFEATED_PARTICIPATION_OPACITY } from '@/features/mechanics/domain/combat/presentation/participation/presentation-defeated'
 import { getCellVisualState, mergePerceptionIntoCellVisualState } from './cellVisualState'
 import { getCellVisualSx, mergeAuthoringMapUnderlayIntoCellSx } from './cellVisualStyles'
+import GridCellHost from '@/features/content/locations/components/mapGrid/GridCellHost'
+import GridCellVisual, {
+  GRID_CELL_VISUAL_CLASS,
+} from '@/features/content/locations/components/mapGrid/GridCellVisual'
 import { CombatGridAuthoringOverlay } from './CombatGridAuthoringOverlay'
 import { LocationMapAuthoredObjectIconsCellInline } from '@/features/content/locations/components/mapGrid/LocationMapAuthoredObjectIconsLayer'
 import { PlacedObjectCellVisualCentered } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay'
@@ -326,7 +330,9 @@ export function CombatGrid({
               : []
 
             const cellBox = (
-              <Box
+              <GridCellHost
+                interactive={clickable}
+                showAuthoringFocusRing={false}
                 onPointerEnter={onCellHover ? () => onCellHover(cell.cellId) : undefined}
                 onClick={
                   clickable
@@ -340,65 +346,74 @@ export function CombatGrid({
                   width: cellSizePx,
                   height: cellSizePx,
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  justifyContent: 'stretch',
                   cursor: cellCursor,
                   position: 'relative',
                   zIndex: liftAboveBlindVeil ? 4 : 1,
-                  ...cellVisualSx,
+                  '&:focus-visible': {
+                    outline: 'none',
+                  },
+                  [`&:focus-visible .${GRID_CELL_VISUAL_CLASS}`]: {
+                    outline: `2px solid ${palette.primary.main}`,
+                    outlineOffset: 2,
+                  },
                 }}
               >
-                {cellAuthoredItems.length > 0 ? (
-                  <LocationMapAuthoredObjectIconsCellInline
-                    items={cellAuthoredItems}
-                    cellPx={cellSizePx}
-                    mapUi={mapUi}
-                  />
-                ) : null}
-                {showOccupantToken && (
-                  <Box
-                    onPointerEnter={() => onCellHover?.(cell.cellId)}
-                    onMouseEnter={
-                      hasPopover
-                        ? (e) => handleTokenMouseEnter(e, cell.occupantId!)
-                        : undefined
-                    }
-                    onMouseLeave={hasPopover ? handleTokenMouseLeave : undefined}
-                    sx={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      boxSizing: 'border-box',
-                      border: '3px solid',
-                      borderColor: ring,
-                      bgcolor: tokenSrc ? 'transparent' : ring,
-                      zIndex: 1,
-                      ...(cell.occupantIsDefeated ? { opacity: DEFEATED_PARTICIPATION_OPACITY } : {}),
-                      animation: cell.isActive
-                        ? `${activeTurnPulse} 2.4s ease-in-out infinite`
-                        : showLegalTargetRedPulse
-                          ? `${legalTargetRedPulse} 2.4s ease-in-out infinite`
-                          : undefined,
-                    }}
-                  >
-                    <AppAvatar
-                      src={tokenSrc}
-                      name={cell.occupantLabel ?? undefined}
-                      size="sm"
+                <GridCellVisual sx={cellVisualSx}>
+                  {cellAuthoredItems.length > 0 ? (
+                    <LocationMapAuthoredObjectIconsCellInline
+                      items={cellAuthoredItems}
+                      cellPx={cellSizePx}
+                      mapUi={mapUi}
                     />
-                  </Box>
-                )}
-                {cell.placedObjectVisual && cell.perception?.showObstacleGlyph !== false ? (
-                  <PlacedObjectCellVisualCentered
-                    visual={cell.placedObjectVisual}
-                    variant="tactical"
-                    mapUi={mapUi}
-                  />
-                ) : null}
-              </Box>
+                  ) : null}
+                  {showOccupantToken && (
+                    <Box
+                      onPointerEnter={() => onCellHover?.(cell.cellId)}
+                      onMouseEnter={
+                        hasPopover
+                          ? (e) => handleTokenMouseEnter(e, cell.occupantId!)
+                          : undefined
+                      }
+                      onMouseLeave={hasPopover ? handleTokenMouseLeave : undefined}
+                      sx={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxSizing: 'border-box',
+                        border: '3px solid',
+                        borderColor: ring,
+                        bgcolor: tokenSrc ? 'transparent' : ring,
+                        zIndex: 1,
+                        ...(cell.occupantIsDefeated ? { opacity: DEFEATED_PARTICIPATION_OPACITY } : {}),
+                        animation: cell.isActive
+                          ? `${activeTurnPulse} 2.4s ease-in-out infinite`
+                          : showLegalTargetRedPulse
+                            ? `${legalTargetRedPulse} 2.4s ease-in-out infinite`
+                            : undefined,
+                      }}
+                    >
+                      <AppAvatar
+                        src={tokenSrc}
+                        name={cell.occupantLabel ?? undefined}
+                        size="sm"
+                      />
+                    </Box>
+                  )}
+                  {cell.placedObjectVisual && cell.perception?.showObstacleGlyph !== false ? (
+                    <PlacedObjectCellVisualCentered
+                      visual={cell.placedObjectVisual}
+                      variant="tactical"
+                      mapUi={mapUi}
+                    />
+                  ) : null}
+                </GridCellVisual>
+              </GridCellHost>
             )
 
             // `LocationMapAuthoredObjectIconsCellInline` wraps each authored icon in its own Tooltip.

@@ -50,8 +50,9 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* Map grid cells (`GridEditor` / `HexGridEditor` use `Box component="button"`).
-   Undo global `button` primary styling so `sx` / `gridCellStyles` control appearance. */
+/* Map grid cells: `GridCellHost` (mapGrid/GridCellHost.tsx) applies a local button reset on
+   `role="gridcell"` hosts so cell chrome stays on `GridCellVisual`. Keep this thin fallback so
+   stray `button[role="gridcell"]` without the reset still render sanely. */
 button[role="gridcell"] {
   background-color: transparent;
   color: inherit;

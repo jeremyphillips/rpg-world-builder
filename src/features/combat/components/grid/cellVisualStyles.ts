@@ -1,3 +1,8 @@
+/**
+ * Combat grid **cell visual** builder: maps tactical {@link CellVisualState} to cell `sx`, plus
+ * authored map underlay merge. This is **domain-specific** tactical presentation — keep separate
+ * from location authoring chrome (`mapGridAuthoringCellVisual.builder.ts`); do not merge the two pipelines.
+ */
 import type { Theme } from '@mui/material/styles'
 import { alpha } from '@mui/material/styles'
 import type { SystemStyleObject } from '@mui/system'
