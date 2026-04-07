@@ -9,7 +9,10 @@ import Typography from '@mui/material/Typography';
 
 import { useDebouncedPersistableField } from '@/ui/hooks';
 
-import { LOCATION_MAP_REGION_COLOR_KEYS } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
+import {
+  getLocationMapRegionColorDisplayName,
+  LOCATION_MAP_REGION_COLOR_KEYS,
+} from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
 import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 import FormSelectField from '@/ui/patterns/form/FormSelectField';
@@ -29,7 +32,10 @@ export type { RegionMetadataFormValues };
 
 const DESCRIPTION_SYNC_DEBOUNCE_MS = 300;
 
-const colorOptions = LOCATION_MAP_REGION_COLOR_KEYS.map((k) => ({ value: k, label: k }));
+const colorOptions = LOCATION_MAP_REGION_COLOR_KEYS.map((k) => ({
+  value: k,
+  label: getLocationMapRegionColorDisplayName(k),
+}));
 
 type LocationMapRegionMetadataFormProps = {
   region: LocationMapRegionAuthoringEntry;

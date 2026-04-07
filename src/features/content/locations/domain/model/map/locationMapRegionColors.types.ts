@@ -4,6 +4,8 @@
  */
 
 export {
+  getLocationMapRegionColorDisplayName,
+  LOCATION_MAP_REGION_COLOR_DISPLAY_NAMES,
   LOCATION_MAP_REGION_COLOR_KEYS,
   type LocationMapRegionColorKey,
 } from '@/shared/domain/locations/map/locationMapRegion.constants';

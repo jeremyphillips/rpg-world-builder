@@ -10,7 +10,10 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import { getMapRegionColor, getMapSwatchColor } from '@/app/theme/mapColors';
-import { LOCATION_MAP_REGION_COLOR_KEYS } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
+import {
+  getLocationMapRegionColorDisplayName,
+  LOCATION_MAP_REGION_COLOR_KEYS,
+} from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
 import type {
   LocationMapPaintState,
   MapPaintPaletteFamilyRow,
@@ -246,8 +249,9 @@ export function LocationMapEditorPaintTray({
         {LOCATION_MAP_REGION_COLOR_KEYS.map((key) => {
           const c = getMapRegionColor(key);
           const selected = regionSwatchSelectedKey === key;
+          const label = getLocationMapRegionColorDisplayName(key);
           return (
-            <Tooltip key={key} title={key} placement="right">
+            <Tooltip key={key} title={label} placement="right">
               <Box
                 component="button"
                 type="button"
@@ -263,7 +267,7 @@ export function LocationMapEditorPaintTray({
                   p: 0,
                   boxShadow: selected ? 2 : 0,
                 }}
-                aria-label={key}
+                aria-label={label}
                 aria-pressed={selected}
               />
             </Tooltip>
