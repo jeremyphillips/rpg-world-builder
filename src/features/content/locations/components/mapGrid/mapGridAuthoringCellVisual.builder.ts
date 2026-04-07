@@ -42,6 +42,7 @@ function buildFillLayerBaseSx(args: {
         ? {
             backgroundImage: `url(${imageUrl})`,
             backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
           }
         : {}),

@@ -30,6 +30,7 @@ import type {
 } from '@/features/content/locations/domain/authoring/editor';
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { resolveCellFillSwatchColor } from '@/app/theme/mapColors';
+import { resolveImageUrl } from '@/shared/lib/media';
 import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
 import type { Location } from '@/features/content/locations/domain/model/location';
 import { useLocationAuthoringGridLayout } from '@/features/content/locations/hooks/useLocationAuthoringGridLayout';
@@ -340,7 +341,9 @@ export function LocationGridAuthoringSection({
       const sel = draft.cellFillByCellId[cell.cellId];
       if (!sel) return undefined;
       const { variant } = resolveCellFillVariant(sel.familyId as LocationCellFillFamilyId, sel.variantId);
-      return { swatchColor: resolveCellFillSwatchColor(variant) };
+      const swatchColor = resolveCellFillSwatchColor(variant);
+      const imageUrl = variant.imageKey ? resolveImageUrl(variant.imageKey) : undefined;
+      return imageUrl != null ? { swatchColor, imageUrl } : { swatchColor };
     },
     [draft.cellFillByCellId],
   );

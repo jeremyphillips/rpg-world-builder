@@ -1,7 +1,7 @@
 /**
  * Cell fills: whole-cell terrain / surface paint — **family + variant** registry.
  *
- * Presentation uses **swatch colors** only (`swatchColorKey` via `getMapSwatchColor` / `mapSwatchColors`).
+ * Presentation uses swatch colors (`swatchColorKey`) and optional `imageKey` textures on the fill layer.
  *
  * Canonical registry: `shared/domain/locations/map/authoredCellFillDefinitions.ts`.
  */

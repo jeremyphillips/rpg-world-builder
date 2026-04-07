@@ -35,6 +35,11 @@ export type AuthoredCellFillVariantDefinition = {
   label: string;
   description?: string;
   swatchColorKey: AuthoredCellFillSwatchColorKey;
+  /**
+   * Optional fill texture; same convention as system monsters (`/assets/system/...`).
+   * Resolved with `resolveImageUrl` in the map grid; swatch remains the base/fallback color.
+   */
+  imageKey?: string;
   presentation?: AuthoredCellFillVariantPresentation;
 };
 
@@ -144,12 +149,14 @@ export const AUTHORED_CELL_FILL_DEFINITIONS = {
         label: 'Stone floor',
         description: 'Interior stone or tile flooring.',
         swatchColorKey: 'cellFillStoneFloor',
+        imageKey: '/assets/system/locations/fills/floor-stone.png',
         presentation: { material: 'stone' },
       },
       wood: {
         label: 'Wood floor',
         description: 'Interior wood flooring.',
         swatchColorKey: 'cellFillWoodFloor',
+        imageKey: '/assets/system/locations/fills/floor-wood.png',
         presentation: { material: 'wood' },
       },
     },
