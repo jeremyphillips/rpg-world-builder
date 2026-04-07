@@ -135,6 +135,7 @@ export function LocationEditWorkspaceSelectionRailPanel({
         locations,
         linkedLocationByCellId: gridDraft.linkedLocationByCellId,
         objectsByCellId: gridDraft.objectsByCellId,
+        cellFillByCellId: gridDraft.cellFillByCellId,
         onUpdateLinkedLocation,
         onUpdateCellObjects,
       }}

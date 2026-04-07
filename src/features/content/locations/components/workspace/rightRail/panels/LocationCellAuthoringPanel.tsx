@@ -5,10 +5,19 @@ import Typography from '@mui/material/Typography';
 
 import type { Location } from '@/features/content/locations/domain/model/location';
 
+import type { LocationMapCellFillSelection } from '@/shared/domain/locations';
+
 import type { LocationCellObjectDraft } from '../../../authoring/draft/locationGridDraft.types';
 
-import { SelectionRailIdentityBlock } from '../selection/PlacedObjectRailTemplate';
-import { formatCellPlacementLine } from '../selection/placedObjectRail.helpers';
+import {
+  PlacedObjectPresentationMetadataRows,
+  PlacedObjectRailTemplate,
+  SelectionRailIdentityBlock,
+} from '../selection/PlacedObjectRailTemplate';
+import {
+  buildCellFillSelectionRailViewModel,
+  formatCellPlacementLine,
+} from '../selection/placedObjectRail.helpers';
 
 function buildLocationByIdMap(locations: Location[]): Map<string, Location> {
   return new Map(locations.map((l) => [l.id, l]));
@@ -36,6 +45,7 @@ export type LocationCellAuthoringPanelProps = {
   locations: Location[];
   linkedLocationByCellId: Record<string, string | undefined>;
   objectsByCellId: Record<string, LocationCellObjectDraft[]>;
+  cellFillByCellId: Record<string, LocationMapCellFillSelection | undefined>;
   onUpdateLinkedLocation: (cellId: string, locationId: string | undefined) => void;
   onUpdateCellObjects: (cellId: string, objects: LocationCellObjectDraft[]) => void;
 };
@@ -52,6 +62,7 @@ export function LocationCellAuthoringPanel({
   locations,
   linkedLocationByCellId: _linkedLocationByCellId,
   objectsByCellId: _objectsByCellId,
+  cellFillByCellId,
   campaignId: _campaignId,
   onUpdateLinkedLocation: _onUpdateLinkedLocation,
   onUpdateCellObjects: _onUpdateCellObjects,
@@ -80,6 +91,23 @@ export function LocationCellAuthoringPanel({
   }
 
   const cellId = selectedCellId;
+
+  const fill = cellFillByCellId[cellId];
+  if (fill) {
+    const fillRail = buildCellFillSelectionRailViewModel(cellId, fill);
+    const metadata =
+      fillRail.metadataRows.length > 0 ? (
+        <PlacedObjectPresentationMetadataRows rows={fillRail.metadataRows} />
+      ) : undefined;
+    return (
+      <PlacedObjectRailTemplate
+        categoryLabel={fillRail.categoryLabel}
+        objectTitle={fillRail.title}
+        placementLine={fillRail.placementLine}
+        metadata={metadata}
+      />
+    );
+  }
 
   return (
     <Stack spacing={2}>

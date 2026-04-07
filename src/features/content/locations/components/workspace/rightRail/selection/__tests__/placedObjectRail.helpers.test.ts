@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Location } from '@/features/content/locations/domain/model/location';
+import type { AuthoredPlacedObjectVariantPresentation } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry';
 
 import {
+  buildCellFillSelectionRailViewModel,
+  cellFillCategoryToSectionLabel,
+  cellFillPresentationRowsFromPresentation,
   formatCellPlacementLine,
   formatEdgePlacementLine,
   legacyMapObjectKindTitle,
+  presentationRecordToMetadataRows,
   presentationRowsFromPresentation,
   shouldShowLinkedIdentityForPlacedObject,
 } from '../placedObjectRail.helpers';
@@ -84,5 +89,61 @@ describe('presentationRowsFromPresentation', () => {
 
   it('returns empty when presentation is undefined', () => {
     expect(presentationRowsFromPresentation(undefined)).toEqual([]);
+  });
+
+  it('matches presentationRecordToMetadataRows for the same record', () => {
+    const rec = { material: 'wood', form: 'single-leaf' } as AuthoredPlacedObjectVariantPresentation;
+    expect(presentationRowsFromPresentation(rec)).toEqual(presentationRecordToMetadataRows(rec));
+  });
+});
+
+describe('cellFillCategoryToSectionLabel', () => {
+  it('maps terrain and surface', () => {
+    expect(cellFillCategoryToSectionLabel('terrain')).toBe('Terrain');
+    expect(cellFillCategoryToSectionLabel('surface')).toBe('Surface');
+  });
+});
+
+describe('cellFillPresentationRowsFromPresentation', () => {
+  it('forest variant shows biome and density', () => {
+    expect(
+      cellFillPresentationRowsFromPresentation({
+        biome: 'temperate',
+        density: 'dense',
+      }),
+    ).toEqual([
+      { label: 'Biome', value: 'temperate' },
+      { label: 'Density', value: 'dense' },
+    ]);
+  });
+
+  it('floor variant shows material', () => {
+    expect(cellFillPresentationRowsFromPresentation({ material: 'stone' })).toEqual([
+      { label: 'Material', value: 'stone' },
+    ]);
+  });
+});
+
+describe('buildCellFillSelectionRailViewModel', () => {
+  it('uses resolved variant label and cell placement', () => {
+    const vm = buildCellFillSelectionRailViewModel('13,1', {
+      familyId: 'forest',
+      variantId: 'temperate_dense',
+    });
+    expect(vm.categoryLabel).toBe('Terrain');
+    expect(vm.title).toBe('Dense forest');
+    expect(vm.placementLine).toBe('Cell 13,1');
+    expect(vm.metadataRows).toEqual([
+      { label: 'Biome', value: 'temperate' },
+      { label: 'Density', value: 'dense' },
+    ]);
+  });
+
+  it('resolves floor stone variant', () => {
+    const vm = buildCellFillSelectionRailViewModel('6,1', { familyId: 'floor', variantId: 'stone' });
+    expect(vm.categoryLabel).toBe('Surface');
+    expect(vm.title).toBe('Stone floor');
+    expect(vm.placementLine).toBe('Cell 6,1');
+    expect(vm.metadataRows).toEqual([{ label: 'Material', value: 'stone' }]);
   });
 });

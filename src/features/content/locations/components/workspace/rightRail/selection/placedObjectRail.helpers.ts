@@ -4,7 +4,13 @@ import {
   getPlacedObjectDefinition,
   type LocationPlacedObjectKindId,
 } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
-import type { LocationMapObjectKindId } from '@/shared/domain/locations';
+import type { LocationMapCellFillSelection, LocationMapObjectKindId } from '@/shared/domain/locations';
+import {
+  type AuthoredCellFillVariantPresentation,
+  getAuthoredCellFillFamilyDefinition,
+  resolveCellFillVariant,
+} from '@/shared/domain/locations/map/authoredCellFillDefinitions';
+import type { LocationCellFillCategory } from '@/shared/domain/locations/map/locationMapCellFill.facets';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import { parseSquareEdgeId } from '@/shared/domain/grid/gridEdgeIds';
 
@@ -79,11 +85,13 @@ function formatPresentationValue(raw: string): string {
   return raw.replace(/_/g, ' ').replace(/-/g, ' ');
 }
 
+type PresentationRecord = Record<string, string | number | boolean | undefined>;
+
 /**
- * First-pass metadata rows from registry `variant.presentation` — no per-object config map.
+ * Key/value rows from a registry `presentation` record — shared by placed objects and cell fills.
  */
-export function presentationRowsFromPresentation(
-  presentation: AuthoredPlacedObjectVariantPresentation | undefined,
+export function presentationRecordToMetadataRows(
+  presentation: PresentationRecord | undefined,
 ): PresentationMetadataRow[] {
   if (!presentation) return [];
   const out: PresentationMetadataRow[] = [];
@@ -95,5 +103,58 @@ export function presentationRowsFromPresentation(
     });
   }
   return out;
+}
+
+/**
+ * First-pass metadata rows from registry `variant.presentation` — no per-object config map.
+ */
+export function presentationRowsFromPresentation(
+  presentation: AuthoredPlacedObjectVariantPresentation | undefined,
+): PresentationMetadataRow[] {
+  return presentationRecordToMetadataRows(presentation);
+}
+
+/** Cell-fill variant presentation — same formatting rules as {@link presentationRowsFromPresentation}. */
+export function cellFillPresentationRowsFromPresentation(
+  presentation: AuthoredCellFillVariantPresentation | undefined,
+): PresentationMetadataRow[] {
+  return presentationRecordToMetadataRows(presentation);
+}
+
+export function cellFillCategoryToSectionLabel(category: LocationCellFillCategory): string {
+  switch (category) {
+    case 'terrain':
+      return 'Terrain';
+    case 'surface':
+      return 'Surface';
+    default: {
+      const _exhaustive: never = category;
+      return _exhaustive;
+    }
+  }
+}
+
+export type CellFillSelectionRailViewModel = {
+  categoryLabel: string;
+  title: string;
+  placementLine: string;
+  metadataRows: PresentationMetadataRow[];
+};
+
+/**
+ * Resolved display model for the Selection tab cell-fill inspector (shared rail template).
+ */
+export function buildCellFillSelectionRailViewModel(
+  cellId: string,
+  fill: LocationMapCellFillSelection,
+): CellFillSelectionRailViewModel {
+  const family = getAuthoredCellFillFamilyDefinition(fill.familyId);
+  const resolved = resolveCellFillVariant(fill.familyId, fill.variantId);
+  return {
+    categoryLabel: cellFillCategoryToSectionLabel(family.category),
+    title: resolved.variant.label,
+    placementLine: formatCellPlacementLine(cellId),
+    metadataRows: cellFillPresentationRowsFromPresentation(resolved.variant.presentation),
+  };
 }
 

@@ -40,6 +40,7 @@ function renderSelection(
     locations: [],
     linkedLocationByCellId: {},
     objectsByCellId: {},
+    cellFillByCellId: {},
     onUpdateLinkedLocation: vi.fn(),
     onUpdateCellObjects: vi.fn(),
     ...cellOverrides,
@@ -72,6 +73,55 @@ describe('LocationEditorSelectionPanel', () => {
     expect(screen.getByText('Map')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Cell' })).toBeInTheDocument();
     expect(screen.getByText('Cell 2,3')).toBeInTheDocument();
+  });
+
+  it('cell: fill-first inspector uses terrain rail template and presentation rows (no host caption)', () => {
+    renderSelection(
+      { type: 'cell', cellId: '13,1' },
+      {
+        cellPanelProps: {
+          selectedCellId: '13,1',
+          hostName: 'Nehwon',
+          hostScale: 'world',
+          hostLocationId: 'host-1',
+          cellFillByCellId: {
+            '13,1': { familyId: 'forest', variantId: 'temperate_dense' },
+          },
+        },
+      },
+    );
+    expect(screen.getByText('Terrain')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Dense forest' })).toBeInTheDocument();
+    expect(screen.getByText('Cell 13,1')).toBeInTheDocument();
+    expect(screen.getByText('Biome:')).toBeInTheDocument();
+    expect(screen.getByText('temperate')).toBeInTheDocument();
+    expect(screen.getByText('Density:')).toBeInTheDocument();
+    expect(screen.getByText('dense')).toBeInTheDocument();
+    expect(screen.queryByText(/Nehwon/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/world map/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Location:/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Label/i)).not.toBeInTheDocument();
+  });
+
+  it('cell: floor fill uses Surface section and material row', () => {
+    renderSelection(
+      { type: 'cell', cellId: '6,1' },
+      {
+        cellPanelProps: {
+          selectedCellId: '6,1',
+          hostScale: 'floor',
+          cellFillByCellId: {
+            '6,1': { familyId: 'floor', variantId: 'stone' },
+          },
+        },
+      },
+    );
+    expect(screen.getByText('Surface')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Stone floor' })).toBeInTheDocument();
+    expect(screen.getByText('Cell 6,1')).toBeInTheDocument();
+    expect(screen.getByText('Material:')).toBeInTheDocument();
+    expect(screen.getByText('stone')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Label/i)).not.toBeInTheDocument();
   });
 
   it('cell: does not show generic linked-location or add-object UI on Selection tab', () => {
