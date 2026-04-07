@@ -32,6 +32,20 @@ describe('resolvePlacedKindToAction', () => {
       authoredPlaceKindId: 'tree',
     });
   });
+
+  it('map-object door on floor maps to edge with authored registry identity', () => {
+    expect(
+      resolvePlacedKindToAction(
+        { category: 'map-object', kind: 'door', variantId: 'double_wood' },
+        'floor',
+      ),
+    ).toEqual({
+      type: 'edge',
+      edgeKind: 'door',
+      placedKind: 'door',
+      variantId: 'double_wood',
+    });
+  });
 });
 
 describe('resolveLocationPlacedKindToAction', () => {

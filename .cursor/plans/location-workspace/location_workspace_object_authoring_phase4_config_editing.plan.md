@@ -1,6 +1,6 @@
 ---
 name: Object authoring Phase 4 — config and editing
-overview: Post-placement config/editing with **explicit inspector ownership** and a **single shared placed-object rail template** for **all** placed authored objects (cell- and edge-anchored): **CellInspector** (empty cell only); **CellObjectInspector** / **EdgeObjectInspector** share the **same structural rhythm** (identity → placement → metadata → **Label** slot: freeform if **unlinked**, linked **title/name** if **linked** → actions → remove). Not “selected cell” vs “object in cell” as one surface. Door/window state, stairs, metadata, wire migrations. Map `gridDraft.mapSelection` to modes (may evolve discriminant). **Post-build cleanup pass** (follow-up): fix run-first door/window copy, restore **variant.presentation** metadata without a heavy manual map, consistent **Label** on edge objects, empty-cell rail boundary, and audit **edge features vs authored edge objects** — see **Post-build cleanup pass (Phase 4 follow-up)**.
+overview: Post-placement config/editing with **explicit inspector ownership** and a **single shared placed-object rail template** for **all** placed authored objects (cell- and edge-anchored): **CellInspector** (empty cell only); **CellObjectInspector** / **EdgeObjectInspector** share the **same structural rhythm** (identity → placement → metadata → **Label** slot: freeform if **unlinked**, linked **title/name** if **linked** → actions → remove). Not “selected cell” vs “object in cell” as one surface. Door/window state, stairs, metadata, wire migrations. Map `gridDraft.mapSelection` to modes (may evolve discriminant). **Post-build cleanup pass** (follow-up): fix run-first door/window copy, restore **variant.presentation** metadata without a heavy manual map, consistent **Label** on edge objects, empty-cell rail boundary, and audit **edge features vs authored edge objects** — see **Post-build cleanup pass (Phase 4 follow-up)**. **Edge-authored object instances — modeling direction** defines long-term **persistence parity** for edge rows (`label`, authored identity overrides coarse `kind`, **discriminated** `state`, **`variantId` edge-first** with cell follow-up), **per-edgeId row** not run-group v1 — **normative**; implementation is staged — see that section. **Implementation risks, prerequisites, guardrails, and verdict** (same section) tightens **coordination risks**, **ready-to-build gates**, and **no partial truth split** guardrails for edge wire work.
 todos:
   - id: audit-current-post-placement-editing
     content: Audit current rail/inspector behavior for placed objects, current editable metadata/state, and any existing stairs/door/window configuration flows
@@ -28,6 +28,9 @@ todos:
     status: pending
   - id: phase4-post-build-cleanup-pass
     content: Post-build cleanup — object-first door/table/edge inspectors, presentation metadata from variant.presentation (lightweight formatter), Label on all placed objects including edge, empty-cell selection tab without generic link/add-object UI, edge-feature vs wall/draw coupling note or small decoupling — see Post-build cleanup pass section
+    status: pending
+  - id: edge-authored-instance-modeling-parity
+    content: Implement staged edge row persistence + inspector hydration per Edge-authored object instances — modeling direction (label, authoredPlaceKindId, variantId, state); migration/fallback; docs — do not label-only patch in isolation
     status: pending
 isProject: true
 ---
@@ -104,7 +107,7 @@ Remove from map
 
 ### Default rail must not surface implementation details
 
-The **standard** author-facing placed-object rail **does not** default to **internal object id**, raw **family key**, raw **variant id**, or **resolver/debug** implementation details. Those belong in **curated** labels when user-meaningful, in **fallback** copy when persistence is lossy (see **Coarse edge persistence** risk), or in a **non-default** diagnostic surface — **not** as the primary inspector body.
+The **standard** author-facing placed-object rail **does not** default to **internal object id**, raw **family key**, raw **variant id**, or **resolver/debug** implementation details. Those belong in **curated** labels when user-meaningful, in **fallback** copy when persistence is lossy (see **Edge-authored** → **Implementation risks, prerequisites, guardrails, and verdict**), or in a **non-default** diagnostic surface — **not** as the primary inspector body.
 
 ### Move away from (current anti-patterns)
 
@@ -357,8 +360,310 @@ Do **not** lead with: **`Vertical Door run`**, a redundant **`door`** badge when
 ### Relation to other sections
 
 - Reinforces **Shared placed-object rail template**, **Inspector ownership**, **Guardrails** (identity before geometry; no run-first for placed edge objects with registry identity).
-- **Coarse edge persistence** risk unchanged — cleanup **does not** require variant on the wire; **resolver/default variant** may still drive **presentation** when persisted identity is lossy (document **fallback** in UI if needed).
+- **Lossy edge identity** until wire lands unchanged — cleanup **does not** require variant on the wire; **resolver/default variant** may still drive **presentation** when persisted identity is lossy (document **fallback** in UI if needed); see **Edge-authored** → **Implementation risks, prerequisites, guardrails, and verdict**.
 - Sequenced in **[location_workspace_object_authoring_phase4_build_plan.md](location_workspace_object_authoring_phase4_build_plan.md)** as **M8**.
+
+---
+
+## Edge-authored object instances — modeling direction (long-term parity)
+
+**Purpose:** Stop treating edge-authored objects as an indefinite **hybrid** (object-style rail + coarse `edgeEntries` wire). Define the **intended persisted model** for **edge-authored instances** so they can reach **real parity** with **cell-authored** objects: shared **authored-instance** concepts, a **single home** for rich edge config, and a **safe migration** path from legacy `{ edgeId, kind }` rows.
+
+**Normative intent:** **Not** a label-only quick fix; **not** more disabled shared-rail fields with caveats as the steady state; **not** UI-only parity without persistence parity. **Implementation is staged** (see **Recommended implementation sequence**); this section is the **contract** future work follows.
+
+**Grounded current state (pre-parity):**
+
+- **Cell** `LocationMapCellObjectEntry` already carries per-instance **`label`**, optional **`authoredPlaceKindId`**, and placement identity via **`id` + cell**.
+- **Edge** `LocationMapEdgeAuthoringEntry` is still **`{ edgeId, kind }`** only — no instance label, no variant id, no typed instance bag on the row.
+- Inspectors may derive **metadata** from **registry default variants** when authored identity does not round-trip — the **rail can be ahead of persistence** until this model lands.
+
+---
+
+### 1) Long-term edge-authored object row shape
+
+**Goal:** An **edge row** represents both **where** on the boundary (`edgeId`) **and** **which authored instance** sits there (identity + optional placard label + optional rich state).
+
+**Proposed normative shape** (refine names during implementation; keep concepts):
+
+```ts
+/**
+ * Rich per-edge instance data — **discriminated union** (not a keyed bag): exactly one family per value.
+ * Extend with new variants as more edge families gain typed instance state.
+ */
+export type LocationMapEdgeAuthoringState =
+  | {
+      v?: number;
+      family: 'door';
+      open?: boolean;
+      lockState?: LocationDoorLockStateId; // align with facets / registry
+      secret?: boolean;
+    }
+  | {
+      v?: number;
+      family: 'window';
+      openness?: 'closed' | 'ajar' | 'open';
+      treatment?: LocationWindowVariantId; // tighten to registry vocabulary when product locks
+    };
+
+export type LocationMapEdgeAuthoringEntry = {
+  edgeId: string;
+  /**
+   * Coarse edge kind — **retained** for compatibility, render pipelines, migration, and cases where
+   * authored identity is missing (legacy). When **`authoredPlaceKindId` / `variantId` are present**, resolution
+   * **prefers authored identity** over inferring from `kind` alone — see **§3** and **§5**.
+   */
+  kind: LocationMapEdgeKindId;
+  /** Placard / author label — parity with cell object `label`. */
+  label?: string;
+  /** Registry family id — parity with cell `authoredPlaceKindId` (`door`, `window`, …). */
+  authoredPlaceKindId?: string;
+  /**
+   * Family-scoped variant id. **Edge may ship persisted `variantId` first**; adding the same field to
+   * **`LocationMapCellObjectEntry`** is an explicit **follow-up** for symmetric wire parity — see **§2**.
+   */
+  variantId?: string;
+  /** Single home for rich door/window (and future) edge instance config — discriminated — see above. */
+  state?: LocationMapEdgeAuthoringState;
+};
+```
+
+**Invariant:** **`state`** is always a **discriminated** value (`family: 'door' | 'window'` in this sketch); never both door and window payloads on the same object.
+
+**First-ship persistence scope:** **Identity and `state` are stored per `edgeEntries[]` row** (per canonical **`edgeId`**). **Not** on an abstract **edge-run group** id in v1 — multi-segment runs are a **selection/UI** concern; each segment row carries its own fields (duplicate placement identity across a run if product applies one action to many segments, or edit per segment). A future **run-level** grouping or shared id is **out of scope** for first ship unless product revisits.
+
+---
+
+### 2) Shared-core parity model (cell vs edge)
+
+**Parity of concepts**, not necessarily **identical row layout**:
+
+| Concept | Cell object (`LocationMapCellObjectEntry`) | Edge object (`LocationMapEdgeAuthoringEntry`) |
+|--------|--------------------------------------------|-----------------------------------------------|
+| **Placement anchor** | `cellId` + object **`id`** in `objects[]` | **`edgeId`** (canonical segment id) |
+| **Placard label** | `label?` | `label?` (same semantics when persisted) |
+| **Authored family** | `authoredPlaceKindId?` | `authoredPlaceKindId?` |
+| **Variant** | Today: no persisted **`variantId`** on cell wire — resolver-heavy; **follow-up** to add **`variantId?`** on **`LocationMapCellObjectEntry`** for symmetric parity with edge | **`variantId?` on edge row** — **edge may lead** first ship; cell wire catch-up is **explicit** (same field name/semantics when added) |
+| **Rich instance config** | Today: `stairEndpoint`, future family-specific bags as needed | **`state?`** — **discriminated** door/window first |
+| **Coarse legacy kind** | `kind` (`LocationMapObjectKindId`) | `kind` (`LocationMapEdgeKindId`) — wall vs door vs window |
+
+**Shared domain language:** Reuse **`LocationPlacedObjectKindId`** (or stricter subset for edge) for **`authoredPlaceKindId`** where families align; reuse **normalization** patterns (`normalizeVariantIdForFamily`) for **`variantId`**. **Placement mode** (`cell` vs `edge`) remains the **anchor** difference; **authored-instance** fields align across modes once cell **`variantId`** exists.
+
+**Cell parity note:** **`variantId` persistence on `LocationMapCellObjectEntry`** is a **deliberate follow-up** after edge proves the pattern — not a blocker to shipping edge-authored identity first.
+
+---
+
+### 3) Persisting authored identity on edge rows (`authoredPlaceKindId`, `variantId`)
+
+**Recommendation:** **Yes** — new placements and saves should persist **`authoredPlaceKindId`** and **`variantId`** when the editor knows them, for the reasons given:
+
+- Inspector **metadata** (presentation) should be **truthful** against saved state, not only **default-variant inference**.
+- Future **rich editing** must not depend on **re-inferring** identity from coarse `kind`.
+- Aligns with **cell** semantics and **registry** as source of vocabulary.
+
+**Precedence (normative):** When **`authoredPlaceKindId`** and/or **`variantId`** are present, **authored identity wins** over inferring display and behavior from coarse **`kind` alone**. Use **`kind`** as fallback **only** when authored fields are absent (legacy), and for **lanes** that still key off coarse category (render, wall vs opening). **Conflicts** (e.g. mismatched `kind` vs `authoredPlaceKindId`) should be resolved by **normalization** favoring **authored** fields, with validation optionally flagging invalid combos.
+
+**Contract:**
+
+| Situation | Behavior |
+|-----------|----------|
+| **Legacy row** — only `{ edgeId, kind }` | **`authoredPlaceKindId` / `variantId` absent** — hydrate by **mapping `kind` → default family** and **default variant** where unambiguous (`door` → `door` family, etc.); document as **lossy** where `kind` alone is ambiguous (should be rare for door/window). |
+| **New placement** (Place tool / resolver) | **Write** `authoredPlaceKindId` + **`variantId`** (and keep **`kind`** in sync for backward compatibility and render). |
+| **Inspector / hydration** | **Authoring identity first:** use persisted **`authoredPlaceKindId` + `variantId`** for title + presentation when set; **else** fallback to `kind` + defaults for legacy; optional **non-blocking** caption or dev-only diagnostic when falling back (not a permanent disabled Label). |
+
+**`kind` remains required** on the wire initially for **compatibility** with existing validation, map features, and wall/door/window discrimination — see **§5**.
+
+---
+
+### 4) Typed state / rich edge options — single home
+
+**Recommendation:** **`state?: LocationMapEdgeAuthoringState`** on the **edge row** is the **primary home** for rich, editor-driven options (door open/closed, lock/barred, secret door, window openness, shutters, bars, glass treatment). **`state`** is a **discriminated union** by **`family`** (see **§1**) — not parallel optional keys.
+
+- **Why not scatter:** Avoid parallel top-level fields per option; avoids special-case columns in validation and normalization.
+- **Evolution:** Add new **discriminant variants** or fields inside each arm; bump **`v`** on that arm when breaking. Do not add a second door/window bag on the same value.
+- **Relationship to registry:** **Presentation** (`variant.presentation`) remains **registry defaults**; **`state`** holds **instance overrides** for gameplay/authoring (open, locked, etc.). Product rules define precedence (e.g. instance `state` wins over variant defaults for locks).
+
+---
+
+### 5) Role of coarse `kind` (avoid ambiguity with authored identity)
+
+**Intended contract:**
+
+- **`kind`** (`LocationMapEdgeKindId`): **Stable coarse category** used by **legacy data**, **render/feature** pipelines, **Draw** (wall), and **quick filtering**. **Remains required** for the foreseeable future so old maps and minimal rows keep working.
+- **`authoredPlaceKindId`**: **Registry family** for **authored-object** semantics; should **match** `kind` for door/window when both exist (`kind === 'door'` ↔ `authoredPlaceKindId === 'door'`). **When both are present and in tension, authored identity overrides** for **authoring and inspector** resolution; **normalization** may repair or reject invalid pairs.
+- **`variantId`**: **Family-scoped** variant key; must be valid for **`authoredPlaceKindId`** when both set.
+
+**Long-term:** **`kind`** may become **derivable** from **`authoredPlaceKindId`** for object-like edges, but **do not** remove **`kind`** lightly — walls and non-object edges still need it. **Rule of thumb:** **`kind`** = transport/render **lane** and **fallback** when authored fields are absent; **`authoredPlaceKindId` + `variantId`** = **authoring truth** when present and **take precedence** over coarse `kind` for identity and rail hydration.
+
+---
+
+### 6) Migration and compatibility strategy
+
+**Incremental and safe:**
+
+1. **Load:** Legacy `{ edgeId, kind }` **always** loads; optional fields default **absent**.
+2. **In-memory normalization (optional):** May attach **inferred** `authoredPlaceKindId` / `variantId` **only in memory** for UI (not persisted) — useful for previews; **prefer** persisting on next save when editor mutates the edge.
+3. **Persisted migration:** **Deferred** until an explicit **“normalize map”** or **save** path chooses to **backfill** rows; **no forced destructive** migration on load.
+4. **Unknown / ambiguous legacy:** Inspector shows **coarse** identity + **fallback** presentation; **no** fake persisted values; copy can note **“Limited data on this edge — re-place or edit when supported”** if product wants transparency.
+
+**Normalization policy:** Follow **`location-workspace.md`** **Adding persisted workspace state** and existing **`LOCATION_WORKSPACE_NORMALIZATION`** patterns when introducing new fields.
+
+---
+
+### 7) Wall / draw / edge-feature modeling — separation note
+
+**Concern:** Doors/windows must not stay permanently **trapped** in a mixed **wall edge-feature + object inspector** model; **wall** geometry may later **not** be a vector line.
+
+**Clarify:**
+
+- **Shared:** **Boundary targeting** (`edgeId`), **sparse `edgeEntries`**, **kind** lane for **wall** vs **door** vs **window**, and **shared map draft** / selection.
+- **Separated:** **Authored object instance** persistence (**label**, **authored identity**, **`state`**) applies to **registry edge families** (door/window); **pure wall** segments may stay **geometry-first** with **no** `authoredPlaceKindId` / **`state`** until product defines wall instance semantics.
+- **Decouple:** **Edge geometry** (which segment, runs, draw strokes) is **not** the same layer as **authored object instance** data — persist instance fields **on the edge row** keyed by `edgeId`, not inside draw-tool-only structures. **Draw** remains a **tool** that **commits** to `edgeEntries`; **inspector** edits **instance fields** on those rows. **v1:** per-row only — **no** persisted run-group record; see **§1** first-ship scope.
+
+---
+
+### 8) Recommended implementation sequence
+
+**Staged path** (adjust as dependencies land):
+
+| Step | Scope |
+|------|--------|
+| **1** | **Define** richer **`LocationMapEdgeAuthoringEntry`** + **discriminated** **`LocationMapEdgeAuthoringState`** in **shared types**; **validation** + **docs** (`location-workspace.md`, this plan); **no** forced backfill. |
+| **2** | **Persist** shared instance fields: **`label`**, **`authoredPlaceKindId`**, **`variantId`** on place/save paths; **dirty/snapshot** participation; **placement** writes full identity for new edges. |
+| **3** | **Inspector hydration:** **prefer** persisted authored identity + variant for metadata and titles; **fallback** to `kind` + **default variant** for legacy; remove **disabled Label** / **misleading** caveats once **`label`** persists. |
+| **4** | **First typed `state` fields** for door/window (minimal set — e.g. open + lock); rail editors bind to **`state`**. |
+| **5** | **Cleanup:** reduce default-inference **warnings**, optional **backfill** migration tool, align **`LOCATION_EDGE_FEATURE_KIND_META`** usage so **registry** owns product copy for **authored** edges. |
+
+**Why this order:** **Shape + persistence of identity** before **rich state** avoids painting editors into a corner; **hydration** before **heavy state** ensures the rail is **truthful**; **state** last avoids a second migration churn for identity fields.
+
+**Explicit non-goals for an isolated quick fix:** **Do not** ship **label-only** on the wire without **`authoredPlaceKindId` / `variantId`** direction agreed — that would repeat the **hybrid** problem for **metadata** and **variant** truthfulness.
+
+---
+
+### Deliverables summary (this section)
+
+- **Proposed row shape:** `LocationMapEdgeAuthoringEntry` with **`label?`**, **`authoredPlaceKindId?`**, **`variantId?`**, **`state?`** (discriminated), plus required **`kind`** for compatibility.
+- **Shared-core parity:** Same **authored-instance** concepts as cell objects; **different anchors** (`edgeId` vs cell + object id). **`variantId` on cell** = explicit **follow-up**; **edge leads** first ship.
+- **Contract:** **Authored identity overrides** coarse **`kind`** for hydration when present; **`kind`** = lane + legacy fallback; **`state`** = discriminated rich instance options; **per-edge row** persistence first — **not** run-group v1.
+- **Migration:** Load legacy as-is; infer in memory optionally; persist on edit; no forced destructive migration.
+- **Sequence:** Types/docs → persist identity → inspector hydration → typed state → cleanup.
+- **Wall/draw:** **Targeting** and **`edgeEntries`** shared; **authored instance** data **separate** from pure wall/draw tool internals.
+
+---
+
+### Implementation risks, prerequisites, guardrails, and verdict
+
+This subsection makes the **implementation contract** explicit: the long-term **model** is defined above; **remaining hazard** is **partial or uncoordinated delivery** (split-brain across writers, normalizers, inspector, render, and downstream readers). It complements the global **Risks** section — **edge-specific** coordination detail lives **here**; cross-cutting rail/scope/stairs risks stay **there**.
+
+#### Risks
+
+##### 1. Lossy edge identity until richer fields round-trip (top risk)
+
+Until **`label`**, **`authoredPlaceKindId`**, **`variantId`**, and **`state`** are **actually persisted** and threaded through **save**, **dirty/snapshot**, and **reload**, edge-authored identity remains **lossy**. The normative row shape above is the **target**, not proof that the running app persists it.
+
+**Inspector truth:** The Selection rail **must not** present authored identity, metadata, or labels **truer** than what **persisted rows** can round-trip. If the wire is still coarse, the UI must stay **honest** (fallback copy, lossy states) — **not** a richer editor façade over **`kind`-only** storage.
+
+##### 2. Split-brain implementation / contract drift across writers and readers
+
+**Not** generic “churn” — **concrete** failure modes to avoid in the same release train:
+
+- **Placement** writes **`authoredPlaceKindId` / `variantId`** while **serialization, validation, or readers** still **ignore** those fields → saved data **silently** reverts to coarse behavior elsewhere.
+- **Inspector** reads authored fields while **normalization** strips or **drops** them on save → author edits **do not stick**.
+- **One subsystem** resolves identity from **`kind`** only while **another** uses **`authoredPlaceKindId` / `variantId`** **without** a **shared precedence pipeline** → inconsistent titles, metadata, or removal semantics.
+
+**Requirement:** Enough of the **write path, read path, and persistence** move together that the app does not ship **partial truth** across subsystems.
+
+##### 3. `kind` vs authored identity conflicts (cross-consumer contract risk)
+
+If **`kind`** and **`authoredPlaceKindId` / `variantId`** **diverge** and there is **no** shared **validation / repair / precedence** contract, the product can enter **split-brain**:
+
+- **Map render** or feature styling uses **`kind`**.
+- **Inspector** uses **authored** fields.
+- **Encounter / export / combat** uses **another** fallback.
+
+This is **not** only “data hygiene” — it is **cross-consumer contract** risk. **Mitigation:** explicit **validation**, **normalization** rules, and **one** shared hydration path (see **Ready-to-build prerequisites**).
+
+##### 4. Per-edge row vs edge-run UX drift
+
+**Persistence** is per **`edgeId`** (per `edgeEntries[]` row). **UX** may still select **runs** or **batch** operations. **First-ship risk:** users believe they edited a **grouped** edge feature while **one segment** changed, or segments **silently diverge** (identity/state mismatch across a run).
+
+**First-ship rule (mandatory):** Product/engineering must pick **one** explicit behavior, document it, and align tools + copy — e.g. **bulk-apply** authored identity/state to **all** `edgeId`s in the current run when an action applies to a run, **or** strictly **per-segment** edits with **clear** UI that each segment is independent. **Not** “TBD” at ship.
+
+##### 5. Accepted temporary asymmetry: edge `variantId` before cell `variantId`
+
+**Edge** may **lead** persisted **`variantId`** while **`LocationMapCellObjectEntry`** still has **no** `variantId` on the wire — **intentional** route, not an accident. **Risk:** forgetting the **explicit cell follow-up** or allowing **behavior** to **drift** between edge and cell code paths (different inference, different tests). **Mitigation:** track cell **`variantId`** as **scheduled parity work**; document asymmetry in **`location-workspace.md`** when edge ships.
+
+##### 6. Downstream consumers still reading coarse `kind`
+
+**Encounter**, **combat**, **export**, **runtime** readers may **continue** to rely on **`kind`** only. Even after authoring persists **richer** identity and **`state`**, **downstream** behavior can remain **stale** or **lossy** unless updated. **Mitigation:** **non-optional** checklist of consumers to review and align; **do not** assume “map saved it” implies “session uses it.”
+
+##### 7. Discriminated `state` versioning (secondary)
+
+As **`LocationMapEdgeAuthoringState` grows**, **version** bumps and **union** extensions carry **migration** and **validation** risk. Real, but **lower priority** than **identity/hydration split-brain** for first implementation — keep evolution disciplined (`v`, discriminant arms).
+
+##### 8. Scope creep and inspector / stairs ownership (cross-cutting)
+
+**Scope creep** (runtime mechanics beyond authored config) and **stairs ownership** (`useLocationEditBuildingStairHandlers` vs inspectors) remain **real** but **secondary** to **edge identity persistence coordination** — see global **Risks** for full wording.
+
+---
+
+#### Ready-to-build prerequisites (implementation gates)
+
+These are **normative gates** for a coherent first ship of richer edge rows — not a suggestion list.
+
+**A — Normative shared types + validation**  
+The **`LocationMapEdgeAuthoringEntry`** and discriminated **`LocationMapEdgeAuthoringState`** shapes above are the **contract**, not illustrative pseudo-code. **Validation rules** (optional fields, union arms, **conflicts** between `kind` and authored identity) are **part of that contract**.
+
+**B — Single shared hydration / precedence path (critical prerequisite)**  
+There must be **one** shared resolver or pipeline (implementation name TBD, e.g. domain helper resolving an “edge authored view” from a row) that defines **in one place**, in order:
+
+1. **Authored identity** when present (`authoredPlaceKindId`, `variantId`).
+2. **Fallback** to coarse **`kind`** when authored fields are absent (legacy).
+3. **Registry presentation** from the resolved family + variant (defaults where needed).
+4. **Persisted instance `state`** overlay on top of presentation defaults where applicable.
+
+**Inspector**, **map renderers**, and **downstream readers** must **not** each **re-implement** precedence. **Duplicating** precedence logic across call sites is a **structural risk** — treat it like duplicating save logic.
+
+**C — Placement / draft writes emit coherent rows**  
+Placement and edge-commit paths must **not** write **partially enriched** rows (e.g. fields that **normalization** then **discards**). **`authoredPlaceKindId`**, **`variantId`**, and initial **`state`** (when applicable) must be written **consistently** with validation; **`kind`** stays **aligned** for legacy/coarse consumers.
+
+**D — Dirty / snapshot / normalization**  
+New fields participate in **workspace** persistence and **draft/snapshot** semantics per **`location-workspace.md`**. **In-memory inference** of identity must **not** silently imply **persisted** authoring unless product explicitly defines **when** inference becomes save (e.g. only on explicit edit, or on save boundary). Avoid surprising **dirty** state from **preview-only** inference.
+
+**E — Run / multi-segment behavior**  
+Covered under **Risk 4** — **one explicit first-ship rule** is **required** (bulk vs per-segment + honest UX).
+
+**F — Downstream consumer checklist**  
+Explicit review of **encounter**, **combat**, **export**, **map render/hydration**, and **any** serializer of `edgeEntries` — **not** optional cleanup deferred “later.”
+
+**G — Cell `variantId` follow-up**  
+**Full** symmetric wire parity with cell objects requires **`variantId?` on `LocationMapCellObjectEntry`** — **explicit follow-up**; **not** a blocker to **starting** edge persistence.
+
+---
+
+#### Guardrail: no partial truth split
+
+Do **not** ship a state where:
+
+- The **inspector** shows **richer** authored identity or metadata than **persistence** can round-trip.
+- **Placement** writes **richer** rows than **normalization** or **save** preserve.
+- **Render** or **runtime** reads **stale** **`kind`** while the **editor** reads **authored** identity **without** a documented, shared resolution story.
+
+**Partial truth splits** across persisted rows, normalizers, inspector, placement, and downstream readers are the **primary implementation hazard** once the **model** is defined — **not** disagreement on the long-term direction.
+
+---
+
+#### Verdict
+
+The **long-term edge-authored instance model** is now **defined enough to build against**. The **dominant risk** is **no longer** undefined architecture — it is **coordinated execution**: **persistence**, **normalization**, **hydration**, and **downstream alignment** must land **together enough** to avoid **split-brain** behavior. Success means **one** precedence story, **honest** UI relative to saved data, and **no** subsystem silently ignoring fields the others rely on.
+
+---
+
+#### Still under-specified (explicit)
+
+- **Exact first-ship run rule** until product picks **bulk-apply vs per-segment** (see Risk 4).
+- **Module / API name** for the **single hydration** helper and its **call-site** list (to be fixed at implementation).
+- **Timeline** for **downstream** (encounter/combat) to **consume** new fields vs **authoring-only** ship.
+- **Cell `variantId`** scheduling relative to edge **M6**-style milestones.
 
 ---
 
@@ -396,6 +701,7 @@ Do **not** lead with: **`Vertical Door run`**, a redundant **`door`** badge when
 - **Richer** authored object metadata / behavior (incremental)
 - **Documentation** — update **[docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)** so the **canonical** workspace reference stays aligned with Phase 4: Selection rail / inspector ownership (**`CellInspector`** vs placed-object inspectors), **shared placed-object rail template**, `gridDraft` / selection behavior, debounced persistable patterns, and **Adding persisted workspace state** (or equivalent sections) when new persisted fields or normalization rules ship. **Not** a full unrelated docs rewrite — **targeted** updates tied to Phase 4 deliverables.
 - **Post-build cleanup pass** — **object-first** door/window rails vs **run** copy; **`variant.presentation`** metadata rows via a **small shared helper**; **Label** on **edge** placed objects; **empty-cell** Selection tab **without** default generic **link** / **add-object** UI; **audit** of **edge-feature / wall** vs **authored registry** edge objects (**note** or **small decoupling**). See **Post-build cleanup pass (Phase 4 follow-up)**; build plan **M8**.
+- **Edge-authored object instances — modeling direction** — normative long-term **persistence parity** for `edgeEntries` (**`label`**, **`authoredPlaceKindId`**, **`variantId`**, typed **`state`**), shared-core alignment with **cell** objects, **`kind` vs authored identity** contract, **migration/fallback**, **wall/draw separation**, **staged implementation sequence**, and **Implementation risks, prerequisites, guardrails, and verdict** (coordination gates, single hydration path, no partial truth split) — see dedicated section; **not** a label-only patch in isolation.
 
 ---
 
@@ -436,11 +742,13 @@ These are **true implementation risks** — hazards that can derail delivery or 
 
 The rail still carries **structural debt** until **selection dispatch** and **mounted panels** align with the three-inspector model (`CellInspector` / `CellObjectInspector` / `EdgeObjectInspector`). The old **single cell panel with flags** anti-pattern remains a **real delivery hazard** until `LocationEditorSelectionPanel`, `LocationCellAuthoringPanel`, and related branches actually dispatch that way in code — **plan text alone does not remove it**.
 
-#### Coarse edge persistence / lossy edge object identity
+#### Coarse edge persistence / lossy edge object identity (see Edge-authored subsection)
 
-**`edgeEntries`** remain coarse on the wire (**`kind`-only**; no `familyKey`, `variantId`, or instance fields). Doors and windows **do not round-trip** full registry identity. Phase 4 editing may need to inspect or select objects whose persisted edge wire **cannot reconstruct** the originally authored variant. Any **richer persisted** edge editing implies additive wire, migration, dirty/snapshot participation, and compatibility behavior. **Phase 4 must not accidentally assume** edge variants or full identity already persist.
+**Current codebase:** `edgeEntries` are still **`{ edgeId, kind }`** until wire work lands — identity remains **lossy** until **`label`**, **`authoredPlaceKindId`**, **`variantId`**, and **`state`** round-trip.
 
-**Lossy identity:** selected edge-object identity may be **lossy** under current persistence. The inspector may **not** always truthfully reconstruct the originally authored variant from persisted wire alone. Phase 4 must define **fallback UI** for **unknown variant**, **ambiguous family mapping**, and **legacy edge rows** with coarse identity only.
+**Do not duplicate** the full risk matrix here. **Normative model**, **split-brain hazards**, **single hydration prerequisite**, **guardrails**, and **verdict** — **Edge-authored object instances — modeling direction** → **Implementation risks, prerequisites, guardrails, and verdict**.
+
+**Phase 4 must not assume** richer fields exist in the running app until implemented end-to-end.
 
 #### Scope creep into runtime or broad rail redesign
 
@@ -474,7 +782,7 @@ Edge selection UI may need **different emphasis** for **wall-like** boundary/geo
 
 #### First-pass door/window editable state
 
-Product/design: what Phase 4 **first ships** (open/closed, locked, secret, style/material) vs what stays **deferred**. Any field that must round-trip requires a persistence decision (see **Gaps / deferred** and **Coarse edge persistence** risk).
+Product/design: what Phase 4 **first ships** (open/closed, locked, secret, style/material) vs what stays **deferred**. Any field that must round-trip requires a persistence decision (see **Gaps / deferred** and **Edge-authored** → **Implementation risks, prerequisites, guardrails, and verdict**).
 
 #### Shared vs type-specific inspector composition
 
@@ -494,9 +802,9 @@ Labels, subtype, footprint, flags — **structured** slots vs generic bags (incr
 
 Honest constraints: **not yet designed**, **out of scope**, or **missing deliverables** — distinct from “risk” and “open choice” where helpful.
 
-#### Persistence redesign not yet committed
+#### Persistence redesign: shape vs implementation
 
-No committed design yet for **where** richer edge instance data or variants would live (**`edgeEntries` extension** vs **adjunct** structures, etc.). Remains **deferred until execution**; see **Coarse edge persistence** risk when editing requires persistence.
+The **shape** of richer edge instance data is **specified** in **Edge-authored object instances — modeling direction** (additive **`LocationMapEdgeAuthoringEntry`** fields, discriminated **`state`**, precedence rules). **Implementation in the repo** (shared types, validation, save/dirty paths, shared hydration helper) remains **deferred until execution**; see **Implementation risks, prerequisites, guardrails, and verdict** in that section for **gates** and coordination risks.
 
 #### Hex parity out of scope
 

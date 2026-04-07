@@ -8,7 +8,10 @@ import type { LocationMapRegionColorKey } from './locationMapRegion.constants';
 import type { LocationMapEdgeKindId } from './locationMapEdgeFeature.constants';
 import type { LocationMapPathKindId } from './locationMapPathFeature.constants';
 import type { LocationMapStairEndpointAuthoring } from './locationMapStairEndpoint.types';
+import type { LocationMapEdgeAuthoringState } from './locationMapEdgeAuthoring.types';
 import type { GridGeometryId } from '../../grid/gridGeometry';
+
+export type { LocationMapEdgeAuthoringState } from './locationMapEdgeAuthoring.types';
 
 export type { LocationCellUnitId };
 
@@ -90,10 +93,21 @@ export type LocationMapPathAuthoringEntry = {
 /**
  * One authored feature on a cell boundary segment. `edgeId` is canonical:
  * interior `between:cellA|cellB`, or outer map edge `perimeter:cellId|N|E|S|W`.
+ *
+ * - **`kind`** — required coarse category for compatibility (render, legacy, tooling).
+ * - **`authoredPlaceKindId` / `variantId`** — registry identity when present; authoritative over coarse `kind` for authoring.
+ * - **`label`** — optional placard label (parity with cell object `label`).
  */
 export type LocationMapEdgeAuthoringEntry = {
   edgeId: string;
   kind: LocationMapEdgeKindId;
+  /** Registry family id (`door`, `window`, …) when persisted from the place tool or editor. */
+  authoredPlaceKindId?: string;
+  /** Family-scoped variant id when persisted. */
+  variantId?: string;
+  label?: string;
+  /** Typed instance overrides — discriminated; optional until edited. */
+  state?: LocationMapEdgeAuthoringState;
 };
 
 /** Sparse map-level authored content split by primitive. */

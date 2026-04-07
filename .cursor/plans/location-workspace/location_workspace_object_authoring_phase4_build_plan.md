@@ -14,6 +14,21 @@ isProject: true
 
 This document is a **build order** and **work breakdown**. It does not replace the Phase 4 plan; it sequences implementation so the shared template and dispatch land without a monolithic one-shot rewrite.
 
+### Implementation status (living)
+
+| Milestone | Status |
+|-----------|--------|
+| M1 Audit | Done (superseded by shipped UI; no separate audit artifact required) |
+| M2 Shared shell (`PlacedObjectRailTemplate`) | Done |
+| M3 Cell placed objects + Label rules | Done |
+| M4 Empty cell vs object dispatch | Done (`LocationCellAuthoringPanel` boundary) |
+| M5 Edge inspectors on shared shell | Done |
+| M6 Persistence / richer `edgeEntries` | **Deferred** — additive wire + hydration; see normative plan **Edge-authored object instances** |
+| M7 Tests + `location-workspace.md` | Done — RTL: [`LocationEditorSelectionPanel.test.tsx`](../../../src/features/content/locations/components/workspace/rightRail/selection/__tests__/LocationEditorSelectionPanel.test.tsx); doc synced |
+| M8 Post-build cleanup | Done (presentation metadata, empty-cell rail, object-first edge-run door/window) |
+
+**Definition of done (below)** items 1–6 and M8 items 7–10 are satisfied in product except **M6** scope, which remains a future execution slice.
+
 ---
 
 ## Build principles (non-negotiable)
@@ -139,6 +154,14 @@ This document is a **build order** and **work breakdown**. It does not replace t
 | **Tests + doc touch-up** | RTL/unit for metadata rows and empty-cell rail; **`location-workspace.md`** if behavior changes |
 
 **Does not include:** Redesigning **wall** as non-vector geometry, **hex** parity, or **M6** persistence scope unless explicitly pulled in.
+
+---
+
+### Edge-authored instance parity (normative design — implementation staged)
+
+**Spec:** [location_workspace_object_authoring_phase4_config_editing.plan.md](location_workspace_object_authoring_phase4_config_editing.plan.md) — **Edge-authored object instances — modeling direction (long-term parity)** and **Implementation risks, prerequisites, guardrails, and verdict** (single hydration path, ready-to-build gates, no partial truth split).
+
+**Intent:** Richer **`LocationMapEdgeAuthoringEntry`** (`label`, `authoredPlaceKindId`, `variantId`, `state`), shared-core parity with cell objects, migration from coarse rows, staged sequence (types → persist identity → inspector hydration → `state` → cleanup). **Avoid** shipping **label-only** without the agreed identity fields — see plan **§8**. **Avoid** split-brain across writers, normalizers, inspector, and downstream readers — see **Implementation risks, prerequisites, guardrails, and verdict**.
 
 ---
 

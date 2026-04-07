@@ -35,8 +35,11 @@ export type ResolvedPlacedKindAction =
     }
   | {
       type: 'edge';
-      /** Same as `edgeEntries[].kind` — variant is resolver-only in Phase 3. */
       edgeKind: LocationEdgeFeatureKindId;
+      /** Registry family — same as persisted `edgeEntries[].authoredPlaceKindId`. */
+      placedKind: LocationPlacedObjectKindId;
+      /** Family-scoped variant id — same as persisted `edgeEntries[].variantId`. */
+      variantId: string;
     }
   | { type: 'unsupported'; reason?: string };
 
@@ -63,8 +66,12 @@ export function resolvePlacedKindToAction(
     if (!allowed.includes(hostScale)) {
       return { type: 'unsupported', reason: 'host_scale' };
     }
-    void resolvedVariantId;
-    return { type: 'edge', edgeKind };
+    return {
+      type: 'edge',
+      edgeKind,
+      placedKind,
+      variantId: resolvedVariantId,
+    };
   }
 
   if (placedKind === 'city' && hostScale === 'world') {

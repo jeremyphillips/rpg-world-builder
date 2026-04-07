@@ -11,13 +11,14 @@ import Typography from '@mui/material/Typography';
 
 import type { Location } from '@/features/content/locations/domain/model/location';
 import {
-  getDefaultVariantPresentationForKind,
   getPlacedObjectMeta,
   getPlacedObjectPaletteCategoryId,
   getPlacedObjectPaletteCategoryLabel,
   LOCATION_PLACED_OBJECT_KIND_META,
+  resolveAuthoredEdgeInstance,
   resolvePlacedObjectKindForCellObject,
-} from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
+} from '@/features/content/locations/domain';
+import { getDefaultVariantPresentationForKind } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import {
   listStairObjectOptionsForFloor,
   parseStairObjectOptionValue,
@@ -659,12 +660,17 @@ export type LocationMapEdgeInspectorProps = {
   edgeEntries: readonly LocationMapEdgeAuthoringEntry[];
   /** When set, “Remove from map” uses the same draft path as Erase on that edge. */
   onRemoveEdgeFromMap?: (edgeId: string) => void;
+  onPatchEdgeEntry?: (
+    edgeId: string,
+    patch: Partial<Pick<LocationMapEdgeAuthoringEntry, 'label'>>,
+  ) => void;
 };
 
 export function LocationMapEdgeInspector({
   edgeId,
   edgeEntries,
   onRemoveEdgeFromMap,
+  onPatchEdgeEntry,
 }: LocationMapEdgeInspectorProps) {
   const entry = edgeEntries.find((e) => e.edgeId === edgeId);
   if (!entry) {
@@ -675,33 +681,23 @@ export function LocationMapEdgeInspector({
     );
   }
 
-  /**
-   * Authored registry objects (`door` / `window` variants + `presentation`) are the object-first source for
-   * these inspectors. `LOCATION_EDGE_FEATURE_KIND_META` remains the draw/wall edge-feature vocabulary — keep
-   * registry-driven copy primary here so door/window rails do not drift toward wall/run semantics.
-   */
-  const isDoorOrWindow = entry.kind === 'door' || entry.kind === 'window';
-  const objectTitle = isDoorOrWindow
-    ? entry.kind === 'door'
-      ? LOCATION_PLACED_OBJECT_KIND_META.door.label
-      : LOCATION_PLACED_OBJECT_KIND_META.window.label
-    : 'Wall';
-  const categoryLabel = isDoorOrWindow
-    ? getPlacedObjectPaletteCategoryLabel(getPlacedObjectPaletteCategoryId(entry.kind))
-    : 'Structure';
+  const resolved = resolveAuthoredEdgeInstance(entry);
+  const isDoorOrWindow = resolved.placedKind === 'door' || resolved.placedKind === 'window';
   const placementLine = formatEdgePlacementLine(edgeId);
 
   const presentationRows = isDoorOrWindow
-    ? presentationRowsFromPresentation(getDefaultVariantPresentationForKind(entry.kind))
+    ? presentationRowsFromPresentation(resolved.presentation)
     : [];
 
   const metadata = isDoorOrWindow ? (
     <Stack spacing={1}>
       <PlacedObjectPresentationMetadataRows rows={presentationRows} />
-      <Typography variant="caption" color="text.secondary">
-        Only edge kind is persisted on the map; values shown use the family default variant until edge storage is
-        extended.
-      </Typography>
+      {resolved.legacyIdentityFallback ? (
+        <Typography variant="caption" color="text.secondary">
+          This segment predates saved door/window identity — metadata uses the default variant until you re-place or
+          the map is saved with upgraded edge data.
+        </Typography>
+      ) : null}
     </Stack>
   ) : (
     <Typography variant="body2" color="text.secondary">
@@ -713,17 +709,16 @@ export function LocationMapEdgeInspector({
     <TextField
       label="Label"
       size="small"
-      value=""
-      disabled
-      helperText="Not persisted for edge features in this phase."
+      value={entry.label ?? ''}
+      onChange={(e) => onPatchEdgeEntry?.(edgeId, { label: e.target.value })}
       fullWidth
     />
   ) : undefined;
 
   return (
     <PlacedObjectRailTemplate
-      categoryLabel={categoryLabel}
-      objectTitle={objectTitle}
+      categoryLabel={resolved.categoryLabel}
+      objectTitle={resolved.objectTitle}
       placementLine={placementLine}
       metadata={metadata}
       labelField={edgeLabelField}
@@ -748,8 +743,13 @@ export type LocationMapEdgeRunInspectorProps = {
   edgeIds: readonly string[];
   axis: 'horizontal' | 'vertical';
   anchorEdgeId: string;
+  edgeEntries: readonly LocationMapEdgeAuthoringEntry[];
   /** When set, removes every segment in this run (same as map Delete for edge-run). */
   onRemoveEdgeRunFromMap?: (edgeIds: readonly string[]) => void;
+  onPatchEdgeEntry?: (
+    edgeId: string,
+    patch: Partial<Pick<LocationMapEdgeAuthoringEntry, 'label'>>,
+  ) => void;
 };
 
 export function LocationMapEdgeRunInspector({
@@ -757,17 +757,19 @@ export function LocationMapEdgeRunInspector({
   edgeIds,
   axis,
   anchorEdgeId,
+  edgeEntries,
   onRemoveEdgeRunFromMap,
+  onPatchEdgeEntry,
 }: LocationMapEdgeRunInspectorProps) {
-  const isDoorOrWindow = kind === 'door' || kind === 'window';
+  const anchorEntry =
+    edgeEntries.find((e) => e.edgeId === anchorEdgeId) ?? ({ edgeId: anchorEdgeId, kind } as LocationMapEdgeAuthoringEntry);
+
+  const resolved = resolveAuthoredEdgeInstance(anchorEntry);
+  const isDoorOrWindow = resolved.placedKind === 'door' || resolved.placedKind === 'window';
   const objectTitle = isDoorOrWindow
-    ? kind === 'door'
-      ? LOCATION_PLACED_OBJECT_KIND_META.door.label
-      : LOCATION_PLACED_OBJECT_KIND_META.window.label
+    ? resolved.objectTitle
     : edgeRunHumanLabel(kind, axis);
-  const categoryLabel = isDoorOrWindow
-    ? getPlacedObjectPaletteCategoryLabel(getPlacedObjectPaletteCategoryId(kind))
-    : 'Structure';
+  const categoryLabel = isDoorOrWindow ? resolved.categoryLabel : 'Structure';
 
   /** Object-first: anchor placement is primary for door/window; wall runs stay geometry-forward. */
   const placementLine = isDoorOrWindow
@@ -775,11 +777,19 @@ export function LocationMapEdgeRunInspector({
     : `Straight run · ${edgeIds.length} segment${edgeIds.length === 1 ? '' : 's'}`;
 
   const presentationRows = isDoorOrWindow
-    ? presentationRowsFromPresentation(getDefaultVariantPresentationForKind(kind))
+    ? presentationRowsFromPresentation(resolved.presentation)
     : [];
 
   const metadata = isDoorOrWindow ? (
-    <PlacedObjectPresentationMetadataRows rows={presentationRows} />
+    <Stack spacing={1}>
+      <PlacedObjectPresentationMetadataRows rows={presentationRows} />
+      {resolved.legacyIdentityFallback ? (
+        <Typography variant="caption" color="text.secondary">
+          Anchor segment predates saved door/window identity — metadata uses the default variant until re-placed or
+          upgraded on save.
+        </Typography>
+      ) : null}
+    </Stack>
   ) : (
     <Stack spacing={1}>
       <Typography variant="body2" color="text.secondary">
@@ -798,9 +808,8 @@ export function LocationMapEdgeRunInspector({
     <TextField
       label="Label"
       size="small"
-      value=""
-      disabled
-      helperText="Not persisted for edge features in this phase."
+      value={anchorEntry.label ?? ''}
+      onChange={(e) => onPatchEdgeEntry?.(anchorEdgeId, { label: e.target.value })}
       fullWidth
     />
   ) : undefined;

@@ -206,6 +206,7 @@ export default function LocationEditRoute() {
     handleRemovePathFromMap,
     handleRemoveEdgeFromMap,
     handleRemoveEdgeRunFromMap,
+    handlePatchEdgeEntry,
     handleAuthoringCellClick,
     handleEdgeStrokeCommit,
     handleEraseEdge,
@@ -286,6 +287,7 @@ export default function LocationEditRoute() {
       onRemovePathFromMap={handleRemovePathFromMap}
       onRemoveEdgeFromMap={handleRemoveEdgeFromMap}
       onRemoveEdgeRunFromMap={handleRemoveEdgeRunFromMap}
+      onPatchEdgeEntry={handlePatchEdgeEntry}
     />
   );
 

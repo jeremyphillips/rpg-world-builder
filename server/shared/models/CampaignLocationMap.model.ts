@@ -84,6 +84,10 @@ const mapEdgeEntrySchema = new Schema(
   {
     edgeId: { type: String, required: true },
     kind: { type: String, required: true },
+    authoredPlaceKindId: { type: String, required: false },
+    variantId: { type: String, required: false },
+    label: { type: String, required: false },
+    state: { type: Schema.Types.Mixed, required: false },
   },
   { _id: false },
 );

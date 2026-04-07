@@ -105,7 +105,7 @@ describe('LocationEditorSelectionPanel', () => {
     expect(screen.getByText('rectangle')).toBeInTheDocument();
   });
 
-  it('edge: mounts edge inspector with door label when kind is door', () => {
+  it('edge: mounts edge inspector with door label when kind is door (legacy identity)', () => {
     const edgeId = 'between:0,0|1,0';
     renderSelection(
       { type: 'edge', edgeId },
@@ -117,6 +117,78 @@ describe('LocationEditorSelectionPanel', () => {
     expect(screen.getByText('Between Cell 0,0 and Cell 1,0')).toBeInTheDocument();
     expect(screen.getByText('Material:')).toBeInTheDocument();
     expect(screen.getByText('Form:')).toBeInTheDocument();
+    expect(
+      screen.getByText(/This segment predates saved door\/window identity/i),
+    ).toBeInTheDocument();
+  });
+
+  it('edge: enriched door uses persisted variant metadata and title', () => {
+    const edgeId = 'between:0,0|1,0';
+    renderSelection(
+      { type: 'edge', edgeId },
+      {
+        edgeEntries: [
+          {
+            edgeId,
+            kind: 'door',
+            authoredPlaceKindId: 'door',
+            variantId: 'double_wood',
+          },
+        ],
+      },
+    );
+    expect(screen.getByRole('heading', { name: 'Double Door' })).toBeInTheDocument();
+    expect(screen.getByText(/double leaf/i)).toBeInTheDocument();
+  });
+
+  it('edge: label field is editable when door has authored identity', () => {
+    const edgeId = 'between:0,0|1,0';
+    renderSelection(
+      { type: 'edge', edgeId },
+      {
+        edgeEntries: [
+          {
+            edgeId,
+            kind: 'door',
+            authoredPlaceKindId: 'door',
+            variantId: 'single_wood',
+            label: 'Front',
+          },
+        ],
+        onPatchEdgeEntry: vi.fn(),
+      },
+    );
+    const field = screen.getByLabelText('Label') as HTMLInputElement;
+    expect(field.disabled).toBe(false);
+    expect(field.value).toBe('Front');
+  });
+
+  it('edge: mounts edge inspector with window label and default variant presentation', () => {
+    const edgeId = 'perimeter:0,0|E';
+    renderSelection(
+      { type: 'edge', edgeId },
+      {
+        edgeEntries: [{ edgeId, kind: 'window' }],
+      },
+    );
+    expect(screen.getByRole('heading', { name: 'Window' })).toBeInTheDocument();
+    expect(screen.getByText('Cell 0,0 · east edge')).toBeInTheDocument();
+    expect(screen.getByText('Material:')).toBeInTheDocument();
+    expect(screen.getByText('glass')).toBeInTheDocument();
+    expect(screen.getByText('Type:')).toBeInTheDocument();
+    expect(screen.getByText('plain')).toBeInTheDocument();
+  });
+
+  it('edge: wall segment uses structure-style copy', () => {
+    const edgeId = 'between:1,1|1,2';
+    renderSelection(
+      { type: 'edge', edgeId },
+      {
+        edgeEntries: [{ edgeId, kind: 'wall' }],
+      },
+    );
+    expect(screen.getByRole('heading', { name: 'Wall' })).toBeInTheDocument();
+    expect(screen.getByText('Boundary wall segment.')).toBeInTheDocument();
   });
 
   it('path: mounts path inspector with Path title', () => {
@@ -165,16 +237,51 @@ describe('LocationEditorSelectionPanel', () => {
 
   it('edge-run: door uses registry object-first title', () => {
     const anchor = 'perimeter:2,3|E';
-    renderSelection({
-      type: 'edge-run',
-      kind: 'door',
-      edgeIds: [anchor],
-      axis: 'vertical',
-      anchorEdgeId: anchor,
-    });
+    renderSelection(
+      {
+        type: 'edge-run',
+        kind: 'door',
+        edgeIds: [anchor],
+        axis: 'vertical',
+        anchorEdgeId: anchor,
+      },
+      {
+        edgeEntries: [
+          { edgeId: anchor, kind: 'door', authoredPlaceKindId: 'door', variantId: 'single_wood' },
+        ],
+      },
+    );
     expect(screen.getByRole('heading', { name: 'Door' })).toBeInTheDocument();
     expect(screen.getByText('Cell 2,3 · east edge')).toBeInTheDocument();
     expect(screen.getByText('Material:')).toBeInTheDocument();
+    expect(screen.queryByText(/Straight run/i)).not.toBeInTheDocument();
+  });
+
+  it('edge-run: window uses registry object-first title and presentation rows', () => {
+    const anchor = 'between:0,0|0,1';
+    renderSelection(
+      {
+        type: 'edge-run',
+        kind: 'window',
+        edgeIds: [anchor],
+        axis: 'horizontal',
+        anchorEdgeId: anchor,
+      },
+      {
+        edgeEntries: [
+          {
+            edgeId: anchor,
+            kind: 'window',
+            authoredPlaceKindId: 'window',
+            variantId: 'glass',
+          },
+        ],
+      },
+    );
+    expect(screen.getByRole('heading', { name: 'Window' })).toBeInTheDocument();
+    expect(screen.getByText('Between Cell 0,0 and Cell 0,1')).toBeInTheDocument();
+    expect(screen.getByText('Material:')).toBeInTheDocument();
+    expect(screen.getByText('glass')).toBeInTheDocument();
     expect(screen.queryByText(/Straight run/i)).not.toBeInTheDocument();
   });
 });

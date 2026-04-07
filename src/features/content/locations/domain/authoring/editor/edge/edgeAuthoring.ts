@@ -14,6 +14,12 @@ import {
   type SquareCellSide,
 } from '@/shared/domain/grid/gridEdgeIds';
 import type { LocationMapEdgeAuthoringEntry } from '@/shared/domain/locations';
+
+/** Written together for place-tool door/window placements (see {@link applyEdgeStrokeToDraft}). */
+export type EnrichedEdgePlacement = {
+  authoredPlaceKindId: string;
+  variantId: string;
+};
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 
 export type ResolvedEdgeTarget = {
@@ -143,12 +149,13 @@ export function resolveEdgeTargetFromGridPosition(
  * Rules:
  * - Same kind already on edge -> no-op (skip)
  * - Different kind on edge -> replace in place
- * - Empty edge -> add `{ edgeId, kind }`
+ * - Empty edge -> add `{ edgeId, kind }` or enriched door/window rows when `enriched` is set (place tool).
  */
 export function applyEdgeStrokeToDraft(
   existingFeatures: readonly LocationMapEdgeAuthoringEntry[],
   strokeEdgeIds: readonly string[],
   edgeKind: LocationEdgeFeatureKindId,
+  enriched?: EnrichedEdgePlacement | null,
 ): LocationMapEdgeAuthoringEntry[] {
   const byEdgeId = new Map<string, LocationMapEdgeAuthoringEntry>();
   for (const f of existingFeatures) {
@@ -160,14 +167,40 @@ export function applyEdgeStrokeToDraft(
   for (const edgeId of strokeSet) {
     const existing = byEdgeId.get(edgeId);
     if (existing) {
-      if (existing.kind === edgeKind) continue;
-      byEdgeId.set(edgeId, { edgeId, kind: edgeKind });
+      if (existing.kind === edgeKind) {
+        if (enriched && (edgeKind === 'door' || edgeKind === 'window')) {
+          byEdgeId.set(edgeId, buildEdgeAuthoringEntryForStroke(edgeId, edgeKind, enriched, existing));
+        }
+        continue;
+      }
+      byEdgeId.set(edgeId, buildEdgeAuthoringEntryForStroke(edgeId, edgeKind, enriched, existing));
     } else {
-      byEdgeId.set(edgeId, { edgeId, kind: edgeKind });
+      byEdgeId.set(edgeId, buildEdgeAuthoringEntryForStroke(edgeId, edgeKind, enriched, undefined));
     }
   }
 
   return Array.from(byEdgeId.values());
+}
+
+function buildEdgeAuthoringEntryForStroke(
+  edgeId: string,
+  edgeKind: LocationEdgeFeatureKindId,
+  enriched: EnrichedEdgePlacement | null | undefined,
+  existing: LocationMapEdgeAuthoringEntry | undefined,
+): LocationMapEdgeAuthoringEntry {
+  if (edgeKind === 'wall') {
+    return { edgeId, kind: 'wall' };
+  }
+  if ((edgeKind === 'door' || edgeKind === 'window') && enriched) {
+    return {
+      edgeId,
+      kind: edgeKind,
+      authoredPlaceKindId: enriched.authoredPlaceKindId,
+      variantId: enriched.variantId,
+      ...(existing?.label?.trim() ? { label: existing.label } : {}),
+    };
+  }
+  return { edgeId, kind: edgeKind };
 }
 
 // ---------------------------------------------------------------------------

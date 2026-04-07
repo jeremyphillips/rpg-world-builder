@@ -33,6 +33,7 @@ import {
   resolveDrawSelectionToAction,
   resolvePlacementCellClick,
   resolvePlacementEdgeFeatureKind,
+  resolvePlacedKindToAction,
   applyEraseTargetToDraft,
   resolveEraseTargetAtCell,
   computeHexEdgeConstraintPatch,
@@ -49,7 +50,7 @@ import {
   type LocationScaleId,
   type LocationVerticalStairConnection,
 } from '@/shared/domain/locations';
-import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
+import type { LocationMapEdgeAuthoringEntry, LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
 import {
   LOCATION_MAP_DEFAULT_REGION_NAME,
   LOCATION_MAP_REGION_COLOR_KEYS,
@@ -902,12 +903,19 @@ export function useLocationEditWorkspaceModel({
   const handleEdgeStrokeCommit = useCallback(
     (edgeIds: string[], edgeKind: LocationEdgeFeatureKindId) => {
       if (edgeIds.length === 0) return;
+      let enriched: { authoredPlaceKindId: string; variantId: string } | undefined;
+      if (placeEdgeAuthoringActive && mapEditor.activePlace) {
+        const res = resolvePlacedKindToAction(mapEditor.activePlace, mapHostScaleResolved);
+        if (res.type === 'edge') {
+          enriched = { authoredPlaceKindId: res.placedKind, variantId: res.variantId };
+        }
+      }
       setGridDraft((prev) => ({
         ...prev,
-        edgeEntries: applyEdgeStrokeToDraft(prev.edgeEntries, edgeIds, edgeKind),
+        edgeEntries: applyEdgeStrokeToDraft(prev.edgeEntries, edgeIds, edgeKind, enriched),
       }));
     },
-    [],
+    [placeEdgeAuthoringActive, mapEditor.activePlace, mapHostScaleResolved],
   );
 
   const handleEraseEdge = useCallback((edgeId: string) => {
@@ -916,6 +924,16 @@ export function useLocationEditWorkspaceModel({
       edgeEntries: prev.edgeEntries.filter((e) => e.edgeId !== edgeId),
     }));
   }, []);
+
+  const handlePatchEdgeEntry = useCallback(
+    (edgeId: string, patch: Partial<Pick<LocationMapEdgeAuthoringEntry, 'label'>>) => {
+      setGridDraft((prev) => ({
+        ...prev,
+        edgeEntries: prev.edgeEntries.map((e) => (e.edgeId === edgeId ? { ...e, ...patch } : e)),
+      }));
+    },
+    [],
+  );
 
   return {
     campaignId,
@@ -1002,6 +1020,7 @@ export function useLocationEditWorkspaceModel({
     handleRemovePathFromMap,
     handleRemoveEdgeFromMap,
     handleRemoveEdgeRunFromMap,
+    handlePatchEdgeEntry,
     handleAuthoringCellClick,
     handleEdgeStrokeCommit,
     handleEraseEdge,

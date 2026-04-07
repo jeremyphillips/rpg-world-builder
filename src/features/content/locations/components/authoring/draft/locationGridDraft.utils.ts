@@ -1,5 +1,6 @@
 import { normalizeLocationMapAuthoringFields } from '@/shared/domain/locations';
 import { cellDraftToCellEntries, cellEntriesToDraft } from '@/features/content/locations/domain/authoring/map/cellAuthoringMappers';
+import { normalizeEdgeAuthoringEntriesForPersistence } from '@/features/content/locations/domain/authoring/map/locationMapEdgeAuthoring.normalize';
 
 import type { LocationGridDraftState } from './locationGridDraft.types';
 
@@ -25,12 +26,16 @@ export function normalizedAuthoringPayloadFromGridDraft(draft: LocationGridDraft
     draft.cellFillByCellId,
     draft.regionIdByCellId,
   );
-  return normalizeLocationMapAuthoringFields({
+  const base = normalizeLocationMapAuthoringFields({
     cellEntries,
     pathEntries: draft.pathEntries,
     edgeEntries: draft.edgeEntries,
     regionEntries: draft.regionEntries,
   });
+  return {
+    ...base,
+    edgeEntries: normalizeEdgeAuthoringEntriesForPersistence(base.edgeEntries),
+  };
 }
 
 /**

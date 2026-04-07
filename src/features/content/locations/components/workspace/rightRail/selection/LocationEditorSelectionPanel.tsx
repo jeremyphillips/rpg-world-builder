@@ -44,6 +44,11 @@ export type LocationEditorSelectionPanelProps = {
   onRemoveEdgeFromMap?: (edgeId: string) => void;
   /** All segments in the selected straight run (same as Delete for edge-run). */
   onRemoveEdgeRunFromMap?: (edgeIds: readonly string[]) => void;
+  /** Persisted edge row patch (e.g. label) — same draft as map save. */
+  onPatchEdgeEntry?: (
+    edgeId: string,
+    patch: Partial<Pick<LocationMapEdgeAuthoringEntry, 'label'>>,
+  ) => void;
   /** Debounced persistable fields (e.g. region description) register flush here for Save / boundaries. */
   debouncedPersistableFlushRef?: MutableRefObject<(() => void) | null>;
 };
@@ -64,6 +69,7 @@ export function LocationEditorSelectionPanel({
   onRemovePathFromMap,
   onRemoveEdgeFromMap,
   onRemoveEdgeRunFromMap,
+  onPatchEdgeEntry,
   debouncedPersistableFlushRef,
 }: LocationEditorSelectionPanelProps) {
   switch (selection.type) {
@@ -124,6 +130,7 @@ export function LocationEditorSelectionPanel({
           edgeId={selection.edgeId}
           edgeEntries={edgeEntries}
           onRemoveEdgeFromMap={onRemoveEdgeFromMap}
+          onPatchEdgeEntry={onPatchEdgeEntry}
         />
       );
     case 'edge-run':
@@ -133,7 +140,9 @@ export function LocationEditorSelectionPanel({
           edgeIds={selection.edgeIds}
           axis={selection.axis}
           anchorEdgeId={selection.anchorEdgeId}
+          edgeEntries={edgeEntries}
           onRemoveEdgeRunFromMap={onRemoveEdgeRunFromMap}
+          onPatchEdgeEntry={onPatchEdgeEntry}
         />
       );
   }

@@ -216,6 +216,55 @@ describe('applyEdgeStrokeToDraft', () => {
     });
     expect(result.find((e) => e.edgeId === 'between:0,0|0,1')?.kind).toBe('wall');
   });
+
+  it('persists authored identity for place-tool door/window strokes', () => {
+    const enriched = { authoredPlaceKindId: 'door', variantId: 'single_wood' };
+    const result = applyEdgeStrokeToDraft([], ['between:0,0|1,0'], 'door', enriched);
+    expect(result[0]).toEqual({
+      edgeId: 'between:0,0|1,0',
+      kind: 'door',
+      authoredPlaceKindId: 'door',
+      variantId: 'single_wood',
+    });
+  });
+
+  it('preserves label when replacing wall with enriched door', () => {
+    const existing = [
+      {
+        kind: 'wall' as const,
+        edgeId: 'between:0,0|1,0',
+      },
+    ];
+    const result = applyEdgeStrokeToDraft(
+      existing,
+      ['between:0,0|1,0'],
+      'door',
+      { authoredPlaceKindId: 'door', variantId: 'single_wood' },
+    );
+    expect(result[0]).toMatchObject({
+      kind: 'door',
+      authoredPlaceKindId: 'door',
+      variantId: 'single_wood',
+    });
+  });
+
+  it('updates variant when re-stroking same edge with new enriched payload', () => {
+    const existing = [
+      {
+        kind: 'door' as const,
+        edgeId: 'between:0,0|1,0',
+        authoredPlaceKindId: 'door',
+        variantId: 'single_wood',
+      },
+    ];
+    const result = applyEdgeStrokeToDraft(
+      existing,
+      ['between:0,0|1,0'],
+      'door',
+      { authoredPlaceKindId: 'door', variantId: 'double_wood' },
+    );
+    expect(result[0]?.variantId).toBe('double_wood');
+  });
 });
 
 // ---------------------------------------------------------------------------

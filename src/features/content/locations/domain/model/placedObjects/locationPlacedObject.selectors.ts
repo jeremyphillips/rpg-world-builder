@@ -52,6 +52,24 @@ function variantDefinitionForFamily(
   return variantRecord(family)[variantId];
 }
 
+/** True when `variantId` exists in the family’s registry variants. */
+export function isVariantIdValidForFamily(kind: LocationPlacedObjectKindId, variantId: string): boolean {
+  return Boolean(variantDefinitionForFamily(AUTHORED_PLACED_OBJECT_DEFINITIONS[kind], variantId));
+}
+
+/** Presentation metadata for a concrete family + variant (persisted wire uses `variantId`). */
+export function getPlacedObjectVariantPresentation(
+  kind: LocationPlacedObjectKindId,
+  variantId: string,
+): AuthoredPlacedObjectVariantPresentation | undefined {
+  return variantDefinitionForFamily(AUTHORED_PLACED_OBJECT_DEFINITIONS[kind], variantId)?.presentation;
+}
+
+/** Human label for a concrete variant (inspector object title when identity is known). */
+export function getPlacedObjectVariantLabel(kind: LocationPlacedObjectKindId, variantId: string): string | undefined {
+  return variantDefinitionForFamily(AUTHORED_PLACED_OBJECT_DEFINITIONS[kind], variantId)?.label;
+}
+
 /**
  * Sole registry source for the primary palette variant id — always use this (not a literal `variants.default` key).
  * Resolution of label/icon/meta: `variants[getDefaultVariantIdForFamily(kind)]`.

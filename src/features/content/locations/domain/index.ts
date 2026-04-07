@@ -14,6 +14,11 @@ export {
   pickMapGridFormValues,
 } from './authoring/map/bootstrapDefaultLocationMap';
 export { cellDraftToCellEntries, cellEntriesToDraft } from './authoring/map/cellAuthoringMappers';
+export {
+  normalizeEdgeAuthoringEntryForPersistence,
+  normalizeEdgeAuthoringEntriesForPersistence,
+} from './authoring/map/locationMapEdgeAuthoring.normalize';
+export { resolveAuthoredEdgeInstance, type ResolvedAuthoredEdgeInstance } from './authoring/map/locationMapEdgeAuthoring.resolve';
 export * from './authoring/editor';
 export * from './model';
 export * from './presentation/map';
