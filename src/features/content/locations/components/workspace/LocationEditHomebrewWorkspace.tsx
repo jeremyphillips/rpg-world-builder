@@ -48,7 +48,6 @@ export type LocationEditHomebrewWorkspaceProps = {
   showFloorRailHint: boolean;
   floorRailHintLabel?: string | null;
   policyPanel: ReactNode | null;
-  mapAuthoringPanel: ReactNode;
   selectionPanel: ReactNode;
   deleteConfirm: {
     open: boolean;
@@ -86,7 +85,6 @@ export function LocationEditHomebrewWorkspace({
   showFloorRailHint,
   floorRailHintLabel,
   policyPanel,
-  mapAuthoringPanel,
   selectionPanel,
   deleteConfirm,
 }: LocationEditHomebrewWorkspaceProps) {
@@ -177,7 +175,6 @@ export function LocationEditHomebrewWorkspace({
                   {policyPanel}
                 </Stack>
               }
-              mapPanel={mapAuthoringPanel}
               selectionPanel={selectionPanel}
             />
           </LocationEditorRightRail>

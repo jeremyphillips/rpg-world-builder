@@ -10,11 +10,6 @@ export {
   LocationMapEditorDrawTray,
 } from './workspace/leftTools'
 export {
-  LocationMapEditorPaintMapPanel,
-  LocationMapEditorDrawPanel,
-  LocationMapEditorPlacePanel,
-} from './workspace/rightRail/panels'
-export {
   INITIAL_LOCATION_GRID_DRAFT,
 } from './authoring/draft/locationGridDraft.types'
 export type {

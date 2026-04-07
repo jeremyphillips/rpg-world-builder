@@ -16,7 +16,8 @@ type RegionPaintActiveRegionSelectProps = {
 };
 
 /**
- * Choose which authored region is the paint target (`activeRegionId`). Used in the Map rail for Region paint.
+ * Choose which authored region is the paint target (`activeRegionId`). Legacy helper for paint tray
+ * wiring; prefer Selection rail + paint toolbar flows.
  */
 export function RegionPaintActiveRegionSelect({
   activeRegionId,

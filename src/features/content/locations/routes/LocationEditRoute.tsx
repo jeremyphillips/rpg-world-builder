@@ -26,10 +26,7 @@ import {
   type BuildingWorkspaceFloorItem,
 } from '@/features/content/locations/domain/model/building/buildingWorkspaceFloors';
 
-import {
-  LocationEditWorkspaceMapAuthoringRailPanel,
-  LocationEditWorkspaceSelectionRailPanel,
-} from './locationEdit/locationEditWorkspaceRailPanels';
+import { LocationEditWorkspaceSelectionRailPanel } from './locationEdit/locationEditWorkspaceRailPanels';
 import { useLocationEditWorkspaceModel } from './locationEdit';
 
 const FORM_ID = 'location-edit-form';
@@ -255,14 +252,6 @@ export default function LocationEditRoute() {
         }
       : undefined;
 
-  const mapAuthoringPanel = (
-    <LocationEditWorkspaceMapAuthoringRailPanel
-      mapEditor={mapEditor}
-      placePaletteItems={placePaletteItems}
-      drawPaletteItems={drawPaletteItems}
-    />
-  );
-
   const selectionPanel = (
     <LocationEditWorkspaceSelectionRailPanel
       gridDraft={gridDraft}
@@ -389,7 +378,6 @@ export default function LocationEditRoute() {
         railSection={railSection}
         onRailSectionChange={setRailSection}
         mapCanvasColumn={mapCanvasColumn}
-        mapAuthoringPanel={mapAuthoringPanel}
         selectionPanel={selectionPanel}
       />
     );
@@ -442,7 +430,6 @@ export default function LocationEditRoute() {
           />
         ) : null
       }
-      mapAuthoringPanel={mapAuthoringPanel}
       selectionPanel={selectionPanel}
       deleteConfirm={{
         open: deleteConfirmOpen,

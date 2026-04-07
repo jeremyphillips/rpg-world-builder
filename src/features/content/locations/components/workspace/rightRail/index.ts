@@ -5,10 +5,4 @@ export { LocationEditorSelectionPanel } from './selection';
 export type { LocationEditorSelectionPanelProps } from './selection';
 export type { LocationEditorRailSection, LocationMapSelection } from './types';
 export { selectedCellIdForMapSelection, mapSelectionEqual } from './locationEditorRail.helpers';
-export {
-  LocationMapEditorPaintMapPanel,
-  LocationMapEditorDrawPanel,
-  LocationMapEditorPlacePanel,
-  LocationCellAuthoringPanel,
-  type LocationCellAuthoringPanelProps,
-} from './panels';
+export { LocationCellAuthoringPanel, type LocationCellAuthoringPanelProps } from './panels';

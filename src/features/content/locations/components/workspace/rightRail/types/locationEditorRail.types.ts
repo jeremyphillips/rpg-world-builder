@@ -1,7 +1,7 @@
 import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
 
 /** Which section of the location editor right rail is visible. Kept separate from toolbar `LocationMapEditorMode`. */
-export type LocationEditorRailSection = 'location' | 'map' | 'selection';
+export type LocationEditorRailSection = 'location' | 'selection';
 
 /**
  * Inspector selection for map-authored entities. Stored on `LocationGridDraftState.mapSelection`

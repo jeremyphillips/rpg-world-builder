@@ -1,76 +1,11 @@
-import type { Dispatch, SetStateAction } from 'react';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-
-import type {
-  LocationMapActiveDrawSelection,
-  LocationMapActivePaintSelection,
-  LocationMapActivePlaceSelection,
-  LocationMapEditorMode,
-} from '@/features/content/locations/domain/authoring/editor';
-import type { MapDrawPaletteItem, MapPlacePaletteItem } from '@/features/content/locations/domain/authoring/editor';
 import {
   LocationEditorSelectionPanel,
-  LocationMapEditorDrawPanel,
-  LocationMapEditorPaintMapPanel,
   selectedCellIdForMapSelection,
 } from '@/features/content/locations/components';
 import type { LocationEditorSelectionPanelProps } from '@/features/content/locations/components/workspace/rightRail/selection/LocationEditorSelectionPanel';
 import type { LocationCellAuthoringPanelProps } from '@/features/content/locations/components/workspace/rightRail/panels/LocationCellAuthoringPanel';
 import type { LocationGridDraftState } from '@/features/content/locations/components/authoring/draft/locationGridDraft.types';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
-
-/**
- * Right-rail **Map** tab: tool palette and hints. Lives under `routes/locationEdit/` as workspace
- * assembly (route-shaped props), not domain semantics.
- */
-export type LocationEditWorkspaceMapAuthoringRailPanelProps = {
-  mapEditor: {
-    mode: LocationMapEditorMode;
-    activePlace: LocationMapActivePlaceSelection;
-    setActivePlace: Dispatch<SetStateAction<LocationMapActivePlaceSelection>>;
-    activeDraw: LocationMapActiveDrawSelection;
-    setActiveDraw: Dispatch<SetStateAction<LocationMapActiveDrawSelection>>;
-    activePaint: LocationMapActivePaintSelection;
-  };
-  /** Retained for future rail hints; place palette is toolbar-first (left tray). */
-  placePaletteItems: MapPlacePaletteItem[];
-  drawPaletteItems: MapDrawPaletteItem[];
-};
-
-export function LocationEditWorkspaceMapAuthoringRailPanel({
-  mapEditor,
-  placePaletteItems: _placePaletteItems,
-  drawPaletteItems,
-}: LocationEditWorkspaceMapAuthoringRailPanelProps) {
-  return (
-    <Stack spacing={2}>
-      {mapEditor.mode === 'place' ? (
-        <Typography variant="body2" color="text.secondary">
-          Choose what to place in the <strong>left toolbar</strong> (next to the map), then click cells on the map.
-          Use Selection to inspect or configure after placement.
-        </Typography>
-      ) : mapEditor.mode === 'draw' ? (
-        <LocationMapEditorDrawPanel
-          items={drawPaletteItems}
-          activeDraw={mapEditor.activeDraw}
-          onSelectDraw={mapEditor.setActiveDraw}
-        />
-      ) : mapEditor.mode === 'paint' && mapEditor.activePaint ? (
-        <LocationMapEditorPaintMapPanel paint={mapEditor.activePaint} />
-      ) : mapEditor.mode === 'erase' ? (
-        <Typography variant="body2" color="text.secondary">
-          Click a cell to remove the topmost feature (edge, object, path segment, link, or terrain fill). Drag across
-          cells to strip terrain fill in bulk.
-        </Typography>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          Use the toolbar to choose a tool. Open Selection to inspect cells, paths, edges, and runs.
-        </Typography>
-      )}
-    </Stack>
-  );
-}
 
 export type LocationEditWorkspaceSelectionRailPanelProps = Omit<
   LocationEditorSelectionPanelProps,

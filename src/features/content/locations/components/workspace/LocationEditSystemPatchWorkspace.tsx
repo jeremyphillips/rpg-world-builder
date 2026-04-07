@@ -38,7 +38,6 @@ export type LocationEditSystemPatchWorkspaceProps = {
   railSection: LocationEditorRailSection;
   onRailSectionChange: (section: LocationEditorRailSection) => void;
   mapCanvasColumn: ReactNode;
-  mapAuthoringPanel: ReactNode;
   selectionPanel: ReactNode;
 };
 
@@ -64,7 +63,6 @@ export function LocationEditSystemPatchWorkspace({
   railSection,
   onRailSectionChange,
   mapCanvasColumn,
-  mapAuthoringPanel,
   selectionPanel,
 }: LocationEditSystemPatchWorkspaceProps) {
   return (
@@ -124,7 +122,6 @@ export function LocationEditSystemPatchWorkspace({
                 ) : null}
               </Stack>
             }
-            mapPanel={mapAuthoringPanel}
             selectionPanel={selectionPanel}
           />
         </LocationEditorRightRail>
