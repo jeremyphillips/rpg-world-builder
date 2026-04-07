@@ -48,8 +48,4 @@ export type {
   LocationEditorRailSection,
   LocationMapSelection,
 } from './workspace'
-export {
-  shouldAutoSwitchRailToMapForMode,
-  selectedCellIdForMapSelection,
-  mapSelectionEqual,
-} from './workspace'
+export { selectedCellIdForMapSelection, mapSelectionEqual } from './workspace';

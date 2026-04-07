@@ -4,11 +4,7 @@ export type { LocationEditorRailSectionTabsProps } from './LocationEditorRailSec
 export { LocationEditorSelectionPanel } from './selection';
 export type { LocationEditorSelectionPanelProps } from './selection';
 export type { LocationEditorRailSection, LocationMapSelection } from './types';
-export {
-  shouldAutoSwitchRailToMapForMode,
-  selectedCellIdForMapSelection,
-  mapSelectionEqual,
-} from './locationEditorRail.helpers';
+export { selectedCellIdForMapSelection, mapSelectionEqual } from './locationEditorRail.helpers';
 export {
   LocationMapEditorPaintMapPanel,
   LocationMapEditorDrawPanel,

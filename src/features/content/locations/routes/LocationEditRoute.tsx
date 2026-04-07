@@ -174,6 +174,7 @@ export default function LocationEditRoute() {
     handleRegionPaintCell,
     handleBeginRegionPaintFromSelection,
     handleMapEditorModeChange,
+    handlePlaceObjectStrokeEnd,
     focusSelectionRailSection,
     paintPaletteSections,
     placePaletteItems,
@@ -313,6 +314,7 @@ export default function LocationEditRoute() {
       placeEdgeFeatureKind={placeEdgeFeatureKind}
       suppressCanvasPanOnCells={mapPlaceSuppressesCanvasPanOnCells}
       placeObjectDragStrokeEnabled={mapPlaceObjectDragStrokeEnabled}
+      onPlaceObjectStrokeEnd={handlePlaceObjectStrokeEnd}
       consumeClickSuppressionAfterPan={consumeClickSuppressionAfterPan}
       onRegionPaintCell={handleRegionPaintCell}
     />

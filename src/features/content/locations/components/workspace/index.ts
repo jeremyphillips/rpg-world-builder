@@ -18,7 +18,6 @@ export type {
   LocationMapSelection,
 } from './rightRail';
 export {
-  shouldAutoSwitchRailToMapForMode,
   selectedCellIdForMapSelection,
   mapSelectionEqual,
 } from './rightRail';

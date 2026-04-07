@@ -98,6 +98,8 @@ type LocationGridAuthoringSectionProps = {
    * across cells places on each cell. Path / edge / link still use click-only flows.
    */
   placeObjectDragStrokeEnabled?: boolean;
+  /** When drag-place ends (pointer up), e.g. focus Selection rail without switching on each cell. */
+  onPlaceObjectStrokeEnd?: () => void;
   /** From {@link useCanvasPan#consumeClickSuppressionAfterPan}; skip cell click after pan drag. */
   consumeClickSuppressionAfterPan?: () => boolean;
   /** Paint mode region strokes: create/extend via workspace (draft + selection + rail). */
@@ -129,6 +131,7 @@ export function LocationGridAuthoringSection({
   placeEdgeFeatureKind = null,
   suppressCanvasPanOnCells = false,
   placeObjectDragStrokeEnabled = false,
+  onPlaceObjectStrokeEnd,
   consumeClickSuppressionAfterPan,
   onRegionPaintCell,
 }: LocationGridAuthoringSectionProps) {
@@ -392,6 +395,7 @@ export function LocationGridAuthoringSection({
     placePathPlacement,
     suppressEdgePlacePan: suppressEdgePlacePan || placeCellClickSuppressedForEdgeTool,
     onPlaceCellClick,
+    onPlaceObjectStrokeEnd,
     resolveHexCellFromClient,
     setPlaceHoverCellId,
   });

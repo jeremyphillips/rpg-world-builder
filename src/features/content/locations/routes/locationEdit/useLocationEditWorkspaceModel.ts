@@ -50,10 +50,7 @@ import {
   type LocationVerticalStairConnection,
 } from '@/shared/domain/locations';
 import type { LocationMapEdgeAuthoringEntry, LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
-import {
-  LOCATION_MAP_DEFAULT_REGION_NAME,
-  LOCATION_MAP_REGION_COLOR_KEYS,
-} from '@/shared/domain/locations/map/locationMapRegion.constants';
+import { LOCATION_MAP_DEFAULT_REGION_NAME } from '@/shared/domain/locations/map/locationMapRegion.constants';
 import { resolveLeftMapChromeWidthPx } from '@/features/content/locations/domain/presentation/map/locationEditorWorkspaceUiTokens';
 import {
   applyEdgeStrokeToDraft,
@@ -66,7 +63,6 @@ import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
 import { getNeighborPoints } from '@/shared/domain/grid/gridHelpers';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import {
-  shouldAutoSwitchRailToMapForMode,
   selectedCellIdForMapSelection,
   INITIAL_LOCATION_GRID_DRAFT,
   gridDraftPersistableEquals,
@@ -74,6 +70,12 @@ import {
   type LocationGridDraftState,
   type LocationEditorRailSection,
 } from '@/features/content/locations/components';
+import {
+  draftPatchForEdgeStrokeFirstEdge,
+  draftPatchForLinkedCell,
+  draftPatchForPath,
+  draftPatchForPlacedObject,
+} from '@/features/content/locations/routes/locationEdit/postAuthoringSelection.helpers';
 
 import { useLocationMapHydration } from './useLocationMapHydration';
 import { useLocationEditSaveActions } from './useLocationEditSaveActions';
@@ -464,12 +466,14 @@ export function useLocationEditWorkspaceModel({
   const handleMapEditorModeChange = useCallback(
     (mode: LocationMapEditorMode) => {
       setMapEditorMode(mode);
-      if (shouldAutoSwitchRailToMapForMode(mode)) {
-        setRailSection('map');
-      }
     },
     [setMapEditorMode],
   );
+
+  /** After drag-place across cells, focus Selection once (no tab churn per cell). */
+  const handlePlaceObjectStrokeEnd = useCallback(() => {
+    setRailSection('selection');
+  }, [setRailSection]);
 
   const focusSelectionRailSection = useCallback(() => {
     setRailSection('selection');
@@ -710,8 +714,18 @@ export function useLocationEditWorkspaceModel({
         const nextLinks = { ...prev.linkedLocationByCellId };
         if (linkedId) nextLinks[cellId] = linkedId;
         else delete nextLinks[cellId];
-        return { ...prev, linkedLocationByCellId: nextLinks };
+        if (!linkedId) {
+          return { ...prev, linkedLocationByCellId: nextLinks };
+        }
+        return {
+          ...prev,
+          linkedLocationByCellId: nextLinks,
+          ...draftPatchForLinkedCell(cellId),
+        };
       });
+      if (linkedId) {
+        setRailSection('selection');
+      }
     },
     [],
   );
@@ -788,10 +802,11 @@ export function useLocationEditWorkspaceModel({
         const outcome = resolvePlacementCellClick(mapEditor.activePlace, cellId, mapHostScaleResolved);
         if (outcome.kind === 'unsupported') return;
         if (outcome.kind === 'append-object') {
+          const newObjectId = crypto.randomUUID();
           setGridDraft((prev) => {
             const existing = prev.objectsByCellId[outcome.cellId] ?? [];
             const obj: (typeof existing)[number] = {
-              id: crypto.randomUUID(),
+              id: newObjectId,
               ...outcome.objectDraft,
             };
             return {
@@ -800,8 +815,12 @@ export function useLocationEditWorkspaceModel({
                 ...prev.objectsByCellId,
                 [outcome.cellId]: [...existing, obj],
               },
+              ...draftPatchForPlacedObject(outcome.cellId, newObjectId),
             };
           });
+          if (!mapPlaceObjectDragStrokeEnabled) {
+            setRailSection('selection');
+          }
         }
         return;
       }
@@ -850,21 +869,25 @@ export function useLocationEditWorkspaceModel({
               pathEntries: prev.pathEntries.map((p) =>
                 p.id === extendId ? { ...p, cellIds: [...p.cellIds, cellId] } : p,
               ),
+              ...draftPatchForPath(extendId),
             };
           }
+          const pathId = crypto.randomUUID();
           return {
             ...prev,
             pathEntries: [
               ...prev.pathEntries,
               {
-                id: crypto.randomUUID(),
+                id: pathId,
                 kind: pathKind,
                 cellIds: [anchor, cellId],
               },
             ],
+            ...draftPatchForPath(pathId),
           };
         });
         mapEditor.setPathAnchorCellId(cellId);
+        setRailSection('selection');
       }
     },
     [
@@ -877,6 +900,8 @@ export function useLocationEditWorkspaceModel({
       gridGeometry,
       gridColumns,
       gridRows,
+      mapPlaceObjectDragStrokeEnabled,
+      setRailSection,
     ],
   );
 
@@ -890,12 +915,24 @@ export function useLocationEditWorkspaceModel({
           enriched = { authoredPlaceKindId: res.placedKind, variantId: res.variantId };
         }
       }
+      const edgeSelectionPatch =
+        gridGeometry !== 'hex' ? draftPatchForEdgeStrokeFirstEdge(edgeIds) : null;
       setGridDraft((prev) => ({
         ...prev,
         edgeEntries: applyEdgeStrokeToDraft(prev.edgeEntries, edgeIds, edgeKind, enriched),
+        ...(edgeSelectionPatch ?? {}),
       }));
+      if (edgeSelectionPatch) {
+        setRailSection('selection');
+      }
     },
-    [placeEdgeAuthoringActive, mapEditor.activePlace, mapHostScaleResolved],
+    [
+      placeEdgeAuthoringActive,
+      mapEditor.activePlace,
+      mapHostScaleResolved,
+      gridGeometry,
+      setRailSection,
+    ],
   );
 
   const handleEraseEdge = useCallback((edgeId: string) => {
@@ -964,6 +1001,7 @@ export function useLocationEditWorkspaceModel({
     handleRegionPaintCell,
     handleBeginRegionPaintFromSelection,
     handleMapEditorModeChange,
+    handlePlaceObjectStrokeEnd,
     focusSelectionRailSection,
     paintPaletteSections,
     placePaletteItems,

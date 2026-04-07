@@ -1,10 +1,16 @@
 // @vitest-environment node
+import type { SystemStyleObject } from '@mui/system';
 import { describe, expect, it } from 'vitest';
 
 import {
   buildHexAuthoringCellVisualParts,
   buildSquareAuthoringCellVisualParts,
 } from '../mapGridAuthoringCellVisual.builder';
+
+/** Narrow MUI `SystemStyleObject` for assertions (tsc otherwise widens to pseudo-selector unions). */
+function sxProps(s: SystemStyleObject): Record<string, unknown> {
+  return (s ?? {}) as Record<string, unknown>;
+}
 
 describe('buildSquareAuthoringCellVisualParts', () => {
   it('uses selected border and inset shadow when selected', () => {
@@ -16,8 +22,9 @@ describe('buildSquareAuthoringCellVisualParts', () => {
       disabled: false,
       selectHoverTarget: undefined,
     });
-    expect(shell.borderColor).toBeDefined();
-    expect(shell.boxShadow).toMatch(/inset/);
+    const sx = sxProps(shell);
+    expect(sx.borderColor).toBeDefined();
+    expect(String(sx.boxShadow)).toMatch(/inset/);
   });
 
   it('uses excluded styling when excluded and not selected', () => {
@@ -29,8 +36,8 @@ describe('buildSquareAuthoringCellVisualParts', () => {
       disabled: false,
       selectHoverTarget: undefined,
     });
-    expect(shell.borderStyle).toBe('dashed');
-    expect(fillLayer.backgroundImage).toMatch(/repeating-linear-gradient/);
+    expect(sxProps(shell).borderStyle).toBe('dashed');
+    expect(String(sxProps(fillLayer).backgroundImage)).toMatch(/repeating-linear-gradient/);
   });
 
   it('mirrors idle chrome on hover when select hover is suppressed for this cell', () => {
@@ -42,7 +49,7 @@ describe('buildSquareAuthoringCellVisualParts', () => {
       disabled: false,
       selectHoverTarget: { type: 'cell', cellId: '0,0' },
     });
-    const hover = shell['&:hover'] as Record<string, unknown> | undefined;
+    const hover = sxProps(shell)['&:hover'] as Record<string, unknown> | undefined;
     expect(hover).toBeDefined();
     expect(hover?.borderColor).toBeDefined();
   });
@@ -59,8 +66,8 @@ describe('buildHexAuthoringCellVisualParts', () => {
       selectHoverTarget: undefined,
       strokePx: '1px',
     });
-    expect(parts.outer.bgcolor).toBeDefined();
-    expect(parts.innerShell.clipPath).toMatch(/polygon/);
+    expect(sxProps(parts.outer).bgcolor).toBeDefined();
+    expect(String(sxProps(parts.innerShell).clipPath)).toMatch(/polygon/);
     expect(parts.fillLayer).toBeDefined();
     expect(parts.hostHoverSx).toBeDefined();
   });

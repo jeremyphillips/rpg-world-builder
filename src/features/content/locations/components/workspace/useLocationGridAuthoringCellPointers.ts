@@ -21,6 +21,8 @@ export function useLocationGridAuthoringCellPointers(args: {
   placePathPlacement: boolean;
   suppressEdgePlacePan: boolean;
   onPlaceCellClick?: (cellId: string) => void;
+  /** After pointer release ends a drag-place stroke (including window pointerup outside a cell). */
+  onPlaceObjectStrokeEnd?: () => void;
   resolveHexCellFromClient: (clientX: number, clientY: number) => string | null;
   setPlaceHoverCellId: Dispatch<SetStateAction<string | null>>;
 }) {
@@ -33,6 +35,7 @@ export function useLocationGridAuthoringCellPointers(args: {
     placePathPlacement,
     suppressEdgePlacePan,
     onPlaceCellClick,
+    onPlaceObjectStrokeEnd,
     resolveHexCellFromClient,
     setPlaceHoverCellId,
   } = args;
@@ -41,9 +44,11 @@ export function useLocationGridAuthoringCellPointers(args: {
   const placeObjectStrokeSeen = useRef<Set<string>>(new Set());
 
   const endPlaceObjectStroke = useCallback(() => {
+    const wasActive = placeObjectStrokeActive.current;
     placeObjectStrokeActive.current = false;
     placeObjectStrokeSeen.current.clear();
-  }, []);
+    if (wasActive) onPlaceObjectStrokeEnd?.();
+  }, [onPlaceObjectStrokeEnd]);
 
   const handleCellPointerDownForGrid = useCallback(
     (e: ReactPointerEvent<HTMLElement>, cell: GridCell) => {

@@ -1,5 +1,3 @@
-import type { LocationMapEditorMode } from '@/features/content/locations/domain/authoring/editor';
-
 import type { LocationMapSelection } from './types/locationEditorRail.types';
 
 /**
@@ -23,11 +21,4 @@ export function selectedCellIdForMapSelection(
 /** Stable equality for hover vs selection state updates. */
 export function mapSelectionEqual(a: LocationMapSelection, b: LocationMapSelection): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
-}
-
-/**
- * Event-driven auto-switch: opening Place or Draw mode should focus the Map rail section.
- */
-export function shouldAutoSwitchRailToMapForMode(mode: LocationMapEditorMode): boolean {
-  return mode === 'place' || mode === 'draw';
 }
