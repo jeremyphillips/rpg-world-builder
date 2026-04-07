@@ -1,6 +1,6 @@
 ---
 name: Family variant resolution refactor
-overview: (A) Introduce `resolveFamilyVariant`, placed-object selector delegation, edge hydration, tests, and `location-workspace.md` updates for variant resolution. (B) Extract shared map-editor **tray** presentational primitives from `LocationMapEditorPlaceTray`, refactor place on top of them, then align `LocationMapEditorPaintTray` to the same section/row/variant pattern with thin shells—palette derivation and paint state stay domain-owned; full paint parity may use a facet-grouping adapter until `getPaintPaletteItemsForScale` emits family rows. (C) **Cleanup pass:** remove superseded code, temporary adapters, and dead exports left by the refactor. Cell-fill registry migration remains documented but out of scope unless noted.
+overview: (A) `resolveFamilyVariant` + placed-object delegation + edge hydration (done). (B) Shared tray primitives + place/paint shells (in progress). (C) Cleanup after A/B. (D) **Cell-fill clean-cut:** replace flat `LOCATION_CELL_FILL_KIND_META` with `AUTHORED_CELL_FILL_DEFINITIONS`, structured persistence `{ familyId, variantId }` per cell, policy + palette + theme + map rendering in one pass—**no legacy ids, no read-time mapping** for removed flat ids (`forest_light`, `stone_floor`, etc.). Old maps are intentionally not supported after cutover.
 todos:
   - id: add-shared-resolve
     content: Add familyVariantResolve.ts + tests (invariant visible; no double-fallback for bad registry)
@@ -32,16 +32,28 @@ todos:
   - id: refactor-cleanup
     content: Post-refactor cleanup — remove superseded helpers, dead exports, temp adapters, duplicate layout
     status: pending
+  - id: cell-fill-registry
+    content: "Phase D: AUTHORED_CELL_FILL_DEFINITIONS + resolveCellFillVariant; remove flat LOCATION_CELL_FILL_KIND_META model"
+    status: pending
+  - id: cell-fill-persistence
+    content: "Phase D: cellFillByCellId → structured LocationMapCellFillSelection; serialize/hydrate/snapshot in one pass"
+    status: pending
+  - id: cell-fill-policy-palette
+    content: "Phase D: scale policy + paint palette helpers + swatch/theme keys aligned to families/variants"
+    status: pending
+  - id: cell-fill-ui-state
+    content: "Phase D: LocationMapPaintState + paint handlers + map render readers; paint tray parity with place tray"
+    status: pending
 isProject: false
 ---
 
 # Family / variant resolution refactor
 
-This plan has two tracks: **§ Domain variant resolution** (below through Implementation order step 5) and **§ Map editor tray UI** (shared primitives + paint/place shells). They can be executed in sequence (recommended: complete variant-resolution tests before large tray churn) or tray work can start after `LocationMapEditorPlaceTray` extraction is scoped.
+This plan has **four** tracks: **(A)** Domain variant resolution (placed objects), **(B)** Map editor tray UI (shared primitives + paint/place shells), **(C)** Cleanup after A/B, **(D)** **Cell-fill clean-cut** — family registry, structured persistence, policy, palette, paint UI, and rendering (**no legacy flat ids**). A/B can proceed before D; **D** subsumes earlier “cell-fill future / follow-up” notes.
 
 ## Summary
 
-Centralize the **“valid requested id → use it; else `defaultVariantId`”** rule in [`shared/domain/registry/familyVariantResolve.ts`](shared/domain/registry/familyVariantResolve.ts) as `resolveFamilyVariant`, with types `FamilyWithVariants<TVariant>` and `ResolvedFamilyVariant<TVariant>`. Refactor [`locationPlacedObject.selectors.ts`](src/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors.ts) so `normalizeVariantIdForFamily` is a thin delegate to `resolveFamilyVariant(...).resolvedVariantId`, and add `resolvePlacedObjectVariant(kind, requestedVariantId)` that reads `AUTHORED_PLACED_OBJECT_DEFINITIONS[kind]`, calls `resolveFamilyVariant`, and returns `{ resolvedVariantId, variant: AuthoredPlacedObjectVariantDefinition }`. Replace the normalize-then-multiple-lookup pattern in edge hydration with a single `resolvePlacedObjectVariant` call. Add unit tests for the generic helper and placed-object wrappers; preserve all existing read/hydration fallback behavior (no throws on invalid ids). **Registry invariant:** `defaultVariantId` ∈ `variants` keys—no second fallback in `resolveFamilyVariant`. **Getter docs** + **selector consolidation** per sections below. **Behavior pin:** whitespace-prefixed invalid ids (e.g. `' rect_wood'`). Update [`docs/reference/location-workspace.md`](docs/reference/location-workspace.md) so workspace contributors see where variant resolution lives and when to use which helper (see **Documentation** below). Document future cell-fill alignment via names, a short comment, and **illustrative** family/variant shapes (plains, forest, mountains, desert, water, plus floor wood/stone expectations)—**no** `AUTHORED_CELL_FILL_DEFINITIONS` or `resolveCellFillVariant` implementation unless a family registry already exists (it does not today). **Separately (tray track):** extract **`LocationMapEditorTray*`** presentational primitives from the place tray, then align the paint tray to the same section/row/variant pattern with thin shells—see **Map editor tray UI** below.
+Centralize the **“valid requested id → use it; else `defaultVariantId`”** rule in [`shared/domain/registry/familyVariantResolve.ts`](shared/domain/registry/familyVariantResolve.ts) as `resolveFamilyVariant`, with types `FamilyWithVariants<TVariant>` and `ResolvedFamilyVariant<TVariant>`. Refactor [`locationPlacedObject.selectors.ts`](src/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors.ts) so `normalizeVariantIdForFamily` is a thin delegate to `resolveFamilyVariant(...).resolvedVariantId`, and add `resolvePlacedObjectVariant(kind, requestedVariantId)` that reads `AUTHORED_PLACED_OBJECT_DEFINITIONS[kind]`, calls `resolveFamilyVariant`, and returns `{ resolvedVariantId, variant: AuthoredPlacedObjectVariantDefinition }`. Replace the normalize-then-multiple-lookup pattern in edge hydration with a single `resolvePlacedObjectVariant` call. Add unit tests for the generic helper and placed-object wrappers; preserve all existing read/hydration fallback behavior (no throws on invalid ids). **Registry invariant:** `defaultVariantId` ∈ `variants` keys—no second fallback in `resolveFamilyVariant`. **Getter docs** + **selector consolidation** per sections below. **Behavior pin:** whitespace-prefixed invalid ids (e.g. `' rect_wood'`). Update [`docs/reference/location-workspace.md`](docs/reference/location-workspace.md) so workspace contributors see where variant resolution lives and when to use which helper (see **Documentation** below). **Cell-fill:** full migration spec is **Phase D — Cell-fill registry (clean-cut migration)** (registry, `resolveCellFillVariant`, structured `cellFillByCellId`, policy, swatches, palette, paint state, tray parity, render). **Separately (tray track):** extract **`LocationMapEditorTray*`** presentational primitives from the place tray, then align the paint tray to the same section/row/variant pattern; Phase D completes paint data + persistence so tray work is not blocked on flat meta adapters—see **Map editor tray UI** and **Phase D** below.
 
 ```mermaid
 flowchart LR
@@ -121,7 +133,7 @@ Primitives consume **`leading`** for icon vs swatch; variant menu can use **defa
 1. **Evolve** the helper + `MapPaintPaletteItem` (and paint state if needed) toward **family rows** + variant metadata, aligned with the cell-fill family/variant roadmap; or  
 2. **Interim adapter** in the paint shell that groups flat items by `meta.family` / `meta.category` for section headings and rows; variant picker appears only when a family has **multiple concrete kinds** (or later when variants are first-class).
 
-Pick (1) or (2) in implementation; document in PR. Do not block tray primitives on full `AUTHORED_CELL_FILL_DEFINITIONS` migration.
+Pick (1) or (2) for **pre–Phase-D** tray work; document in PR. **Phase D** replaces (2) with registry-native family rows everywhere—remove interim adapters when D lands.
 
 ### Files to add (tray track)
 
@@ -149,13 +161,13 @@ Paths under [`components/workspace/leftTools/`](src/features/content/locations/c
 ### Relationship to domain variant resolution
 
 - Placed-object **`resolvePlacedObjectVariant`** / **`normalizeVariantIdForFamily`** are orthogonal to tray UI; trays consume **palette helpers** and editor state only.
-- Future **cell-fill** family registry + **`resolveCellFillVariant`** (see plan below) will make paint **variant** resolution consistent with domain; tray primitives stay unchanged.
+- **Phase D** adds the cell-fill family registry + **`resolveCellFillVariant`**; tray primitives stay unchanged; paint shell consumes new palette rows + structured paint state.
 
 ### Tray track — non-goals
 
 - No unified `LocationMapEditorDomainTray` prop type covering place + paint selection unions.
 - No change to [`LocationMapEditorDrawTray`](src/features/content/locations/components/workspace/leftTools/draw/LocationMapEditorDrawTray.tsx) unless opportunistically reusing **scroll column** only.
-- No persistence / wire format change for map fills unless explicitly part of a separate palette-state task.
+- **Persistence / wire for cell fills** is owned by **Phase D** (structured `{ familyId, variantId }`); not a separate optional task.
 
 ### Tray track — verification
 
@@ -227,14 +239,143 @@ After this pass, **no** remaining production path should chain **`normalizeVaria
 
 - **`getDefaultVariantPresentationForKind`**, **`getPlacedObjectVariantPickerRowsForFamily`**, **`defaultVariantEntryOf`** — no mega-refactor; only touch if a tiny internal use of `resolveFamilyVariant` or `resolvePlacedObjectVariant` removes duplication without behavior change.
 
-## Cell-fill future (documentation only)
+## Phase D — Cell-fill registry (clean-cut migration)
 
-- **Do not** add `AUTHORED_CELL_FILL_DEFINITIONS`, `AuthoredCellFillFamilyDefinition`, `AuthoredCellFillVariantDefinition`, or `resolveCellFillVariant` in this pass—flat [`LOCATION_CELL_FILL_KIND_META`](shared/domain/locations/map/locationMapCellFill.constants.ts) remains authoritative.
-- **Align naming** in the shared helper file comment (and this plan) so a later migration implements: registry `AUTHORED_CELL_FILL_DEFINITIONS`, families satisfying `FamilyWithVariants<AuthoredCellFillVariantDefinition>` (plus extra fields such as `category`, `allowedScales` as needed), wrapper `resolveCellFillVariant(familyId: LocationCellFillFamilyId, requestedVariantId)` returning `{ resolvedVariantId, variant }`.
+**Status:** Unlocks full reshaping of cell-fill data; **supersedes** prior “documentation only” / “follow-up later” notes for this topic. **Executed as one coordinated pass** (or a tight sequence of PRs with no mixed model in `main`).
 
-### Illustrative family records (not implemented in this refactor)
+### Hard constraints (non-negotiable)
 
-The snippets below are **design targets** for a future `AUTHORED_CELL_FILL_DEFINITIONS`: each **family** has `defaultVariantId`, `variants`, and shared authoring fields; each **variant** carries `label`, `description`, `swatchColorKey`, and optional `presentation` facets. `resolveCellFillVariant` would delegate to `resolveFamilyVariant` on the family slice. **Surface / floor** families should expose **wood** and **stone** (and any other material axes) as distinct variants—see **Floors (material variations)** after the terrain examples.
+- **No** preservation of old flat cell-fill ids as the persisted wire format.
+- **No** read-time legacy mapping from removed ids (`forest_light`, `forest_heavy`, `stone_floor`, etc.).
+- **No** compatibility helpers that translate old flat ids to the new model.
+- **No** half-migrated state: remove/replace flat `LOCATION_CELL_FILL_KIND_META`–driven policy, palette, and types in the same effort as the registry and persistence.
+- **Composite string persistence** (e.g. `plains.temperate_open`) is **not** the preferred model; use **structured** `{ familyId, variantId }` per cell unless an audit finds a compelling technical reason (document in PR if so).
+
+**Product implication:** Existing stored maps that only know flat ids are **not** required to remain readable after cutover; treat as acceptable breakage (reset/reseed maps or accept data loss for this layer).
+
+### Recommendation summary
+
+| Topic | Decision |
+|-------|----------|
+| **Registry** | Introduce `AUTHORED_CELL_FILL_DEFINITIONS` keyed by `LocationCellFillFamilyId`; each family satisfies `AuthoredCellFillFamilyDefinition` (extends `FamilyWithVariants` + `category`, `allowedScales`, etc.). |
+| **Resolver** | `resolveCellFillVariant(familyId, requestedVariantId)` → `{ resolvedVariantId, variant }` via `resolveFamilyVariant` on the family slice (same pattern as placed objects). |
+| **Persistence** | `LocationMapCellFillByCellId = Record<string, LocationMapCellFillSelection \| undefined>` where `LocationMapCellFillSelection = { familyId, variantId }` (exact names may follow existing `locationGridDraft` / `LocationMap*` conventions after audit). |
+| **Policy** | **Default: Option A** — `cellFillFamilies` (or `cellFillPolicy`) lists **allowed family ids per scale**; all variants in an allowed family are paintable unless the product adds explicit filtering later. **Option B** (family id + optional allowed variant id list per scale) is reserved for when a scale must expose only a **subset** of variants within a family; add only if needed. |
+| **Palette** | Derive **family rows** + variant lists from **registry ∩ policy**; no flat “one row per legacy concrete id”. |
+| **Paint state** | `LocationMapPaintState` holds **structured** surface selection, e.g. `selectedSurfaceFill?: { familyId, variantId }` (rename to match `locationMapEditor.types.ts` conventions); region mode unchanged in intent (`activeRegionId`). |
+| **Tray UI** | `LocationMapEditorPaintTray` mirrors **LocationMapEditorPlaceTray**: category heading → family row → variant popover when `variants.length > 1`. Shared primitives stay **presentational**; shells own data + handlers. |
+| **Swatches** | Every variant `swatchColorKey` maps to **`LocationMapSwatchColorKey`** + `mapColors.ts` entry in the same pass; shared swatch keys are OK if intentional. |
+
+### Chosen persistence model
+
+```ts
+export type LocationMapCellFillSelection = {
+  familyId: LocationCellFillFamilyId;
+  variantId: string;
+};
+
+export type LocationMapCellFillByCellId = Record<string, LocationMapCellFillSelection | undefined>;
+```
+
+- Replace usages of `Record<string, LocationMapCellFillKindId | undefined>` (flat per cell) with **structured** selection everywhere: grid draft, bootstrap payloads, workspace snapshot serialization, dirty-state, save paths, hydrate.
+- **Erase / paint application** read/write this shape only.
+
+### Chosen registry / type names (targets)
+
+| Name | Role |
+|------|------|
+| `AUTHORED_CELL_FILL_DEFINITIONS` | Canonical registry object |
+| `AuthoredCellFillFamilyDefinition` | Per family: `category`, `allowedScales`, `defaultVariantId`, `variants` |
+| `AuthoredCellFillVariantDefinition` | `label`, `description?`, `swatchColorKey`, `presentation?` |
+| `LocationCellFillFamilyId` | Union of family keys (e.g. `plains`, `forest`, `mountains`, `desert`, `water`, `floor`, `swamp`, …) |
+| `AuthoredCellFillVariantPresentation` | Optional typed facet blob (align with existing facet types where useful) |
+| `resolveCellFillVariant` | Wrapper around `resolveFamilyVariant` |
+
+**Variant ids** are **family-scoped strings** (e.g. `temperate_open`), not dotted global ids.
+
+### Policy model (detail)
+
+- Remove `cellFillKinds: readonly LocationCellFillKindId[]` in [`locationScaleMapContent.policy.ts`](src/features/content/locations/domain/model/policies/locationScaleMapContent.policy.ts) keyed to flat ids.
+- Replace with **`allowedFamilyIds` per scale** (name TBD: e.g. `cellFillFamilyIds: readonly LocationCellFillFamilyId[]`) consistent with **Option A**.
+- Palette helpers (`getPaintPaletteSectionsForScale` / successors) filter **registry** by **policy** and **scale** in one place.
+
+### Paint palette row model (domain)
+
+Align with `MapPaintPaletteSection` / family row types in [`locationMapEditor.types.ts`](src/features/content/locations/domain/authoring/editor/types/locationMapEditor.types.ts); target shape:
+
+```ts
+type PaintPaletteVariantOption = {
+  id: string;
+  label: string;
+  description?: string;
+  swatchColorKey: LocationMapSwatchColorKey;
+};
+
+type PaintPaletteFamilyRow = {
+  familyId: LocationCellFillFamilyId;
+  label: string;
+  description?: string;
+  category: LocationMapPaintPaletteCategoryId;
+  defaultVariantId: string;
+  variants: PaintPaletteVariantOption[];
+};
+```
+
+### Shared tray primitives (parity)
+
+Prefer existing names under `leftTools/tray/`:
+
+- `LocationMapEditorTrayScrollColumn`, `LocationMapEditorTraySectionHeading`, `LocationMapEditorTrayVariantPopover` (already present or planned).
+- **Extract or add** as needed: `LocationMapEditorTrayOptionRow` (selectable row shell + leading slot), optional `LocationMapEditorTrayVariantTrigger` (badge + open popover) so place and paint share chrome without sharing domain types.
+
+### Files to change (audit checklist — expand during implementation)
+
+| Area | Files / directions |
+|------|---------------------|
+| **Registry** | New module(s) under `shared/domain/locations/map/` (e.g. `authoredCellFillDefinitions.ts`) or `features/.../model/map/` per project rules; **delete or replace** flat meta in [`locationMapCellFill.constants.ts`](shared/domain/locations/map/locationMapCellFill.constants.ts). |
+| **Types** | [`locationCellFill.types.ts`](src/features/content/locations/domain/model/map/locationCellFill.types.ts), [`locationMapEditor.types.ts`](src/features/content/locations/domain/authoring/editor/types/locationMapEditor.types.ts) (`LocationMapPaintState`, palette DTOs), [`locationGridDraft.types.ts`](src/features/content/locations/components/authoring/draft/locationGridDraft.types.ts). |
+| **Swatches** | [`locationMapSwatchColors.types.ts`](src/features/content/locations/domain/model/map/locationMapSwatchColors.types.ts), [`mapColors.ts`](src/app/theme/mapColors.ts). |
+| **Policy** | [`locationScaleMapContent.policy.ts`](src/features/content/locations/domain/model/policies/locationScaleMapContent.policy.ts) + tests. |
+| **Palette** | [`locationMapEditorPalette.helpers.ts`](src/features/content/locations/domain/authoring/editor/palette/locationMapEditorPalette.helpers.ts) + tests. |
+| **Resolver** | `resolveCellFillVariant` next to registry or in `registry/`; unit tests. |
+| **Workspace** | `workspacePersistableSnapshot`, `useLocationEditWorkspaceModel`, map session draft helpers, save/serialize. |
+| **UI** | [`LocationMapEditorPaintTray.tsx`](src/features/content/locations/components/workspace/leftTools/paint/LocationMapEditorPaintTray.tsx), [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx), [`LocationEditorMapCanvasColumn.tsx`](src/features/content/locations/components/workspace/canvas/LocationEditorMapCanvasColumn.tsx), canvas paint handlers. |
+| **Rendering** | Any component resolving cell fill → color (square map, overlays, combat underlay if applicable). |
+| **Tests** | All tests using literal flat fill ids; perf/snapshot tests; policy tests. |
+
+### Coupled systems (must move in lockstep)
+
+- **Grid draft** shape and **equality** / **prune** helpers (`usePruneGridDraftOnDimensionChange`, erase, apply paint).
+- **Workspace persistence** and **dirty** detection.
+- **Map rendering** (swatch resolution from `{ familyId, variantId }`).
+- **Vitest** fixtures and **stableStringify** snapshots touching map payloads.
+
+### Risks / open decisions
+
+- **Exact export surface** for `LocationCellFillFamilyId` and registry (shared vs feature barrel).
+- **Option B** policy: only if product needs variant-level gating before ship.
+- **Combat / encounter** reads of terrain: if any code path uses cell fill id for rules, update or explicitly decouple in the same pass.
+- **Region / subregion** scales: when to allow paint families vs empty policy (product).
+
+### Implementation order (Phase D)
+
+1. **Registry + types** — `AUTHORED_CELL_FILL_DEFINITIONS`, `LocationCellFillFamilyId`, `resolveCellFillVariant` + tests; remove flat meta dependency from new code paths.
+2. **Swatch keys** — extend `LocationMapSwatchColorKey` + theme map for every variant.
+3. **Policy** — replace flat `cellFillKinds` with family-based allowlists; policy tests.
+4. **Draft + persistence** — `cellFillByCellId` structured shape; snapshot + save + hydrate; **no** legacy readers.
+5. **Palette helpers** — family rows from registry ∩ policy.
+6. **Paint state + handlers** — `LocationMapPaintState`, `onPaintChange`, apply-to-cell logic.
+7. **Paint tray** — parity with place tray using shared primitives.
+8. **Map render** — resolve fill → color via new resolver.
+9. **Full test sweep** — grep for old ids and flat `LocationCellFillKindId` wire assumptions; delete obsolete tests.
+
+### Slice if not one PR
+
+If surface area is too large: **(1)** registry + types + resolver + swatches (no UI), **(2)** draft + persistence + policy + palette, **(3)** UI + paint state + handlers + render — **do not merge** intermediate state where flat `cellFillKinds` and structured `cellFillByCellId` coexist.
+
+### Reference: illustrative family records (authoring targets)
+
+The snippets below are **authoring targets** for `AUTHORED_CELL_FILL_DEFINITIONS`: each **family** has `defaultVariantId`, `variants`, `category`, `allowedScales`; each **variant** carries `label`, `description`, `swatchColorKey`, and optional `presentation`. **Surface / floor** families should expose **wood** and **stone** (and other materials) as distinct variants—see **Floors (material variations)** after the terrain examples.
 
 **`plains`**
 
@@ -488,15 +629,7 @@ water: {
 
 **Floors (material variations)**
 
-- Future **`floor`** (or `surface` / interior floor) families should include at least **wood** and **stone** material variants (aligned with [`LOCATION_CELL_FILL_MATERIAL_IDS`](shared/domain/locations/map/locationMapCellFill.facets.ts) and existing `stone_floor` concrete id). Exact variant ids and `swatchColorKey` names are left to the migration PR; the pattern is the same: `FamilyWithVariants` + `resolveCellFillVariant` for read-time resolution and palette defaults.
-
-## Follow-up (later cell-fill migration)
-
-1. Introduce `AUTHORED_CELL_FILL_DEFINITIONS` keyed by family id, each record matching `FamilyWithVariants` plus any extra facet metadata (`category`, `allowedScales`, etc.), using illustrative shapes above as a north star.
-2. Map persisted **concrete** fill ids (`forest_light`) to family + variant for read paths, or evolve persistence—out of scope here.
-3. Implement `resolveCellFillVariant` as a thin delegate to `resolveFamilyVariant` (same pattern as `resolvePlacedObjectVariant`).
-4. Consolidate paint/combat callers that today index `LOCATION_CELL_FILL_KIND_META` directly once the data model is decided.
-5. Add floor surface variants (wood, stone, and any additional materials) under the floor family when migrating off flat ids.
+- Future **`floor`** (or `surface` / interior floor) families should include at least **wood** and **stone** material variants (aligned with [`LOCATION_CELL_FILL_MATERIAL_IDS`](shared/domain/locations/map/locationMapCellFill.facets.ts)). Exact variant ids and `swatchColorKey` names are defined in **Phase D**; the pattern is `FamilyWithVariants` + `resolveCellFillVariant` for read-time resolution and palette defaults.
 
 ## Cleanup (post-refactor)
 
@@ -511,7 +644,7 @@ Dedicated pass **after** variant-resolution and tray work are merged and tests p
 | **Barrels** | Trim speculative exports; align with **narrow imports** rule. |
 | **Docs** | Remove outdated references to pre-refactor patterns if any were left in comments. |
 
-**Guardrail:** do not delete code paths still required for backward compatibility at persistence boundaries unless a separate migration explicitly removes them.
+**Guardrail:** do not delete code paths still required for backward compatibility at persistence boundaries unless a separate migration explicitly removes them. **Exception:** **Phase D** intentionally breaks old flat cell-fill wire compatibility (no legacy layer)—see **Phase D — Cell-fill registry**.
 
 ## Verification
 
@@ -521,6 +654,7 @@ Dedicated pass **after** variant-resolution and tray work are merged and tests p
 - **Docs:** [`location-workspace.md`](docs/reference/location-workspace.md) reads correctly and links/paths match implemented modules after the refactor.
 - **Tray (when implemented):** manual spot-check place + paint trays per **Tray track — verification**; palette unit tests if helpers change.
 - **Cleanup (Phase C):** full suite green after dead-code removal; confirm no duplicate adapter + helper paths for paint grouping.
+- **Phase D:** unit tests for `resolveCellFillVariant` + registry invariant; policy + palette tests; snapshot/workspace tests updated for structured `cellFillByCellId`; grep confirms no references to removed flat fill ids in persistence paths; manual paint + map render smoke.
 
 ## Implementation order (build)
 
@@ -547,5 +681,9 @@ Dedicated pass **after** variant-resolution and tray work are merged and tests p
 13. **Exports / barrels:** Drop unused re-exports from [`locationPlacedObject.types.ts`](src/features/content/locations/domain/model/placedObjects/locationPlacedObject.types.ts) and tray `index.ts` if any were added speculatively; prefer narrow imports per project rules.
 
 14. **Verification:** Full test suite + targeted greps (e.g. `normalizeVariantIdForFamily` chained with raw getters in one function, deprecated palette helpers). **No intended behavior change**—cleanup only.
+
+### Phase D — Cell-fill clean-cut (see dedicated section)
+
+15–23. Follow **Phase D — Cell-fill registry (clean-cut migration)** above: registry + `resolveCellFillVariant`, swatches, policy, structured `cellFillByCellId`, palette helpers, paint state + tray + render, full test sweep. Prefer **one merge** or the **three-slice** sequence documented there (no mixed old/new model on `main`).
 
 See **Cleanup (post-refactor)** for the checklist narrative.

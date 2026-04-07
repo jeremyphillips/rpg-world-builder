@@ -1,5 +1,12 @@
 import {
-  getAllowedCellFillKindsForScale,
+  AUTHORED_CELL_FILL_DEFINITIONS,
+  getAuthoredCellFillFamilyDefinition,
+  isCellFillFamilyAllowedOnScale,
+  resolveCellFillVariant,
+  type LocationCellFillFamilyId,
+} from '@/features/content/locations/domain/model/map/locationCellFill.types';
+import {
+  getAllowedCellFillFamiliesForScale,
   getAllowedEdgeKindsForScale,
   getAllowedPathKindsForScale,
 } from '@/features/content/locations/domain/model/policies/locationScaleMapContent.policy';
@@ -7,7 +14,6 @@ import type {
   LocationCellFillCategory,
   LocationCellFillFamily,
 } from '@/features/content/locations/domain/model/map/locationCellFill.types';
-import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import { LOCATION_EDGE_FEATURE_KIND_META } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 import { LOCATION_PATH_FEATURE_KIND_META } from '@/features/content/locations/domain/model/map/locationPathFeature.types';
 import {
@@ -33,7 +39,6 @@ export const PAINT_PALETTE_SECTION_LABELS: Record<LocationCellFillCategory, stri
   surface: 'Surfaces',
 };
 
-/** Per-family row title in the paint tray (parallel to place “family” rows). */
 const PAINT_FAMILY_TRAY_LABELS: Record<LocationCellFillFamily, string> = {
   mountains: 'Mountains',
   plains: 'Plains',
@@ -44,57 +49,72 @@ const PAINT_FAMILY_TRAY_LABELS: Record<LocationCellFillFamily, string> = {
   floor: 'Floor',
 };
 
-/**
- * Paint palette rows for surface fills — label + swatch from concrete fill meta.
- *
- * @remarks **TODO:** does not yet group/order by fill facets (`category`, `family`, …); policy +
- * flat id list only.
- */
-export function getPaintPaletteItemsForScale(scale: LocationScaleId): MapPaintPaletteItem[] {
-  const kinds = getAllowedCellFillKindsForScale(scale);
-  return kinds.map((fillKind) => {
-    const meta = LOCATION_CELL_FILL_KIND_META[fillKind];
-    return {
-      fillKind,
-      label: meta.label,
-      description: meta.description,
-      swatchColorKey: meta.swatchColorKey,
-    };
-  });
+function familiesForScale(scale: LocationScaleId): LocationCellFillFamilyId[] {
+  const allowed = getAllowedCellFillFamiliesForScale(scale);
+  return allowed.filter((fid) => isCellFillFamilyAllowedOnScale(fid, scale));
 }
 
 /**
- * Grouped paint palette for the map editor tray: **category** → **family** → concrete fill variants.
- * Uses `LOCATION_CELL_FILL_KIND_META` facets (`category`, `family`); policy still gates which fills appear.
+ * Flat list of paint variants allowed on this scale (policy ∩ registry `allowedScales`).
+ */
+export function getPaintPaletteItemsForScale(scale: LocationScaleId): MapPaintPaletteItem[] {
+  const rows: MapPaintPaletteItem[] = [];
+  for (const familyId of familiesForScale(scale)) {
+    const fam = getAuthoredCellFillFamilyDefinition(familyId);
+    for (const variantId of Object.keys(fam.variants)) {
+      const v = resolveCellFillVariant(familyId, variantId).variant;
+      rows.push({
+        familyId,
+        variantId,
+        label: v.label,
+        description: v.description,
+        swatchColorKey: v.swatchColorKey,
+      });
+    }
+  }
+  rows.sort((a, b) => a.label.localeCompare(b.label));
+  return rows;
+}
+
+/**
+ * Grouped paint palette: **category** → **family** → variants.
  */
 export function getPaintPaletteSectionsForScale(scale: LocationScaleId): MapPaintPaletteSection[] {
-  const items = getPaintPaletteItemsForScale(scale);
   const byCategory = new Map<LocationCellFillCategory, Map<LocationCellFillFamily, MapPaintPaletteItem[]>>();
 
-  for (const item of items) {
-    const meta = LOCATION_CELL_FILL_KIND_META[item.fillKind];
-    const bucket = byCategory.get(meta.category) ?? new Map<LocationCellFillFamily, MapPaintPaletteItem[]>();
-    const fam = meta.family;
-    const list = bucket.get(fam) ?? [];
-    list.push(item);
-    bucket.set(fam, list);
-    byCategory.set(meta.category, bucket);
+  for (const familyId of familiesForScale(scale)) {
+    const fam = AUTHORED_CELL_FILL_DEFINITIONS[familyId];
+    const cat = fam.category;
+    const bucket = byCategory.get(cat) ?? new Map<LocationCellFillFamily, MapPaintPaletteItem[]>();
+    const list: MapPaintPaletteItem[] = [];
+    for (const variantId of Object.keys(fam.variants)) {
+      const v = resolveCellFillVariant(familyId, variantId).variant;
+      list.push({
+        familyId,
+        variantId,
+        label: v.label,
+        description: v.description,
+        swatchColorKey: v.swatchColorKey,
+      });
+    }
+    list.sort((a, b) => a.label.localeCompare(b.label));
+    bucket.set(familyId, list);
+    byCategory.set(cat, bucket);
   }
-
-  const sortItems = (a: MapPaintPaletteItem, b: MapPaintPaletteItem) => a.label.localeCompare(b.label);
 
   function buildFamilies(
     bucket: Map<LocationCellFillFamily, MapPaintPaletteItem[]>,
   ): MapPaintPaletteFamilyRow[] {
     const rows: MapPaintPaletteFamilyRow[] = [];
     for (const [familyId, variants] of bucket) {
-      const sorted = [...variants].sort(sortItems);
-      const defaultFillKind = sorted[0]!.fillKind;
+      const fam = getAuthoredCellFillFamilyDefinition(familyId);
+      const sorted = [...variants];
+      const defaultVariantId = fam.defaultVariantId;
       rows.push({
         familyId,
         label: PAINT_FAMILY_TRAY_LABELS[familyId],
         variants: sorted,
-        defaultFillKind,
+        defaultVariantId,
       });
     }
     rows.sort((a, b) => a.label.localeCompare(b.label));
@@ -171,9 +191,6 @@ export function getDrawPathPaletteItemsForScale(scale: LocationScaleId): MapDraw
 
 /**
  * Edge draw palette — label/description from {@link LOCATION_EDGE_FEATURE_KIND_META} only.
- *
- * @remarks Base `kind` selection only (no per-kind facet UI). If policy ever lists `door`/`window` here again,
- * consider sourcing copy from `AUTHORED_PLACED_OBJECT_DEFINITIONS` to avoid drift with the place tool.
  */
 export function getDrawEdgePaletteItemsForScale(scale: LocationScaleId): MapDrawPaletteItem[] {
   const kinds = getAllowedEdgeKindsForScale(scale);

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import {
-  getAllowedCellFillKindsForScale,
+  getAllowedCellFillFamiliesForScale,
   getAllowedEdgeKindsForScale,
   getAllowedPathKindsForScale,
   getAllowedPlacedObjectKindsForScale,
@@ -12,33 +12,25 @@ import {
 describe('locationScaleMapContent.policy', () => {
   it('maps world / city / floor as specified; other scales are empty', () => {
     expect(LOCATION_SCALE_MAP_CONTENT_POLICY.world).toEqual({
-      cellFillKinds: [
-        'mountains',
-        'plains',
-        'forest_light',
-        'forest_heavy',
-        'swamp',
-        'desert',
-        'water',
-      ],
+      cellFillFamilies: ['mountains', 'plains', 'forest', 'swamp', 'desert', 'water'],
       pathKinds: ['road', 'river'],
       edgeKinds: [],
       objectKinds: ['city', 'building', 'tree'],
     });
     expect(LOCATION_SCALE_MAP_CONTENT_POLICY.city).toEqual({
-      cellFillKinds: [],
+      cellFillFamilies: [],
       pathKinds: ['road'],
       edgeKinds: [],
       objectKinds: ['building', 'site', 'tree'],
     });
     expect(LOCATION_SCALE_MAP_CONTENT_POLICY.floor).toEqual({
-      cellFillKinds: ['stone_floor'],
+      cellFillFamilies: ['floor'],
       pathKinds: [],
-      edgeKinds: ['wall', 'window', 'door'],
-      objectKinds: ['table', 'stairs', 'treasure'],
+      edgeKinds: ['wall'],
+      objectKinds: ['table', 'stairs', 'treasure', 'door', 'window'],
     });
     expect(LOCATION_SCALE_MAP_CONTENT_POLICY.region).toEqual({
-      cellFillKinds: [],
+      cellFillFamilies: [],
       pathKinds: [],
       edgeKinds: [],
       objectKinds: [],
@@ -47,9 +39,9 @@ describe('locationScaleMapContent.policy', () => {
 
   it('helpers delegate to the policy map', () => {
     expect(getLocationScaleMapContentPolicy('world')).toBe(LOCATION_SCALE_MAP_CONTENT_POLICY.world);
-    expect(getAllowedCellFillKindsForScale('floor')).toEqual(['stone_floor']);
+    expect(getAllowedCellFillFamiliesForScale('floor')).toEqual(['floor']);
     expect(getAllowedPathKindsForScale('city')).toEqual(['road']);
-    expect(getAllowedEdgeKindsForScale('floor')).toEqual(['wall', 'window', 'door']);
+    expect(getAllowedEdgeKindsForScale('floor')).toEqual(['wall']);
     expect(getAllowedPlacedObjectKindsForScale('city')).toEqual(['building', 'site', 'tree']);
   });
 });

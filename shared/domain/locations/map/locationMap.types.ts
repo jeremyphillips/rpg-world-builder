@@ -3,7 +3,7 @@ import {
   LOCATION_MAP_OBJECT_KIND_IDS,
 } from './locationMap.constants';
 import type { LocationCellUnitId } from './locationMap.constants';
-import type { LocationMapCellFillKindId } from './locationMapCellFill.constants';
+import type { LocationCellFillFamilyId } from './authoredCellFillDefinitions';
 import type { LocationMapRegionColorKey } from './locationMapRegion.constants';
 import type { LocationMapEdgeKindId } from './locationMapEdgeFeature.constants';
 import type { LocationMapPathKindId } from './locationMapPathFeature.constants';
@@ -45,6 +45,12 @@ export type LocationMapCell = {
 };
 
 /** Authoring payload for a single grid cell (map-owned; persisted on LocationMap). */
+/** Persisted whole-cell terrain / surface fill — family-scoped variant id. */
+export type LocationMapCellFillSelection = {
+  familyId: LocationCellFillFamilyId;
+  variantId: string;
+};
+
 export type LocationMapCellObjectEntry = {
   id: string;
   kind: LocationMapObjectKindId;
@@ -67,7 +73,7 @@ export type LocationMapCellAuthoringEntry = {
   linkedLocationId?: string;
   objects?: LocationMapCellObjectEntry[];
   /** Whole-cell terrain / surface fill (authored map content). */
-  cellFillKind?: LocationMapCellFillKindId;
+  cellFill?: LocationMapCellFillSelection;
   /** Membership in an authored map region (overlay; not terrain). */
   regionId?: string;
 };

@@ -1,6 +1,6 @@
 import type { LocationScaleId } from '@/shared/domain/locations';
 
-import type { LocationCellFillKindId } from '../map/locationCellFill.types';
+import type { LocationCellFillFamilyId } from '../map/locationCellFill.types';
 import type { LocationEdgeFeatureKindId } from '../map/locationEdgeFeature.types';
 import type { LocationPathFeatureKindId } from '../map/locationPathFeature.types';
 import type { LocationPlacedObjectKindId } from '../placedObjects/locationPlacedObject.types';
@@ -25,14 +25,15 @@ import { getPlacedObjectKindsForScale } from '../placedObjects/locationPlacedObj
  * - **Place** → placed objects
  */
 export type LocationScaleMapContentPolicy = {
-  cellFillKinds: readonly LocationCellFillKindId[];
+  /** Allowed cell-fill **family** ids; all variants in a family are available unless filtered elsewhere. */
+  cellFillFamilies: readonly LocationCellFillFamilyId[];
   pathKinds: readonly LocationPathFeatureKindId[];
   edgeKinds: readonly LocationEdgeFeatureKindId[];
   objectKinds: readonly LocationPlacedObjectKindId[];
 };
 
 const EMPTY_LOCATION_SCALE_MAP_CONTENT_POLICY: LocationScaleMapContentPolicy = {
-  cellFillKinds: [],
+  cellFillFamilies: [],
   pathKinds: [],
   edgeKinds: [],
   objectKinds: [],
@@ -43,27 +44,19 @@ export const LOCATION_SCALE_MAP_CONTENT_POLICY: Record<
   LocationScaleMapContentPolicy
 > = {
   world: {
-    cellFillKinds: [
-      'mountains',
-      'plains',
-      'forest_light',
-      'forest_heavy',
-      'swamp',
-      'desert',
-      'water',
-    ],
+    cellFillFamilies: ['mountains', 'plains', 'forest', 'swamp', 'desert', 'water'],
     pathKinds: ['road', 'river'],
     edgeKinds: [],
     objectKinds: [...getPlacedObjectKindsForScale('world')],
   },
   city: {
-    cellFillKinds: [],
+    cellFillFamilies: [],
     pathKinds: ['road'],
     edgeKinds: [],
     objectKinds: [...getPlacedObjectKindsForScale('city')],
   },
   floor: {
-    cellFillKinds: ['stone_floor'],
+    cellFillFamilies: ['floor'],
     pathKinds: [],
     /** Draw tool: wall boundary-paint only — doors/windows use Place (`placementMode: 'edge'`) on the same `edgeEntries` wire. */
     edgeKinds: ['wall'],
@@ -83,10 +76,10 @@ export function getLocationScaleMapContentPolicy(
   return LOCATION_SCALE_MAP_CONTENT_POLICY[scale];
 }
 
-export function getAllowedCellFillKindsForScale(
+export function getAllowedCellFillFamiliesForScale(
   scale: LocationScaleId,
-): readonly LocationCellFillKindId[] {
-  return getLocationScaleMapContentPolicy(scale).cellFillKinds;
+): readonly LocationCellFillFamilyId[] {
+  return getLocationScaleMapContentPolicy(scale).cellFillFamilies;
 }
 
 export function getAllowedPathKindsForScale(

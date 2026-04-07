@@ -19,7 +19,7 @@ describe('location map authoring round-trip', () => {
         {
           cellId: '1,1',
           linkedLocationId: 'linked-loc',
-          cellFillKind: 'water',
+          cellFill: { familyId: 'water', variantId: 'shallow' },
           objects: [{ id: 'obj-a', kind: 'landmark', label: 'Shrine' }],
           regionId: 'reg-a',
         },

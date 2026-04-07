@@ -1,7 +1,7 @@
 import type {
   LocationCellFillCategory,
   LocationCellFillFamily,
-  LocationCellFillKindId,
+  LocationCellFillFamilyId,
 } from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
@@ -65,7 +65,8 @@ export type LocationMapActiveDrawSelection =
  */
 export type LocationMapPaintState = {
   domain: 'surface' | 'region';
-  surfaceFillKind: LocationCellFillKindId | null;
+  /** Selected terrain/surface swatch (family + variant from {@link AUTHORED_CELL_FILL_DEFINITIONS}). */
+  selectedSurfaceFill: { familyId: LocationCellFillFamilyId; variantId: string } | null;
   /** Must match an id in draft `regionEntries` when painting regions. */
   activeRegionId: string | null;
 };
@@ -86,19 +87,20 @@ export type LocationMapPendingPlacement =
   | null;
 
 export type MapPaintPaletteItem = {
-  fillKind: LocationCellFillKindId;
+  familyId: LocationCellFillFamilyId;
+  variantId: string;
   label: string;
   description?: string;
   swatchColorKey: LocationMapSwatchColorKey;
 };
 
-/** One **family** row in the paint tray (e.g. forest → light + heavy). Policy-filtered concrete fills. */
+/** One **family** row in the paint tray (e.g. forest → light + heavy). */
 export type MapPaintPaletteFamilyRow = {
   familyId: LocationCellFillFamily;
   label: string;
   variants: readonly MapPaintPaletteItem[];
-  /** Primary-click / default selection for this family (first variant after stable sort). */
-  defaultFillKind: LocationCellFillKindId;
+  /** Registry default variant id for primary-click when only one tile is shown. */
+  defaultVariantId: string;
 };
 
 /** Grouped paint palette: terrain vs surface sections, each with family rows. */

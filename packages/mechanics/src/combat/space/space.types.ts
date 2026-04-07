@@ -68,8 +68,8 @@ export type GridObjectAuthoredKindId = LocationPlacedObjectKindId;
 export type EncounterAuthoringPresentation = {
   edgeEntries: Array<{ edgeId: string; kind: 'wall' | 'door' | 'window' }>;
   pathEntries: Array<{ id: string; kind: string; cellIds: string[] }>;
-  /** Combat cell id (`c-x-y`) → sparse cell fill kind id from location map authoring. */
-  cellFillByCombatCellId: Record<string, string>;
+  /** Combat cell id (`c-x-y`) → sparse authored cell fill (family + variant). */
+  cellFillByCombatCellId: Record<string, { familyId: string; variantId: string }>;
   /** Combat cell id → region color key (e.g. `regionRed`) for semi-transparent overlay. */
   regionColorKeyByCombatCellId?: Record<string, string>;
   /**

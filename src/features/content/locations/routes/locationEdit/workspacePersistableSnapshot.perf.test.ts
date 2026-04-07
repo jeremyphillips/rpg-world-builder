@@ -49,9 +49,10 @@ function buildMediumDraft(): LocationGridDraftState {
     name: `R${r}`,
     colorKey: 'regionRed' as const,
   }));
-  const cellFillByCellId: Record<string, 'plains'> = {};
+  const fill = { familyId: 'plains' as const, variantId: 'temperate_open' as const };
+  const cellFillByCellId: Record<string, typeof fill> = {};
   for (let c = 0; c < 180; c++) {
-    cellFillByCellId[`${c % 30},${Math.floor(c / 30)}`] = 'plains';
+    cellFillByCellId[`${c % 30},${Math.floor(c / 30)}`] = fill;
   }
   return {
     ...INITIAL_LOCATION_GRID_DRAFT,

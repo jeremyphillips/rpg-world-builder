@@ -3,6 +3,7 @@
  */
 import { makeUndirectedSquareEdgeKey } from '@/shared/domain/grid/gridEdgeIds';
 import { parseGridCellId } from '@/shared/domain/grid/gridCellIds';
+import type { LocationMapCellFillSelection } from '@/shared/domain/locations';
 
 export type EraseDraftLike = {
   pathEntries: ReadonlyArray<{ id: string; cellIds: readonly string[] }>;
@@ -10,7 +11,7 @@ export type EraseDraftLike = {
   objectsByCellId: Record<string, { id: string }[] | undefined>;
   linkedLocationByCellId: Record<string, string | undefined>;
   /** Sparse cell terrain fill; cleared in Erase mode when no higher-priority target. */
-  cellFillByCellId?: Record<string, string | undefined>;
+  cellFillByCellId?: Record<string, LocationMapCellFillSelection | undefined>;
   /** Sparse cell → region id (overlay). */
   regionIdByCellId?: Record<string, string | undefined>;
 };
@@ -114,7 +115,13 @@ export function resolveEraseTargetAtCell(
     return { type: 'link', cellId };
   }
   const fill = draft.cellFillByCellId?.[cellId];
-  if (fill != null && String(fill).trim() !== '') {
+  if (
+    fill != null &&
+    typeof fill.familyId === 'string' &&
+    fill.familyId.trim() !== '' &&
+    typeof fill.variantId === 'string' &&
+    fill.variantId.trim() !== ''
+  ) {
     return { type: 'fill', cellId };
   }
   const regionId = draft.regionIdByCellId?.[cellId];

@@ -3,7 +3,7 @@
  * the MUI component maps in `presentation/map/locationMapIconNameMap.tsx` (keys are derived, not
  * duplicated here).
  *
- * Cell **fills** use swatch colors only (`LOCATION_CELL_FILL_KIND_META`); they do not participate
+ * Cell **fills** use swatch colors only (via `resolveCellFillVariant` / theme); they do not participate
  * in these icon namespaces.
  */
 

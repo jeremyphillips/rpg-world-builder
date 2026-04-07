@@ -18,7 +18,7 @@ import type {
   MapPaintPaletteItem,
   MapPaintPaletteSection,
 } from '@/features/content/locations/domain/authoring/editor';
-import type { LocationCellFillKindId } from '@/features/content/locations/domain/model/map/locationCellFill.types';
+import type { LocationCellFillFamilyId } from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import {
   LocationMapEditorTrayScrollColumn,
   LocationMapEditorTraySectionHeading,
@@ -33,18 +33,20 @@ type LocationMapEditorPaintTrayProps = {
 
 function isFamilySelected(
   row: MapPaintPaletteFamilyRow,
-  surfaceFillKind: LocationCellFillKindId | null,
+  selected: LocationMapPaintState['selectedSurfaceFill'],
 ): boolean {
-  if (surfaceFillKind == null) return false;
-  return row.variants.some((v) => v.fillKind === surfaceFillKind);
+  if (selected == null) return false;
+  return selected.familyId === row.familyId;
 }
 
 function activeVariantLabel(
   row: MapPaintPaletteFamilyRow,
-  surfaceFillKind: LocationCellFillKindId | null,
+  selected: LocationMapPaintState['selectedSurfaceFill'],
 ): string | undefined {
-  if (surfaceFillKind == null) return undefined;
-  return row.variants.find((v) => v.fillKind === surfaceFillKind)?.label;
+  if (selected == null || selected.familyId !== row.familyId) return undefined;
+  return row.variants.find(
+    (v) => v.familyId === selected.familyId && v.variantId === selected.variantId,
+  )?.label;
 }
 
 export function LocationMapEditorPaintTray({
@@ -61,6 +63,7 @@ export function LocationMapEditorPaintTray({
 
   const domain = activePaint.domain;
   const closePicker = () => setVariantPicker(null);
+  const surfaceSel = activePaint.selectedSurfaceFill;
 
   const handleDomainChange = (_: MouseEvent<HTMLElement>, value: 'surface' | 'region' | null) => {
     if (value == null) return;
@@ -71,11 +74,11 @@ export function LocationMapEditorPaintTray({
     onPaintChange({ ...activePaint, domain: 'region' });
   };
 
-  const handleSelectSurface = (kind: LocationCellFillKindId) => {
+  const handleSelectSurface = (familyId: LocationCellFillFamilyId, variantId: string) => {
     onPaintChange({
       ...activePaint,
       domain: 'surface',
-      surfaceFillKind: kind,
+      selectedSurfaceFill: { familyId, variantId },
     });
   };
 
@@ -107,18 +110,18 @@ export function LocationMapEditorPaintTray({
             <Fragment key={section.sectionId}>
               <LocationMapEditorTraySectionHeading label={section.label} padTop={sectionIndex > 0} />
               {section.families.map((row) => {
-                const selected = isFamilySelected(row, activePaint.surfaceFillKind);
+                const selected = isFamilySelected(row, surfaceSel);
                 const showVariantPicker = row.variants.length > 1;
-                const defaultFill = row.variants.find((v) => v.fillKind === row.defaultFillKind)!;
+                const defaultFill = row.variants.find((v) => v.variantId === row.defaultVariantId)!;
                 const defaultColor = getMapSwatchColor(defaultFill.swatchColorKey);
-                const activeLabel = activeVariantLabel(row, activePaint.surfaceFillKind);
+                const activeLabel = activeVariantLabel(row, surfaceSel);
                 const showVariantSubtitle =
                   selected &&
-                  activePaint.surfaceFillKind != null &&
-                  activePaint.surfaceFillKind !== row.defaultFillKind;
+                  surfaceSel != null &&
+                  surfaceSel.variantId !== row.defaultVariantId;
 
                 const onPrimaryClick = () => {
-                  handleSelectSurface(row.defaultFillKind);
+                  handleSelectSurface(row.familyId, row.defaultVariantId);
                 };
 
                 const onOpenVariantPicker = (e: MouseEvent<HTMLButtonElement>) => {
@@ -158,66 +161,66 @@ export function LocationMapEditorPaintTray({
                             alignSelf: 'center',
                           }}
                         >
-                        <Badge
-                          badgeContent={showVariantPicker ? row.variants.length : 0}
-                          color="default"
-                          invisible={!showVariantPicker}
-                          sx={{
-                            '& .MuiBadge-badge': {
-                              fontSize: 9,
-                              minWidth: 16,
-                              height: 16,
-                              right: 2,
-                              top: 2,
-                            },
-                          }}
-                        >
-                          <Box
-                            component="button"
-                            type="button"
-                            onClick={onPrimaryClick}
+                          <Badge
+                            badgeContent={showVariantPicker ? row.variants.length : 0}
+                            color="default"
+                            invisible={!showVariantPicker}
                             sx={{
-                              width: 40,
-                              minHeight: 28,
-                              px: 0,
-                              py: 0,
-                              borderRadius: 0.5,
-                              border: 2,
-                              borderColor: selected ? 'primary.main' : 'divider',
-                              bgcolor: defaultColor,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              boxShadow: selected ? 2 : 0,
-                            }}
-                            aria-label={row.label}
-                            aria-pressed={selected}
-                          />
-                        </Badge>
-                        {showVariantPicker ? (
-                          <IconButton
-                            type="button"
-                            size="small"
-                            onClick={onOpenVariantPicker}
-                            aria-label={`More variants for ${row.label}`}
-                            sx={{
-                              position: 'absolute',
-                              right: -6,
-                              bottom: -4,
-                              width: 22,
-                              height: 22,
-                              p: 0.25,
-                              bgcolor: 'background.paper',
-                              border: 1,
-                              borderColor: 'divider',
+                              '& .MuiBadge-badge': {
+                                fontSize: 9,
+                                minWidth: 16,
+                                height: 16,
+                                right: 2,
+                                top: 2,
+                              },
                             }}
                           >
-                            <UnfoldMoreIcon sx={{ fontSize: 16 }} />
-                          </IconButton>
-                        ) : null}
-                      </Box>
+                            <Box
+                              component="button"
+                              type="button"
+                              onClick={onPrimaryClick}
+                              sx={{
+                                width: 40,
+                                minHeight: 28,
+                                px: 0,
+                                py: 0,
+                                borderRadius: 0.5,
+                                border: 2,
+                                borderColor: selected ? 'primary.main' : 'divider',
+                                bgcolor: defaultColor,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: selected ? 2 : 0,
+                              }}
+                              aria-label={row.label}
+                              aria-pressed={selected}
+                            />
+                          </Badge>
+                          {showVariantPicker ? (
+                            <IconButton
+                              type="button"
+                              size="small"
+                              onClick={onOpenVariantPicker}
+                              aria-label={`More variants for ${row.label}`}
+                              sx={{
+                                position: 'absolute',
+                                right: -6,
+                                bottom: -4,
+                                width: 22,
+                                height: 22,
+                                p: 0.25,
+                                bgcolor: 'background.paper',
+                                border: 1,
+                                borderColor: 'divider',
+                              }}
+                            >
+                              <UnfoldMoreIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          ) : null}
+                        </Box>
                       </Tooltip>
                       {showVariantSubtitle && activeLabel ? (
                         <Typography
@@ -255,15 +258,22 @@ export function LocationMapEditorPaintTray({
           <List dense disablePadding>
             {variantPicker.row.variants.map((item: MapPaintPaletteItem) => {
               const color = getMapSwatchColor(item.swatchColorKey);
-              const selected = activePaint.surfaceFillKind === item.fillKind;
+              const isSel =
+                surfaceSel != null &&
+                surfaceSel.familyId === item.familyId &&
+                surfaceSel.variantId === item.variantId;
               return (
-                <Tooltip key={item.fillKind} title={item.description ?? item.label} placement="right">
+                <Tooltip
+                  key={`${item.familyId}:${item.variantId}`}
+                  title={item.description ?? item.label}
+                  placement="right"
+                >
                   <ListItemButton
                     onClick={() => {
-                      handleSelectSurface(item.fillKind);
+                      handleSelectSurface(item.familyId, item.variantId);
                       closePicker();
                     }}
-                    selected={selected}
+                    selected={isSel}
                     sx={{ gap: 1 }}
                   >
                     <Box

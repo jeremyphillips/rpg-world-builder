@@ -19,7 +19,10 @@ import {
   type GridCell,
 } from '@/features/content/locations/components/mapGrid';
 import type { GridGeometryId } from '@/shared/domain/grid/gridGeometry';
-import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/model/map/locationCellFill.types';
+import {
+  resolveCellFillVariant,
+  type LocationCellFillFamilyId,
+} from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import type {
   LocationMapActiveDrawSelection,
   LocationMapActivePaintSelection,
@@ -334,10 +337,10 @@ export function LocationGridAuthoringSection({
 
   const getCellBackgroundColor = useCallback(
     (cell: GridCell) => {
-      const kind = draft.cellFillByCellId[cell.cellId];
-      if (!kind) return undefined;
-      const meta = LOCATION_CELL_FILL_KIND_META[kind];
-      return resolveCellFillSwatchColor(meta);
+      const sel = draft.cellFillByCellId[cell.cellId];
+      if (!sel) return undefined;
+      const { variant } = resolveCellFillVariant(sel.familyId as LocationCellFillFamilyId, sel.variantId);
+      return resolveCellFillSwatchColor(variant);
     },
     [draft.cellFillByCellId],
   );

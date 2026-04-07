@@ -1,20 +1,10 @@
 /**
- * Cell fill kinds: whole-cell surfaces / terrain / flooring for authored map content.
+ * Cell fills: whole-cell terrain / surface paint — **family + variant** registry.
  *
- * These represent paint-style coverage of an entire grid cell, not strokes along paths,
- * not boundary decorations, and not anchored props.
+ * Presentation uses **swatch colors** only (`swatchColorKey` via `getMapSwatchColor` / `mapSwatchColors`).
  *
- * Future tool intent: **paint** tools will combine cell fills with path features (see
- * `locationPathFeature.types.ts`).
- *
- * Presentation: surface fills use **swatch colors** only (`swatchColorKey` via `getMapSwatchColor`
- * / `mapSwatchColors` in `src/app/theme/mapColors.ts`). They are not rendered as MUI icons.
- *
- * Canonical fill-kind ids and metadata live in `shared/domain/locations/map/locationMapCellFill.constants.ts`.
- * Structured facets (category, family, …) are defined in `locationMapCellFill.facets.ts`.
+ * Canonical registry: `shared/domain/locations/map/authoredCellFillDefinitions.ts`.
  */
-
-import type { LocationMapCellFillKindId as SharedCellFillKindId } from '@/shared/domain/locations/map/locationMapCellFill.constants';
 
 export type {
   LocationCellFillBiome,
@@ -27,17 +17,17 @@ export type {
 export { LOCATION_CELL_FILL_MATERIAL_IDS } from '@/shared/domain/locations/map/locationMapCellFill.facets';
 
 export type {
-  LocationCellFillKindMeta,
-  LocationMapCellFillKindId,
-} from '@/shared/domain/locations/map/locationMapCellFill.constants';
+  AuthoredCellFillFamilyDefinition,
+  AuthoredCellFillVariantDefinition,
+  LocationCellFillFamilyId,
+} from '@/shared/domain/locations/map/authoredCellFillDefinitions';
 
 export {
-  LOCATION_CELL_FILL_KIND_META,
-  LOCATION_MAP_CELL_FILL_KIND_IDS,
-} from '@/shared/domain/locations/map/locationMapCellFill.constants';
+  AUTHORED_CELL_FILL_DEFINITIONS,
+  LOCATION_CELL_FILL_FAMILY_IDS,
+  getAuthoredCellFillFamilyDefinition,
+  isCellFillFamilyAllowedOnScale,
+  resolveCellFillVariant,
+} from '@/shared/domain/locations/map/authoredCellFillDefinitions';
 
-/** Re-export shared ids for feature consumers; same union as {@link LocationCellFillKindId}. */
-export { LOCATION_MAP_CELL_FILL_KIND_IDS as LOCATION_CELL_FILL_KIND_IDS } from '@/shared/domain/locations/map/locationMapCellFill.constants';
-
-/** Sparse cell fill kind (shared persistence + map editor). */
-export type LocationCellFillKindId = SharedCellFillKindId;
+export type { LocationMapCellFillSelection } from '@/shared/domain/locations/map/locationMap.types';

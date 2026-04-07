@@ -95,7 +95,9 @@ describe('resolveEraseTargetAtCell', () => {
       edgeEntries: [],
       objectsByCellId: {},
       linkedLocationByCellId: {},
-      cellFillByCellId: { [cell]: 'plains' },
+      cellFillByCellId: {
+        [cell]: { familyId: 'plains' as const, variantId: 'temperate_open' as const },
+      },
     };
     expect(resolveEraseTargetAtCell(cell, draft, cols, rows)).toEqual({
       type: 'fill',
@@ -110,7 +112,9 @@ describe('resolveEraseTargetAtCell', () => {
       edgeEntries: [],
       objectsByCellId: {},
       linkedLocationByCellId: {},
-      cellFillByCellId: { [cell]: 'plains' },
+      cellFillByCellId: {
+        [cell]: { familyId: 'plains' as const, variantId: 'temperate_open' as const },
+      },
       regionIdByCellId: { [cell]: 'r1' },
     };
     expect(resolveEraseTargetAtCell(cell, draft, cols, rows)).toEqual({

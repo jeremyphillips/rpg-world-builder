@@ -1,8 +1,4 @@
-import type {
-  LocationCellFillKindMeta,
-  LocationMapRegionColorKey,
-  LocationMapSwatchColorKey,
-} from '@/features/content/locations/domain/model/map';
+import type { LocationMapRegionColorKey, LocationMapSwatchColorKey } from '@/features/content/locations/domain/model/map';
 
 import { colorPrimitives } from './colorPrimitives';
 
@@ -18,7 +14,9 @@ export const baseMapSwatchColors: Record<LocationMapSwatchColorKey, string> = {
   cellFillSwamp: colorPrimitives.mapGreen[300],
   cellFillDesert: colorPrimitives.mapSand[300],
   cellFillWater: colorPrimitives.mapBlue[300],
+  cellFillWaterDeep: colorPrimitives.mapBlue[500],
   cellFillStoneFloor: colorPrimitives.mapSlate[100],
+  cellFillWoodFloor: colorPrimitives.mapSlate[200],
 };
 
 export const lightMapSwatchColors = baseMapSwatchColors;
@@ -31,13 +29,11 @@ export function getMapSwatchColor(key: LocationMapSwatchColorKey): string {
   return mapSwatchColors[key];
 }
 
-/**
- * Resolved swatch hex for cell-fill metadata (optional `swatchColor` overrides theme key).
- *
- * @remarks Fill **facets** (`category`, `family`, `biome`, …) are ignored here on purpose — color
- * remains driven by `swatchColorKey` until a deliberate design maps facets → palette.
- */
-export function resolveCellFillSwatchColor(meta: LocationCellFillKindMeta): string {
+/** Resolved swatch hex for a cell-fill variant (optional direct hex override). */
+export function resolveCellFillSwatchColor(meta: {
+  swatchColorKey: LocationMapSwatchColorKey;
+  swatchColor?: string;
+}): string {
   return meta.swatchColor ?? getMapSwatchColor(meta.swatchColorKey);
 }
 

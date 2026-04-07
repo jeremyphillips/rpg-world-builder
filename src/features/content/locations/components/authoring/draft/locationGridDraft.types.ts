@@ -1,5 +1,5 @@
 import type {
-  LocationMapCellFillKindId,
+  LocationMapCellFillSelection,
   LocationMapCellObjectEntry,
   LocationMapEdgeAuthoringEntry,
   LocationMapPathAuthoringEntry,
@@ -20,8 +20,8 @@ export type LocationGridDraftState = {
   linkedLocationByCellId: Record<string, string | undefined>;
   /** Simple objects placed on each cell (authoring draft). */
   objectsByCellId: Record<string, LocationCellObjectDraft[]>;
-  /** Whole-cell terrain / surface fill (sparse). */
-  cellFillByCellId: Record<string, LocationMapCellFillKindId | undefined>;
+  /** Whole-cell terrain / surface fill (sparse) — family + variant from cell-fill registry. */
+  cellFillByCellId: Record<string, LocationMapCellFillSelection | undefined>;
   /** Map-level path chains (persisted on LocationMap). */
   pathEntries: LocationMapPathAuthoringEntry[];
   /** Map-level edge features on boundaries (persisted on LocationMap). */

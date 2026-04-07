@@ -187,7 +187,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   building: {
     category: 'structure',
     placementMode: 'cell',
-    allowedScales: ['world', 'city', 'site'],
+    allowedScales: ['city', 'site'],
     defaultVariantId: 'residential',
     runtime: {
       blocksMovement: true,
@@ -237,7 +237,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   tree: {
     category: 'vegetation',
     placementMode: 'cell',
-    allowedScales: ['world', 'city', 'site'],
+    allowedScales: ['city', 'site'],
     defaultVariantId: 'deciduous',
     runtime: {
       blocksMovement: true,

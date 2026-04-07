@@ -3,13 +3,17 @@
  * Shared by server API validation and optionally client-side checks.
  */
 import { parseGridCellId } from '../../grid/gridCellIds';
-import { LOCATION_MAP_CELL_FILL_KIND_IDS } from './locationMapCellFill.constants';
+import {
+  AUTHORED_CELL_FILL_DEFINITIONS,
+  LOCATION_CELL_FILL_FAMILY_IDS,
+  type LocationCellFillFamilyId,
+} from './authoredCellFillDefinitions';
 import { LOCATION_MAP_OBJECT_KIND_IDS } from './locationMap.constants';
 import { LOCATION_MAP_STAIR_ENDPOINT_DIRECTION_IDS } from './locationMapStairEndpoint.types';
 
 const OBJECT_KIND_SET = new Set<string>(LOCATION_MAP_OBJECT_KIND_IDS as readonly string[]);
 const STAIR_DIRECTION_SET = new Set<string>(LOCATION_MAP_STAIR_ENDPOINT_DIRECTION_IDS as readonly string[]);
-const CELL_FILL_KIND_SET = new Set(LOCATION_MAP_CELL_FILL_KIND_IDS as readonly string[]);
+const CELL_FILL_FAMILY_SET = new Set<string>(LOCATION_CELL_FILL_FAMILY_IDS as readonly string[]);
 
 export type LocationMapCellAuthoringValidationError = {
   path: string;
@@ -78,12 +82,46 @@ export function validateCellEntriesStructure(
     }
 
     if (row.cellFillKind !== undefined && row.cellFillKind !== null) {
-      if (typeof row.cellFillKind !== 'string' || !CELL_FILL_KIND_SET.has(row.cellFillKind)) {
+      errors.push({
+        path: `${prefix}.cellFillKind`,
+        code: 'INVALID',
+        message: 'cellFillKind is no longer supported; use cellFill: { familyId, variantId }',
+      });
+    }
+
+    if (row.cellFill !== undefined && row.cellFill !== null) {
+      if (typeof row.cellFill !== 'object' || Array.isArray(row.cellFill)) {
         errors.push({
-          path: `${prefix}.cellFillKind`,
+          path: `${prefix}.cellFill`,
           code: 'INVALID',
-          message: `cellFillKind must be one of: ${LOCATION_MAP_CELL_FILL_KIND_IDS.join(', ')}`,
+          message: 'cellFill must be an object with familyId and variantId when set',
         });
+      } else {
+        const cf = row.cellFill as Record<string, unknown>;
+        const fid = cf.familyId;
+        const vid = cf.variantId;
+        if (typeof fid !== 'string' || !CELL_FILL_FAMILY_SET.has(fid)) {
+          errors.push({
+            path: `${prefix}.cellFill.familyId`,
+            code: 'INVALID',
+            message: `cellFill.familyId must be one of: ${LOCATION_CELL_FILL_FAMILY_IDS.join(', ')}`,
+          });
+        } else if (typeof vid !== 'string' || vid.trim() === '') {
+          errors.push({
+            path: `${prefix}.cellFill.variantId`,
+            code: 'INVALID',
+            message: 'cellFill.variantId must be a non-empty string when set',
+          });
+        } else {
+          const fam = AUTHORED_CELL_FILL_DEFINITIONS[fid as LocationCellFillFamilyId];
+          if (!(vid in fam.variants)) {
+            errors.push({
+              path: `${prefix}.cellFill.variantId`,
+              code: 'INVALID',
+              message: 'cellFill.variantId is not a valid key for this familyId',
+            });
+          }
+        }
       }
     }
 

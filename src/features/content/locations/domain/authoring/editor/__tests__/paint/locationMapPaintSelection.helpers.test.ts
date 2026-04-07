@@ -22,7 +22,7 @@ describe('locationMapPaintSelection.helpers', () => {
   it('createInitialPaintState starts in surface with no active region', () => {
     const s = createInitialPaintState();
     expect(s.domain).toBe('surface');
-    expect(s.surfaceFillKind).toBeNull();
+    expect(s.selectedSurfaceFill).toBeNull();
     expect(s.activeRegionId).toBeNull();
   });
 
@@ -32,7 +32,7 @@ describe('locationMapPaintSelection.helpers', () => {
       canApplyRegionPaint(
         {
           domain: 'region',
-          surfaceFillKind: null,
+          selectedSurfaceFill: null,
           activeRegionId: null,
         },
         sampleRegions,
@@ -42,7 +42,7 @@ describe('locationMapPaintSelection.helpers', () => {
       canApplyRegionPaint(
         {
           domain: 'region',
-          surfaceFillKind: null,
+          selectedSurfaceFill: null,
           activeRegionId: 'r1',
         },
         sampleRegions,
@@ -52,7 +52,7 @@ describe('locationMapPaintSelection.helpers', () => {
       canApplyRegionPaint(
         {
           domain: 'region',
-          surfaceFillKind: null,
+          selectedSurfaceFill: null,
           activeRegionId: 'missing',
         },
         sampleRegions,
@@ -65,7 +65,7 @@ describe('locationMapPaintSelection.helpers', () => {
       canApplyAnyPaintStroke(
         {
           domain: 'surface',
-          surfaceFillKind: 'water',
+          selectedSurfaceFill: { familyId: 'water', variantId: 'shallow' },
           activeRegionId: null,
         },
         sampleRegions,
@@ -75,7 +75,7 @@ describe('locationMapPaintSelection.helpers', () => {
       canApplyAnyPaintStroke(
         {
           domain: 'region',
-          surfaceFillKind: null,
+          selectedSurfaceFill: null,
           activeRegionId: 'r1',
         },
         sampleRegions,

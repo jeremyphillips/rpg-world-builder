@@ -14,15 +14,18 @@ import { authorCellIdToCombatCellId } from './encounterMapCellIds'
 export function buildEncounterAuthoringPresentationFromLocationMap(
   map: LocationMapBase,
 ): EncounterAuthoringPresentation {
-  const cellFillByCombatCellId: Record<string, string> = {}
+  const cellFillByCombatCellId: Record<string, { familyId: string; variantId: string }> = {}
   const regionColorKeyByCombatCellId: Record<string, string> = {}
 
   const regionMeta = new Map(map.regionEntries.map((r) => [r.id, r.colorKey]))
 
   for (const e of map.cellEntries ?? []) {
     const combatId = authorCellIdToCombatCellId(e.cellId)
-    if (e.cellFillKind) {
-      cellFillByCombatCellId[combatId] = e.cellFillKind
+    if (e.cellFill) {
+      cellFillByCombatCellId[combatId] = {
+        familyId: e.cellFill.familyId,
+        variantId: e.cellFill.variantId,
+      }
     }
     if (e.regionId) {
       const ck = regionMeta.get(e.regionId)

@@ -1,6 +1,6 @@
 import type {
   LocationMapCellAuthoringEntry,
-  LocationMapCellFillKindId,
+  LocationMapCellFillSelection,
   LocationMapCellObjectEntry,
 } from '@/shared/domain/locations';
 
@@ -10,7 +10,7 @@ import type {
 export function cellDraftToCellEntries(
   linkedLocationByCellId: Record<string, string | undefined>,
   objectsByCellId: Record<string, LocationMapCellObjectEntry[]>,
-  cellFillByCellId: Record<string, LocationMapCellFillKindId | undefined> = {},
+  cellFillByCellId: Record<string, LocationMapCellFillSelection | undefined> = {},
   regionIdByCellId: Record<string, string | undefined> = {},
 ): LocationMapCellAuthoringEntry[] {
   const cellIds = new Set<string>([
@@ -27,7 +27,12 @@ export function cellDraftToCellEntries(
     const regionId = regionIdByCellId[cellId]?.trim();
     const hasLink = Boolean(linked && linked.length > 0);
     const hasObjs = Boolean(objects && objects.length > 0);
-    const hasFill = fill !== undefined && fill !== null && String(fill).trim() !== '';
+    const hasFill =
+      fill != null &&
+      typeof fill.familyId === 'string' &&
+      fill.familyId.trim() !== '' &&
+      typeof fill.variantId === 'string' &&
+      fill.variantId.trim() !== '';
     const hasRegion = Boolean(regionId && regionId.length > 0);
     if (!hasLink && !hasObjs && !hasFill && !hasRegion) {
       continue;
@@ -63,8 +68,11 @@ export function cellDraftToCellEntries(
           : {}),
       }));
     }
-    if (hasFill) {
-      entry.cellFillKind = fill;
+    if (hasFill && fill) {
+      entry.cellFill = {
+        familyId: fill.familyId,
+        variantId: fill.variantId.trim(),
+      };
     }
     if (hasRegion) {
       entry.regionId = regionId;
@@ -77,7 +85,7 @@ export function cellDraftToCellEntries(
 export function cellEntriesToDraft(entries: LocationMapCellAuthoringEntry[] | undefined): {
   linkedLocationByCellId: Record<string, string | undefined>;
   objectsByCellId: Record<string, LocationMapCellObjectEntry[]>;
-  cellFillByCellId: Record<string, LocationMapCellFillKindId | undefined>;
+  cellFillByCellId: Record<string, LocationMapCellFillSelection | undefined>;
   regionIdByCellId: Record<string, string | undefined>;
 } {
   if (!entries || entries.length === 0) {
@@ -90,7 +98,7 @@ export function cellEntriesToDraft(entries: LocationMapCellAuthoringEntry[] | un
   }
   const linkedLocationByCellId: Record<string, string | undefined> = {};
   const objectsByCellId: Record<string, LocationMapCellObjectEntry[]> = {};
-  const cellFillByCellId: Record<string, LocationMapCellFillKindId | undefined> = {};
+  const cellFillByCellId: Record<string, LocationMapCellFillSelection | undefined> = {};
   const regionIdByCellId: Record<string, string | undefined> = {};
   for (const e of entries) {
     if (e.linkedLocationId && e.linkedLocationId.trim()) {
@@ -121,8 +129,17 @@ export function cellEntriesToDraft(entries: LocationMapCellAuthoringEntry[] | un
           : {}),
       }));
     }
-    if (e.cellFillKind !== undefined && e.cellFillKind !== null && String(e.cellFillKind).trim() !== '') {
-      cellFillByCellId[e.cellId] = e.cellFillKind;
+    if (
+      e.cellFill != null &&
+      typeof e.cellFill.familyId === 'string' &&
+      e.cellFill.familyId.trim() !== '' &&
+      typeof e.cellFill.variantId === 'string' &&
+      e.cellFill.variantId.trim() !== ''
+    ) {
+      cellFillByCellId[e.cellId] = {
+        familyId: e.cellFill.familyId,
+        variantId: e.cellFill.variantId.trim(),
+      };
     }
     if (e.regionId !== undefined && e.regionId !== null && String(e.regionId).trim() !== '') {
       regionIdByCellId[e.cellId] = String(e.regionId).trim();

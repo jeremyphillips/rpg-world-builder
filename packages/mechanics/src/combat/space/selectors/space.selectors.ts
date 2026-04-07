@@ -165,8 +165,8 @@ export type GridCellViewModel = {
   viewerOccupantPresentationKind?: ViewerCombatantPresentationKind
   /** Viewer-relative render projection (perception layer); undefined when perception opts omitted. */
   perception?: EncounterGridCellRenderState
-  /** Location-map authoring: surface fill kind id (when `space.authoringPresentation` is set). */
-  authoringCellFillKind?: string
+  /** Location-map authoring: surface fill (when `space.authoringPresentation` is set). */
+  authoringCellFill?: { familyId: string; variantId: string }
   /** Location-map authoring: region overlay color key. */
   authoringRegionColorKey?: string
 }
@@ -446,10 +446,10 @@ export function selectGridViewModel(
     const ap = space.authoringPresentation
     /** Only true walls skip floor/region paint; props and structural blocking still use map cell fills (e.g. stone_floor). */
     const blockAuthoringUnderlay = cell.kind === 'wall'
-    let authoringCellFillKind: string | undefined
+    let authoringCellFill: { familyId: string; variantId: string } | undefined
     let authoringRegionColorKey: string | undefined
     if (ap && !blockAuthoringUnderlay) {
-      authoringCellFillKind = ap.cellFillByCombatCellId[cell.id]
+      authoringCellFill = ap.cellFillByCombatCellId[cell.id]
       authoringRegionColorKey = ap.regionColorKeyByCombatCellId?.[cell.id]
     }
 
@@ -494,7 +494,7 @@ export function selectGridViewModel(
         : {}),
       ...(persistentAttachedAura ? { persistentAttachedAura: true } : {}),
       ...(cellPerception ? { perception: cellPerception } : {}),
-      ...(authoringCellFillKind ? { authoringCellFillKind } : {}),
+      ...(authoringCellFill ? { authoringCellFill } : {}),
       ...(authoringRegionColorKey ? { authoringRegionColorKey } : {}),
     }
   })

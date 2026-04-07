@@ -9,19 +9,16 @@ import {
 import { getPlacePaletteItemsForScale } from '../../palette';
 
 describe('locationMapEditorPalette.helpers', () => {
-  it('getPaintPaletteItemsForScale maps policy + cell-fill meta', () => {
+  it('getPaintPaletteItemsForScale maps policy + cell-fill registry variants', () => {
     const items = getPaintPaletteItemsForScale('world');
-    expect(items.map((i) => i.fillKind)).toEqual([
-      'mountains',
-      'plains',
-      'forest_light',
-      'forest_heavy',
-      'swamp',
-      'desert',
-      'water',
-    ]);
-    expect(items[0].label).toBe('Mountains');
-    expect(items[0].swatchColorKey).toBe('cellFillMountains');
+    expect(items.length).toBe(8);
+    const keys = new Set(items.map((i) => `${i.familyId}:${i.variantId}`));
+    expect(keys.has('mountains:rocky')).toBe(true);
+    expect(keys.has('forest:temperate_open')).toBe(true);
+    expect(keys.has('water:deep')).toBe(true);
+    const mountains = items.find((i) => i.familyId === 'mountains');
+    expect(mountains?.label).toBe('Mountains');
+    expect(mountains?.swatchColorKey).toBe('cellFillMountains');
   });
 
   it('getPaintPaletteSectionsForScale groups by category and family', () => {
@@ -32,12 +29,12 @@ describe('locationMapEditorPalette.helpers', () => {
     expect(terrainFamilies).toContain('forest');
     const forest = world[0].families.find((f) => f.familyId === 'forest');
     expect(forest?.variants.length).toBe(2);
-    expect(forest?.defaultFillKind).toBe('forest_heavy');
+    expect(forest?.defaultVariantId).toBe('temperate_open');
 
     const floor = getPaintPaletteSectionsForScale('floor');
     expect(floor.map((s) => s.sectionId)).toEqual(['surface']);
     expect(floor[0].families.map((f) => f.familyId)).toEqual(['floor']);
-    expect(floor[0].families[0].variants).toHaveLength(1);
+    expect(floor[0].families[0].variants).toHaveLength(2);
   });
 
   it('getPlacePaletteItemsForScale maps policy + linked-content vs map-object', () => {

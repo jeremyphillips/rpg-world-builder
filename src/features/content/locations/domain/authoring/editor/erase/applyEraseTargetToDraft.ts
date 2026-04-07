@@ -1,5 +1,5 @@
 import { removePathChainSegment } from '@/shared/domain/locations/map/locationMapPathAuthoring.helpers';
-import type { LocationMapPathAuthoringEntry } from '@/shared/domain/locations';
+import type { LocationMapCellFillSelection, LocationMapPathAuthoringEntry } from '@/shared/domain/locations';
 
 import type { EraseTarget } from './resolveEraseTarget';
 
@@ -12,7 +12,7 @@ export type ErasableMapDraft = {
   edgeEntries: ReadonlyArray<{ edgeId: string }>;
   objectsByCellId: Record<string, { id: string }[] | undefined>;
   linkedLocationByCellId: Record<string, string | undefined>;
-  cellFillByCellId: Record<string, string | undefined>;
+  cellFillByCellId: Record<string, LocationMapCellFillSelection | undefined>;
   regionIdByCellId: Record<string, string | undefined>;
 };
 

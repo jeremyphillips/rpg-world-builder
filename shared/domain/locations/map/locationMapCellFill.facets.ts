@@ -1,27 +1,27 @@
 /**
- * Structured facets for **concrete** cell fill kinds (`LOCATION_CELL_FILL_KIND_META` keys).
+ * Structured facets for cell-fill **families** (see `authoredCellFillDefinitions.ts` for persisted
+ * `{ familyId, variantId }` and swatch keys).
  *
- * These fields describe *what* a fill is for authoring UX and future features (grouping, filters,
- * derived labels). They do **not** replace stored fill ids — persistence and tools still use the
- * flat id per cell (e.g. `forest_light`, `stone_floor`).
+ * These types describe *what* a fill is for authoring UX and future features (grouping, filters,
+ * derived labels). They supplement the registry; they are not the persistence shape on each cell.
  *
  * @remarks **TODO (broader app wiring):** palette ordering, grouped pickers, filtering, and any
  * presentation derived from facets are **not** implemented yet. Current paint UI and combat underlay
- * still rely on explicit `swatchColorKey` and the concrete id. Do not treat unused facets as dead
- * code — they are intentional scaffolding.
+ * still rely on explicit `swatchColorKey` from `resolveCellFillVariant`. Do not treat unused facets
+ * as dead code — they are intentional scaffolding.
  */
 
 import type { MaterialId } from '@/shared/domain/materials';
 
 /**
  * Top-level bucket: outdoor/natural land cover vs interior constructed surfaces.
- * Keeps terrain-like fills (forest, water, …) separate from floors (`stone_floor`, future `wood_floor`).
+ * Keeps terrain-like fills (forest, water, …) separate from interior floor variants.
  */
 export type LocationCellFillCategory = 'terrain' | 'surface';
 
 /**
  * Kind of terrain or surface within {@link LocationCellFillCategory}.
- * Extend this union when new **families** of concrete fills are added (e.g. `forest_tropical_*`).
+ * Extend this union when new **families** are added to the authored registry.
  */
 export type LocationCellFillFamily =
   | 'mountains'
@@ -52,8 +52,7 @@ export type LocationCellFillDensity = 'open' | 'dense';
 /**
  * Materials allowed for interior floor surface fills. Subset of {@link MaterialId}.
  *
- * @remarks **TODO:** only `stone` is used in meta today; `wood` / `tile` support future ids like `wood_floor`
- * without schema churn. Runtime list for validation/selects when facets are wired up.
+ * @remarks **TODO:** runtime list for validation/selects when facets are wired up.
  */
 export const LOCATION_CELL_FILL_MATERIAL_IDS = ['stone', 'wood', 'tile'] as const satisfies readonly MaterialId[];
 

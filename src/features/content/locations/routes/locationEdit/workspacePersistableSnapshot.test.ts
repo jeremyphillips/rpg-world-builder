@@ -117,7 +117,9 @@ describe('serializeLocationWorkspacePersistableSnapshot', () => {
     const draftA = { ...INITIAL_LOCATION_GRID_DRAFT };
     const draftB = {
       ...INITIAL_LOCATION_GRID_DRAFT,
-      cellFillByCellId: { '0,0': 'plains' as const },
+      cellFillByCellId: {
+        '0,0': { familyId: 'plains' as const, variantId: 'temperate_open' as const },
+      },
     };
     const before = serializeLocationWorkspacePersistableSnapshot(
       form,

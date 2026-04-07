@@ -4,8 +4,8 @@ import type { SystemStyleObject } from '@mui/system'
 import type { GridCellViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
 import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types'
 import {
-  LOCATION_CELL_FILL_KIND_META,
-  type LocationMapCellFillKindId,
+  resolveCellFillVariant,
+  type LocationCellFillFamilyId,
 } from '@/features/content/locations/domain/model/map/locationCellFill.types'
 import { getMapRegionColor, resolveCellFillSwatchColor } from '@/app/theme/mapColors'
 import type { CellBaseFillKind, CellMovementVisual, CellVisualState } from './cellVisualState'
@@ -118,24 +118,24 @@ export function mergeAuthoringMapUnderlayIntoCellSx(
   if (visual.baseFillKind !== 'paper') return baseSx
   if (cell.kind === 'wall') return baseSx
 
-  const fillKind = cell.authoringCellFillKind
+  const fillSel = cell.authoringCellFill
   const regionKey = cell.authoringRegionColorKey
-  if (!fillKind && !regionKey) return baseSx
+  if (!fillSel && !regionKey) return baseSx
 
-  const fillMeta = fillKind
-    ? LOCATION_CELL_FILL_KIND_META[fillKind as LocationMapCellFillKindId]
+  const variantRow = fillSel
+    ? resolveCellFillVariant(fillSel.familyId as LocationCellFillFamilyId, fillSel.variantId).variant
     : undefined
 
   let stacked: string = theme.palette.background.paper
-  if (fillMeta) {
-    stacked = resolveCellFillSwatchColor(fillMeta)
+  if (variantRow) {
+    stacked = resolveCellFillSwatchColor(variantRow)
   }
   if (regionKey) {
     const rc = getMapRegionColor(regionKey as LocationMapRegionColorKey)
     stacked = `linear-gradient(${alpha(rc, 0.22)}, ${alpha(rc, 0.22)}), ${stacked}`
   }
 
-  if (!fillMeta && !regionKey) return baseSx
+  if (!variantRow && !regionKey) return baseSx
 
   return {
     ...baseSx,

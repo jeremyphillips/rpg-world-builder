@@ -4,7 +4,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import {
   canApplyAnyPaintStroke,
   canApplyRegionPaint,
-  getActiveSurfaceFillKind,
+  getActiveSurfaceFillSelection,
   type LocationMapActivePaintSelection,
   type LocationMapEditorMode,
 } from '@/features/content/locations/domain/authoring/editor';
@@ -38,11 +38,11 @@ export function useLocationGridPaintStroke({
       if (strokeSeen.current.has(cellId)) return;
       strokeSeen.current.add(cellId);
       if (mapEditorMode === 'paint') {
-        const surfaceFill = getActiveSurfaceFillKind(activePaint ?? null);
+        const surfaceFill = getActiveSurfaceFillSelection(activePaint ?? null);
         if (surfaceFill) {
           setDraft((d) => ({
             ...d,
-            cellFillByCellId: { ...d.cellFillByCellId, [cellId]: surfaceFill },
+            cellFillByCellId: { ...d.cellFillByCellId, [cellId]: { ...surfaceFill } },
           }));
           return;
         }

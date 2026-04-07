@@ -8,24 +8,27 @@ describe('cellAuthoringMappers', () => {
     const entries = cellDraftToCellEntries(
       { '1,1': 'loc-a' },
       { '2,2': [{ id: 'o1', kind: 'marker' }] },
-      { '0,0': 'plains', '1,1': 'water' },
+      {
+        '0,0': { familyId: 'plains', variantId: 'temperate_open' },
+        '1,1': { familyId: 'water', variantId: 'shallow' },
+      },
     );
     expect(entries).toContainEqual(
       expect.objectContaining({
         cellId: '0,0',
-        cellFillKind: 'plains',
+        cellFill: { familyId: 'plains', variantId: 'temperate_open' },
       }),
     );
     expect(entries).toContainEqual(
       expect.objectContaining({
         cellId: '1,1',
         linkedLocationId: 'loc-a',
-        cellFillKind: 'water',
+        cellFill: { familyId: 'water', variantId: 'shallow' },
       }),
     );
     const back = cellEntriesToDraft(entries);
-    expect(back.cellFillByCellId['0,0']).toBe('plains');
-    expect(back.cellFillByCellId['1,1']).toBe('water');
+    expect(back.cellFillByCellId['0,0']).toEqual({ familyId: 'plains', variantId: 'temperate_open' });
+    expect(back.cellFillByCellId['1,1']).toEqual({ familyId: 'water', variantId: 'shallow' });
     expect(back.linkedLocationByCellId['1,1']).toBe('loc-a');
   });
 
