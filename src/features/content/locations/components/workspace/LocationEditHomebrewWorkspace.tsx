@@ -9,11 +9,6 @@ import type { LocationFormValues } from '@/features/content/locations/domain';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
 import { ConditionalFormRenderer, ConfirmModal } from '@/ui/patterns';
 import type { FieldConfig } from '@/ui/patterns/form/form.types';
-import {
-  LocationMapEditorLinkedLocationModal,
-  type LocationMapEditorLinkedLocationModalProps,
-} from './rightRail/linkedLocation';
-
 import type { BuildingFloorStripProps } from './BuildingFloorStrip';
 import { BuildingFloorStrip } from './BuildingFloorStrip';
 import type { LocationEditorRailSection } from './rightRail/types';
@@ -55,7 +50,6 @@ export type LocationEditHomebrewWorkspaceProps = {
   policyPanel: ReactNode | null;
   mapAuthoringPanel: ReactNode;
   selectionPanel: ReactNode;
-  linkedLocationModal: LocationMapEditorLinkedLocationModalProps;
   deleteConfirm: {
     open: boolean;
     loading: boolean;
@@ -94,7 +88,6 @@ export function LocationEditHomebrewWorkspace({
   policyPanel,
   mapAuthoringPanel,
   selectionPanel,
-  linkedLocationModal,
   deleteConfirm,
 }: LocationEditHomebrewWorkspaceProps) {
   const canvas =
@@ -190,8 +183,6 @@ export function LocationEditHomebrewWorkspace({
           </LocationEditorRightRail>
         }
       />
-
-      <LocationMapEditorLinkedLocationModal {...linkedLocationModal} />
 
       <ConfirmModal
         open={deleteConfirm.open}

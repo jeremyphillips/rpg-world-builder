@@ -73,19 +73,6 @@ export type LocationMapPaintState = {
 
 export type LocationMapActivePaintSelection = LocationMapPaintState | null;
 
-/**
- * Pending linked-location modal. Campaign-only locations; cancel leaves draft unchanged.
- */
-export type LocationMapPendingPlacement =
-  | {
-      type: 'linked-location';
-      objectKind: LocationPlacedObjectKindId;
-      hostScale: LocationScaleId;
-      linkedScale: LocationScaleId;
-      targetCellId: string;
-    }
-  | null;
-
 export type MapPaintPaletteItem = {
   familyId: LocationCellFillFamilyId;
   variantId: string;

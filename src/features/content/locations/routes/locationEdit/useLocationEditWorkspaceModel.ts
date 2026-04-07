@@ -92,7 +92,6 @@ import {
   applyRemovePathFromDraft,
   applyRemoveRegionFromDraft,
 } from './mapSessionDraft.helpers';
-import { buildLocationEditLinkModalSelectOptions } from './locationEditLinkModalOptions';
 import { useLocationEditBuildingStairHandlers } from './useLocationEditBuildingStairHandlers';
 
 export type UseLocationEditWorkspaceModelParams = {
@@ -568,26 +567,6 @@ export function useLocationEditWorkspaceModel({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [mapEditor.mode]);
 
-  const linkModalSelectOptions = useMemo(
-    () =>
-      buildLocationEditLinkModalSelectOptions({
-        campaignId: campaignId ?? undefined,
-        loc,
-        locations,
-        mapHostLocationIdResolved,
-        mapHostScaleResolved,
-        pendingPlacement: mapEditor.pendingPlacement,
-      }),
-    [
-      campaignId,
-      loc,
-      locations,
-      mapHostLocationIdResolved,
-      mapHostScaleResolved,
-      mapEditor.pendingPlacement,
-    ],
-  );
-
   const showMapEditorChrome = showMapGridAuthoring;
 
   const leftMapChromeWidthPx = useMemo(
@@ -806,10 +785,6 @@ export function useLocationEditWorkspaceModel({
         }
         const outcome = resolvePlacementCellClick(mapEditor.activePlace, cellId, mapHostScaleResolved);
         if (outcome.kind === 'unsupported') return;
-        if (outcome.kind === 'link') {
-          mapEditor.setPendingPlacement(outcome.pending);
-          return;
-        }
         if (outcome.kind === 'append-object') {
           setGridDraft((prev) => {
             const existing = prev.objectsByCellId[outcome.cellId] ?? [];
@@ -896,7 +871,6 @@ export function useLocationEditWorkspaceModel({
       mapEditor.activeDraw,
       mapHostScaleResolved,
       mapEditor.pathAnchorCellId,
-      mapEditor.setPendingPlacement,
       mapEditor.setPathAnchorCellId,
       gridGeometry,
       gridColumns,
@@ -998,7 +972,6 @@ export function useLocationEditWorkspaceModel({
     mapPlaceObjectDragStrokeEnabled,
     placeEdgeAuthoringActive,
     placeEdgeFeatureKind,
-    linkModalSelectOptions,
     showMapEditorChrome,
     leftMapChromeWidthPx,
     policyValue,

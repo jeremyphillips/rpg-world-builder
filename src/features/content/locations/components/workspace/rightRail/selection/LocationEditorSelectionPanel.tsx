@@ -129,6 +129,11 @@ export function LocationEditorSelectionPanel({
           onUpdateCellObjects={cellPanelProps.onUpdateCellObjects}
           onRemovePlacedObjectFromMap={onRemovePlacedObjectFromMap}
           hostScale={cellPanelProps.hostScale}
+          campaignId={cellPanelProps.campaignId}
+          mapHostLocationId={cellPanelProps.hostLocationId ?? ''}
+          mapHostScale={cellPanelProps.hostScale}
+          hostEditLocation={cellPanelProps.hostEditLocation ?? null}
+          onUpdateLinkedLocation={cellPanelProps.onUpdateLinkedLocation}
           locations={cellPanelProps.locations}
           linkedLocationByCellId={cellPanelProps.linkedLocationByCellId}
           stairWorkspaceInspect={stairWorkspaceInspect}

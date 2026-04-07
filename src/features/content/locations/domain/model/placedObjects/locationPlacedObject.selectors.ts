@@ -144,6 +144,15 @@ export function resolvePlacedObjectKindForCellObject(
   }
 }
 
+/** True for registry families with `linkedScale` (city/site markers); cell-level `linkedLocationByCellId` pairs with these. */
+export function cellObjectAnchorsCellLinkedLocation(
+  obj: Pick<LocationMapCellObjectEntry, 'kind' | 'authoredPlaceKindId'>,
+): boolean {
+  const kind = resolvePlacedObjectKindForCellObject(obj);
+  if (!kind) return false;
+  return getPlacedObjectDefinition(kind).linkedScale !== undefined;
+}
+
 /** Default variant’s `presentation` for first-pass inspector metadata (variant not on wire for many objects). */
 export function getDefaultVariantPresentationForKind(
   kind: LocationPlacedObjectKindId,

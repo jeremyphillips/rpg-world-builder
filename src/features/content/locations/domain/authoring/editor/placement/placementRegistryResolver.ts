@@ -5,7 +5,6 @@
  */
 import type { LocationMapCellObjectEntry } from '@/shared/domain/locations/map/locationMap.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
-import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 import { canPlaceObjectKindOnHostScale } from '@/shared/domain/locations/map/locationMapPlacement.policy';
 import { LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION } from '@/shared/domain/locations/map/locationMapStairEndpoint.types';
@@ -28,16 +27,6 @@ export {
 export type PlacementCellClickResult =
   | { kind: 'unsupported' }
   | {
-      kind: 'link';
-      pending: {
-        type: 'linked-location';
-        objectKind: LocationPlacedObjectKindId;
-        hostScale: LocationScaleId;
-        linkedScale: LocationScaleId;
-        targetCellId: string;
-      };
-    }
-  | {
       kind: 'append-object';
       cellId: string;
       /** Fields for a new {@link LocationMapCellObjectEntry}; caller adds `id`. */
@@ -45,7 +34,7 @@ export type PlacementCellClickResult =
     };
 
 /**
- * Maps `activePlace` + cell + host scale to link pending placement or a new object draft.
+ * Maps `activePlace` + cell + host scale to a new object draft.
  * Stairs default `stairEndpoint` is applied here (draft-creation layer), not in generic palette UI.
  */
 export function resolvePlacementCellClick(
@@ -56,18 +45,6 @@ export function resolvePlacementCellClick(
   const res = resolvePlacedKindToAction(activePlace, hostScale);
   if (res.type === 'unsupported') {
     return { kind: 'unsupported' };
-  }
-  if (res.type === 'link') {
-    return {
-      kind: 'link',
-      pending: {
-        type: 'linked-location',
-        objectKind: res.objectKind,
-        hostScale,
-        linkedScale: res.linkedScale,
-        targetCellId: cellId,
-      },
-    };
   }
   if (res.type === 'object') {
     if (!canPlaceObjectKindOnHostScale(hostScale, res.objectKind)) {

@@ -2,117 +2,117 @@
 name: Linked place flow — rail-first (remove modal)
 overview: Replace cell-click → linked-location modal with immediate marker placement and OptionPickerField on the object inspector (Selection rail). Aligns map rendering and selection with other placed objects; drops pending-placement modal and legacy dual-path (linked icon vs object). No backward-compat migration.
 isProject: false
+implementationStatus: not-started
 ---
 
 # Bugfix plan: Linked city / site / building — placed-object branch + rail link picker
 
 **Parent:** [location_workspace_object_authoring_roadmap.plan.md](location_workspace_object_authoring_roadmap.plan.md)
 
-**Goal:** Fix inconsistent UX (no tooltip/outline/select on modal-placed “city” markers), align with roadmap principle **toolbar chooses; rail inspects**, and remove the **cell click → modal** detour.
+**Status:** **Not implemented** — `LocationMapEditorLinkedLocationModal`, `pendingPlacement`, and `kind: 'link'` are still present (`placementRegistryResolver.ts`, `resolvePlacedKindToAction.ts`, `useLocationEditWorkspaceModel.ts` ~809, `LocationEditRoute.tsx` modal wiring).
 
 ---
 
 ## Problem statement
 
-Today, placing a **linked-content** family (`city`, `site` with `linkedScale`) uses `resolvePlacementCellClick` → `kind: 'link'` → `pendingPlacement` → **`LocationMapEditorLinkedLocationModal`**. On confirm, only **`linkedLocationByCellId[cellId]`** is set; **no** `objectsByCellId` entry is created. The map overlay renders the **linked-location** branch (`getLocationScaleMapIcon`) instead of the **placed-object** branch (`data-map-object-id`, `PlacedObjectCellVisualDisplay`, Tooltip, object-selection hit testing).
+Placing a **linked-content** registry family (`city`, `site`, families with `linkedScale`) uses `resolvePlacementCellClick` → **`kind: 'link'`** → **`pendingPlacement`** → **`LocationMapEditorLinkedLocationModal`**. On confirm, only **`linkedLocationByCellId[cellId]`** is set; **no** `objectsByCellId` entry is created. The map renders the **linked-location** icon branch instead of the **placed-object** branch (`data-map-object-id`, tooltip, object select).
 
-**Desired:** Click-to-place always appends a **real cell object** (marker + `authoredPlaceKindId`). The campaign **link target** is chosen in the **Selection** tab on **[`LocationMapObjectInspector`](../../../src/features/content/locations/components/workspace/rightRail/selection/LocationMapSelectionInspectors.tsx)** via **`OptionPickerField`** (max **1** selection), updating **`linkedLocationByCellId`**.
+**Target behavior:** Cell click **always** appends a **real cell object** (marker + `authoredPlaceKindId`). The user picks the campaign location in **Selection → object inspector** via **`OptionPickerField`** (`maxItems={1}`), updating **`linkedLocationByCellId`**.
 
-**Label mapping (picker):** Drive the visible label from the registry family’s **`linkedScale`** (the **target location scale** for the link), not from palette `objectTitle`:
+**Picker field labels** (from registry **`linkedScale`**, not palette titles):
 
-| `linkedScale` (target) | Picker label |
-|------------------------|--------------|
+| `linkedScale` | Label |
+|---------------|--------|
 | `city` | Linked city |
 | `building` | Linked building |
 | `site` | Linked site |
 
 ---
 
-## Scope (explicit)
+## Scope
 
 | In scope | Out of scope |
-|----------|----------------|
-| Remove modal + `pendingPlacement` link flow | Migrating old saved maps (user said **no backwards compatibility**) |
-| Persistence mapping for `city` / `site` → `marker` + `authoredPlaceKindId` | New `linkedLocationId` field **on** `LocationMapCellObjectEntry` (keep cell-level `linkedLocationByCellId` unless a later refactor requests it) |
-| **`OptionPickerField` on [`LocationMapObjectInspector`](../../../src/features/content/locations/components/workspace/rightRail/selection/LocationMapSelectionInspectors.tsx)** (metadata / `PlacedObjectRailTemplate`) | `LocationCellAuthoringPanel` — link UI does **not** go on empty/fill cell inspector |
-| Controlled **`OptionPickerField`** first | **`FormOptionPickerField` / RHF** unless blur/validation integration is required |
-| Clean up dead code (modal, link outcome in placement resolver, tests) | Changing global link policy tables beyond what options filtering already uses |
-| **Update [`docs/reference/location-workspace.md`](../../../docs/reference/location-workspace.md)** — linked placement, Selection rail picker, removal of modal / `pendingPlacement` link flow; keep in sync with canonical workspace behavior | |
+|----------|--------------|
+| Remove modal + `pendingPlacement` link flow | Migrating old saved maps |
+| Persistence: `city` / `site` → `marker` + `authoredPlaceKindId` via shared helpers | `linkedLocationId` on `LocationMapCellObjectEntry` (keep cell-level `linkedLocationByCellId`) |
+| `OptionPickerField` on **`LocationMapObjectInspector`** (`LocationMapSelectionInspectors.tsx`) | Link UI on **`LocationCellAuthoringPanel`** (empty / fill-only cell) |
+| Controlled **`OptionPickerField`** unless RHF is required | Broad changes to global link policy beyond existing filters |
+| **`docs/reference/location-workspace.md`** updated for the new flow | — |
+
+**Workspace rules:** Persistable edits go through **`gridDraft`** and explicit callbacks ([`location-workspace.md`](../../../docs/reference/location-workspace.md) — state ownership). Do not add a second hidden source of truth.
 
 ---
 
-## Architecture (target)
+## Target architecture
 
-1. **Placement (cell click):** Only **`append-object`**. Remove **`kind: 'link'`** from `PlacementCellClickResult` and `handleAuthoringCellClick` branches that call `setPendingPlacement`.
-2. **Resolver:** `resolvePlacedKindToAction` must **not** return `type: 'link'` for registry `linkedScale` families; it returns **`type: 'object'`** with payload from `buildPersistedPlacedObjectPayload` after **`mapPlacedObjectKindToPersistedMapObjectKind`** supports `city` / `site` → `marker` (and `getAuthoredPlaceKindIdForPersistedPayload` returns `city` / `site`).
-3. **Draft:** `linkedLocationByCellId` remains the persisted **cell → campaign location** link; it is **edited in the rail**, not via modal. Optional: clearing link when object removed (same transaction as `onRemovePlacedObjectFromMap`).
-4. **UI — `OptionPickerField` on the object inspector:** Implement on [`LocationMapObjectInspector`](../../../src/features/content/locations/components/workspace/rightRail/selection/LocationMapSelectionInspectors.tsx) — it already uses [`PlacedObjectRailTemplate`](../../../src/features/content/locations/components/workspace/rightRail/selection/PlacedObjectRailTemplate.tsx) with `metadata`, `linkedDisplayName`, etc. Add the picker in **`metadata`** (or `actionsSlot`) for families that have **`linkedScale`** in the registry (`resolvePlacedObjectKindForCellObject` + registry lookup). **Do not** add link pickers to [`LocationCellAuthoringPanel`](../../../src/features/content/locations/components/workspace/rightRail/panels/LocationCellAuthoringPanel.tsx) (empty / fill-only cell).
-
-5. **Options:** Reuse filtering logic from [`buildLocationEditLinkModalSelectOptions`](../../../src/features/content/locations/routes/locationEdit/locationEditLinkModalOptions.ts) (or extract a shared helper `getLinkedLocationPickerOptions({ host, locations, campaignId, linkedScale, excludeCellId })`) so policy and campaign scoping stay identical to today’s modal.
-
-6. **`OptionPickerField`:** `maxItems={1}`, `value`/`onChange` as `string[]` of length 0–1; map to/from `linkedLocationByCellId[cellId]` (single id or clear).
+1. **Cell click:** Only **`append-object`**. Remove **`kind: 'link'`** from `PlacementCellClickResult` and from `handleAuthoringCellClick` paths that call **`setPendingPlacement`**.
+2. **`resolvePlacedKindToAction`:** No **`type: 'link'`** for `linkedScale` families — only **`type: 'object'`** via **`buildPersistedPlacedObjectPayload`** after persistence maps **`city` / `site`** → **`marker`** and **`getAuthoredPlaceKindIdForPersistedPayload`** returns the authored kind ids.
+3. **Draft:** **`linkedLocationByCellId`** is edited in the rail; clear it when the linked marker is removed or erased (same update as object removal where applicable).
+4. **Options:** Extract shared **`getLinkedLocationPickerOptions(...)`** from today’s **`buildLocationEditLinkModalSelectOptions`** / `locationEditLinkModalOptions.ts` so campaign scoping and **`getAllowedLinkedLocationOptions`** behavior match the modal.
 
 ---
 
-## Implementation checklist
+## Execution order (do in this order)
 
-### Domain / placement
+### 1. Persistence (unblocks resolver)
 
-- [ ] Extend [`locationPlacedObject.persistence.ts`](../../../src/features/content/locations/domain/model/placedObjects/locationPlacedObject.persistence.ts): `city` / `site` → `marker` for relevant `hostScale`s; `getAuthoredPlaceKindIdForPersistedPayload` for `city` / `site`.
-- [ ] Update [`resolvePlacedKindToAction.ts`](../../../src/features/content/locations/domain/authoring/editor/placement/resolvePlacedKindToAction.ts): remove **`linkedScale` → `type: 'link'`** branch; linked families resolve via **`buildPersistedPlacedObjectPayload`** only.
-- [ ] Update [`placementRegistryResolver.ts`](../../../src/features/content/locations/domain/authoring/editor/placement/placementRegistryResolver.ts): remove **`kind: 'link'`** from `PlacementCellClickResult` and implementation.
-- [ ] Update [`useLocationEditWorkspaceModel.ts`](../../../src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts): delete **`outcome.kind === 'link'`** handling.
+- [ ] `src/features/content/locations/domain/model/placedObjects/locationPlacedObject.persistence.ts` — `mapPlacedObjectKindToPersistedMapObjectKind` / `getAuthoredPlaceKindIdForPersistedPayload`: support **`city` / `site`** (→ `marker` + authored kind) for relevant host scales.
 
-### Editor state / route
+### 2. Placement domain — remove `link` outcome
 
-- [ ] Remove or null-out **`pendingPlacement`** / **`setPendingPlacement`** for linked-location (see [`useLocationMapEditorState.ts`](../../../src/features/content/locations/domain/authoring/editor/state/useLocationMapEditorState.ts)) if nothing else uses it.
-- [ ] Remove **`linkedLocationModal`** prop wiring from [`LocationEditRoute.tsx`](../../../src/features/content/locations/routes/LocationEditRoute.tsx) and [`LocationEditHomebrewWorkspace.tsx`](../../../src/features/content/locations/components/workspace/LocationEditHomebrewWorkspace.tsx); delete modal usage.
-- [ ] Remove [`LocationMapEditorLinkedLocationModal.tsx`](../../../src/features/content/locations/components/workspace/rightRail/linkedLocation/LocationMapEditorLinkedLocationModal.tsx) and barrel exports; delete or trim [`locationEditLinkModalOptions.ts`](../../../src/features/content/locations/routes/locationEdit/locationEditLinkModalOptions.ts) after options helper is moved/shared.
+- [ ] `src/features/content/locations/domain/authoring/editor/placement/resolvePlacedKindToAction.ts` — Remove **`type: 'link'`** branch and downstream handling (`r.type === 'link'`).
+- [ ] `src/features/content/locations/domain/authoring/editor/placement/placementRegistryResolver.ts` — Remove **`kind: 'link'`** from union and implementation; **`resolvePlacementCellClick`** returns object-append only for linked families.
 
-### Map overlay
+### 3. Session + route — drop modal pipeline
 
-- [ ] [`LocationMapCellAuthoringOverlay.tsx`](../../../src/features/content/locations/components/mapGrid/LocationMapCellAuthoringOverlay.tsx): For linked-content markers, rely on **`objs`** rendering only; remove redundant **linked-only** icon row when the cell has the corresponding placed object (no compat: drop orphan linked-without-object if acceptable).
+- [ ] `src/features/content/locations/routes/locationEdit/useLocationEditWorkspaceModel.ts` — Remove **`outcome.kind === 'link'`** / **`setPendingPlacement`** for links; remove or repurpose **`linkModalSelectOptions`** if only used for the modal (rail may need options from a new helper).
+- [ ] `src/features/content/locations/domain/authoring/editor/state/useLocationMapEditorState.ts` — Remove **`pendingPlacement`** / **`setPendingPlacement`** if unused after grep (confirm no other features).
+- [ ] `src/features/content/locations/routes/LocationEditRoute.tsx` — Remove modal props assembly (`open` / `pending` / confirm handlers tied to **`pendingPlacement`**).
+- [ ] `src/features/content/locations/components/workspace/LocationEditHomebrewWorkspace.tsx` — Remove **`linkedLocationModal`** prop and **`<LocationMapEditorLinkedLocationModal />`**.
+- [ ] Delete `src/features/content/locations/components/workspace/rightRail/linkedLocation/LocationMapEditorLinkedLocationModal.tsx`; trim `rightRail/linkedLocation/index.ts`, `rightRail/index.ts`, `components/index.ts` exports.
+- [ ] `src/features/content/locations/routes/locationEdit/locationEditLinkModalOptions.ts` — Move option-building into a shared **`getLinkedLocationPickerOptions`** (or similar); delete modal-only types if nothing else needs them.
 
-### Selection rail
+### 4. Map overlay
 
-- [ ] Pass **`onUpdateLinkedLocation`** into [`LocationEditorSelectionPanel`](../../../src/features/content/locations/components/workspace/rightRail/selection/LocationEditorSelectionPanel.tsx) → **`LocationMapObjectInspector`** (new props: options builder inputs or precomputed options + callback).
-- [ ] Implement **`OptionPickerField`** for registry families with `linkedScale`; labels per **Label mapping** table (`linkedScale` → “Linked city” / “Linked building” / “Linked site”).
-- [ ] On remove object: clear **`linkedLocationByCellId[cellId]`** when removing the object that “owns” the link (if one marker per cell for that family).
+- [ ] `src/features/content/locations/components/mapGrid/LocationMapCellAuthoringOverlay.tsx` — For cells that have the placed-object marker for linked families, rely on **object** rendering; remove redundant **linked-only** icon path when the object is present. (No migration: orphan link-without-object is acceptable per prior plan.)
 
-### Tests
+### 5. Selection rail
 
-- [ ] Update [`placementRegistryResolver.test.ts`](../../../src/features/content/locations/domain/authoring/editor/__tests__/placement/placementRegistryResolver.test.ts), [`resolveLocationPlacedKindToAction.test.ts`](../../../src/features/content/locations/domain/authoring/editor/__tests__/placement/resolveLocationPlacedKindToAction.test.ts), [`locationMapPlacement.policy.test.ts`](../../../shared/domain/locations/__tests__/map/locationMapPlacement.policy.test.ts) if needed.
-- [ ] Add/adjust Selection rail / object inspector tests for picker visibility and `onUpdateLinkedLocation` calls.
+- [ ] `src/features/content/locations/components/workspace/rightRail/selection/LocationEditorSelectionPanel.tsx` → **`LocationMapObjectInspector`**: pass **`onUpdateLinkedLocation`**, option list inputs (or memoized options), and **`linkedScale`**-derived label.
+- [ ] `LocationMapSelectionInspectors.tsx` — **`OptionPickerField`**: `maxItems={1}`, value as `string[]` length 0–1 ↔ **`linkedLocationByCellId[cellId]`**; empty state when non-campaign matches modal (**[]** options).
+- [ ] Wire remove-object / erase paths to clear **`linkedLocationByCellId[cellId]`** when the linked marker goes away (avoid stale links).
 
-### Docs (in scope)
+### 6. Tests
 
-- [ ] Update [`docs/reference/location-workspace.md`](../../../docs/reference/location-workspace.md): remove or rewrite sections that describe the **link modal** / **cell click → pending placement** flow; document **marker placement + object inspector `OptionPickerField`**, label mapping, and any touchpoints (`LocationEditRoute`, workspace shell) still accurate for contributors.
+- [ ] `src/features/content/locations/domain/authoring/editor/__tests__/placement/placementRegistryResolver.test.ts` — expect **object** append, not **`kind: 'link'`**.
+- [ ] `src/features/content/locations/domain/authoring/editor/__tests__/placement/resolveLocationPlacedKindToAction.test.ts` — expect **`type: 'object'`** for linked families.
+- [ ] `shared/domain/locations/__tests__/map/locationMapPlacement.policy.test.ts` — adjust if policy assertions referenced link placement.
+- [ ] Add or extend tests for object inspector picker + callback (colocate with existing Selection / inspector tests if present).
+
+### 7. Docs
+
+- [ ] `docs/reference/location-workspace.md` — Replace any **modal / pending placement** description with **immediate marker + Selection rail `OptionPickerField`**; note `LocationEditRoute` / workspace wiring changes.
 
 ---
 
-## Known gap (deferred)
+## Deferred (explicit)
 
-**Multiple objects per cell vs one `linkedLocationByCellId`:** Persisted links are keyed by **`cellId`**, not by **`objectId`**. A cell can hold **multiple** `LocationMapCellObjectEntry` rows (e.g. several markers). This bugfix continues to treat **`linkedLocationByCellId[cellId]`** as the single link for that cell — sufficient when at most one linked-content marker per cell is expected. **Supporting distinct campaign links per object on the same cell** requires a model change (e.g. `linkedLocationId` on the object, or link id keyed by object). **Out of scope here;** track for a follow-up when product needs it.
+**One link per `cellId` vs multiple objects:** `linkedLocationByCellId` is keyed by cell, not object id. This work keeps a **single** link per cell; per-object links need a model change later.
 
 ---
 
-## Risks and architectural concerns
+## Risks (verify before merge)
 
-1. **Erase / Delete:** Ensure erase of the cell’s linked marker clears **`linkedLocationByCellId`** for that cell to avoid stale links.
-
-2. **Campaign-only options:** Modal today returned **[]** for non-campaign; rail picker must match (empty state + helper text).
-
-3. **Layering:** Keep **`getAllowedLinkedLocationOptions`** (policy) as the filter for option lists.
-
-4. **`pendingPlacement` reuse:** Grep for other `pendingPlacement` uses before deleting state.
-
-5. **Palette `building` family vs “Linked building”:** The **building** placed-object family (residential/civic markers) is unrelated to the label **“Linked building”**, which refers only to **`linkedScale === 'building'`** (campaign location target scale) on families that define that link target.
+1. **Erase / delete** — Clearing **`linkedLocationByCellId`** when the marker is removed.
+2. **Non-campaign** — Empty options + copy, same as modal.
+3. **`pendingPlacement`** — Grep repo-wide before deleting state.
+4. **Naming** — Palette **building** (map-object family) ≠ label **“Linked building”** (**`linkedScale === 'building'`** only).
 
 ---
 
 ## Acceptance criteria
 
-1. Placing city/site/building (linked families) **never** opens a modal; cell gets a **marker** object immediately.
-2. **Selection** on that object (object inspector) shows **`OptionPickerField`** with label from **Label mapping** (`linkedScale` → “Linked city” / “Linked building” / “Linked site”) and **max 1** linked location; changing selection updates **`linkedLocationByCellId`**.
-3. Map overlay uses **object** path (tooltip, outline, `data-map-object-id`, select priority) consistent with other markers.
-4. Modal component and link placement branch **removed**; tests updated; **[`docs/reference/location-workspace.md`](../../../docs/reference/location-workspace.md)** updated to match.
+1. Placing linked families **never** opens a modal; a **marker** object appears on first click.
+2. **Selection → object inspector** shows **`OptionPickerField`** with the **Label mapping** table; **`maxItems={1}`**; updates **`linkedLocationByCellId`**.
+3. Map uses **object** hit-testing / tooltip / **`data-map-object-id`** like other markers.
+4. Modal, **`kind: 'link'`**, and link-specific **`pendingPlacement`** removed; tests and **`docs/reference/location-workspace.md`** updated.

@@ -5,6 +5,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { alpha } from '@mui/material/styles';
 
 import { getLocationScaleMapIcon } from '@/features/content/locations/domain';
+import { cellObjectAnchorsCellLinkedLocation } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors';
 import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
 import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
@@ -84,7 +85,9 @@ export function LocationMapCellAuthoringOverlay({
   const linkId = draft.linkedLocationByCellId[cell.cellId];
   const objs = draft.objectsByCellId[cell.cellId];
   const linked = linkId ? locationById.get(linkId) : undefined;
-  const hasIcons = Boolean(linked || (objs && objs.length > 0));
+  const hasLinkedPlaceObject = objs?.some((o) => cellObjectAnchorsCellLinkedLocation(o)) ?? false;
+  const showStandaloneLinkedIcon = Boolean(linked && !hasLinkedPlaceObject);
+  const hasIcons = Boolean(showStandaloneLinkedIcon || (objs && objs.length > 0));
   if (!overlay && !hasIcons) {
     return null;
   }
@@ -121,7 +124,7 @@ export function LocationMapCellAuthoringOverlay({
             pointerEvents: 'auto',
           }}
         >
-          {linked ? (
+          {showStandaloneLinkedIcon && linked ? (
             <Box
               component="span"
               data-map-linked-cell={cell.cellId}

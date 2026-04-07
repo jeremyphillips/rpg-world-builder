@@ -20,6 +20,7 @@ import {
 import type { LocationEditorSelectionPanelProps } from '@/features/content/locations/components/workspace/rightRail/selection/LocationEditorSelectionPanel';
 import type { LocationCellAuthoringPanelProps } from '@/features/content/locations/components/workspace/rightRail/panels/LocationCellAuthoringPanel';
 import type { LocationGridDraftState } from '@/features/content/locations/components/authoring/draft/locationGridDraft.types';
+import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 
 /**
  * Right-rail **Map** tab: tool palette and hints. Lives under `routes/locationEdit/` as workspace
@@ -99,6 +100,7 @@ export type LocationEditWorkspaceSelectionRailPanelProps = Omit<
   mapHostScale: string;
   mapHostName: string;
   campaignId?: string;
+  hostEditLocation: LocationContentItem | null;
   locations: LocationCellAuthoringPanelProps['locations'];
   onUpdateLinkedLocation: NonNullable<LocationCellAuthoringPanelProps['onUpdateLinkedLocation']>;
   onUpdateCellObjects: NonNullable<LocationCellAuthoringPanelProps['onUpdateCellObjects']>;
@@ -114,6 +116,7 @@ export function LocationEditWorkspaceSelectionRailPanel({
   mapHostScale,
   mapHostName,
   campaignId,
+  hostEditLocation,
   locations,
   onUpdateLinkedLocation,
   onUpdateCellObjects,
@@ -132,6 +135,7 @@ export function LocationEditWorkspaceSelectionRailPanel({
         hostScale: mapHostScale,
         hostName: mapHostName,
         campaignId,
+        hostEditLocation,
         locations,
         linkedLocationByCellId: gridDraft.linkedLocationByCellId,
         objectsByCellId: gridDraft.objectsByCellId,

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+
+import type { LocationScaleId } from '@/shared/domain/locations';
 import { FormProvider, useForm, useFormContext } from 'react-hook-form';
 
 import Box from '@mui/material/Box';
@@ -9,13 +11,16 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import type { Location } from '@/features/content/locations/domain/model/location';
+import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 import {
   getPlacedObjectMeta,
+  getPlacedObjectDefinition,
   getPlacedObjectPaletteCategoryId,
   getPlacedObjectPaletteCategoryLabel,
   resolveAuthoredEdgeInstance,
   resolvePlacedObjectKindForCellObject,
 } from '@/features/content/locations/domain';
+import { buildLinkedLocationPickerOptions } from '@/features/content/locations/domain/authoring/editor';
 import { getDefaultVariantPresentationForKind } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import {
   listStairObjectOptionsForFloor,
@@ -36,6 +41,7 @@ import {
   type LocationVerticalStairConnection,
 } from '@/shared/domain/locations';
 
+import OptionPickerField from '@/ui/patterns/form/OptionPickerField';
 import { FormSelectField } from '@/ui/patterns';
 import type { SelectOption } from '@/ui/patterns/form/form.types';
 
@@ -51,6 +57,20 @@ import {
   presentationRowsFromPresentation,
   shouldShowLinkedIdentityForPlacedObject,
 } from './placedObjectRail.helpers';
+
+/** Label for the map link picker; keyed by registry `linkedScale` (target kind / tier). */
+function linkedTargetPickerFieldLabel(linkedScale: LocationScaleId): string {
+  switch (linkedScale) {
+    case 'city':
+      return 'Linked city';
+    case 'building':
+      return 'Linked building';
+    case 'site':
+      return 'Linked site';
+    default:
+      return 'Linked location';
+  }
+}
 
 /** Floor list for stair target picker (sibling floors under the same building, excluding the map’s floor). */
 export type StairWorkspaceInspect = {
@@ -434,6 +454,11 @@ export type LocationMapObjectInspectorProps = {
   /** When set, “Remove from map” uses the same draft path as Erase (and clears selection when it matches). */
   onRemovePlacedObjectFromMap?: (cellId: string, objectId: string) => void;
   hostScale: string;
+  campaignId?: string;
+  mapHostLocationId: string;
+  mapHostScale: string;
+  hostEditLocation: LocationContentItem | null;
+  onUpdateLinkedLocation: (cellId: string, locationId: string | undefined) => void;
   /** Campaign locations — resolve linked cell → location name for linked-content display identity. */
   locations: Location[];
   /** One linked campaign location id per cell (same source as cell inspector). */
@@ -450,6 +475,11 @@ export function LocationMapObjectInspector({
   onUpdateCellObjects,
   onRemovePlacedObjectFromMap,
   hostScale,
+  campaignId,
+  mapHostLocationId,
+  mapHostScale,
+  hostEditLocation,
+  onUpdateLinkedLocation,
   locations,
   linkedLocationByCellId,
   stairWorkspaceInspect,
@@ -474,6 +504,31 @@ export function LocationMapObjectInspector({
   const resolvedPlacedKind = resolvePlacedObjectKindForCellObject(obj);
   const linkedLocationId = linkedLocationByCellId[cellId];
   const linkedLoc = linkedLocationId ? locationById.get(linkedLocationId) : undefined;
+  const linkedScaleTarget =
+    resolvedPlacedKind !== null
+      ? getPlacedObjectDefinition(resolvedPlacedKind).linkedScale
+      : undefined;
+  const linkedPickerOptions = useMemo(
+    () =>
+      linkedScaleTarget
+        ? buildLinkedLocationPickerOptions({
+            campaignId,
+            loc: hostEditLocation,
+            locations,
+            mapHostLocationIdResolved: mapHostLocationId,
+            mapHostScaleResolved: mapHostScale,
+            linkedScale: linkedScaleTarget,
+          })
+        : [],
+    [
+      linkedScaleTarget,
+      campaignId,
+      hostEditLocation,
+      locations,
+      mapHostLocationId,
+      mapHostScale,
+    ],
+  );
   const showLinkedDisplayIdentity = shouldShowLinkedIdentityForPlacedObject(
     resolvedPlacedKind,
     linkedLocationId,
@@ -517,6 +572,27 @@ export function LocationMapObjectInspector({
       : [];
   const presentationBlock =
     presentationRows.length > 0 ? <PlacedObjectPresentationMetadataRows rows={presentationRows} /> : null;
+
+  const linkedTargetPicker =
+    linkedScaleTarget !== undefined ? (
+      <OptionPickerField
+        label={linkedTargetPickerFieldLabel(linkedScaleTarget)}
+        options={linkedPickerOptions}
+        value={linkedLocationId ? [linkedLocationId] : []}
+        onChange={(next) => {
+          onUpdateLinkedLocation(cellId, next[0]);
+        }}
+        maxItems={1}
+        helperText={
+          !campaignId || hostEditLocation?.source !== 'campaign'
+            ? 'Link targets are available for campaign locations only.'
+            : linkedPickerOptions.length === 0
+              ? 'No locations match this link type for the current map.'
+              : undefined
+        }
+        emptyMessage="No locations available."
+      />
+    ) : null;
 
   const stairMetadata =
     showStairEndpointUi ? (
@@ -562,8 +638,9 @@ export function LocationMapObjectInspector({
     ) : null;
 
   const composedMetadata =
-    presentationBlock || stairMetadata ? (
+    linkedTargetPicker || presentationBlock || stairMetadata ? (
       <Stack spacing={2}>
+        {linkedTargetPicker}
         {presentationBlock}
         {stairMetadata}
       </Stack>

@@ -69,7 +69,7 @@ export default function OptionPickerField({
   disabled,
   emptyMessage = 'No options available.',
   noResultsMessage = 'No matching options.',
-  renderSelectedAs = 'chip',
+  renderSelectedAs = 'card',
   helperText,
   className,
   error,

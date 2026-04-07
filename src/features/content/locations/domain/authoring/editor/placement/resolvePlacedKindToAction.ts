@@ -4,9 +4,7 @@ import type { LocationScaleId } from '@/shared/domain/locations';
 import type { LocationEdgeFeatureKindId } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 
 import {
-  getDefaultVariantIdForFamily,
   getPlacedObjectDefinition,
-  getPlacedObjectMeta,
   normalizeVariantIdForFamily,
 } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import { buildPersistedPlacedObjectPayload } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.persistence';
@@ -23,11 +21,6 @@ export function mapPlacedFamilyToEdgeFeatureKind(
 }
 
 export type ResolvedPlacedKindAction =
-  | {
-      type: 'link';
-      linkedScale: LocationScaleId;
-      objectKind: LocationPlacedObjectKindId;
-    }
   | {
       type: 'object';
       objectKind: LocationMapObjectKindId;
@@ -74,17 +67,6 @@ export function resolvePlacedKindToAction(
     };
   }
 
-  /** Linked-location families (`linkedScale` in registry): modal opens when host scale is in `allowedScales`. */
-  if (familyDef.linkedScale) {
-    const allowed = familyDef.allowedScales as readonly LocationScaleId[];
-    if (allowed.includes(hostScale)) {
-      return {
-        type: 'link',
-        objectKind: placedKind,
-        linkedScale: familyDef.linkedScale,
-      };
-    }
-  }
   const payload = buildPersistedPlacedObjectPayload(placedKind, hostScale, resolvedVariantId);
   if (payload) {
     return {
@@ -96,51 +78,4 @@ export function resolvePlacedKindToAction(
     };
   }
   return { type: 'unsupported', reason: 'no_mapping' };
-}
-
-/** @deprecated Prefer resolvePlacedKindToAction with full selection. */
-export type ResolveLocationPlacedKindResult =
-  | {
-      kind: 'link-modal';
-      objectKind: LocationPlacedObjectKindId;
-      linkedScale: LocationScaleId;
-    }
-  | {
-      kind: 'place-object';
-      mapObjectKind: LocationMapObjectKindId;
-      authoredPlaceKindId?: LocationPlacedObjectKindId;
-    }
-  | { kind: 'unsupported' };
-
-/** @deprecated Prefer resolvePlacedKindToAction. */
-export function resolveLocationPlacedKindToAction(
-  placedKind: LocationPlacedObjectKindId,
-  hostScale: LocationScaleId,
-): ResolveLocationPlacedKindResult {
-  const meta = getPlacedObjectMeta(placedKind);
-  const cat =
-    'linkedScale' in meta && meta.linkedScale
-      ? ('linked-content' as const)
-      : ('map-object' as const);
-  const r = resolvePlacedKindToAction(
-    { category: cat, kind: placedKind, variantId: getDefaultVariantIdForFamily(placedKind) },
-    hostScale,
-  );
-  if (r.type === 'link') {
-    return {
-      kind: 'link-modal',
-      objectKind: r.objectKind,
-      linkedScale: r.linkedScale,
-    };
-  }
-  if (r.type === 'object') {
-    return {
-      kind: 'place-object',
-      mapObjectKind: r.objectKind,
-      ...(r.authoredPlaceKindId !== undefined
-        ? { authoredPlaceKindId: r.authoredPlaceKindId }
-        : {}),
-    };
-  }
-  return { kind: 'unsupported' };
 }

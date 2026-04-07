@@ -14,7 +14,6 @@ export {
   LocationMapEditorDrawPanel,
   LocationMapEditorPlacePanel,
 } from './workspace/rightRail/panels'
-export { LocationMapEditorLinkedLocationModal } from './workspace/rightRail/linkedLocation'
 export {
   INITIAL_LOCATION_GRID_DRAFT,
 } from './authoring/draft/locationGridDraft.types'

@@ -16,7 +16,3 @@ export {
   LocationCellAuthoringPanel,
   type LocationCellAuthoringPanelProps,
 } from './panels';
-export {
-  LocationMapEditorLinkedLocationModal,
-  type LocationMapEditorLinkedLocationModalProps,
-} from './linkedLocation';

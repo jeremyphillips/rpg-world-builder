@@ -184,7 +184,6 @@ export default function LocationEditRoute() {
     mapPlaceObjectDragStrokeEnabled,
     placeEdgeAuthoringActive,
     placeEdgeFeatureKind,
-    linkModalSelectOptions,
     showMapEditorChrome,
     leftMapChromeWidthPx,
     policyValue,
@@ -277,6 +276,7 @@ export default function LocationEditRoute() {
       mapHostScale={mapHostScale}
       mapHostName={mapHostName}
       campaignId={campaignId ?? undefined}
+      hostEditLocation={loc}
       locations={locations}
       onUpdateLinkedLocation={handleUpdateLinkedLocation}
       onUpdateCellObjects={handleUpdateCellObjects}
@@ -446,25 +446,6 @@ export default function LocationEditRoute() {
       }
       mapAuthoringPanel={mapAuthoringPanel}
       selectionPanel={selectionPanel}
-      linkedLocationModal={{
-        open: mapEditor.pendingPlacement != null,
-        pending: mapEditor.pendingPlacement!,
-        options: linkModalSelectOptions,
-        onConfirm: (linkedLocationId) => {
-          const p = mapEditor.pendingPlacement;
-          if (!p || p.type !== 'linked-location') return;
-          const cellId = p.targetCellId;
-          setGridDraft((prev) => ({
-            ...prev,
-            linkedLocationByCellId: {
-              ...prev.linkedLocationByCellId,
-              [cellId]: linkedLocationId,
-            },
-          }));
-          mapEditor.setPendingPlacement(null);
-        },
-        onCancel: () => mapEditor.setPendingPlacement(null),
-      }}
       deleteConfirm={{
         open: deleteConfirmOpen,
         loading: deleting,

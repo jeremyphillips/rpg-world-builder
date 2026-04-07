@@ -1,6 +1,8 @@
 import { removePathChainSegment } from '@/shared/domain/locations/map/locationMapPathAuthoring.helpers';
 import type { LocationMapCellFillSelection, LocationMapPathAuthoringEntry } from '@/shared/domain/locations';
 
+import { cellObjectAnchorsCellLinkedLocation } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors';
+
 import type { EraseTarget } from './resolveEraseTarget';
 
 /**
@@ -36,11 +38,17 @@ export function applyEraseTargetToDraft<D extends ErasableMapDraft>(
   }
   if (target.type === 'object') {
     const objs = prev.objectsByCellId[target.cellId] ?? [];
+    const removed = objs.find((o) => o.id === target.objectId);
     const nextObjs = objs.filter((o) => o.id !== target.objectId);
     const nextMap = { ...prev.objectsByCellId };
     if (nextObjs.length === 0) delete nextMap[target.cellId];
     else nextMap[target.cellId] = nextObjs;
-    return { ...prev, objectsByCellId: nextMap };
+    let nextLinked = prev.linkedLocationByCellId;
+    if (removed && cellObjectAnchorsCellLinkedLocation(removed)) {
+      nextLinked = { ...prev.linkedLocationByCellId };
+      delete nextLinked[target.cellId];
+    }
+    return { ...prev, objectsByCellId: nextMap, linkedLocationByCellId: nextLinked };
   }
   if (target.type === 'path') {
     return {

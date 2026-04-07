@@ -4,6 +4,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import type { Location } from '@/features/content/locations/domain/model/location';
+import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 
 import type { LocationMapCellFillSelection } from '@/shared/domain/locations';
 
@@ -42,6 +43,8 @@ export type LocationCellAuthoringPanelProps = {
   hostScale: string;
   hostName?: string;
   campaignId?: string;
+  /** Map host entry (campaign edit); used by object inspector link picker. */
+  hostEditLocation?: LocationContentItem | null;
   locations: Location[];
   linkedLocationByCellId: Record<string, string | undefined>;
   objectsByCellId: Record<string, LocationCellObjectDraft[]>;
