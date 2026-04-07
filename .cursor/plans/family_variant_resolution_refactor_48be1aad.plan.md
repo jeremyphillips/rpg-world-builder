@@ -4,16 +4,16 @@ overview: (A) Introduce `resolveFamilyVariant`, placed-object selector delegatio
 todos:
   - id: add-shared-resolve
     content: Add familyVariantResolve.ts + tests (invariant visible; no double-fallback for bad registry)
-    status: pending
+    status: completed
   - id: selectors-delegate
     content: "Selectors: delegate normalize + review variantDefinitionForFamily / isVariantIdValidForFamily; getters doc; pin whitespace id behavior"
-    status: pending
+    status: completed
   - id: edge-hydration
     content: Update locationMapEdgeAuthoring.resolve.ts to use resolvePlacedObjectVariant
-    status: pending
+    status: completed
   - id: exports-tests
     content: Re-export resolvePlacedObjectVariant; unit + integration/smoke (placement or edge)
-    status: pending
+    status: completed
   - id: docs-workspace
     content: Update docs/reference/location-workspace.md (variant resolution + pointers)
     status: pending

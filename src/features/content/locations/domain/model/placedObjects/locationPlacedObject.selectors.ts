@@ -1,6 +1,9 @@
 import type { LocationMapCellObjectEntry, LocationMapObjectKindId, LocationScaleId } from '@/shared/domain/locations';
 import { isValidLocationScaleId } from '@/shared/domain/locations/scale/locationScale.rules';
-import { resolveFamilyVariant } from '@/shared/domain/registry/familyVariantResolve';
+import {
+  type FamilyWithVariants,
+  resolveFamilyVariant,
+} from '@/shared/domain/registry/familyVariantResolve';
 
 import {
   AUTHORED_PLACED_OBJECT_DEFINITIONS,
@@ -100,7 +103,10 @@ export function normalizeVariantIdForFamily(
   kind: LocationPlacedObjectKindId,
   variantId: string | undefined | null,
 ): string {
-  return resolveFamilyVariant(AUTHORED_PLACED_OBJECT_DEFINITIONS[kind], variantId).resolvedVariantId;
+  return resolveFamilyVariant(
+    AUTHORED_PLACED_OBJECT_DEFINITIONS[kind] as FamilyWithVariants<AuthoredPlacedObjectVariantDefinition>,
+    variantId,
+  ).resolvedVariantId;
 }
 
 /**
@@ -111,7 +117,10 @@ export function resolvePlacedObjectVariant(
   kind: LocationPlacedObjectKindId,
   requestedVariantId: string | null | undefined,
 ): { resolvedVariantId: string; variant: AuthoredPlacedObjectVariantDefinition } {
-  return resolveFamilyVariant(AUTHORED_PLACED_OBJECT_DEFINITIONS[kind], requestedVariantId);
+  return resolveFamilyVariant(
+    AUTHORED_PLACED_OBJECT_DEFINITIONS[kind] as FamilyWithVariants<AuthoredPlacedObjectVariantDefinition>,
+    requestedVariantId,
+  );
 }
 
 /**

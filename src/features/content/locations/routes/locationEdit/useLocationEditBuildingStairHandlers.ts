@@ -11,6 +11,7 @@ import {
   type LocationVerticalStairConnection,
   type LocationStairEndpointRef,
 } from '@/shared/domain/locations';
+import type { BuildingWorkspaceFloorItem } from '@/features/content/locations/domain/model/building/buildingWorkspaceFloors';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 import { patchFloorStairConnectionIdOnDefaultMap } from '@/features/content/locations/domain/model/building/patchFloorStairConnectionMap';
 
@@ -24,7 +25,7 @@ export type UseLocationEditBuildingStairHandlersParams = {
   activeFloorId: string | null;
   locationId: string | undefined;
   loc: LocationContentItem | null;
-  floorChildren: LocationContentItem[];
+  floorChildren: BuildingWorkspaceFloorItem[];
   buildingStairConnections: LocationVerticalStairConnection[];
   setBuildingStairConnections: Dispatch<
     SetStateAction<LocationVerticalStairConnection[]>

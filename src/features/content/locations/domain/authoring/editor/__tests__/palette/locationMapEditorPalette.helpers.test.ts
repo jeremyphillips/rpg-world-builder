@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   getPaintPaletteItemsForScale,
-  getPlacePaletteItemsForScale,
+  getPaintPaletteSectionsForScale,
+  PAINT_PALETTE_SECTION_LABELS,
 } from '../../palette';
+import { getPlacePaletteItemsForScale } from '../../palette';
 
 describe('locationMapEditorPalette.helpers', () => {
   it('getPaintPaletteItemsForScale maps policy + cell-fill meta', () => {
@@ -20,6 +22,22 @@ describe('locationMapEditorPalette.helpers', () => {
     ]);
     expect(items[0].label).toBe('Mountains');
     expect(items[0].swatchColorKey).toBe('cellFillMountains');
+  });
+
+  it('getPaintPaletteSectionsForScale groups by category and family', () => {
+    const world = getPaintPaletteSectionsForScale('world');
+    expect(world.map((s) => s.sectionId)).toEqual(['terrain']);
+    expect(world[0].label).toBe(PAINT_PALETTE_SECTION_LABELS.terrain);
+    const terrainFamilies = world[0].families.map((f) => f.familyId);
+    expect(terrainFamilies).toContain('forest');
+    const forest = world[0].families.find((f) => f.familyId === 'forest');
+    expect(forest?.variants.length).toBe(2);
+    expect(forest?.defaultFillKind).toBe('forest_heavy');
+
+    const floor = getPaintPaletteSectionsForScale('floor');
+    expect(floor.map((s) => s.sectionId)).toEqual(['surface']);
+    expect(floor[0].families.map((f) => f.familyId)).toEqual(['floor']);
+    expect(floor[0].families[0].variants).toHaveLength(1);
   });
 
   it('getPlacePaletteItemsForScale maps policy + linked-content vs map-object', () => {

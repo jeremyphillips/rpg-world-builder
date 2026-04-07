@@ -1,4 +1,8 @@
-import type { LocationCellFillKindId } from '@/features/content/locations/domain/model/map/locationCellFill.types';
+import type {
+  LocationCellFillCategory,
+  LocationCellFillFamily,
+  LocationCellFillKindId,
+} from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locationMapEdgeFeature.constants';
 import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locationMapPathFeature.constants';
 import type {
@@ -86,6 +90,22 @@ export type MapPaintPaletteItem = {
   label: string;
   description?: string;
   swatchColorKey: LocationMapSwatchColorKey;
+};
+
+/** One **family** row in the paint tray (e.g. forest → light + heavy). Policy-filtered concrete fills. */
+export type MapPaintPaletteFamilyRow = {
+  familyId: LocationCellFillFamily;
+  label: string;
+  variants: readonly MapPaintPaletteItem[];
+  /** Primary-click / default selection for this family (first variant after stable sort). */
+  defaultFillKind: LocationCellFillKindId;
+};
+
+/** Grouped paint palette: terrain vs surface sections, each with family rows. */
+export type MapPaintPaletteSection = {
+  sectionId: LocationCellFillCategory;
+  label: string;
+  families: readonly MapPaintPaletteFamilyRow[];
 };
 
 /** Place palette: linked content vs map objects only (policy + meta). One row per **family**. */

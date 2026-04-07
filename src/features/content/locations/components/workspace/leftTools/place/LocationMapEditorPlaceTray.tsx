@@ -4,13 +4,13 @@ import Badge from '@mui/material/Badge';
 import {
   LocationMapEditorTrayScrollColumn,
   LocationMapEditorTraySectionHeading,
+  LocationMapEditorTrayVariantPopover,
 } from '@/features/content/locations/components/workspace/leftTools/tray';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
-import Popover from '@mui/material/Popover';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
@@ -221,15 +221,10 @@ export function LocationMapEditorPlaceTray({
         );
       })}
       {variantPicker ? (
-        <Popover
+        <LocationMapEditorTrayVariantPopover
           open
           anchorEl={variantPicker.anchor}
           onClose={closePicker}
-          anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'center', horizontal: 'left' }}
-          slotProps={{
-            paper: { sx: { minWidth: 200, maxWidth: 280 } },
-          }}
         >
           <List dense disablePadding>
             {getPlacedObjectVariantPickerRowsForFamily(variantPicker.kind.kind).map((row) => {
@@ -264,7 +259,7 @@ export function LocationMapEditorPlaceTray({
               );
             })}
           </List>
-        </Popover>
+        </LocationMapEditorTrayVariantPopover>
       ) : null}
     </LocationMapEditorTrayScrollColumn>
   );

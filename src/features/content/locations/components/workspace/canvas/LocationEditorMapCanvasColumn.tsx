@@ -8,7 +8,7 @@ import type {
   LocationMapEditorMode,
   LocationMapPaintState,
   MapDrawPaletteItem,
-  MapPaintPaletteItem,
+  MapPaintPaletteSection,
   MapPlacePaletteItem,
 } from '@/features/content/locations/domain/authoring/editor';
 import type { ZoomControlProps } from '@/ui/patterns';
@@ -29,7 +29,7 @@ export type LocationEditorMapCanvasColumnProps = {
   activePaint: LocationMapActivePaintSelection;
   activeDraw: LocationMapActiveDrawSelection;
   activePlace: LocationMapActivePlaceSelection;
-  paintPaletteItems: MapPaintPaletteItem[];
+  paintPaletteSections: MapPaintPaletteSection[];
   drawPaletteItems: MapDrawPaletteItem[];
   placePaletteItems: MapPlacePaletteItem[];
   onPaintChange: (next: LocationMapPaintState) => void;
@@ -55,7 +55,7 @@ export function LocationEditorMapCanvasColumn({
   activePaint,
   activeDraw,
   activePlace,
-  paintPaletteItems,
+  paintPaletteSections,
   drawPaletteItems,
   placePaletteItems,
   onPaintChange,
@@ -70,7 +70,7 @@ export function LocationEditorMapCanvasColumn({
   zoomControlProps,
   children,
 }: LocationEditorMapCanvasColumnProps) {
-  const showPaintTray = mode === 'paint' && activePaint && paintPaletteItems.length > 0;
+  const showPaintTray = mode === 'paint' && activePaint && paintPaletteSections.length > 0;
   const showDrawTray = mode === 'draw' && drawPaletteItems.length > 0;
   const showPlaceTray = mode === 'place' && placePaletteItems.length > 0;
 
@@ -105,7 +105,7 @@ export function LocationEditorMapCanvasColumn({
           {showPaintTray && (
             <LocationMapEditorToolTrayShell>
               <LocationMapEditorPaintTray
-                items={paintPaletteItems}
+                sections={paintPaletteSections}
                 activePaint={activePaint}
                 onPaintChange={onPaintChange}
               />

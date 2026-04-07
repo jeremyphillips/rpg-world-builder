@@ -177,7 +177,7 @@ export default function LocationEditRoute() {
     handleEditRegionInSelection,
     handleMapEditorModeChange,
     focusSelectionRailSection,
-    paintPaletteItems,
+    paintPaletteSections,
     placePaletteItems,
     drawPaletteItems,
     mapPlaceSuppressesCanvasPanOnCells,
@@ -347,7 +347,7 @@ export default function LocationEditRoute() {
       activePaint={mapEditor.activePaint}
       activeDraw={mapEditor.activeDraw}
       activePlace={mapEditor.activePlace}
-      paintPaletteItems={paintPaletteItems}
+      paintPaletteSections={paintPaletteSections}
       drawPaletteItems={drawPaletteItems}
       placePaletteItems={placePaletteItems}
       onPaintChange={handlePaintChange}

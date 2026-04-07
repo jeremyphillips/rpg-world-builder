@@ -27,7 +27,7 @@ import {
   useLocationFormCampaignData,
   useLocationFormDependentFieldEffects,
   getGroupedDrawPaletteForScale,
-  getPaintPaletteItemsForScale,
+  getPaintPaletteSectionsForScale,
   getPlacePaletteItemsForScale,
   getPlacementModeForFamily,
   resolveDrawSelectionToAction,
@@ -90,7 +90,6 @@ import {
   applyRemoveEdgeFromDraft,
   applyRemoveEdgeRunFromDraft,
   applyRemovePathFromDraft,
-  applyRemovePlacedObjectToDraft,
 } from './mapSessionDraft.helpers';
 import { buildLocationEditLinkModalSelectOptions } from './locationEditLinkModalOptions';
 import { useLocationEditBuildingStairHandlers } from './useLocationEditBuildingStairHandlers';
@@ -474,8 +473,8 @@ export function useLocationEditWorkspaceModel({
     setRailSection('selection');
   }, []);
 
-  const paintPaletteItems = useMemo(
-    () => getPaintPaletteItemsForScale(mapHostScaleResolved),
+  const paintPaletteSections = useMemo(
+    () => getPaintPaletteSectionsForScale(mapHostScaleResolved),
     [mapHostScaleResolved],
   );
 
@@ -571,7 +570,7 @@ export function useLocationEditWorkspaceModel({
   const linkModalSelectOptions = useMemo(
     () =>
       buildLocationEditLinkModalSelectOptions({
-        campaignId,
+        campaignId: campaignId ?? undefined,
         loc,
         locations,
         mapHostLocationIdResolved,
@@ -768,7 +767,7 @@ export function useLocationEditWorkspaceModel({
     handleLinkStairPair,
     handleUnlinkStairEndpoint,
   } = useLocationEditBuildingStairHandlers({
-    campaignId,
+    campaignId: campaignId ?? undefined,
     isBuildingWorkspace,
     activeFloorId,
     locationId,
@@ -987,7 +986,7 @@ export function useLocationEditWorkspaceModel({
     handleEditRegionInSelection,
     handleMapEditorModeChange,
     focusSelectionRailSection,
-    paintPaletteItems,
+    paintPaletteSections,
     placePaletteItems,
     drawPaletteItems,
     mapPlaceSuppressesCanvasPanOnCells,

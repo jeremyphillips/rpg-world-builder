@@ -3,6 +3,10 @@ import {
   getAllowedEdgeKindsForScale,
   getAllowedPathKindsForScale,
 } from '@/features/content/locations/domain/model/policies/locationScaleMapContent.policy';
+import type {
+  LocationCellFillCategory,
+  LocationCellFillFamily,
+} from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import { LOCATION_CELL_FILL_KIND_META } from '@/features/content/locations/domain/model/map/locationCellFill.types';
 import { LOCATION_EDGE_FEATURE_KIND_META } from '@/features/content/locations/domain/model/map/locationEdgeFeature.types';
 import { LOCATION_PATH_FEATURE_KIND_META } from '@/features/content/locations/domain/model/map/locationPathFeature.types';
@@ -12,7 +16,33 @@ import {
 } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
-import type { MapDrawPaletteItem, MapPaintPaletteItem, MapPlacePaletteItem } from '../types/locationMapEditor.types';
+import type {
+  MapDrawPaletteItem,
+  MapPaintPaletteFamilyRow,
+  MapPaintPaletteItem,
+  MapPaintPaletteSection,
+  MapPlacePaletteItem,
+} from '../types/locationMapEditor.types';
+
+/**
+ * Tray section titles (terrain vs interior surfaces).
+ * @internal Exported for tests / UI parity with place palette.
+ */
+export const PAINT_PALETTE_SECTION_LABELS: Record<LocationCellFillCategory, string> = {
+  terrain: 'Terrains',
+  surface: 'Surfaces',
+};
+
+/** Per-family row title in the paint tray (parallel to place “family” rows). */
+const PAINT_FAMILY_TRAY_LABELS: Record<LocationCellFillFamily, string> = {
+  mountains: 'Mountains',
+  plains: 'Plains',
+  forest: 'Forest',
+  swamp: 'Swamp',
+  desert: 'Desert',
+  water: 'Water',
+  floor: 'Floor',
+};
 
 /**
  * Paint palette rows for surface fills — label + swatch from concrete fill meta.
@@ -31,6 +61,58 @@ export function getPaintPaletteItemsForScale(scale: LocationScaleId): MapPaintPa
       swatchColorKey: meta.swatchColorKey,
     };
   });
+}
+
+/**
+ * Grouped paint palette for the map editor tray: **category** → **family** → concrete fill variants.
+ * Uses `LOCATION_CELL_FILL_KIND_META` facets (`category`, `family`); policy still gates which fills appear.
+ */
+export function getPaintPaletteSectionsForScale(scale: LocationScaleId): MapPaintPaletteSection[] {
+  const items = getPaintPaletteItemsForScale(scale);
+  const byCategory = new Map<LocationCellFillCategory, Map<LocationCellFillFamily, MapPaintPaletteItem[]>>();
+
+  for (const item of items) {
+    const meta = LOCATION_CELL_FILL_KIND_META[item.fillKind];
+    const bucket = byCategory.get(meta.category) ?? new Map<LocationCellFillFamily, MapPaintPaletteItem[]>();
+    const fam = meta.family;
+    const list = bucket.get(fam) ?? [];
+    list.push(item);
+    bucket.set(fam, list);
+    byCategory.set(meta.category, bucket);
+  }
+
+  const sortItems = (a: MapPaintPaletteItem, b: MapPaintPaletteItem) => a.label.localeCompare(b.label);
+
+  function buildFamilies(
+    bucket: Map<LocationCellFillFamily, MapPaintPaletteItem[]>,
+  ): MapPaintPaletteFamilyRow[] {
+    const rows: MapPaintPaletteFamilyRow[] = [];
+    for (const [familyId, variants] of bucket) {
+      const sorted = [...variants].sort(sortItems);
+      const defaultFillKind = sorted[0]!.fillKind;
+      rows.push({
+        familyId,
+        label: PAINT_FAMILY_TRAY_LABELS[familyId],
+        variants: sorted,
+        defaultFillKind,
+      });
+    }
+    rows.sort((a, b) => a.label.localeCompare(b.label));
+    return rows;
+  }
+
+  const sectionOrder: LocationCellFillCategory[] = ['terrain', 'surface'];
+  const out: MapPaintPaletteSection[] = [];
+  for (const sectionId of sectionOrder) {
+    const bucket = byCategory.get(sectionId);
+    if (!bucket || bucket.size === 0) continue;
+    out.push({
+      sectionId,
+      label: PAINT_PALETTE_SECTION_LABELS[sectionId],
+      families: buildFamilies(bucket),
+    });
+  }
+  return out;
 }
 
 /**

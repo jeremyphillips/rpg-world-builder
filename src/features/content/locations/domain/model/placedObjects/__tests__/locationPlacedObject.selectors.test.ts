@@ -44,7 +44,8 @@ describe('locationPlacedObject.selectors (registry-derived)', () => {
   it('every family defaultVariantId is a key of variants', () => {
     for (const k of LOCATION_PLACED_OBJECT_KIND_IDS) {
       const d = AUTHORED_PLACED_OBJECT_DEFINITIONS[k];
-      expect(d.variants[d.defaultVariantId]).toBeDefined();
+      const variants = d.variants as Record<string, unknown>;
+      expect(variants[d.defaultVariantId]).toBeDefined();
     }
   });
 
