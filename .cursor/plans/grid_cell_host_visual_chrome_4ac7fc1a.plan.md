@@ -16,7 +16,7 @@ todos:
     status: pending
   - id: combat-cell-affordance
     content: Unify combat host interactivity, cursor, and hover/visual via shared combat affordance resolver (not CSS-only); wire GridCellHost + CellVisualContext
-    status: pending
+    status: completed
 isProject: false
 ---
 

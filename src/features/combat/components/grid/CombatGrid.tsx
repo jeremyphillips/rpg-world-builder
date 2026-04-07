@@ -26,6 +26,7 @@ import { LocationMapAuthoredObjectIconsCellInline } from '@/features/content/loc
 import { PlacedObjectCellVisualCentered } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay'
 import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles'
 import { filterAuthoredObjectRenderItemsForGrid } from './combatGridAuthoredObjects'
+import { resolveCombatCellAffordance } from './combatCellAffordance'
 
 const BASE_CELL_SIZE = 48
 const HOVER_DELAY_MS = 350
@@ -59,65 +60,6 @@ function tokenRingColor(cell: GridCellViewModel, palette: Theme['palette']) {
   if (cell.occupantSide === 'party') return palette.primary.main
   if (cell.occupantSide === 'enemies') return palette.error?.main ?? '#d32f2f'
   return palette.grey[500]
-}
-
-function resolveCellCursor(params: {
-  cell: GridCellViewModel
-  hoveredCellId: string | null | undefined
-  movementHighlightActive: boolean
-  hasMovementRemaining: boolean
-  creatureTargetingActive: boolean
-  singleCellPlacementPickActive: boolean
-  objectAnchorPickActive: boolean
-  clickable: boolean
-}): string {
-  const {
-    cell,
-    hoveredCellId,
-    movementHighlightActive,
-    hasMovementRemaining,
-    creatureTargetingActive,
-    singleCellPlacementPickActive,
-    objectAnchorPickActive,
-    clickable,
-  } = params
-  const isHover = Boolean(hoveredCellId && hoveredCellId === cell.cellId)
-  const isWall = cell.kind === 'wall' || cell.kind === 'blocking'
-
-  if (isHover) {
-    if (singleCellPlacementPickActive) {
-      if (cell.placementInvalidHover) return 'not-allowed'
-      if (cell.placementCastRange && !isWall) return 'pointer'
-    }
-
-    if (objectAnchorPickActive) {
-      const obstaclePerceivable =
-        Boolean(cell.placedObjectKind) && cell.perception?.showObstacleGlyph !== false
-      return obstaclePerceivable ? 'pointer' : 'not-allowed'
-    }
-
-    const movementIllegal =
-      movementHighlightActive &&
-      hasMovementRemaining &&
-      !cell.occupantId &&
-      !isWall &&
-      !cell.isReachable
-
-    const targetingIllegalOccupant =
-      creatureTargetingActive &&
-      Boolean(cell.occupantId) &&
-      !cell.isLegalTargetForSelectedAction
-
-    const targetingIllegalEmpty =
-      creatureTargetingActive && !cell.occupantId && !isWall
-
-    if (movementIllegal || targetingIllegalOccupant || targetingIllegalEmpty) {
-      return 'not-allowed'
-    }
-  }
-
-  if (clickable) return 'pointer'
-  return 'default'
 }
 
 function shouldRenderOccupantToken(
@@ -282,28 +224,27 @@ export function CombatGrid({
           ) : null}
           {grid.cells.map((cell) => {
             const isWall = cell.kind === 'wall' || cell.kind === 'blocking'
-            const clickable = !isWall && Boolean(onCellClick)
+            const affordance = resolveCombatCellAffordance({
+              cell,
+              hoveredCellId,
+              hasCellClickHandler: Boolean(onCellClick),
+              movementHighlightActive,
+              hasMovementRemaining,
+              creatureTargetingActive,
+              singleCellPlacementPickActive,
+              objectAnchorPickActive,
+            })
             const showOccupantToken = shouldRenderOccupantToken(cell, viewerCombatantId)
             const hasPopover = Boolean(showOccupantToken && renderTokenPopover)
             const tokenSrc = resolveImageUrl(cell.occupantPortraitImageKey)
             const isHoverCell = hoveredCellId === cell.cellId
             const ring = tokenRingColor(cell, palette)
 
-            const cellCursor = resolveCellCursor({
-              cell,
-              hoveredCellId,
-              movementHighlightActive,
-              hasMovementRemaining,
-              creatureTargetingActive,
-              singleCellPlacementPickActive,
-              objectAnchorPickActive,
-              clickable,
-            })
-
             const tacticalVisual = getCellVisualState(cell, {
               hoveredCellId,
               movementHighlightActive,
               hasMovementRemaining,
+              combatHoverMode: affordance.hoverMode,
             })
             const visual = mergePerceptionIntoCellVisualState(tacticalVisual, cell.perception, {
               immersionAllowsPerceptionOverCastRangeBands: Boolean(
@@ -331,11 +272,14 @@ export function CombatGrid({
 
             const cellBox = (
               <GridCellHost
-                interactive={clickable}
+                interactive={affordance.interactive}
+                disabled={affordance.disabled}
                 showAuthoringFocusRing={false}
-                onPointerEnter={onCellHover ? () => onCellHover(cell.cellId) : undefined}
+                onPointerEnter={
+                  onCellHover && !isWall ? () => onCellHover(cell.cellId) : undefined
+                }
                 onClick={
-                  clickable
+                  affordance.interactive
                     ? () => {
                         if (consumeClickSuppressionAfterPan()) return
                         onCellClick?.(cell.cellId)
@@ -349,7 +293,7 @@ export function CombatGrid({
                   flexDirection: 'column',
                   alignItems: 'stretch',
                   justifyContent: 'stretch',
-                  cursor: cellCursor,
+                  cursor: affordance.cursor,
                   position: 'relative',
                   zIndex: liftAboveBlindVeil ? 4 : 1,
                   '&:focus-visible': {

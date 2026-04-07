@@ -145,6 +145,14 @@ describe('getCellVisualState', () => {
     expect(s.movementVisual).toBe('reachable-fill-strong')
   })
 
+  it('suppresses strong reachable hover when combatHoverMode is illegal', () => {
+    const s = getCellVisualState(
+      baseCell({ cellId: 'c-1-1', isReachable: true }),
+      { ...movementCtx, hoveredCellId: 'c-1-1', combatHoverMode: 'illegal' },
+    )
+    expect(s.movementVisual).toBe('reachable-fill-weak')
+  })
+
   it('rejected hover on empty unreachable cell', () => {
     const s = getCellVisualState(
       baseCell({ cellId: 'c-2-2', isReachable: false }),

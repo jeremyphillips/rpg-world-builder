@@ -4,6 +4,7 @@
  * Host/visual DOM is composed in `GridEditor` / `HexGridEditor`; this module is presentation only.
  */
 import type { SystemStyleObject } from '@mui/system';
+import { alpha } from '@mui/material/styles';
 
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/types';
@@ -51,16 +52,19 @@ export function buildSquareAuthoringCellVisualSx(
     disabled,
   );
 
+  const fillBgColor = fillBg ?? gridCellPalette.background.default;
+  
   const baseBorderColor = selected
     ? gridCellPalette.border.selected
     : excluded
       ? gridCellPalette.border.excluded
       : GRID_CELL_BORDER_COLOR;
+
   const baseBg = selected
-    ? gridCellPalette.background.selected
+    ? alpha(fillBgColor, gridCellPalette.background.selectedOpacity)
     : excluded
       ? gridCellPalette.background.excluded
-      : fillBg ?? gridCellPalette.background.default;
+      : fillBgColor ?? gridCellPalette.background.default;
 
   return {
     border: 1,
@@ -94,7 +98,7 @@ export function buildSquareAuthoringCellVisualSx(
                 ? gridCellPalette.background.selected
                 : excluded
                   ? gridCellPalette.background.excluded
-                  : fillBg ?? gridCellPalette.background.hover,
+                  : fillBgColor ?? gridCellPalette.background.hover,
             },
   };
 }
@@ -146,6 +150,8 @@ export function buildHexAuthoringCellVisualParts(
     strokePx,
   } = input;
 
+  const fillBgColor = fillBg ?? gridCellPalette.background.default;
+
   const outerRingColor = selected
     ? gridCellPalette.border.selected
     : excluded
@@ -153,10 +159,10 @@ export function buildHexAuthoringCellVisualParts(
       : gridCellPalette.border.default;
 
   const innerFillColor = selected
-    ? gridCellPalette.background.selected
+    ? alpha(fillBgColor, gridCellPalette.background.selectedOpacity)
     : excluded
       ? gridCellPalette.background.excluded
-      : fillBg ?? gridCellPalette.background.default;
+      : fillBgColor
 
   const allowHover = shouldApplyCellHoverChrome(cellId, selectHoverTarget);
   const selectHoverChromeSuppressed = isSelectHoverChromeSuppressed(

@@ -3,6 +3,8 @@ import type { VisibilityFillKind } from '@/features/mechanics/domain/perception/
 
 import type { GridCellViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
 
+import type { CombatCellHoverMode } from './combatCellAffordance'
+
 /**
  * Resolved base fill / overlay intent (top-down precedence). Used by {@link getCellVisualSx}.
  * `aoe-cast-range` is first-class: cast-range band when no higher-priority tint applies (style map may use paper-equivalent fill).
@@ -38,6 +40,11 @@ export type CellVisualContext = {
   hoveredCellId: string | null | undefined
   movementHighlightActive: boolean
   hasMovementRemaining: boolean
+  /**
+   * From {@link resolveCombatCellAffordance} per cell. When `'illegal'`, suppresses positive movement
+   * hover emphasis (strong fill / border-only-hover) while keeping unreachable rejected-hover.
+   */
+  combatHoverMode?: CombatCellHoverMode
 }
 
 export type CellVisualState = {
@@ -94,14 +101,18 @@ export function getCellVisualState(cell: GridCellViewModel, ctx: CellVisualConte
   const movementRejectedHover =
     movementMode && isHoverCell && !cell.occupantId && !cell.isReachable
 
+  /** Suppress green “active target” hover emphasis when affordance marks hover illegal (targeting/placement). */
+  const positiveMovementHover =
+    isHoverCell && ctx.combatHoverMode !== 'illegal'
+
   let movementVisual: CellMovementVisual = 'none'
   if (movementRejectedHover) {
     movementVisual = 'rejected-hover'
   } else if (showReachableMovementBorder) {
     if (suppressMovementFill) {
       movementVisual =
-        isHoverCell && cell.isReachable ? 'reachable-border-only-hover' : 'reachable-border-only'
-    } else if (isHoverCell && cell.isReachable) {
+        positiveMovementHover && cell.isReachable ? 'reachable-border-only-hover' : 'reachable-border-only'
+    } else if (positiveMovementHover && cell.isReachable) {
       movementVisual = 'reachable-fill-strong'
     } else {
       movementVisual = 'reachable-fill-weak'

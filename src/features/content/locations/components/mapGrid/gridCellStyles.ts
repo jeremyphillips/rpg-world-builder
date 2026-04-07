@@ -5,12 +5,12 @@
 import { alpha } from '@mui/material/styles';
 
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
-
+import theme from '@/app/theme';
 /** Default grid line between cells. */
 export const GRID_CELL_BORDER_COLOR = alpha(colorPrimitives.black, 0.14);
 
 /** Hover ring accent (matches map primary accent). */
-export const GRID_CELL_BORDER_COLOR_HOVER = colorPrimitives.blue[300];
+export const GRID_CELL_BORDER_COLOR_HOVER = theme.palette.primary.main;// colorPrimitives.blue[300];
 
 /**
  * Border and background fills for grid cells (hex rings + square buttons).
@@ -28,6 +28,7 @@ export const gridCellPalette = {
     /** Let terrain / selection styling show through. */
     selected: 'transparent',
     hover: colorPrimitives.gray[100],
+    selectedOpacity: 0.7,
   },
 } as const;
 
