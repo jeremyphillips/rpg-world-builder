@@ -14,9 +14,16 @@ const stairWorkspaceInspect: StairWorkspaceInspect = {
   candidateTargetFloors: [],
 };
 
+type SelectionPanelTestOverrides = Omit<
+  Partial<ComponentProps<typeof LocationEditorSelectionPanel>>,
+  'cellPanelProps'
+> & {
+  cellPanelProps?: Partial<LocationCellAuthoringPanelProps>;
+};
+
 function renderSelection(
   selection: ComponentProps<typeof LocationEditorSelectionPanel>['selection'],
-  overrides: Partial<ComponentProps<typeof LocationEditorSelectionPanel>> = {},
+  overrides: SelectionPanelTestOverrides = {},
 ) {
   const {
     cellPanelProps: cellOverrides = {},

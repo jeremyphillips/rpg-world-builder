@@ -2,7 +2,6 @@ import type { Location } from '@/features/content/locations/domain/model/locatio
 import type { AuthoredPlacedObjectVariantPresentation } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry';
 import {
   getPlacedObjectDefinition,
-  parseLocationPlacedObjectKindId,
   type LocationPlacedObjectKindId,
 } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationMapObjectKindId } from '@/shared/domain/locations';

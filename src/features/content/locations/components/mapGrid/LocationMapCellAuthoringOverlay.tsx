@@ -128,8 +128,7 @@ export function LocationMapCellAuthoringOverlay({
               sx={{ display: 'inline-flex', lineHeight: 0 }}
             >
               {createElement(getLocationScaleMapIcon(linked.scale), {
-                sx: iconSx,
-                color: colorPrimitives.black,
+                sx: { ...iconSx, color: colorPrimitives.black },
                 'aria-hidden': true,
               })}
             </Box>

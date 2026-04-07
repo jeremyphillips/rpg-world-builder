@@ -51,7 +51,7 @@ describe('useEncounterRuntimeInteractionMode', () => {
           selectedAction: noopAction,
           selectedCasterOptions: {},
         }),
-      { initialProps: { step: 'placing' as const } },
+      { initialProps: { step: 'placing' as 'none' | 'placing' | 'confirm' } },
     )
 
     act(() => {

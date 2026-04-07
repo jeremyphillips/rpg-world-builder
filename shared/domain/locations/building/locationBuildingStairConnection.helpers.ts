@@ -63,7 +63,7 @@ export type ValidateStairEndpointsCanPairResult =
  * Does not check map contents (objects must exist on maps separately).
  */
 export function validateStairEndpointsCanPair(
-  buildingLocationId: string,
+  _buildingLocationId: string,
   a: LocationStairEndpointRef,
   b: LocationStairEndpointRef,
   allowedFloorLocationIds: ReadonlySet<string>,

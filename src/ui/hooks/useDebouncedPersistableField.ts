@@ -33,7 +33,7 @@ export function useDebouncedPersistableField<T>({
   onCommitRef.current = onCommit;
   const valueRef = useRef(value);
   valueRef.current = value;
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<number | null>(null);
 
   const cancelPendingTimer = useCallback(() => {
     if (timerRef.current != null) {

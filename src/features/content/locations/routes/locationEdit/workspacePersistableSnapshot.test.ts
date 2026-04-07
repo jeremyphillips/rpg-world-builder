@@ -100,11 +100,11 @@ describe('serializeLocationWorkspacePersistableSnapshot', () => {
     form.scale = 'world';
     const draftLoose = {
       ...INITIAL_LOCATION_GRID_DRAFT,
-      regionEntries: [{ id: 'r1', name: '  Zone  ', colorKey: 'regionRed' }],
+      regionEntries: [{ id: 'r1', name: '  Zone  ', colorKey: 'regionRed' as const }],
     };
     const draftTight = {
       ...INITIAL_LOCATION_GRID_DRAFT,
-      regionEntries: [{ id: 'r1', name: 'Zone', colorKey: 'regionRed' }],
+      regionEntries: [{ id: 'r1', name: 'Zone', colorKey: 'regionRed' as const }],
     };
     expect(
       serializeLocationWorkspacePersistableSnapshot(form, draftLoose, [], null),
@@ -117,7 +117,7 @@ describe('serializeLocationWorkspacePersistableSnapshot', () => {
     const draftA = { ...INITIAL_LOCATION_GRID_DRAFT };
     const draftB = {
       ...INITIAL_LOCATION_GRID_DRAFT,
-      cellFillByCellId: { '0,0': 'plains' },
+      cellFillByCellId: { '0,0': 'plains' as const },
     };
     const before = serializeLocationWorkspacePersistableSnapshot(
       form,
@@ -251,7 +251,7 @@ describe('workspacePersistableSnapshot matrix', () => {
         {
           id: 'r1',
           name: 'Zone',
-          colorKey: 'regionRed',
+          colorKey: 'regionRed' as const,
         },
       ],
     };

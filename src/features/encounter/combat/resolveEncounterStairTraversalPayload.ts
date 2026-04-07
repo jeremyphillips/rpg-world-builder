@@ -34,7 +34,7 @@ function parseAuthoredObjectIdFromGridObjectId(gridObjectId: string, combatCellI
 }
 
 function resolveBuildingStairConnections(
-  locations: Location[],
+  locations: readonly Location[],
   locationContext: EncounterTransitionLocationContext,
   encounterFloorLocationId: string | undefined,
 ): readonly LocationVerticalStairConnection[] | undefined {

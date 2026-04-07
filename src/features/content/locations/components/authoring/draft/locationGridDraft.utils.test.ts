@@ -81,11 +81,11 @@ describe('gridDraftPersistableEquals', () => {
   it('treats region name whitespace-only edits as equal (normalized for compare and save)', () => {
     const a = {
       ...INITIAL_LOCATION_GRID_DRAFT,
-      regionEntries: [{ id: 'r1', name: '  Zone  ', colorKey: 'regionRed' }],
+      regionEntries: [{ id: 'r1', name: '  Zone  ', colorKey: 'regionRed' as const }],
     };
     const b = {
       ...INITIAL_LOCATION_GRID_DRAFT,
-      regionEntries: [{ id: 'r1', name: 'Zone', colorKey: 'regionRed' }],
+      regionEntries: [{ id: 'r1', name: 'Zone', colorKey: 'regionRed' as const }],
     };
     expect(gridDraftPersistableEquals(a, b)).toBe(true);
     expect(buildPersistableMapPayloadFromGridDraft(a)).toEqual(buildPersistableMapPayloadFromGridDraft(b));

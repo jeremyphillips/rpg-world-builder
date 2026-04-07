@@ -1,10 +1,5 @@
 import { makeGridCellId, parseGridCellId } from './gridCellIds';
-import {
-  BETWEEN_EDGE_ID_RE,
-  PERIMETER_EDGE_ID_RE,
-  parseSquareEdgeId,
-  type SquareCellSide,
-} from './gridEdgeIds';
+import { parseSquareEdgeId, type SquareCellSide } from './gridEdgeIds';
 
 export { BETWEEN_EDGE_ID_RE, PERIMETER_EDGE_ID_RE } from './gridEdgeIds';
 

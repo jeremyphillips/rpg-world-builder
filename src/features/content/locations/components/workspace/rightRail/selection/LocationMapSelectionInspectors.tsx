@@ -4,7 +4,6 @@ import { FormProvider, useForm, useFormContext } from 'react-hook-form';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
-import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -14,7 +13,6 @@ import {
   getPlacedObjectMeta,
   getPlacedObjectPaletteCategoryId,
   getPlacedObjectPaletteCategoryLabel,
-  LOCATION_PLACED_OBJECT_KIND_META,
   resolveAuthoredEdgeInstance,
   resolvePlacedObjectKindForCellObject,
 } from '@/features/content/locations/domain';
@@ -53,23 +51,6 @@ import {
   presentationRowsFromPresentation,
   shouldShowLinkedIdentityForPlacedObject,
 } from './placedObjectRail.helpers';
-
-/** Divider + “Remove from map” for map selection inspectors (shared styling). */
-function MapInspectorRemoveFromMapButton({ onClick }: { onClick: () => void }) {
-  return (
-    <>
-      <Divider />
-      <Button size="small" color="error" variant="outlined" onClick={onClick}>
-        Remove from map
-      </Button>
-    </>
-  );
-}
-
-function MapInspectorRemoveFromMapIfHandler({ onRemove }: { onRemove?: () => void }) {
-  if (!onRemove) return null;
-  return <MapInspectorRemoveFromMapButton onClick={onRemove} />;
-}
 
 /** Floor list for stair target picker (sibling floors under the same building, excluding the map’s floor). */
 export type StairWorkspaceInspect = {

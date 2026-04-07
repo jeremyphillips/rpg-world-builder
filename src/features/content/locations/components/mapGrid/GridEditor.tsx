@@ -16,7 +16,6 @@ import {
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/types';
 import {
   isSelectHoverChromeSuppressed,
-  shouldApplyCellHoverChrome,
   shouldApplyCellSelectedChrome,
 } from './mapGridCellVisualState';
 import { SQUARE_GRID_GAP_PX } from '@/features/content/locations/components/authoring/geometry/squareGridMapOverlayGeometry';
@@ -46,8 +45,8 @@ export type GridEditorProps = {
   className?: string;
   disabled?: boolean;
   /**
-   * Select-mode hover winner from map hit-testing. When set, cell `:hover` chrome follows
-   * {@link shouldApplyCellHoverChrome}; omit in other modes so all cells keep normal hover.
+   * Select-mode hover winner from map hit-testing. When set, cell `:hover` chrome is coordinated
+   * with map hit-testing; omit in other modes so all cells keep normal hover.
    */
   selectHoverTarget?: LocationMapSelection;
   /** When true, grid root uses `cursor: default` so inter-cell gutters inherit it (not `pointer`). */
@@ -106,7 +105,6 @@ export default function GridEditor({
         const selected = shouldApplyCellSelectedChrome(selectedCellId, cellId);
         const excluded = excludedSet.has(cellId);
         const fillBg = getCellBackgroundColor?.(cell);
-        const allowHover = shouldApplyCellHoverChrome(cellId, selectHoverTargetProp);
         const selectHoverChromeSuppressed = isSelectHoverChromeSuppressed(
           cellId,
           selectHoverTargetProp,

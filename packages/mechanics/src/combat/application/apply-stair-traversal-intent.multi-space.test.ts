@@ -100,6 +100,7 @@ describe('applyStairTraversalIntent — multi-space registry', () => {
     const intent: Extract<CombatIntent, { kind: 'stair-traversal' }> = {
       kind: 'stair-traversal',
       combatantId: mover.instanceId,
+      connectionId: 'conn-test-1',
       sourceFloorLocationId: floorA,
       destinationFloorLocationId: floorB,
       destinationEncounterSpace: destSpace,
