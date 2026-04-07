@@ -80,6 +80,18 @@ export const colorPrimitives = {
   },
 
   /**
+   * Map interior wood flooring — warm honey / oak brown (distinct from `mapSlate` stone and `mapEarth` soil).
+   * Mid tone is the canonical wood cell-fill swatch.
+   */
+  mapWood: {
+    100: '#E5D4BC',
+    200: '#D4B896',
+    300: '#B8956A',
+    400: '#8F6A47',
+    500: '#5C4030',
+  },
+
+  /**
    * Overlay / chroma accents (region presets, UI hints). Not terrain — use `mapGreen` /
    * `mapBlue` etc. for cell-fill geography.
    */

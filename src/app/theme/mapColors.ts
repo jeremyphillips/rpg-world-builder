@@ -16,7 +16,7 @@ export const baseMapSwatchColors: Record<LocationMapSwatchColorKey, string> = {
   cellFillWater: colorPrimitives.mapBlue[300],
   cellFillWaterDeep: colorPrimitives.mapBlue[500],
   cellFillStoneFloor: colorPrimitives.mapSlate[100],
-  cellFillWoodFloor: colorPrimitives.mapSlate[200],
+  cellFillWoodFloor: colorPrimitives.mapWood[300],
 };
 
 export const lightMapSwatchColors = baseMapSwatchColors;

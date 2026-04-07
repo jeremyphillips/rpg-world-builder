@@ -137,7 +137,7 @@ export const AUTHORED_CELL_FILL_DEFINITIONS = {
   },
   floor: {
     category: 'surface',
-    allowedScales: ['building'],
+    allowedScales: ['floor'],
     defaultVariantId: 'stone',
     variants: {
       stone: {
