@@ -12,8 +12,9 @@ import {
 } from '../../map/locationMapPlacement.policy';
 
 describe('locationMapPlacement.policy — linked locations', () => {
-  it('exposes explicit host → target scale lists (not inferred from order alone)', () => {
+  it('exposes explicit host → target scale lists (derived from placed-object registry + structural links)', () => {
     expect(ALLOWED_LINKED_LOCATION_SCALES_BY_HOST_SCALE.world).toEqual(['city', 'site']);
+    expect(ALLOWED_LINKED_LOCATION_SCALES_BY_HOST_SCALE.city).toEqual(['city', 'site', 'building']);
     expect(getAllowedLinkedLocationScalesForHostScale('room')).toEqual([]);
   });
 
@@ -21,6 +22,7 @@ describe('locationMapPlacement.policy — linked locations', () => {
     expect(canLinkLocationScaleFromHostScale('city', 'world')).toBe(false);
     expect(canLinkLocationScaleFromHostScale('city', 'district')).toBe(false);
     expect(canLinkLocationScaleFromHostScale('city', 'site')).toBe(true);
+    expect(canLinkLocationScaleFromHostScale('city', 'city')).toBe(true);
   });
 
   it('isAllowedLinkedLocation rejects same id', () => {

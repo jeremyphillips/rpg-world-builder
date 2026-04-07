@@ -74,11 +74,16 @@ export function resolvePlacedKindToAction(
     };
   }
 
-  if (placedKind === 'city' && hostScale === 'world') {
-    return { type: 'link', objectKind: 'city', linkedScale: 'city' };
-  }
-  if (placedKind === 'site' && hostScale === 'city') {
-    return { type: 'link', objectKind: 'site', linkedScale: 'site' };
+  /** Linked-location families (`linkedScale` in registry): modal opens when host scale is in `allowedScales`. */
+  if (familyDef.linkedScale) {
+    const allowed = familyDef.allowedScales as readonly LocationScaleId[];
+    if (allowed.includes(hostScale)) {
+      return {
+        type: 'link',
+        objectKind: placedKind,
+        linkedScale: familyDef.linkedScale,
+      };
+    }
   }
   const payload = buildPersistedPlacedObjectPayload(placedKind, hostScale, resolvedVariantId);
   if (payload) {

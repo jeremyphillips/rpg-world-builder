@@ -23,6 +23,15 @@ describe('resolvePlacedKindToAction', () => {
     ).toEqual({ type: 'link', objectKind: 'city', linkedScale: 'city' });
   });
 
+  it('linked-content city on city opens link when registry allows city host scale', () => {
+    expect(
+      resolvePlacedKindToAction(
+        { category: 'linked-content', kind: 'city', variantId: 'default' },
+        'city',
+      ),
+    ).toEqual({ type: 'link', objectKind: 'city', linkedScale: 'city' });
+  });
+
   it('map-object tree on city maps to marker with authoredPlaceKindId tree', () => {
     expect(
       resolvePlacedKindToAction({ category: 'map-object', kind: 'tree', variantId: 'deciduous' }, 'city'),
@@ -51,6 +60,14 @@ describe('resolvePlacedKindToAction', () => {
 describe('resolveLocationPlacedKindToAction', () => {
   it('city on world opens link modal to city scale', () => {
     expect(resolveLocationPlacedKindToAction('city', 'world')).toEqual({
+      kind: 'link-modal',
+      objectKind: 'city',
+      linkedScale: 'city',
+    });
+  });
+
+  it('city on city opens link modal when registry allows city host scale', () => {
+    expect(resolveLocationPlacedKindToAction('city', 'city')).toEqual({
       kind: 'link-modal',
       objectKind: 'city',
       linkedScale: 'city',

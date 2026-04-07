@@ -6,6 +6,10 @@
  */
 import type { CombatCoverKind } from '@/features/mechanics/domain/combat/space/space.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
+import {
+  LOCATION_SCALE_IDS_WITH_LEGACY,
+  LOCATION_SCALE_RANK_ORDER_LEGACY,
+} from '@/shared/domain/locations/location.constants';
 import type { MaterialId } from '@/shared/domain/materials';
 
 import type { LocationMapGlyphIconName } from '../map/locationMapIconNames';
@@ -167,7 +171,8 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   city: {
     category: 'structure',
     placementMode: 'cell',
-    allowedScales: ['world'],
+    /** World: link marker to a child city. Include `city` to use the same link picker on city-scale host maps. */
+    allowedScales: ['world', 'city'],
     linkedScale: 'city',
     defaultVariantId: 'default',
     runtime: {
@@ -443,3 +448,52 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
 } as const satisfies Record<string, AuthoredPlacedObjectFamilyDefinition>;
 
 export type LocationPlacedObjectKindId = keyof typeof AUTHORED_PLACED_OBJECT_DEFINITIONS;
+
+/**
+ * Interior / non–place-tool cell links (building → floor, world → site, …). Merged with
+ * {@link AUTHORED_PLACED_OBJECT_DEFINITIONS} `linkedScale` × `allowedScales` for map `linkedLocationId` validation.
+ */
+const STRUCTURAL_MAP_CELL_LINK_TARGETS: Partial<Record<LocationScaleId, readonly LocationScaleId[]>> = {
+  world: ['site'],
+  city: ['building'],
+  site: ['building', 'room'],
+  building: ['floor', 'room'],
+  floor: ['room'],
+};
+
+function buildAllowedLinkedLocationScalesByHost(): Record<LocationScaleId, LocationScaleId[]> {
+  const rank = LOCATION_SCALE_RANK_ORDER_LEGACY as readonly string[];
+  const byHost = new Map<LocationScaleId, Set<LocationScaleId>>();
+  for (const id of LOCATION_SCALE_IDS_WITH_LEGACY) {
+    byHost.set(id, new Set());
+  }
+  for (const family of Object.values(AUTHORED_PLACED_OBJECT_DEFINITIONS)) {
+    const target = 'linkedScale' in family ? family.linkedScale : undefined;
+    if (!target) continue;
+    for (const host of family.allowedScales) {
+      byHost.get(host)?.add(target);
+    }
+  }
+  for (const [host, targets] of Object.entries(STRUCTURAL_MAP_CELL_LINK_TARGETS)) {
+    const set = byHost.get(host as LocationScaleId);
+    if (!set) continue;
+    for (const t of targets) set.add(t);
+  }
+  const sortTargets = (a: LocationScaleId, b: LocationScaleId) => {
+    const ia = rank.indexOf(a);
+    const ib = rank.indexOf(b);
+    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  };
+  return Object.fromEntries(
+    LOCATION_SCALE_IDS_WITH_LEGACY.map((host) => {
+      const arr = [...(byHost.get(host) ?? [])].sort(sortTargets);
+      return [host, arr];
+    }),
+  ) as Record<LocationScaleId, LocationScaleId[]>;
+}
+
+/**
+ * Host location scale → target scales allowed for map cell `linkedLocationId` (campaign validation + link modal).
+ * Derived from linked placed-object families + {@link STRUCTURAL_MAP_CELL_LINK_TARGETS}.
+ */
+export const ALLOWED_LINKED_LOCATION_SCALES_BY_HOST_SCALE = buildAllowedLinkedLocationScalesByHost();

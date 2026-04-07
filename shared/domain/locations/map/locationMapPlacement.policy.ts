@@ -11,6 +11,10 @@
  * Linked targets are **navigable child locations only** (world → city/site, etc.). Region/subregion/district
  * are no longer valid link targets — use MapZones on the parent map instead.
  *
+ * **Host → allowed target scales** are built in {@link AUTHORED_PLACED_OBJECT_DEFINITIONS}
+ * (`locationPlacedObject.registry.ts`): linked families (`linkedScale` × `allowedScales`) plus structural
+ * interior edges; re-exported here as {@link ALLOWED_LINKED_LOCATION_SCALES_BY_HOST_SCALE}.
+ *
  * Future extensions (max links per cell, map-kind overrides, category exceptions) should live
  * here or in adjacent `locationMap*.policy.ts` files — keep maps explicit.
  */
@@ -18,23 +22,11 @@ import type { LocationScaleId } from '../location.types';
 import type { LocationMapObjectKindId } from './locationMap.types';
 import { isValidLocationScaleId } from '../scale/locationScale.rules';
 
+import { ALLOWED_LINKED_LOCATION_SCALES_BY_HOST_SCALE } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry';
+
 // --- A. Linked location from a cell (target scale allowed for this host scale) ---
 
-/** Host location scale → target location scales that may be linked from a cell on that host’s map. */
-export const ALLOWED_LINKED_LOCATION_SCALES_BY_HOST_SCALE: Record<
-  LocationScaleId,
-  readonly LocationScaleId[]
-> = {
-  world: ['city', 'site'],
-  region: [],
-  subregion: [],
-  city: ['site', 'building'],
-  district: [],
-  site: ['building', 'room'],
-  building: ['floor', 'room'],
-  floor: ['room'],
-  room: [],
-};
+export { ALLOWED_LINKED_LOCATION_SCALES_BY_HOST_SCALE };
 
 export function getAllowedLinkedLocationScalesForHostScale(
   hostScale: string,
