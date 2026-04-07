@@ -50,6 +50,29 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Map grid cells (`GridEditor` / `HexGridEditor` use `Box component="button"`).
+   Undo global `button` primary styling so `sx` / `gridCellStyles` control appearance. */
+button[role="gridcell"] {
+  background-color: transparent;
+  color: inherit;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  font-family: inherit;
+  transition: none;
+}
+
+button[role="gridcell"]:hover {
+  opacity: 1;
+}
+
+button[role="gridcell"]:focus,
+button[role="gridcell"]:focus-visible {
+  outline: none;
+}
+
 /* ---------- Size variants ---------- */
 
 button.btn-size-sm {

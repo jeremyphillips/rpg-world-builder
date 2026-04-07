@@ -31,3 +31,4 @@ Add **layout** or **non-scheme** tokens under `EncounterUiStateTheme`. For **the
 
 - [client/overview.md](./overview.md) — client combat UI vs Encounter feature boundaries
 - [ownership-boundaries.md](../ownership-boundaries.md) — where encounter feature code lives
+- **Combat grid cell visuals (in scope)** — Tactical fill and movement overlays come from [`cellVisualStyles.ts`](../../../../src/features/combat/components/grid/cellVisualStyles.ts) and [`cellVisualState.ts`](../../../../src/features/combat/components/grid/cellVisualState.ts), using the same **theme-mode-aware** `sx` pattern as above (palette paths / `(theme) => …`, not stale hex snapshots). A planned **structural** alignment with authoring map grids—shared `GridCellHost` / `GridCellVisual` markup, **separate** domain builders—does not move authoring chrome into combat; combat styling stays in these modules.
