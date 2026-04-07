@@ -59,6 +59,7 @@ export function HexMapAuthoringSvgOverlay({
             y1={seg.y1}
             x2={seg.x2}
             y2={seg.y2}
+            pointerEvents="none"
             fill="none"
             stroke={mapUi.regionSelectedOutline.stroke}
             strokeWidth={mapUi.regionSelectedOutline.strokeWidthPx}
@@ -75,6 +76,7 @@ export function HexMapAuthoringSvgOverlay({
             y1={seg.y1}
             x2={seg.x2}
             y2={seg.y2}
+            pointerEvents="none"
             fill="none"
             stroke={mapUi.regionSelectedOutline.stroke}
             strokeWidth={mapUi.regionSelectedOutline.strokeWidthPx}

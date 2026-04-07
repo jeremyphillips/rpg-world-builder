@@ -27,6 +27,7 @@ export function LocationMapPathSvgPaths({
           key={`path-${p.pathId}`}
           d={p.d}
           fill="none"
+          pointerEvents="none"
           stroke={mapUi.path.stroke}
           strokeWidth={
             p.pathId !== '__preview__' &&

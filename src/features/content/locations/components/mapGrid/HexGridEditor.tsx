@@ -230,20 +230,26 @@ export default function HexGridEditor({
                 backgroundImage: excluded
                   ? 'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)'
                   : undefined,
+                // Stretch so the cell-content wrapper gets non-zero size: `renderCellContent` is mostly
+                // `position:absolute` overlay (no in-flow children), which otherwise collapses this flex item to 0×0.
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'stretch',
                 justifyContent: 'center',
-                pointerEvents: 'none',
+                pointerEvents: 'auto',
               }}
             >
               {custom != null && custom !== false ? (
                 <Box
                   sx={{
+                    boxSizing: 'border-box',
+                    width: '100%',
+                    maxWidth: '70%',
+                    minWidth: 0,
+                    height: '100%',
+                    minHeight: 0,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    maxWidth: '70%',
-                    minHeight: 0,
                   }}
                 >
                   {custom}
@@ -252,6 +258,7 @@ export default function HexGridEditor({
                 <Box
                   component="span"
                   sx={{
+                    alignSelf: 'center',
                     textAlign: 'center',
                     wordBreak: 'break-word',
                     maxWidth: '70%',

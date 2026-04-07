@@ -94,9 +94,9 @@ export function useLocationGridSelectMode({
           n instanceof HTMLElement && n.getAttribute('role') === 'gridcell',
       );
       const anchorCellId =
+        (isHex ? resolveHexCellFromClient(e.clientX, e.clientY) : null) ??
         cellEl?.getAttribute('data-cell-id') ??
         firstGridCellInStack?.getAttribute('data-cell-id') ??
-        resolveHexCellFromClient(e.clientX, e.clientY) ??
         (!isHex && squareGridGeometry
           ? resolveSquareAnchorCellIdForSelectPx(
               gx,
