@@ -10,12 +10,10 @@ export {
   LocationEditorRightRail,
   LocationEditorRailSectionTabs,
   SelectionTab,
-  LocationEditorSelectionPanel,
 } from './rightRail';
 export type {
   LocationEditorRailSectionTabsProps,
   SelectionTabProps,
-  LocationEditorSelectionPanelProps,
   LocationEditorRailSection,
   LocationMapSelection,
 } from './rightRail';

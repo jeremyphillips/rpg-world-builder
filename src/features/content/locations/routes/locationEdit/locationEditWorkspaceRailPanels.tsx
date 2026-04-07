@@ -1,14 +1,11 @@
-import {
-  LocationEditorSelectionPanel,
-  selectedCellIdForMapSelection,
-} from '@/features/content/locations/components';
-import type { LocationEditorSelectionPanelProps } from '@/features/content/locations/components/workspace/rightRail/tabs/selection/SelectionTab';
-import type { LocationCellAuthoringPanelProps } from '@/features/content/locations/components/workspace/rightRail/tabs/selection/inspectors/CellSelectionInspector';
+import { SelectionTab, selectedCellIdForMapSelection } from '@/features/content/locations/components';
+import type { SelectionTabProps } from '@/features/content/locations/components/workspace/rightRail/tabs/selection/SelectionTab';
+import type { CellSelectionInspectorProps } from '@/features/content/locations/components/workspace/rightRail/tabs/selection/inspectors/CellSelectionInspector';
 import type { LocationGridDraftState } from '@/features/content/locations/components/authoring/draft/locationGridDraft.types';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 
 export type LocationEditWorkspaceSelectionRailPanelProps = Omit<
-  LocationEditorSelectionPanelProps,
+  SelectionTabProps,
   'selection' | 'cellPanelProps' | 'pathEntries' | 'edgeEntries' | 'regionEntries'
 > & {
   gridDraft: LocationGridDraftState;
@@ -17,14 +14,14 @@ export type LocationEditWorkspaceSelectionRailPanelProps = Omit<
   mapHostName: string;
   campaignId?: string;
   hostEditLocation: LocationContentItem | null;
-  locations: LocationCellAuthoringPanelProps['locations'];
-  onUpdateLinkedLocation: NonNullable<LocationCellAuthoringPanelProps['onUpdateLinkedLocation']>;
-  onUpdateCellObjects: NonNullable<LocationCellAuthoringPanelProps['onUpdateCellObjects']>;
+  locations: CellSelectionInspectorProps['locations'];
+  onUpdateLinkedLocation: NonNullable<CellSelectionInspectorProps['onUpdateLinkedLocation']>;
+  onUpdateCellObjects: NonNullable<CellSelectionInspectorProps['onUpdateCellObjects']>;
 };
 
 /**
- * Right-rail **Selection** tab: wraps {@link LocationEditorSelectionPanel} with `gridDraft`-derived
- * fields and cell panel props assembled in one place.
+ * Right-rail **Selection** tab: wraps {@link SelectionTab} with `gridDraft`-derived fields and cell panel props
+ * assembled in one place.
  */
 export function LocationEditWorkspaceSelectionRailPanel({
   gridDraft,
@@ -39,7 +36,7 @@ export function LocationEditWorkspaceSelectionRailPanel({
   ...rest
 }: LocationEditWorkspaceSelectionRailPanelProps) {
   return (
-    <LocationEditorSelectionPanel
+    <SelectionTab
       {...rest}
       selection={gridDraft.mapSelection}
       pathEntries={gridDraft.pathEntries}

@@ -57,9 +57,6 @@ export type SelectionTabProps = {
   onBeginRegionPaintFromSelection?: (regionId: string) => void;
 };
 
-/** @deprecated Use {@link SelectionTabProps} */
-export type LocationEditorSelectionPanelProps = SelectionTabProps;
-
 /**
  * Right-rail **Selection** tab: inspector for the current map selection.
  */
@@ -174,6 +171,3 @@ export function SelectionTab({
       );
   }
 }
-
-/** @deprecated Use {@link SelectionTab} */
-export const LocationEditorSelectionPanel = SelectionTab;

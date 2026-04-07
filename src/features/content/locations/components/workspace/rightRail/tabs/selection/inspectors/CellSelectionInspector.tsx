@@ -11,9 +11,9 @@ import type { LocationMapCellFillSelection } from '@/shared/domain/locations';
 import type { LocationCellObjectDraft } from '../../../../../authoring/draft/locationGridDraft.types';
 
 import {
-  PlacedObjectPresentationMetadataRows,
-  PlacedObjectRailTemplate,
+  SelectionMetadataRows,
   SelectionRailIdentityBlock,
+  SelectionRailTemplate,
 } from '../templates/SelectionRailTemplate';
 import {
   buildCellFillSelectionRailViewModel,
@@ -52,9 +52,6 @@ export type CellSelectionInspectorProps = {
   onUpdateLinkedLocation: (cellId: string, locationId: string | undefined) => void;
   onUpdateCellObjects: (cellId: string, objects: LocationCellObjectDraft[]) => void;
 };
-
-/** @deprecated Use {@link CellSelectionInspectorProps} */
-export type LocationCellAuthoringPanelProps = CellSelectionInspectorProps;
 
 /**
  * Empty-cell inspector: cell context only (coordinates, host map). Linking and cell-object editing belong on
@@ -98,12 +95,12 @@ export function CellSelectionInspector({
     const fillRail = buildCellFillSelectionRailViewModel(cellId, fill);
     const metadata =
       fillRail.metadataRows.length > 0 ? (
-        <PlacedObjectPresentationMetadataRows rows={fillRail.metadataRows} />
+        <SelectionMetadataRows rows={fillRail.metadataRows} />
       ) : undefined;
     return (
-      <PlacedObjectRailTemplate
+      <SelectionRailTemplate
         categoryLabel={fillRail.categoryLabel}
-        objectTitle={fillRail.title}
+        title={fillRail.title}
         placementLine={fillRail.placementLine}
         metadata={metadata}
       />
@@ -126,6 +123,3 @@ export function CellSelectionInspector({
     </Stack>
   );
 }
-
-/** @deprecated Use {@link CellSelectionInspector} */
-export const LocationCellAuthoringPanel = CellSelectionInspector;

@@ -49,7 +49,10 @@ import type { LocationMapEdgeKindId } from '@/shared/domain/locations/map/locati
 
 import type { LocationCellObjectDraft } from '../../../../../authoring/draft/locationGridDraft.types';
 
-import { PlacedObjectPresentationMetadataRows, PlacedObjectRailTemplate } from '../templates/SelectionRailTemplate';
+import {
+  SelectionMetadataRows,
+  SelectionRailTemplate,
+} from '../templates/SelectionRailTemplate';
 import {
   formatCellPlacementLine,
   formatEdgePlacementLine,
@@ -562,7 +565,7 @@ export function LocationMapObjectInspector({
       ? presentationRowsFromPresentation(getDefaultVariantPresentationForKind(resolvedPlacedKind))
       : [];
   const presentationBlock =
-    presentationRows.length > 0 ? <PlacedObjectPresentationMetadataRows rows={presentationRows} /> : null;
+    presentationRows.length > 0 ? <SelectionMetadataRows rows={presentationRows} /> : null;
 
   const linkedTargetPicker =
     linkedScaleTarget !== undefined ? (
@@ -637,27 +640,30 @@ export function LocationMapObjectInspector({
       </Stack>
     ) : undefined;
 
-  const labelField = showLinkedDisplayIdentity ? undefined : (
-    <TextField
-      label="Label"
-      size="small"
-      value={obj.label ?? ''}
-      onChange={(e) => {
-        const next = objs.map((o) => (o.id === objectId ? { ...o, label: e.target.value } : o));
-        onUpdateCellObjects(cellId, next);
-      }}
-      fullWidth
-    />
-  );
+  const labelOrLinkedChild =
+    showLinkedDisplayIdentity && linkedLoc ? (
+      <Typography variant="body1" fontWeight={500}>
+        {linkedLoc.name}
+      </Typography>
+    ) : !showLinkedDisplayIdentity ? (
+      <TextField
+        label="Label"
+        size="small"
+        value={obj.label ?? ''}
+        onChange={(e) => {
+          const next = objs.map((o) => (o.id === objectId ? { ...o, label: e.target.value } : o));
+          onUpdateCellObjects(cellId, next);
+        }}
+        fullWidth
+      />
+    ) : null;
 
   return (
-    <PlacedObjectRailTemplate
+    <SelectionRailTemplate
       categoryLabel={categoryLabel}
-      objectTitle={objectTitle}
+      title={objectTitle}
       placementLine={placementLine}
       metadata={composedMetadata}
-      linkedDisplayName={showLinkedDisplayIdentity && linkedLoc ? linkedLoc.name : undefined}
-      labelField={labelField}
       onRemoveFromMap={() => {
         if (onRemovePlacedObjectFromMap) {
           onRemovePlacedObjectFromMap(cellId, objectId);
@@ -666,7 +672,9 @@ export function LocationMapObjectInspector({
         const next = objs.filter((o) => o.id !== objectId);
         onUpdateCellObjects(cellId, next);
       }}
-    />
+    >
+      {labelOrLinkedChild}
+    </SelectionRailTemplate>
   );
 }
 
@@ -694,9 +702,9 @@ export function LocationMapPathInspector({
   const metadata = <Chip size="small" label={entry.kind} variant="outlined" />;
 
   return (
-    <PlacedObjectRailTemplate
+    <SelectionRailTemplate
       categoryLabel="Map"
-      objectTitle="Path"
+      title="Path"
       placementLine={`Chain · ${entry.cellIds.length} cell${entry.cellIds.length === 1 ? '' : 's'}`}
       metadata={metadata}
       onRemoveFromMap={onRemovePathFromMap ? () => onRemovePathFromMap(pathId) : undefined}
@@ -740,7 +748,7 @@ export function LocationMapEdgeInspector({
 
   const metadata = isDoorOrWindow ? (
     <Stack spacing={1}>
-      <PlacedObjectPresentationMetadataRows rows={presentationRows} />
+      <SelectionMetadataRows rows={presentationRows} />
       {resolved.legacyIdentityFallback ? (
         <Typography variant="caption" color="text.secondary">
           This segment predates saved door/window identity — metadata uses the default variant until you re-place or
@@ -765,14 +773,15 @@ export function LocationMapEdgeInspector({
   ) : undefined;
 
   return (
-    <PlacedObjectRailTemplate
+    <SelectionRailTemplate
       categoryLabel={resolved.categoryLabel}
-      objectTitle={resolved.objectTitle}
+      title={resolved.objectTitle}
       placementLine={placementLine}
       metadata={metadata}
-      labelField={edgeLabelField}
       onRemoveFromMap={onRemoveEdgeFromMap ? () => onRemoveEdgeFromMap(edgeId) : undefined}
-    />
+    >
+      {edgeLabelField}
+    </SelectionRailTemplate>
   );
 }
 
@@ -829,9 +838,9 @@ export function LocationMapEdgeRunInspector({
     ? presentationRowsFromPresentation(resolved.presentation)
     : [];
 
-  const metadata = isDoorOrWindow ? (
+  const metadataEdgeRun = isDoorOrWindow ? (
     <Stack spacing={1}>
-      <PlacedObjectPresentationMetadataRows rows={presentationRows} />
+      <SelectionMetadataRows rows={presentationRows} />
       {resolved.legacyIdentityFallback ? (
         <Typography variant="caption" color="text.secondary">
           Anchor segment predates saved door/window identity — metadata uses the default variant until re-placed or
@@ -864,13 +873,14 @@ export function LocationMapEdgeRunInspector({
   ) : undefined;
 
   return (
-    <PlacedObjectRailTemplate
+    <SelectionRailTemplate
       categoryLabel={categoryLabel}
-      objectTitle={objectTitle}
+      title={objectTitle}
       placementLine={placementLine}
-      metadata={metadata}
-      labelField={edgeLabelField}
+      metadata={metadataEdgeRun}
       onRemoveFromMap={onRemoveEdgeRunFromMap ? () => onRemoveEdgeRunFromMap(edgeIds) : undefined}
-    />
+    >
+      {edgeLabelField}
+    </SelectionRailTemplate>
   );
 }

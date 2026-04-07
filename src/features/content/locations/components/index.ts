@@ -1,14 +1,8 @@
 export { LocationSummaryCard } from './cards'
 export type { LocationSummaryCardProps } from './cards'
 export { LocationGridAuthoringSection } from './workspace/LocationGridAuthoringSection'
-export {
-  CellSelectionInspector,
-  LocationCellAuthoringPanel,
-} from './workspace/rightRail/tabs/selection/inspectors/CellSelectionInspector'
-export type {
-  CellSelectionInspectorProps,
-  LocationCellAuthoringPanelProps,
-} from './workspace/rightRail/tabs/selection/inspectors/CellSelectionInspector'
+export { CellSelectionInspector } from './workspace/rightRail/tabs/selection/inspectors/CellSelectionInspector'
+export type { CellSelectionInspectorProps } from './workspace/rightRail/tabs/selection/inspectors/CellSelectionInspector'
 export {
   LocationMapEditorToolbar,
   LocationMapEditorToolTrayShell,
@@ -37,7 +31,6 @@ export {
   LocationEditorRightRail,
   LocationEditorRailSectionTabs,
   SelectionTab,
-  LocationEditorSelectionPanel,
   LocationCreateSetupFormDialog,
   BuildingFloorStrip,
   LocationAncestryBreadcrumbs,
@@ -48,7 +41,6 @@ export type {
   LocationEditHomebrewWorkspaceProps,
   LocationEditSystemPatchWorkspaceProps,
   SelectionTabProps,
-  LocationEditorSelectionPanelProps,
   LocationEditorRailSection,
   LocationMapSelection,
 } from './workspace'

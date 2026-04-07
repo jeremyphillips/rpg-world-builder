@@ -25,9 +25,6 @@ export function SelectionMetadataRows({ rows }: { rows: readonly PresentationMet
   );
 }
 
-/** @deprecated Use {@link SelectionMetadataRows} */
-export const PlacedObjectPresentationMetadataRows = SelectionMetadataRows;
-
 /** Shared top block: category → title → placement — used by selection template and empty-cell inspector. */
 export function SelectionRailIdentityBlock({
   categoryLabel,
@@ -64,38 +61,28 @@ export function SelectionRailIdentityBlock({
 export type SelectionRailTemplateProps = {
   /** e.g. Furniture, Structure — registry / product grouping */
   categoryLabel: string;
-  /** Primary type identity — Table, Door, Building, … */
-  objectTitle: string;
-  /** Where the object sits on the map — cell coords, edge id, … */
-  placementLine: string;
-  /** Curated metadata (key/value rows, family-specific forms) — between placement and label */
+  /** Primary type identity — Table, Door, Path, … */
+  title: string;
+  /** Where the entity sits on the map — cell coords, edge id, chain summary, … */
+  placementLine?: string;
+  /** Registry rows, chips, stair blocks — between identity and children */
   metadata?: ReactNode;
-  /**
-   * When set, linked entity title/name is the display identity; freeform label field is omitted.
-   * Phase 4: applies to registry families with `linkedScale` matching the linked location.
-   */
-  linkedDisplayName?: string;
-  /** Freeform placard label — only when `linkedDisplayName` is not set */
-  labelField?: ReactNode;
-  /** Link building, stairs pairing, future door config — above Remove */
+  /** Linked name, label field, config — below metadata, above actions/remove */
+  children?: ReactNode;
+  /** Link building, stairs pairing, etc. — above remove */
   actionsSlot?: ReactNode;
   onRemoveFromMap?: () => void;
 };
 
-/** @deprecated Use {@link SelectionRailTemplateProps} */
-export type PlacedObjectRailTemplateProps = SelectionRailTemplateProps;
-
 /**
- * Shared selection-rail backbone for authored map entities (cell objects, edges, paths, fills).
- * Order: category → object → placement → metadata → label / linked name → actions → remove.
+ * Shared selection-rail shell: identity → metadata → children (specialty) → actions → remove.
  */
 export function SelectionRailTemplate({
   categoryLabel,
-  objectTitle,
-  placementLine,
+  title,
+  placementLine = '',
   metadata,
-  linkedDisplayName,
-  labelField,
+  children,
   actionsSlot,
   onRemoveFromMap,
 }: SelectionRailTemplateProps) {
@@ -103,19 +90,13 @@ export function SelectionRailTemplate({
     <Stack spacing={2}>
       <SelectionRailIdentityBlock
         categoryLabel={categoryLabel}
-        title={objectTitle}
+        title={title}
         placementLine={placementLine}
       />
 
       {metadata ? <Box>{metadata}</Box> : null}
 
-      {linkedDisplayName ? (
-        <Typography variant="body1" fontWeight={500}>
-          {linkedDisplayName}
-        </Typography>
-      ) : (
-        labelField
-      )}
+      {children ? <Box>{children}</Box> : null}
 
       {actionsSlot ? <Box>{actionsSlot}</Box> : null}
 
@@ -130,6 +111,3 @@ export function SelectionRailTemplate({
     </Stack>
   );
 }
-
-/** @deprecated Use {@link SelectionRailTemplate} */
-export const PlacedObjectRailTemplate = SelectionRailTemplate;
