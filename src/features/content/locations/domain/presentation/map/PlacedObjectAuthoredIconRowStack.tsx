@@ -65,6 +65,7 @@ export function PlacedObjectAuthoredIconRowStack({
       sx={{
         lineHeight: 0,
         maxWidth: resolvedMaxWidth,
+        overflow: 'visible',
         ...sx,
       }}
     >

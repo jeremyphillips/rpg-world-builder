@@ -278,6 +278,9 @@ export function CombatGrid({
               cell.perception?.showObstacleGlyph !== false &&
               !showAuthoredObjectIcons
 
+            /** Wider than one cell: overflow visible + higher z-index so neighbor cell fills do not cover the sprite. */
+            const cellZIndex = liftAboveBlindVeil ? 4 : showAuthoredObjectIcons ? 3 : 1
+
             const cellBox = (
               <GridCellHost
                 interactive={affordance.interactive}
@@ -303,7 +306,8 @@ export function CombatGrid({
                   justifyContent: 'stretch',
                   cursor: affordance.cursor,
                   position: 'relative',
-                  zIndex: liftAboveBlindVeil ? 4 : 1,
+                  overflow: 'visible',
+                  zIndex: cellZIndex,
                   '&:focus-visible': {
                     outline: 'none',
                   },
@@ -313,7 +317,12 @@ export function CombatGrid({
                   },
                 }}
               >
-                <GridCellVisual sx={cellVisualSx}>
+                <GridCellVisual
+                  sx={[
+                    cellVisualSx,
+                    ...(showAuthoredObjectIcons ? [{ overflow: 'visible' }] : []),
+                  ]}
+                >
                   {showAuthoredObjectIcons ? (
                     <LocationMapAuthoredObjectIconsCellInline
                       items={cellAuthoredItems}
