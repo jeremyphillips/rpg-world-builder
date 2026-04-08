@@ -21,6 +21,8 @@ import { getMapRegionColor } from '@/app/theme/mapColors';
 import type { GridCell } from './GridEditor';
 import type { LocationGridDraftState } from '@/features/content/locations/components/authoring/draft/locationGridDraft.types';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/types';
+import { SQUARE_GRID_GAP_PX } from '../authoring/geometry/squareGridMapOverlayGeometry';
+import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 
 /**
  * Per-cell overlay for region tint, linked-location icon, and authored object icons.
@@ -39,6 +41,8 @@ type LocationMapCellAuthoringOverlayProps = {
   gridCellUnit?: string;
   /** Authoring square cell size in px; omit on hex or invalid grid. */
   squareCellPx?: number;
+  /** Place-mode hover ghost for cell-anchored map objects (semi-transparent). */
+  placePreviewItem?: LocationMapAuthoredObjectRenderItem | null;
 };
 
 function resolveFootprintLayoutContext(
@@ -51,7 +55,12 @@ function resolveFootprintLayoutContext(
   }
   const span = resolveAuthoringCellUnitFeetPerCell(gridCellUnit);
   if (span.kind !== 'ok') return null;
-  return { feetPerCell: span.feetPerCell, cellPx: squareCellPx };
+  return {
+    feetPerCell: span.feetPerCell,
+    cellPx: squareCellPx,
+    gapPx: SQUARE_GRID_GAP_PX,
+    applyPlacementAnchor: !isHex,
+  };
 }
 
 export function LocationMapCellAuthoringOverlay({
@@ -63,6 +72,7 @@ export function LocationMapCellAuthoringOverlay({
   locationById,
   gridCellUnit,
   squareCellPx,
+  placePreviewItem,
 }: LocationMapCellAuthoringOverlayProps) {
   const rid = draft.regionIdByCellId[cell.cellId]?.trim();
   const regionEntry = rid ? draft.regionEntries.find((r) => r.id === rid) : undefined;
@@ -111,7 +121,9 @@ export function LocationMapCellAuthoringOverlay({
   const hasLinkedPlaceObject = objs?.some((o) => cellObjectAnchorsCellLinkedLocation(o)) ?? false;
   const showStandaloneLinkedIcon = Boolean(linked && !hasLinkedPlaceObject);
   const hasIcons = Boolean(showStandaloneLinkedIcon || (objs && objs.length > 0));
-  if (!overlay && !hasIcons) {
+  const showPlacePreview =
+    placePreviewItem != null && placePreviewItem.authorCellId.trim() === cell.cellId.trim();
+  if (!overlay && !hasIcons && !showPlacePreview) {
     return null;
   }
   const footprintLayout = resolveFootprintLayoutContext(isHex, gridCellUnit, squareCellPx);
@@ -133,7 +145,7 @@ export function LocationMapCellAuthoringOverlay({
       }}
     >
       {overlay}
-      {hasIcons ? (
+      {hasIcons || showPlacePreview ? (
         <Stack
           direction="row"
           flexWrap="wrap"
@@ -145,7 +157,7 @@ export function LocationMapCellAuthoringOverlay({
             maxWidth: '100%',
             position: 'relative',
             zIndex: 1,
-            pointerEvents: 'auto',
+            pointerEvents: hasIcons ? 'auto' : 'none',
           }}
         >
           {showStandaloneLinkedIcon && linked ? (
@@ -187,6 +199,26 @@ export function LocationMapCellAuthoringOverlay({
               </Tooltip>
             );
           })}
+          {showPlacePreview && placePreviewItem ? (
+            <Box
+              sx={{
+                display: 'inline-flex',
+                lineHeight: 0,
+                opacity: 0.45,
+                pointerEvents: 'none',
+              }}
+              aria-hidden
+            >
+              <PlacedObjectCellVisualDisplay
+                visual={resolvePlacedObjectCellVisualFromRenderItem(
+                  placePreviewItem,
+                  footprintLayout ?? undefined,
+                )}
+                variant="overlay"
+                mapUi={mapUi}
+              />
+            </Box>
+          ) : null}
         </Stack>
       ) : null}
     </Box>

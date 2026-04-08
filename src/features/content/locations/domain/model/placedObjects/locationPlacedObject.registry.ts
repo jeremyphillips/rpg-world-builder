@@ -308,6 +308,8 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
         description: 'Rectangular wood table (10×4 ft).',
         assetId: 'table_rect_wood_10x4',
         footprint: { kind: 'rect', widthFt: 10, depthFt: 4 },
+        /** Phase 5: long span aligns along the east-west axis; center sits on the shared edge to the east. */
+        cellAnchor: 'between_cells_e',
         presentation: {
           material: 'wood',
           shape: 'rectangle',

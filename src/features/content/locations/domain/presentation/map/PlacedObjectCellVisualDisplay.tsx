@@ -16,6 +16,9 @@ export type PlacedObjectCellVisualDisplayProps = {
 
 export function PlacedObjectCellVisualDisplay({ visual, variant, mapUi }: PlacedObjectCellVisualDisplayProps) {
   const st = mapUi.placedObject[variant];
+  const ax = visual.layoutAnchorOffsetXPx ?? 0;
+  const ay = visual.layoutAnchorOffsetYPx ?? 0;
+  const anchorTransform = ax !== 0 || ay !== 0 ? `translate(${ax}px, ${ay}px)` : undefined;
 
   if (visual.showMapRaster && visual.mapImageUrl) {
     const w = visual.layoutWidthPx ?? st.icon.widthPx;
@@ -32,6 +35,7 @@ export function PlacedObjectCellVisualDisplay({ visual, variant, mapUi }: Placed
           display: st.icon.display,
           userSelect: 'none',
           pointerEvents: 'none',
+          ...(anchorTransform ? { transform: anchorTransform } : {}),
         }}
         aria-hidden
       />
@@ -39,19 +43,28 @@ export function PlacedObjectCellVisualDisplay({ visual, variant, mapUi }: Placed
   }
 
   return (
-    <Typography
+    <Box
       component="span"
-      variant={st.fallback.typographyVariant}
       sx={{
-        fontWeight: st.fallback.fontWeight,
-        lineHeight: st.fallback.lineHeight,
-        color: st.fallback.color,
-        userSelect: st.fallback.userSelect,
-        fontSize: st.fallback.fontSizeRem,
+        display: 'inline-flex',
+        lineHeight: 0,
+        ...(anchorTransform ? { transform: anchorTransform } : {}),
       }}
     >
-      {visual.fallbackLetter}
-    </Typography>
+      <Typography
+        component="span"
+        variant={st.fallback.typographyVariant}
+        sx={{
+          fontWeight: st.fallback.fontWeight,
+          lineHeight: st.fallback.lineHeight,
+          color: st.fallback.color,
+          userSelect: st.fallback.userSelect,
+          fontSize: st.fallback.fontSizeRem,
+        }}
+      >
+        {visual.fallbackLetter}
+      </Typography>
+    </Box>
   );
 }
 

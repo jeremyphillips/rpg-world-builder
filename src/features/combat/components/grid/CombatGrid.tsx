@@ -311,7 +311,12 @@ export function CombatGrid({
                       items={cellAuthoredItems}
                       cellPx={cellSizePx}
                       mapUi={mapUi}
-                      footprintLayout={{ feetPerCell: grid.cellFeet, cellPx: cellSizePx }}
+                      footprintLayout={{
+                        feetPerCell: grid.cellFeet,
+                        cellPx: cellSizePx,
+                        gapPx: 0,
+                        applyPlacementAnchor: false,
+                      }}
                     />
                   ) : null}
                   {showOccupantToken && (

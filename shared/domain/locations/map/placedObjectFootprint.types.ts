@@ -6,5 +6,15 @@ export type PlacedObjectFootprintFeet =
   | { kind: 'rect'; widthFt: number; depthFt: number }
   | { kind: 'circle'; diameterFt: number };
 
-/** Minimal anchor model for cell-placed objects (Phase 3). */
-export type PlacedObjectCellAnchorKind = 'cell_center';
+/**
+ * Where the footprint layout box is anchored relative to the **author** cell (square grid).
+ * Phase 3: **`cell_center`** only. Phase 5: **between_cells_*** place the **center** of the layout box on the
+ * **midpoint of the shared edge** between this cell and the neighbor in that direction (visual overhang
+ * into the neighbor; **not** tactical occupancy).
+ */
+export type PlacedObjectCellAnchorKind =
+  | 'cell_center'
+  | 'between_cells_e'
+  | 'between_cells_w'
+  | 'between_cells_n'
+  | 'between_cells_s';

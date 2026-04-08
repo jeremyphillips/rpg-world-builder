@@ -23,8 +23,12 @@ import { resolveCellFillPresentation } from '@/features/content/locations/domain
 import type {
   LocationMapActiveDrawSelection,
   LocationMapActivePaintSelection,
+  LocationMapActivePlaceSelection,
   LocationMapEditorMode,
 } from '@/features/content/locations/domain/authoring/editor';
+import { buildPlacePreviewRenderItem } from '@/features/content/locations/domain/authoring/editor/placePreview/buildPlacePreviewRenderItem';
+import { getPlacementModeForFamily } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
+import type { LocationScaleId } from '@/shared/domain/locations';
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { resolveLocationMapUiStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
 import type { Location } from '@/features/content/locations/domain/model/location';
@@ -71,6 +75,8 @@ type LocationGridAuthoringSectionProps = {
   onCellFocusRail?: () => void;
   /** Map editor tool mode; default select. */
   mapEditorMode?: LocationMapEditorMode;
+  /** Place palette selection (for cell-object hover preview in place mode). */
+  activePlace?: LocationMapActivePlaceSelection;
   /** Active paint swatch when mode is paint. */
   activePaint?: LocationMapActivePaintSelection;
   /** Extra left inset (e.g. vertical toolbar width). */
@@ -122,6 +128,7 @@ export function LocationGridAuthoringSection({
   hostName,
   onCellFocusRail,
   mapEditorMode = 'select',
+  activePlace = null,
   activePaint = null,
   leftChromeWidthPx = 0,
   onPlaceCellClick,
@@ -140,7 +147,6 @@ export function LocationGridAuthoringSection({
 }: LocationGridAuthoringSectionProps) {
   void campaignId;
   void hostLocationId;
-  void hostScale;
   void hostName;
   const theme = useTheme();
   const [placeHoverCellId, setPlaceHoverCellId] = useState<string | null>(null);
@@ -382,6 +388,22 @@ export function LocationGridAuthoringSection({
     !placeObjectStrokeMode &&
     placePathAnchorCellId != null;
 
+  const placeMapObjectCellHover = useMemo(() => {
+    if (mapEditorMode !== 'place') return false;
+    if (!activePlace || activePlace.category !== 'map-object') return false;
+    if (getPlacementModeForFamily(activePlace.kind) !== 'cell') return false;
+    if (placeEdgeAuthoringActive) return false;
+    return true;
+  }, [mapEditorMode, activePlace, placeEdgeAuthoringActive]);
+
+  const placePreviewItem = useMemo(
+    () =>
+      placeMapObjectCellHover
+        ? buildPlacePreviewRenderItem(activePlace, placeHoverCellId, hostScale as LocationScaleId)
+        : null,
+    [placeMapObjectCellHover, activePlace, placeHoverCellId, hostScale],
+  );
+
   const {
     placeObjectStrokeActive,
     endPlaceObjectStroke,
@@ -389,6 +411,7 @@ export function LocationGridAuthoringSection({
     handleCellPointerEnterForGrid,
     handleCellPointerUpForGrid,
     handlePlacePathEdgePointerMove,
+    updatePlaceHoverFromPointerClient,
   } = useLocationGridAuthoringCellPointers({
     paintStrokeOrEraseFill,
     handlePaintPointerDown,
@@ -475,6 +498,7 @@ export function LocationGridAuthoringSection({
       locationById={locationById}
       gridCellUnit={gridCellUnit}
       squareCellPx={!isHex ? squareGridGeometry?.cellPx : undefined}
+      placePreviewItem={placePreviewItem}
     />
   );
 
@@ -583,11 +607,12 @@ export function LocationGridAuthoringSection({
         }
         onPointerMove={(e) => {
           if (placePathPlacement) handlePlacePathEdgePointerMove(e);
+          if (placeMapObjectCellHover) updatePlaceHoverFromPointerClient(e.clientX, e.clientY);
           if (mapEditorMode === 'select' && validPreview) handleSelectPointerMove(e);
         }}
         onPointerLeave={() => {
           if (edgePlaceActive || edgeEraseActive || placeEdgeAuthoringActive) handleEdgePointerLeave();
-          if (placePathPlacement) setPlaceHoverCellId(null);
+          if (placePathPlacement || placeMapObjectCellHover) setPlaceHoverCellId(null);
           if (mapEditorMode === 'select') clearSelectHoverTarget();
         }}
       >

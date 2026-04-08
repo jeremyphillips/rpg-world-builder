@@ -14,10 +14,14 @@ import {
   resolveFamilyVariant,
 } from '@/shared/domain/registry/familyVariantResolve';
 
-import type { PlacedObjectFootprintFeet } from '@/shared/domain/locations/map/placedObjectFootprint.types';
+import type {
+  PlacedObjectCellAnchorKind,
+  PlacedObjectFootprintFeet,
+} from '@/shared/domain/locations/map/placedObjectFootprint.types';
 
 import {
   AUTHORED_PLACED_OBJECT_DEFINITIONS,
+  DEFAULT_PLACED_OBJECT_CELL_ANCHOR,
   PLACED_OBJECT_PALETTE_CATEGORY_LABELS,
   PLACED_OBJECT_PALETTE_CATEGORY_ORDER,
   type AuthoredPlacedObjectFamilyDefinition,
@@ -74,6 +78,17 @@ export function getPlacedObjectFootprintForFamilyVariant(
   variantId: string,
 ): PlacedObjectFootprintFeet | undefined {
   return variantDefinitionForFamily(AUTHORED_PLACED_OBJECT_DEFINITIONS[kind], variantId)?.footprint;
+}
+
+/** Resolved cell placement anchor (Phase 5); defaults when omitted on the variant row. */
+export function getPlacedObjectCellAnchorForFamilyVariant(
+  kind: LocationPlacedObjectKindId,
+  variantId: string,
+): PlacedObjectCellAnchorKind {
+  return (
+    variantDefinitionForFamily(AUTHORED_PLACED_OBJECT_DEFINITIONS[kind], variantId)?.cellAnchor ??
+    DEFAULT_PLACED_OBJECT_CELL_ANCHOR
+  );
 }
 
 /** True when `variantId` is a key in the family’s `variants` map (not the same as {@link normalizeVariantIdForFamily}). */

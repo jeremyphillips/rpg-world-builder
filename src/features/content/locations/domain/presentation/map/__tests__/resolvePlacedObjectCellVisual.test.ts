@@ -75,4 +75,36 @@ describe('resolvePlacedObjectCellVisualFromRenderItem', () => {
     expect(v.layoutWidthPx).toBeCloseTo(50);
     expect(v.layoutHeightPx).toBeCloseTo(20);
   });
+
+  it('applies Phase 5 placement anchor offset when gutter is provided (large table east edge)', () => {
+    const v = resolvePlacedObjectCellVisualFromRenderItem(
+      {
+        id: '1',
+        authorCellId: '0,0',
+        combatCellId: 'c-0-0',
+        kind: 'table',
+        authoredPlaceKindId: 'table',
+        variantId: 'rect_wood_10x4',
+      },
+      { feetPerCell: 5, cellPx: 50, gapPx: 8 },
+    );
+    expect(v.layoutAnchorOffsetXPx).toBeCloseTo((50 + 8) / 2);
+    expect(v.layoutAnchorOffsetYPx).toBe(0);
+  });
+
+  it('skips anchor offset when applyPlacementAnchor is false', () => {
+    const v = resolvePlacedObjectCellVisualFromRenderItem(
+      {
+        id: '1',
+        authorCellId: '0,0',
+        combatCellId: 'c-0-0',
+        kind: 'table',
+        authoredPlaceKindId: 'table',
+        variantId: 'rect_wood_10x4',
+      },
+      { feetPerCell: 5, cellPx: 50, gapPx: 8, applyPlacementAnchor: false },
+    );
+    expect(v.layoutAnchorOffsetXPx).toBeUndefined();
+    expect(v.layoutAnchorOffsetYPx).toBeUndefined();
+  });
 });

@@ -295,6 +295,7 @@ export default function LocationEditRoute() {
       hostName={mapHostName}
       onCellFocusRail={focusSelectionRailSection}
       mapEditorMode={mapEditor.mode}
+      activePlace={mapEditor.activePlace}
       activePaint={mapEditor.activePaint}
       leftChromeWidthPx={leftMapChromeWidthPx}
       onPlaceCellClick={handleAuthoringCellClick}

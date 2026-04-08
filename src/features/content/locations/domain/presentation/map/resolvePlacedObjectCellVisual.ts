@@ -5,10 +5,12 @@
 import type { LocationMapObjectKindId } from '@/shared/domain/locations';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 import { resolvePlacedObjectFootprintLayoutPx } from '@/shared/domain/locations/map/placedObjectFootprintLayout';
+import { resolvePlacedObjectCellAnchorOffsetPx } from '@/shared/domain/locations/map/placedObjectPlacementAnchorLayout';
 
 import type { LocationPlacedObjectKindId } from '../../model/placedObjects/locationPlacedObject.registry';
 import { getPlacedObjectMapImageUrlForAssetId } from '../../model/placedObjects/locationPlacedObjectRasterAssets';
 import {
+  getPlacedObjectCellAnchorForFamilyVariant,
   getPlacedObjectFootprintForFamilyVariant,
   getPlacedObjectMeta,
   parseLocationPlacedObjectKindId,
@@ -34,12 +36,19 @@ export type PlacedObjectCellVisual = {
    */
   layoutWidthPx?: number;
   layoutHeightPx?: number;
+  /** Phase 5 — translation from cell center after footprint sizing (square grid, placement anchor). */
+  layoutAnchorOffsetXPx?: number;
+  layoutAnchorOffsetYPx?: number;
 };
 
-/** Square-grid context for registry footprint → pixel layout (Phase 3). */
+/** Square-grid context for registry footprint → pixel layout (Phase 3) + anchor (Phase 5). */
 export type PlacedObjectCellVisualFootprintLayoutContext = {
   feetPerCell: number;
   cellPx: number;
+  /** Authoring grid gutter; use **0** on tactical combat grid. */
+  gapPx?: number;
+  /** When false, skip Phase 5 anchor offset (e.g. hex). Default true. */
+  applyPlacementAnchor?: boolean;
 };
 
 function fallbackLetterFromLabel(label: string): string {
@@ -87,7 +96,17 @@ function applyFootprintLayout(
     maxExtentPx: layout.cellPx,
   });
   if (widthPx <= 0 || heightPx <= 0) return visual;
-  return { ...visual, layoutWidthPx: widthPx, layoutHeightPx: heightPx };
+  let out: PlacedObjectCellVisual = { ...visual, layoutWidthPx: widthPx, layoutHeightPx: heightPx };
+  if (layout.applyPlacementAnchor === false) {
+    return out;
+  }
+  const anchor = getPlacedObjectCellAnchorForFamilyVariant(kind, variantId);
+  const gapPx = layout.gapPx ?? 0;
+  const { offsetXPx, offsetYPx } = resolvePlacedObjectCellAnchorOffsetPx(anchor, layout.cellPx, gapPx);
+  if (offsetXPx === 0 && offsetYPx === 0) {
+    return out;
+  }
+  return { ...out, layoutAnchorOffsetXPx: offsetXPx, layoutAnchorOffsetYPx: offsetYPx };
 }
 
 export function resolvePlacedObjectCellVisualFromRenderItem(
