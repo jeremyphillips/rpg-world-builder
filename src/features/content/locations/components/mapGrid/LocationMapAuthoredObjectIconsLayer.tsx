@@ -4,10 +4,8 @@ import Tooltip from '@mui/material/Tooltip';
 
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
 import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
-import {
-  resolvePlacedObjectCellVisualFromRenderItem,
-  type PlacedObjectCellVisualFootprintLayoutContext,
-} from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
+import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
+import type { PlacedObjectGeometryLayoutContext } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 import { squareCellCenterPx } from '@/shared/domain/grid/squareGridOverlayGeometry';
 
@@ -29,7 +27,7 @@ export type LocationMapAuthoredObjectIconsCellInlineProps = {
   cellPx: number;
   mapUi: LocationMapUiResolvedStyles;
   /** When set (e.g. encounter `cellFeet` + tactical pixel cell), applies registry footprint sizing. */
-  footprintLayout?: PlacedObjectCellVisualFootprintLayoutContext | null;
+  footprintLayout?: PlacedObjectGeometryLayoutContext | null;
 };
 
 /**
@@ -82,7 +80,7 @@ export type LocationMapAuthoredObjectIconsLayerProps = {
   cellPx: number;
   gapPx: number;
   mapUi: LocationMapUiResolvedStyles;
-  footprintLayout?: PlacedObjectCellVisualFootprintLayoutContext | null;
+  footprintLayout?: PlacedObjectGeometryLayoutContext | null;
 };
 
 /**

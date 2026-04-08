@@ -8,6 +8,7 @@ import {
   computePlacedObjectFootprintMaxExtentPx,
   resolvePlacedObjectFootprintLayoutPx,
 } from '@/shared/domain/locations/map/placedObjectFootprintLayout';
+import type { PlacedObjectGeometryLayoutContext } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext';
 import { resolvePlacedObjectCellAnchorOffsetPx } from '@/shared/domain/locations/map/placedObjectPlacementAnchorLayout';
 
 import type { LocationPlacedObjectKindId } from '../../model/placedObjects/locationPlacedObject.registry';
@@ -21,6 +22,8 @@ import {
   resolvePlacedObjectKindForCellObject,
   resolvePlacedObjectVariant,
 } from '../../model/placedObjects/locationPlacedObject.selectors';
+
+export type { PlacedObjectGeometryLayoutContext };
 
 export type PlacedObjectCellVisual = {
   /** Human-readable name (registry or map default). */
@@ -47,6 +50,9 @@ export type PlacedObjectCellVisual = {
 };
 
 /**
+ * @deprecated Prefer {@link PlacedObjectGeometryLayoutContext} from
+ * `placedObjectGeometryLayoutContext.ts` — same shape, built only via authoring/encounter factories.
+ *
  * Square-grid context for registry footprint → pixel layout (Phase 3) + anchor (Phase 5).
  *
  * **Interaction note:** Footprint layout may exceed one cell in px; rasters are still mounted on the
@@ -54,14 +60,7 @@ export type PlacedObjectCellVisual = {
  * Selection and `[data-map-object-id]` hit targets may not align with visual overlap — see
  * `placed-objects-flow.md` (multi-cell footprint risks).
  */
-export type PlacedObjectCellVisualFootprintLayoutContext = {
-  feetPerCell: number;
-  cellPx: number;
-  /** Authoring grid gutter; use **0** on tactical combat grid. */
-  gapPx?: number;
-  /** When false, skip Phase 5 anchor offset (e.g. hex). Default true. */
-  applyPlacementAnchor?: boolean;
-};
+export type PlacedObjectCellVisualFootprintLayoutContext = PlacedObjectGeometryLayoutContext;
 
 function fallbackLetterFromLabel(label: string): string {
   const t = label.trim();
@@ -97,7 +96,7 @@ function applyFootprintLayout(
   visual: PlacedObjectCellVisual,
   kind: LocationPlacedObjectKindId,
   variantId: string,
-  layout: PlacedObjectCellVisualFootprintLayoutContext,
+  layout: PlacedObjectGeometryLayoutContext,
 ): PlacedObjectCellVisual {
   const fp = getPlacedObjectFootprintForFamilyVariant(kind, variantId);
   if (!fp) return visual;
@@ -113,7 +112,7 @@ function applyFootprintLayout(
     maxExtentPx,
   });
   if (widthPx <= 0 || heightPx <= 0) return visual;
-  let out: PlacedObjectCellVisual = { ...visual, layoutWidthPx: widthPx, layoutHeightPx: heightPx };
+  const out: PlacedObjectCellVisual = { ...visual, layoutWidthPx: widthPx, layoutHeightPx: heightPx };
   if (layout.applyPlacementAnchor === false) {
     return out;
   }
@@ -128,7 +127,7 @@ function applyFootprintLayout(
 
 export function resolvePlacedObjectCellVisualFromRenderItem(
   item: LocationMapAuthoredObjectRenderItem,
-  footprintLayout?: PlacedObjectCellVisualFootprintLayoutContext | null,
+  footprintLayout?: PlacedObjectGeometryLayoutContext | null,
 ): PlacedObjectCellVisual {
   const parsed = parseLocationPlacedObjectKindId(item.authoredPlaceKindId);
   if (parsed) {

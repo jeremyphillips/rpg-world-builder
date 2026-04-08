@@ -9,19 +9,17 @@ import { cellObjectAnchorsCellLinkedLocation } from '@/features/content/location
 import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
 import {
   resolvePlacedObjectCellVisualFromRenderItem,
-  type PlacedObjectCellVisualFootprintLayoutContext,
 } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
+import { buildPlacedObjectGeometryLayoutContextFromAuthoring } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext';
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
 import type { Location } from '@/features/content/locations/domain/model/location';
 import { mapCellObjectEntryToAuthoredRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.helpers';
-import { resolveAuthoringCellUnitFeetPerCell } from '@/shared/domain/locations/map/locationCellUnitAuthoring';
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { getMapRegionColor } from '@/app/theme/mapColors';
 
 import type { GridCell } from './GridEditor';
 import type { LocationGridDraftState } from '@/features/content/locations/components/authoring/draft/locationGridDraft.types';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/types';
-import { SQUARE_GRID_GAP_PX } from '../authoring/geometry/squareGridMapOverlayGeometry';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 
 /**
@@ -44,24 +42,6 @@ type LocationMapCellAuthoringOverlayProps = {
   /** Place-mode hover ghost for cell-anchored map objects (semi-transparent). */
   placePreviewItem?: LocationMapAuthoredObjectRenderItem | null;
 };
-
-function resolveFootprintLayoutContext(
-  isHex: boolean,
-  gridCellUnit: string | undefined,
-  squareCellPx: number | undefined,
-): PlacedObjectCellVisualFootprintLayoutContext | null {
-  if (isHex || squareCellPx == null || gridCellUnit == null || String(gridCellUnit).trim() === '') {
-    return null;
-  }
-  const span = resolveAuthoringCellUnitFeetPerCell(gridCellUnit);
-  if (span.kind !== 'ok') return null;
-  return {
-    feetPerCell: span.feetPerCell,
-    cellPx: squareCellPx,
-    gapPx: SQUARE_GRID_GAP_PX,
-    applyPlacementAnchor: !isHex,
-  };
-}
 
 export function LocationMapCellAuthoringOverlay({
   cell,
@@ -126,7 +106,11 @@ export function LocationMapCellAuthoringOverlay({
   if (!overlay && !hasIcons && !showPlacePreview) {
     return null;
   }
-  const footprintLayout = resolveFootprintLayoutContext(isHex, gridCellUnit, squareCellPx);
+  const footprintLayout = buildPlacedObjectGeometryLayoutContextFromAuthoring({
+    gridKind: isHex ? 'hex' : 'square',
+    gridCellUnit,
+    squareCellPx,
+  });
   const iconSx = {
     fontSize: 22,
     width: 22,

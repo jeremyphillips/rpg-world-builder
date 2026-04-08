@@ -13,6 +13,8 @@ import { alpha, keyframes, useTheme } from '@mui/material/styles'
 import type { Theme } from '@mui/material/styles'
 import { AppAvatar } from '@/ui/primitives'
 import { resolveImageUrl } from '@/shared/lib/media'
+import { SQUARE_GRID_GAP_PX } from '@/shared/domain/grid/squareGridOverlayGeometry'
+import { buildPlacedObjectGeometryLayoutContextFromEncounter } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext'
 import type { GridViewModel, GridCellViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
 import { DEFEATED_PARTICIPATION_OPACITY } from '@/features/mechanics/domain/combat/presentation/participation/presentation-defeated'
 import { getCellVisualState, mergePerceptionIntoCellVisualState } from './cellVisualState'
@@ -206,7 +208,7 @@ export function CombatGrid({
             display: 'inline-grid',
             gridTemplateColumns: `repeat(${grid.columns}, ${cellSizePx}px)`,
             gridTemplateRows: `repeat(${grid.rows}, ${cellSizePx}px)`,
-            gap: '1px',
+            gap: `${SQUARE_GRID_GAP_PX}px`,
             bgcolor: 'grey.500',
             border: 1,
             borderColor: 'grey.500',
@@ -311,12 +313,10 @@ export function CombatGrid({
                       items={cellAuthoredItems}
                       cellPx={cellSizePx}
                       mapUi={mapUi}
-                      footprintLayout={{
-                        feetPerCell: grid.cellFeet,
+                      footprintLayout={buildPlacedObjectGeometryLayoutContextFromEncounter({
+                        cellFeet: grid.cellFeet,
                         cellPx: cellSizePx,
-                        gapPx: 0,
-                        applyPlacementAnchor: false,
-                      }}
+                      })}
                     />
                   ) : null}
                   {showOccupantToken && (
