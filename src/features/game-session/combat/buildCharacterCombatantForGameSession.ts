@@ -30,6 +30,11 @@ import {
   DEFAULT_MONSTER_RUNTIME_CONTEXT_FOR_ENCOUNTER,
 } from '@/features/mechanics/domain/combat/runtime/monster-runtime'
 
+/**
+ * Single assembly path for playable PC/NPC combatants: spells, skill affordances, shared extras
+ * (e.g. Pick Lock), then {@link buildCharacterCombatantInstance}. Used by game-session startup,
+ * server persistence, and encounter simulator roster preview — keep in sync by editing here only.
+ */
 export function buildCharacterCombatantForGameSession(args: {
   character: CharacterDetailDto
   catalog: CampaignCatalogAdmin

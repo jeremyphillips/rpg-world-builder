@@ -8,18 +8,10 @@ import Typography from '@mui/material/Typography'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import { formatCharacterDetailSubtitle } from '@/features/character/formatters'
-import {
-  buildCharacterCombatantInstance,
-  formatSigned,
-  type CombatantPortraitEntry,
-} from '@/features/encounter/helpers/combatants'
-import { buildSkillAffordanceCombatActions } from '@/features/encounter/helpers/actions'
-import { buildTurnHooksFromEffects } from '@/features/encounter/helpers/monsters'
+import { buildCharacterCombatantForGameSession } from '@/features/game-session/combat/buildCharacterCombatantForGameSession'
+import { formatSigned, type CombatantPortraitEntry } from '@/features/encounter/helpers/combatants'
 import { getPreviewStatTooltip } from '@/features/combat/presentation'
-import { buildSpellCombatActions, getCharacterSpellcastingStats } from '@/features/encounter/helpers/spells'
-import { useCharacter, useCombatStats, type AttackEntry } from '@/features/character/hooks'
-import { toCharacterForEngine } from '@/features/character/read-model'
-import type { Spell } from '@/features/content/spells/domain/types/spell.types'
+import { useCharacter } from '@/features/character/hooks'
 import type { CombatantInstance, CombatantSide } from '@/features/mechanics/domain/combat'
 import type { CombatantPreviewCardProps, PreviewStat } from '../../../domain'
 import { CombatantAvatar, CombatantPreviewCard } from '@/features/combat/components'
@@ -81,7 +73,6 @@ export function AllyCombatantSetupPreviewCard({
   return (
     <LoadedAllyCombatantSetupPreviewCard
       character={character}
-      characterId={characterId}
       runtimeId={runtimeId}
       side={side}
       sourceKind={sourceKind}
@@ -93,13 +84,12 @@ export function AllyCombatantSetupPreviewCard({
   )
 }
 
-type LoadedProps = AllyCombatantSetupPreviewCardProps & {
+type LoadedProps = Omit<AllyCombatantSetupPreviewCardProps, 'characterId'> & {
   character: NonNullable<ReturnType<typeof useCharacter>['character']>
 }
 
 function LoadedAllyCombatantSetupPreviewCard({
   character,
-  characterId,
   runtimeId,
   side,
   sourceKind,
@@ -110,66 +100,17 @@ function LoadedAllyCombatantSetupPreviewCard({
 }: LoadedProps) {
   const { catalog, ruleset } = useCampaignRules()
 
-  const engineCharacter = useMemo(() => toCharacterForEngine(character), [character])
-  const combatStats = useCombatStats(engineCharacter)
-
-  const attacks = useMemo(
-    () =>
-      combatStats.attacks.map((attack: AttackEntry) => ({
-        id: `${characterId}-${attack.weaponId}-${attack.hand}`,
-        name: attack.name,
-        attackBonus: attack.attackBonus,
-        attackBreakdown: attack.attackBreakdown,
-        damage: attack.damage,
-        damageType: attack.damageType,
-        damageBreakdown: attack.damageBreakdown,
-        range: attack.range,
-      })),
-    [characterId, combatStats.attacks],
-  )
-  const turnHooks = useMemo(
-    () => buildTurnHooksFromEffects(combatStats.activeEffects),
-    [combatStats.activeEffects],
-  )
-  const spellStats = useMemo(
-    () => getCharacterSpellcastingStats(character, ruleset),
-    [character, ruleset],
-  )
-  const spellActions = useMemo(
-    () =>
-      buildSpellCombatActions({
-        runtimeId,
-        spellIds: character.spells,
-        spellsById: catalog.spellsById as Record<string, Spell>,
-        spellSaveDc: spellStats.spellSaveDc,
-        spellAttackBonus: spellStats.spellAttackBonus,
-        spellcastingAbilityModifier: spellStats.spellcastingAbilityModifier,
-        casterLevel: character.level ?? 1,
-        resources: character.resources,
-      }),
-    [catalog.spellsById, character, runtimeId, spellStats],
-  )
-  const skillAffordanceActions = useMemo(
-    () =>
-      buildSkillAffordanceCombatActions({
-        proficientSkillIds: character.proficiencies.map((p) => p.id),
-        skillProficienciesById: catalog.skillProficienciesById,
-      }),
-    [catalog.skillProficienciesById, character.proficiencies],
-  )
   const combatant = useMemo(
     () =>
-      buildCharacterCombatantInstance({
+      buildCharacterCombatantForGameSession({
+        character,
+        catalog,
+        ruleset,
         runtimeId,
         side,
         sourceKind,
-        character,
-        combatStats,
-        attacks,
-        extraActions: [...spellActions, ...skillAffordanceActions],
-        turnHooks,
       }),
-    [attacks, character, combatStats, runtimeId, side, sourceKind, skillAffordanceActions, spellActions, turnHooks],
+    [character, catalog, ruleset, runtimeId, side, sourceKind],
   )
 
   const onResolvedRef = useRef(onResolved)
