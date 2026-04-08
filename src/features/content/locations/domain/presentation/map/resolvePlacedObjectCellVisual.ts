@@ -4,13 +4,16 @@
  */
 import type { LocationMapObjectKindId } from '@/shared/domain/locations';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
+import { resolvePlacedObjectFootprintLayoutPx } from '@/shared/domain/locations/map/placedObjectFootprintLayout';
 
 import type { LocationPlacedObjectKindId } from '../../model/placedObjects/locationPlacedObject.registry';
 import { getPlacedObjectMapImageUrlForAssetId } from '../../model/placedObjects/locationPlacedObjectRasterAssets';
 import {
+  getPlacedObjectFootprintForFamilyVariant,
   getPlacedObjectMeta,
   parseLocationPlacedObjectKindId,
   resolvePersistedMapObjectKindMapImageUrl,
+  resolvePlacedObjectKindForCellObject,
   resolvePlacedObjectVariant,
 } from '../../model/placedObjects/locationPlacedObject.selectors';
 
@@ -25,6 +28,18 @@ export type PlacedObjectCellVisual = {
   showMapRaster: boolean;
   /** First character of `label` (uppercase) for fallback presentation. */
   fallbackLetter: string;
+  /**
+   * When set with `layoutHeightPx`, raster uses this box (Phase 3 footprint layout).
+   * Omitted for legacy fixed token sizing or when footprint / cell span is unavailable.
+   */
+  layoutWidthPx?: number;
+  layoutHeightPx?: number;
+};
+
+/** Square-grid context for registry footprint → pixel layout (Phase 3). */
+export type PlacedObjectCellVisualFootprintLayoutContext = {
+  feetPerCell: number;
+  cellPx: number;
 };
 
 function fallbackLetterFromLabel(label: string): string {
@@ -57,31 +72,63 @@ export function resolvePlacedObjectCellVisualFromPlacedKind(
  * Authoring / presentation: prefers `authoredPlaceKindId` when it parses to a registry kind;
  * otherwise uses persisted `LocationMapObjectKindId` → raster from registry defaults for that kind.
  */
+function applyFootprintLayout(
+  visual: PlacedObjectCellVisual,
+  kind: LocationPlacedObjectKindId,
+  variantId: string,
+  layout: PlacedObjectCellVisualFootprintLayoutContext,
+): PlacedObjectCellVisual {
+  const fp = getPlacedObjectFootprintForFamilyVariant(kind, variantId);
+  if (!fp) return visual;
+  const { widthPx, heightPx } = resolvePlacedObjectFootprintLayoutPx({
+    footprint: fp,
+    feetPerCell: layout.feetPerCell,
+    cellPx: layout.cellPx,
+    maxExtentPx: layout.cellPx,
+  });
+  if (widthPx <= 0 || heightPx <= 0) return visual;
+  return { ...visual, layoutWidthPx: widthPx, layoutHeightPx: heightPx };
+}
+
 export function resolvePlacedObjectCellVisualFromRenderItem(
   item: LocationMapAuthoredObjectRenderItem,
+  footprintLayout?: PlacedObjectCellVisualFootprintLayoutContext | null,
 ): PlacedObjectCellVisual {
   const parsed = parseLocationPlacedObjectKindId(item.authoredPlaceKindId);
   if (parsed) {
     const meta = getPlacedObjectMeta(parsed);
     const label = item.label?.trim() ? item.label.trim() : meta.label;
-    const { variant } = resolvePlacedObjectVariant(parsed, undefined);
+    const { resolvedVariantId, variant } = resolvePlacedObjectVariant(parsed, item.variantId);
     const mapImageUrl = getPlacedObjectMapImageUrlForAssetId(variant.assetId);
-    return {
+    let out: PlacedObjectCellVisual = {
       label,
       tooltip: label,
       mapImageUrl,
       showMapRaster: mapImageUrl != null,
       fallbackLetter: fallbackLetterFromLabel(label),
     };
+    if (footprintLayout) {
+      out = applyFootprintLayout(out, parsed, resolvedVariantId, footprintLayout);
+    }
+    return out;
   }
 
   const mapImageUrl = resolvePersistedMapObjectKindMapImageUrl(item.kind);
   const label = item.label?.trim() ? item.label.trim() : mapObjectKindDefaultLabel(item.kind);
-  return {
+  let out: PlacedObjectCellVisual = {
     label,
     tooltip: label,
     mapImageUrl,
     showMapRaster: mapImageUrl != null,
     fallbackLetter: fallbackLetterFromLabel(label),
   };
+  const coerced = resolvePlacedObjectKindForCellObject({
+    kind: item.kind,
+    authoredPlaceKindId: item.authoredPlaceKindId,
+  });
+  if (coerced && footprintLayout) {
+    const { resolvedVariantId } = resolvePlacedObjectVariant(coerced, item.variantId);
+    out = applyFootprintLayout(out, coerced, resolvedVariantId, footprintLayout);
+  }
+  return out;
 }

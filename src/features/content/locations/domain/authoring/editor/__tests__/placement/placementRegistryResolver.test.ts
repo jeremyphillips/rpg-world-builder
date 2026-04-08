@@ -18,6 +18,7 @@ describe('placementRegistryResolver', () => {
       expect(r.cellId).toBe('c-0-0');
       expect(r.objectDraft.kind).toBe('marker');
       expect(r.objectDraft.authoredPlaceKindId).toBe('city');
+      expect(r.objectDraft.variantId).toBe('default');
     }
   });
 
@@ -32,6 +33,7 @@ describe('placementRegistryResolver', () => {
       expect(r.cellId).toBe('c-1-1');
       expect(r.objectDraft.kind).toBe('table');
       expect(r.objectDraft.authoredPlaceKindId).toBe('table');
+      expect(r.objectDraft.variantId).toBe('rect_wood');
     }
   });
 
@@ -45,6 +47,7 @@ describe('placementRegistryResolver', () => {
     if (r.kind === 'append-object') {
       expect(r.objectDraft.kind).toBe('table');
       expect(r.objectDraft.authoredPlaceKindId).toBe('table');
+      expect(r.objectDraft.variantId).toBe('circle_wood');
     }
   });
 
@@ -57,6 +60,7 @@ describe('placementRegistryResolver', () => {
     expect(r.kind).toBe('append-object');
     if (r.kind === 'append-object') {
       expect(r.objectDraft.kind).toBe('stairs');
+      expect(r.objectDraft.variantId).toBe('straight');
       expect(r.objectDraft.stairEndpoint?.direction).toBe('both');
     }
   });
@@ -71,6 +75,7 @@ describe('placementRegistryResolver', () => {
     if (r.kind === 'append-object') {
       expect(r.objectDraft.kind).toBe('marker');
       expect(r.objectDraft.authoredPlaceKindId).toBe('building');
+      expect(r.objectDraft.variantId).toBe('residential');
     }
   });
 
@@ -109,6 +114,7 @@ describe('placementRegistryResolver', () => {
     expect(r.kind).toBe('append-object');
     if (r.kind === 'append-object') {
       expect(r.objectDraft.kind).toBe('stairs');
+      expect(r.objectDraft.variantId).toBe('spiral');
       expect(r.objectDraft.stairEndpoint?.direction).toBe('both');
     }
   });

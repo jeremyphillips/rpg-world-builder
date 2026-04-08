@@ -11,6 +11,10 @@ import {
   LOCATION_SCALE_RANK_ORDER_LEGACY,
 } from '@/shared/domain/locations/location.constants';
 import type { MaterialId } from '@/shared/domain/materials';
+import type {
+  PlacedObjectCellAnchorKind,
+  PlacedObjectFootprintFeet,
+} from '@/shared/domain/locations/map/placedObjectFootprint.types';
 
 /**
  * Per-family spatial + tactical defaults for authored placed objects (hydrated to combat `GridObject`).
@@ -129,7 +133,14 @@ export type AuthoredPlacedObjectVariantDefinition = {
   description?: string;
   assetId: string;
   presentation?: AuthoredPlacedObjectVariantPresentation;
+  /** Physical footprint in **feet** (square-grid layout only); omit when Phase-2 scale-to-cell is enough. */
+  footprint?: PlacedObjectFootprintFeet;
+  /** Defaults to {@link DEFAULT_PLACED_OBJECT_CELL_ANCHOR} when `footprint` is set. */
+  cellAnchor?: PlacedObjectCellAnchorKind;
 };
+
+/** Default anchor for cell-placed objects with a footprint (Phase 3). */
+export const DEFAULT_PLACED_OBJECT_CELL_ANCHOR: PlacedObjectCellAnchorKind = 'cell_center';
 
 /** Cell-anchored vs boundary edge authoring — both use the same registry; edge families write `edgeEntries`. */
 export type AuthoredPlacedObjectPlacementMode = 'cell' | 'edge';
@@ -285,6 +296,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
         label: 'Table',
         description: 'Rectangular wood table.',
         assetId: 'table_rect_wood_5x3',
+        footprint: { kind: 'rect', widthFt: 5, depthFt: 3 },
         presentation: {
           material: 'wood',
           shape: 'rectangle',
@@ -294,6 +306,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
         label: 'Round Table (wood)',
         description: 'Round wood table.',
         assetId: 'placeholder_no_art',
+        footprint: { kind: 'circle', diameterFt: 4 },
         presentation: {
           material: 'wood',
           shape: 'circle',

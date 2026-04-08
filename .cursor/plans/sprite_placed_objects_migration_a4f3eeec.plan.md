@@ -9,7 +9,7 @@ todos:
     content: "Phase 2: Tray previews + in-map sprites; remove iconName; edge stays vector"
     status: pending
   - id: phase-3-dimensions
-    content: "Phase 3: Canonical world-unit footprints + placement types in registry"
+    content: "Phase 3: Registry footprint (feet) + cellUnit→world-span resolver + square-grid layout; minimal anchors"
     status: pending
   - id: phase-4-table-pilot
     content: "Phase 4: Table family end-to-end pilot (assetId + footprint + rendering)"
@@ -34,7 +34,7 @@ The codebase today treats placed objects as **registry-defined families and vari
 
 1. **Stand up asset pipeline outputs first** (manifest(s) generated from source PNGs, including trim), so runtime code consumes **stable logical ids**, not hand-edited frame rectangles—covering both **map** and **toolbar preview** roles per contract.
 2. **Integrate the editor in one pass:** remove **`iconName`** from the placed-object model; drive **tray previews** from preview assets; render **cell** objects with **map** sprites; keep **edge** objects on **vector** map rendering—**no** MUI icon fallback for placed objects.
-3. **Introduce canonical physical dimensions and placement semantics** as **registry- or variant-level data** expressed in **world units** (feet/meters via existing grid `cellUnit` policy), not as “percent of cell” in authored definitions.
+3. **Introduce canonical physical dimensions and placement semantics** as **variant-level registry data** in **feet**, with a **`cellUnit` → feet-per-cell** resolver and **square-grid** layout derivation (Phase 3), including **rectangular** (width/depth) and **circular** (diameter) footprints plus a **minimal default anchor model** for pilot use—**not** “percent of cell” as canonical sizing.
 4. **Pilot one family end-to-end** (recommended: **table**) to validate dimension → placement → sprite alignment before scaling migration.
 5. **Refine placement/anchoring** for elongated footprints (e.g., spanning a shared edge between cells) once a real asset proves the need—**avoid** speculative multi-cell collision expansion early.
 6. **Migrate additional families** family-by-family, reusing the same seams.
@@ -55,9 +55,9 @@ This sequencing keeps **authored map documents** stable where possible, minimize
 | Concern | Owns | Consumes | Must not own |
 |--------|------|----------|----------------|
 | **Generated sprite manifest / atlas metadata** | Build-time artifacts: logical `assetId` → texture URL or atlas region, **trimmed bounds** relative to asset logical frame, optional per-frame `sourceSize` / padding for NineSlice later. Version/hash for cache busting. | Raw PNG inputs; trim algorithm output | Gameplay rules, cell placement rules, or registry labels |
-| **Object registry definitions** ([`AUTHORED_PLACED_OBJECT_DEFINITIONS`](src/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry.ts)) | Family/variant **identity**, palette copy, **optional** `assetId` (or family default + variant override), **physical footprint** in world units, **placement mode** (`cell` \| `edge`), **runtime defaults** (`blocksMovement`, LoS, cover, …) | Manifest existence for referenced ids (validated in CI or dev) | Pixel layout math, atlas coordinates, image file paths as canonical source of truth |
+| **Object registry definitions** ([`AUTHORED_PLACED_OBJECT_DEFINITIONS`](src/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry.ts)) | Family/variant **identity**, palette copy, **optional** `assetId` (or family default + variant override), **physical footprint** in **feet** (Phase 3), **placement mode** (`cell` \| `edge`), **runtime defaults** (`blocksMovement`, LoS, cover, …) | Manifest existence for referenced ids (validated in CI or dev) | Pixel layout math, atlas coordinates, image file paths as canonical source of truth |
 | **Render asset resolution** | Given `(familyId, variantId)` (+ optional future wire fields), resolve **map** vs **preview** image descriptors from manifest(s); **no** glyph fallback in the placed-object path. Pure, testable module at the boundary of shared domain ↔ assets. | Manifest, registry | Grid scale, screen DPI beyond “px per world unit” contract |
-| **World-dimension / footprint resolution** | Map **grid** `cellUnit` + registry footprint → **world-space AABB** (and later multi-cell footprint) for editor overlays and combat projection. | Shared location map types, dimension types | Sprite pixel dimensions as canonical length (pixels follow from asset + scale) |
+| **Footprint / dimension resolution** | Map **grid** `cellUnit` (via **authoring** feet-per-cell resolver) + registry footprint (**feet**) → **layout-space** rect on **square** grids (and later multi-cell / tactical projection where explicitly designed). | Shared location map types, dimension types | Sprite pixel dimensions as canonical length (pixels follow from asset + scale) |
 | **Placement / anchor logic** | Map authored anchor (cell id, edge id, optional anchor mode) → **where the object’s origin sits in grid space** and how multi-length objects span cells. | Footprint resolution, geometry helpers ([square grid overlay](docs/reference/location-workspace.md)) | Texture packing, presentation glyphs |
 | **Rendering logic** | Draw sprites (DOM/CSS or canvas/WebGL later) using **resolved layout rect** from placement + footprint; stack order per [layering rules](docs/reference/location-workspace.md). | ResolvedRenderAsset, layout | Combat adjudication |
 | **Runtime behavior** (movement blocking, LoS, cover) | **Hydration** from registry defaults; optional per-instance overrides later. | Registry runtime fields, combat grid | Sprite bounds as collision unless explicitly modeled |
@@ -187,30 +187,77 @@ Collapsing the following into one change set is the primary failure mode:
 
 ---
 
-## Phase 3 — Canonical object dimensions and placement semantics (world-aware)
+## Phase 3 — Canonical object dimensions and placement semantics (feet + square grid)
 
-**Goal:** **Variant-level physical footprint** (length/width in world units, and explicit **anchor/orientation model** at authored granularity) becomes **canonical**, decoupled from cell pixel size changes.
+**Goal:** **Variant-level physical footprint** becomes **canonical** on the registry, expressed in a **single named world length unit** (**feet**) and decoupled from **cell percentage**, **raw pixels**, and ad hoc “scale to fit cell” layout. **Layout rects** derive from **canonical footprint + grid configuration** through **one conversion path**, so sizing stays coherent when **viewport zoom** or **cell pixel size** changes. Phase 3 establishes the **footprint and layout contract**; it does **not** finalize **sprite/art fit policy** (Phase 4) or **rich anchoring** (Phase 5).
 
-**Scope:** Extend **registry types** (not necessarily every family) with **footprint**: e.g., width/depth in feet, optional **anchor** enum (`cell-center`, `along-edge-midpoint`—specify minimally). Derive **layout rect** from `grid.cellUnit` + footprint. Keep **persisted map** as today unless/until you need instance-level rotation (defer wire changes unless product demands).
+**Scope:** Extend **registry types** (not necessarily every family) with **variant-level footprint** and a **minimal typed anchor model** sufficient for the **table** pilot on **square** grids only.
 
-**What changes:** Registry schema for dimensions; pure helpers **worldFootprintToLayout** parameterized by grid config; renderer uses **derived rect** instead of ad hoc “fill cell.”
+- **Rectangular** footprints: **width** and **depth** in **feet** (semantic axes; map to layout consistently—e.g. width along one grid axis for the pilot).
+- **Circular** footprints: **diameter** in **feet**.
+- **Minimal anchors:** Only what the pilot needs—e.g. default **cell-centered** placement for cell-anchored objects—expressed as **types + defaults**, not a full placement UX overhaul. **Between-cell**, **edge-offset**, and **elongated** alignment semantics stay **out of scope** (Phase 5).
 
-**What does not change yet:** Multi-cell **collision** or **occupancy** arrays; edge families’ advanced anchoring beyond what’s needed for pilot.
+**Authoring cell span (new contract):** Introduce **one authoritative resolver** used by footprint → layout math: **`grid.cellUnit` → numeric world span per cell** (in **feet**) for **authoring/layout**. Today `cellUnit` is a flexible label (`5ft`, `25ft`, `100ft`, `mile`, …) and the editor sizes the **grid from viewport** (`cellPx`); combat uses a **narrow** mapping for encounter grids only and is **not** assumed to be the general authoring rule. Phase 3 **defines** the layout-time rule: a **single module** (or equivalent) that answers “how many **feet** does one **cell edge** represent for **this** map’s `cellUnit`?” so footprint (feet) can be converted to **fractions of a cell** and then to **pixels** via existing **cellPx**. Maps or scales where **meaningful** object footprints are **not** supported yet should be handled with an **explicit** policy (e.g. **degraded** sizing, **warn**, or **out-of-scope** for the pilot)—not silent misuse of combat-only helpers.
+
+**Persisted map shape stays as-is** unless a **later** phase requires **instance-level** orientation or anchor overrides on the wire; Phase 3 does not require those persistence changes.
+
+**What changes in this phase**
+
+- Registry schema: **footprint** (rect vs circle + **feet** numbers) and **minimal anchor** fields/defaults for the pilot.
+- **Single funnel:** **Footprint (feet)** + **`cellUnit` → feet per cell** + **square grid geometry** + **`cellPx`** → **derived layout rect** in pixel space (names may vary; **one** pipeline, not scattered formulas).
+- **Consumers** (e.g. cell-object overlay) use **derived rect** for **layout sizing** instead of **fill-cell** or **% of cell** as the source of truth.
+- **Documentation follow-up:** Update [`location-workspace.md`](docs/reference/location-workspace.md) (and pointers from it) so contributors do **not** assume **scale-to-fit cell** remains the long-term rule once Phase 3 lands.
+
+**What explicitly does NOT change yet**
+
+- **Wire format / persistence:** No required new fields on placed-object instances for footprint or anchors beyond what already exists.
+- **Multi-cell tactical occupancy**, **collision grids**, or **LoS** derived from sprite or layout extent.
+- **Tactical** blocking/LoS/cover: still **registry defaults** and existing combat/adjacency models; Phase 3 does **not** redefine them from visuals.
+- **Selection / hit-testing product semantics:** Phase 3 may keep **minimal** compatibility (e.g. existing DOM hooks) but does **not** establish **final** hit regions from sprite bounds—avoid treating **layout rect** as the **ultimate** interactive or tactical footprint.
+- **Hex grids:** No commitment to **hex footprint** or **hex layout** parity; authored object footprint math is **square-first** until a later phase explicitly designs hex.
+- **Edge families:** No advanced **edge** footprint or anchor behavior beyond whatever **pilot** table work requires for shared types; **stroke/vector** edge map rendering remains as in prior phases.
+- **Cell percentage** as **canonical** footprint (forbidden); **optional derived** UI hints only, if ever.
 
 **Key decisions to lock in**
 
-- **World units** align with `LocationMap` grid `cellUnit` policy ([`locationMap.types`](shared/domain/locations/map/locationMap.types.ts))—single conversion funnel.
-- **Authoring stability:** dimensions live on **registry variants**, not duplicated in saved maps.
+- **Canonical authored unit:** Registry footprints use **feet** only for Phase 3; do **not** mix meters or unnamed “world units” in authored data.
+- **`cellUnit` → feet per cell (authoring):** **One** resolver for layout authoring; **document** its behavior for each supported `cellUnit` (and explicit gaps for unsupported combinations). **Do not** generalize combat’s **5/10 ft** encounter shortcut as the **default** authoring rule without stating so.
+- **Square grid only** for Phase 3 footprint → layout resolution: **square** cell geometry and existing **square** overlay helpers; **hex** remains explicitly **out of scope** for this contract.
+- **Authoring stability:** Footprint dimensions live on **registry variants**, not duplicated per instance on the map.
+- **Shapes:** Rect = **width/depth**; circle = **diameter**—**semantic** registry fields, not **inferred from art pixels** as the source of truth.
+- **Phase boundary — Phase 4:** Phase 3 owns **data model + `cellUnit` resolution + derived layout math**. Phase 4 owns **asset/render policy**, **sprite fit** (letterbox vs stretch, uniform scale rules), **manifest-aligned** table rollout, and **polished** end-to-end **table** presentation. Phase 3 may use **simple** scaling into the derived rect so **size differentiation** is visible; **final** art policy lives in Phase 4.
+- **Phase boundary — Phase 5:** Phase 3 allows only **minimal** **default** anchors (e.g. cell-centered). Phase 5 owns **richer** anchor modes, **elongated** placement, **between-cell** alignment, and related **preview/ghost** behavior—without expanding Phase 3.
 
-**Risks / watchouts:** Circles vs rectangles; define whether **diameter** or **bounding box** is authoritative for round tables. Avoid **cell percentage** creeping back in as “the real” field.
+**Risks / watchouts**
 
-**Exit criteria:** At least **table** variants declare distinct footprints (e.g., 5×3 vs round implicit diameter) and render **size-differentiated** on the same grid without changing cell size.
+- **Semantic footprint vs derived AABB:** Keep the **authoritative** registry shape (rect vs circle + **feet**) separate from any **derived** axis-aligned box used for **layout**—especially **circles**, where a square **layout** box is a **consequence**, not the canonical definition.
+- **No cell percentage as canonical:** Do not reintroduce **“% of cell”** as the **source of truth** for footprint.
+- **Visual vs tactical vs interaction:** Do **not** imply that **layout** or **sprite** extent defines **tactical occupancy**, **LoS**, or **final** **selection** hit areas; Phase 3 is **layout contract + pilot sizing**, not combat or input **finalization**.
+- **Large `cellUnit` vs small objects:** **Mile**-scale cells vs **5 ft** furniture may need an **explicit** product/engineering stance (e.g. pilot **encounter/floor** maps only, or defined **degradation**) so the resolver is not **misapplied**.
+- **Documentation drift:** Without updating **location-workspace** (and related references), implementers may revert to **scale-to-fit cell** mentally; track doc updates as part of exit.
+
+**Exit criteria**
+
+- **Table** variants declare **distinct** footprints in **feet** (e.g. different rect sizes vs round **diameter**) and show **size-differentiated** **layout** on the **same** square grid **without** changing **authoring** `cellUnit` semantics—using the **single** **footprint → layout** pipeline.
+- **`cellUnit` → feet per cell** for authoring is implemented in **one** place and **documented** (including what is **unsupported** or **degraded** for the pilot).
+- Conversion from footprint to **layout rect** does **not** duplicate ad hoc **cellUnit** math across components.
+- **Hex** is not claimed to be supported for this footprint pipeline; **square** behavior is **explicit** in docs for Phase 3.
+- **`location-workspace.md`** (or a clearly linked subsection) reflects that **footprint in feet + resolver** replaces **scale-to-fit cell** as the **directional** contract for placed-object **layout** (exact wording can be brief).
+
+---
+
+### Phase 3 clarification (boundary summary)
+
+- **Canonical authored footprint unit:** **Feet** on registry variants (width/depth/diameter as applicable)—not vague “world units” and not mixed units.
+- **Single `cellUnit` → numeric world span per cell resolver:** **Required** for authoring/layout: maps **`LocationMap.grid.cellUnit`** to **feet per cell** (or explicit **unsupported** behavior), separate from combat-only shortcuts unless deliberately aligned and documented.
+- **Square grid only** for Phase 3 footprint/layout resolution; **hex** expansion is a **later** explicit phase, not an implied deliverable here.
+- **Contracts:** Phase 3 establishes **footprint + layout derivation**; **Phase 4** owns **sprite/art fit**, **manifest integration**, and **polished table** rollout; **Phase 5** owns **richer anchors** and **advanced** placement semantics.
 
 ---
 
 ## Phase 4 — First real pilot family: size-aware sprite rendering
 
-**Goal:** **`table`** uses **`assetId`** + **world footprint** + **manifest** end-to-end; art swaps **do not** require registry edits except when **semantic** identity changes.
+**Goal:** **`table`** uses **`assetId`** + **footprint (feet, Phase 3)** + **manifest** end-to-end; art swaps **do not** require registry edits except when **semantic** identity changes. Builds on Phase 3’s layout contract with **sprite fit** and **polished** presentation.
 
 **Scope:** Wire registry variants to `assetId`s produced in phase 1; align **sprite aspect** with footprint policy (fit vs crop rules); **no** glyph fallback—missing art follows the same **validation / placeholder** policy as Phase 2.
 

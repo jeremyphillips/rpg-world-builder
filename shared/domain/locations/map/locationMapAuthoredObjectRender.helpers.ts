@@ -16,6 +16,9 @@ export function mapCellObjectEntryToAuthoredRenderItem(
     ...(o.authoredPlaceKindId !== undefined && String(o.authoredPlaceKindId).trim() !== ''
       ? { authoredPlaceKindId: String(o.authoredPlaceKindId).trim() }
       : {}),
+    ...(o.variantId !== undefined && String(o.variantId).trim() !== ''
+      ? { variantId: String(o.variantId).trim() }
+      : {}),
   };
 }
 

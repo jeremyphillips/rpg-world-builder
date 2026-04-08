@@ -170,6 +170,15 @@ export function validateCellEntriesStructure(
               });
             }
           }
+          if (oro.variantId !== undefined && oro.variantId !== null) {
+            if (typeof oro.variantId !== 'string' || oro.variantId.trim() === '') {
+              errors.push({
+                path: `${op}.variantId`,
+                code: 'INVALID',
+                message: 'variantId must be a non-empty string when set',
+              });
+            }
+          }
 
           const kindStr = typeof oro.kind === 'string' ? oro.kind : '';
           const se = oro.stairEndpoint;

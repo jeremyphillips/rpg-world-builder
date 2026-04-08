@@ -7,10 +7,14 @@ import { alpha } from '@mui/material/styles';
 import { getLocationScaleMapIcon } from '@/features/content/locations/domain';
 import { cellObjectAnchorsCellLinkedLocation } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors';
 import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
-import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
+import {
+  resolvePlacedObjectCellVisualFromRenderItem,
+  type PlacedObjectCellVisualFootprintLayoutContext,
+} from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
 import type { Location } from '@/features/content/locations/domain/model/location';
 import { mapCellObjectEntryToAuthoredRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.helpers';
+import { resolveAuthoringCellUnitFeetPerCell } from '@/shared/domain/locations/map/locationCellUnitAuthoring';
 import { colorPrimitives } from '@/app/theme/colorPrimitives';
 import { getMapRegionColor } from '@/app/theme/mapColors';
 
@@ -31,7 +35,24 @@ type LocationMapCellAuthoringOverlayProps = {
   isHex: boolean;
   mapUi: LocationMapUiResolvedStyles;
   locationById: Map<string, Location>;
+  /** Map form `gridCellUnit` — used with {@link squareCellPx} for Phase 3 footprint layout (square only). */
+  gridCellUnit?: string;
+  /** Authoring square cell size in px; omit on hex or invalid grid. */
+  squareCellPx?: number;
 };
+
+function resolveFootprintLayoutContext(
+  isHex: boolean,
+  gridCellUnit: string | undefined,
+  squareCellPx: number | undefined,
+): PlacedObjectCellVisualFootprintLayoutContext | null {
+  if (isHex || squareCellPx == null || gridCellUnit == null || String(gridCellUnit).trim() === '') {
+    return null;
+  }
+  const span = resolveAuthoringCellUnitFeetPerCell(gridCellUnit);
+  if (span.kind !== 'ok') return null;
+  return { feetPerCell: span.feetPerCell, cellPx: squareCellPx };
+}
 
 export function LocationMapCellAuthoringOverlay({
   cell,
@@ -40,6 +61,8 @@ export function LocationMapCellAuthoringOverlay({
   isHex,
   mapUi,
   locationById,
+  gridCellUnit,
+  squareCellPx,
 }: LocationMapCellAuthoringOverlayProps) {
   const rid = draft.regionIdByCellId[cell.cellId]?.trim();
   const regionEntry = rid ? draft.regionEntries.find((r) => r.id === rid) : undefined;
@@ -91,6 +114,7 @@ export function LocationMapCellAuthoringOverlay({
   if (!overlay && !hasIcons) {
     return null;
   }
+  const footprintLayout = resolveFootprintLayoutContext(isHex, gridCellUnit, squareCellPx);
   const iconSx = {
     fontSize: 22,
     width: 22,
@@ -138,7 +162,7 @@ export function LocationMapCellAuthoringOverlay({
           ) : null}
           {objs?.map((o) => {
             const item = mapCellObjectEntryToAuthoredRenderItem(cell.cellId, o);
-            const visual = resolvePlacedObjectCellVisualFromRenderItem(item);
+            const visual = resolvePlacedObjectCellVisualFromRenderItem(item, footprintLayout ?? undefined);
             return (
               <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
                 <Box

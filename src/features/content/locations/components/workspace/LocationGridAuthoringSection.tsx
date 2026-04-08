@@ -55,6 +55,8 @@ import { useLocationGridSelectMode } from './useLocationGridSelectMode';
 type LocationGridAuthoringSectionProps = {
   gridColumns: string;
   gridRows: string;
+  /** Form field `gridCellUnit` — drives Phase 3 footprint layout with square {@link squareGridGeometry}. */
+  gridCellUnit?: string;
   gridGeometry?: GridGeometryId | string;
   draft: LocationGridDraftState;
   setDraft: Dispatch<SetStateAction<LocationGridDraftState>>;
@@ -109,6 +111,7 @@ type LocationGridAuthoringSectionProps = {
 export function LocationGridAuthoringSection({
   gridColumns,
   gridRows,
+  gridCellUnit,
   gridGeometry = 'square',
   draft,
   setDraft,
@@ -470,6 +473,8 @@ export function LocationGridAuthoringSection({
       isHex={isHex}
       mapUi={mapUi}
       locationById={locationById}
+      gridCellUnit={gridCellUnit}
+      squareCellPx={!isHex ? squareGridGeometry?.cellPx : undefined}
     />
   );
 

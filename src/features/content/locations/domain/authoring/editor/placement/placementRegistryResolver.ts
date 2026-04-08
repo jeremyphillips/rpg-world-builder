@@ -9,6 +9,8 @@ import type { LocationEdgeFeatureKindId } from '@/features/content/locations/dom
 import { canPlaceObjectKindOnHostScale } from '@/shared/domain/locations/map/locationMapPlacement.policy';
 import { LOCATION_MAP_STAIR_ENDPOINT_DEFAULT_DIRECTION } from '@/shared/domain/locations/map/locationMapStairEndpoint.types';
 
+import { normalizeVariantIdForFamily } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors.core';
+
 import type { LocationMapActivePlaceSelection } from '../types/locationMapEditor.types';
 
 import { resolvePlacedKindToAction } from './resolvePlacedKindToAction';
@@ -42,6 +44,9 @@ export function resolvePlacementCellClick(
   cellId: string,
   hostScale: LocationScaleId,
 ): PlacementCellClickResult {
+  if (activePlace == null) {
+    return { kind: 'unsupported' };
+  }
   const res = resolvePlacedKindToAction(activePlace, hostScale);
   if (res.type === 'unsupported') {
     return { kind: 'unsupported' };
@@ -50,9 +55,12 @@ export function resolvePlacementCellClick(
     if (!canPlaceObjectKindOnHostScale(hostScale, res.objectKind)) {
       return { kind: 'unsupported' };
     }
+    const placedKind = activePlace.kind;
+    const normalizedVariantId = normalizeVariantIdForFamily(placedKind, activePlace.variantId);
     const objectDraft: Omit<LocationMapCellObjectEntry, 'id'> = {
       kind: res.objectKind,
       ...(res.authoredPlaceKindId !== undefined ? { authoredPlaceKindId: res.authoredPlaceKindId } : {}),
+      variantId: normalizedVariantId,
       ...(res.objectKind === 'stairs'
         ? {
             stairEndpoint: {

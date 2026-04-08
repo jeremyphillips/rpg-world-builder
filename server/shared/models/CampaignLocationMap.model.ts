@@ -43,6 +43,7 @@ const mapCellObjectEntrySchema = new Schema(
     kind: { type: String, required: true },
     label: { type: String },
     authoredPlaceKindId: { type: String },
+    variantId: { type: String },
     stairEndpoint: { type: mapStairEndpointSchema },
   },
   { _id: false },

@@ -62,6 +62,11 @@ export type LocationMapCellObjectEntry = {
    */
   authoredPlaceKindId?: string;
   /**
+   * Registry family-scoped variant id (e.g. `rect_wood` / `circle_wood` for `table`).
+   * Optional on legacy maps; when omitted, {@link resolvePlacedObjectVariant} uses the family default.
+   */
+  variantId?: string;
+  /**
    * When `kind === 'stairs'`, optional vertical-link metadata for this **floor endpoint**.
    * Ignored for other object kinds. See {@link LocationMapStairEndpointAuthoring}; full paired linking and
    * traversal are **TODO**.

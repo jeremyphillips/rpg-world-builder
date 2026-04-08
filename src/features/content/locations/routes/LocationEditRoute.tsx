@@ -209,6 +209,7 @@ export default function LocationEditRoute() {
     handleEraseEdge,
     gridColumns,
     gridRows,
+    gridCellUnit,
     gridGeometry,
     locations,
     buildingStairConnections,
@@ -283,6 +284,7 @@ export default function LocationEditRoute() {
     <LocationGridAuthoringSection
       gridColumns={gridColumns}
       gridRows={gridRows}
+      gridCellUnit={gridCellUnit}
       gridGeometry={gridGeometry}
       draft={gridDraft}
       setDraft={setGridDraft}

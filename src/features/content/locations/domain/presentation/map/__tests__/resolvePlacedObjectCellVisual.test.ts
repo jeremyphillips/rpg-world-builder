@@ -42,4 +42,20 @@ describe('resolvePlacedObjectCellVisualFromRenderItem', () => {
     expect(v.showMapRaster).toBe(true);
     expect(v.label).toBe('Treasure');
   });
+
+  it('applies registry footprint layout when context is provided (table pilot)', () => {
+    const v = resolvePlacedObjectCellVisualFromRenderItem(
+      {
+        id: '1',
+        authorCellId: '0,0',
+        combatCellId: 'c-0-0',
+        kind: 'table',
+        authoredPlaceKindId: 'table',
+        variantId: 'rect_wood',
+      },
+      { feetPerCell: 5, cellPx: 50 },
+    );
+    expect(v.layoutWidthPx).toBeCloseTo(50);
+    expect(v.layoutHeightPx).toBeCloseTo(30);
+  });
 });

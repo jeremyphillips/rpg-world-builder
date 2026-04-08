@@ -17,14 +17,16 @@ export function PlacedObjectCellVisualDisplay({ visual, variant, mapUi }: Placed
   const st = mapUi.placedObject[variant];
 
   if (visual.showMapRaster && visual.mapImageUrl) {
+    const w = visual.layoutWidthPx ?? st.icon.widthPx;
+    const h = visual.layoutHeightPx ?? st.icon.heightPx;
     return (
       <Box
         component="img"
         src={visual.mapImageUrl}
         alt=""
         sx={{
-          width: st.icon.widthPx,
-          height: st.icon.heightPx,
+          width: w,
+          height: h,
           objectFit: 'contain',
           display: st.icon.display,
           userSelect: 'none',

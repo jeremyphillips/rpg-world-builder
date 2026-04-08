@@ -4,7 +4,10 @@ import Tooltip from '@mui/material/Tooltip';
 
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
 import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
-import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
+import {
+  resolvePlacedObjectCellVisualFromRenderItem,
+  type PlacedObjectCellVisualFootprintLayoutContext,
+} from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 import { squareCellCenterPx } from '@/shared/domain/grid/squareGridOverlayGeometry';
 
@@ -25,6 +28,8 @@ export type LocationMapAuthoredObjectIconsCellInlineProps = {
   items: readonly LocationMapAuthoredObjectRenderItem[];
   cellPx: number;
   mapUi: LocationMapUiResolvedStyles;
+  /** When set (e.g. encounter `cellFeet` + tactical pixel cell), applies registry footprint sizing. */
+  footprintLayout?: PlacedObjectCellVisualFootprintLayoutContext | null;
 };
 
 /**
@@ -35,6 +40,7 @@ export function LocationMapAuthoredObjectIconsCellInline({
   items,
   cellPx,
   mapUi,
+  footprintLayout,
 }: LocationMapAuthoredObjectIconsCellInlineProps) {
   if (items.length === 0) return null;
   const authorCellId = items[0]!.authorCellId;
@@ -48,7 +54,7 @@ export function LocationMapAuthoredObjectIconsCellInline({
       sx={{ lineHeight: 0, maxWidth: cellPx }}
     >
       {items.map((o) => {
-        const visual = resolvePlacedObjectCellVisualFromRenderItem(o);
+        const visual = resolvePlacedObjectCellVisualFromRenderItem(o, footprintLayout ?? undefined);
         return (
           <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
             <Box
@@ -76,6 +82,7 @@ export type LocationMapAuthoredObjectIconsLayerProps = {
   cellPx: number;
   gapPx: number;
   mapUi: LocationMapUiResolvedStyles;
+  footprintLayout?: PlacedObjectCellVisualFootprintLayoutContext | null;
 };
 
 /**
@@ -87,6 +94,7 @@ export function LocationMapAuthoredObjectIconsLayer({
   cellPx,
   gapPx,
   mapUi,
+  footprintLayout,
 }: LocationMapAuthoredObjectIconsLayerProps) {
   if (items.length === 0) return null;
   const groups = groupByAuthorCellId(items);
@@ -123,7 +131,7 @@ export function LocationMapAuthoredObjectIconsLayer({
               sx={{ lineHeight: 0, maxWidth: cellPx }}
             >
               {cellItems.map((o) => {
-                const visual = resolvePlacedObjectCellVisualFromRenderItem(o);
+                const visual = resolvePlacedObjectCellVisualFromRenderItem(o, footprintLayout ?? undefined);
                 return (
                   <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
                     <Box

@@ -14,6 +14,8 @@ import {
   resolveFamilyVariant,
 } from '@/shared/domain/registry/familyVariantResolve';
 
+import type { PlacedObjectFootprintFeet } from '@/shared/domain/locations/map/placedObjectFootprint.types';
+
 import {
   AUTHORED_PLACED_OBJECT_DEFINITIONS,
   PLACED_OBJECT_PALETTE_CATEGORY_LABELS,
@@ -64,6 +66,14 @@ function variantDefinitionForFamily(
   variantId: string,
 ): AuthoredPlacedObjectVariantDefinition | undefined {
   return variantRecord(family)[variantId];
+}
+
+/** Registry footprint in feet for a concrete family + variant, when defined. */
+export function getPlacedObjectFootprintForFamilyVariant(
+  kind: LocationPlacedObjectKindId,
+  variantId: string,
+): PlacedObjectFootprintFeet | undefined {
+  return variantDefinitionForFamily(AUTHORED_PLACED_OBJECT_DEFINITIONS[kind], variantId)?.footprint;
 }
 
 /** True when `variantId` is a key in the family’s `variants` map (not the same as {@link normalizeVariantIdForFamily}). */
