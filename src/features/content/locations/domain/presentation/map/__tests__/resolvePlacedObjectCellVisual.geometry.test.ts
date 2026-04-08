@@ -20,7 +20,7 @@ const tableLargeItem = {
 };
 
 describe('resolvePlacedObjectCellVisualFromRenderItem — geometry stability', () => {
-  it('encounter factory context: stable layout box, no anchor offsets (tactical)', () => {
+  it('encounter factory context: stable layout box + east-edge anchor offsets (tactical grid parity)', () => {
     const ctx = buildPlacedObjectGeometryLayoutContextFromEncounter({
       cellFeet: 5,
       cellPx: 50,
@@ -28,8 +28,9 @@ describe('resolvePlacedObjectCellVisualFromRenderItem — geometry stability', (
     const v = resolvePlacedObjectCellVisualFromRenderItem(tableLargeItem, ctx);
     expect(v.layoutWidthPx).toBeCloseTo(100);
     expect(v.layoutHeightPx).toBeCloseTo(40);
-    expect(v.layoutAnchorOffsetXPx).toBeUndefined();
-    expect(v.layoutAnchorOffsetYPx).toBeUndefined();
+    const half = (50 + SQUARE_GRID_GAP_PX) / 2;
+    expect(v.layoutAnchorOffsetXPx).toBeCloseTo(half);
+    expect(v.layoutAnchorOffsetYPx).toBe(0);
   });
 
   it('layout box does not depend on gapPx when placement anchor is off', () => {

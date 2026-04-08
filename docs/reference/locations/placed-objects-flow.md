@@ -147,7 +147,7 @@ Registry **footprint** (feet) maps to a pixel layout box via **`computePlacedObj
 |---------|-------------------|
 | **Map editor (cells)** | `LocationMapCellAuthoringOverlay` inside `GridEditor` / `HexGridEditor` (`renderCellContent`); `LocationGridAuthoringSection` passes **`gridCellUnit`**, **`squareCellPx`** for footprint context. |
 | **Place preview** | Synthetic render item from `buildPlacePreviewRenderItem` when hovering in place mode. |
-| **Combat (tactical)** | `CombatGrid` → `LocationMapAuthoredObjectIconsCellInline`; **`footprintLayout`** with **`applyPlacementAnchor: false`** for cell-centered tactical presentation. |
+| **Combat (tactical)** | `CombatGrid` → `LocationMapAuthoredObjectIconsCellInline`; **`footprintLayout`** from `buildPlacedObjectGeometryLayoutContextFromEncounter` — same **`SQUARE_GRID_GAP_PX`** and **`applyPlacementAnchor: true`** as authoring so registry **`cellAnchor`** offsets align wide objects to cell boundaries. |
 | **Layer order (editor)** | Cell fill → paths → edges (SVG under grid) → **cell rasters** above grid — see [`location-workspace.md`](./location-workspace.md) (authored base-map layer order). |
 
 **Select mode hit-testing:** `[data-map-object-id]` on object wrappers; resolver priority in `domain/authoring/editor/selectMode/` (see workspace doc).

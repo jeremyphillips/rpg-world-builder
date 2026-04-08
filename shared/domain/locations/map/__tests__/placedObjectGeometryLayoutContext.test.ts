@@ -45,7 +45,7 @@ describe('buildPlacedObjectGeometryLayoutContextFromAuthoring', () => {
 });
 
 describe('buildPlacedObjectGeometryLayoutContextFromEncounter', () => {
-  it('matches tactical policy: no gutter in anchor math, no placement anchor offset', () => {
+  it('matches tactical policy: authoritative gutter + placement anchors (parity with CombatGrid)', () => {
     expect(
       buildPlacedObjectGeometryLayoutContextFromEncounter({
         cellFeet: 5,
@@ -54,8 +54,8 @@ describe('buildPlacedObjectGeometryLayoutContextFromEncounter', () => {
     ).toEqual({
       feetPerCell: 5,
       cellPx: 48,
-      gapPx: 0,
-      applyPlacementAnchor: false,
+      gapPx: SQUARE_GRID_GAP_PX,
+      applyPlacementAnchor: true,
     });
   });
 });

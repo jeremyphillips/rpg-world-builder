@@ -42,7 +42,9 @@ export function buildPlacedObjectGeometryLayoutContextFromAuthoring(args: {
 
 /**
  * Encounter / tactical grid: `cellFeet` from the grid view model is **5** for supported grid spaces
- * today; no anchor offset; resolver uses gapPx 0 for anchor math.
+ * today. Uses the same square gutter as {@link SQUARE_GRID_GAP_PX} (matches `CombatGrid` `inline-grid`)
+ * and applies registry placement anchors so multi-cell footprints align to cell boundaries, not only
+ * the anchor cell’s center.
  */
 export function buildPlacedObjectGeometryLayoutContextFromEncounter(args: {
   cellFeet: number;
@@ -51,7 +53,7 @@ export function buildPlacedObjectGeometryLayoutContextFromEncounter(args: {
   return {
     feetPerCell: args.cellFeet,
     cellPx: args.cellPx,
-    gapPx: 0,
-    applyPlacementAnchor: false,
+    gapPx: SQUARE_GRID_GAP_PX,
+    applyPlacementAnchor: true,
   };
 }
