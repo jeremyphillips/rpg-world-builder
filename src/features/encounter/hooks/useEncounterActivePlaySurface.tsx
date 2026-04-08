@@ -14,6 +14,8 @@ import {
   isValidActionTarget,
   actionRequiresCreatureTargetForResolve,
   getPrimaryResolutionMissing,
+  isPickLockDoorSelectionValid,
+  resolvePickLockAvailability,
 } from '@/features/mechanics/domain/combat'
 import {
   getSingleCellPlacementRequirement,
@@ -58,6 +60,7 @@ import { deriveGridHoverStatusMessage } from '../helpers/ui'
 import type { EncounterRuntimeContextValue } from '../routes/EncounterRuntimeContext'
 import type { EncounterContextPromptEnvironment } from '../domain/encounterContextPrompt.types'
 import type { CombatIntent } from '@/features/mechanics/domain/combat'
+import type { CombatIntentResult } from '@/features/mechanics/domain/combat/results'
 import type { EncounterState } from '@/features/mechanics/domain/combat'
 import { useEncounterContextPromptStrip } from './useEncounterContextPrompt'
 
@@ -108,6 +111,10 @@ export type EncounterActivePlaySurfaceDeps = Pick<
   | 'setSelectedObjectAnchorId'
   | 'objectAnchorHoverCellId'
   | 'setObjectAnchorHoverCellId'
+  | 'selectedDoorCellIdA'
+  | 'setSelectedDoorCellIdA'
+  | 'selectedDoorCellIdB'
+  | 'setSelectedDoorCellIdB'
   | 'suppressSameSideHostile'
   | 'spellsById'
   | 'capabilities'
@@ -123,6 +130,7 @@ export type EncounterActivePlaySurfaceDeps = Pick<
   /** Normalized inputs for contextual prompts (stairs, future portals/objectives). */
   contextualPromptEnvironment?: EncounterContextPromptEnvironment | null
   handleStairTraversal?: (intent: Extract<CombatIntent, { kind: 'stair-traversal' }>) => void
+  handleOpenDoor?: (intent: Extract<CombatIntent, { kind: 'open-door' }>) => CombatIntentResult
   /**
    * Grid-aligned view of encounter state (see {@link resolveViewerSceneEncounterState}). When omitted,
    * defaults to `encounterState`. Mechanics / intents still use authoritative `encounterState` only.
@@ -196,6 +204,10 @@ export function useEncounterActivePlaySurface(
     setSelectedObjectAnchorId,
     objectAnchorHoverCellId,
     setObjectAnchorHoverCellId,
+    selectedDoorCellIdA,
+    setSelectedDoorCellIdA,
+    selectedDoorCellIdB,
+    setSelectedDoorCellIdB,
     suppressSameSideHostile,
     spellsById,
     capabilities,
@@ -205,6 +217,7 @@ export function useEncounterActivePlaySurface(
     contextualStripOverride,
     contextualPromptEnvironment,
     handleStairTraversal,
+    handleOpenDoor,
     presentationEncounterState,
   }: EncounterActivePlaySurfaceDeps,
   options?: UseEncounterActivePlaySurfaceOptions,
@@ -279,6 +292,20 @@ export function useEncounterActivePlaySurface(
       }
     }, 0)
   }, [])
+
+  /** Client-only feedback (e.g. door locked); mirrors log-driven toast queue behavior. */
+  const enqueueManualEncounterToast = useCallback((presentation: EncounterToastPresentation) => {
+    const busy = toastOpenRef.current || toastQueueRef.current.length > 0
+    if (!busy) {
+      setToastPayload(presentation)
+      setToastOpen(true)
+      return
+    }
+    const q = toastQueueRef.current
+    const last = q[q.length - 1]
+    if (last?.dedupeKey !== presentation.dedupeKey) q.push(presentation)
+  }, [])
+
   const [placementError, setPlacementError] = useState<string | null>(null)
   const [singleCellPlacementError, setSingleCellPlacementError] = useState<string | null>(null)
   const [gameOverDismissed, setGameOverDismissed] = useState(false)
@@ -439,6 +466,8 @@ export function useEncounterActivePlaySurface(
       setPlacementError(null)
       setSelectedObjectAnchorId(null)
       setObjectAnchorHoverCellId(null)
+      setSelectedDoorCellIdA(null)
+      setSelectedDoorCellIdB(null)
 
       if (action?.attachedEmanation) {
         if (suppressSameSideHostile && encounterState && activeCombatantId) {
@@ -466,6 +495,31 @@ export function useEncounterActivePlaySurface(
           setInteractionMode('object-anchor-select')
           return
         }
+      }
+
+      if (action?.resolutionMode === 'pick-lock') {
+        setSelectedActionTargetId('')
+        resetAoePlacement()
+        setSingleCellPlacementHoverCellId(null)
+        setSingleCellPlacementError(null)
+        if (!encounterState || !activeCombatantId) {
+          setInteractionMode('select-target')
+          return
+        }
+        const pl = resolvePickLockAvailability(encounterState, activeCombatantId)
+        if (pl.available && pl.legalTargets.length === 1) {
+          const t = pl.legalTargets[0]!
+          setSelectedDoorCellIdA(t.cellIdA)
+          setSelectedDoorCellIdB(t.cellIdB)
+          setInteractionMode('select-target')
+          return
+        }
+        if (pl.available && pl.legalTargets.length > 1) {
+          setInteractionMode('pick-lock-select')
+          return
+        }
+        setInteractionMode('select-target')
+        return
       }
 
       if (isAreaGridAction(action, initialOpts)) {
@@ -510,6 +564,10 @@ export function useEncounterActivePlaySurface(
       setSingleCellPlacementError,
       setSelectedObjectAnchorId,
       setObjectAnchorHoverCellId,
+      setSelectedDoorCellIdA,
+      setSelectedDoorCellIdB,
+      encounterState,
+      activeCombatantId,
       capabilities?.canSelectAction,
     ],
   )
@@ -605,6 +663,8 @@ export function useEncounterActivePlaySurface(
         selectedCasterOptions,
         selectedSingleCellPlacementCellId,
         selectedObjectAnchorId,
+        selectedDoorCellIdA,
+        selectedDoorCellIdB,
         encounterState,
         activeCombatant,
       }),
@@ -619,6 +679,8 @@ export function useEncounterActivePlaySurface(
       selectedCasterOptions,
       selectedSingleCellPlacementCellId,
       selectedObjectAnchorId,
+      selectedDoorCellIdA,
+      selectedDoorCellIdB,
       encounterState,
       activeCombatant,
     ],
@@ -633,6 +695,8 @@ export function useEncounterActivePlaySurface(
         selectedCasterOptions,
         selectedSingleCellPlacementCellId,
         selectedObjectAnchorId,
+        selectedDoorCellIdA,
+        selectedDoorCellIdB,
         encounterState,
         activeCombatant,
       }),
@@ -644,6 +708,8 @@ export function useEncounterActivePlaySurface(
       selectedCasterOptions,
       selectedSingleCellPlacementCellId,
       selectedObjectAnchorId,
+      selectedDoorCellIdA,
+      selectedDoorCellIdB,
       encounterState,
       activeCombatant,
     ],
@@ -656,6 +722,8 @@ export function useEncounterActivePlaySurface(
     setSingleCellPlacementError(null)
     setSelectedObjectAnchorId(null)
     setObjectAnchorHoverCellId(null)
+    setSelectedDoorCellIdA(null)
+    setSelectedDoorCellIdB(null)
     setUnaffectedCombatantIds([])
     setSelectedActionId('')
     setActionDrawerOpen(false)
@@ -665,6 +733,8 @@ export function useEncounterActivePlaySurface(
     setSingleCellPlacementHoverCellId,
     setSelectedObjectAnchorId,
     setObjectAnchorHoverCellId,
+    setSelectedDoorCellIdA,
+    setSelectedDoorCellIdB,
     setUnaffectedCombatantIds,
     setSelectedActionId,
     setActionDrawerOpen,
@@ -773,6 +843,20 @@ export function useEncounterActivePlaySurface(
         return
       }
 
+      if (interactionMode === 'pick-lock-select') {
+        if (!capabilities?.canSelectAction) return
+        if (!encounterState?.space || !encounterState.placements || !activeCombatantId) return
+        const space = encounterState.space
+        const placements = encounterState.placements
+        const actorCell = getCellForCombatant(placements, activeCombatantId, space, encounterState)
+        if (!actorCell) return
+        if (!isPickLockDoorSelectionValid(encounterState, activeCombatantId, actorCell, cellId)) return
+        setSelectedDoorCellIdA(actorCell)
+        setSelectedDoorCellIdB(cellId)
+        setInteractionMode('select-target')
+        return
+      }
+
       if (
         (aoeStep === 'placing' || aoeStep === 'confirm') &&
         selectedAction &&
@@ -833,6 +917,9 @@ export function useEncounterActivePlaySurface(
       setSelectedSingleCellPlacementCellId,
       setSingleCellPlacementError,
       setSelectedObjectAnchorId,
+      setSelectedDoorCellIdA,
+      setSelectedDoorCellIdB,
+      setInteractionMode,
     ],
   )
 
@@ -856,12 +943,18 @@ export function useEncounterActivePlaySurface(
       (activeCombatant?.turnResources?.movementRemaining ?? 0) > 0 &&
       interactionMode !== 'aoe-place' &&
       interactionMode !== 'single-cell-place' &&
-      interactionMode !== 'object-anchor-select',
+      interactionMode !== 'object-anchor-select' &&
+      interactionMode !== 'pick-lock-select',
     [capabilities?.canMoveActiveCombatant, activeCombatant, interactionMode],
   )
 
   const creatureTargetingActive = useMemo(() => {
-    if (interactionMode === 'single-cell-place' || interactionMode === 'object-anchor-select') return false
+    if (
+      interactionMode === 'single-cell-place' ||
+      interactionMode === 'object-anchor-select' ||
+      interactionMode === 'pick-lock-select'
+    )
+      return false
     if (!selectedAction) return false
     if (
       aoeStep !== 'none' &&
@@ -956,12 +1049,34 @@ export function useEncounterActivePlaySurface(
     }
   }, [handleStairTraversal])
 
+  const handleOpenDoorForContextPrompt = useMemo(() => {
+    if (!handleOpenDoor) return undefined
+    return (intent: Extract<CombatIntent, { kind: 'open-door' }>) => {
+      const result: CombatIntentResult = handleOpenDoor(intent)
+      if (!result.ok && result.error.code === 'validation-failed') {
+        const locked = result.error.issues?.some((i) => i.code === 'door-locked')
+        if (locked) {
+          enqueueManualEncounterToast({
+            title: 'Door is locked',
+            children: '',
+            mechanics: undefined,
+            tone: 'warning',
+            variant: 'standard',
+            autoHideDuration: 5000,
+            dedupeKey: `context:door-locked:${performance.now()}`,
+          })
+        }
+      }
+    }
+  }, [handleOpenDoor, enqueueManualEncounterToast])
+
   const contextualPromptStrip = useEncounterContextPromptStrip({
     env: contextualPromptEnvironment ?? null,
     viewerRole: viewerContext.viewerRole ?? 'dm',
     capabilities,
     activeCombatantMovementRemainingFt: activeCombatant?.turnResources?.movementRemaining ?? 0,
     handleStairTraversal: handleStairTraversalForContextPrompt,
+    handleOpenDoor: handleOpenDoorForContextPrompt,
   })
 
   /** Unified under-header strip: exceptional override → shared contextual prompts → default directive. */

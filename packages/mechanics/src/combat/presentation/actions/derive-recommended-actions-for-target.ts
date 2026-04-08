@@ -30,12 +30,21 @@ export function deriveRecommendedActionsForTarget(
 
   const allTreatAsAvailable = availableActionIds == null
 
-  const candidates = actions.filter((a) => {
+  const creatureCandidates = actions.filter((a) => {
     if (!actionRequiresCreatureTargetForResolve(a)) return false
     const resourceAvailable = allTreatAsAvailable || availableActionIds!.has(a.id)
     const validForTarget = validActionIdsForTarget.has(a.id)
     return resourceAvailable && validForTarget
   })
+
+  const pickLockCandidates = actions.filter((a) => {
+    if (a.resolutionMode !== 'pick-lock') return false
+    const resourceAvailable = allTreatAsAvailable || availableActionIds!.has(a.id)
+    const validForTarget = validActionIdsForTarget.has(a.id)
+    return resourceAvailable && validForTarget
+  })
+
+  const candidates = [...creatureCandidates, ...pickLockCandidates]
 
   if (candidates.length === 0) return []
 

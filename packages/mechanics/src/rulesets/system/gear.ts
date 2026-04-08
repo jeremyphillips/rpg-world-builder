@@ -83,7 +83,7 @@ const GEAR_RAW: readonly GearFields[] = [
   { id: 'sealing-wax', name: 'Sealing Wax', category: 'writing-knowledge', weight: { value: 0, unit: 'lb' }, cost: { coin: 'sp', value: 5 } },
   { id: 'chalk', name: 'Chalk (1 piece)', category: 'writing-knowledge', weight: { value: 0, unit: 'lb' }, cost: { coin: 'cp', value: 1 } },
   // KITS & FOCUSES
-  { id: 'thieves-tools', name: "Thieves' Tools", category: 'kits-focuses', weight: { value: 1, unit: 'lb' }, cost: { coin: 'gp', value: 25 }, proficiency: "thieves' tools", description: 'Required for lock/trap checks' },
+  { id: 'thieves-tools', name: "Thieves' Tools", category: 'kits-focuses', weight: { value: 1, unit: 'lb' }, cost: { coin: 'gp', value: 25 }, proficiency: "thieves-tools", description: 'Required for lock/trap checks' },
   { id: 'healers-kit', name: "Healer's Kit", category: 'kits-focuses', weight: { value: 3, unit: 'lb' }, cost: { coin: 'gp', value: 5 }, charges: 10, description: 'Stabilize dying creature without check' },
   { id: 'holy-symbol-amulet', name: 'Holy Symbol, Amulet', category: 'kits-focuses', weight: { value: 1, unit: 'lb' }, cost: { coin: 'gp', value: 5 }, type: 'spellcasting focus' },
   { id: 'holy-symbol-emblem', name: 'Holy Symbol, Emblem', category: 'kits-focuses', weight: { value: 0, unit: 'lb' }, cost: { coin: 'gp', value: 5 }, type: 'spellcasting focus' },

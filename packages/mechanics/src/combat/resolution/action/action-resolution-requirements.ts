@@ -7,6 +7,7 @@ import type { CombatActionDefinition } from '../combat-action.types'
 import type { EncounterState } from '../../state/types'
 import type { CombatantInstance } from '../../state'
 import { isValidActionTarget } from './action-targeting'
+import { isPickLockDoorSelectionValid } from '../../availability/resolve-pick-lock-availability'
 import { getHideActionUnavailableReason } from '../../state/stealth/stealth-rules'
 import {
   getActionRequirements,
@@ -25,6 +26,7 @@ export type ActionResolutionRequirementKind =
   | 'caster-option'
   | 'object-anchor'
   | 'hide-eligibility'
+  | 'door-edge'
   | 'none'
 
 export type ActionResolutionMissing = {
@@ -89,6 +91,9 @@ export function actionRequiresCreatureTargetForResolve(
  * Does not execute resolution — metadata only.
  */
 export function getActionResolutionRequirements(action: CombatActionDefinition): ActionResolutionRequirementKind[] {
+  if (action.resolutionMode === 'pick-lock') {
+    return ['door-edge']
+  }
   if (action.attachedEmanation?.anchorMode === 'place-or-object') {
     return ['caster-option', 'area-selection', 'object-anchor']
   }
@@ -126,6 +131,9 @@ export type ActionResolutionReadinessContext = {
   selectedSingleCellPlacementCellId?: string | null
   /** Grid object id from {@link EncounterSpace.gridObjects} when attached emanation `anchorMode === 'object'`. */
   selectedObjectAnchorId?: string | null
+  /** Door segment for `pick-lock` when multiple adjacent locked doors exist (or auto-filled when one). */
+  selectedDoorCellIdA?: string | null
+  selectedDoorCellIdB?: string | null
   encounterState: EncounterState | null | undefined
   activeCombatant: CombatantInstance | null | undefined
 }
@@ -290,6 +298,16 @@ export function getActionResolutionReadiness(
     const hideReason = getHideActionUnavailableReason(ctx.encounterState, ctx.activeCombatant.instanceId)
     if (hideReason) {
       missingRequirements.push({ kind: 'hide-eligibility', message: hideReason })
+    }
+  }
+
+  if (action.resolutionMode === 'pick-lock' && ctx.encounterState && ctx.activeCombatant) {
+    const a = ctx.selectedDoorCellIdA?.trim()
+    const b = ctx.selectedDoorCellIdB?.trim()
+    if (!a || !b) {
+      missingRequirements.push({ kind: 'door-edge', message: 'Select a locked door' })
+    } else if (!isPickLockDoorSelectionValid(ctx.encounterState, ctx.activeCombatant.instanceId, a, b)) {
+      missingRequirements.push({ kind: 'door-edge', message: 'Invalid door' })
     }
   }
 

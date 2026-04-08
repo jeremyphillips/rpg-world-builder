@@ -53,6 +53,18 @@ export type StairTraversalIntent = {
   destinationEncounterSpace: EncounterSpace
 }
 
+/**
+ * Open a closed interior door on the active combatant's tactical space.
+ * Runtime encounter state only — does not write authored location-map `doorState`.
+ */
+export type OpenDoorIntent = {
+  kind: 'open-door'
+  combatantId: string
+  /** Undirected cell pair; must match an {@link EncounterEdge} between those cells. */
+  cellIdA: string
+  cellIdB: string
+}
+
 export type CombatIntent =
   | EndTurnIntent
   | MoveCombatantIntent
@@ -60,5 +72,6 @@ export type CombatIntent =
   | PlaceAreaIntent
   | ChooseSpawnCellIntent
   | StairTraversalIntent
+  | OpenDoorIntent
 
 export type CombatIntentKind = CombatIntent['kind']

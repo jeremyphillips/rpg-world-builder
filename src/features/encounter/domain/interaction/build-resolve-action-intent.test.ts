@@ -13,6 +13,8 @@ describe('buildResolveActionIntentFromActiveSelection', () => {
       selectedSingleCellPlacementCellId: null,
       unaffectedCombatantIds: ['x'],
       selectedObjectAnchorId: '  obs1  ',
+      selectedDoorCellIdA: null,
+      selectedDoorCellIdB: null,
     })
     expect(intent).toEqual({
       kind: 'resolve-action',

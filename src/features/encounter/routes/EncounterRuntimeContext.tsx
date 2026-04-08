@@ -217,6 +217,7 @@ function useEncounterRuntimeValue() {
     handleResetEncounter: handleResetEncounterBase,
     handleMoveCombatant,
     handleStairTraversal,
+    handleOpenDoor,
     registerCombatLogAppended,
     aoeStep,
     setAoeStep,
@@ -231,6 +232,10 @@ function useEncounterRuntimeValue() {
     setSelectedObjectAnchorId,
     objectAnchorHoverCellId,
     setObjectAnchorHoverCellId,
+    selectedDoorCellIdA,
+    setSelectedDoorCellIdA,
+    selectedDoorCellIdB,
+    setSelectedDoorCellIdB,
   } = useEncounterState({
     selectedCombatantIds,
     opponentRoster,
@@ -627,6 +632,10 @@ function useEncounterRuntimeValue() {
     setSelectedObjectAnchorId,
     objectAnchorHoverCellId,
     setObjectAnchorHoverCellId,
+    selectedDoorCellIdA,
+    setSelectedDoorCellIdA,
+    selectedDoorCellIdB,
+    setSelectedDoorCellIdB,
     suppressSameSideHostile,
     spellsById: catalog.spellsById,
     unresolvedCombatantCount,
@@ -668,6 +677,7 @@ function useEncounterRuntimeValue() {
     registerCombatLogAppended,
     contextualPromptEnvironment,
     handleStairTraversal,
+    handleOpenDoor,
   }
 }
 

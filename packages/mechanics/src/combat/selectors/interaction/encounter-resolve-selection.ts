@@ -5,6 +5,10 @@ import {
   getActionResolutionReadiness,
   actionRequiresCreatureTargetForResolve,
 } from '@/features/mechanics/domain/combat'
+import {
+  pickLockUnavailableReasonToHint,
+  resolvePickLockAvailability,
+} from '../../availability/resolve-pick-lock-availability'
 import type { EncounterState } from '@/features/mechanics/domain/combat'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/combat/resolution/combat-action.types'
 import type { CombatantInstance } from '@/features/mechanics/domain/combat'
@@ -66,6 +70,15 @@ export function selectValidActionIdsForTarget(
     }
   }
 
+  for (const action of availableActions) {
+    if (action.resolutionMode !== 'pick-lock') continue
+    const pickLock = resolvePickLockAvailability(encounterState, activeCombatant.instanceId)
+    if (!pickLock.available) {
+      validIds.delete(action.id)
+      invalidReasons.set(action.id, pickLockUnavailableReasonToHint(pickLock.reason))
+    }
+  }
+
   return { validIds, invalidReasons }
 }
 
@@ -81,6 +94,9 @@ export type CanResolveCombatActionSelectionArgs = {
   selectedSingleCellPlacementCellId?: string | null
   /** Grid obstacle id when attached emanation `anchorMode === 'object'`. */
   selectedObjectAnchorId?: string | null
+  /** Door segment for `pick-lock`. */
+  selectedDoorCellIdA?: string | null
+  selectedDoorCellIdB?: string | null
   encounterState: EncounterState | null | undefined
   activeCombatant: CombatantInstance | null | undefined
 }
@@ -97,6 +113,8 @@ export function canResolveCombatActionSelection(args: CanResolveCombatActionSele
     selectedCasterOptions,
     selectedSingleCellPlacementCellId,
     selectedObjectAnchorId,
+    selectedDoorCellIdA,
+    selectedDoorCellIdB,
     encounterState,
     activeCombatant,
   } = args
@@ -110,6 +128,8 @@ export function canResolveCombatActionSelection(args: CanResolveCombatActionSele
     selectedCasterOptions,
     selectedSingleCellPlacementCellId,
     selectedObjectAnchorId,
+    selectedDoorCellIdA,
+    selectedDoorCellIdB,
     encounterState,
     activeCombatant,
   }).canResolve

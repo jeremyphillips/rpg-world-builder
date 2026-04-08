@@ -21,6 +21,7 @@ import { getAbilityScoreValue } from '@/features/mechanics/domain/character/abil
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
 import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog'
 import type { RulesetLike } from '@/features/mechanics/domain/rulesets/types/ruleset.types'
+import { DEFAULT_PICK_LOCK_COMBAT_ACTION } from '@/features/mechanics/domain/combat/resolution/combat-action.types'
 import type { CombatantInstance, CombatantSide } from '@/features/mechanics/domain/combat'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import {
@@ -76,7 +77,7 @@ export function buildCharacterCombatantForGameSession(args: {
     character,
     combatStats,
     attacks,
-    extraActions: [...spellActions, ...skillAffordanceActions],
+    extraActions: [...spellActions, ...skillAffordanceActions, DEFAULT_PICK_LOCK_COMBAT_ACTION],
     turnHooks,
   })
 }

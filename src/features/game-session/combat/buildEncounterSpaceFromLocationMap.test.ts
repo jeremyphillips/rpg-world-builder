@@ -118,6 +118,8 @@ describe('buildEncounterSpaceFromLocationMap', () => {
     const doorEdge = space.edges?.find((e) => e.fromCellId === 'c-0-0' && e.toCellId === 'c-1-0')
     expect(doorEdge?.blocksMovement).toBe(true)
     expect(doorEdge?.blocksSight).toBe(true)
+    expect(doorEdge?.mapEdgeId).toBe('between:0,0|1,0')
+    expect(doorEdge?.doorState?.openState).toBe('closed')
   })
 
   it('open door edge does not block movement or sight', () => {
@@ -148,5 +150,8 @@ describe('buildEncounterSpaceFromLocationMap', () => {
     const doorEdge = space.edges?.find((e) => e.fromCellId === 'c-0-0' && e.toCellId === 'c-1-0')
     expect(doorEdge?.blocksMovement).toBe(false)
     expect(doorEdge?.blocksSight).toBe(false)
+    expect(doorEdge?.mapEdgeId).toBe('between:0,0|1,0')
+    expect(doorEdge?.doorState?.openState).toBe('open')
+    expect(doorEdge?.doorState?.lockState).toBe('locked')
   })
 })

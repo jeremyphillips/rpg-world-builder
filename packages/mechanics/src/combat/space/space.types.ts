@@ -1,6 +1,7 @@
 import type { AuthoredPlacedObjectInteraction } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry';
 import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
+import type { ResolvedAuthoredDoorState } from '@/shared/domain/locations/map/locationMapDoorAuthoring.helpers';
 
 export type EncounterSpaceMode =
   | 'zone-grid'
@@ -131,6 +132,15 @@ export type EncounterEdge = {
   movementCost?: number;
   blocksMovement?: boolean;
   blocksSight?: boolean;
+  /**
+   * Stable id from location map `edgeEntries[].edgeId` when this segment was hydrated from authoring.
+   * Preferred identity for future door-edge intents (open/close/unlock).
+   */
+  mapEdgeId?: string;
+  /** Optional override for Pick Lock DC on this edge (default 15 when omitted). */
+  lockPickDc?: number;
+  /** Sanitized open/lock snapshot for door segments; drives Phase 1 open interaction (runtime only). */
+  doorState?: ResolvedAuthoredDoorState;
 };
 
 export type EncounterFeature = {

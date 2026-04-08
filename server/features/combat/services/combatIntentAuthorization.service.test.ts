@@ -231,6 +231,25 @@ describe('authorizeCombatIntentForGameSession', () => {
     expect(r).toEqual({ allowed: true })
   })
 
+  it('allows DM open-door for active combatant', () => {
+    const gs = baseGameSession({
+      participants: [{ userId: 'user-dm', characterId: null, role: 'dm' }],
+    })
+    const intent: CombatIntent = {
+      kind: 'open-door',
+      combatantId: 'm1',
+      cellIdA: 'c-0-0',
+      cellIdB: 'c-1-0',
+    }
+    const r = authorizeCombatIntentForGameSession({
+      userId: 'user-dm',
+      state: encounterMonsterActive(),
+      intent,
+      gameSession: gs,
+    })
+    expect(r).toEqual({ allowed: true })
+  })
+
   it('denies non-controlling player for move-combatant on monster', () => {
     const gs = baseGameSession({
       participants: [{ userId: 'u-pl', characterId: 'char-rogue', role: 'player' }],

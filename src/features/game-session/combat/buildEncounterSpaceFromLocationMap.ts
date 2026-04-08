@@ -17,6 +17,7 @@ import {
   buildGridObjectsFromLocationMapCellEntries,
 } from './hydrateGridObjectsFromLocationMap'
 import { parseSquareEdgeId } from '@/shared/domain/grid/gridEdgeIds'
+import { sanitizeAuthoredDoorState } from '@/shared/domain/locations/map/locationMapDoorAuthoring.helpers'
 
 export { authorCellIdToCombatCellId } from './encounterMapCellIds'
 
@@ -38,10 +39,13 @@ function edgeToEncounterEdge(
 ): EncounterEdge {
   switch (kind) {
     case 'door': {
-      const rt =
-        mapEntry != null && isLocationMapEdgeEntryDoorInstance(mapEntry)
-          ? resolveDoorRuntimeFromState(DOOR_BASE_RUNTIME, mapEntry.doorState)
-          : resolveDoorRuntimeFromState(DOOR_BASE_RUNTIME, undefined)
+      const doorState = sanitizeAuthoredDoorState(
+        mapEntry != null && isLocationMapEdgeEntryDoorInstance(mapEntry) ? mapEntry.doorState : undefined,
+      )
+      const rt = resolveDoorRuntimeFromState(DOOR_BASE_RUNTIME, {
+        openState: doorState.openState,
+        lockState: doorState.lockState,
+      })
       return {
         fromCellId: fromCombat,
         toCellId: toCombat,
@@ -49,6 +53,8 @@ function edgeToEncounterEdge(
         bidirectional: true,
         blocksMovement: rt.blocksMovement,
         blocksSight: rt.blocksLineOfSight,
+        mapEdgeId: mapEntry?.edgeId,
+        doorState,
       }
     }
     case 'window':

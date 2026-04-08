@@ -1,3 +1,4 @@
+export * from '../availability/resolve-pick-lock-availability'
 export * from './combat-action.types'
 export * from '../../spells/caster-options'
 export * from './action-resolution.types'

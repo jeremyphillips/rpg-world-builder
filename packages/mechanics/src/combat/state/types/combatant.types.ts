@@ -294,6 +294,8 @@ export type CombatantEquipmentSnapshot = {
   mainHandWeaponId?: string | null
   offHandWeaponId?: string | null
   shieldId?: string | null
+  /** Gear item ids carried (e.g. `thieves-tools`); populated from character equipment for PCs/NPCs. */
+  gearIds?: string[]
 }
 
 /** Physical remains after death — drives resurrection / animate targeting. */
@@ -424,6 +426,11 @@ export interface CombatantInstance {
   diedAtRound?: number
   /** When set (e.g. from character loadout), enables authored `effect.condition` gates that read `equipment.armorEquipped`. */
   equipment?: CombatantEquipmentSnapshot
+  /**
+   * Tool proficiencies granted at combatant build (e.g. from class definitions). Used for Pick Lock eligibility.
+   * Ids align with system gear / class `proficiencies.tools.items` (e.g. `thieves-tools`).
+   */
+  grantedToolProficiencies?: readonly string[]
   stats: CombatantStatBlock
   attacks: CombatantAttackEntry[]
   actions?: CombatActionDefinition[]

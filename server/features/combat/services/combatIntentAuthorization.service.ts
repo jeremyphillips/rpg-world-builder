@@ -79,7 +79,8 @@ export function authorizeCombatIntentForGameSession(params: {
       return { allowed: true }
     }
     case 'move-combatant':
-    case 'stair-traversal': {
+    case 'stair-traversal':
+    case 'open-door': {
       if (!controlled.includes(intent.combatantId)) return { allowed: false }
       return { allowed: true }
     }

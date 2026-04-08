@@ -26,6 +26,9 @@ export interface ResolveCombatActionSelection {
    * Grid object id (`EncounterSpace.gridObjects`) when {@link CombatActionDefinition.attachedEmanation}.`anchorMode === 'object'`.
    */
   objectId?: string
+  /** Door segment for `pick-lock` resolution — must match an adjacent locked door edge. */
+  doorCellIdA?: string
+  doorCellIdB?: string
 }
 
 export interface ResolveCombatActionOptions {

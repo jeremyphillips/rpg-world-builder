@@ -23,6 +23,9 @@ import {
   type RuntimeTurnHook,
 } from '@/features/mechanics/domain/combat'
 
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
+import { collectGrantedToolProficienciesFromClassLevels } from '@/features/mechanics/domain/rulesets/system/toolProficiencies'
+
 import { deriveHideEligibilityFeatureFlagsFromCharacterDetail } from './derive-hide-eligibility-from-authored'
 import { getCombatantPortraitImageKey } from './getCombatantPortraitImageKey'
 
@@ -162,6 +165,12 @@ export function buildCharacterCombatantInstance(args: {
 
   const hideEligibilityFromFeats = deriveHideEligibilityFeatureFlagsFromCharacterDetail(character)
 
+  const grantedToolProficiencies = collectGrantedToolProficienciesFromClassLevels(
+    character.classes.map((c) => ({ classId: c.classId, level: c.level })),
+    DEFAULT_SYSTEM_RULESET_ID,
+  )
+  const gearIds = character.equipment.gear.map((g) => g.id)
+
   return {
     instanceId: runtimeId,
     side,
@@ -177,7 +186,9 @@ export function buildCharacterCombatantInstance(args: {
       mainHandWeaponId: character.combat?.loadout?.mainHandWeaponId ?? null,
       offHandWeaponId: character.combat?.loadout?.offHandWeaponId ?? null,
       shieldId: character.combat?.loadout?.shieldId ?? null,
+      gearIds,
     },
+    grantedToolProficiencies,
     stats: {
       armorClass: combatStats.armorClass,
       maxHitPoints: character.hitPoints.total,

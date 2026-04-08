@@ -13,6 +13,8 @@ export type BuildResolveActionIntentArgs = {
   selectedSingleCellPlacementCellId: string | null
   unaffectedCombatantIds: string[]
   selectedObjectAnchorId: string | null
+  selectedDoorCellIdA: string | null
+  selectedDoorCellIdB: string | null
 }
 
 export function buildResolveActionIntentFromActiveSelection(
@@ -28,5 +30,7 @@ export function buildResolveActionIntentFromActiveSelection(
     singleCellPlacementCellId: args.selectedSingleCellPlacementCellId || undefined,
     unaffectedCombatantIds: args.unaffectedCombatantIds,
     objectId: args.selectedObjectAnchorId?.trim() || undefined,
+    doorCellIdA: args.selectedDoorCellIdA?.trim() || undefined,
+    doorCellIdB: args.selectedDoorCellIdB?.trim() || undefined,
   }
 }

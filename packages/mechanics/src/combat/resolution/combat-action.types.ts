@@ -11,7 +11,13 @@ export type CombatActionKind =
   | 'spell'
   | 'combat-effect'
 
-export type CombatActionResolutionMode = 'attack-roll' | 'saving-throw' | 'effects' | 'log-only' | 'hide'
+export type CombatActionResolutionMode =
+  | 'attack-roll'
+  | 'saving-throw'
+  | 'effects'
+  | 'log-only'
+  | 'hide'
+  | 'pick-lock'
 
 export interface CombatActionCost {
   action?: boolean
@@ -206,5 +212,15 @@ export const DEFAULT_HIDE_COMBAT_ACTION: CombatActionDefinition = {
   kind: 'combat-effect',
   cost: { action: true },
   resolutionMode: 'hide',
+  targeting: { kind: 'self' },
+}
+
+/** Pick Lock: Dex + PB vs DC; supply `doorCellIdA` / `doorCellIdB` on the resolve selection. */
+export const DEFAULT_PICK_LOCK_COMBAT_ACTION: CombatActionDefinition = {
+  id: 'pick-lock',
+  label: 'Pick Lock',
+  kind: 'combat-effect',
+  cost: { action: true },
+  resolutionMode: 'pick-lock',
   targeting: { kind: 'self' },
 }

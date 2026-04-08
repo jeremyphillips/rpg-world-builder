@@ -43,7 +43,12 @@ import type { EncounterState } from '../../state/types'
 import type { ResolveCombatActionSelection, ResolveCombatActionOptions } from '../action-resolution.types'
 import { resolveAttachedEmanationAnchorModeFromSelection } from './area-grid-action'
 import { findGridObjectById } from '@/features/mechanics/domain/combat/space/space.helpers'
+import { isPickLockDoorSelectionValid } from '../../availability/resolve-pick-lock-availability'
+import { getEncounterSpaceForCombatant, getSpacesRegistry, syncEncounterSpaceToActiveCombatant } from '../../space/encounter-spaces'
+import { findEncounterEdgeBetween } from '../../space/spatial/edgeCrossing'
+import { withDoorUnlockedOnSpace, resolveDoorLockPickDc } from '../../space/pick-lock-door'
 import { formatCasterOptionSummary } from '../../../spells/caster-options'
+import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
 import {
   rollDamage,
   resolveD20RollMode,
@@ -706,6 +711,61 @@ function resolveCombatActionInternal(
         details: action.logText,
       })
     }
+  } else if (action.resolutionMode === 'pick-lock') {
+    const cellA = selection.doorCellIdA?.trim()
+    const cellB = selection.doorCellIdB?.trim()
+    if (!cellA || !cellB || !isPickLockDoorSelectionValid(nextState, actor.instanceId, cellA, cellB)) {
+      nextState = appendEncounterLogEvent(nextState, {
+        type: 'action-resolved',
+        actorId: actor.instanceId,
+        round: state.roundNumber,
+        turn: state.turnIndex + 1,
+        summary: `${getEncounterCombatantLabel(state, actor.instanceId)} cannot pick this lock (invalid or out of reach).`,
+        details: 'Choose a locked door adjacent to your space.',
+      })
+      return { state: nextState, createdMarkerIds: [] }
+    }
+
+    const space = getEncounterSpaceForCombatant(nextState, actor.instanceId)
+    const edge = space ? findEncounterEdgeBetween(space, cellA, cellB) : undefined
+    if (!space || !edge || edge.kind !== 'door') {
+      return { state: nextState, createdMarkerIds: [] }
+    }
+
+    const dc = resolveDoorLockPickDc(edge)
+    const dexMod = getAbilityModifier(actor.stats.dexterityScore ?? 10)
+    const pb = actor.stats.skillRuntime?.proficiencyBonus ?? 0
+    const { rawRoll, detail: rollDetail } = rollD20WithRollMode(resolveD20RollMode([]), rng)
+    const total = rawRoll + dexMod + pb
+    const success = total >= dc
+
+    let details = `Dexterity check: ${rollDetail} + ${dexMod} (Dex) + ${pb} (PB) = ${total} vs DC ${dc}.`
+    if (success) {
+      const updatedSpace = withDoorUnlockedOnSpace(space, cellA, cellB)
+      const registry = { ...getSpacesRegistry(nextState), [updatedSpace.id]: updatedSpace }
+      nextState = {
+        ...nextState,
+        spacesById: registry,
+      }
+      nextState = syncEncounterSpaceToActiveCombatant(nextState)
+      details += ' The lock opens; the door stays closed.'
+    } else {
+      details += ' The lock is unchanged.'
+    }
+
+    const actorLabel = getEncounterCombatantLabel(state, actor.instanceId)
+    const summary = success
+      ? `${actorLabel} picks the lock (${total} vs DC ${dc}).`
+      : `${actorLabel} fails to pick the lock (${total} vs DC ${dc}).`
+
+    nextState = appendEncounterLogEvent(nextState, {
+      type: 'action-resolved',
+      actorId: actor.instanceId,
+      round: state.roundNumber,
+      turn: state.turnIndex + 1,
+      summary,
+      details,
+    })
   } else {
     nextState = appendEncounterLogEvent(nextState, {
       type: action.kind === 'spell' ? 'spell-logged' : 'action-resolved',

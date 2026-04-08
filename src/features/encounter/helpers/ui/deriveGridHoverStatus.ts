@@ -9,6 +9,7 @@ import {
   getSingleCellPlacementRequirement,
   validateSingleCellPlacement,
 } from '@/features/mechanics/domain/combat/resolution/action/action-requirement-model'
+import { isPickLockDoorSelectionValid } from '@/features/mechanics/domain/combat'
 import {
   getCellById,
   getCellForCombatant,
@@ -118,6 +119,14 @@ export function deriveGridHoverStatusMessage(params: {
     const obs = objects.find((o) => o.cellId === hoveredCellId)
     if (!obs) return 'Select a battlefield object'
     return null
+  }
+
+  if (interactionMode === 'pick-lock-select') {
+    const actorCell = getCellForCombatant(placements, activeCombatantId, space, encounterState)
+    if (!actorCell) return null
+    if (hoveredCellId === actorCell) return 'Select adjacent locked door'
+    if (isPickLockDoorSelectionValid(encounterState, activeCombatantId, actorCell, hoveredCellId)) return null
+    return 'Not a valid locked door'
   }
 
   if (

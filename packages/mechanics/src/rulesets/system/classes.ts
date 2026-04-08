@@ -142,6 +142,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       skills: { type: 'choice', choose: 4, level: 1 },
       weapons: { type: 'fixed', level: 1, categories: ['simple'] },
       armor: { type: 'fixed', level: 1, categories: ['light'] },
+      tools: { type: 'fixed', level: 1, items: ['thieves-tools'] },
     },
     requirements: { allowedRaces: 'all', allowedAlignments: 'any' },
   },

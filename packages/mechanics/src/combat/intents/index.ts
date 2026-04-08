@@ -4,6 +4,7 @@ export type {
   CombatIntentKind,
   EndTurnIntent,
   MoveCombatantIntent,
+  OpenDoorIntent,
   PlaceAreaIntent,
   ResolveActionIntent,
   StairTraversalIntent,

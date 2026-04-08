@@ -43,6 +43,8 @@ function deriveCategory(action: CombatActionDefinition): ActionSemanticCategory 
     return 'attack'
   }
 
+  if (action.resolutionMode === 'pick-lock') return 'utility'
+
   return 'utility'
 }
 

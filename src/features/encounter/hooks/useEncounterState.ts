@@ -42,7 +42,7 @@ import { buildResolveActionIntentFromActiveSelection } from '../domain/interacti
 import { postPersistedCombatIntent } from '@/features/combat/api/combatSessionApi'
 import type { OpponentRosterEntry } from '../types'
 import type { EncounterSpace, InitialPlacementOptions } from '@/features/mechanics/domain/combat/space'
-import type { CombatIntentSuccess } from '@/features/mechanics/domain/combat/results'
+import type { CombatIntentResult, CombatIntentSuccess } from '@/features/mechanics/domain/combat/results'
 
 type UseEncounterStateArgs = {
   selectedCombatantIds: string[]
@@ -120,6 +120,9 @@ export function useEncounterState({
   /** `EncounterSpace.gridObjects` id for attached emanation `anchorMode === 'object'`. */
   const [selectedObjectAnchorId, setSelectedObjectAnchorId] = useState<string | null>(null)
   const [objectAnchorHoverCellId, setObjectAnchorHoverCellId] = useState<string | null>(null)
+  /** Adjacent door segment for `pick-lock` resolve (`cellId` pair matching an edge). */
+  const [selectedDoorCellIdA, setSelectedDoorCellIdA] = useState<string | null>(null)
+  const [selectedDoorCellIdB, setSelectedDoorCellIdB] = useState<string | null>(null)
 
   const resetAoePlacement = useCallback(() => {
     setAoeStep('none')
@@ -412,6 +415,8 @@ export function useEncounterState({
       selectedSingleCellPlacementCellId,
       unaffectedCombatantIds,
       selectedObjectAnchorId,
+      selectedDoorCellIdA,
+      selectedDoorCellIdB,
     })
     const context: ApplyCombatIntentContext = {
       resolveCombatActionOptions: { monstersById, buildSummonAllyCombatant },
@@ -429,6 +434,8 @@ export function useEncounterState({
     setSelectedObjectAnchorId(null)
     setObjectAnchorHoverCellId(null)
     setUnaffectedCombatantIds([])
+    setSelectedDoorCellIdA(null)
+    setSelectedDoorCellIdB(null)
   }, [
     selectedActionId,
     selectedActionTargetId,
@@ -436,6 +443,8 @@ export function useEncounterState({
     aoeOriginCellId,
     selectedSingleCellPlacementCellId,
     selectedObjectAnchorId,
+    selectedDoorCellIdA,
+    selectedDoorCellIdB,
     unaffectedCombatantIds,
     monstersById,
     buildSummonAllyCombatant,
@@ -592,6 +601,27 @@ export function useEncounterState({
     syncPersistedAfterApply(intent, context)
   }
 
+  function handleOpenDoor(intent: Extract<CombatIntent, { kind: 'open-door' }>): CombatIntentResult {
+    const prev = encounterStateRef.current
+    if (!prev?.activeCombatantId) {
+      return {
+        ok: false,
+        error: {
+          code: 'no-encounter-state',
+          message: 'No encounter state loaded; cannot apply combat intent.',
+        },
+      }
+    }
+    const context: ApplyCombatIntentContext = {}
+    const result = applyCombatIntent(prev, intent, context)
+    if (!result.ok) return result
+    encounterStateRef.current = result.nextState
+    setEncounterState(result.nextState)
+    notifyLogAppendedFromIntentSuccess(result)
+    syncPersistedAfterApply(intent, context)
+    return result
+  }
+
   function handleMonsterManualTriggerChange(
     runtimeId: string,
     trigger: keyof ManualMonsterTriggerContext,
@@ -636,6 +666,10 @@ export function useEncounterState({
     setSelectedObjectAnchorId,
     objectAnchorHoverCellId,
     setObjectAnchorHoverCellId,
+    selectedDoorCellIdA,
+    setSelectedDoorCellIdA,
+    selectedDoorCellIdB,
+    setSelectedDoorCellIdB,
     unresolvedCombatantCount,
     selectedCombatants,
     controlTargetId,
@@ -676,6 +710,7 @@ export function useEncounterState({
     handleTriggerReducedToZeroHook,
     handleMoveCombatant,
     handleStairTraversal,
+    handleOpenDoor,
     handleMonsterFormChange,
     handleMonsterManualTriggerChange,
     registerCombatLogAppended,
