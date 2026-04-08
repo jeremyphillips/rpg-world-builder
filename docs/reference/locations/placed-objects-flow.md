@@ -104,6 +104,18 @@ flowchart LR
 - **Footprint math:** `shared/domain/locations/map/placedObjectFootprintLayout.ts`, `placedObjectPlacementAnchorLayout.ts`; **authoring `cellUnit`:** `resolveAuthoringCellUnitFeetPerCell` (`locationCellUnitAuthoring`).
 - **Display:** `PlacedObjectCellVisualDisplay.tsx` — `<img>` with **`object-fit: contain`** (`placedObjectMapSprite.constants.ts`).
 
+### Multi-cell footprint layout and interaction risks
+
+Registry **footprint** (feet) maps to a pixel layout box via **`computePlacedObjectFootprintMaxExtentPx`** + **`resolvePlacedObjectFootprintLayoutPx`**. The **major axis** (max of width/depth for rects, diameter for circles) in “cells” is `majorFt / feetPerCell`; the allowed **`maxExtentPx`** grows with that span (up to **`PLACED_OBJECT_FOOTPRINT_MAX_EXTENT_CELLS`**, e.g. 6 cells) so wide objects are not forced into a single **`cellPx`** square.
+
+**Risks (documented for contributors and future hit-testing work):**
+
+- **DOM / ownership:** Rasters still mount under the **anchor** cell’s overlay. Visual overflow into **neighbors** is expected; there is no separate DOM node per covered cell.
+- **Pointer / selection:** Select mode and **`[data-map-object-id]`** targets are **not** a full multi-cell hit mesh. Clicks on the **neighbor** cell may not select the object whose art overlaps that cell; conversely, transparent padding around the image can still affect hit targets depending on wrapper **`pointer-events`**.
+- **Stacking:** Z-order follows **cell render order**; large sprites can paint **over** adjacent terrain, paths, or icons in ways that feel arbitrary without a dedicated multi-cell layer policy.
+- **Combat:** Same resolver path; large sprites may crowd **tokens** or adjacent underlays.
+- **Sprite fit:** **`object-fit: contain`** still letterboxes art inside the layout box if PNG aspect ≠ footprint aspect — a large box does not guarantee a large painted sprite.
+
 ---
 
 ## 7. Where it renders

@@ -4,7 +4,10 @@
  */
 import type { LocationMapObjectKindId } from '@/shared/domain/locations';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
-import { resolvePlacedObjectFootprintLayoutPx } from '@/shared/domain/locations/map/placedObjectFootprintLayout';
+import {
+  computePlacedObjectFootprintMaxExtentPx,
+  resolvePlacedObjectFootprintLayoutPx,
+} from '@/shared/domain/locations/map/placedObjectFootprintLayout';
 import { resolvePlacedObjectCellAnchorOffsetPx } from '@/shared/domain/locations/map/placedObjectPlacementAnchorLayout';
 
 import type { LocationPlacedObjectKindId } from '../../model/placedObjects/locationPlacedObject.registry';
@@ -33,6 +36,8 @@ export type PlacedObjectCellVisual = {
   /**
    * When set with `layoutHeightPx`, raster uses this box (Phase 3 footprint layout).
    * Omitted for legacy fixed token sizing or when footprint / cell span is unavailable.
+   * May exceed `cellPx` when the registry footprint spans multiple cells — see footprint layout JSDoc
+   * and `placed-objects-flow.md` (interaction risks).
    */
   layoutWidthPx?: number;
   layoutHeightPx?: number;
@@ -41,7 +46,14 @@ export type PlacedObjectCellVisual = {
   layoutAnchorOffsetYPx?: number;
 };
 
-/** Square-grid context for registry footprint → pixel layout (Phase 3) + anchor (Phase 5). */
+/**
+ * Square-grid context for registry footprint → pixel layout (Phase 3) + anchor (Phase 5).
+ *
+ * **Interaction note:** Footprint layout may exceed one cell in px; rasters are still mounted on the
+ * **author** cell’s overlay. Larger `layoutWidthPx` / `layoutHeightPx` can paint into neighbor cells.
+ * Selection and `[data-map-object-id]` hit targets may not align with visual overlap — see
+ * `placed-objects-flow.md` (multi-cell footprint risks).
+ */
 export type PlacedObjectCellVisualFootprintLayoutContext = {
   feetPerCell: number;
   cellPx: number;
@@ -89,11 +101,16 @@ function applyFootprintLayout(
 ): PlacedObjectCellVisual {
   const fp = getPlacedObjectFootprintForFamilyVariant(kind, variantId);
   if (!fp) return visual;
+  const maxExtentPx = computePlacedObjectFootprintMaxExtentPx({
+    footprint: fp,
+    feetPerCell: layout.feetPerCell,
+    cellPx: layout.cellPx,
+  });
   const { widthPx, heightPx } = resolvePlacedObjectFootprintLayoutPx({
     footprint: fp,
     feetPerCell: layout.feetPerCell,
     cellPx: layout.cellPx,
-    maxExtentPx: layout.cellPx,
+    maxExtentPx,
   });
   if (widthPx <= 0 || heightPx <= 0) return visual;
   let out: PlacedObjectCellVisual = { ...visual, layoutWidthPx: widthPx, layoutHeightPx: heightPx };

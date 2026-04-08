@@ -104,7 +104,7 @@ export function buildSquareAuthoringCellVisualParts(
     borderStyle: excluded && !selected ? 'dashed' : 'solid',
     bgcolor: 'transparent',
     position: 'relative',
-    overflow: 'hidden',
+    // overflow: 'hidden' — disabled: clips placed-object rasters that extend past one cell (multi-cell footprint layout).
     flex: 1,
     alignSelf: 'stretch',
     minHeight: 0,
@@ -225,7 +225,7 @@ export function buildHexAuthoringCellVisualParts(
     flexDirection: 'column',
     alignItems: 'stretch',
     justifyContent: 'stretch',
-    overflow: 'hidden',
+    // overflow: 'hidden' — disabled: clips placed-object rasters that extend past one cell (multi-cell footprint layout).
     minHeight: 0,
     boxSizing: 'border-box',
   };

@@ -71,9 +71,9 @@ describe('resolvePlacedObjectCellVisualFromRenderItem', () => {
       },
       { feetPerCell: 5, cellPx: 50 },
     );
-    // 10×4 ft spans two cells wide — uniform scale clamps to cellPx; differs from 5×3 rect (50×30).
-    expect(v.layoutWidthPx).toBeCloseTo(50);
-    expect(v.layoutHeightPx).toBeCloseTo(20);
+    // 10×4 ft @ 5 ft/cell → major axis 2 cells → maxExtent allows 100×40 (not shrunk to 50×20).
+    expect(v.layoutWidthPx).toBeCloseTo(100);
+    expect(v.layoutHeightPx).toBeCloseTo(40);
   });
 
   it('applies Phase 5 placement anchor offset when gutter is provided (large table east edge)', () => {
