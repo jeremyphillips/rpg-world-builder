@@ -5,7 +5,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 import type { CellSelectionInspectorProps } from '../inspectors/CellSelectionInspector';
 import { SelectionTab } from '../SelectionTab';
-import type { StairWorkspaceInspect } from '../inspectors/LocationMapSelectionInspectors';
+import type { StairWorkspaceInspect } from '../inspectors/selectionInspectorTypes';
 
 const theme = createTheme();
 

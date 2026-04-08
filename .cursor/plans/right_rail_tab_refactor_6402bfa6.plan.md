@@ -1,33 +1,36 @@
 ---
 name: Right rail tab refactor
-overview: Reorganize `rightRail/` under `tabs/location` and `tabs/selection`; migrate the shared shell in two steps (rename/move, then optional children-based API); introduce `SelectionTab` and form-safe presentational `LocationTab`; split inspectors incrementally; optional exemplar view-model builders; keep `adapters/` at rail root; use temporary re-exports then remove shims in cleanup; update location-workspace.md—without a Map tab or duplicated selection forms.
+overview: "Complete: `tabs/location` + `tabs/selection`, `SelectionTab`, `CellSelectionInspector`, `SelectionRailTemplate` + children API, `location-workspace.md`, shim removal, **split map inspectors** (`LocationMapObjectInspector`, `LocationMapPathInspector`, `LocationMapEdgeInspectors`, `selectionInspectorTypes`, `inspectors/index`), and **`tabs/selection/fields/`** (linked picker, stair endpoint/pairing UI, edge label + small label modules)."
 todos:
   - id: scaffold-tabs
     content: Create rightRail/tabs/location and tabs/selection; git-mv selection/*, panels/Cell panel, and tests with import fixes + rightRail/index + workspace/components barrels
-    status: pending
+    status: completed
   - id: shell-rename-move
     content: "Step 1 (shell): rename/move PlacedObjectRailTemplate → SelectionRailTemplate, helpers → selectionRail.helpers, metadata rows component; preserve existing props API unless diff is trivially small"
-    status: pending
+    status: completed
   - id: shell-api-children
     content: "Step 2 (shell): simplify SelectionRailTemplate toward children-based specialty (e.g. collapse label/linked props into children); separate commit/PR from step 1 if step 1 is already large"
-    status: pending
+    status: completed
   - id: selection-tab
-    content: LocationEditorSelectionPanel → SelectionTab; wire EdgeRun as its own inspector file; update LocationEditWorkspaceSelectionRailPanel + tests
-    status: pending
-  - id: split-inspectors
-    content: Split LocationMapSelectionInspectors.tsx into inspectors/*.tsx; extract stair/region/edge fragments into tabs/selection/fields/
-    status: pending
-  - id: view-models
-    content: Add shared SelectionRailViewModel type where useful; keep exemplar builders (e.g. cell fill); do not require every inspector to adopt buildX in this pass
-    status: pending
+    content: SelectionTab + CellSelectionInspector; update LocationEditWorkspaceSelectionRailPanel + tests
+    status: completed
   - id: location-tab
     content: Extract LocationTab (+ SystemLocationTab) with presentational sections/; preserve RHF submit/validation for homebrew + system-patch (one form boundary per mode)
-    status: pending
+    status: completed
   - id: docs
     content: Update docs/reference/location-workspace.md paths and component names for right-rail layout
-    status: pending
+    status: completed
   - id: remove-shims
-    content: After tab-first structure stabilizes, remove compatibility re-exports (LocationEditorSelectionPanel, LocationCellAuthoringPanel aliases, etc.) in a dedicated cleanup pass
+    content: Remove compatibility re-exports (old panel aliases, PlacedObject* template shims)
+    status: completed
+  - id: split-inspectors-files
+    content: "Follow-up 1: Split LocationMapSelectionInspectors.tsx into per-entity files under inspectors/; optional barrel index; keep public exports stable for SelectionTab"
+    status: completed
+  - id: selection-fields-extract
+    content: "Follow-up 2: Add tabs/selection/fields/ for reusable or isolated specialty UI only (not adapters, templates, or full inspector orchestration); extract stair/linked/edge-label chunks from inspectors"
+    status: completed
+  - id: view-models
+    content: Add shared SelectionRailViewModel type where useful; keep exemplar builders (e.g. cell fill); do not require every inspector to adopt buildX
     status: pending
 isProject: false
 ---
@@ -54,8 +57,8 @@ Execute in this order to keep diffs reviewable and tests green at each checkpoin
 | **A — Scaffold** | Create `tabs/location/` and `tabs/selection/`; move files with `git mv`; fix relative imports | New tree; no behavior change | — |
 | **B — Shell step 1** | Rename/move template + helpers + metadata rows component; optional `PlacedObjectRailTemplate` → `SelectionRailTemplate` **alias export** in old path if needed | Neutral names; **same props** as today | A |
 | **C — Selection composition** | `LocationEditorSelectionPanel` → `SelectionTab`; `LocationCellAuthoringPanel` → `CellSelectionInspector`; thin re-exports from `rightRail/index.ts` | Dispatcher + cell inspector at new paths; shims | A, B |
-| **D — Split inspectors** | Break up `LocationMapSelectionInspectors.tsx` into `inspectors/*.tsx`; optional `LocationMapSelectionInspectors.ts` barrel re-exporting old names | Smaller files; same exports | C |
-| **E — Specialty fields** | Move stair/region/edge fragments into `tabs/selection/fields/` as needed | Clearer ownership; no adapter moves | D (can overlap lightly with D) |
+| **D — Split inspectors** | Break up `LocationMapSelectionInspectors.tsx` into `inspectors/*.tsx`; optional barrel re-exporting public API | Smaller files; same exports | C — **done** |
+| **E — Specialty fields** | Move stair/linked/edge-label fragments into `tabs/selection/fields/` | Clearer ownership; no adapter moves | D preferred; light overlap OK — **done** |
 | **F — Location tab** | Extract `LocationTab` / `SystemLocationTab`; presentational `sections/`; wire from edit workspaces | Form-safe Location panel | A (independent of B–E if desired) |
 | **G — Shell step 2** | Children-based `SelectionRailTemplate` API (optional separate PR) | Simpler template props | B stable |
 | **H — View models** | Shared `SelectionRailViewModel` type + exemplar builders only where useful | Less duplication in hot paths | B or G depending on touch points |
@@ -66,7 +69,78 @@ Execute in this order to keep diffs reviewable and tests green at each checkpoin
 
 **Checkpoint commands:** `pnpm test` (or project test script) for `rightRail` tests + affected route tests after each phase; optional `pnpm lint` on touched paths.
 
-**Todo mapping (frontmatter):** `scaffold-tabs` → A; `shell-rename-move` → B; `selection-tab` → C; `split-inspectors` → D (+ E field extractions); `location-tab` → F; `shell-api-children` → G; `view-models` → H; `docs` → I; `remove-shims` → J.
+**Todo mapping (frontmatter):** `scaffold-tabs` → A; `shell-rename-move` → B; `selection-tab` → C; `split-inspectors-files` → D; `selection-fields-extract` → E; `location-tab` → F; `shell-api-children` → G; `view-models` → H; `docs` → I; `remove-shims` → J.
+
+## Follow-up — Item 1: Split `LocationMapSelectionInspectors.tsx`
+
+**Current state:** [`LocationMapSelectionInspectors.tsx`](src/features/content/locations/components/workspace/rightRail/tabs/selection/inspectors/LocationMapSelectionInspectors.tsx) (~887 lines) holds shared stair types, stair pairing / endpoint form internals, and four exported inspectors.
+
+**Goal:** One module per concern, with **unchanged public exports** for [`SelectionTab.tsx`](src/features/content/locations/components/workspace/rightRail/tabs/selection/SelectionTab.tsx) (and any tests that import `StairWorkspaceInspect` / `StairPairingContext` from the inspectors module).
+
+**Suggested file layout**
+
+| New module | Contents |
+|------------|----------|
+| `inspectors/selectionInspectorTypes.ts` (or `stairSelection.types.ts`) | `StairWorkspaceInspect`, `StairPairingContext` — types only; imported by object inspector + `SelectionTab` |
+| `inspectors/LocationMapObjectInspector.tsx` | `LocationMapObjectInspector` + `LocationMapObjectInspectorProps`; keep stair-specific subcomponents in this file until Item 2 moves them to `fields/` |
+| `inspectors/LocationMapPathInspector.tsx` | `LocationMapPathInspector` + props type |
+| `inspectors/LocationMapEdgeInspectors.tsx` | `LocationMapEdgeInspector`, `LocationMapEdgeRunInspector` + props; shared helpers `EDGE_RUN_AXIS_LABEL`, `edgeRunHumanLabel` colocated or small `edgeInspector.shared.ts` |
+| `inspectors/index.ts` (optional barrel) | Re-export all public symbols so `SelectionTab` can `import { … } from './inspectors'` |
+
+**Migration order (low churn)**
+
+1. Extract **types-only** file first; update `SelectionTab` imports if the import path for `StairWorkspaceInspect` / `StairPairingContext` changes.
+2. Extract **path** and **edge** inspectors (fewer internal dependencies than object).
+3. Extract **object** inspector last (largest; depends on stair helpers).
+
+**Constraints**
+
+- No behavior changes; **no** new persistable state in field-local `useState`.
+- Prefer **narrow imports** from defining modules (per `location-workspace.md` contributor rules); avoid growing aggregate barrels unless a single entry point is useful for `SelectionTab` only.
+
+**Definition of done**
+
+- **No giant mixed inspector file** remains for the targeted entities (object, path, edge, edge-run, shared stair types): responsibilities live in separate modules as laid out above—not one monolith bundling unrelated inspectors.
+- **Imports updated** everywhere that referenced the old file or barrel; no dead re-exports left behind without intent.
+- **No behavior change** (render output, persistence, validation, and user flows match pre-split).
+- **Tests still pass** at the same level of coverage as before (rail/selection tests green; fix paths only as needed).
+
+---
+
+## Follow-up — Item 2: `tabs/selection/fields/`
+
+**Boundary — what `fields/` is for**
+
+[`tabs/selection/fields/`](src/features/content/locations/components/workspace/rightRail/tabs/selection/fields/) holds **reusable** or **isolated specialty UI fragments**: focused RHF/MUI chunks (a row, a small form section, a duplicated label field) that can be composed by an inspector without owning the full selection story.
+
+**Boundary — what `fields/` is not for**
+
+| Exclude | Reason |
+|--------|--------|
+| **Persistence adapters** | Draft/registry glue stays under [`rightRail/adapters/`](src/features/content/locations/components/workspace/rightRail/adapters/) at the rail root. |
+| **Generic templates** | Layout shells such as [`SelectionRailTemplate`](src/features/content/locations/components/workspace/rightRail/tabs/selection/templates/SelectionRailTemplate.tsx) stay in `templates/`; `fields/` does not replace or duplicate template responsibilities. |
+| **Full inspector orchestration** | Resolving selection from `mapSelection`, wiring `gridDraft`, `flush`, registry lookups, and dispatching which inspector runs—stays in **`inspectors/`** (e.g. `SelectionTab`, `LocationMapObjectInspector`). |
+
+**Goal:** Move eligible fragments (stair pairing, stair endpoint, linked-location picker row, edge label `TextField`, etc.) out of bloated inspector files into `fields/` so inspectors stay orchestrators that **import** fragments, not implementations of every sub-UI.
+
+**Good candidates**
+
+| Fragment (current home) | Suggested module |
+|-------------------------|------------------|
+| `linkedTargetPickerFieldLabel`, linked-location `OptionPickerField` block | `fields/LinkedLocationPickerField.tsx` or `linkedLocationSelectionField.tsx` |
+| `StairPairingLinkFormFields`, `StairPairingLinkForm`, `StairPairingControls`, `LocationMapStairEndpointInspectForm`, `STAIR_LINK_STATUS_LABEL` | `fields/StairPairingFields.tsx` or split into `StairPairingLinkForm.tsx` + `StairEndpointForm.tsx` if files stay large |
+| Edge / edge-run **Label** `TextField` (duplicated between inspectors) | `fields/EdgeLabelField.tsx` |
+
+**Region metadata:** [`LocationMapRegionMetadataForm`](src/features/content/locations/components/workspace/rightRail/tabs/selection/inspectors/LocationMapRegionMetadataForm.tsx) can stay a **form-level** module under `inspectors/`; optional later extract of **field rows only** into `fields/RegionMetadataFields.tsx` if it reduces noise **without** moving adapter calls or full orchestration into `fields/`.
+
+**Composition**
+
+- Field modules receive **callbacks + props** from parent inspectors; they compose inside `SelectionRailTemplate` **`children`** or **`metadata`** slots as today.
+- Inspectors remain **domain-aware**; `fields/` is **not** a second generic form system or a place to hide template logic.
+
+**Dependency order:** Prefer completing **Item 1** (split) so object inspector file size drops before extracting **fields**; Item 2 can start with edge label + linked picker (smaller extractions) in parallel if desired.
+
+---
 
 ## Recommendation summary
 
@@ -198,7 +272,7 @@ flowchart TB
     resolve[Resolve draft/registry]
   end
   subgraph fields [fields]
-    fragments[Single-use form fragments]
+    fragments[Reusable / isolated specialty UI]
   end
   insp --> builders
   builders --> meta
@@ -216,12 +290,11 @@ flowchart TB
 
 - **Deep refactors inside `useLocationEditWorkspaceModel`** or route field config splitting for Location sections—out of scope.
 - **Mandating** `buildXSelectionRailViewModel` on every entity—optional; exemplars + structure first.
-- **Compatibility shims**—remove in **`remove-shims`** cleanup after stable canonical imports.
 - **Barrel explosion:** prefer updating defining-module imports per [`docs/reference/location-workspace.md`](docs/reference/location-workspace.md) contributor rules; only extend [`rightRail/index.ts`](src/features/content/locations/components/workspace/rightRail/index.ts) / [`components/index.ts`](src/features/content/locations/components/index.ts) where a stable public API is needed.
 - **Map tab:** do not add; current [`LocationEditorRailSectionTabs`](src/features/content/locations/components/workspace/rightRail/LocationEditorRailSectionTabs.tsx) is already Location + Selection only.
 
 ## Verification
 
 - After each **build sequence** phase: run rail-focused tests and fix imports before the next phase.
-- Run existing tests: `rightRail/__tests__/LocationEditorRailSectionTabs.test.tsx`, `selection/__tests__/LocationEditorSelectionPanel.test.tsx` (rename/update paths), `placedObjectRail.helpers.test.ts` / `selectionRail.helpers.test.ts` (path update), `regionMetadataDraftAdapter.test.ts` if imports change.
+- Run existing tests: `rightRail/__tests__/LocationEditorRailSectionTabs.test.tsx`, `tabs/selection/__tests__/SelectionTab.test.tsx`, `tabs/selection/__tests__/selectionRail.helpers.test.ts`, `regionMetadataDraftAdapter.test.ts` if imports change.
 - Quick manual smoke: Selection tab for `none`, `cell` (empty + fill), `object`, `path`, `edge`, `edge-run`, `region`; Location tab homebrew + system patch (submit + patch save still behave as before).

@@ -12,14 +12,14 @@ import {
   LocationMapPathInspector,
   type StairPairingContext,
   type StairWorkspaceInspect,
-} from './inspectors/LocationMapSelectionInspectors';
+} from './inspectors';
 import {
   CellSelectionInspector,
   type CellSelectionInspectorProps,
 } from './inspectors/CellSelectionInspector';
 import { LocationMapRegionMetadataForm } from './inspectors/LocationMapRegionMetadataForm';
 
-export type { StairWorkspaceInspect, StairPairingContext };
+export type { StairWorkspaceInspect, StairPairingContext } from './inspectors';
 
 export type SelectionTabProps = {
   selection: LocationMapSelection;
