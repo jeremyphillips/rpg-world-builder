@@ -29,7 +29,7 @@ isProject: false
 
 This plan implements **navigability and ownership clarity** for the location editor workspace. It **does not** replace [.cursor/plans/location-workspace/location_workspace_ownership_reorg.plan.md](.cursor/plans/location-workspace/location_workspace_ownership_reorg.plan.md) (subtree layout under `components/workspace/`) or [.cursor/plans/domain_ownership_restructure_94571363.plan.md](.cursor/plans/domain_ownership_restructure_94571363.plan.md) (domain vocabulary). It targets **orchestration thickness and traceability** so later plans (e.g. object authoring in the location-workspace bundle) land on a clearer structure.
 
-**Canonical runtime behavior** remains [docs/reference/location-workspace.md](docs/reference/location-workspace.md). **Do not** change `LocationWorkspaceAuthoringContract`, `workspacePersistableSnapshot`, or normalization semantics unless a follow-up plan explicitly scopes persistence.
+**Canonical runtime behavior** remains [docs/reference/locations/location-workspace.md](docs/reference/locations/location-workspace.md). **Do not** change `LocationWorkspaceAuthoringContract`, `workspacePersistableSnapshot`, or normalization semantics unless a follow-up plan explicitly scopes persistence.
 
 ## Current pain (anchor files)
 
@@ -208,7 +208,7 @@ Do **not** split the file into fragments that still require hopping across many 
 
 - Comments on [components/authoring/index.ts](src/features/content/locations/components/authoring/index.ts) (draft types, persist/compare, overlay geometry adapters vs editor semantics in `domain/authoring/`)
 
-**Optional:** A short docs pointer in [docs/reference/location-workspace.md](docs/reference/location-workspace.md) is **not** part of “done” for this plan—see [Optional / incremental follow-ups § Docs pointer](#docs-pointer-phase-4-follow-up).
+**Optional:** A short docs pointer in [docs/reference/locations/location-workspace.md](docs/reference/locations/location-workspace.md) is **not** part of “done” for this plan—see [Optional / incremental follow-ups § Docs pointer](#docs-pointer-phase-4-follow-up).
 
 **Only move files** if, after the above, **boundary confusion remains** in review or imports—then move the **smallest** set of files with a clear rule, not a broad reshuffle.
 
@@ -255,7 +255,7 @@ If an extraction does not clearly pass the “easier to reason about” test, **
 
 ### Docs pointer (Phase 4 follow-up)
 
-**Optional** one-line note in [docs/reference/location-workspace.md](docs/reference/location-workspace.md) pointing contributors at:
+**Optional** one-line note in [docs/reference/locations/location-workspace.md](docs/reference/locations/location-workspace.md) pointing contributors at:
 
 - [components/authoring/](src/features/content/locations/components/authoring/) (draft + overlay geometry adapters for this feature)
 - vs [domain/authoring/](src/features/content/locations/domain/authoring/) (editor semantics, palettes, select-mode, etc.)
@@ -266,7 +266,7 @@ If an extraction does not clearly pass the “easier to reason about” test, **
 
 ### `rightRail/types` and barrel hygiene (Phase 5 polish)
 
-`**rightRail/types` — done:** types live under `**rightRail/types/`** (`LocationEditorRailSection`, `LocationMapSelection`); helpers are `**rightRail/locationEditorRail.helpers.ts**` (`selectedCellIdForMapSelection`, `mapSelectionEqual`, `shouldAutoSwitchRailToMapForMode`). See [docs/reference/location-workspace.md](../../docs/reference/location-workspace.md).
+`**rightRail/types` — done:** types live under `**rightRail/types/`** (`LocationEditorRailSection`, `LocationMapSelection`); helpers are `**rightRail/locationEditorRail.helpers.ts**` (`selectedCellIdForMapSelection`, `mapSelectionEqual`, `shouldAutoSwitchRailToMapForMode`). See [docs/reference/locations/location-workspace.md](../../docs/reference/locations/location-workspace.md).
 
 **Barrel hygiene — ongoing rule (not a one-off project):** Prefer **narrow imports** for new code; avoid **unnecessary growth** of [domain/index.ts](src/features/content/locations/domain/index.ts) and new broad compatibility-style barrels unless there is a **real public-surface** reason. Documented in **location-workspace.md** (Contributor rules → Imports and barrels).
 

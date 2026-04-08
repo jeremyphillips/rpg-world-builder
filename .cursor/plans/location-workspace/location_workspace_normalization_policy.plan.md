@@ -24,7 +24,7 @@ isProject: true
 
 **Parent context:** dirty/save snapshot alignment, shared authoring contract, persistable slice participation, and debounced persistable flush behavior are already in place. This pass closed the normalization policy gap.
 
-**Reference doc:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) (**Normalization policy** subsection).
+**Reference doc:** [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md) (**Normalization policy** subsection).
 
 **Implementation:**
 

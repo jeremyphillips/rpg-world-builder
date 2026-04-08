@@ -30,7 +30,7 @@ todos:
     content: Tests for family registry + selectors, resolver, loaded placement, linked vs object branches
     status: pending
   - id: update-location-workspace-reference
-    content: Update docs/reference/location-workspace.md for toolbar-first place palette, evolved activePlace, placementRegistryResolver seam, and any superseded rail/palette wording so the canonical reference matches implementation
+    content: Update docs/reference/locations/location-workspace.md for toolbar-first place palette, evolved activePlace, placementRegistryResolver seam, and any superseded rail/palette wording so the canonical reference matches implementation
     status: pending
 isProject: true
 ---
@@ -38,7 +38,7 @@ isProject: true
 # Object authoring Phase 1 — palette foundation
 
 **Parent:** [location_workspace_object_authoring_roadmap.plan.md](location_workspace_object_authoring_roadmap.plan.md)  
-**Canonical reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)
+**Canonical reference:** [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md)
 
 **Role:** **Child plan (implementation)** — **Phase 1** of the object authoring roadmap. Establishes a **family-oriented placed object registry** (refactor `locationPlacedObject.registry.ts` + selectors), **consolidated placement seam**, and **toolbar-first** palette on top of **today’s real pipeline** (`activePlace` → resolver → payloads / link intent → draft). **Phase 2 (variants UI)** extends the **same registry contract** — **not** a second registry redesign.
 
@@ -436,14 +436,14 @@ The **starter** inventory (e.g. floor **table** / **stairs** / **treasure**) is 
 | **UI boundaries**           | Toolbar + route **do not** add **parallel** `kind → payload` logic                                                                                                                                                                                                                                                                                                            |
 | **Placement state**         | **Single** `**activePlace`** evolved, not duplicated                                                                                                                                                                                                                                                                                                                          |
 | **Persistence**             | **Preserve** `**LocationMapObjectKindId` + `authoredPlaceKindId`**                                                                                                                                                                                                                                                                                                            |
-| **Canonical reference doc** | **[docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)** — update in Phase 1 scope when behavior/symbols change (toolbar vs rail place UX, resolver names, loaded placement); keep “until plans land” vs **shipped** language accurate                                                                                                       |
+| **Canonical reference doc** | **[docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md)** — update in Phase 1 scope when behavior/symbols change (toolbar vs rail place UX, resolver names, loaded placement); keep “until plans land” vs **shipped** language accurate                                                                                                       |
 
 
 ---
 
 ## Documentation — `location-workspace.md` (in scope)
 
-Phase 1 **includes** updating **[docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)** so it stays the **accurate** canonical description of the location workspace:
+Phase 1 **includes** updating **[docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md)** so it stays the **accurate** canonical description of the location workspace:
 
 - **Place / palette:** Document **toolbar-first** chooser and **registry-driven** sections; **family-oriented** registry (`locationPlacedObject.registry.ts` / selectors) when shipped.
 - **Pipeline:** Align **object authoring** / **Map editor toolbar** sections with `**activePlace`** evolution, `**placementRegistryResolver`**, **linked-content vs map-object** branches, and **family + variant** identity.
@@ -499,7 +499,7 @@ Phase 1 **includes** updating **[docs/reference/location-workspace.md](../../../
 9. **Stairs:** defaults stay **explicit** in draft path; linking **out of scope**.
 10. **Category** remains **UI-only**; toolbar grouping ≠ persisted identity.
 11. Phase 1 **scoped**: palette foundation + **grounded** refactor — **no** Phase 2 variant UX.
-12. **[docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)** updated so **canonical** workspace reference matches **shipped** Phase 1 placement/palette/resolver behavior and symbols.
+12. **[docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md)** updated so **canonical** workspace reference matches **shipped** Phase 1 placement/palette/resolver behavior and symbols.
 13. **Family-oriented registry** is **implemented** in `**locationPlacedObject.registry.ts`** (top-level **family** keys, explicit **palette category**, family-level `**runtime`**, `**variants**` with at least **default** per current placeable); **selectors** resolve palette and meta from that shape; **no** remaining **flat-only** authoring registry that Phase 2 must replace.
 14. **Placement + palette behavior** unchanged from a **product** perspective (same wire, same link vs object semantics); identity paths go through **family + variant** → existing resolvers.
 15. **Registry `category`** is documented and implemented as **palette grouping buckets only** (`structure`, `furniture`, `fixture`, `hazard`, `treasure`, `decor`, `vegetation` — exact enum as implemented); `**interaction`** (and related) holds **behavior semantics**, **not** `category`.
@@ -511,7 +511,7 @@ Phase 1 **includes** updating **[docs/reference/location-workspace.md](../../../
 
 ## Related
 
-- [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) — canonical reference (Phase 1 deliverable: keep in sync)
+- [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md) — canonical reference (Phase 1 deliverable: keep in sync)
 - [location_workspace_object_authoring_phase2_variants.plan.md](location_workspace_object_authoring_phase2_variants.plan.md)
 - [.cursor/plans/location-workspace/README.md](README.md)
 - [location_workspace_cleanup_94269d45.plan.md](../location_workspace_cleanup_94269d45.plan.md)

@@ -145,8 +145,8 @@ This keeps **editor, building-floor editor, and combat authoring overlay** align
 | --- | --- |
 | [`docs/reference/space.md`](docs/reference/space.md) | `EncounterAuthoringPresentation`, authored vs runtime grid objects, spatial narrative—add/refresh **authored object presentation** and **layer order** where `GridCellViewModel` / underlay are discussed. |
 | [`docs/reference/combat/client/grid.md`](docs/reference/combat/client/grid.md) | CombatGrid vs EncounterGrid boundary—document **authored base map** stack (paths, edges, objects) **under** tactical cell overlays; pointer to shared derive vs feature render. |
-| [`docs/reference/location-workspace.md`](docs/reference/location-workspace.md) | Location map authoring UX—**editor** layer order, building-floor parity, objects as authored layer. |
-| [`docs/reference/locations.md`](docs/reference/locations.md) | If it covers map schema or authoring, cross-link **render pipeline** and `LocationMapAuthoredObjectRenderItem`. |
+| [`docs/reference/locations/location-workspace.md`](docs/reference/locations/location-workspace.md) | Location map authoring UX—**editor** layer order, building-floor parity, objects as authored layer. |
+| [`docs/reference/locations/domain.md`](docs/reference/locations/domain.md) | If it covers map schema or authoring, cross-link **render pipeline** and `LocationMapAuthoredObjectRenderItem`. |
 | [`docs/reference/combat/authored-content/location-floor-adapter.md`](docs/reference/combat/authored-content/location-floor-adapter.md) | Building/floor → encounter—ensure **presentation blob** and **objects** are described consistently with code. |
 
 **Content to reflect:**

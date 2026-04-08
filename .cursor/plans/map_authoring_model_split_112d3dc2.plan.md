@@ -21,7 +21,7 @@ todos:
     content: pathOverlayRendering pathEntriesToSvgPaths + chainToSmoothSvgPath
     status: completed
   - id: docs-tests
-    content: docs/reference/location-workspace.md + focused tests
+    content: docs/reference/locations/location-workspace.md + focused tests
     status: completed
 isProject: false
 ---

@@ -9,7 +9,7 @@
  * **Lifecycle (adapters):** hydrate/initialize (`useLocationMapHydration` and related), rebaseline after
  * successful save, and persistable updates must stay in workspace-owned state — not ad hoc panel state.
  *
- * @see `docs/reference/location-workspace.md` — *Shared authoring contract*
+ * @see `docs/reference/locations/location-workspace.md` — *Shared authoring contract*
  * @see `locationWorkspaceAuthoringAdapters.ts` — **system** / **homebrew** builders
  * @see `.cursor/plans/location-workspace/location_workspace_authoring_contract.plan.md` — Phase A–B
  */

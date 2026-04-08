@@ -22,7 +22,7 @@ export type UseDebouncedPersistableFieldReturn = {
  * Call `flush()` from `useEffect` cleanup for unmount, before Save, and when switching away
  * from the editing context (e.g. `useLayoutEffect` when a scoped id changes).
  *
- * @see `docs/reference/location-workspace.md` — debounced persistable fields
+ * @see `docs/reference/locations/location-workspace.md` — debounced persistable fields
  */
 export function useDebouncedPersistableField<T>({
   value,

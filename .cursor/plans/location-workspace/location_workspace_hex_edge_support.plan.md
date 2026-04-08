@@ -24,7 +24,7 @@ isProject: true
 
 **Parent context:** The location workspace dirty/save architecture has been stabilized, persistable slice participation has been hardened, and normalization policy has been documented. This pass is **not** about dirty state; it is about a remaining map-editor/product integrity gap: **hex edges**.
 
-**Reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) (**Open issues §1 — Hex maps: constrained boundary-edge support**).
+**Reference:** [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md) (**Open issues §1 — Hex maps: constrained boundary-edge support**).
 
 **Status:** **Done** (Option B — April 2026). Implementation: `computeHexEdgeConstraintPatch`, hex `skipEdgeTargets` erase, grid alert for stored edges, tests + doc update.
 

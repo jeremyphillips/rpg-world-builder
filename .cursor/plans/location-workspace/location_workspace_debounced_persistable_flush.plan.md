@@ -129,7 +129,7 @@ Prefer **boundary flush** over making every keystroke immediate.
 | Region description migrated                         | Uses pattern end-to-end                                                            |
 | Boundary flush wiring                               | Save, selection, tabs, unmount as justified                                        |
 | Tests                                               | Edge cases listed below                                                            |
-| Doc note                                            | `docs/reference/location-workspace.md` — debounced persistable fields + flush rule |
+| Doc note                                            | `docs/reference/locations/location-workspace.md` — debounced persistable fields + flush rule |
 
 
 ---
@@ -168,5 +168,5 @@ Prefer **boundary flush** over making every keystroke immediate.
 
 - Region metadata draft path: `**regionMetadataDraftAdapter.ts`**, `**LocationMapRegionMetadataForm`**, `**onPatchRegion**`
 - Workspace model: `**useLocationEditWorkspaceModel**`, save handlers from `**useLocationEditSaveActions**`
-- Reference doc: `**docs/reference/location-workspace.md**` — state ownership, persistable checklist
+- Reference doc: `**docs/reference/locations/location-workspace.md**` — state ownership, persistable checklist
 

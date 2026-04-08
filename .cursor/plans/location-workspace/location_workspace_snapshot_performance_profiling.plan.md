@@ -15,14 +15,14 @@ todos:
     content: Document path preview performance as a deferred future-review item unless profiling or real user pain justifies a dedicated optimization pass
     status: completed
   - id: update-reference-doc
-    content: Extend docs/reference/location-workspace.md (or adjacent perf note) with snapshot profiling outcome and explicit deferred status for path preview performance
+    content: Extend docs/reference/locations/location-workspace.md (or adjacent perf note) with snapshot profiling outcome and explicit deferred status for path preview performance
     status: completed
 isProject: true
 ---
 
 # Workspace snapshot performance profiling
 
-**Status:** **Done** (April 2026). Synthetic Node benchmarks in `workspacePersistableSnapshot.perf.test.ts`; findings and **no action / monitor** recommendation in `docs/reference/location-workspace.md` (**Performance — workspace snapshot**). Path preview explicitly **deferred** in Open issues §3 and cross-linked.
+**Status:** **Done** (April 2026). Synthetic Node benchmarks in `workspacePersistableSnapshot.perf.test.ts`; findings and **no action / monitor** recommendation in `docs/reference/locations/location-workspace.md` (**Performance — workspace snapshot**). Path preview explicitly **deferred** in Open issues §3 and cross-linked.
 
 ## Delivered summary
 
@@ -162,7 +162,7 @@ This should keep the item visible without creating pressure for premature optimi
 
 ### 5. Update docs/reference
 
-Update `docs/reference/location-workspace.md` or the relevant perf/reference section with:
+Update `docs/reference/locations/location-workspace.md` or the relevant perf/reference section with:
 
 - what was profiled
 - key findings

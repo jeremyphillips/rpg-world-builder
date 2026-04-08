@@ -95,7 +95,7 @@ flowchart LR
    - Optional: thin component test for “fill cell renders title + Terrain/Surface” if you add a test harness.
 
 5. **Docs**  
-   - **Optional** one-line update to [`docs/reference/location-workspace.md`](docs/reference/location-workspace.md) under Selection / concrete examples (only if you want the reference to mention fill inspection)—not required for code correctness.
+   - **Optional** one-line update to [`docs/reference/locations/location-workspace.md`](docs/reference/locations/location-workspace.md) under Selection / concrete examples (only if you want the reference to mention fill inspection)—not required for code correctness.
 
 ---
 

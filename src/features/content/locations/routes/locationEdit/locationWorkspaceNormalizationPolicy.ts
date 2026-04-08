@@ -1,6 +1,6 @@
 /**
  * Normalization intent for homebrew workspace **dirty comparison** vs **save**
- * (`docs/reference/location-workspace.md`, section *Normalization policy*).
+ * (`docs/reference/locations/location-workspace.md`, section *Normalization policy*).
  *
  * Rules are implemented in the linked modules — this file is the **review anchor** (grep `LOCATION_WORKSPACE_NORMALIZATION`).
  */

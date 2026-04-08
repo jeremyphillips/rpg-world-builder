@@ -1,7 +1,7 @@
 // @vitest-environment node
 /**
  * Synthetic timing for `serializeLocationWorkspacePersistableSnapshot` (Node).
- * Results inform docs/reference/location-workspace.md — not a substitute for Chrome DevTools
+ * Results inform docs/reference/locations/location-workspace.md — not a substitute for Chrome DevTools
  * on real edit sessions, but a repeatable baseline for map-payload cost.
  */
 import { describe, expect, it } from 'vitest';

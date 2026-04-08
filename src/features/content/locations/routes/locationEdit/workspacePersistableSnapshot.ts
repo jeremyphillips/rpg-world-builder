@@ -16,7 +16,7 @@ import type { LocationVerticalStairConnection } from '@/shared/domain/locations'
  * - **Location** — `toLocationInput(values)` plus {@link mergeBuildingProfileForSave} for building stair connections.
  * - **Map** — {@link buildMapWorkspacePersistablePayloadFromGridDraft} (also {@link mapWorkspacePersistableTokenFromGridDraft} for system grid projections in `locationWorkspaceAuthoringAdapters.ts`).
  *
- * Map dirty comparison uses the same payload as save: `gridDraftPersistableEquals` delegates to {@link buildPersistableMapPayloadFromGridDraft} in `locationGridDraft.utils.ts`. See `locationWorkspaceNormalizationPolicy.ts` and `docs/reference/location-workspace.md`.
+ * Map dirty comparison uses the same payload as save: `gridDraftPersistableEquals` delegates to {@link buildPersistableMapPayloadFromGridDraft} in `locationGridDraft.utils.ts`. See `locationWorkspaceNormalizationPolicy.ts` and `docs/reference/locations/location-workspace.md`.
  */
 
 /**

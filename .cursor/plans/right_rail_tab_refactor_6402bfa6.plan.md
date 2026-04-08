@@ -18,7 +18,7 @@ todos:
     content: Extract LocationTab (+ SystemLocationTab) with presentational sections/; preserve RHF submit/validation for homebrew + system-patch (one form boundary per mode)
     status: completed
   - id: docs
-    content: Update docs/reference/location-workspace.md paths and component names for right-rail layout
+    content: Update docs/reference/locations/location-workspace.md paths and component names for right-rail layout
     status: completed
   - id: remove-shims
     content: Remove compatibility re-exports (old panel aliases, PlacedObject* template shims)
@@ -49,7 +49,7 @@ isProject: false
 - **View-model builders are optional per inspector:** Ship **folder structure + shared types + a few exemplar builders** (e.g. existing `buildCellFillSelectionRailViewModel`). It is **explicitly acceptable** for some inspectors to stay more direct (inline strings/rows) in this pass to limit churn.
 - **`adapters/` stays at `rightRail/adapters/`:** Do not move persistence/draft glue into `tabs/selection/fields/` or `templates/`.
 - **Compatibility re-exports:** Prefer **thin** `export { X as OldName }` from barrels during migration **if** import churn is material; plan a **follow-up cleanup pass** to **remove** those shims once imports point at canonical names (`SelectionTab`, `CellSelectionInspector`, etc.).
-- **Documentation:** Update [`docs/reference/location-workspace.md`](docs/reference/location-workspace.md) in this initiative (paths, component names, subfolder ownership).
+- **Documentation:** Update [`docs/reference/locations/location-workspace.md`](docs/reference/locations/location-workspace.md) in this initiative (paths, component names, subfolder ownership).
 
 ## Build sequence (ordered)
 
@@ -218,7 +218,7 @@ rightRail/
 
 **Compatibility (minimize churn):** In [`rightRail/index.ts`](src/features/content/locations/components/workspace/rightRail/index.ts), optionally `export { SelectionTab as LocationEditorSelectionPanel }` and `export type { SelectionTabProps as LocationEditorSelectionPanelProps }` until call sites are updated. Same pattern for `LocationCellAuthoringPanel` → `CellSelectionInspector` if needed. **Remove these shims** in a later **cleanup pass** (tracked todo `remove-shims`), once canonical imports are updated.
 
-**Import surfaces to update:** [`components/index.ts`](src/features/content/locations/components/index.ts), [`workspace/index.ts`](src/features/content/locations/components/workspace/index.ts), [`locationEditWorkspaceRailPanels.tsx`](src/features/content/locations/routes/locationEdit/locationEditWorkspaceRailPanels.tsx), tests under `rightRail/**/__tests__`, and [`docs/reference/location-workspace.md`](docs/reference/location-workspace.md) path references.
+**Import surfaces to update:** [`components/index.ts`](src/features/content/locations/components/index.ts), [`workspace/index.ts`](src/features/content/locations/components/workspace/index.ts), [`locationEditWorkspaceRailPanels.tsx`](src/features/content/locations/routes/locationEdit/locationEditWorkspaceRailPanels.tsx), tests under `rightRail/**/__tests__`, and [`docs/reference/locations/location-workspace.md`](docs/reference/locations/location-workspace.md) path references.
 
 ## `SelectionRailTemplate` API
 
@@ -293,7 +293,7 @@ flowchart TB
 
 - **Deep refactors inside `useLocationEditWorkspaceModel`** or route field config splitting for Location sections—out of scope.
 - **Mandating** `buildXSelectionRailViewModel` on every entity—optional; exemplars + structure first.
-- **Barrel explosion:** prefer updating defining-module imports per [`docs/reference/location-workspace.md`](docs/reference/location-workspace.md) contributor rules; only extend [`rightRail/index.ts`](src/features/content/locations/components/workspace/rightRail/index.ts) / [`components/index.ts`](src/features/content/locations/components/index.ts) where a stable public API is needed.
+- **Barrel explosion:** prefer updating defining-module imports per [`docs/reference/locations/location-workspace.md`](docs/reference/locations/location-workspace.md) contributor rules; only extend [`rightRail/index.ts`](src/features/content/locations/components/workspace/rightRail/index.ts) / [`components/index.ts`](src/features/content/locations/components/index.ts) where a stable public API is needed.
 - **Map tab:** do not add; current [`LocationEditorRailSectionTabs`](src/features/content/locations/components/workspace/rightRail/LocationEditorRailSectionTabs.tsx) is already Location + Selection only.
 
 ## Verification
@@ -335,6 +335,6 @@ flowchart TB
 - **Reuse** across any inspector that uses `SelectionRailTemplate`: pass **values + callbacks** from the parent; compose inside **`children`** (same pattern as [`EdgeLabelField`](src/features/content/locations/components/workspace/rightRail/tabs/selection/fields/edgeLabelField.tsx)).
 - **Region adoption:** **`LocationMapRegionMetadataForm`** stops duplicating name/description **TextField** (or equivalent) markup; it **imports** the shared fields component and wires **`Controller`** / **`register`** / debounced description to the same form values and **`onPatchRegion`** flow as today.
 - **Persistence is not generic:** path updates **`gridDraft.pathEntries`**; region uses [`LocationMapRegionMetadataForm`](src/features/content/locations/components/workspace/rightRail/tabs/selection/inspectors/LocationMapRegionMetadataForm.tsx) + [`regionMetadataDraftAdapter`](src/features/content/locations/components/workspace/rightRail/adapters/regionMetadataDraftAdapter.ts). Shared module = **UI + local control**; each inspector keeps **patch adapter / flush** semantics.
-- **Debouncing:** If description should match region UX (flush before save), reuse **`useDebouncedPersistableField`** or register flush like region metadata — see [`location-workspace.md`](docs/reference/location-workspace.md) debounced persistable section.
+- **Debouncing:** If description should match region UX (flush before save), reuse **`useDebouncedPersistableField`** or register flush like region metadata — see [`location-workspace.md`](docs/reference/locations/location-workspace.md) debounced persistable section.
 
 **Todo mapping:** `path-inspector-name-description` (frontmatter).

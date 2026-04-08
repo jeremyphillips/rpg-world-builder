@@ -37,9 +37,9 @@ Placing a **linked-content** registry family (`city`, `site`, families with `lin
 | Persistence: `city` / `site` → `marker` + `authoredPlaceKindId` via shared helpers | `linkedLocationId` on `LocationMapCellObjectEntry` (keep cell-level `linkedLocationByCellId`) |
 | `OptionPickerField` on **`LocationMapObjectInspector`** (`LocationMapSelectionInspectors.tsx`) | Link UI on **`LocationCellAuthoringPanel`** (empty / fill-only cell) |
 | Controlled **`OptionPickerField`** unless RHF is required | Broad changes to global link policy beyond existing filters |
-| **`docs/reference/location-workspace.md`** updated for the new flow | — |
+| **`docs/reference/locations/location-workspace.md`** updated for the new flow | — |
 
-**Workspace rules:** Persistable edits go through **`gridDraft`** and explicit callbacks ([`location-workspace.md`](../../../docs/reference/location-workspace.md) — state ownership). Do not add a second hidden source of truth.
+**Workspace rules:** Persistable edits go through **`gridDraft`** and explicit callbacks ([`location-workspace.md`](../../../docs/reference/locations/location-workspace.md) — state ownership). Do not add a second hidden source of truth.
 
 ---
 
@@ -91,7 +91,7 @@ Placing a **linked-content** registry family (`city`, `site`, families with `lin
 
 ### 7. Docs
 
-- [ ] `docs/reference/location-workspace.md` — Replace any **modal / pending placement** description with **immediate marker + Selection rail `OptionPickerField`**; note `LocationEditRoute` / workspace wiring changes.
+- [ ] `docs/reference/locations/location-workspace.md` — Replace any **modal / pending placement** description with **immediate marker + Selection rail `OptionPickerField`**; note `LocationEditRoute` / workspace wiring changes.
 
 ---
 
@@ -115,4 +115,4 @@ Placing a **linked-content** registry family (`city`, `site`, families with `lin
 1. Placing linked families **never** opens a modal; a **marker** object appears on first click.
 2. **Selection → object inspector** shows **`OptionPickerField`** with the **Label mapping** table; **`maxItems={1}`**; updates **`linkedLocationByCellId`**.
 3. Map uses **object** hit-testing / tooltip / **`data-map-object-id`** like other markers.
-4. Modal, **`kind: 'link'`**, and link-specific **`pendingPlacement`** removed; tests and **`docs/reference/location-workspace.md`** updated.
+4. Modal, **`kind: 'link'`**, and link-specific **`pendingPlacement`** removed; tests and **`docs/reference/locations/location-workspace.md`** updated.

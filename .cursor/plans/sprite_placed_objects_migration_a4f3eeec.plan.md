@@ -30,7 +30,7 @@ isProject: false
 
 ## Migration strategy (overview)
 
-The codebase today treats placed objects as **registry-defined families and variants** with **MUI `iconName` presentation** ([`locationPlacedObject.registry.ts`](src/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry.ts)), while the persisted map model stays sparse: cell objects carry `kind`, optional `authoredPlaceKindId`, etc., and the editor derives flat render items via [`deriveLocationMapAuthoredObjectRenderItems`](shared/domain/locations/map/locationMapAuthoredObjectRender.helpers.ts) ([`location-workspace` reference](docs/reference/location-workspace.md)). The migration should **not** replace that separation with a monolithic “sprite pass.” Instead:
+The codebase today treats placed objects as **registry-defined families and variants** with **MUI `iconName` presentation** ([`locationPlacedObject.registry.ts`](src/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry.ts)), while the persisted map model stays sparse: cell objects carry `kind`, optional `authoredPlaceKindId`, etc., and the editor derives flat render items via [`deriveLocationMapAuthoredObjectRenderItems`](shared/domain/locations/map/locationMapAuthoredObjectRender.helpers.ts) ([`location-workspace` reference](docs/reference/locations/location-workspace.md)). The migration should **not** replace that separation with a monolithic “sprite pass.” Instead:
 
 1. **Stand up asset pipeline outputs first** (manifest(s) generated from source PNGs, including trim), so runtime code consumes **stable logical ids**, not hand-edited frame rectangles—covering both **map** and **toolbar preview** roles per contract.
 2. **Integrate the editor in one pass:** remove **`iconName`** from the placed-object model; drive **tray previews** from preview assets; render **cell** objects with **map** sprites; keep **edge** objects on **vector** map rendering—**no** MUI icon fallback for placed objects.
@@ -58,8 +58,8 @@ This sequencing keeps **authored map documents** stable where possible, minimize
 | **Object registry definitions** ([`AUTHORED_PLACED_OBJECT_DEFINITIONS`](src/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry.ts)) | Family/variant **identity**, palette copy, **optional** `assetId` (or family default + variant override), **physical footprint** in **feet** (Phase 3), **placement mode** (`cell` \| `edge`), **runtime defaults** (`blocksMovement`, LoS, cover, …) | Manifest existence for referenced ids (validated in CI or dev) | Pixel layout math, atlas coordinates, image file paths as canonical source of truth |
 | **Render asset resolution** | Given `(familyId, variantId)` (+ optional future wire fields), resolve **map** vs **preview** image descriptors from manifest(s); **no** glyph fallback in the placed-object path. Pure, testable module at the boundary of shared domain ↔ assets. | Manifest, registry | Grid scale, screen DPI beyond “px per world unit” contract |
 | **Footprint / dimension resolution** | Map **grid** `cellUnit` (via **authoring** feet-per-cell resolver) + registry footprint (**feet**) → **layout-space** rect on **square** grids (and later multi-cell / tactical projection where explicitly designed). | Shared location map types, dimension types | Sprite pixel dimensions as canonical length (pixels follow from asset + scale) |
-| **Placement / anchor logic** | Map authored anchor (cell id, edge id, optional anchor mode) → **where the object’s origin sits in grid space** and how multi-length objects span cells. | Footprint resolution, geometry helpers ([square grid overlay](docs/reference/location-workspace.md)) | Texture packing, presentation glyphs |
-| **Rendering logic** | Draw sprites (DOM/CSS or canvas/WebGL later) using **resolved layout rect** from placement + footprint; stack order per [layering rules](docs/reference/location-workspace.md). | ResolvedRenderAsset, layout | Combat adjudication |
+| **Placement / anchor logic** | Map authored anchor (cell id, edge id, optional anchor mode) → **where the object’s origin sits in grid space** and how multi-length objects span cells. | Footprint resolution, geometry helpers ([square grid overlay](docs/reference/locations/location-workspace.md)) | Texture packing, presentation glyphs |
+| **Rendering logic** | Draw sprites (DOM/CSS or canvas/WebGL later) using **resolved layout rect** from placement + footprint; stack order per [layering rules](docs/reference/locations/location-workspace.md). | ResolvedRenderAsset, layout | Combat adjudication |
 | **Runtime behavior** (movement blocking, LoS, cover) | **Hydration** from registry defaults; optional per-instance overrides later. | Registry runtime fields, combat grid | Sprite bounds as collision unless explicitly modeled |
 
 **Authoritative rule:** **Physical dimensions are canonical for sizing**; **pixels are derived** from (asset intrinsic size or manifest intrinsic size) × (world scale from grid) × (optional uniform render scale policy). Reject **cell percentage** as the **canonical** footprint source; it may exist only as a **derived display hint** if ever needed for legacy UI.
@@ -166,7 +166,7 @@ Collapsing the following into one change set is the primary failure mode:
 **Risks / watchouts**
 
 - **Tray layout:** Preview images vary aspect ratio; tray CSS may need **consistent box + object-fit** (presentation concern, not asset pipeline).
-- **Select mode / hit targets:** Cell object overlay swap to `img` or background-image must preserve **`[data-map-object-id]`** and hit-testing behavior ([location-workspace](docs/reference/location-workspace.md)).
+- **Select mode / hit targets:** Cell object overlay swap to `img` or background-image must preserve **`[data-map-object-id]`** and hit-testing behavior ([location-workspace](docs/reference/locations/location-workspace.md)).
 - **Combat underlay:** If it shares render items with the editor, align whether combat map shows sprites in the same phase or follows immediately—scope explicitly so one path does not silently keep icons.
 
 **Exit criteria**
@@ -206,7 +206,7 @@ Collapsing the following into one change set is the primary failure mode:
 - Registry schema: **footprint** (rect vs circle + **feet** numbers) and **minimal anchor** fields/defaults for the pilot.
 - **Single funnel:** **Footprint (feet)** + **`cellUnit` → feet per cell** + **square grid geometry** + **`cellPx`** → **derived layout rect** in pixel space (names may vary; **one** pipeline, not scattered formulas).
 - **Consumers** (e.g. cell-object overlay) use **derived rect** for **layout sizing** instead of **fill-cell** or **% of cell** as the source of truth.
-- **Documentation follow-up:** Update [`location-workspace.md`](docs/reference/location-workspace.md) (and pointers from it) so contributors do **not** assume **scale-to-fit cell** remains the long-term rule once Phase 3 lands.
+- **Documentation follow-up:** Update [`location-workspace.md`](docs/reference/locations/location-workspace.md) (and pointers from it) so contributors do **not** assume **scale-to-fit cell** remains the long-term rule once Phase 3 lands.
 
 **What explicitly does NOT change yet**
 
@@ -280,7 +280,7 @@ Collapsing the following into one change set is the primary failure mode:
 
 **Goal:** **Placement semantics** catch up to **visual truth** for elongated objects—e.g., **centering across a shared cell boundary** or **offset along an edge**—without prematurely implementing full **multi-tile** combat occupancy.
 
-**Scope:** Introduce **placement anchor modes** at **authoring** level (may remain **editor-only** computed fields at first, or minimal wire extension if required). Geometry uses existing **square** helpers ([`squareGridOverlayGeometry`](docs/reference/location-workspace.md)); hex stays **explicitly constrained** (reuse [open issues](docs/reference/location-workspace.md) discipline—no accidental hex promises).
+**Scope:** Introduce **placement anchor modes** at **authoring** level (may remain **editor-only** computed fields at first, or minimal wire extension if required). Geometry uses existing **square** helpers ([`squareGridOverlayGeometry`](docs/reference/locations/location-workspace.md)); hex stays **explicitly constrained** (reuse [open issues](docs/reference/locations/location-workspace.md) discipline—no accidental hex promises).
 
 **What changes:** Placement resolver for **cell** mode clicks, preview ghosts, and **render translation** from anchor + footprint. Optional **persistence** only if editor cannot reconstruct intent from footprint + rules.
 
@@ -291,7 +291,7 @@ Collapsing the following into one change set is the primary failure mode:
 - **Anchor semantics are part of the placement domain**, not the sprite manifest.
 - **Separation:** **visual overhang** may extend into neighboring cells **without** claiming tactical occupancy.
 
-**Risks / watchouts:** Confusing **visual overlap** with **interactive hit area**; document and test Select-mode priority ([`resolveSelectModeInteractiveTarget`](docs/reference/location-workspace.md)).
+**Risks / watchouts:** Confusing **visual overlap** with **interactive hit area**; document and test Select-mode priority ([`resolveSelectModeInteractiveTarget`](docs/reference/locations/location-workspace.md)).
 
 **Exit criteria:** Large table can be **authored** and **rendered** aligned to intended edge/between-cell anchor; **combat** behavior unchanged unless explicitly updated later.
 
@@ -322,7 +322,7 @@ Collapsing the following into one change set is the primary failure mode:
 
 **Goal:** Production-grade **performance**, **developer ergonomics**, and **quality gates** for ongoing art iteration.
 
-**Scope:** Optional **texture atlas** to reduce HTTP/WebGL texture binds; **caching** and **content-hash** URLs; **lint/CI** for broken `assetId`s; **visual regression** snapshots for a few canonical maps; documentation updates ([`location-workspace.md`](docs/reference/location-workspace.md)) **only as needed** for contributor clarity.
+**Scope:** Optional **texture atlas** to reduce HTTP/WebGL texture binds; **caching** and **content-hash** URLs; **lint/CI** for broken `assetId`s; **visual regression** snapshots for a few canonical maps; documentation updates ([`location-workspace.md`](docs/reference/locations/location-workspace.md)) **only as needed** for contributor clarity.
 
 **What changes:** Build perf, runtime perf, CI rules; possibly **combat underlay** parity if not already unified.
 
@@ -340,7 +340,7 @@ Collapsing the following into one change set is the primary failure mode:
 
 ## Open questions (intentionally deferred)
 
-- **Wire format:** whether **variant id** should eventually persist on the map (today [phase 2 object authoring](docs/reference/location-workspace.md) maps intent through `authoredPlaceKindId` / kind)—sprite work should **not force** this decision early.
+- **Wire format:** whether **variant id** should eventually persist on the map (today [phase 2 object authoring](docs/reference/locations/location-workspace.md) maps intent through `authoredPlaceKindId` / kind)—sprite work should **not force** this decision early.
 - **Rotation:** per-instance **facing** or degrees—needs **persistence** and **placement** design together; defer until anchor model stabilizes.
 - **Hex parity:** authored object **footprints** on hex—likely different anchoring; keep **square-first** until product prioritizes.
 - **Combat occupancy vs visual footprint:** when/if **multi-cell blocking** must match **sprite extent**—separate policy decision from rendering.

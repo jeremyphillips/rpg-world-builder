@@ -211,7 +211,7 @@ src/features/combat/components/grid/
 ### Phase D — Global CSS + docs
 
 - Trim [`button[role="gridcell"]`](src/index.css) if host reset covers authoring.
-- Update [`location-workspace.md`](docs/reference/location-workspace.md): two-layer pattern, file names, combat stays tactical builder.
+- Update [`location-workspace.md`](docs/reference/locations/location-workspace.md): two-layer pattern, file names, combat stays tactical builder.
 
 ### Phase E — Combat affordance unification (host + cursor + hover/visual)
 
@@ -360,8 +360,8 @@ The helper should derive its result from the **same tactical inputs** that today
 | **New (Phase E)** `combatCellAffordance.ts` — `resolveCombatCellAffordance`, `CombatCellAffordance` | Single combat affordance model: host + cursor + `hoverMode` input to visuals |
 | [`CombatGrid.tsx`](src/features/combat/components/grid/CombatGrid.tsx) | Apply combat sx to visual layer inside host |
 | [`index.css`](src/index.css) | Trim gridcell button hacks after verification |
-| [`location-workspace.md`](docs/reference/location-workspace.md) | Architecture note |
+| [`location-workspace.md`](docs/reference/locations/location-workspace.md) | Architecture note |
 
 ---
 
-**Parent reference:** [docs/reference/location-workspace.md](../../docs/reference/location-workspace.md) (grid styling, Select mode).
+**Parent reference:** [docs/reference/locations/location-workspace.md](../../docs/reference/locations/location-workspace.md) (grid styling, Select mode).

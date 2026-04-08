@@ -24,7 +24,7 @@ todos:
     content: Call out dependencies, migration risks, and scope boundaries so this phase does not collapse into a full editor redesign
     status: pending
   - id: update-location-workspace-doc
-    content: Update docs/reference/location-workspace.md so the canonical reference matches Phase 4 (shared placed-object template, inspector ownership, selection rail, debounced persistable fields, any new persisted workspace rules)
+    content: Update docs/reference/locations/location-workspace.md so the canonical reference matches Phase 4 (shared placed-object template, inspector ownership, selection rail, debounced persistable fields, any new persisted workspace rules)
     status: pending
   - id: phase4-post-build-cleanup-pass
     content: Post-build cleanup — object-first door/table/edge inspectors, presentation metadata from variant.presentation (lightweight formatter), Label on all placed objects including edge, empty-cell selection tab without generic link/add-object UI, edge-feature vs wall/draw coupling note or small decoupling — see Post-build cleanup pass section
@@ -39,9 +39,9 @@ isProject: true
 
 **Parent:** [location_workspace_object_authoring_roadmap.plan.md](location_workspace_object_authoring_roadmap.plan.md)  
 **Depends on:** [location_workspace_object_authoring_phase1_palette_foundation.plan.md](location_workspace_object_authoring_phase1_palette_foundation.plan.md), [location_workspace_object_authoring_phase2_variants.plan.md](location_workspace_object_authoring_phase2_variants.plan.md), [location_workspace_object_authoring_phase3_edge_placement.plan.md](location_workspace_object_authoring_phase3_edge_placement.plan.md).  
-**Canonical reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) (Selection inspectors, state ownership, debounced persistable fields, `gridDraft`).
+**Canonical reference:** [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md) (Selection inspectors, state ownership, debounced persistable fields, `gridDraft`).
 
-**Role:** **Child plan (high-level)** — Phase 4 scope is **defined against Phase 3 as implemented**: shared registry with `placementMode: 'cell' | 'edge'`, `door` / `window` edge families on **floor** maps (square), Draw palette **wall-only** for edges, Place + boundary targeting committing via **`applyEdgeStrokeToDraft`**, resolver seam **`resolvePlacementEdgeFeatureKind`** / **`resolvePlacedKindToAction`** (`type: 'edge'`). **Refine** implementation detail and acceptance criteria in follow-up edits before coding. **Canonical doc** [location-workspace.md](../../../docs/reference/location-workspace.md) is **in scope to update** when Phase 4 behavior and rules land (see **In scope**).
+**Role:** **Child plan (high-level)** — Phase 4 scope is **defined against Phase 3 as implemented**: shared registry with `placementMode: 'cell' | 'edge'`, `door` / `window` edge families on **floor** maps (square), Draw palette **wall-only** for edges, Place + boundary targeting committing via **`applyEdgeStrokeToDraft`**, resolver seam **`resolvePlacementEdgeFeatureKind`** / **`resolvePlacedKindToAction`** (`type: 'edge'`). **Refine** implementation detail and acceptance criteria in follow-up edits before coding. **Canonical doc** [location-workspace.md](../../../docs/reference/locations/location-workspace.md) is **in scope to update** when Phase 4 behavior and rules land (see **In scope**).
 
 **Naming:** Same initiative prefix: **`location_workspace_object_authoring_*`**.
 
@@ -699,7 +699,7 @@ The **long-term edge-authored instance model** is now **defined enough to build 
 - **Door/window** state editing direction (open/closed, locks, etc.) — **authored** scope first; mechanics coupling only where product locks it
 - **Stairs linking** workflows and authored shape (unchanged intent)
 - **Richer** authored object metadata / behavior (incremental)
-- **Documentation** — update **[docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)** so the **canonical** workspace reference stays aligned with Phase 4: Selection rail / inspector ownership (**`CellInspector`** vs placed-object inspectors), **shared placed-object rail template**, `gridDraft` / selection behavior, debounced persistable patterns, and **Adding persisted workspace state** (or equivalent sections) when new persisted fields or normalization rules ship. **Not** a full unrelated docs rewrite — **targeted** updates tied to Phase 4 deliverables.
+- **Documentation** — update **[docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md)** so the **canonical** workspace reference stays aligned with Phase 4: Selection rail / inspector ownership (**`CellInspector`** vs placed-object inspectors), **shared placed-object rail template**, `gridDraft` / selection behavior, debounced persistable patterns, and **Adding persisted workspace state** (or equivalent sections) when new persisted fields or normalization rules ship. **Not** a full unrelated docs rewrite — **targeted** updates tied to Phase 4 deliverables.
 - **Post-build cleanup pass** — **object-first** door/window rails vs **run** copy; **`variant.presentation`** metadata rows via a **small shared helper**; **Label** on **edge** placed objects; **empty-cell** Selection tab **without** default generic **link** / **add-object** UI; **audit** of **edge-feature / wall** vs **authored registry** edge objects (**note** or **small decoupling**). See **Post-build cleanup pass (Phase 4 follow-up)**; build plan **M8**.
 - **Edge-authored object instances — modeling direction** — normative long-term **persistence parity** for `edgeEntries` (**`label`**, **`authoredPlaceKindId`**, **`variantId`**, typed **`state`**), shared-core alignment with **cell** objects, **`kind` vs authored identity** contract, **migration/fallback**, **wall/draw separation**, **staged implementation sequence**, and **Implementation risks, prerequisites, guardrails, and verdict** (coordination gates, single hydration path, no partial truth split) — see dedicated section; **not** a label-only patch in isolation.
 
@@ -889,7 +889,7 @@ This placeholder is **complete** when:
 5. **Selection rail model** is explicit: **`CellInspector`** vs placed-object inspectors (**`CellObjectInspector`** / **`EdgeObjectInspector`**); **shared placed-object template** for **all** placed objects (cell + edge + future); **generalized placement details** slot; **Label** **below** metadata (**freeform** when **unlinked**; **linked** → hide freeform, **linked entity title/name** as display identity); **no** default generic link on empty cell; **linking** and object actions on the **placed-object** template when policy allows; **no** default raw ids / **“Placed object”** / redundant badges in the normative doc.
 6. **Problem** (mixed ownership / single branch + flags) and **why it matters** are **documented** — not only UX examples.
 7. The doc stays **high-level** for later refinement (exact `mapSelection` evolution TBD) — but **does not contradict** Phase 3 **locked** decisions (single registry, resolver ownership, no variant on wire until a migration phase).
-8. **[location-workspace.md](../../../docs/reference/location-workspace.md)** is explicitly **in scope** to update alongside Phase 4 implementation so the canonical reference matches the shipped inspector model, shared template, and persistable workspace rules.
+8. **[location-workspace.md](../../../docs/reference/locations/location-workspace.md)** is explicitly **in scope** to update alongside Phase 4 implementation so the canonical reference matches the shipped inspector model, shared template, and persistable workspace rules.
 
 ---
 
@@ -899,4 +899,4 @@ This placeholder is **complete** when:
 - [location_workspace_object_authoring_phase3_edge_placement.plan.md](location_workspace_object_authoring_phase3_edge_placement.plan.md) — prior phase.
 - [location_workspace_object_authoring_roadmap.plan.md](location_workspace_object_authoring_roadmap.plan.md) — parent roadmap.
 - [.cursor/plans/location-workspace/README.md](README.md) — plan bundle index.
-- [location_workspace_cleanup_94269d45.plan.md](../location_workspace_cleanup_94269d45.plan.md) — session vs domain split; [location-workspace.md](../../../docs/reference/location-workspace.md) **State ownership** and **Imports and barrels**.
+- [location_workspace_cleanup_94269d45.plan.md](../location_workspace_cleanup_94269d45.plan.md) — session vs domain split; [location-workspace.md](../../../docs/reference/locations/location-workspace.md) **State ownership** and **Imports and barrels**.

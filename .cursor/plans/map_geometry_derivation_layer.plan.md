@@ -133,7 +133,7 @@ Prioritize:
 
 ## Docs
 
-Minimal update to [`docs/reference/location-workspace.md`](docs/reference/location-workspace.md): rendering seam paragraph—geometry primitives vs SVG adapters; square-first edges.
+Minimal update to [`docs/reference/locations/location-workspace.md`](docs/reference/locations/location-workspace.md): rendering seam paragraph—geometry primitives vs SVG adapters; square-first edges.
 
 ---
 

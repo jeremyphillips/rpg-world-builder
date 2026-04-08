@@ -62,7 +62,7 @@ When this reorg (or a milestone phase) lands, update `**[.cursor/plans/location-
 - Optionally add a **one-paragraph** summary of `header/` · `setup/` · `canvas/` · `leftTools/` · `rightRail/` for onboarding.
 - Adjust **reading order** if this plan should be read before/after specific foundation or interaction plans.
 
-Do **not** treat `[docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)` as a substitute: the README is the **index for Cursor plan files**; the reference doc is runtime behavior for contributors—update the reference doc only when folder paths or contributor guidance there need to stay in sync (separate decision per change).
+Do **not** treat `[docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md)` as a substitute: the README is the **index for Cursor plan files**; the reference doc is runtime behavior for contributors—update the reference doc only when folder paths or contributor guidance there need to stay in sync (separate decision per change).
 
 ---
 

@@ -49,7 +49,7 @@ Feature-layer palette types (`LocationPathFeatureKindId` in `locationPathFeature
 
 ## 4. Next pass — authored → render-data helpers (not full components)
 
-See docs paragraph in [`location-workspace.md`](docs/reference/location-workspace.md): edge/boundary segment helpers, unified cell-center lookup for editor + detail views, keep `pathEntriesToSvgPaths` thin.
+See docs paragraph in [`location-workspace.md`](docs/reference/locations/location-workspace.md): edge/boundary segment helpers, unified cell-center lookup for editor + detail views, keep `pathEntriesToSvgPaths` thin.
 
 ---
 

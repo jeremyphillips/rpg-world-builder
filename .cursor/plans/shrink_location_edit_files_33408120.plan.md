@@ -24,7 +24,7 @@ isProject: false
 
 ## Context
 
-- Workspace architecture is documented in [docs/reference/location-workspace.md](docs/reference/location-workspace.md): map toolbar, `useLocationMapEditorState`, `LocationGridAuthoringSection`, zoom/pan hooks, and select-mode resolvers should stay the **single sources of truth** for behavior; refactors should **move code**, not duplicate or fork interaction rules.
+- Workspace architecture is documented in [docs/reference/locations/location-workspace.md](docs/reference/locations/location-workspace.md): map toolbar, `useLocationMapEditorState`, `LocationGridAuthoringSection`, zoom/pan hooks, and select-mode resolvers should stay the **single sources of truth** for behavior; refactors should **move code**, not duplicate or fork interaction rules.
 - [LocationEditRoute.tsx](src/features/content/locations/routes/LocationEditRoute.tsx) and [LocationGridAuthoringSection.tsx](src/features/content/locations/components/LocationGridAuthoringSection.tsx) are the two largest touchpoints; both are valid candidates for extraction.
 
 ---
