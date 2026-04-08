@@ -97,6 +97,27 @@ flowchart LR
 
 ---
 
+## Parity: feet per cell and `cellPx` (workspace vs encounter)
+
+The resolver is deterministic: **same** `PlacedObjectGeometryLayoutContext` → **same** layout/anchor numbers. **Inputs** often differ between surfaces — that is **not** automatic “drift”; compare sources before filing a bug.
+
+| Concern | Workspace (authoring) | Encounter / combat |
+|--------|------------------------|---------------------|
+| **Feet per cell** | `resolveAuthoringCellUnitFeetPerCell` (`locationCellUnitAuthoring.ts`) — full `grid.cellUnit` table (e.g. `5ft` → 5, `25ft` → 25). | From location map: `cellUnitToCombatCellFeet` (`locationCellUnitCombat.ts`) → **only 5 or 10**, coarse heuristic for `EncounterSpace` / `grid.cellFeet`. |
+| **`cellPx`** | Responsive `squareCellPx` / `squareGridGeometry.cellPx` (`useLocationAuthoringGridLayout`). | Fixed tactical size `BASE_CELL_SIZE` in `CombatGrid.tsx`. |
+
+**Examples (same `grid.cellUnit` string):**
+
+| `grid.cellUnit` | Authoring `feetPerCell` | Combat `cellFeet` |
+|-----------------|-------------------------|---------------------|
+| `5ft` | 5 | 5 |
+| `25ft` | 25 | 10 |
+| `100ft` | 100 | 5 |
+
+**Caveat:** `cellUnitToCombatCellFeet` uses a substring check (`includes('25')`) for the 10 ft branch (e.g. `25ft`). Other units such as `100ft` fall through to **5** in combat while authoring may use **100** ft/cell. Treat combat feet as **mechanics-scale**, not a guarantee of pixel parity with the editor.
+
+---
+
 ## 6. Visual resolution (labels, URLs, layout)
 
 - **Module:** `domain/presentation/map/resolvePlacedObjectCellVisual.ts`
@@ -150,6 +171,8 @@ Registry **footprint** (feet) maps to a pixel layout box via **`computePlacedObj
 | Render items | `shared/domain/locations/map/locationMapAuthoredObjectRender.helpers.ts` |
 | Resolve visual | `domain/presentation/map/resolvePlacedObjectCellVisual.ts`, `PlacedObjectCellVisualDisplay.tsx` |
 | Geometry context (factories) | `shared/domain/locations/map/placedObjectGeometryLayoutContext.ts` |
+| Combat feet from `grid.cellUnit` | `shared/domain/locations/map/locationCellUnitCombat.ts` |
+| Authoring vs combat feet parity tests | `shared/domain/locations/map/__tests__/locationCellUnitCombat.parity.test.ts` |
 | Resolver geometry tests | `domain/presentation/map/__tests__/resolvePlacedObjectCellVisual.geometry.test.ts` |
 | Editor overlay | `components/mapGrid/LocationMapCellAuthoringOverlay.tsx` |
 | Combat inline icons | `components/mapGrid/LocationMapAuthoredObjectIconsLayer.tsx` |
