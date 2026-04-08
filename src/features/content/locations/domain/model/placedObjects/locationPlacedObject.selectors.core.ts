@@ -183,7 +183,7 @@ export function getPlacedObjectDefinition(id: LocationPlacedObjectKindId): Autho
   return AUTHORED_PLACED_OBJECT_DEFINITIONS[id];
 }
 
-/** True for registry families with `linkedScale` (city/site markers); cell-level `linkedLocationByCellId` pairs with these. */
+/** True for registry families with `linkedScale` (city/site/building markers); cell-level `linkedLocationByCellId` pairs with these. */
 export function cellObjectAnchorsCellLinkedLocation(
   obj: Pick<LocationMapCellObjectEntry, 'kind' | 'authoredPlaceKindId'>,
 ): boolean {

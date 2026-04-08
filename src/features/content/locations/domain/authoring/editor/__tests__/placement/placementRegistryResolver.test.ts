@@ -65,9 +65,9 @@ describe('placementRegistryResolver', () => {
     }
   });
 
-  it('resolves building on world to marker with authoredPlaceKindId (map icon, not link modal)', () => {
+  it('resolves linked-content building on world to marker with authoredPlaceKindId (link in Selection rail)', () => {
     const r = resolvePlacementCellClick(
-      { category: 'map-object', kind: 'building', variantId: 'residential' },
+      { category: 'linked-content', kind: 'building', variantId: 'residential' },
       'c-0-1',
       'world',
     );

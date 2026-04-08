@@ -122,7 +122,7 @@ The resolver is deterministic: **same** `PlacedObjectGeometryLayoutContext` → 
 - **Module:** `domain/presentation/map/resolvePlacedObjectCellVisual.ts`
 - **`resolvePlacedObjectCellVisualFromRenderItem`:** maps render item + optional **`PlacedObjectGeometryLayoutContext`** (built via `buildPlacedObjectGeometryLayoutContextFromAuthoring` / `buildPlacedObjectGeometryLayoutContextFromEncounter` in `shared/domain/locations/map/placedObjectGeometryLayoutContext.ts`; same shape as legacy **`PlacedObjectCellVisualFootprintLayoutContext`**) → **`PlacedObjectCellVisual`** (raster URL, footprint size in px, **anchor offsets** for square placement).
 - **Footprint math:** `shared/domain/locations/map/placedObjectFootprintLayout.ts`, `placedObjectPlacementAnchorLayout.ts`; **authoring `cellUnit`:** `resolveAuthoringCellUnitFeetPerCell` (`locationCellUnitAuthoring`).
-- **Display:** `PlacedObjectCellVisualDisplay.tsx` — `<img>` with **`object-fit: contain`** (`placedObjectMapSprite.constants.ts`).
+- **Display:** `PlacedObjectCellVisualDisplay.tsx` — `<img>` **`object-fit`** from `placedObjectMapSprite.constants.ts`: **`contain`** when there is no footprint layout box (fixed icon size); **`cover`** when **`layoutWidthPx` / `layoutHeightPx`** are set so the raster **fills** the footprint box on screen. Footprint dimensions are multiplied by **`PLACED_OBJECT_FOOTPRINT_RASTER_DISPLAY_INSET_SCALE`** (~0.97) at paint time so art sits slightly inside the nominal box and avoids grid-border overlap (resolver output unchanged). May crop if PNG aspect ≠ footprint. See **Sprite fit** below.
 - **Geometry tests:** `domain/presentation/map/__tests__/resolvePlacedObjectCellVisual.geometry.test.ts` locks layout/anchor outputs for representative registry variants (large rect, circle, long rect).
 
 ### Multi-cell footprint layout and interaction risks
@@ -135,9 +135,9 @@ Registry **footprint** (feet) maps to a pixel layout box via **`computePlacedObj
 - **Pointer / selection:** Select mode and **`[data-map-object-id]`** targets are **not** a full multi-cell hit mesh. Clicks on the **neighbor** cell may not select the object whose art overlaps that cell; conversely, transparent padding around the image can still affect hit targets depending on wrapper **`pointer-events`**.
 - **Stacking:** Z-order follows **cell render order**; large sprites can paint **over** adjacent terrain, paths, or icons in ways that feel arbitrary without a dedicated multi-cell layer policy.
 - **Combat:** Same resolver path; large sprites may crowd **tokens** or adjacent underlays.
-- **Sprite fit:** **`object-fit: contain`** still letterboxes art inside the layout box if PNG aspect ≠ footprint aspect — a large box does not guarantee a large painted sprite.
+- **Sprite fit:** **`object-fit: cover`** for footprint-resolved rasters fills the **display** box (resolver **`layoutWidthPx` / `layoutHeightPx`** × **`PLACED_OBJECT_FOOTPRINT_RASTER_DISPLAY_INSET_SCALE`**) so props like a **5×3 ft** table read **~full cell width** on a 5 ft/cell grid, with a small uniform inset to reduce grid-border overlap. **`contain`** is only used for legacy fixed-size icons. **`cover`** may crop edges if the PNG is more square than the footprint or has transparent padding — prefer art cropped to the footprint aspect for predictable results.
 
-**Surface vs resolver:** Workspace and encounter may differ in **overflow**, **clipping**, and **z-index** around the leaf; **layout width/height and anchor offsets** come only from the resolver + geometry context. Drift in painted pixels with the same context is a shell or asset issue, not footprint math.
+**Surface vs resolver:** Workspace and encounter may differ in **overflow**, **clipping**, and **z-index** around the leaf; **nominal** layout width/height and anchor offsets come only from the resolver + geometry context. **Display** applies the footprint inset scale on the `<img>` only. Drift in painted pixels with the same context is a shell or asset issue, not footprint math.
 
 ---
 
@@ -169,6 +169,7 @@ Registry **footprint** (feet) maps to a pixel layout box via **`computePlacedObj
 | Placement resolver | `domain/authoring/editor/placement/placementRegistryResolver.ts` |
 | Render items | `shared/domain/locations/map/locationMapAuthoredObjectRender.helpers.ts` |
 | Resolve visual | `domain/presentation/map/resolvePlacedObjectCellVisual.ts`, `PlacedObjectCellVisualDisplay.tsx` |
+| Sprite `object-fit` (contain vs cover) | `domain/presentation/map/placedObjectMapSprite.constants.ts` |
 | Geometry context (factories) | `shared/domain/locations/map/placedObjectGeometryLayoutContext.ts` |
 | Combat feet from `grid.cellUnit` | `locationCellUnitCombat.ts`, `locationMapCombat.constants.ts` |
 | Authoring vs combat feet parity tests | `shared/domain/locations/map/__tests__/locationCellUnitCombat.parity.test.ts` |

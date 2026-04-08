@@ -390,7 +390,12 @@ export function LocationGridAuthoringSection({
 
   const placeMapObjectCellHover = useMemo(() => {
     if (mapEditorMode !== 'place') return false;
-    if (!activePlace || activePlace.category !== 'map-object') return false;
+    if (
+      !activePlace ||
+      (activePlace.category !== 'map-object' && activePlace.category !== 'linked-content')
+    ) {
+      return false;
+    }
     if (getPlacementModeForFamily(activePlace.kind) !== 'cell') return false;
     if (placeEdgeAuthoringActive) return false;
     return true;

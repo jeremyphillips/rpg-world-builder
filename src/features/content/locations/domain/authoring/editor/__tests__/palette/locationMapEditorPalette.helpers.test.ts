@@ -55,6 +55,16 @@ describe('locationMapEditorPalette.helpers', () => {
     expect(city?.previewImageUrl).toMatch(/\.png/);
   });
 
+  it('city scale marks building family as linked-content with linkedScale building', () => {
+    const items = getPlacePaletteItemsForScale('city');
+    const building = items.find((i) => i.kind === 'building');
+    expect(building?.category).toBe('linked-content');
+    expect(building?.label).toBe('Building');
+    if (building?.category === 'linked-content') {
+      expect(building.linkedScale).toBe('building');
+    }
+  });
+
   it('floor map-object families expose variantCount from registry (table has multiple variants)', () => {
     const floor = getPlacePaletteItemsForScale('floor');
     const table = floor.find((i) => i.kind === 'table');

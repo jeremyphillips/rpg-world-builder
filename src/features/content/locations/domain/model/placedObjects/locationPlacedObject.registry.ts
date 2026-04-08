@@ -202,6 +202,8 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     category: 'structure',
     placementMode: 'cell',
     allowedScales: ['city', 'site'],
+    /** City/site: marker links to a child building location (Selection rail). */
+    linkedScale: 'building',
     defaultVariantId: 'residential',
     runtime: {
       blocksMovement: true,

@@ -5,7 +5,11 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 import type { LocationMapUiResolvedStyles } from './locationMapUiStyles';
-import { PLACED_OBJECT_MAP_SPRITE_OBJECT_FIT } from './placedObjectMapSprite.constants';
+import {
+  PLACED_OBJECT_FOOTPRINT_RASTER_DISPLAY_INSET_SCALE,
+  PLACED_OBJECT_MAP_SPRITE_OBJECT_FIT,
+  PLACED_OBJECT_MAP_SPRITE_OBJECT_FIT_FOOTPRINT,
+} from './placedObjectMapSprite.constants';
 import type { PlacedObjectCellVisual } from './resolvePlacedObjectCellVisual';
 
 export type PlacedObjectCellVisualDisplayProps = {
@@ -25,15 +29,21 @@ export function PlacedObjectCellVisualDisplay({ visual, variant, mapUi }: Placed
     const h = visual.layoutHeightPx ?? st.icon.heightPx;
     const hasFootprintLayoutPx =
       visual.layoutWidthPx != null && visual.layoutHeightPx != null;
+    const objectFit = hasFootprintLayoutPx
+      ? PLACED_OBJECT_MAP_SPRITE_OBJECT_FIT_FOOTPRINT
+      : PLACED_OBJECT_MAP_SPRITE_OBJECT_FIT;
+    const insetScale = hasFootprintLayoutPx ? PLACED_OBJECT_FOOTPRINT_RASTER_DISPLAY_INSET_SCALE : 1;
+    const displayW = w * insetScale;
+    const displayH = h * insetScale;
     return (
       <Box
         component="img"
         src={visual.mapImageUrl}
         alt=""
         sx={{
-          width: w,
-          height: h,
-          objectFit: PLACED_OBJECT_MAP_SPRITE_OBJECT_FIT,
+          width: displayW,
+          height: displayH,
+          objectFit,
           display: st.icon.display,
           userSelect: 'none',
           pointerEvents: 'none',

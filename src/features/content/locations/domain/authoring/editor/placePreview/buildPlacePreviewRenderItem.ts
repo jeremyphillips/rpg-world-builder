@@ -10,14 +10,16 @@ import {
 } from '../../../model/placedObjects/locationPlacedObject.selectors.core';
 
 /**
- * Synthetic render item for place-mode hover preview (map-object, cell placement).
+ * Synthetic render item for place-mode hover preview (cell placement).
+ * Includes **`map-object`** and **`linked-content`** families that resolve to a persisted cell object (marker, table, …).
  */
 export function buildPlacePreviewRenderItem(
   activePlace: LocationMapActivePlaceSelection | null | undefined,
   hoverCellId: string | null,
   hostScale: LocationScaleId,
 ): LocationMapAuthoredObjectRenderItem | null {
-  if (!activePlace || activePlace.category !== 'map-object' || !hoverCellId) return null;
+  if (!activePlace || !hoverCellId) return null;
+  if (activePlace.category !== 'map-object' && activePlace.category !== 'linked-content') return null;
   if (getPlacementModeForFamily(activePlace.kind) !== 'cell') return null;
   const payload = buildPersistedPlacedObjectPayload(activePlace.kind, hostScale, activePlace.variantId);
   if (!payload) return null;

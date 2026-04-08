@@ -60,10 +60,10 @@ describe('resolvePlacedKindToAction', () => {
     });
   });
 
-  it('map-object building on city maps to marker with authoredPlaceKindId building', () => {
+  it('linked-content building on city maps to marker with authoredPlaceKindId building', () => {
     expect(
       resolvePlacedKindToAction(
-        { category: 'map-object', kind: 'building', variantId: 'residential' },
+        { category: 'linked-content', kind: 'building', variantId: 'residential' },
         'city',
       ),
     ).toEqual({
