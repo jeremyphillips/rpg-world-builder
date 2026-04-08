@@ -1,11 +1,11 @@
 import { createElement } from 'react';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import { alpha } from '@mui/material/styles';
 
 import { getLocationScaleMapIcon } from '@/features/content/locations/domain';
 import { cellObjectAnchorsCellLinkedLocation } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors';
+import { PlacedObjectAuthoredIconRowStack } from '@/features/content/locations/domain/presentation/map/PlacedObjectAuthoredIconRowStack';
 import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
 import {
   resolvePlacedObjectCellVisualFromRenderItem,
@@ -130,15 +130,9 @@ export function LocationMapCellAuthoringOverlay({
     >
       {overlay}
       {hasIcons || showPlacePreview ? (
-        <Stack
-          direction="row"
-          flexWrap="wrap"
-          justifyContent="center"
-          alignItems="center"
-          gap={0.25}
+        <PlacedObjectAuthoredIconRowStack
+          cellPx={squareCellPx}
           sx={{
-            lineHeight: 0,
-            maxWidth: '100%',
             position: 'relative',
             zIndex: 1,
             pointerEvents: hasIcons ? 'auto' : 'none',
@@ -203,7 +197,7 @@ export function LocationMapCellAuthoringOverlay({
               />
             </Box>
           ) : null}
-        </Stack>
+        </PlacedObjectAuthoredIconRowStack>
       ) : null}
     </Box>
   );

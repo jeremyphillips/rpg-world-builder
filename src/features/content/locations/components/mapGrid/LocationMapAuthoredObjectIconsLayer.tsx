@@ -1,8 +1,8 @@
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
+import { PlacedObjectAuthoredIconRowStack } from '@/features/content/locations/domain/presentation/map/PlacedObjectAuthoredIconRowStack';
 import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
 import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
 import type { PlacedObjectGeometryLayoutContext } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext';
@@ -43,14 +43,7 @@ export function LocationMapAuthoredObjectIconsCellInline({
   if (items.length === 0) return null;
   const authorCellId = items[0]!.authorCellId;
   return (
-    <Stack
-      direction="row"
-      flexWrap="wrap"
-      justifyContent="center"
-      alignItems="center"
-      gap={0.25}
-      sx={{ lineHeight: 0, maxWidth: cellPx }}
-    >
+    <PlacedObjectAuthoredIconRowStack cellPx={cellPx}>
       {items.map((o) => {
         const visual = resolvePlacedObjectCellVisualFromRenderItem(o, footprintLayout ?? undefined);
         return (
@@ -71,7 +64,7 @@ export function LocationMapAuthoredObjectIconsCellInline({
           </Tooltip>
         );
       })}
-    </Stack>
+    </PlacedObjectAuthoredIconRowStack>
   );
 }
 
@@ -120,14 +113,7 @@ export function LocationMapAuthoredObjectIconsLayer({
               pointerEvents: 'none',
             }}
           >
-            <Stack
-              direction="row"
-              flexWrap="wrap"
-              justifyContent="center"
-              alignItems="center"
-              gap={0.25}
-              sx={{ lineHeight: 0, maxWidth: cellPx }}
-            >
+            <PlacedObjectAuthoredIconRowStack cellPx={cellPx}>
               {cellItems.map((o) => {
                 const visual = resolvePlacedObjectCellVisualFromRenderItem(o, footprintLayout ?? undefined);
                 return (
@@ -148,7 +134,7 @@ export function LocationMapAuthoredObjectIconsLayer({
                   </Tooltip>
                 );
               })}
-            </Stack>
+            </PlacedObjectAuthoredIconRowStack>
           </Box>
         );
       })}
