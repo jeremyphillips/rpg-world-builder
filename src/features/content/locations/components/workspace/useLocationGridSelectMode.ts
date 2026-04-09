@@ -24,42 +24,6 @@ import type {
 
 type SquareGridGeometry = { cellPx: number; width: number; height: number };
 
-/** Dev-only: trace hex cell clicks through the select resolver (remove once debugging is done). */
-function logHexSelectClickDebug(
-  cell: GridCell,
-  e: ReactMouseEvent<HTMLElement>,
-  gx: number,
-  gy: number,
-  d: LocationGridDraftState,
-  resolved: LocationMapSelection,
-  ms: LocationMapSelection,
-): void {
-  if (!import.meta.env.DEV) return;
-  const el = e.target instanceof Element ? e.target : null;
-  console.log('[hex-select-click]', {
-    cellId: cell.cellId,
-    clientX: e.clientX,
-    clientY: e.clientY,
-    gx,
-    gy,
-    target: el
-      ? {
-          nodeName: el.nodeName,
-          role: el.getAttribute('role'),
-          dataCellId: el.getAttribute('data-cell-id'),
-          closestObjectId:
-            el.closest('[data-map-object-id]')?.getAttribute('data-map-object-id') ?? null,
-          closestLinkedCell:
-            el.closest('[data-map-linked-cell]')?.getAttribute('data-map-linked-cell') ?? null,
-        }
-      : null,
-    resolved,
-    refinedMapSelection: ms,
-    objectsForCell: d.objectsByCellId[cell.cellId],
-    linkedForCell: d.linkedLocationByCellId[cell.cellId] ?? null,
-  });
-}
-
 type UseLocationGridSelectModeParams = {
   mapEditorMode: LocationMapEditorMode;
   validPreview: boolean;
@@ -243,7 +207,6 @@ export function useLocationGridSelectMode({
             ...buildSelectModeInteractiveTargetInputSkipGeometry(d, isHex),
           });
           const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, cell.cellId);
-          if (isHex) logHexSelectClickDebug(cell, e, 0, 0, d, resolved, ms);
           return {
             ...d,
             mapSelection: ms,
@@ -267,7 +230,6 @@ export function useLocationGridSelectMode({
           ...buildSelectModeInteractiveTargetInput(d, pathPickPolys, edgePickGeoms, isHex),
         });
         const ms = refineSelectModeClickAfterRegionDrill(resolved, d.mapSelection, cell.cellId);
-        if (isHex) logHexSelectClickDebug(cell, e, gx, gy, d, resolved, ms);
         return {
           ...d,
           mapSelection: ms,

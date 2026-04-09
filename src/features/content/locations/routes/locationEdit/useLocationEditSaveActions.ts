@@ -187,6 +187,7 @@ export function useLocationEditSaveActions({
       const sort = nextSortOrder(floorChildren);
       const floorIndex = floorChildren.length + 1;
       const input: LocationInput = {
+        id: `${locationId}-floor-${floorIndex}`,
         name: `Floor ${floorIndex}`,
         scale: 'floor',
         parentId: locationId,

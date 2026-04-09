@@ -57,6 +57,18 @@ function generateLocationId(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
+/** Default id when the client omits `locationId` — floor slugs must include parent or "Floor 1" collides across buildings. */
+function defaultLocationIdForCreate(
+  scale: string,
+  resolvedParentId: string | undefined,
+  name: string,
+): string {
+  if (scale === 'floor' && resolvedParentId) {
+    return generateLocationId(`${resolvedParentId}-${name}`);
+  }
+  return generateLocationId(name);
+}
+
 function stripClientHierarchyFields(body: Record<string, unknown>): void {
   delete body.ancestorIds;
 }
@@ -303,10 +315,13 @@ export async function createLocation(
 
   const name = (body.name as string).trim();
   const scale = (body.scale as string).trim();
-  const locationId =
+  const resolvedParentId = resolveParentIdForCreate(body);
+  const explicitLocationId =
     (body.locationId as string | undefined)?.trim() ||
     (body.id as string | undefined)?.trim() ||
-    generateLocationId(name);
+    '';
+  const locationId =
+    explicitLocationId || defaultLocationIdForCreate(scale, resolvedParentId, name);
 
   if (!isValidLocationScaleId(scale)) {
     return { errors: [{ path: 'scale', code: 'INVALID', message: 'Invalid scale' }] };
@@ -327,8 +342,6 @@ export async function createLocation(
 
   const catErr = validateCategoryForLocation(scale, body.category);
   if (catErr) return { errors: [catErr] };
-
-  const resolvedParentId = resolveParentIdForCreate(body);
 
   if (scale === 'world' && resolvedParentId) {
     return {
