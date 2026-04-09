@@ -165,6 +165,8 @@ export default function LocationEditRoute() {
     setRightRailOpen,
     deleteConfirmOpen,
     setDeleteConfirmOpen,
+    deleteConfirmError,
+    setDeleteConfirmError,
     deleting,
     setDeleting,
     activeFloorId,
@@ -459,16 +461,23 @@ export default function LocationEditRoute() {
       deleteConfirm={{
         open: deleteConfirmOpen,
         loading: deleting,
+        errorMessage: deleteConfirmError,
         onConfirm: async () => {
           setDeleting(true);
+          setDeleteConfirmError(null);
           try {
             await handleDelete();
+            setDeleteConfirmOpen(false);
+          } catch (e) {
+            setDeleteConfirmError((e as Error).message);
           } finally {
             setDeleting(false);
-            setDeleteConfirmOpen(false);
           }
         },
-        onCancel: () => setDeleteConfirmOpen(false),
+        onCancel: () => {
+          setDeleteConfirmError(null);
+          setDeleteConfirmOpen(false);
+        },
       }}
     />
   );

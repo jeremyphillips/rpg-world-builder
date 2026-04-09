@@ -1,4 +1,6 @@
 import { CampaignLocation } from '../../../../shared/models/CampaignLocation.model';
+import { CampaignLocationMap } from '../../../../shared/models/CampaignLocationMap.model';
+import { CampaignLocationTransition } from '../../../../shared/models/CampaignLocationTransition.model';
 import type { AccessPolicy } from '../../../../../shared/domain/accessPolicy';
 import type { LocationBaseFields } from '../../../../../shared/domain/locations';
 import {
@@ -16,8 +18,6 @@ import {
   type LocationScaleId,
   validateLocationScaleNesting,
 } from './locationValidation';
-import { countMapsForLocation } from './locationMaps.service';
-import { countTransitionsReferencingLocation } from './locationTransitions.queries';
 
 /** Persistence row for a campaign location — shared domain fields plus campaign scope and timestamps. */
 export type LocationDoc = Omit<LocationBaseFields, 'ancestorIds'> & {
@@ -220,40 +220,28 @@ export async function reparentLocationSubtree(campaignId: string, rootLocationId
   }
 }
 
-export async function assertLocationCanDelete(
-  campaignId: string,
-  locationId: string,
-): Promise<ValidationError[]> {
-  const errors: ValidationError[] = [];
+/**
+ * Removes maps for this location and any transitions that reference those maps or this location as a target.
+ * Call before deleting the {@link CampaignLocation} row so authored locations (with default maps) can be deleted.
+ */
+async function deleteMapsAndTransitionsForLocation(campaignId: string, locationId: string): Promise<void> {
+  const maps = await CampaignLocationMap.find({ campaignId, locationId }).select('mapId').lean();
+  const mapIds = maps
+    .map((m) => String((m as { mapId?: string }).mapId ?? '').trim())
+    .filter(Boolean);
 
-  const childCount = await CampaignLocation.countDocuments({ campaignId, parentId: locationId });
-  if (childCount > 0) {
-    errors.push({
-      path: 'locationId',
-      code: 'HAS_CHILDREN',
-      message: 'Cannot delete location while it has child locations',
-    });
+  const orConditions: Record<string, unknown>[] = [{ toLocationId: locationId }];
+  if (mapIds.length > 0) {
+    orConditions.push({ fromMapId: { $in: mapIds } });
+    orConditions.push({ toMapId: { $in: mapIds } });
   }
 
-  const mapCount = await countMapsForLocation(campaignId, locationId);
-  if (mapCount > 0) {
-    errors.push({
-      path: 'locationId',
-      code: 'HAS_MAPS',
-      message: 'Cannot delete location while it has maps',
-    });
-  }
+  await CampaignLocationTransition.deleteMany({
+    campaignId,
+    $or: orConditions,
+  });
 
-  const transitionCount = await countTransitionsReferencingLocation(campaignId, locationId);
-  if (transitionCount > 0) {
-    errors.push({
-      path: 'locationId',
-      code: 'HAS_TRANSITIONS',
-      message: 'Cannot delete location while transitions target it',
-    });
-  }
-
-  return errors;
+  await CampaignLocationMap.deleteMany({ campaignId, locationId });
 }
 
 function validateCreate(body: Record<string, unknown>): ValidationError[] {
@@ -577,6 +565,10 @@ export async function updateLocation(
   return { location: toDoc((fresh ?? doc) as Record<string, unknown>) };
 }
 
+/**
+ * Deletes a campaign location. Child locations are deleted first (depth-first), then maps/transitions for
+ * each node, then the location row — so parents with floors, buildings, etc. can be removed in one action.
+ */
 export async function deleteLocation(
   campaignId: string,
   locationId: string,
@@ -586,8 +578,15 @@ export async function deleteLocation(
     return { errors: [{ path: 'locationId', code: 'NOT_FOUND', message: 'Location not found' }] };
   }
 
-  const blockers = await assertLocationCanDelete(campaignId, locationId);
-  if (blockers.length > 0) return { errors: blockers };
+  const children = await CampaignLocation.find({ campaignId, parentId: locationId }).select('locationId').lean();
+  for (const row of children) {
+    const childId = String((row as { locationId?: string }).locationId ?? '').trim();
+    if (!childId) continue;
+    const childResult = await deleteLocation(campaignId, childId);
+    if ('errors' in childResult) return childResult;
+  }
+
+  await deleteMapsAndTransitionsForLocation(campaignId, locationId);
 
   const result = await CampaignLocation.deleteOne({ campaignId, locationId });
   if (result.deletedCount === 0) {

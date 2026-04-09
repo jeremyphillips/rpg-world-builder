@@ -158,6 +158,7 @@ export function useLocationEditWorkspaceModel({
   const [railSection, setRailSection] = useState<LocationEditorRailSection>('location');
   const [rightRailOpen, setRightRailOpen] = useState(true);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteConfirmError, setDeleteConfirmError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [activeFloorId, setActiveFloorId] = useState<string | null>(null);
   const [locationListRefreshKey, setLocationListRefreshKey] = useState(0);
@@ -705,7 +706,10 @@ export function useLocationEditWorkspaceModel({
       }
     }
     const result = await handleValidateDelete();
-    if (result.allowed) setDeleteConfirmOpen(true);
+    if (result.allowed) {
+      setDeleteConfirmError(null);
+      setDeleteConfirmOpen(true);
+    }
   }, [mapEditor.mode, gridDraft, handleValidateDelete]);
 
   const handleBack = useCallback(
@@ -989,6 +993,8 @@ export function useLocationEditWorkspaceModel({
     setRightRailOpen,
     deleteConfirmOpen,
     setDeleteConfirmOpen,
+    deleteConfirmError,
+    setDeleteConfirmError,
     deleting,
     setDeleting,
     activeFloorId,

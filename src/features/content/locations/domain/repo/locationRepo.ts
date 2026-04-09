@@ -146,6 +146,11 @@ async function deleteCampaignLocation(campaignId: string, locationId: string): P
     return true;
   } catch (err: unknown) {
     if (err instanceof ApiError && err.status === 404) return false;
+    if (err instanceof ApiError && err.status === 400 && err.payload) {
+      const payload = err.payload as { errors?: { message?: string }[] };
+      const msg = payload.errors?.map((e) => e.message).filter(Boolean).join(' ');
+      if (msg) throw new Error(msg);
+    }
     throw err;
   }
 }
