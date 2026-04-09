@@ -236,9 +236,7 @@ export function useLocationEditWorkspaceModel({
       setBuildingStairConnections([]);
       return;
     }
-    setBuildingStairConnections(
-      loc.buildingStructure?.verticalConnections ?? loc.buildingProfile?.stairConnections ?? [],
-    );
+    setBuildingStairConnections(loc.buildingStructure?.verticalConnections ?? []);
   }, [loc]);
 
   const mapAuthoringScaleForUi = isBuildingWorkspace ? 'floor' : scaleForFormRules;

@@ -61,10 +61,6 @@ const campaignLocationSchema = new Schema(
     buildingMeta: { type: Schema.Types.Mixed },
     /** Building interior topology (e.g. verticalConnections); only when `scale === 'building'`. */
     buildingStructure: { type: Schema.Types.Mixed },
-    /**
-     * @deprecated Legacy combined profile — migrate to `buildingMeta` + `buildingStructure`.
-     */
-    buildingProfile: { type: Schema.Types.Mixed },
   },
   { timestamps: true },
 );

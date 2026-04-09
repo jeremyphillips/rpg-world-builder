@@ -4,25 +4,25 @@ overview: Modeling-first plan separating building identity (buildingMeta), urban
 todos:
   - id: split-types
     content: Split shared types — building identity vs buildingStructure; remove stairConnections from profile type
-    status: pending
+    status: completed
   - id: location-schema
     content: "CampaignLocation — explicit buildingMeta + buildingStructure subdocs; remove buildingProfile Mixed end state"
-    status: pending
+    status: completed
   - id: placement-backpointer
     content: "City map cellEntries — placementId + authoritative placement fields; building cityPlacementRef denormalized only"
     status: pending
   - id: single-link-invariant
     content: Enforce one building↔one city placement in server validation, editor save, and migration verification
-    status: pending
+    status: completed
   - id: migration-script
     content: "Deliver dry-run/apply migration script per Migration script requirements section"
-    status: pending
+    status: completed
   - id: compatibility-removal
     content: "Phase exit gate — delete legacy reads/writes, normalization helpers; grep verification"
-    status: pending
+    status: completed
   - id: reference-doc
     content: Add docs/reference/locations/location-map-schema-relations.md per Docs recommendation
-    status: pending
+    status: completed
   - id: street-transitions
     content: Building↔street via CampaignLocationTransition; optional buildingStructure.entrances
     status: pending

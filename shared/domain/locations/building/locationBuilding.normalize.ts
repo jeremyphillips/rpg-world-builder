@@ -23,16 +23,11 @@ export function buildingMetaFromLegacyProfile(
 export type NormalizedBuildingFields = {
   buildingMeta: LocationBuildingMeta | undefined;
   buildingStructure: LocationBuildingStructure | undefined;
-  /**
-   * Deprecated merged view for API consumers that still read `buildingProfile`.
-   * Populated when meta or vertical connections exist.
-   */
-  buildingProfile: LocationBuildingProfile | undefined;
 };
 
 /**
- * Merge persisted document fragments into canonical `buildingMeta` / `buildingStructure`
- * and a backward-compatible `buildingProfile` view.
+ * Merge persisted document fragments into canonical `buildingMeta` / `buildingStructure`.
+ * Still reads legacy `buildingProfile` from DB if present (unmigrated rows).
  */
 export function normalizeBuildingFieldsFromPersistedDoc(raw: {
   buildingMeta?: unknown;
@@ -57,18 +52,10 @@ export function normalizeBuildingFieldsFromPersistedDoc(raw: {
         ? structNew
         : undefined;
 
-  let buildingProfile: LocationBuildingProfile | undefined;
-  if (buildingMeta || verticalConnections !== undefined) {
-    buildingProfile = {
-      ...buildingMeta,
-      ...(verticalConnections !== undefined ? { stairConnections: verticalConnections } : {}),
-    };
-  }
-
-  return { buildingMeta, buildingStructure, buildingProfile };
+  return { buildingMeta, buildingStructure };
 }
 
-/** Resolve vertical stair links from a normalized or legacy location-like object. */
+/** Resolve vertical stair links from persisted building fields. */
 export function getBuildingVerticalConnectionsFromLocationFields(fields: {
   buildingStructure?: LocationBuildingStructure | null;
   buildingProfile?: LocationBuildingProfile | null;
@@ -80,30 +67,18 @@ export function getBuildingVerticalConnectionsFromLocationFields(fields: {
   return undefined;
 }
 
-/**
- * Merge API write payload (new fields and/or legacy `buildingProfile`) into canonical
- * `buildingMeta` + `buildingStructure` for persistence. Does not write `buildingProfile`.
- */
+/** Map API write body to `buildingMeta` + `buildingStructure` (no legacy `buildingProfile`). */
 export function parseBuildingWritePayload(body: Record<string, unknown>): {
   buildingMeta?: LocationBuildingMeta;
   buildingStructure?: LocationBuildingStructure;
 } {
   const meta = body.buildingMeta as LocationBuildingMeta | undefined;
   const structure = body.buildingStructure as LocationBuildingStructure | undefined;
-  const legacy = body.buildingProfile as LocationBuildingProfile | undefined;
-
-  const buildingMeta = meta ?? buildingMetaFromLegacyProfile(legacy);
-
-  const verticalConnections =
-    structure?.verticalConnections !== undefined
-      ? structure.verticalConnections
-      : legacy?.stairConnections;
-  const buildingStructure: LocationBuildingStructure | undefined =
-    verticalConnections !== undefined
-      ? { ...structure, verticalConnections }
-      : structure && isNonEmptyObject(structure)
-        ? structure
-        : undefined;
-
-  return { buildingMeta, buildingStructure };
+  const out: {
+    buildingMeta?: LocationBuildingMeta;
+    buildingStructure?: LocationBuildingStructure;
+  } = {};
+  if (meta && typeof meta === 'object') out.buildingMeta = meta;
+  if (structure && typeof structure === 'object') out.buildingStructure = structure;
+  return out;
 }

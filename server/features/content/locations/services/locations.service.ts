@@ -54,7 +54,6 @@ function toDoc(doc: Record<string, unknown>): LocationDoc {
     connections: doc.connections as LocationDoc['connections'],
     buildingMeta: building.buildingMeta,
     buildingStructure: building.buildingStructure,
-    buildingProfile: building.buildingProfile,
     createdAt: String(doc.createdAt),
     updatedAt: String(doc.updatedAt),
   };
@@ -265,6 +264,13 @@ function validateCreate(body: Record<string, unknown>): ValidationError[] {
   if (typeof body.scale !== 'string' || body.scale.trim().length === 0) {
     errors.push({ path: 'scale', code: 'REQUIRED', message: 'scale is required' });
   }
+  if ('buildingProfile' in body && body.buildingProfile !== undefined) {
+    errors.push({
+      path: 'buildingProfile',
+      code: 'DEPRECATED',
+      message: 'buildingProfile is removed; use buildingMeta and buildingStructure',
+    });
+  }
   return errors;
 }
 
@@ -275,6 +281,13 @@ function validateUpdate(body: Record<string, unknown>): ValidationError[] {
   }
   if (body.scale !== undefined && (typeof body.scale !== 'string' || body.scale.trim().length === 0)) {
     errors.push({ path: 'scale', code: 'INVALID', message: 'scale must be a non-empty string' });
+  }
+  if ('buildingProfile' in body && body.buildingProfile !== undefined) {
+    errors.push({
+      path: 'buildingProfile',
+      code: 'DEPRECATED',
+      message: 'buildingProfile is removed; use buildingMeta and buildingStructure',
+    });
   }
   return errors;
 }
@@ -527,7 +540,6 @@ export async function updateLocation(
         $unset.buildingMeta = '';
       } else if (typeof body.buildingMeta === 'object') {
         $set.buildingMeta = body.buildingMeta;
-        $unset.buildingProfile = '';
       }
     }
     if ('buildingStructure' in body) {
@@ -535,25 +547,7 @@ export async function updateLocation(
         $unset.buildingStructure = '';
       } else if (typeof body.buildingStructure === 'object') {
         $set.buildingStructure = body.buildingStructure;
-        $unset.buildingProfile = '';
       }
-    }
-    if (
-      'buildingProfile' in body &&
-      body.buildingProfile != null &&
-      typeof body.buildingProfile === 'object'
-    ) {
-      const parsed = parseBuildingWritePayload(body as Record<string, unknown>);
-      if (parsed.buildingMeta && Object.keys(parsed.buildingMeta).length > 0) {
-        $set.buildingMeta = parsed.buildingMeta;
-      }
-      if (parsed.buildingStructure && Object.keys(parsed.buildingStructure).length > 0) {
-        $set.buildingStructure = parsed.buildingStructure;
-      }
-      $unset.buildingProfile = '';
-    }
-    if ('buildingProfile' in body && body.buildingProfile === null) {
-      $unset.buildingProfile = '';
     }
   }
 

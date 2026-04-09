@@ -5,11 +5,7 @@ import { apiFetch, ApiError } from '@/app/api';
 import type { Visibility } from '@/shared/types/visibility';
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import { isCampaignLocationListScale } from '@/shared/domain/locations';
-import type {
-  LocationBuildingMeta,
-  LocationBuildingProfile,
-  LocationBuildingStructure,
-} from '@/shared/domain/locations';
+import type { LocationBuildingMeta, LocationBuildingStructure } from '@/shared/domain/locations';
 import type {
   Location,
   LocationBaseFields,
@@ -40,7 +36,6 @@ type CampaignLocationDto = {
   connections?: LocationBaseFields['connections'];
   buildingMeta?: LocationBuildingMeta;
   buildingStructure?: LocationBuildingStructure;
-  buildingProfile?: LocationBuildingProfile;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -73,7 +68,6 @@ function toCampaignLocation(
     connections: dto.connections,
     buildingMeta: dto.buildingMeta,
     buildingStructure: dto.buildingStructure,
-    buildingProfile: dto.buildingProfile,
   };
 }
 
@@ -187,7 +181,6 @@ function toSummary(loc: Location, allowedInCampaign: boolean): LocationSummary {
     connections: loc.connections,
     buildingMeta: loc.buildingMeta,
     buildingStructure: loc.buildingStructure,
-    buildingProfile: loc.buildingProfile,
     accessPolicy: loc.accessPolicy,
     patched: loc.patched,
     allowedInCampaign,

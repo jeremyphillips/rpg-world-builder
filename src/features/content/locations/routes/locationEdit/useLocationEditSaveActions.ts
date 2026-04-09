@@ -111,11 +111,7 @@ export function useLocationEditSaveActions({
         );
         const updated = await locationRepo.updateEntry(campaignId, locationId, locationInput);
         if (isBuilding) {
-          setBuildingStairConnections(
-            updated.buildingStructure?.verticalConnections ??
-              updated.buildingProfile?.stairConnections ??
-              [],
-          );
+          setBuildingStairConnections(updated.buildingStructure?.verticalConnections ?? []);
         }
         const mapLocationId = isBuilding ? activeFloorId! : locationId;
         const mapBootstrapName = isBuilding
@@ -138,9 +134,7 @@ export function useLocationEditSaveActions({
         });
         setGridDraftBaseline(structuredClone(gridDraftRef.current));
         const stairConnectionsForSnapshot = isBuilding
-          ? (updated.buildingStructure?.verticalConnections ??
-              updated.buildingProfile?.stairConnections ??
-              [])
+          ? (updated.buildingStructure?.verticalConnections ?? [])
           : buildingStairConnectionsRef.current;
         setWorkspacePersistBaseline(
           serializeLocationWorkspacePersistableSnapshot(

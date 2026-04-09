@@ -6,7 +6,6 @@ import type { GridObject } from '@/features/mechanics/domain/combat/space/space.
 import { getCellForCombatant } from '@/features/mechanics/domain/combat/space/space.helpers';
 import type { LocationMapBase, LocationMapCellObjectEntry } from '@/shared/domain/locations/map/locationMap.types';
 import type { LocationVerticalStairConnection } from '@/shared/domain/locations/building/locationBuildingStairConnection.types';
-import { getBuildingVerticalConnectionsFromLocationFields } from '@/shared/domain/locations/building/locationBuilding.normalize';
 import {
   authorCellIdToCombatCellId,
   combatCellIdToAuthorCellId,
@@ -60,10 +59,7 @@ function resolveBuildingStairConnections(
     }
   }
 
-  return getBuildingVerticalConnectionsFromLocationFields({
-    buildingStructure: building?.buildingStructure,
-    buildingProfile: building?.buildingProfile,
-  });
+  return building?.buildingStructure?.verticalConnections;
 }
 
 function objectsOnCellForAuthorCell(

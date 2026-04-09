@@ -65,18 +65,12 @@ export const locationToFormValues = (loc: Location): LocationFormValues => ({
   sortOrder: loc.sortOrder != null ? String(loc.sortOrder) : '',
   aliases: (loc.aliases ?? []).join(', '),
   tags: (loc.tags ?? []).join(', '),
-  buildingPrimaryType: loc.buildingMeta?.primaryType ?? loc.buildingProfile?.primaryType ?? '',
-  buildingPrimarySubtype: loc.buildingMeta?.primarySubtype ?? loc.buildingProfile?.primarySubtype ?? '',
-  buildingFunctions: loc.buildingMeta?.functions?.length
-    ? [...loc.buildingMeta.functions]
-    : loc.buildingProfile?.functions
-      ? [...loc.buildingProfile.functions]
-      : [],
-  buildingIsPublicStorefront: Boolean(
-    loc.buildingMeta?.isPublicStorefront ?? loc.buildingProfile?.isPublicStorefront,
-  ),
-  buildingOwnerRefs: characterRefsToPickerValues(loc.buildingMeta?.ownerRefs ?? loc.buildingProfile?.ownerRefs),
-  buildingStaffRefs: characterRefsToPickerValues(loc.buildingMeta?.staffRefs ?? loc.buildingProfile?.staffRefs),
+  buildingPrimaryType: loc.buildingMeta?.primaryType ?? '',
+  buildingPrimarySubtype: loc.buildingMeta?.primarySubtype ?? '',
+  buildingFunctions: loc.buildingMeta?.functions ? [...loc.buildingMeta.functions] : [],
+  buildingIsPublicStorefront: Boolean(loc.buildingMeta?.isPublicStorefront),
+  buildingOwnerRefs: characterRefsToPickerValues(loc.buildingMeta?.ownerRefs),
+  buildingStaffRefs: characterRefsToPickerValues(loc.buildingMeta?.staffRefs),
 });
 
 export const toLocationInput = (values: LocationFormValues): LocationInput => {

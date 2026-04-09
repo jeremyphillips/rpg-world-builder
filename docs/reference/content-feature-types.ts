@@ -76,7 +76,6 @@ export {};
  *   // ...
  *   buildingMeta?: LocationBuildingMeta;
  *   buildingStructure?: LocationBuildingStructure;
- *   /** @deprecated */ buildingProfile?: LocationBuildingProfile;
  * }
  * type Location = LocationBaseFields;
  *

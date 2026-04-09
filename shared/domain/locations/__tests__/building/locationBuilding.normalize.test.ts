@@ -25,7 +25,6 @@ describe('normalizeBuildingFieldsFromPersistedDoc', () => {
     });
     expect(n.buildingMeta?.primaryType).toBe('business');
     expect(n.buildingStructure?.verticalConnections).toHaveLength(1);
-    expect(n.buildingProfile?.stairConnections).toHaveLength(1);
   });
 
   it('prefers buildingStructure.verticalConnections over legacy when set', () => {
@@ -40,12 +39,10 @@ describe('normalizeBuildingFieldsFromPersistedDoc', () => {
 });
 
 describe('parseBuildingWritePayload', () => {
-  it('splits legacy buildingProfile into meta + structure', () => {
+  it('passes through buildingMeta and buildingStructure', () => {
     const p = parseBuildingWritePayload({
-      buildingProfile: {
-        primaryType: 'civic',
-        stairConnections: [sampleConn],
-      },
+      buildingMeta: { primaryType: 'civic' },
+      buildingStructure: { verticalConnections: [sampleConn] },
     });
     expect(p.buildingMeta?.primaryType).toBe('civic');
     expect(p.buildingStructure?.verticalConnections).toHaveLength(1);

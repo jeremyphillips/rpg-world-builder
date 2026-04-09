@@ -123,7 +123,7 @@ The header **Save** button is driven by **`authoringContract.isDirty`** (homebre
 
 **Single source of truth:** **`buildHomebrewWorkspacePersistableParts`** (`routes/locationEdit/workspacePersistableSnapshot.ts`) builds the same **`locationInput`** (for `locationRepo.updateEntry`) and **`mapBootstrapPayload`** (for `bootstrapDefaultLocationMap`) that **`handleHomebrewSubmit`** uses. **`serializeLocationWorkspacePersistableSnapshot`** stringifies those parts for dirty comparison, so save and dirty cannot drift.
 
-- **Location slice:** `toLocationInput(form values)`, with building saves merging `buildingProfile` and **`stairConnections`** when `loc` is a campaign building.
+- **Location slice:** `toLocationInput(form values)`, with building saves merging **`buildingMeta`** and **`buildingStructure.verticalConnections`** when `loc` is a campaign building.
 - **Map slice:** `buildPersistableMapPayloadFromGridDraft` in `authoring/draft/locationGridDraft.utils.ts` — sorted `excludedCellIds`, wire-normalized authoring fields (`normalizeLocationMapAuthoringFields` / `normalizeRegionAuthoringEntry`), and **stable-sorted** `pathEntries` / `edgeEntries` / `regionEntries` by id. **`gridDraftPersistableEquals`** compares `stableStringify` of that same payload (no compare-vs-save drift).
 
 The **baseline** string is set after successful map hydration and after a successful homebrew save. Until the first baseline is recorded, Save stays disabled (not dirty).

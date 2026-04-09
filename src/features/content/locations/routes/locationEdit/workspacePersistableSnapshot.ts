@@ -8,7 +8,6 @@ import { toLocationInput } from '@/features/content/locations/domain';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 import type { LocationInput } from '@/features/content/locations/domain/model/location';
 import type { LocationVerticalStairConnection } from '@/shared/domain/locations';
-import { buildingMetaFromLegacyProfile } from '@/shared/domain/locations';
 
 /**
  * **Homebrew persistable assembly** (this module)
@@ -92,7 +91,7 @@ function mergeBuildingStructureForSave(
   return {
     ...input,
     buildingMeta: {
-      ...(loc.buildingMeta ?? buildingMetaFromLegacyProfile(loc.buildingProfile)),
+      ...(loc.buildingMeta ?? {}),
       ...(input.buildingMeta ?? {}),
     },
     buildingStructure: {

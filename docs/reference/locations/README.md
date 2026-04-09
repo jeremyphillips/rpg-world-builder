@@ -5,6 +5,7 @@ This folder holds **topic-focused** docs that complement the top-level reference
 | Document | Purpose |
 |----------|---------|
 | [**domain.md**](./domain.md) | **Domain map:** where code lives (`shared/domain/locations`, `shared/domain/grid`, feature layout), mental model (location / map / transition), validation boundaries. **Canonical** body for the locations domain. |
+| [**location-map-schema-relations.md**](./location-map-schema-relations.md) | **Schema relations:** `CampaignLocation` (`buildingMeta` / `buildingStructure`), maps, transitions; authoritative sources; one-building-one-placement invariant. |
 | [**location-workspace.md**](./location-workspace.md) | **Editor shell:** full-width workspace, `LocationGridAuthoringSection`, toolbar modes, rail, zoom/pan, select-mode behavior. |
 
 ## Topic docs (avoid duplicating the two above)
