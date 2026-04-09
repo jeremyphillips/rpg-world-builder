@@ -86,7 +86,7 @@ If parts of them are Encounter-specific, they should be split rather than moved 
 
 **Derive vs render:** Pure lists and geometry live in `shared/domain`; MUI icons, SVG smoothing, and z-order live in feature components (`CombatGridAuthoringOverlay`, `LocationMapAuthoredObjectIconsLayer`, `components/authoring/geometry/pathOverlayRendering.ts`).
 
-**Not the same as:** runtime `GridObject` rows or **placed-object** visuals (`placedObjectVisual` / `PlacedObjectCellVisualDisplay` in tactical cells) — those reflect encounter mechanics and stay separate from authored map SVG underlay icons, though both use **`resolvePlacedObjectCellVisual`** for icon/label consistency.
+**Not the same as:** runtime `GridObject` rows or **placed-object** visuals (`placedObjectVisual` / `PlacedObjectCellVisualDisplay` in tactical cells) — those reflect encounter mechanics and stay separate from authored map SVG underlay icons, though both use **`resolvePlacedObjectCellVisual`** for icon/label consistency. **Authored placed-object pipeline (registry → render items → cells):** [locations/placed-objects-flow.md](../../locations/placed-objects-flow.md).
 
 ## Success criteria
 

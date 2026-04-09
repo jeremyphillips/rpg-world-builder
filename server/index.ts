@@ -1,3 +1,5 @@
+import '../src/features/content/locations/domain/model/placedObjects/locationPlacedObjectRasterAssets.node'
+
 import http from 'http'
 import { env } from './shared/config/env'
 import { connectDB } from './shared/config/mongo'

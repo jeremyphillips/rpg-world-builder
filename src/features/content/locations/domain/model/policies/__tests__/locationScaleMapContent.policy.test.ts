@@ -15,13 +15,14 @@ describe('locationScaleMapContent.policy', () => {
       cellFillFamilies: ['mountains', 'plains', 'forest', 'swamp', 'desert', 'water'],
       pathKinds: ['road', 'river'],
       edgeKinds: [],
-      objectKinds: ['city', 'building', 'tree'],
+      /** Derived from registry `allowedScales` — only `city` is offered at world scale today. */
+      objectKinds: ['city'],
     });
     expect(LOCATION_SCALE_MAP_CONTENT_POLICY.city).toEqual({
       cellFillFamilies: [],
       pathKinds: ['road'],
       edgeKinds: [],
-      objectKinds: ['building', 'site', 'tree'],
+      objectKinds: ['city', 'building', 'site', 'tree'],
     });
     expect(LOCATION_SCALE_MAP_CONTENT_POLICY.floor).toEqual({
       cellFillFamilies: ['floor'],
@@ -42,6 +43,6 @@ describe('locationScaleMapContent.policy', () => {
     expect(getAllowedCellFillFamiliesForScale('floor')).toEqual(['floor']);
     expect(getAllowedPathKindsForScale('city')).toEqual(['road']);
     expect(getAllowedEdgeKindsForScale('floor')).toEqual(['wall']);
-    expect(getAllowedPlacedObjectKindsForScale('city')).toEqual(['building', 'site', 'tree']);
+    expect(getAllowedPlacedObjectKindsForScale('city')).toEqual(['city', 'building', 'site', 'tree']);
   });
 });

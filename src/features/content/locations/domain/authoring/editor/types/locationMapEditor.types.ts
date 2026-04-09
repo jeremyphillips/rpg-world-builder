@@ -15,7 +15,6 @@ import type {
  * Canonical default per family is the registry `defaultVariantId` field — do not assume the key is always `default`.
  */
 export const DEFAULT_AUTHORED_PLACE_VARIANT_ID = 'default' as const;
-import type { LocationMapGlyphIconName } from '@/features/content/locations/domain/presentation/map/locationMapIconNameMap';
 import type { LocationMapSwatchColorKey } from '@/features/content/locations/domain/model/map/locationMapSwatchColors.types';
 import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
 import type { LocationScaleId } from '@/shared/domain/locations';
@@ -119,7 +118,8 @@ export type MapPlacePaletteItem =
       paletteCategory: PlacedObjectPaletteCategoryId;
       label: string;
       description?: string;
-      iconName?: LocationMapGlyphIconName;
+      /** Bundled preview image URL for the default variant tile. */
+      previewImageUrl: string;
       linkedScale: LocationScaleId;
     }
   | {
@@ -133,7 +133,7 @@ export type MapPlacePaletteItem =
       /** Label/icon for the default variant (primary tile). */
       label: string;
       description?: string;
-      iconName?: LocationMapGlyphIconName;
+      previewImageUrl: string;
     };
 
 /** Draw palette: paths and edges (policy + meta). */

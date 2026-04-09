@@ -13,11 +13,6 @@ describe('createSquareGridSpace', () => {
     expect(space.scale).toEqual({ kind: 'grid', cellFeet: 5 })
   })
 
-  it('respects cellFeet override', () => {
-    const space = createSquareGridSpace({ id: 'g1', name: 'Test', columns: 2, rows: 2, cellFeet: 10 })
-    expect(space.scale).toEqual({ kind: 'grid', cellFeet: 10 })
-  })
-
   it('stores width and height from columns and rows', () => {
     const space = createSquareGridSpace({ id: 'g1', name: 'Test', columns: 8, rows: 6 })
     expect(space.width).toBe(8)

@@ -168,5 +168,6 @@ export function useLocationGridAuthoringCellPointers(args: {
     handleCellPointerEnterForGrid,
     handleCellPointerUpForGrid,
     handlePlacePathEdgePointerMove,
+    updatePlaceHoverFromPointerClient,
   };
 }

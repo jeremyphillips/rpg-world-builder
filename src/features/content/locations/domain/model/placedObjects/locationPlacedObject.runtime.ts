@@ -14,7 +14,7 @@ import type {
   LocationPlacedObjectKindId,
   LocationPlacedObjectKindRuntimeDefaults,
 } from './locationPlacedObject.registry';
-import { getPlacedObjectInteraction, getPlacedObjectRuntimeDefaults } from './locationPlacedObject.selectors';
+import { getPlacedObjectInteraction, getPlacedObjectRuntimeDefaults } from './locationPlacedObject.selectors.core';
 
 export type { LocationPlacedObjectKindRuntimeDefaults } from './locationPlacedObject.registry';
 

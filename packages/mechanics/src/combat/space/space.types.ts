@@ -9,9 +9,13 @@ export type EncounterSpaceMode =
   | 'hex-grid'
   | 'svg-zones';
 
+/**
+ * Grid encounter scale: **5 ft per cell only** (see `locationMapCombat.constants.ts`).
+ * 10 ft tactical cells are deferred until product requires them.
+ */
 export type EncounterSpaceScale =
   | { kind: 'zone' }
-  | { kind: 'grid'; cellFeet: 5 | 10 };
+  | { kind: 'grid'; cellFeet: 5 };
 
 /**
  * D&D-style tactical combat cover granted by a grid object when used as cover (half / three-quarters / none).

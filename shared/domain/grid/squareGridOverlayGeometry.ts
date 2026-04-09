@@ -3,7 +3,12 @@ import { parseSquareEdgeId, type SquareCellSide } from './gridEdgeIds';
 
 export { BETWEEN_EDGE_ID_RE, PERIMETER_EDGE_ID_RE } from './gridEdgeIds';
 
-export const SQUARE_GRID_GAP_PX = 4;
+/**
+ * Authoritative gutter (px) between square grid cells for workspace CSS grid, encounter tactical
+ * `inline-grid` (CombatGrid), overlay math in this module, paths/edges, and hit-testing.
+ * Keep in sync everywhere — do not duplicate ad hoc `1px`.
+ */
+export const SQUARE_GRID_GAP_PX = 1;
 
 /** Pixel center of a square grid cell (gap + equal cell size, matches GridEditor). */
 export function squareCellCenterPx(

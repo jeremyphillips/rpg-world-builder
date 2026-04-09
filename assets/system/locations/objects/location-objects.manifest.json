@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 1,
+  "strategy": "single-manifest-option-a",
+  "inputFingerprint": "af61d8deb24488a392fbb442d45a86bee1f24616736acc6630ee83d116e6fd10",
+  "objectsDir": "assets/system/locations/objects",
+  "assets": {
+    "door_double_wood": {
+      "sourceFile": "door-double-wood.png",
+      "contentSha256": "7e35b1b9a76c7fb22ce0c9562b8a7384deedb2d41142781c307b1f47e92837ea",
+      "map": null,
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    },
+    "door_single_wood": {
+      "sourceFile": "door-single-wood.png",
+      "contentSha256": "7e35b1b9a76c7fb22ce0c9562b8a7384deedb2d41142781c307b1f47e92837ea",
+      "map": null,
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    },
+    "placeholder_no_art": {
+      "sourceFile": "placeholder-no-art.png",
+      "contentSha256": "84ac0ad8ad157bdcb80a492f8be9d09b986ab308cf4277df43060b074f477f40",
+      "map": {
+        "intrinsicSize": {
+          "width": 64,
+          "height": 64
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 64
+        }
+      },
+      "preview": {
+        "intrinsicSize": {
+          "width": 64,
+          "height": 64
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 64,
+          "height": 64
+        }
+      }
+    },
+    "stairs_spiral": {
+      "sourceFile": "stairs-spiral.png",
+      "contentSha256": "e11a461f189b087a8906153635d25ec68cf0f84c70edf700c04b4a68329a437e",
+      "map": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    },
+    "stairs_straight": {
+      "sourceFile": "stairs-straight.png",
+      "contentSha256": "f8144298a5281b8015a2f4beb56d555a2aabd9247448a2495742aaab4991044a",
+      "map": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    },
+    "table_rect_wood_10x4": {
+      "sourceFile": "table-rect-wood-10x4.png",
+      "contentSha256": "172d3c5b29c9f4309dcc17bcd10b31aedf942f5417d242199ef0fb7cd30aad23",
+      "map": {
+        "intrinsicSize": {
+          "width": 1376,
+          "height": 768
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1376,
+          "height": 768
+        }
+      },
+      "preview": {
+        "intrinsicSize": {
+          "width": 1376,
+          "height": 768
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1376,
+          "height": 768
+        }
+      }
+    },
+    "table_rect_wood_5x3": {
+      "sourceFile": "table-rect-wood-5x3.png",
+      "contentSha256": "028799aff066a1d323709b1ce4db54d04d5be7a6ab3abcc10ded91be485c49f3",
+      "map": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    },
+    "treasure_chest": {
+      "sourceFile": "treasure-chest.png",
+      "contentSha256": "d819aa84c248eae43f9d44c39e9cb197e291c69add28d451fb1072ffb46dee9f",
+      "map": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    },
+    "window_bars": {
+      "sourceFile": "window-bars.png",
+      "contentSha256": "3dcc6cb1e4f2b0a65860127cc554b8342fd1f318faa4ba46b61333e929f063ce",
+      "map": null,
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    },
+    "window_glass": {
+      "sourceFile": "window-glass.png",
+      "contentSha256": "3dcc6cb1e4f2b0a65860127cc554b8342fd1f318faa4ba46b61333e929f063ce",
+      "map": null,
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    },
+    "window_shutters": {
+      "sourceFile": "window-shutters.png",
+      "contentSha256": "3dcc6cb1e4f2b0a65860127cc554b8342fd1f318faa4ba46b61333e929f063ce",
+      "map": null,
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    },
+    "window_stained_glass": {
+      "sourceFile": "window-stained-glass.png",
+      "contentSha256": "3dcc6cb1e4f2b0a65860127cc554b8342fd1f318faa4ba46b61333e929f063ce",
+      "map": null,
+      "preview": {
+        "intrinsicSize": {
+          "width": 1024,
+          "height": 1024
+        },
+        "trim": {
+          "x": 0,
+          "y": 0,
+          "width": 1024,
+          "height": 1024
+        }
+      }
+    }
+  }
+}

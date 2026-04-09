@@ -77,7 +77,7 @@ describe('markerCausesBattlefieldAbsence', () => {
 
 describe('findNearestUnoccupiedPassableCell', () => {
   it('returns a cell at Chebyshev distance 1 when origin is occupied', () => {
-    const space = createSquareGridSpace({ id: 'g', name: 'g', columns: 3, rows: 3, cellFeet: 5 })
+    const space = createSquareGridSpace({ id: 'g', name: 'g', columns: 3, rows: 3, })
     const origin = space.cells.find((c) => c.x === 1 && c.y === 1)!
     const placements: CombatantPosition[] = [{ combatantId: 'blocker', cellId: origin.id }]
     const found = findNearestUnoccupiedPassableCell(space, placements, origin.id, 'returning')
@@ -91,7 +91,7 @@ describe('banishment clears occupancy and restores on return', () => {
   it('removes placement when banished is applied and restores when removed', () => {
     const wiz = minimalCombatant('wiz')
     const foe = minimalCombatant('foe', { side: 'enemies' })
-    const space = createSquareGridSpace({ id: 'g', name: 'g', columns: 4, rows: 4, cellFeet: 5 })
+    const space = createSquareGridSpace({ id: 'g', name: 'g', columns: 4, rows: 4, })
     const placements: CombatantPosition[] = [
       { combatantId: 'wiz', cellId: space.cells.find((c) => c.x === 0 && c.y === 0)!.id },
       { combatantId: 'foe', cellId: space.cells.find((c) => c.x === 2 && c.y === 0)!.id },
@@ -115,7 +115,7 @@ describe('banishment clears occupancy and restores on return', () => {
   it('falls back to nearest free cell when original is occupied', () => {
     const wiz = minimalCombatant('wiz')
     const foe = minimalCombatant('foe', { side: 'enemies' })
-    const space = createSquareGridSpace({ id: 'g', name: 'g', columns: 4, rows: 4, cellFeet: 5 })
+    const space = createSquareGridSpace({ id: 'g', name: 'g', columns: 4, rows: 4, })
     const c00 = space.cells.find((c) => c.x === 0 && c.y === 0)!
     const c10 = space.cells.find((c) => c.x === 1 && c.y === 0)!
     const placements: CombatantPosition[] = [
@@ -156,7 +156,7 @@ describe('banishment clears occupancy and restores on return', () => {
   })
 
   it('restores grid placement immediately when banished is stripped via dropConcentration (concentration ends)', () => {
-    const space = createSquareGridSpace({ id: 'g', name: 'g', columns: 4, rows: 4, cellFeet: 5 })
+    const space = createSquareGridSpace({ id: 'g', name: 'g', columns: 4, rows: 4, })
     const c00 = space.cells.find((c) => c.x === 0 && c.y === 0)!
     const c11 = space.cells.find((c) => c.x === 1 && c.y === 1)!
 

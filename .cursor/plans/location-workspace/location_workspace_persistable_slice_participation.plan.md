@@ -6,7 +6,7 @@ todos:
     content: Extract buildMapWorkspacePersistablePayloadFromGridDraft + mapWorkspacePersistableTokenFromGridDraft; wire adapters
     status: completed
   - id: tests-docs
-    content: Tests + docs/reference/location-workspace.md + this plan file
+    content: Tests + docs/reference/locations/location-workspace.md + this plan file
     status: completed
 isProject: true
 ---
@@ -19,7 +19,7 @@ isProject: true
 
 - **Single map assembly** — [`buildMapWorkspacePersistablePayloadFromGridDraft`](../../../src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) and [`mapWorkspacePersistableTokenFromGridDraft`](../../../src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) in [`workspacePersistableSnapshot.ts`](../../../src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts); [`buildHomebrewWorkspacePersistableParts`](../../../src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) uses it; [`buildSystemLocationWorkspaceAuthoringContract`](../../../src/features/content/locations/routes/locationEdit/locationWorkspaceAuthoringAdapters.ts) uses the token for `grid` in projections.
 - **Tests** — Map token parity in [`workspacePersistableSnapshot.test.ts`](../../../src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.test.ts); system vs shared token in [`locationWorkspaceAuthoringAdapters.test.ts`](../../../src/features/content/locations/routes/locationEdit/locationWorkspaceAuthoringAdapters.test.ts).
-- **Docs** — [`docs/reference/location-workspace.md`](../../../docs/reference/location-workspace.md) **Adding persisted workspace state (participation checklist)** and pointer **#13**.
+- **Docs** — [`docs/reference/locations/location-workspace.md`](../../../docs/reference/locations/location-workspace.md) **Adding persisted workspace state (participation checklist)** and pointer **#13**.
 
 ## Non-goals
 

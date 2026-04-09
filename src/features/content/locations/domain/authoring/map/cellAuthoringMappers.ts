@@ -51,6 +51,9 @@ export function cellDraftToCellEntries(
         ...(o.authoredPlaceKindId !== undefined && String(o.authoredPlaceKindId).trim() !== ''
           ? { authoredPlaceKindId: String(o.authoredPlaceKindId).trim() }
           : {}),
+        ...(o.variantId !== undefined && String(o.variantId).trim() !== ''
+          ? { variantId: String(o.variantId).trim() }
+          : {}),
         ...(o.kind === 'stairs' && o.stairEndpoint !== undefined
           ? {
               stairEndpoint: {
@@ -111,6 +114,9 @@ export function cellEntriesToDraft(entries: LocationMapCellAuthoringEntry[] | un
         ...(o.label !== undefined && o.label !== '' ? { label: o.label } : {}),
         ...(o.authoredPlaceKindId !== undefined && String(o.authoredPlaceKindId).trim() !== ''
           ? { authoredPlaceKindId: String(o.authoredPlaceKindId).trim() }
+          : {}),
+        ...(o.variantId !== undefined && String(o.variantId).trim() !== ''
+          ? { variantId: String(o.variantId).trim() }
           : {}),
         ...(o.kind === 'stairs' && o.stairEndpoint !== undefined
           ? {

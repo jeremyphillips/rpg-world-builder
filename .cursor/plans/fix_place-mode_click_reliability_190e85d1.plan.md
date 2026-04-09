@@ -95,7 +95,7 @@ This matches the pattern already established by the encounter grid. In place mod
 
 - **File:** [src/features/content/locations/components/LocationGridAuthoringSection.tsx](src/features/content/locations/components/LocationGridAuthoringSection.tsx) or the palette panel -- filter out `category: 'path'` and `category: 'edge'` palette items when `gridGeometry === 'hex'`.
 - Alternatively, pass `gridGeometry` to the place panel and filter there. This prevents users from selecting tools that have no visual feedback.
-- Update [docs/reference/location-workspace.md](docs/reference/location-workspace.md) to note this filter under the existing Open Issues section.
+- Update [docs/reference/locations/location-workspace.md](docs/reference/locations/location-workspace.md) to note this filter under the existing Open Issues section.
 
 **Long-term (follow-up):**
 
@@ -114,6 +114,6 @@ This matches the pattern already established by the encounter grid. In place mod
 | `src/features/content/locations/routes/LocationEditRoute.tsx`                | Destructure and pass `hasDragMoved` |
 | `src/features/content/locations/components/LocationGridAuthoringSection.tsx` | Accept + use `hasDragMoved` guard   |
 | Place palette panel or `LocationEditRoute.tsx`                               | Filter path/edge entries on hex     |
-| `docs/reference/location-workspace.md`                                       | Update open issues                  |
+| `docs/reference/locations/location-workspace.md`                                       | Update open issues                  |
 
 

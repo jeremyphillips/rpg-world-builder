@@ -12,5 +12,7 @@ export type LocationMapAuthoredObjectRenderItem = {
   combatCellId: string;
   kind: LocationMapObjectKindId;
   authoredPlaceKindId?: string;
+  /** Mirrors {@link LocationMapCellObjectEntry.variantId} when present. */
+  variantId?: string;
   label?: string;
 };

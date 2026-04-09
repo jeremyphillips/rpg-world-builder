@@ -42,7 +42,6 @@ describe('resolveWorldEnvironmentForCell', () => {
     name: 't',
     columns: 5,
     rows: 5,
-    cellFeet: 5,
   })
 
   it('returns baseline fields when no zones apply', () => {

@@ -38,7 +38,6 @@ export function buildFallbackEncounterSpace(opts: {
     name: opts.name,
     columns: 10,
     rows: 10,
-    cellFeet: 5,
     locationId: opts.locationId,
   })
 }
@@ -64,7 +63,6 @@ export function buildFallbackEncounterSpaceContainingCell(opts: {
     name: opts.name,
     columns,
     rows,
-    cellFeet: 5,
     locationId: opts.locationId,
   })
 }

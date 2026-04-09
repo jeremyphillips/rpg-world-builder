@@ -138,7 +138,7 @@ export default function GridEditor({
             className={extraClass}
             sx={{
               position: 'relative',
-              overflow: 'hidden',
+              // overflow: 'hidden' — disabled: clips placed-object rasters that extend past one cell (multi-cell footprint layout).
               aspectRatio: '1',
               minWidth: 0,
               minHeight: 0,

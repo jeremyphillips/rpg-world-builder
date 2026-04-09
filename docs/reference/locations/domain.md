@@ -2,6 +2,8 @@
 
 This document describes **where code lives** and **how the three layers** (location, map, transition) relate, plus **validation** boundaries. Use it to onboard quickly when extending authoring, APIs, or shared rules.
 
+**Documentation index:** [README.md](./README.md) (hub for topic docs). **Placed objects (registry → map → combat, single narrative):** [placed-objects-flow.md](./placed-objects-flow.md).
+
 For the **location create/edit workspace** (full-width shell, `components/workspace/`, building floors, canvas zoom/pan hooks), see [location-workspace.md](./location-workspace.md).
 
 ## Mental model
@@ -80,7 +82,7 @@ Shared MUI styling tokens consumed by both `GridEditor` and `HexGridEditor` to k
 | Folder | Responsibility |
 |--------|----------------|
 | `scale/` | Scale **business policy** (who may parent whom), **field policy** (categories, cell units, **grid geometries**, which form fields apply per scale), **rules** (valid scale id, rank, world check), **UI policy** (`locationScaleUi.policy.ts` — campaign list vs standalone create vs interior), **parent validation** (`validateParentChildScales` for hierarchy). |
-| `map/` | Map **constants** (kinds, cell units by kind, object kinds), **types** (`LocationMapBase`, grid, cells, cell authoring, **`LocationMapAuthoredObjectRenderItem`**), **helpers** (`mapKindForLocationScale`, `getDefaultMapKindForScale` — derives map kind during save/bootstrap, `isCellUnitAllowedForScale`), **authored-object render derivation** (`deriveLocationMapAuthoredObjectRenderItems`, `locationMapAuthoredObjectRender.helpers.ts`), **placement policy** (what can be placed / linked on cells by scale), **validation** (grid, cells, map input, cell authoring structure). |
+| `map/` | Map **constants** (kinds, cell units by kind, object kinds), **types** (`LocationMapBase`, grid, cells, cell authoring, **`LocationMapAuthoredObjectRenderItem`**), **helpers** (`mapKindForLocationScale`, `getDefaultMapKindForScale` — derives map kind during save/bootstrap, `isCellUnitAllowedForScale`), **authored-object render derivation** (`deriveLocationMapAuthoredObjectRenderItems`, `locationMapAuthoredObjectRender.helpers.ts` — see [placed-objects-flow.md](./placed-objects-flow.md)), **placement policy** (what can be placed / linked on cells by scale), **validation** (grid, cells, map input, cell authoring structure). |
 | `zones/` | **MapZone** — painted named areas on a map (`MapZone`, `MapZoneKindId`, `MAP_ZONE_KIND_META`). **`ALLOWED_MAP_ZONE_KINDS_BY_HOST_SCALE`** / helpers: which zone kinds may be authored for each host location scale. Separate from `LOCATION_SCALE_FIELD_POLICY`, linked-location policy (`locationMapPlacement.policy.ts`), and the feature **map model** (`domain/model/map`, `domain/model/placedObjects`, `domain/model/policies`). Phase 1: shared types/policy only; paint UI and persistence deferred. |
 | `transitions/` | Transition **kinds** (`LOCATION_TRANSITION_KIND_IDS`) and **shared types** (`LocationTransitionBase`, `from` / `to` shapes). |
 
@@ -197,7 +199,7 @@ Grid geometry is derived from `LOCATION_SCALE_FIELD_POLICY` — there is no user
 1. **Create route:** geometry is derived from `getDefaultGeometryForScale(scale)` when scale is selected. The dependent field sanitization (`sanitizeLocationFormValues`) auto-corrects geometry when scale changes.
 2. **Edit route:** geometry is seeded from the persisted map (`def.grid.geometry`). For legacy maps without a stored geometry, falls back to `getDefaultGeometryForScale(loc.scale)`.
 3. **Bootstrap:** `bootstrapDefaultLocationMap` threads geometry into the `grid` object saved to the database via `normalizeGridGeometryForScale`.
-4. **Rendering:** [`LocationGridAuthoringSection`](src/features/content/locations/components/workspace/LocationGridAuthoringSection.tsx) accepts a `gridGeometry` prop and renders `HexGridEditor` (hex) or `GridEditor` (square).
+4. **Rendering:** [`LocationGridAuthoringSection`](../../../src/features/content/locations/components/workspace/LocationGridAuthoringSection.tsx) accepts a `gridGeometry` prop and renders `HexGridEditor` (hex) or `GridEditor` (square).
 
 **Persistence:** `LocationMapGrid.geometry` is optional on the shared type and on the Mongoose schema (`enum: ['square', 'hex']`, not required). Legacy maps without the field work unchanged — they render using the scale policy default.
 

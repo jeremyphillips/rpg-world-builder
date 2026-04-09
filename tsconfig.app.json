@@ -82,8 +82,9 @@
       "@/shared/weight/*": ["../shared/weight/*"],
       "@/utils/*": ["utils/*"],
 
-      "@/utils": ["utils/index.ts"]
-    }  
+      "@/utils": ["utils/index.ts"],
+      "@repo-assets/*": ["../assets/*"]
+    }
   },
-  "include": ["src", "packages/mechanics/src"]
+  "include": ["src", "packages/mechanics/src", "../assets/system/locations/objects/*.json"]
 }

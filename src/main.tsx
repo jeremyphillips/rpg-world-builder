@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
+import './features/content/locations/domain/model/placedObjects/locationPlacedObjectRasterAssets.vite'
+
 // Roboto font — all weights
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'

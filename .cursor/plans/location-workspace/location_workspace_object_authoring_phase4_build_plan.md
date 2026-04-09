@@ -8,7 +8,7 @@ isProject: true
 
 **Normative spec:** [location_workspace_object_authoring_phase4_config_editing.plan.md](location_workspace_object_authoring_phase4_config_editing.plan.md) (inspector ownership, shared template, Label rules, risks, gaps).
 
-**Canonical doc (update in scope):** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md).
+**Canonical doc (update in scope):** [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md).
 
 **Depends on:** Phases 1–3 complete in product (`placementMode`, edge place, registry, `edgeEntries` kind-only wire).
 
@@ -132,7 +132,7 @@ This document is a **build order** and **work breakdown**. It does not replace t
 | Task | Notes |
 |------|------|
 | Tests: **which inspector mounts** for which `mapSelection` | **Test gap** in Phase 4 plan |
-| Update **`docs/reference/location-workspace.md`** | Selection inspectors, shared template, persistable rules |
+| Update **`docs/reference/locations/location-workspace.md`** | Selection inspectors, shared template, persistable rules |
 | Optional: **audit** doc — current branches vs target | **Audit gap** |
 
 ---
@@ -189,7 +189,7 @@ M1 (audit) → M2 (shell) → M3 (cell object) → M4 (empty cell dispatch) → 
 | Stairs | `routes/locationEdit/useLocationEditBuildingStairHandlers.ts` |
 | Registry | `domain/model/placedObjects/locationPlacedObject.registry.ts` |
 | Presentation metadata rows (M8) | Shared helper (e.g. `rightRail/selection/`) deriving rows from **`variant.presentation`** |
-| Doc | `docs/reference/location-workspace.md` |
+| Doc | `docs/reference/locations/location-workspace.md` |
 
 ---
 

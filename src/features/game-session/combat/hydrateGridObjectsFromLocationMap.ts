@@ -12,10 +12,8 @@
 
 import { buildGridObjectFromAuthoredPlacedObject } from '@/features/mechanics/domain/combat/space/gridObject/gridObject.fromAuthored';
 import type { EncounterCell, GridObject } from '@/features/mechanics/domain/combat/space/space.types';
-import {
-  parseLocationPlacedObjectKindId,
-  type LocationPlacedObjectKindId,
-} from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
+import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry';
+import { parseLocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors.core';
 import type { LocationMapBase, LocationMapCellObjectEntry } from '@/shared/domain/locations/map/locationMap.types';
 
 import { authorCellIdToCombatCellId } from './encounterMapCellIds';

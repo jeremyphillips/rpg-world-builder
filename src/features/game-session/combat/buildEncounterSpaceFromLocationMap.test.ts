@@ -13,6 +13,45 @@ describe('authorCellIdToCombatCellId', () => {
 })
 
 describe('buildEncounterSpaceFromLocationMap', () => {
+  it('accepts 25ft cell unit and uses 5 ft tactical scale only', () => {
+    const space = buildEncounterSpaceFromLocationMap({
+      mapHostLocationId: 'floor-loc-1',
+      map: {
+        id: 'map-25',
+        locationId: 'loc',
+        name: 'Wide',
+        kind: 'encounter-grid',
+        grid: { width: 2, height: 2, cellUnit: '25ft' },
+        layout: {},
+        edgeEntries: [],
+        cellEntries: [],
+        pathEntries: [],
+        regionEntries: [],
+      },
+    })
+    expect(space.scale).toEqual({ kind: 'grid', cellFeet: 5 })
+  })
+
+  it('throws when grid.cellUnit is not supported for encounter conversion', () => {
+    expect(() =>
+      buildEncounterSpaceFromLocationMap({
+        mapHostLocationId: 'floor-loc-1',
+        map: {
+          id: 'map-bad',
+          locationId: 'loc',
+          name: 'X',
+          kind: 'encounter-grid',
+          grid: { width: 2, height: 2, cellUnit: '100ft' },
+          layout: {},
+          edgeEntries: [],
+          cellEntries: [],
+          pathEntries: [],
+          regionEntries: [],
+        },
+      }),
+    ).toThrow(/not supported/)
+  })
+
   it('applies excluded cells as blocking and maps edge walls', () => {
     const space = buildEncounterSpaceFromLocationMap({
       mapHostLocationId: 'floor-loc-1',

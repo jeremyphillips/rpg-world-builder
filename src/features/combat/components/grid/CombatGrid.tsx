@@ -13,6 +13,8 @@ import { alpha, keyframes, useTheme } from '@mui/material/styles'
 import type { Theme } from '@mui/material/styles'
 import { AppAvatar } from '@/ui/primitives'
 import { resolveImageUrl } from '@/shared/lib/media'
+import { SQUARE_GRID_GAP_PX } from '@/shared/domain/grid/squareGridOverlayGeometry'
+import { buildPlacedObjectGeometryLayoutContextFromEncounter } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext'
 import type { GridViewModel, GridCellViewModel } from '@/features/mechanics/domain/combat/space/selectors/space.selectors'
 import { DEFEATED_PARTICIPATION_OPACITY } from '@/features/mechanics/domain/combat/presentation/participation/presentation-defeated'
 import { getCellVisualState, mergePerceptionIntoCellVisualState } from './cellVisualState'
@@ -206,7 +208,7 @@ export function CombatGrid({
             display: 'inline-grid',
             gridTemplateColumns: `repeat(${grid.columns}, ${cellSizePx}px)`,
             gridTemplateRows: `repeat(${grid.rows}, ${cellSizePx}px)`,
-            gap: '1px',
+            gap: `${SQUARE_GRID_GAP_PX}px`,
             bgcolor: 'grey.500',
             border: 1,
             borderColor: 'grey.500',
@@ -269,6 +271,15 @@ export function CombatGrid({
             const cellAuthoredItems = grid.authoringPresentation
               ? visibleAuthoredObjectItems.filter((it) => it.combatCellId === cell.cellId)
               : []
+            const showAuthoredObjectIcons = cellAuthoredItems.length > 0
+            /** Obstacle glyph from grid mechanics uses default kind art; skip when map-authored icons already render. */
+            const showTacticalPlacedObjectGlyph =
+              Boolean(cell.placedObjectVisual) &&
+              cell.perception?.showObstacleGlyph !== false &&
+              !showAuthoredObjectIcons
+
+            /** Wider than one cell: overflow visible + higher z-index so neighbor cell fills do not cover the sprite. */
+            const cellZIndex = liftAboveBlindVeil ? 4 : showAuthoredObjectIcons ? 3 : 1
 
             const cellBox = (
               <GridCellHost
@@ -295,7 +306,8 @@ export function CombatGrid({
                   justifyContent: 'stretch',
                   cursor: affordance.cursor,
                   position: 'relative',
-                  zIndex: liftAboveBlindVeil ? 4 : 1,
+                  overflow: 'visible',
+                  zIndex: cellZIndex,
                   '&:focus-visible': {
                     outline: 'none',
                   },
@@ -305,12 +317,21 @@ export function CombatGrid({
                   },
                 }}
               >
-                <GridCellVisual sx={cellVisualSx}>
-                  {cellAuthoredItems.length > 0 ? (
+                <GridCellVisual
+                  sx={[
+                    cellVisualSx,
+                    ...(showAuthoredObjectIcons ? [{ overflow: 'visible' }] : []),
+                  ]}
+                >
+                  {showAuthoredObjectIcons ? (
                     <LocationMapAuthoredObjectIconsCellInline
                       items={cellAuthoredItems}
                       cellPx={cellSizePx}
                       mapUi={mapUi}
+                      footprintLayout={buildPlacedObjectGeometryLayoutContextFromEncounter({
+                        cellFeet: grid.cellFeet,
+                        cellPx: cellSizePx,
+                      })}
                     />
                   ) : null}
                   {showOccupantToken && (
@@ -349,7 +370,7 @@ export function CombatGrid({
                       />
                     </Box>
                   )}
-                  {cell.placedObjectVisual && cell.perception?.showObstacleGlyph !== false ? (
+                  {showTacticalPlacedObjectGlyph && cell.placedObjectVisual ? (
                     <PlacedObjectCellVisualCentered
                       visual={cell.placedObjectVisual}
                       variant="tactical"
@@ -362,7 +383,7 @@ export function CombatGrid({
 
             // `LocationMapAuthoredObjectIconsCellInline` wraps each authored icon in its own Tooltip.
             // Do not wrap the whole cell — that would stack a second tooltip on the same hover.
-            if (cellAuthoredItems.length > 0) {
+            if (showAuthoredObjectIcons) {
               return <Fragment key={cell.cellId}>{cellBox}</Fragment>
             }
 

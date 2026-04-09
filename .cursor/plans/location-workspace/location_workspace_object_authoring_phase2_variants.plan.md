@@ -27,7 +27,7 @@ isProject: true
 
 **Parent:** [location_workspace_object_authoring_roadmap.plan.md](location_workspace_object_authoring_roadmap.plan.md)  
 **Depends on:** [location_workspace_object_authoring_phase1_palette_foundation.plan.md](location_workspace_object_authoring_phase1_palette_foundation.plan.md) — family-first registry, `**placementRegistryResolver`** seam, loaded identity + context, toolbar drawer palette, click-to-place for cell objects.  
-**Canonical reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md)
+**Canonical reference:** [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md)
 
 **Role:** **Child plan (implementation)** — scoped to **Phase 2** of the object authoring roadmap.
 
@@ -62,7 +62,7 @@ Add **variant-aware object authoring** so the palette can represent **families**
 - **`LOCATION_SCALE_MAP_CONTENT_POLICY`:** Comment that keys include legacy scales for exhaustive `Record<LocationScaleId, …>` — empty buckets are not “new authoring” endorsement.
 - **UI helpers:** Comments on `LOCATION_SCALE_OPTIONS_WITH_LEGACY` (edit display), `LOCATION_SCALE_FILTER_OPTIONS` (list chips), `sortLocations` (rank bridge only).
 - **`placed object registry` + mechanics `GridObject`:** Central docs for `blocksMovement` / `blocksLineOfSight` / `combatCoverKind` separation.
-- **`docs/reference/locations.md`:** Vocabulary table + map policy note.
+- **`docs/reference/locations/domain.md`:** Vocabulary table + map policy note.
 
 **Audit:** No incorrect usages found that required code changes (create/list/form paths already use the appropriate surface vs `LOCATION_SCALE_IDS_WITH_LEGACY` where legacy display/filtering is intended).
 
@@ -147,7 +147,7 @@ Picker is **not** a parallel “second palette”; it is **scoped under** the fa
 
 ### Documentation alignment
 
-- After this decision record is adopted, update **`docs/reference/location-workspace.md`** so it does **not** imply **variant-on-wire** persistence (Phase 2 uses **resolver-only** wire shape).
+- After this decision record is adopted, update **`docs/reference/locations/location-workspace.md`** so it does **not** imply **variant-on-wire** persistence (Phase 2 uses **resolver-only** wire shape).
 - Document **picker behavior**, **family-scoped variant ids**, **map-object-first variant UX**, and **primary/secondary interaction** in the reference doc so contributors do not see **contradictory** Phase 1 vs Phase 2 guidance.
 - If a **future** phase adds additive persistence, that phase must **explicitly** revise this doc — Phase 2 PRs should not half-update persistence wording.
 
@@ -358,7 +358,7 @@ This child plan is **ready for implementation** when:
 4. **Popover vs modal** rules are **explicit** enough to implement.
 5. **Tooltips** are **registry-driven** with family/variant resolution rules.
 6. **Placement** flows through **loaded identity** → `**placementRegistryResolver`** → **click-to-place** without a second mapping layer.
-7. **`docs/reference/location-workspace.md`** reflects Phase 2 decisions (no variant-on-wire implication; picker + id scope + interaction; **`familyKey` + `variantId`** loaded shape; **`defaultVariantId`**).
+7. **`docs/reference/locations/location-workspace.md`** reflects Phase 2 decisions (no variant-on-wire implication; picker + id scope + interaction; **`familyKey` + `variantId`** loaded shape; **`defaultVariantId`**).
 8. **Linked-content non-regression:** `city` / `building` / `site` placement still resolves to **`link`** + **`pendingPlacement`** + linked-location modal with **Phase 1-equivalent** `linkedScale` / host behavior (see **decision record** criterion).
 9. Phase 2 stays **separate** from **Edge placement (Phase 3)** and **Config/editing (Phase 4)**.
 
@@ -366,7 +366,7 @@ This child plan is **ready for implementation** when:
 
 ## Implementation todos (tracked)
 
-See YAML frontmatter: audit Phase 1, define variant model, design selection UX, wire tooltips, preserve placement contract, tests and docs. **Update `docs/reference/location-workspace.md`** per **Documentation alignment** in the **decision record** before considering Phase 2 complete.
+See YAML frontmatter: audit Phase 1, define variant model, design selection UX, wire tooltips, preserve placement contract, tests and docs. **Update `docs/reference/locations/location-workspace.md`** per **Documentation alignment** in the **decision record** before considering Phase 2 complete.
 
 ---
 

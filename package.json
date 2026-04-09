@@ -10,7 +10,7 @@
     "dev": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
     "dev:frontend": "vite",
     "dev:backend": "nodemon --exec \"tsx --tsconfig tsconfig.server.json server/index.ts\"",
-    "build": "tsc -b && vite build",
+    "build": "npm run build:location-objects && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "tsx --tsconfig tsconfig.server.json server/index.ts",
@@ -19,7 +19,11 @@
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "audit:spells-willing": "tsx scripts/audit-spell-touch-willing.ts"
+    "audit:spells-willing": "tsx scripts/audit-spell-touch-willing.ts",
+    "build:location-objects-manifest": "tsx scripts/location-objects-assets/generateLocationObjectsManifest.ts",
+    "validate:location-objects-manifest": "tsx scripts/location-objects-assets/validateLocationObjectsManifest.ts",
+    "validate:location-objects": "npm run validate:location-objects-manifest && vitest run src/features/content/locations/domain/model/placedObjects/__tests__/locationObjectsRegistryManifest.crossReference.test.ts",
+    "build:location-objects": "npm run build:location-objects-manifest && npm run validate:location-objects-manifest"
   },
   "dependencies": {
     "@auth/express": "^0.12.1",
@@ -70,6 +74,7 @@
     "globals": "^16.5.0",
     "jsdom": "^28.1.0",
     "nodemon": "^3.1.11",
+    "pngjs": "^7.0.0",
     "sass-embedded": "^1.97.3",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3",

@@ -1,0 +1,28 @@
+{
+  "families": {
+    "door": {
+      "single_wood": "door_single_wood",
+      "double_wood": "door_double_wood"
+    },
+    "window": {
+      "bars": "window_bars",
+      "glass": "window_glass",
+      "stained_glass": "window_stained_glass",
+      "shutters": "window_shutters"
+    },
+    "stairs": {
+      "straight": "stairs_straight",
+      "spiral": "stairs_spiral"
+    },
+    "table": {
+      "rect_wood": "table_rect_wood_5x3",
+      "rect_wood_10x4": "table_rect_wood_10x4",
+      "circle_wood": null
+    },
+    "treasure": {
+      "chest": "treasure_chest",
+      "hoard": null
+    }
+  },
+  "unregisteredAssetIds": []
+}

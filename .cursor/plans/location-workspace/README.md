@@ -2,9 +2,9 @@
 
 Cursor plans for the **location editor workspace**: persistence/dirty state, shell contract, map authoring UX, hex constraints, and performance. Individual `.plan.md` filenames are stable — **prefer linking to files by name** rather than moving them.
 
-**Canonical reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md).
+**Canonical reference:** [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md).
 
-**Note:** Older plans in this bundle may still cite legacy `src/features/content/locations/domain/` paths (`mapEditor/`, `mapContent/`, `mapPresentation/`, …). Prefer [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) and [docs/reference/locations.md](../../../docs/reference/locations.md) for current folder names (`model/`, `authoring/`, `presentation/`, …).
+**Note:** Older plans in this bundle may still cite legacy `src/features/content/locations/domain/` paths (`mapEditor/`, `mapContent/`, `mapPresentation/`, …). Prefer [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md) and [docs/reference/locations/domain.md](../../../docs/reference/locations/domain.md) for current folder names (`model/`, `authoring/`, `presentation/`, …).
 
 ---
 
@@ -12,7 +12,7 @@ Cursor plans for the **location editor workspace**: persistence/dirty state, she
 
 1. **Foundation** — how save/dirty/snapshot fit together (`dirty_state` archive, authoring contract, normalization).
 2. **Reference doc** — `location-workspace.md` for runtime behavior, Open issues, and contributor pointers.
-3. **Workspace structure** — [location_workspace_ownership_reorg.plan.md](location_workspace_ownership_reorg.plan.md): ownership subtrees under `components/workspace/` (`header/`, `setup/`, `canvas/`, `leftTools/`, `rightRail/`); **`LocationGridAuthoringSection`** stays workspace-level (not under `canvas/`). Subtree `__tests__/` and further rail internals are optional follow-ups. See `docs/reference/location-workspace.md` § Workspace layout.
+3. **Workspace structure** — [location_workspace_ownership_reorg.plan.md](location_workspace_ownership_reorg.plan.md): ownership subtrees under `components/workspace/` (`header/`, `setup/`, `canvas/`, `leftTools/`, `rightRail/`); **`LocationGridAuthoringSection`** stays workspace-level (not under `canvas/`). Subtree `__tests__/` and further rail internals are optional follow-ups. See `docs/reference/locations/location-workspace.md` § Workspace layout.
 4. **Orchestration cleanup (pre–feature)** — [../location_workspace_cleanup_94269d45.plan.md](../location_workspace_cleanup_94269d45.plan.md): concern-based extractions for `LocationGridAuthoringSection`, `useLocationEditWorkspaceModel`, and route rail panel assembly; ownership boundaries (`components/workspace` vs `routes/locationEdit` vs `domain/authoring/editor`); does not change dirty/save contracts.
 5. **Interaction & hex** — Select mode, hover parity, hex edge Option B (mostly done child plans).
 6. **Performance** — snapshot profiling outcomes; path preview remains deferred in the reference doc.

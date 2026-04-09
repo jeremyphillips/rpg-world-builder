@@ -66,7 +66,8 @@ export function getAuthoredPlaceKindIdForPersistedPayload(
 }
 
 /**
- * @param _variantId — Family-scoped variant (Phase 2). Resolver-only; wire shape is unchanged until a future phase.
+ * @param _variantId — Family-scoped variant: **`variantId`** is stored on **`LocationMapCellObjectEntry`** via
+ * **`resolvePlacementCellClick`** (Phase 3); this helper still maps only coarse **`kind`** + **`authoredPlaceKindId`**.
  */
 export function buildPersistedPlacedObjectPayload(
   placedKind: LocationPlacedObjectKindId,

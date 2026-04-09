@@ -76,7 +76,7 @@ describe('locationPlacedObject.selectors (registry-derived)', () => {
 
   it('getDefaultVariantIdForFamily and getVariantCountForFamily read registry', () => {
     expect(getDefaultVariantIdForFamily('table')).toBe('rect_wood');
-    expect(getVariantCountForFamily('table')).toBe(2);
+    expect(getVariantCountForFamily('table')).toBe(3);
     expect(getVariantCountForFamily('city')).toBe(1);
     expect(getVariantCountForFamily('stairs')).toBe(2);
     expect(getVariantCountForFamily('treasure')).toBe(2);

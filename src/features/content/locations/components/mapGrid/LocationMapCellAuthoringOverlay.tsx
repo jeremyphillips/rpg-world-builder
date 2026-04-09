@@ -1,13 +1,19 @@
 import { createElement } from 'react';
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import { alpha } from '@mui/material/styles';
 
 import { getLocationScaleMapIcon } from '@/features/content/locations/domain';
 import { cellObjectAnchorsCellLinkedLocation } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors';
+import {
+  PlacedObjectAuthoredIconRowStack,
+  resolvePlacedObjectAuthoredIconRowStackMaxWidthPx,
+} from '@/features/content/locations/domain/presentation/map/PlacedObjectAuthoredIconRowStack';
 import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
-import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
+import {
+  resolvePlacedObjectCellVisualFromRenderItem,
+} from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
+import { buildPlacedObjectGeometryLayoutContextFromAuthoring } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext';
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
 import type { Location } from '@/features/content/locations/domain/model/location';
 import { mapCellObjectEntryToAuthoredRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.helpers';
@@ -17,6 +23,7 @@ import { getMapRegionColor } from '@/app/theme/mapColors';
 import type { GridCell } from './GridEditor';
 import type { LocationGridDraftState } from '@/features/content/locations/components/authoring/draft/locationGridDraft.types';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/types';
+import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 
 /**
  * Per-cell overlay for region tint, linked-location icon, and authored object icons.
@@ -31,6 +38,12 @@ type LocationMapCellAuthoringOverlayProps = {
   isHex: boolean;
   mapUi: LocationMapUiResolvedStyles;
   locationById: Map<string, Location>;
+  /** Map form `gridCellUnit` — used with {@link squareCellPx} for Phase 3 footprint layout (square only). */
+  gridCellUnit?: string;
+  /** Authoring square cell size in px; omit on hex or invalid grid. */
+  squareCellPx?: number;
+  /** Place-mode hover ghost for cell-anchored map objects (semi-transparent). */
+  placePreviewItem?: LocationMapAuthoredObjectRenderItem | null;
 };
 
 export function LocationMapCellAuthoringOverlay({
@@ -40,6 +53,9 @@ export function LocationMapCellAuthoringOverlay({
   isHex,
   mapUi,
   locationById,
+  gridCellUnit,
+  squareCellPx,
+  placePreviewItem,
 }: LocationMapCellAuthoringOverlayProps) {
   const rid = draft.regionIdByCellId[cell.cellId]?.trim();
   const regionEntry = rid ? draft.regionEntries.find((r) => r.id === rid) : undefined;
@@ -88,9 +104,40 @@ export function LocationMapCellAuthoringOverlay({
   const hasLinkedPlaceObject = objs?.some((o) => cellObjectAnchorsCellLinkedLocation(o)) ?? false;
   const showStandaloneLinkedIcon = Boolean(linked && !hasLinkedPlaceObject);
   const hasIcons = Boolean(showStandaloneLinkedIcon || (objs && objs.length > 0));
-  if (!overlay && !hasIcons) {
+  const showPlacePreview =
+    placePreviewItem != null && placePreviewItem.authorCellId.trim() === cell.cellId.trim();
+  if (!overlay && !hasIcons && !showPlacePreview) {
     return null;
   }
+  const footprintLayout = buildPlacedObjectGeometryLayoutContextFromAuthoring({
+    gridKind: isHex ? 'hex' : 'square',
+    gridCellUnit,
+    squareCellPx,
+  });
+  const objectCount = objs?.length ?? 0;
+  const rowChildCount =
+    (showStandaloneLinkedIcon ? 1 : 0) + objectCount + (showPlacePreview ? 1 : 0);
+  const multiItemRow = rowChildCount > 1;
+  let singleObjectLayoutWidthPx: number | null | undefined;
+  if (!multiItemRow && squareCellPx != null) {
+    if (objectCount === 1) {
+      const item = mapCellObjectEntryToAuthoredRenderItem(cell.cellId, objs![0]!);
+      singleObjectLayoutWidthPx = resolvePlacedObjectCellVisualFromRenderItem(
+        item,
+        footprintLayout ?? undefined,
+      ).layoutWidthPx;
+    } else if (showPlacePreview && placePreviewItem && objectCount === 0) {
+      singleObjectLayoutWidthPx = resolvePlacedObjectCellVisualFromRenderItem(
+        placePreviewItem,
+        footprintLayout ?? undefined,
+      ).layoutWidthPx;
+    }
+  }
+  const rowMaxWidthPx = resolvePlacedObjectAuthoredIconRowStackMaxWidthPx({
+    cellPx: squareCellPx,
+    multiItemRow,
+    singleObjectLayoutWidthPx,
+  });
   const iconSx = {
     fontSize: 22,
     width: 22,
@@ -109,19 +156,14 @@ export function LocationMapCellAuthoringOverlay({
       }}
     >
       {overlay}
-      {hasIcons ? (
-        <Stack
-          direction="row"
-          flexWrap="wrap"
-          justifyContent="center"
-          alignItems="center"
-          gap={0.25}
+      {hasIcons || showPlacePreview ? (
+        <PlacedObjectAuthoredIconRowStack
+          cellPx={squareCellPx}
+          maxWidthPx={rowMaxWidthPx}
           sx={{
-            lineHeight: 0,
-            maxWidth: '100%',
             position: 'relative',
             zIndex: 1,
-            pointerEvents: 'auto',
+            pointerEvents: hasIcons ? 'auto' : 'none',
           }}
         >
           {showStandaloneLinkedIcon && linked ? (
@@ -138,7 +180,7 @@ export function LocationMapCellAuthoringOverlay({
           ) : null}
           {objs?.map((o) => {
             const item = mapCellObjectEntryToAuthoredRenderItem(cell.cellId, o);
-            const visual = resolvePlacedObjectCellVisualFromRenderItem(item);
+            const visual = resolvePlacedObjectCellVisualFromRenderItem(item, footprintLayout ?? undefined);
             return (
               <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
                 <Box
@@ -163,7 +205,27 @@ export function LocationMapCellAuthoringOverlay({
               </Tooltip>
             );
           })}
-        </Stack>
+          {showPlacePreview && placePreviewItem ? (
+            <Box
+              sx={{
+                display: 'inline-flex',
+                lineHeight: 0,
+                opacity: 0.45,
+                pointerEvents: 'none',
+              }}
+              aria-hidden
+            >
+              <PlacedObjectCellVisualDisplay
+                visual={resolvePlacedObjectCellVisualFromRenderItem(
+                  placePreviewItem,
+                  footprintLayout ?? undefined,
+                )}
+                variant="overlay"
+                mapUi={mapUi}
+              />
+            </Box>
+          ) : null}
+        </PlacedObjectAuthoredIconRowStack>
       ) : null}
     </Box>
   );

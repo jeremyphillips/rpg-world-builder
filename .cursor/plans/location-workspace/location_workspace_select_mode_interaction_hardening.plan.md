@@ -26,7 +26,7 @@ isProject: true
 
 **Parent context:** Dirty/save architecture, persistable slice participation, and normalization policy are already stabilized. This pass is not about persistence; it is about improving **interaction reliability** in Select mode.
 
-**Reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) (e.g. **Select mode**, **Open issues §2 / §4**).
+**Reference:** [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md) (e.g. **Select mode**, **Open issues §2 / §4**).
 
 ---
 

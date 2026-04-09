@@ -38,6 +38,8 @@ export * from './map/locationMapPathPolyline.helpers';
 export * from './map/locationMapCombatCellIds';
 export * from './map/locationMapAuthoredObjectRender.types';
 export * from './map/locationMapAuthoredObjectRender.helpers';
+export * from './map/locationObjectsAssetManifest.types';
+export * from './map/locationObjectsAssetManifest.trim';
 export * from './map/locationMapEdgeGeometry.helpers';
 export * from './map/locationMapCellAuthoring.validation';
 export * from './map/locationMapFeatures.validation';

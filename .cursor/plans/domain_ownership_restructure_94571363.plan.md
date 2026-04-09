@@ -15,7 +15,7 @@ todos:
     content: Move tests into __tests__ per target; fix path-based tooling references
     status: pending
   - id: docs-reference
-    content: Update docs/reference for new paths and vocabulary (mapContent retired); locations.md feature vs shared map types; grep docs/ for stale paths
+    content: Update docs/reference for new paths and vocabulary (mapContent retired); locations/domain.md feature vs shared map types; grep docs/ for stale paths
     status: pending
   - id: forms-readme
     content: Add forms/README.md with ownership (config, mappers, registry, types, rules, setup) per plan section
@@ -81,7 +81,7 @@ Two different files share a similar basename; this is a **real confusion risk** 
 
 **Plan requirements:**
 
-- Make this distinction **explicit** in `[docs/reference/locations.md](docs/reference/locations.md)` (and touch `[location-workspace.md](docs/reference/location-workspace.md)` where map types are discussed).
+- Make this distinction **explicit** in `[docs/reference/locations/domain.md](docs/reference/locations/domain.md)` (and touch `[location-workspace.md](docs/reference/locations/location-workspace.md)` where map types are discussed).
 - **Optional follow-up (only if justified):** if confusion persists after documentation, evaluate a **clearer feature-local filename** (e.g. a prefix scoped to the feature). This plan does **not** require renaming the file up front—only flags the risk and allows a deliberate follow-on if needed.
 
 ## 3. Merge-time acceptance: no compatibility shims
@@ -169,8 +169,8 @@ Update path literals and narrative so they match the new tree and vocabulary:
 
 | File                                                                                              | Obligation                                                                                                                                                       |
 | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[docs/reference/location-workspace.md](docs/reference/location-workspace.md)`                    | Replace legacy `domain/mapEditor/…`, `domain/mapPresentation/…`, `domain/mapAuthoring/…` with `authoring/…`, `presentation/map/…`; retire `mapContent` as a path |
-| `[docs/reference/locations.md](docs/reference/locations.md)`                                      | **Shared vs feature:** describe `model/map`, `model/placedObjects`, `model/policies`; **feature vs shared `locationMap.types.ts`**; update test path bullets     |
+| `[docs/reference/locations/location-workspace.md](docs/reference/locations/location-workspace.md)`                    | Replace legacy `domain/mapEditor/…`, `domain/mapPresentation/…`, `domain/mapAuthoring/…` with `authoring/…`, `presentation/map/…`; retire `mapContent` as a path |
+| `[docs/reference/locations/domain.md](docs/reference/locations/domain.md)`                                      | **Shared vs feature:** describe `model/map`, `model/placedObjects`, `model/policies`; **feature vs shared `locationMap.types.ts`**; update test path bullets     |
 | `[docs/reference/color-theming.md](docs/reference/color-theming.md)`                              | `domain/presentation/map/locationMapUiStyles.ts`                                                                                                                 |
 | `[docs/reference/content-feature-types.ts](docs/reference/content-feature-types.ts)`              | Example path → `domain/model/location/location.types.ts` (comment-only)                                                                                          |
 | Grep `**docs/**` for `mapContent`, `mapEditor`, `mapPresentation`, `mapAuthoring`, `domain/types` | Fix stragglers                                                                                                                                                   |
@@ -215,7 +215,7 @@ Use this before merging the reorg branch:
 - **No imports** from legacy paths: `domain/mapEditor`, `domain/mapContent`, `domain/mapPresentation`, `domain/mapAuthoring`, `domain/types/`, top-level `domain/building/` (distinct from `domain/model/building/`), `forms/utils`.
 - **No compatibility barrels or mirror folders** remain for those paths; branch-only shims **removed**.
 - **Docs** updated: `mapContent` **retired** as vocabulary; references use `model/map`, `model/placedObjects`, `model/policies`, or conceptual phrases.
-- **Feature-local vs shared `locationMap.types.ts`** documented in `locations.md` (and linked from workspace doc where helpful).
+- **Feature-local vs shared `locationMap.types.ts`** documented in `locations/domain.md` (and linked from workspace doc where helpful).
 - **Case-only renames** (e.g. `select-mode` → `selectMode`) performed with a **two-step** `git mv` where required.
 - **Barrels reviewed:** `model/index.ts` has no accidental duplicate exports across `model/map`, `model/placedObjects`, `model/policies`; root `domain/index.ts` remains deliberate.
 - `**forms/README.md`** present with ownership for `config/`, `mappers/`, `registry/`, `types/`, `rules/`, `setup/`.

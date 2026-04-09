@@ -209,6 +209,7 @@ export default function LocationEditRoute() {
     handleEraseEdge,
     gridColumns,
     gridRows,
+    gridCellUnit,
     gridGeometry,
     locations,
     buildingStairConnections,
@@ -283,6 +284,7 @@ export default function LocationEditRoute() {
     <LocationGridAuthoringSection
       gridColumns={gridColumns}
       gridRows={gridRows}
+      gridCellUnit={gridCellUnit}
       gridGeometry={gridGeometry}
       draft={gridDraft}
       setDraft={setGridDraft}
@@ -293,6 +295,7 @@ export default function LocationEditRoute() {
       hostName={mapHostName}
       onCellFocusRail={focusSelectionRailSection}
       mapEditorMode={mapEditor.mode}
+      activePlace={mapEditor.activePlace}
       activePaint={mapEditor.activePaint}
       leftChromeWidthPx={leftMapChromeWidthPx}
       onPlaceCellClick={handleAuthoringCellClick}

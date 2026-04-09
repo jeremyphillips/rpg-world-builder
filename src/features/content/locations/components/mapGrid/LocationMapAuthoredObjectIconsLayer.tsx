@@ -1,10 +1,14 @@
 import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
+import {
+  PlacedObjectAuthoredIconRowStack,
+  resolvePlacedObjectAuthoredIconRowStackMaxWidthPx,
+} from '@/features/content/locations/domain/presentation/map/PlacedObjectAuthoredIconRowStack';
 import { PlacedObjectCellVisualDisplay } from '@/features/content/locations/domain/presentation/map/PlacedObjectCellVisualDisplay';
 import { resolvePlacedObjectCellVisualFromRenderItem } from '@/features/content/locations/domain/presentation/map/resolvePlacedObjectCellVisual';
+import type { PlacedObjectGeometryLayoutContext } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
 import { squareCellCenterPx } from '@/shared/domain/grid/squareGridOverlayGeometry';
 
@@ -25,6 +29,8 @@ export type LocationMapAuthoredObjectIconsCellInlineProps = {
   items: readonly LocationMapAuthoredObjectRenderItem[];
   cellPx: number;
   mapUi: LocationMapUiResolvedStyles;
+  /** When set (e.g. encounter `cellFeet` + tactical pixel cell), applies registry footprint sizing. */
+  footprintLayout?: PlacedObjectGeometryLayoutContext | null;
 };
 
 /**
@@ -35,20 +41,26 @@ export function LocationMapAuthoredObjectIconsCellInline({
   items,
   cellPx,
   mapUi,
+  footprintLayout,
 }: LocationMapAuthoredObjectIconsCellInlineProps) {
   if (items.length === 0) return null;
   const authorCellId = items[0]!.authorCellId;
+  const singleVisual =
+    items.length === 1
+      ? resolvePlacedObjectCellVisualFromRenderItem(items[0]!, footprintLayout ?? undefined)
+      : null;
+  const rowMaxWidthPx = resolvePlacedObjectAuthoredIconRowStackMaxWidthPx({
+    cellPx,
+    multiItemRow: items.length > 1,
+    singleObjectLayoutWidthPx: singleVisual?.layoutWidthPx,
+  });
   return (
-    <Stack
-      direction="row"
-      flexWrap="wrap"
-      justifyContent="center"
-      alignItems="center"
-      gap={0.25}
-      sx={{ lineHeight: 0, maxWidth: cellPx }}
-    >
-      {items.map((o) => {
-        const visual = resolvePlacedObjectCellVisualFromRenderItem(o);
+    <PlacedObjectAuthoredIconRowStack cellPx={cellPx} maxWidthPx={rowMaxWidthPx}>
+      {items.map((o, i) => {
+        const visual =
+          singleVisual != null && i === 0
+            ? singleVisual
+            : resolvePlacedObjectCellVisualFromRenderItem(o, footprintLayout ?? undefined);
         return (
           <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
             <Box
@@ -67,7 +79,7 @@ export function LocationMapAuthoredObjectIconsCellInline({
           </Tooltip>
         );
       })}
-    </Stack>
+    </PlacedObjectAuthoredIconRowStack>
   );
 }
 
@@ -76,6 +88,7 @@ export type LocationMapAuthoredObjectIconsLayerProps = {
   cellPx: number;
   gapPx: number;
   mapUi: LocationMapUiResolvedStyles;
+  footprintLayout?: PlacedObjectGeometryLayoutContext | null;
 };
 
 /**
@@ -87,6 +100,7 @@ export function LocationMapAuthoredObjectIconsLayer({
   cellPx,
   gapPx,
   mapUi,
+  footprintLayout,
 }: LocationMapAuthoredObjectIconsLayerProps) {
   if (items.length === 0) return null;
   const groups = groupByAuthorCellId(items);
@@ -103,6 +117,15 @@ export function LocationMapAuthoredObjectIconsLayer({
       {Array.from(groups.entries()).map(([authorCellId, cellItems]) => {
         const p = squareCellCenterPx(authorCellId, cellPx, gapPx);
         if (!p) return null;
+        const singleVisual =
+          cellItems.length === 1
+            ? resolvePlacedObjectCellVisualFromRenderItem(cellItems[0]!, footprintLayout ?? undefined)
+            : null;
+        const rowMaxWidthPx = resolvePlacedObjectAuthoredIconRowStackMaxWidthPx({
+          cellPx,
+          multiItemRow: cellItems.length > 1,
+          singleObjectLayoutWidthPx: singleVisual?.layoutWidthPx,
+        });
         return (
           <Box
             key={authorCellId}
@@ -114,16 +137,12 @@ export function LocationMapAuthoredObjectIconsLayer({
               pointerEvents: 'none',
             }}
           >
-            <Stack
-              direction="row"
-              flexWrap="wrap"
-              justifyContent="center"
-              alignItems="center"
-              gap={0.25}
-              sx={{ lineHeight: 0, maxWidth: cellPx }}
-            >
-              {cellItems.map((o) => {
-                const visual = resolvePlacedObjectCellVisualFromRenderItem(o);
+            <PlacedObjectAuthoredIconRowStack cellPx={cellPx} maxWidthPx={rowMaxWidthPx}>
+              {cellItems.map((o, i) => {
+                const visual =
+                  singleVisual != null && i === 0
+                    ? singleVisual
+                    : resolvePlacedObjectCellVisualFromRenderItem(o, footprintLayout ?? undefined);
                 return (
                   <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
                     <Box
@@ -142,7 +161,7 @@ export function LocationMapAuthoredObjectIconsLayer({
                   </Tooltip>
                 );
               })}
-            </Stack>
+            </PlacedObjectAuthoredIconRowStack>
           </Box>
         );
       })}

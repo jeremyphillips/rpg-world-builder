@@ -33,7 +33,7 @@ isProject: true
 
 **Parent:** [location_workspace_object_authoring_roadmap.plan.md](location_workspace_object_authoring_roadmap.plan.md)  
 **Depends on:** [location_workspace_object_authoring_phase1_palette_foundation.plan.md](location_workspace_object_authoring_phase1_palette_foundation.plan.md), [location_workspace_object_authoring_phase2_variants.plan.md](location_workspace_object_authoring_phase2_variants.plan.md).  
-**Canonical reference:** [docs/reference/location-workspace.md](../../../docs/reference/location-workspace.md) (Draw tool, `edgeEntries`, workspace constraints). **Do not** treat this plan as superseding canonical docs; if hex edge behavior is not specified there, Phase 3 does **not** commit to implementing it.
+**Canonical reference:** [docs/reference/locations/location-workspace.md](../../../docs/reference/locations/location-workspace.md) (Draw tool, `edgeEntries`, workspace constraints). **Do not** treat this plan as superseding canonical docs; if hex edge behavior is not specified there, Phase 3 does **not** commit to implementing it.
 
 **Role:** **Child plan (normative for Phase 3 work)** — architectural decisions below are **locked** unless the roadmap is formally revised.
 

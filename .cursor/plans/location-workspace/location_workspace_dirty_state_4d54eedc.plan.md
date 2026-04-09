@@ -1,6 +1,6 @@
 ---
 name: Location workspace dirty state
-overview: Phases 1–4 + refactor A–**E** complete (dirty snapshot, state ownership in docs/reference/location-workspace.md). **Follow-up plans (same directory — [README](README.md)):** [location_workspace_authoring_contract.plan.md](location_workspace_authoring_contract.plan.md); [location_workspace_debounced_persistable_flush.plan.md](location_workspace_debounced_persistable_flush.plan.md); [location_workspace_persistable_slice_participation.plan.md](location_workspace_persistable_slice_participation.plan.md); [location_workspace_normalization_policy.plan.md](location_workspace_normalization_policy.plan.md) (done). **Deprecated `Campaign*` workspace aliases** (shim components, re-exports, hook fields) were removed in favor of **homebrew** names only.
+overview: Phases 1–4 + refactor A–**E** complete (dirty snapshot, state ownership in docs/reference/locations/location-workspace.md). **Follow-up plans (same directory — [README](README.md)):** [location_workspace_authoring_contract.plan.md](location_workspace_authoring_contract.plan.md); [location_workspace_debounced_persistable_flush.plan.md](location_workspace_debounced_persistable_flush.plan.md); [location_workspace_persistable_slice_participation.plan.md](location_workspace_persistable_slice_participation.plan.md); [location_workspace_normalization_policy.plan.md](location_workspace_normalization_policy.plan.md) (done). **Deprecated `Campaign*` workspace aliases** (shim components, re-exports, hook fields) were removed in favor of **homebrew** names only.
 todos:
   - id: snapshot-helper
     content: Add workspacePersistableSnapshot (form + normalized map + building stairs) aligned with save
@@ -15,7 +15,7 @@ todos:
     content: Unit tests for snapshot equality across representative edits
     status: completed
   - id: docs-location-workspace
-    content: Update docs/reference/location-workspace.md with dirty/save architecture and pointers
+    content: Update docs/reference/locations/location-workspace.md with dirty/save architecture and pointers
     status: completed
   - id: phase2-shared-payload
     content: Extract shared buildCampaignWorkspacePersistablePayload used by save + snapshot serialization
@@ -76,7 +76,7 @@ flowchart LR
 
 | Phase | Goal | Primary outcome |
 | ----- | ---- | --------------- |
-| **1** | Persistable snapshot + baseline | `isWorkspaceDirty`, [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts), hydration/save baseline, [`location-workspace.md`](docs/reference/location-workspace.md) — **done** |
+| **1** | Persistable snapshot + baseline | `isWorkspaceDirty`, [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts), hydration/save baseline, [`location-workspace.md`](docs/reference/locations/location-workspace.md) — **done** |
 | **2** | Single source of truth | One builder for “what would be persisted” consumed by **both** dirty snapshot and `handleCampaignSubmit` — eliminates save vs dirty drift |
 | **3** | Quality + rail UX | Table/matrix tests, contributor checklist in docs, explicit policy for nested **submit-to-commit** inspectors |
 | **4** | Parity + polish | System patch rules documented or aligned; optional snapshot memoization if profiling says so |
@@ -104,14 +104,14 @@ Rail tabs (**Location / Map / Selection**) are not separate stores: they feed th
 
 **System:** `isSystemLocationWorkspaceDirty(patchDriver.isDirty(), isGridDraftDirty)` in [`systemLocationWorkspaceDirty.ts`](src/features/content/locations/routes/locationEdit/systemLocationWorkspaceDirty.ts) — not the campaign snapshot.
 
-Full architecture, nested-form policy, and pointers **#8–#9** live in [`location-workspace.md`](docs/reference/location-workspace.md).
+Full architecture, nested-form policy, and pointers **#8–#9** live in [`location-workspace.md`](docs/reference/locations/location-workspace.md).
 
 ## Remaining risks and gaps (post-ship)
 
 ### In good shape
 
 - **Homebrew save vs dirty drift** is largely mitigated by the shared **`buildHomebrewWorkspacePersistableParts`** path.
-- **Contributor-facing** detail: [`location-workspace.md`](docs/reference/location-workspace.md) (campaign snapshot, system two-rule dirty, nested rails, whitespace, performance).
+- **Contributor-facing** detail: [`location-workspace.md`](docs/reference/locations/location-workspace.md) (campaign snapshot, system two-rule dirty, nested rails, whitespace, performance).
 
 ### Risks
 
@@ -134,7 +134,7 @@ Full architecture, nested-form policy, and pointers **#8–#9** live in [`locati
 
 ### Process
 
-- Keep **Pointers for the next agent** in [`location-workspace.md`](docs/reference/location-workspace.md) linked to [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) and this plan.
+- Keep **Pointers for the next agent** in [`location-workspace.md`](docs/reference/locations/location-workspace.md) linked to [`workspacePersistableSnapshot.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.ts) and this plan.
 
 ## Key files (reference)
 
@@ -147,7 +147,7 @@ Full architecture, nested-form policy, and pointers **#8–#9** live in [`locati
 | Route wiring | [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx) |
 | System dirty helper | [`systemLocationWorkspaceDirty.ts`](src/features/content/locations/routes/locationEdit/systemLocationWorkspaceDirty.ts) |
 | Tests | [`workspacePersistableSnapshot.test.ts`](src/features/content/locations/routes/locationEdit/workspacePersistableSnapshot.test.ts), [`systemLocationWorkspaceDirty.test.ts`](src/features/content/locations/routes/locationEdit/systemLocationWorkspaceDirty.test.ts) |
-| Docs | [`location-workspace.md`](docs/reference/location-workspace.md) |
+| Docs | [`location-workspace.md`](docs/reference/locations/location-workspace.md) |
 | Re-exports | [`routes/locationEdit/index.ts`](src/features/content/locations/routes/locationEdit/index.ts) |
 
 ---
@@ -215,7 +215,7 @@ Persistable authoring for the campaign snapshot in [`workspacePersistableSnapsho
 
 #### Ephemeral UI state (must stay local)
 
-Examples: map editor **mode** and tool selection, **paint** `activePaint` / active region id for painting, **map selection** (`mapSelection`), rail **tab** (`railSection`), right-rail **open**, **zoom/pan**, async **picker loading** lists, **busy** flags on async actions. These are excluded from the persistable snapshot per [`locationGridDraft.utils.ts`](src/features/content/locations/components/locationGridDraft.utils.ts) / [`location-workspace.md`](docs/reference/location-workspace.md).
+Examples: map editor **mode** and tool selection, **paint** `activePaint` / active region id for painting, **map selection** (`mapSelection`), rail **tab** (`railSection`), right-rail **open**, **zoom/pan**, async **picker loading** lists, **busy** flags on async actions. These are excluded from the persistable snapshot per [`locationGridDraft.utils.ts`](src/features/content/locations/components/locationGridDraft.utils.ts) / [`location-workspace.md`](docs/reference/locations/location-workspace.md).
 
 #### Nested inspectors — audit (submit-to-commit vs draft-sync)
 
@@ -235,7 +235,7 @@ Examples: map editor **mode** and tool selection, **paint** `activePaint` / acti
 1. **P0 — [`LocationMapRegionMetadataForm`](src/features/content/locations/components/workspace/LocationMapRegionMetadataForm.tsx)** — **done (Phase B)**; reference pattern for future panels.
 2. *None others identified* in `components/workspace/` as of Phase A audit that buffer persistable data behind panel Submit only. Re-audit when adding new rail inspectors.
 
-**Acceptance criteria (Phase A):** satisfied — shared rule and ordered migration list are documented above and in [`location-workspace.md`](docs/reference/location-workspace.md).
+**Acceptance criteria (Phase A):** satisfied — shared rule and ordered migration list are documented above and in [`location-workspace.md`](docs/reference/locations/location-workspace.md).
 
 ### Phase B — refactor one representative inspector end-to-end
 
@@ -315,7 +315,7 @@ flowchart LR
 2. **Expose from `useLocationEditWorkspaceModel`** (memoized): `homebrewWorkspaceCanSave` / `homebrewWorkspaceSaveBlockReason` (or equivalent).
 3. **Wire [`LocationEditRoute.tsx`](src/features/content/locations/routes/LocationEditRoute.tsx):** replace `saveDisabled={isBuildingWorkspace && !activeFloorId}` with a single expression that includes **floor + grid bootstrap** (same as gate).
 4. **Header (minimal):** optional `saveDisabledReason` + `Tooltip` on Save in [`LocationEditHomebrewWorkspace.tsx`](src/features/content/locations/components/workspace/LocationEditHomebrewWorkspace.tsx) / [`LocationEditorHeader.tsx`](src/features/content/locations/components/workspace/LocationEditorHeader.tsx) when `dirty && !canSave`.
-5. **Docs:** “Dirty vs saveable” in [`location-workspace.md`](docs/reference/location-workspace.md). **Transitional:** system patch may still use `validationApiRef` — isolated from campaign snapshot dirty.
+5. **Docs:** “Dirty vs saveable” in [`location-workspace.md`](docs/reference/locations/location-workspace.md). **Transitional:** system patch may still use `validationApiRef` — isolated from campaign snapshot dirty.
 
 #### Acceptance mapping (Phase C)
 
@@ -333,7 +333,7 @@ flowchart LR
 
 ### Phase D — migrate remaining nested inspectors slice-by-slice (refinement)
 
-**Status: completed** — Re-audit found **no** additional persistable submit-to-commit gaps beyond Phase B (region metadata). **Code:** [`LocationMapSelectionInspectors.tsx`](src/features/content/locations/components/workspace/LocationMapSelectionInspectors.tsx) — replaced noop **`AppForm`** wrappers (**StairPairingLinkForm**, **LocationMapStairEndpointInspectForm**) with **`FormProvider` + `useForm`** + `Stack` (no fake form submit). **Docs:** [`location-workspace.md`](docs/reference/location-workspace.md) **Phase D — migration inventory** table.
+**Status: completed** — Re-audit found **no** additional persistable submit-to-commit gaps beyond Phase B (region metadata). **Code:** [`LocationMapSelectionInspectors.tsx`](src/features/content/locations/components/workspace/LocationMapSelectionInspectors.tsx) — replaced noop **`AppForm`** wrappers (**StairPairingLinkForm**, **LocationMapStairEndpointInspectForm**) with **`FormProvider` + `useForm`** + `Stack` (no fake form submit). **Docs:** [`location-workspace.md`](docs/reference/locations/location-workspace.md) **Phase D — migration inventory** table.
 
 Phase C established the **homebrew** header contract: **dirty** = workspace draft vs persisted snapshot; **saveable** = separate (`getHomebrewWorkspaceSaveBlockReason`); header Save truthful for **migrated** slices without panel-local Submit.
 
@@ -418,7 +418,7 @@ Post–Phase A audit + Phase B: the only **submit-to-commit persistable** gap wa
 
 ### Phase E — remove transitional patterns and codify the standard (refinement)
 
-**Status: completed** (todo `refactor-phaseE-cleanup-guideline`). **Docs:** [`location-workspace.md`](docs/reference/location-workspace.md) **State ownership (authoring standard)**; **code:** region metadata `Box` wrapper (no fake `<form>` submit); adapter + stair label copy.
+**Status: completed** (todo `refactor-phaseE-cleanup-guideline`). **Docs:** [`location-workspace.md`](docs/reference/locations/location-workspace.md) **State ownership (authoring standard)**; **code:** region metadata `Box` wrapper (no fake `<form>` submit); adapter + stair label copy.
 
 Phase D confirmed the old **submit-to-commit** persistable gap is gone and remaining inspector flows commit through **workspace draft ownership**. Phase E is **cleanup and standardization**, not another behavioral redesign.
 
@@ -468,7 +468,7 @@ Add an explicit guideline stating:
 | **Header dirty/save → workspace draft only** | Dirty = draft vs persisted snapshot; save = current draft; **no** hidden child-local persistable state for save truth |
 | **Validation vs dirty** | Dirty = changed; saveable = allowed to persist; draft may be **dirty** while **invalid** |
 
-Expand each rule **just enough** to be actionable (see deliverable in [`location-workspace.md`](docs/reference/location-workspace.md)).
+Expand each rule **just enough** to be actionable (see deliverable in [`location-workspace.md`](docs/reference/locations/location-workspace.md)).
 
 #### Documentation expectations
 

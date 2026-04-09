@@ -39,7 +39,8 @@ describe('locationMapEditorPalette.helpers', () => {
 
   it('getPlacePaletteItemsForScale maps policy + linked-content vs map-object', () => {
     const items = getPlacePaletteItemsForScale('world');
-    expect(items.map((i) => i.kind)).toEqual(['building', 'city', 'tree']);
+    /** World scale: only linked `city` (building/tree are city+ site-scale in registry). */
+    expect(items.map((i) => i.kind)).toEqual(['city']);
     const city = items.find((i) => i.kind === 'city');
     expect(city?.label).toBe('City');
     expect(city?.category).toBe('linked-content');
@@ -51,12 +52,7 @@ describe('locationMapEditorPalette.helpers', () => {
     if (city?.category === 'linked-content') {
       expect(city.linkedScale).toBe('city');
     }
-    const building = items.find((i) => i.kind === 'building');
-    expect(building?.category).toBe('map-object');
-    if (building?.category === 'map-object') {
-      expect(building.defaultVariantId).toBe('residential');
-      expect(building.variantCount).toBe(2);
-    }
+    expect(city?.previewImageUrl).toMatch(/\.png/);
   });
 
   it('floor map-object families expose variantCount from registry (table has multiple variants)', () => {
@@ -64,7 +60,7 @@ describe('locationMapEditorPalette.helpers', () => {
     const table = floor.find((i) => i.kind === 'table');
     expect(table?.category).toBe('map-object');
     if (table?.category === 'map-object') {
-      expect(table.variantCount).toBe(2);
+      expect(table.variantCount).toBe(3);
       expect(table.defaultVariantId).toBe('rect_wood');
     }
   });

@@ -79,9 +79,9 @@ describe('gridDistanceFt', () => {
     expect(gridDistanceFt(space, 'c-0-0', 'c-99-99')).toBeUndefined()
   })
 
-  it('respects cellFeet for 10-ft grids', () => {
-    const bigGrid = createSquareGridSpace({ id: 'g2', name: 'Big', columns: 4, rows: 4, cellFeet: 10 })
-    expect(gridDistanceFt(bigGrid, 'c-0-0', 'c-2-0')).toBe(20)
+  it('uses 5 ft per cell for grid distance (tactical scale is 5 ft only)', () => {
+    const bigGrid = createSquareGridSpace({ id: 'g2', name: 'Big', columns: 4, rows: 4 })
+    expect(gridDistanceFt(bigGrid, 'c-0-0', 'c-2-0')).toBe(10)
   })
 })
 

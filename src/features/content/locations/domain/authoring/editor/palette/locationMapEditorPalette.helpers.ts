@@ -152,7 +152,7 @@ export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePa
         paletteCategory: opt.paletteCategory,
         label: opt.label,
         description: opt.description,
-        iconName: opt.iconName,
+        previewImageUrl: opt.previewImageUrl,
         linkedScale: opt.linkedScale,
       };
     }
@@ -166,7 +166,7 @@ export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePa
       paletteCategory: opt.paletteCategory,
       label: opt.label,
       description: opt.description,
-      iconName: opt.iconName,
+      previewImageUrl: opt.previewImageUrl,
     };
   });
   return [...items].sort((a, b) => {

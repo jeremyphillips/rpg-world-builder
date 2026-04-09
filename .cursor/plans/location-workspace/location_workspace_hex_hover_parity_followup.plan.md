@@ -36,5 +36,5 @@ isProject: true
 
 ## References
 
-- `docs/reference/location-workspace.md` — Open issues §4, shared hooks table.
+- `docs/reference/locations/location-workspace.md` — Open issues §4, shared hooks table.
 - `selectModeChrome.policy.ts`, `mapGridCellVisualState.ts`.

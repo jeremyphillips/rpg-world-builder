@@ -52,7 +52,7 @@ describe('action-requirement-model', () => {
   })
 
   it('validateSingleCellPlacement flags out-of-range', () => {
-    const space = createSquareGridSpace({ id: 'g', name: 'G', columns: 5, rows: 5, cellFeet: 5 })
+    const space = createSquareGridSpace({ id: 'g', name: 'G', columns: 5, rows: 5 })
     const placements: { cellId: string; combatantId: string }[] = []
     const req = {
       kind: 'single-cell-placement' as const,

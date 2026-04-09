@@ -120,7 +120,7 @@ Place tests near the types/helper, e.g. `locationEditorRail.types.test.ts` or `l
 
 ## 7. Documentation touchpoint
 
-- Update `[docs/reference/location-workspace.md](docs/reference/location-workspace.md)` table under workspace components: replace the **Metadata | Cell** description with **Location | Map | Selection** and one line on responsibilities (optional, only if you want docs in sync — skip if you prefer not to edit docs unless requested).
+- Update `[docs/reference/locations/location-workspace.md](docs/reference/locations/location-workspace.md)` table under workspace components: replace the **Metadata | Cell** description with **Location | Map | Selection** and one line on responsibilities (optional, only if you want docs in sync — skip if you prefer not to edit docs unless requested).
 
 ## Success criteria mapping
 

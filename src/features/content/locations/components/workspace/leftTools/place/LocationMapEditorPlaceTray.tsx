@@ -1,4 +1,4 @@
-import { createElement, Fragment, useState, type MouseEvent } from 'react';
+import { Fragment, useState, type MouseEvent } from 'react';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import Badge from '@mui/material/Badge';
 import {
@@ -14,7 +14,6 @@ import ListItemText from '@mui/material/ListItemText';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
-import { getLocationMapGlyphIconByName } from '@/features/content/locations/domain';
 import {
   getPlacedObjectPaletteCategoryLabel,
   getPlacedObjectVariantPickerRowsForFamily,
@@ -73,9 +72,6 @@ export function LocationMapEditorPlaceTray({
         const selected = isFamilyTileSelected(item, activePlace);
         const showSectionHeading =
           index === 0 || item.paletteCategory !== items[index - 1]!.paletteCategory;
-        const Icon = item.iconName
-          ? getLocationMapGlyphIconByName(item.iconName)
-          : getLocationMapGlyphIconByName('marker');
         const showMapVariantPicker =
           item.category === 'map-object' && item.variantCount > 1;
         const activeVariantLabel =
@@ -110,11 +106,13 @@ export function LocationMapEditorPlaceTray({
 
         const tileInner = (
           <>
-            {createElement(Icon, {
-              fontSize: 'small',
-              color: 'action',
-              'aria-hidden': true,
-            })}
+            <Box
+              component="img"
+              src={item.previewImageUrl}
+              alt=""
+              sx={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }}
+              aria-hidden
+            />
             <Typography
               variant="caption"
               fontWeight={selected ? 700 : 500}
@@ -228,7 +226,6 @@ export function LocationMapEditorPlaceTray({
         >
           <List dense disablePadding>
             {getPlacedObjectVariantPickerRowsForFamily(variantPicker.kind.kind).map((row) => {
-              const RowIcon = getLocationMapGlyphIconByName(row.iconName);
               return (
                 <Tooltip key={row.variantId} title={row.description ?? row.label} placement="right">
                   <ListItemButton
@@ -247,11 +244,13 @@ export function LocationMapEditorPlaceTray({
                     }
                   >
                     <Box sx={{ mr: 1, display: 'flex', alignItems: 'center' }}>
-                      {createElement(RowIcon, {
-                        fontSize: 'small',
-                        color: 'action',
-                        'aria-hidden': true,
-                      })}
+                      <Box
+                        component="img"
+                        src={row.previewImageUrl}
+                        alt=""
+                        sx={{ width: 24, height: 24, objectFit: 'contain' }}
+                        aria-hidden
+                      />
                     </Box>
                     <ListItemText primary={row.label} secondary={row.description} />
                   </ListItemButton>

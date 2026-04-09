@@ -18,16 +18,9 @@ import {
 } from './hydrateGridObjectsFromLocationMap'
 import { parseSquareEdgeId } from '@/shared/domain/grid/gridEdgeIds'
 import { sanitizeAuthoredDoorState } from '@/shared/domain/locations/map/locationMapDoorAuthoring.helpers'
+import { cellUnitToCombatCellFeet } from '@/shared/domain/locations/map/locationCellUnitCombat'
 
 export { authorCellIdToCombatCellId } from './encounterMapCellIds'
-
-function cellUnitToCombatCellFeet(cellUnit: unknown): 5 | 10 {
-  const s = String(cellUnit ?? '')
-    .toLowerCase()
-    .trim()
-  if (s.includes('25') || s === '25ft') return 10
-  return 5
-}
 
 const DOOR_BASE_RUNTIME = resolveLocationPlacedObjectKindRuntimeDefaults('door')
 
@@ -92,12 +85,13 @@ export function buildEncounterSpaceFromLocationMap(
   const { mapHostLocationId, map } = opts
   const { width: columns, height: rows, cellUnit } = map.grid
 
+  void cellUnitToCombatCellFeet(cellUnit)
+
   const base = createSquareGridSpace({
     id: map.id,
     name: map.name,
     columns,
     rows,
-    cellFeet: cellUnitToCombatCellFeet(cellUnit),
     locationId: mapHostLocationId,
   })
 

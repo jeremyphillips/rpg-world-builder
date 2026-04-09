@@ -1,14 +1,18 @@
 import type { EncounterSpace, EncounterCell } from '../space.types'
 
+import { ENCOUNTER_TACTICAL_CELL_FEET } from '@/shared/domain/locations/map/locationMapCombat.constants'
+
+/**
+ * Builds a square tactical {@link EncounterSpace}. Tactical scale is always
+ * {@link ENCOUNTER_TACTICAL_CELL_FEET} ft per cell; there is no alternate cell size.
+ */
 export function createSquareGridSpace(opts: {
   id: string
   name: string
   columns: number
   rows: number
-  cellFeet?: 5 | 10
   locationId?: string | null
 }): EncounterSpace {
-  const cellFeet = opts.cellFeet ?? 5
   const cells: EncounterCell[] = []
 
   for (let y = 0; y < opts.rows; y++) {
@@ -37,6 +41,6 @@ export function createSquareGridSpace(opts: {
     height: opts.rows,
     cells,
     features: [],
-    scale: { kind: 'grid', cellFeet },
+    scale: { kind: 'grid', cellFeet: ENCOUNTER_TACTICAL_CELL_FEET },
   }
 }

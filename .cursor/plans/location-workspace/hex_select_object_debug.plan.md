@@ -290,4 +290,4 @@ Key difference: no intermediate `pointer-events: none` layer in square.
 
 ## 7. Related reference
 
-- `docs/reference/location-workspace.md` — Select mode section (`resolveSelectModeInteractiveTarget`, interior priority, hex gap note).
+- `docs/reference/locations/location-workspace.md` — Select mode section (`resolveSelectModeInteractiveTarget`, interior priority, hex gap note).

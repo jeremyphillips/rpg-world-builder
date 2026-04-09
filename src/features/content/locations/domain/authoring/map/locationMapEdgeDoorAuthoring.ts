@@ -1,6 +1,6 @@
 import type { LocationMapEdgeAuthoringEntry } from '@/shared/domain/locations';
-import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
-import { parseLocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
+import type { LocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.registry';
+import { parseLocationPlacedObjectKindId } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.selectors.core';
 
 /**
  * True when this edge row resolves to a **door** instance (same rules as {@link resolveAuthoredEdgeInstance}).

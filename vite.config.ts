@@ -79,6 +79,7 @@ export default defineConfig({
       "@/ui/primitives": path.resolve(__dirname, "src/ui/primitives"),
       "@/ui/types": path.resolve(__dirname, "src/ui/types"),
       "@/utils": path.resolve(__dirname, "src/utils"),
+      "@repo-assets": path.resolve(__dirname, "assets"),
     }
   }
 })

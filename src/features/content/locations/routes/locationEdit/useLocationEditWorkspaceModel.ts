@@ -276,6 +276,7 @@ export function useLocationEditWorkspaceModel({
   const gridPreset = watch('gridPreset');
   const gridColumns = watch('gridColumns');
   const gridRows = watch('gridRows');
+  const gridCellUnit = watch('gridCellUnit');
   const gridGeometry =
     watch('gridGeometry') || getDefaultGeometryForScale(mapAuthoringScaleForUi);
 
@@ -1057,6 +1058,7 @@ export function useLocationEditWorkspaceModel({
     handleEraseEdge,
     gridColumns,
     gridRows,
+    gridCellUnit,
     gridGeometry,
     locations,
     buildingStairConnections,
