@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+import { useBuildingLinkPlacementReservedIds } from '@/features/content/locations/routes/locationEdit/useBuildingLinkPlacementReservedIds';
+
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
@@ -92,7 +94,7 @@ export function LocationMapObjectInspector({
     resolvedPlacedKind !== null
       ? getPlacedObjectDefinition(resolvedPlacedKind).linkedScale
       : undefined;
-  const linkedPickerOptions =
+  const baseLinkedPickerOptions =
     linkedScaleTarget !== undefined
       ? buildLinkedLocationPickerOptions({
           campaignId,
@@ -103,6 +105,40 @@ export function LocationMapObjectInspector({
           linkedScale: linkedScaleTarget,
         })
       : [];
+
+  const buildingLinkPrefetchEnabled =
+    linkedScaleTarget === 'building' && Boolean(campaignId);
+
+  const { reservedBuildingIds, isLoading: buildingLinkPlacementLoading } =
+    useBuildingLinkPlacementReservedIds({
+      campaignId,
+      locations,
+      mapHostLocationId,
+      mapHostScale,
+      currentCellId: cellId,
+      enabled: buildingLinkPrefetchEnabled,
+    });
+
+  const linkedPickerOptions = useMemo(() => {
+    if (linkedScaleTarget !== 'building') return baseLinkedPickerOptions;
+    return baseLinkedPickerOptions.map((o) => {
+      const disabled =
+        reservedBuildingIds.has(o.value) && o.value !== linkedLocationId?.trim();
+      return {
+        ...o,
+        disabled: disabled || o.disabled,
+        description:
+          disabled && !o.description
+            ? 'Already linked on another map cell'
+            : o.description,
+      };
+    });
+  }, [
+    baseLinkedPickerOptions,
+    linkedScaleTarget,
+    reservedBuildingIds,
+    linkedLocationId,
+  ]);
 
   if (!obj) {
     return (
@@ -167,6 +203,11 @@ export function LocationMapObjectInspector({
         }}
         campaignId={campaignId}
         hostEditLocationSource={hostEditLocation?.source}
+        helperText={
+          buildingLinkPrefetchEnabled && buildingLinkPlacementLoading
+            ? 'Checking existing building placements…'
+            : undefined
+        }
       />
     ) : null;
 

@@ -30,6 +30,10 @@ A **building** location (`scale === 'building'`) may appear as **`linkedLocation
 
 - Enforced on **map create/update** in `validateBuildingSinglePlacementInCampaign` (`locationMaps.service.ts`): duplicate links on the same map, or a link that conflicts with another map’s cell, return validation errors (`DUPLICATE_BUILDING_LINK`, `BUILDING_ALREADY_PLACED`).
 
+### Client picker vs server
+
+On **city** and **site** maps, the editor **prefetches** which building locations are already linked on another cell and **disables** those entries in the building link picker. That UX aligns with the invariant above but is **not** authoritative: persistence still runs the same validation, and **`DUPLICATE_BUILDING_LINK` / `BUILDING_ALREADY_PLACED`** remain the source of truth if UI state is stale (e.g. another tab, concurrent edits) or a race occurs.
+
 ## Migration note
 
 Legacy combined **`buildingProfile`** was split into **`buildingMeta`** + **`buildingStructure`** and removed from the API and Mongoose schema. The script `scripts/migrateLocationBuildingProfile.ts` (see `npm run migrate:location-building-profile`) performs the data move. **Create/update** requests must not send `buildingProfile` (rejected with `DEPRECATED`).
