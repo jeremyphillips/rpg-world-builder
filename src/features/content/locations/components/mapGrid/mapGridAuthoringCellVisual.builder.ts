@@ -11,6 +11,7 @@ import type { LocationMapSelection } from '@/features/content/locations/componen
 
 import { gridCellSelectedShadow } from './gridCellStyles';
 import type { AuthoringCellFillPresentation } from './mapGridAuthoringCellFill.types';
+import type { AuthoringGridChromeLayer } from './mapGridAuthoringChrome.resolve';
 import { resolveAuthoringGridChrome } from './mapGridAuthoringChrome.resolve';
 import {
   isSelectHoverChromeSuppressed,
@@ -23,8 +24,8 @@ export const GRID_CELL_AUTHORING_FILL_CLASS = 'grid-cell-authoring-fill';
 const EXCLUDED_STRIPE =
   'repeating-linear-gradient(-45deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04) 3px, transparent 3px, transparent 6px)';
 
-function buildFillLayerBaseSx(args: {
-  chromeLayer: { fillOpacity: number; fillPaintColor: string };
+export function buildFillLayerBaseSx(args: {
+  chromeLayer: AuthoringGridChromeLayer;
   excluded: boolean;
   imageUrl: string | undefined;
 }): SystemStyleObject {
@@ -141,6 +142,51 @@ export function buildSquareAuthoringCellVisualParts(
   };
 
   return { shell, fillLayer };
+}
+
+/**
+ * Terrain-only fill `sx` for the square map’s detached terrain layer (below path SVG).
+ * Mirrors shell `:hover` fill treatment using pointer hover + {@link selectHoverTarget}.
+ */
+export function resolveSquareTerrainFillLayerSx(input: {
+  cellId: string;
+  selected: boolean;
+  excluded: boolean;
+  fillPresentation: AuthoringCellFillPresentation | undefined;
+  disabled: boolean;
+  selectHoverTarget: LocationMapSelection | undefined;
+  pointerHoverCellId: string | null;
+}): SystemStyleObject {
+  const {
+    cellId,
+    selected,
+    excluded,
+    fillPresentation,
+    disabled,
+    selectHoverTarget,
+    pointerHoverCellId,
+  } = input;
+  const fillBg = fillPresentation?.swatchColor;
+  const imageUrl = fillPresentation?.imageUrl;
+  const chrome = resolveAuthoringGridChrome({ selected, excluded, fillBg });
+
+  const isPointerHoveringCell = pointerHoverCellId === cellId && !disabled;
+  let layer: AuthoringGridChromeLayer = chrome.idle;
+  if (isPointerHoveringCell) {
+    if (selectHoverTarget?.type === 'none') {
+      layer = chrome.idle;
+    } else if (isSelectHoverChromeSuppressed(cellId, selectHoverTarget, disabled)) {
+      layer = chrome.hoverSuppressed;
+    } else {
+      layer = chrome.hoverEmphasis;
+    }
+  }
+
+  return buildFillLayerBaseSx({
+    chromeLayer: layer,
+    excluded,
+    imageUrl,
+  });
 }
 
 export type HexAuthoringCellVisualParts = {

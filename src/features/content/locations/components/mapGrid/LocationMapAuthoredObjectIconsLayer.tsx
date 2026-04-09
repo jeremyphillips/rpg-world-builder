@@ -92,6 +92,8 @@ export type LocationMapAuthoredObjectIconsLayerProps = {
   gapPx: number;
   mapUi: LocationMapUiResolvedStyles;
   footprintLayout?: PlacedObjectGeometryLayoutContext | null;
+  /** When set (global layer above grid), match {@link LocationMapHexAuthoredObjectIconsLayer} selection + preview styling. */
+  selectHoverTarget?: LocationMapSelection;
 };
 
 /**
@@ -104,6 +106,7 @@ export function LocationMapAuthoredObjectIconsLayer({
   gapPx,
   mapUi,
   footprintLayout,
+  selectHoverTarget,
 }: LocationMapAuthoredObjectIconsLayerProps) {
   if (items.length === 0) return null;
   const groups = groupByAuthorCellId(items);
@@ -113,7 +116,6 @@ export function LocationMapAuthoredObjectIconsLayer({
         position: 'absolute',
         inset: 0,
         pointerEvents: 'none',
-        zIndex: 1,
       }}
       aria-hidden
     >
@@ -146,6 +148,12 @@ export function LocationMapAuthoredObjectIconsLayer({
                   singleVisual != null && i === 0
                     ? singleVisual
                     : resolvePlacedObjectCellVisualFromRenderItem(o, footprintLayout ?? undefined);
+                const isPreview = o.id === '__place_preview__';
+                const outlineActive =
+                  selectHoverTarget != null &&
+                  selectHoverTarget.type === 'object' &&
+                  selectHoverTarget.cellId === authorCellId &&
+                  selectHoverTarget.objectId === o.id;
                 return (
                   <Tooltip key={o.id} title={visual.tooltip} placement="top" arrow>
                     <Box
@@ -155,8 +163,11 @@ export function LocationMapAuthoredObjectIconsLayer({
                       sx={{
                         display: 'inline-flex',
                         lineHeight: 0,
-                        pointerEvents: 'auto',
-                        cursor: 'default',
+                        outline: outlineActive ? `2px solid ${colorPrimitives.blue[300]}` : 'none',
+                        outlineOffset: 2,
+                        borderRadius: 0.5,
+                        ...(isPreview ? { opacity: 0.45, pointerEvents: 'none' } : { pointerEvents: 'auto' }),
+                        ...(!isPreview ? { cursor: 'default' } : {}),
                       }}
                     >
                       <PlacedObjectCellVisualDisplay visual={visual} variant="overlay" mapUi={mapUi} />

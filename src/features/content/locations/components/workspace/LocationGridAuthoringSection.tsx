@@ -39,8 +39,10 @@ import {
   LocationGridAuthoringHexMapPlacedObjectsOverlayLayer,
   LocationGridAuthoringHexMapRegionOverlayLayer,
   LocationGridAuthoringSquareMapOverlayLayer,
-  Z_MAP_CELL_GRID,
+  LocationGridAuthoringSquareMapPlacedObjectsOverlayLayer,
+  LocationGridAuthoringSquareTerrainLayer,
 } from './locationGridAuthoringMapOverlayLayers';
+import { MAP_AUTHORING_LAYER_Z } from './mapAuthoringLayerZ';
 import { useSquareEdgeBoundaryPaint } from '../mapGrid/authoring/useSquareEdgeBoundaryPaint';
 import { LocationMapCellAuthoringOverlay } from '../mapGrid/LocationMapCellAuthoringOverlay';
 
@@ -56,6 +58,7 @@ import type { LocationMapPathKindId } from '@/shared/domain/locations/map/locati
 import { buildHexAuthoringRegionBoundarySegments } from './locationGridAuthoringHexRegionOverlays';
 import { buildLocationGridPathSvgPreviewData } from './locationGridAuthoringPathSvgPreview';
 import { deriveLocationMapAuthoredObjectRenderItemsFromObjectsByCellId } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.helpers';
+import { buildPlacedObjectGeometryLayoutContextFromAuthoring } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext';
 import { useLocationGridAuthoringCellPointers } from './useLocationGridAuthoringCellPointers';
 import { useLocationGridPaintStroke } from './useLocationGridPaintStroke';
 import { useLocationGridSelectMode } from './useLocationGridSelectMode';
@@ -154,6 +157,7 @@ export function LocationGridAuthoringSection({
   void hostName;
   const theme = useTheme();
   const [placeHoverCellId, setPlaceHoverCellId] = useState<string | null>(null);
+  const [squareAuthoringHoverCellId, setSquareAuthoringHoverCellId] = useState<string | null>(null);
   const cols = Number(gridColumns);
   const rows = Number(gridRows);
   const validPreview = useMemo(
@@ -497,11 +501,20 @@ export function LocationGridAuthoringSection({
     ],
   );
 
-  const hexPlacedObjectRenderItems = useMemo(() => {
-    if (!isHex) return [];
+  const globalPlacedObjectRenderItems = useMemo(() => {
     const base = deriveLocationMapAuthoredObjectRenderItemsFromObjectsByCellId(draft.objectsByCellId);
     return placePreviewItem ? [...base, placePreviewItem] : base;
-  }, [isHex, draft.objectsByCellId, placePreviewItem]);
+  }, [draft.objectsByCellId, placePreviewItem]);
+
+  const squarePlacedObjectFootprintLayout = useMemo(
+    () =>
+      buildPlacedObjectGeometryLayoutContextFromAuthoring({
+        gridKind: 'square',
+        gridCellUnit,
+        squareCellPx: squareGridGeometry?.cellPx,
+      }),
+    [gridCellUnit, squareGridGeometry?.cellPx],
+  );
 
   const renderMapCellIcons = (cell: GridCell) => (
     <LocationMapCellAuthoringOverlay
@@ -514,7 +527,7 @@ export function LocationGridAuthoringSection({
       gridCellUnit={gridCellUnit}
       squareCellPx={!isHex ? squareGridGeometry?.cellPx : undefined}
       placePreviewItem={placePreviewItem}
-      suppressPlacedObjectGlyphs={isHex}
+      suppressPlacedObjectGlyphs={isHex || globalPlacedObjectRenderItems.length > 0}
     />
   );
 
@@ -632,6 +645,19 @@ export function LocationGridAuthoringSection({
           if (mapEditorMode === 'select') clearSelectHoverTarget();
         }}
       >
+        <LocationGridAuthoringSquareTerrainLayer
+          visible={!!squareGridGeometry && !isHex}
+          squareGridGeometry={squareGridGeometry}
+          columns={cols}
+          rows={rows}
+          getCellFillPresentation={getCellFillPresentation}
+          selectedCellId={sharedGridProps.selectedCellId}
+          excludedCellIds={draft.excludedCellIds}
+          selectHoverTarget={
+            mapEditorMode === 'select' ? selectHoverTarget : undefined
+          }
+          pointerHoverCellId={squareAuthoringHoverCellId}
+        />
         <LocationGridAuthoringSquareMapOverlayLayer
           visible={
             !!squareGridGeometry &&
@@ -661,7 +687,7 @@ export function LocationGridAuthoringSection({
           mapSelection={draft.mapSelection}
           selectHoverTarget={selectHoverTarget}
         />
-        <Box sx={{ position: 'relative', zIndex: Z_MAP_CELL_GRID }}>
+        <Box sx={{ position: 'relative', zIndex: MAP_AUTHORING_LAYER_Z.cellGrid }}>
           {isHex ? (
             <HexGridEditor
               {...sharedGridProps}
@@ -671,15 +697,31 @@ export function LocationGridAuthoringSection({
             <GridEditor
               {...sharedGridProps}
               selectModeCursor={mapEditorMode === 'select'}
+              omitTerrainFill
+              onAuthoringCellHoverChange={setSquareAuthoringHoverCellId}
             />
           )}
         </Box>
+        <LocationGridAuthoringSquareMapPlacedObjectsOverlayLayer
+          visible={
+            !!squareGridGeometry &&
+            !isHex &&
+            globalPlacedObjectRenderItems.length > 0
+          }
+          squareGridGeometry={squareGridGeometry}
+          mapUi={mapUi}
+          selectHoverTarget={selectHoverTarget}
+          items={globalPlacedObjectRenderItems}
+          cellPx={squareGridGeometry?.cellPx ?? 0}
+          gapPx={SQUARE_GRID_GAP_PX}
+          footprintLayout={squarePlacedObjectFootprintLayout}
+        />
         <LocationGridAuthoringHexMapPlacedObjectsOverlayLayer
-          visible={!!hexGridGeometry && isHex && hexPlacedObjectRenderItems.length > 0}
+          visible={!!hexGridGeometry && isHex && globalPlacedObjectRenderItems.length > 0}
           hexGridGeometry={hexGridGeometry}
           mapUi={mapUi}
           selectHoverTarget={selectHoverTarget}
-          items={hexPlacedObjectRenderItems}
+          items={globalPlacedObjectRenderItems}
           hexSize={gridSizePx.hexCellPx ?? 48}
         />
         <LocationGridAuthoringHexMapRegionOverlayLayer

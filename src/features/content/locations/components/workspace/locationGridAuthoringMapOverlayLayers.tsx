@@ -1,5 +1,7 @@
 import Box from '@mui/material/Box';
+import { useMemo } from 'react';
 
+import { makeGridCellId } from '@/shared/domain/grid';
 import type { LocationMapUiResolvedStyles } from '@/features/content/locations/domain/presentation/map/locationMapUiStyles';
 import type { ResolvedEdgeTarget } from '@/features/content/locations/domain/authoring/editor';
 import type { LocationMapSelection } from '@/features/content/locations/components/workspace/rightRail/types';
@@ -8,35 +10,129 @@ import type {
   LineSegment2D,
 } from '@/shared/domain/locations/map/locationMapGeometry.types';
 
+import { SQUARE_GRID_GAP_PX } from '@/features/content/locations/components/authoring/geometry/squareGridMapOverlayGeometry';
+import {
+  GRID_CELL_AUTHORING_FILL_CLASS,
+  resolveSquareTerrainFillLayerSx,
+} from '../mapGrid/mapGridAuthoringCellVisual.builder';
+import { shouldApplyCellSelectedChrome } from '../mapGrid/mapGridCellVisualState';
 import {
   HexMapAuthoringPathSvgOverlay,
   HexMapAuthoringRegionSvgOverlay,
 } from '../mapGrid/authoring/HexMapAuthoringSvgOverlay';
 import { SquareMapAuthoringSvgOverlay } from '../mapGrid/authoring/SquareMapAuthoringSvgOverlay';
 import type { LocationGridPathSvgPreviewItem } from './locationGridAuthoringPathSvgPreview';
-import { LocationMapHexAuthoredObjectIconsLayer } from '../mapGrid/LocationMapAuthoredObjectIconsLayer';
+import {
+  LocationMapAuthoredObjectIconsLayer,
+  LocationMapHexAuthoredObjectIconsLayer,
+} from '../mapGrid/LocationMapAuthoredObjectIconsLayer';
+import type { PlacedObjectGeometryLayoutContext } from '@/shared/domain/locations/map/placedObjectGeometryLayoutContext';
 import type { LocationMapAuthoredObjectRenderItem } from '@/shared/domain/locations/map/locationMapAuthoredObjectRender.types';
+import type { GridCell, GridEditorProps } from '../mapGrid/GridEditor';
 
-/** Below grid: paths + edges (placed objects and cell chrome stack above). */
-const Z_MAP_PATH_EDGE_UNDER_GRID = 0;
-/** Above paths: cell grid + per-cell overlays (fills, objects, linked icons). */
-const Z_MAP_CELL_GRID = 1;
-/**
- * Hex path splines **above** the cell grid. Unlike square maps, hex cells tessellate with no
- * inter-cell gap — roads/rivers drawn under the grid would be fully covered. Square keeps paths
- * {@link Z_MAP_PATH_EDGE_UNDER_GRID} so strokes show in gaps and objects stay above paths.
- */
-const Z_MAP_HEX_PATH_OVER_GRID = 2;
-/** Above hex paths: placed-object glyphs (global layer; cell overlay suppresses duplicates). */
-const Z_MAP_HEX_PLACED_OBJECTS = 3;
-/** Above placed objects: region hull outlines (selection UX). */
-const Z_MAP_HEX_REGION_OUTLINES = 4;
+import { MAP_AUTHORING_LAYER_Z } from './mapAuthoringLayerZ';
 
 type SquareGeom = { width: number; height: number; cellPx: number };
 type HexGeom = { width: number; height: number };
 
 /**
- * Absolutely positioned square overlay (paths, edges, boundary paint) **below** the interactive cell grid.
+ * Square terrain swatches only — **below** path/edge SVG ({@link MAP_AUTHORING_LAYER_Z.squarePathsAndEdges}).
+ * Interactive chrome (borders, overlays) stays in `GridEditor` with `omitTerrainFill`.
+ */
+export function LocationGridAuthoringSquareTerrainLayer(props: {
+  visible: boolean;
+  squareGridGeometry: SquareGeom | null;
+  columns: number;
+  rows: number;
+  getCellFillPresentation?: GridEditorProps['getCellFillPresentation'];
+  selectedCellId?: string | null;
+  excludedCellIds?: string[];
+  selectHoverTarget?: LocationMapSelection;
+  pointerHoverCellId: string | null;
+  disabled?: boolean;
+}) {
+  const {
+    visible,
+    squareGridGeometry,
+    columns,
+    rows,
+    getCellFillPresentation,
+    selectedCellId,
+    excludedCellIds,
+    selectHoverTarget,
+    pointerHoverCellId,
+    disabled = false,
+  } = props;
+
+  const safeCols = Math.max(0, Math.floor(columns));
+  const safeRows = Math.max(0, Math.floor(rows));
+  const excludedSet = useMemo(
+    () => new Set(excludedCellIds ?? []),
+    [excludedCellIds],
+  );
+
+  if (!visible || !squareGridGeometry) return null;
+
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: squareGridGeometry.width,
+        height: squareGridGeometry.height,
+        zIndex: MAP_AUTHORING_LAYER_Z.terrain,
+        pointerEvents: 'none',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${safeCols}, minmax(0, 1fr))`,
+          gap: `${SQUARE_GRID_GAP_PX}px`,
+          width: '100%',
+        }}
+      >
+        {Array.from({ length: safeRows * safeCols }, (_, i) => {
+          const x = i % safeCols;
+          const y = Math.floor(i / safeCols);
+          const cellId = makeGridCellId(x, y);
+          const cell: GridCell = { cellId, x, y };
+          const selected = shouldApplyCellSelectedChrome(selectedCellId, cellId);
+          const excluded = excludedSet.has(cellId);
+          const fillPresentation = getCellFillPresentation?.(cell);
+          const fillSx = resolveSquareTerrainFillLayerSx({
+            cellId,
+            selected,
+            excluded,
+            fillPresentation,
+            disabled,
+            selectHoverTarget,
+            pointerHoverCellId,
+          });
+          return (
+            <Box
+              key={cellId}
+              sx={{
+                aspectRatio: '1',
+                minWidth: 0,
+                minHeight: 0,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              <Box className={GRID_CELL_AUTHORING_FILL_CLASS} sx={fillSx} aria-hidden />
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
+  );
+}
+
+/**
+ * Absolutely positioned square overlay (paths, edges, boundary paint) **above** terrain fills,
+ * **below** interactive grid chrome ({@link MAP_AUTHORING_LAYER_Z.cellGrid}).
  */
 export function LocationGridAuthoringSquareMapOverlayLayer(props: {
   visible: boolean;
@@ -75,7 +171,7 @@ export function LocationGridAuthoringSquareMapOverlayLayer(props: {
         top: 0,
         width: squareGridGeometry.width,
         height: squareGridGeometry.height,
-        zIndex: Z_MAP_PATH_EDGE_UNDER_GRID,
+        zIndex: MAP_AUTHORING_LAYER_Z.squarePathsAndEdges,
         pointerEvents: 'none',
       }}
     >
@@ -98,7 +194,7 @@ export function LocationGridAuthoringSquareMapOverlayLayer(props: {
 }
 
 /**
- * Hex path splines only — **below** the cell grid so markers/objects paint above roads/rivers.
+ * Hex path splines — **above** tessellated cells ({@link MAP_AUTHORING_LAYER_Z.cellGrid}) so strokes stay visible.
  */
 export function LocationGridAuthoringHexMapPathOverlayLayer(props: {
   visible: boolean;
@@ -129,7 +225,7 @@ export function LocationGridAuthoringHexMapPathOverlayLayer(props: {
         top: 0,
         width: hexGridGeometry.width,
         height: hexGridGeometry.height,
-        zIndex: Z_MAP_HEX_PATH_OVER_GRID,
+        zIndex: MAP_AUTHORING_LAYER_Z.hexPathsOverGrid,
         pointerEvents: 'none',
       }}
     >
@@ -169,7 +265,7 @@ export function LocationGridAuthoringHexMapPlacedObjectsOverlayLayer(props: {
         top: 0,
         width: hexGridGeometry.width,
         height: hexGridGeometry.height,
-        zIndex: Z_MAP_HEX_PLACED_OBJECTS,
+        zIndex: MAP_AUTHORING_LAYER_Z.globalPlacedObjects,
         pointerEvents: 'none',
       }}
     >
@@ -216,7 +312,7 @@ export function LocationGridAuthoringHexMapRegionOverlayLayer(props: {
         top: 0,
         width: hexGridGeometry.width,
         height: hexGridGeometry.height,
-        zIndex: Z_MAP_HEX_REGION_OUTLINES,
+        zIndex: MAP_AUTHORING_LAYER_Z.hexRegionOutlines,
         pointerEvents: 'none',
       }}
     >
@@ -233,4 +329,45 @@ export function LocationGridAuthoringHexMapRegionOverlayLayer(props: {
   );
 }
 
-export { Z_MAP_CELL_GRID };
+/**
+ * Square global placed-object + place-preview glyphs — same z-slot as {@link LocationGridAuthoringHexMapPlacedObjectsOverlayLayer}.
+ */
+export function LocationGridAuthoringSquareMapPlacedObjectsOverlayLayer(props: {
+  visible: boolean;
+  squareGridGeometry: SquareGeom | null;
+  mapUi: LocationMapUiResolvedStyles;
+  selectHoverTarget: LocationMapSelection;
+  items: readonly LocationMapAuthoredObjectRenderItem[];
+  cellPx: number;
+  gapPx: number;
+  /** Same as {@link LocationMapCellAuthoringOverlay} — registry footprint sizing vs `cellPx`. */
+  footprintLayout: PlacedObjectGeometryLayoutContext | null;
+}) {
+  const { visible, squareGridGeometry, mapUi, selectHoverTarget, items, cellPx, gapPx, footprintLayout } =
+    props;
+
+  if (!visible || !squareGridGeometry || items.length === 0) return null;
+
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        width: squareGridGeometry.width,
+        height: squareGridGeometry.height,
+        zIndex: MAP_AUTHORING_LAYER_Z.globalPlacedObjects,
+        pointerEvents: 'none',
+      }}
+    >
+      <LocationMapAuthoredObjectIconsLayer
+        items={items}
+        cellPx={cellPx}
+        gapPx={gapPx}
+        mapUi={mapUi}
+        footprintLayout={footprintLayout ?? undefined}
+        selectHoverTarget={selectHoverTarget}
+      />
+    </Box>
+  );
+}

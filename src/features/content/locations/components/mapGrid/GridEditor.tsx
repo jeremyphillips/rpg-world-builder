@@ -48,6 +48,12 @@ export type GridEditorProps = {
   selectHoverTarget?: LocationMapSelection;
   /** When true, grid root uses `cursor: default` so inter-cell gutters inherit it (not `pointer`). */
   selectModeCursor?: boolean;
+  /**
+   * When true, skip the terrain swatch `Box` — used when terrain renders in a detached layer below path SVG.
+   */
+  omitTerrainFill?: boolean;
+  /** Fired when `omitTerrainFill` so the terrain layer can mirror hover fill chrome (pointer-events none there). */
+  onAuthoringCellHoverChange?: (cellId: string | null) => void;
 };
 
 export default function GridEditor({
@@ -67,6 +73,8 @@ export default function GridEditor({
   disabled,
   selectHoverTarget: selectHoverTargetProp,
   selectModeCursor = false,
+  omitTerrainFill = false,
+  onAuthoringCellHoverChange,
 }: GridEditorProps) {
   const safeCols = Math.max(0, Math.floor(columns));
   const safeRows = Math.max(0, Math.floor(rows));
@@ -90,6 +98,13 @@ export default function GridEditor({
       role="grid"
       aria-colcount={safeCols}
       aria-rowcount={safeRows}
+      onPointerLeave={
+        omitTerrainFill
+          ? () => {
+              onAuthoringCellHoverChange?.(null);
+            }
+          : undefined
+      }
     >
       {Array.from({ length: safeRows * safeCols }, (_, i) => {
         const x = i % safeCols;
@@ -131,6 +146,7 @@ export default function GridEditor({
             }}
             onPointerEnter={(e) => {
               onCellPointerEnter?.(e, cell);
+              if (omitTerrainFill) onAuthoringCellHoverChange?.(cell.cellId);
             }}
             onPointerUp={(e) => {
               onCellPointerUp?.(e, cell);
@@ -151,11 +167,13 @@ export default function GridEditor({
             }}
           >
             <GridCellVisual sx={shell} centerChildren={false}>
+              {!omitTerrainFill ? (
               <Box
                 className={GRID_CELL_AUTHORING_FILL_CLASS}
                 sx={fillLayer}
                 aria-hidden
               />
+              ) : null}
               <Box
                 sx={{
                   position: 'relative',

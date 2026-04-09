@@ -17,9 +17,9 @@ export type HexMapAuthoringPathSvgOverlayProps = {
 };
 
 /**
- * Hex grid: path splines only. Parent wrapper uses a **higher** z-index than the cell grid (see
- * `locationGridAuthoringMapOverlayLayers`) so strokes stay visible — hex has no inter-cell gaps
- * unlike square maps.
+ * Hex grid: path splines only. Parent wrapper uses `MAP_AUTHORING_LAYER_Z.hexPathsOverGrid`
+ * (`mapAuthoringLayerZ.ts` / `locationGridAuthoringMapOverlayLayers`) so strokes stay above
+ * tessellated cells — hex has no inter-cell gaps unlike square maps.
  */
 export function HexMapAuthoringPathSvgOverlay({
   width,
