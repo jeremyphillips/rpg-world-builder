@@ -5,7 +5,11 @@ import { apiFetch, ApiError } from '@/app/api';
 import type { Visibility } from '@/shared/types/visibility';
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import { isCampaignLocationListScale } from '@/shared/domain/locations';
-import type { LocationBuildingProfile } from '@/shared/domain/locations';
+import type {
+  LocationBuildingMeta,
+  LocationBuildingProfile,
+  LocationBuildingStructure,
+} from '@/shared/domain/locations';
 import type {
   Location,
   LocationBaseFields,
@@ -34,6 +38,8 @@ type CampaignLocationDto = {
   aliases?: string[];
   tags?: string[];
   connections?: LocationBaseFields['connections'];
+  buildingMeta?: LocationBuildingMeta;
+  buildingStructure?: LocationBuildingStructure;
   buildingProfile?: LocationBuildingProfile;
   createdAt?: string;
   updatedAt?: string;
@@ -65,6 +71,8 @@ function toCampaignLocation(
     aliases: dto.aliases,
     tags: dto.tags,
     connections: dto.connections,
+    buildingMeta: dto.buildingMeta,
+    buildingStructure: dto.buildingStructure,
     buildingProfile: dto.buildingProfile,
   };
 }
@@ -177,6 +185,8 @@ function toSummary(loc: Location, allowedInCampaign: boolean): LocationSummary {
     aliases: loc.aliases,
     tags: loc.tags,
     connections: loc.connections,
+    buildingMeta: loc.buildingMeta,
+    buildingStructure: loc.buildingStructure,
     buildingProfile: loc.buildingProfile,
     accessPolicy: loc.accessPolicy,
     patched: loc.patched,
@@ -210,7 +220,8 @@ function locationInputToBody(input: LocationInput): Record<string, unknown> {
 
   const scale = String(input.scale ?? '').trim();
   if (scale === 'building') {
-    body.buildingProfile = input.buildingProfile ?? null;
+    if (input.buildingMeta !== undefined) body.buildingMeta = input.buildingMeta;
+    if (input.buildingStructure !== undefined) body.buildingStructure = input.buildingStructure;
   }
 
   return body;

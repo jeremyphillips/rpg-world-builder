@@ -57,7 +57,13 @@ const campaignLocationSchema = new Schema(
     aliases: { type: [String], default: [] },
     tags: { type: [String], default: [] },
     connections: { type: [connectionSchema], default: [] },
-    /** Building-scale authoring profile; only meaningful when `scale === 'building'`. */
+    /** Building identity / function; only meaningful when `scale === 'building'`. */
+    buildingMeta: { type: Schema.Types.Mixed },
+    /** Building interior topology (e.g. verticalConnections); only when `scale === 'building'`. */
+    buildingStructure: { type: Schema.Types.Mixed },
+    /**
+     * @deprecated Legacy combined profile — migrate to `buildingMeta` + `buildingStructure`.
+     */
     buildingProfile: { type: Schema.Types.Mixed },
   },
   { timestamps: true },

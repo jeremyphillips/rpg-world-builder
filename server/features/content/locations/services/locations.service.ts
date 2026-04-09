@@ -7,6 +7,10 @@ import {
   normalizeCategoryForScale,
 } from '../../../../../shared/domain/locations';
 import {
+  normalizeBuildingFieldsFromPersistedDoc,
+  parseBuildingWritePayload,
+} from '../../../../../shared/domain/locations/building/locationBuilding.normalize';
+import {
   buildAncestorIdsFromParentRow,
   type HierarchyValidationError,
   type LocationScaleId,
@@ -27,6 +31,11 @@ export type LocationDoc = Omit<LocationBaseFields, 'ancestorIds'> & {
 type ValidationError = HierarchyValidationError;
 
 function toDoc(doc: Record<string, unknown>): LocationDoc {
+  const building = normalizeBuildingFieldsFromPersistedDoc({
+    buildingMeta: doc.buildingMeta,
+    buildingStructure: doc.buildingStructure,
+    buildingProfile: doc.buildingProfile,
+  });
   return {
     id: doc.locationId as string,
     campaignId: doc.campaignId as string,
@@ -43,7 +52,9 @@ function toDoc(doc: Record<string, unknown>): LocationDoc {
     aliases: doc.aliases as string[] | undefined,
     tags: doc.tags as string[] | undefined,
     connections: doc.connections as LocationDoc['connections'],
-    buildingProfile: doc.buildingProfile as LocationDoc['buildingProfile'],
+    buildingMeta: building.buildingMeta,
+    buildingStructure: building.buildingStructure,
+    buildingProfile: building.buildingProfile,
     createdAt: String(doc.createdAt),
     updatedAt: String(doc.updatedAt),
   };
@@ -393,8 +404,21 @@ export async function createLocation(
     aliases: body.aliases as string[] | undefined,
     tags: body.tags as string[] | undefined,
     connections: body.connections as unknown[] | undefined,
-    ...(body.buildingProfile != null && typeof body.buildingProfile === 'object'
-      ? { buildingProfile: body.buildingProfile }
+    ...(String(scale) === 'building'
+      ? (() => {
+          const parsed = parseBuildingWritePayload(body as Record<string, unknown>);
+          const extra: Record<string, unknown> = {};
+          if (parsed.buildingMeta && Object.keys(parsed.buildingMeta).length > 0) {
+            extra.buildingMeta = parsed.buildingMeta;
+          }
+          if (
+            parsed.buildingStructure &&
+            Object.keys(parsed.buildingStructure).length > 0
+          ) {
+            extra.buildingStructure = parsed.buildingStructure;
+          }
+          return extra;
+        })()
       : {}),
   });
 
@@ -497,11 +521,39 @@ export async function updateLocation(
   if (body.tags !== undefined) $set.tags = body.tags;
   if (body.connections !== undefined) $set.connections = body.connections;
 
-  if ('buildingProfile' in body) {
-    if (body.buildingProfile === null) {
+  if (existingScale === 'building') {
+    if ('buildingMeta' in body) {
+      if (body.buildingMeta === null) {
+        $unset.buildingMeta = '';
+      } else if (typeof body.buildingMeta === 'object') {
+        $set.buildingMeta = body.buildingMeta;
+        $unset.buildingProfile = '';
+      }
+    }
+    if ('buildingStructure' in body) {
+      if (body.buildingStructure === null) {
+        $unset.buildingStructure = '';
+      } else if (typeof body.buildingStructure === 'object') {
+        $set.buildingStructure = body.buildingStructure;
+        $unset.buildingProfile = '';
+      }
+    }
+    if (
+      'buildingProfile' in body &&
+      body.buildingProfile != null &&
+      typeof body.buildingProfile === 'object'
+    ) {
+      const parsed = parseBuildingWritePayload(body as Record<string, unknown>);
+      if (parsed.buildingMeta && Object.keys(parsed.buildingMeta).length > 0) {
+        $set.buildingMeta = parsed.buildingMeta;
+      }
+      if (parsed.buildingStructure && Object.keys(parsed.buildingStructure).length > 0) {
+        $set.buildingStructure = parsed.buildingStructure;
+      }
       $unset.buildingProfile = '';
-    } else {
-      $set.buildingProfile = body.buildingProfile;
+    }
+    if ('buildingProfile' in body && body.buildingProfile === null) {
+      $unset.buildingProfile = '';
     }
   }
 
