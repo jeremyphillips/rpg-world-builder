@@ -47,6 +47,18 @@ export const ActiveCampaignProvider = ({
 
   const [loading, setLoading] = useState(() => !!campaignId)
 
+  // Resolve from URL synchronously so client navigations to /campaigns/:id don't render before
+  // useEffect syncs persisted campaignId (which caused a false "Campaign not found").
+  const resolvedCampaignId = useMemo(() => {
+    const match = matchPath(
+      { path: '/campaigns/:campaignId/*' },
+      location.pathname
+    )
+    const id = match?.params?.campaignId
+    if (id && isValidObjectId(id)) return id
+    return campaignId
+  }, [location.pathname, campaignId])
+
   useEffect(() => {
     const controller = new AbortController()
     apiFetch<{ campaigns: { _id: string }[] }>('/api/campaigns', { signal: controller.signal })
@@ -100,8 +112,9 @@ export const ActiveCampaignProvider = ({
   }, [])
 
   useEffect(() => {
-    if (!campaignId) {
+    if (!resolvedCampaignId) {
       setCampaign(null)
+      setLoading(false)
       return
     }
 
@@ -109,7 +122,7 @@ export const ActiveCampaignProvider = ({
 
     setLoading(true)
 
-    apiFetch<{ campaign: Campaign }>(`/api/campaigns/${campaignId}`, { signal: controller.signal })
+    apiFetch<{ campaign: Campaign }>(`/api/campaigns/${resolvedCampaignId}`, { signal: controller.signal })
       .then((data) => {
         if (!controller.signal.aborted) setCampaign(data.campaign ?? null)
       })
@@ -121,16 +134,16 @@ export const ActiveCampaignProvider = ({
       })
 
     return () => controller.abort()
-  }, [campaignId])
+  }, [resolvedCampaignId])
 
   const value = useMemo(() => ({
-    campaignId,
+    campaignId: resolvedCampaignId,
     campaign,
     campaignName: campaign?.identity?.name ?? null,
     loading,
     setActiveCampaign,
     clearActiveCampaign
-  }), [campaignId, campaign, loading, setActiveCampaign, clearActiveCampaign])
+  }), [resolvedCampaignId, campaign, loading, setActiveCampaign, clearActiveCampaign])
 
   return (
     <ActiveCampaignContext.Provider value={value}>
