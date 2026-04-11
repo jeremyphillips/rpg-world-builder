@@ -3,7 +3,7 @@ import type { AccessPolicy, AccessPolicyScope } from '../../../../../shared/doma
 import { MAGIC_SCHOOL_OPTIONS } from '../../../../../src/features/content/shared/domain/vocab/magicSchools.vocab';
 
 const VALID_SCOPES: AccessPolicyScope[] = ['public', 'dm', 'restricted'];
-const VALID_SCHOOLS = MAGIC_SCHOOL_OPTIONS.map((o) => o.value);
+const VALID_SCHOOLS = MAGIC_SCHOOL_OPTIONS.map((o) => o.id);
 
 export type CampaignSpellDoc = {
   _id: string;

@@ -62,18 +62,18 @@ export default function SpellDetailRoute() {
         </Box>
       )}
 
-      {spell.description.full && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {spell.description.full}
-        </Typography>
-      )}
-
       <KeyValueSection
         title="Spell Details"
         items={items}
         columns={2}
         sx={{ mt: 2 }}
       />
+
+      {spell.description.full && (
+        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
+          {spell.description.full}
+        </Typography>
+      )}
     </ContentDetailScaffold>
   );
 }

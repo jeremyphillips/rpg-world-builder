@@ -6,7 +6,7 @@ import { getSpellResolutionStatus } from '@/features/content/spells/domain/types
 import type { SpellListRow } from './spellList.types';
 
 const schoolLabel = (value: string) =>
-  MAGIC_SCHOOL_OPTIONS.find((o) => o.value === value)?.label ?? value;
+  MAGIC_SCHOOL_OPTIONS.find((o) => o.id === value)?.name ?? value;
 
 const RESOLUTION_STATUS_LABELS: Record<string, string> = {
   stub: 'Stub',

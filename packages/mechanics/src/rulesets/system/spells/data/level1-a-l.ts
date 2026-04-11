@@ -586,7 +586,7 @@ export const SPELLS_LEVEL_1_A_L: readonly SpellEntry[] = [
       summary: 'Str save or Restrained, 1d6 piercing/turn. Scales with slot.',
     },
   },
-{
+  {
     id: 'entangle',
     name: 'Entangle',
     school: 'conjuration',

@@ -5,7 +5,7 @@ import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 export type FilterOption = { label: string; value: string };
 
 const schoolLabel = (value: string) =>
-  MAGIC_SCHOOL_OPTIONS.find((o) => o.value === value)?.label ?? value;
+  MAGIC_SCHOOL_OPTIONS.find((o) => o.id === value)?.name ?? value;
 
 /** Build school options from current items. */
 export function buildSchoolOptions(items: SpellSummary[]): FilterOption[] {

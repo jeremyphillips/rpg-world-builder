@@ -539,7 +539,7 @@ export const SPELLS_LEVEL_4_A_L: readonly SpellEntry[] = [
       summary: 'Beast Wis save or Charmed. Telepathic commands. Repeat save when damaged.',
     },
   },
-{
+  {
     id: 'fabricate',
     name: 'Fabricate',
     school: 'transmutation',

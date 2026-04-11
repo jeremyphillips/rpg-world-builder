@@ -56,7 +56,7 @@ export const SPELL_FORM_FIELDS = [
     label: 'School',
     kind: 'select' as const,
     required: true,
-    options: MAGIC_SCHOOL_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+    options: MAGIC_SCHOOL_OPTIONS.map((o) => ({ value: o.id, label: o.name })),
     placeholder: 'Select school',
     defaultValue: '' as SpellFormValues['school'],
     parse: (v: unknown) => (v ? (v as SpellInput['school']) : undefined),

@@ -551,7 +551,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
       summary: 'Enlarge or reduce creature/object. Con save if unwilling.',
     },
   },
-{
+  {
     id: 'enthrall',
     name: 'Enthrall',
     school: 'enchantment',
@@ -571,7 +571,7 @@ export const SPELLS_LEVEL_2_A_F: readonly SpellEntry[] = [
       summary: 'Wis save or -10 Perception. Fighting creatures immune.',
     },
   },
-{
+  {
     id: 'find-steed',
     name: 'Find Steed',
     school: 'conjuration',

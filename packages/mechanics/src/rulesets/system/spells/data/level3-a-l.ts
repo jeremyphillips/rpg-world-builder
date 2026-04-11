@@ -312,7 +312,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
       summary: '30ft cone: Wis save or Frightened, must flee. Save if no line of sight.',
     },
   },
-{
+  {
     id: 'fireball',
     name: 'Fireball',
     school: 'evocation',
@@ -350,7 +350,7 @@ export const SPELLS_LEVEL_3_A_L: readonly SpellEntry[] = [
       summary: '20-foot-radius fire explosion dealing 8d6 fire damage; Dexterity save for half.',
     },
   },
-{
+  {
     id: 'fly',
     name: 'Fly',
     school: 'transmutation',
