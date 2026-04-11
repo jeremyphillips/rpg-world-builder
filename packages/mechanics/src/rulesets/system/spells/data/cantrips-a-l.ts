@@ -1,3 +1,7 @@
+import type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
+import type { SpellTags } from '@/features/content/spells/domain/types';
+import type { SpellFunctionTag } from '@/features/content/spells/domain/vocab/spellFunctionTags.vocab';
+import type { SpellRoleTag } from '@/features/content/spells/domain/vocab/spellRoleTags.vocab';
 import type { SpellEntry } from '../types';
 import { cantripDamageScaling } from '../shared';
 
@@ -14,6 +18,10 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'evocation',
     level: 0,
     classes: ['sorcerer', 'wizard'],
+    tags: {
+      damageTypes: ['acid'] satisfies DamageType[],
+      roles: ['damage'] satisfies SpellRoleTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'distance', value: { value: 60, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
@@ -59,6 +67,10 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'necromancy',
     level: 0,
     classes: ['sorcerer', 'warlock', 'wizard'],
+    tags: {
+      damageTypes: ['necrotic'] satisfies DamageType[],
+      roles: ['damage', 'debuff'] satisfies SpellRoleTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'touch' },
     duration: { kind: 'instantaneous' },
@@ -94,6 +106,9 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'illusion',
     level: 0,
     classes: ['bard', 'sorcerer', 'wizard'],
+    tags: {
+      functions: ['creation', 'deception', 'utility'] satisfies SpellFunctionTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
@@ -121,6 +136,10 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'transmutation',
     level: 0,
     classes: ['druid'],
+    tags: {
+      roles: ['detection'] satisfies SpellRoleTag[],
+      functions: ['environment', 'foreknowledge', 'utility'] satisfies SpellFunctionTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
@@ -148,6 +167,10 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'evocation',
     level: 0,
     classes: ['warlock'],
+    tags: {
+      damageTypes: ['force'] satisfies DamageType[],
+      roles: ['damage'] satisfies SpellRoleTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
@@ -195,6 +218,10 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'transmutation',
     level: 0,
     classes: ['druid', 'sorcerer', 'wizard'],
+    tags: {
+      roles: ['control'] satisfies SpellRoleTag[],
+      functions: ['environment', 'utility'] satisfies SpellFunctionTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
@@ -222,6 +249,10 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'evocation',
     level: 0,
     classes: ['sorcerer', 'wizard'],
+    tags: {
+      damageTypes: ['fire'] satisfies DamageType[],
+      roles: ['damage'] satisfies SpellRoleTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'instantaneous' },
@@ -257,6 +288,10 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'divination',
     level: 0,
     classes: ['cleric', 'druid'],
+    tags: {
+      roles: ['buff'] satisfies SpellRoleTag[],
+      functions: ['utility'] satisfies SpellFunctionTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'touch' },
     duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true, upTo: true },
@@ -285,6 +320,9 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'evocation',
     level: 0,
     classes: ['bard', 'cleric', 'sorcerer', 'wizard'],
+    tags: {
+      functions: ['creation', 'utility'] satisfies SpellFunctionTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'touch' },
     duration: { kind: 'timed', value: 1, unit: 'hour' },
@@ -317,6 +355,9 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'conjuration',
     level: 0,
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
+    tags: {
+      functions: ['utility'] satisfies SpellFunctionTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute' },
@@ -344,6 +385,9 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'transmutation',
     level: 0,
     classes: ['bard', 'cleric', 'druid', 'sorcerer', 'wizard'],
+    tags: {
+      functions: ['utility'] satisfies SpellFunctionTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'minute' } },
     range: { kind: 'touch' },
     duration: { kind: 'instantaneous' },
@@ -371,6 +415,9 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'transmutation',
     level: 0,
     classes: ['bard', 'druid', 'sorcerer', 'wizard'],
+    tags: {
+      functions: ['communication'] satisfies SpellFunctionTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
     duration: { kind: 'special', description: '1 round' },
@@ -394,6 +441,9 @@ export const SPELLS_LEVEL_0_A_L: readonly SpellEntry[] = [
     school: 'illusion',
     level: 0,
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
+    tags: {
+      functions: ['deception', 'utility'] satisfies SpellFunctionTag[],
+    } satisfies SpellTags,
     castingTime: { normal: { value: 1, unit: 'action' } },
     range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
     duration: { kind: 'timed', value: 1, unit: 'minute' },

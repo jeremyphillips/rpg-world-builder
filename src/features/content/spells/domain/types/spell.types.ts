@@ -1,6 +1,9 @@
 import type { ClassId } from '@/shared/types/ruleset';
 import type { MagicSchool } from '@/features/content/shared/domain/vocab';
-import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
+import type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
+import type { Effect, EffectConditionId } from '@/features/mechanics/domain/effects/effects.types';
+import type { SpellFunctionTag } from '../vocab/spellFunctionTags.vocab';
+import type { SpellRoleTag } from '../vocab/spellRoleTags.vocab';
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types';
 import type { Visibility } from '@/shared/types/visibility';
 import type { ContentItem } from '@/features/content/shared/domain/types/content.types';
@@ -13,6 +16,13 @@ import type { CasterOptionField } from '@/features/mechanics/domain/spells/caste
 
 // later: Extract<Effect, ...>[]
 export type SpellEffects = Effect[];
+
+export type SpellTags = {
+  damageTypes?: DamageType[];
+  conditions?: EffectConditionId[];
+  roles?: SpellRoleTag[];
+  functions?: SpellFunctionTag[];
+};
 
 export type SpellLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
@@ -145,8 +155,16 @@ export interface SpellBase {
     full: string;
     summary: string;
   }
+  /**
+   * Browse/filter metadata: damage types, conditions, tactical roles, and fantasy-purpose functions.
+   * Roles = play-pattern identity; functions = communication, utility, deception, etc.
+   */
+  tags?: SpellTags;
   imageKey?: string | null;
 }
+
+/** Alias for the authored spell definition (`Spell` adds `ContentItem`). */
+export type SpellDefinition = SpellBase;
 
 export type Spell = ContentItem & SpellBase;
 
