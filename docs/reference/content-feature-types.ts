@@ -74,7 +74,8 @@ export {};
  *   name: string;
  *   scale: LocationScaleId;
  *   // ...
- *   buildingProfile?: LocationBuildingProfile;
+ *   buildingMeta?: LocationBuildingMeta;
+ *   buildingStructure?: LocationBuildingStructure;
  * }
  * type Location = LocationBaseFields;
  *

@@ -1,5 +1,6 @@
 export * from './types';
 export * from './linkedLocationPickerOptions';
+export * from './buildingLinkPlacement';
 export * from './paint';
 export * from './state';
 export * from './rail';

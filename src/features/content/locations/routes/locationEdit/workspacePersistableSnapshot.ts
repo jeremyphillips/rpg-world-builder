@@ -13,7 +13,7 @@ import type { LocationVerticalStairConnection } from '@/shared/domain/locations'
  * **Homebrew persistable assembly** (this module)
  *
  * Slices that feed `buildHomebrewWorkspacePersistableParts` / `serializeLocationWorkspacePersistableSnapshot`:
- * - **Location** — `toLocationInput(values)` plus {@link mergeBuildingProfileForSave} for building stair connections.
+ * - **Location** — `toLocationInput(values)` plus {@link mergeBuildingStructureForSave} for building stair connections.
  * - **Map** — {@link buildMapWorkspacePersistablePayloadFromGridDraft} (also {@link mapWorkspacePersistableTokenFromGridDraft} for system grid projections in `locationWorkspaceAuthoringAdapters.ts`).
  *
  * Map dirty comparison uses the same payload as save: `gridDraftPersistableEquals` delegates to {@link buildPersistableMapPayloadFromGridDraft} in `locationGridDraft.utils.ts`. See `locationWorkspaceNormalizationPolicy.ts` and `docs/reference/locations/location-workspace.md`.
@@ -57,7 +57,7 @@ export function buildHomebrewWorkspacePersistableParts(
   loc: LocationContentItem | null,
 ): HomebrewWorkspacePersistableParts {
   const input = toLocationInput(values);
-  const locationInput = mergeBuildingProfileForSave(input, loc, buildingStairConnections);
+  const locationInput = mergeBuildingStructureForSave(input, loc, buildingStairConnections);
   const mapBootstrapPayload = buildMapWorkspacePersistablePayloadFromGridDraft(gridDraft);
   return { locationInput, mapBootstrapPayload };
 }
@@ -80,7 +80,7 @@ export function serializeLocationWorkspacePersistableSnapshot(
   return stableStringify({ location: locationInput, map: mapBootstrapPayload });
 }
 
-function mergeBuildingProfileForSave(
+function mergeBuildingStructureForSave(
   input: LocationInput,
   loc: LocationContentItem | null,
   buildingStairConnections: readonly LocationVerticalStairConnection[],
@@ -90,10 +90,14 @@ function mergeBuildingProfileForSave(
   }
   return {
     ...input,
-    buildingProfile: {
-      ...(loc.buildingProfile ?? {}),
-      ...(input.buildingProfile ?? {}),
-      stairConnections: [...buildingStairConnections],
+    buildingMeta: {
+      ...(loc.buildingMeta ?? {}),
+      ...(input.buildingMeta ?? {}),
+    },
+    buildingStructure: {
+      ...(loc.buildingStructure ?? {}),
+      ...(input.buildingStructure ?? {}),
+      verticalConnections: [...buildingStairConnections],
     },
   };
 }

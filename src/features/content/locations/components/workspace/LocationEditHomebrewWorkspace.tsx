@@ -6,6 +6,7 @@ import Button from '@mui/material/Button';
 import type { LocationFormValues } from '@/features/content/locations/domain';
 import type { ValidationError } from '@/features/content/shared/hooks/editRoute.types';
 import { ConfirmModal } from '@/ui/patterns';
+import { AppAlert } from '@/ui/primitives';
 import type { FieldConfig } from '@/ui/patterns/form/form.types';
 import type { BuildingFloorStripProps } from './BuildingFloorStrip';
 import { BuildingFloorStrip } from './BuildingFloorStrip';
@@ -47,11 +48,14 @@ export type LocationEditHomebrewWorkspaceProps = {
   showFloorRailHint: boolean;
   floorRailHintLabel?: string | null;
   policyPanel: ReactNode | null;
+  /** When editing a city, linkage health for child buildings (Location tab). */
+  cityLinkagePanel?: ReactNode | null;
   selectionPanel: ReactNode;
   deleteConfirm: {
     open: boolean;
     loading: boolean;
-    onConfirm: () => void;
+    errorMessage?: string | null;
+    onConfirm: () => void | Promise<void>;
     onCancel: () => void;
   };
 };
@@ -84,6 +88,7 @@ export function LocationEditHomebrewWorkspace({
   showFloorRailHint,
   floorRailHintLabel,
   policyPanel,
+  cityLinkagePanel,
   selectionPanel,
   deleteConfirm,
 }: LocationEditHomebrewWorkspaceProps) {
@@ -165,6 +170,7 @@ export function LocationEditHomebrewWorkspace({
                   showFloorRailHint={showFloorRailHint}
                   floorRailHintLabel={floorRailHintLabel}
                   policyPanel={policyPanel}
+                  cityLinkagePanel={cityLinkagePanel}
                 />
               }
               selectionPanel={selectionPanel}
@@ -176,13 +182,17 @@ export function LocationEditHomebrewWorkspace({
       <ConfirmModal
         open={deleteConfirm.open}
         headline="Delete Location"
-        description="Are you sure you want to delete this location? This action cannot be undone."
+        description="This removes this location, any child locations, their maps, and related link data. This cannot be undone."
         confirmLabel="Delete"
         confirmColor="error"
         loading={deleteConfirm.loading}
         onConfirm={deleteConfirm.onConfirm}
         onCancel={deleteConfirm.onCancel}
-      />
+      >
+        {deleteConfirm.errorMessage ? (
+          <AppAlert tone="danger">{deleteConfirm.errorMessage}</AppAlert>
+        ) : null}
+      </ConfirmModal>
     </FormProvider>
   );
 }

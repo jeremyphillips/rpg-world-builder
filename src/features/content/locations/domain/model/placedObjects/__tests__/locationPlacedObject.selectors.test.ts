@@ -69,9 +69,9 @@ describe('locationPlacedObject.selectors (registry-derived)', () => {
     expect('default' in defs.tree.variants).toBe(false);
     expect(defs.tree.variants.pine.presentation?.type).toBe('conifer');
 
-    expect(defs.building.defaultVariantId).toBe('residential');
+    expect(defs.building.defaultVariantId).toBe('compact_1cell');
     expect('default' in defs.building.variants).toBe(false);
-    expect(defs.building.variants.civic.presentation?.kind).toBe('civic');
+    expect(defs.building.variants.wide_2cell.presentation?.footprintClass).toBe('wide');
   });
 
   it('getDefaultVariantIdForFamily and getVariantCountForFamily read registry', () => {
@@ -90,7 +90,7 @@ describe('locationPlacedObject.selectors (registry-derived)', () => {
     expect(normalizeVariantIdForFamily('stairs', 'default')).toBe('straight');
     expect(normalizeVariantIdForFamily('treasure', 'default')).toBe('chest');
     expect(normalizeVariantIdForFamily('tree', 'default')).toBe('deciduous');
-    expect(normalizeVariantIdForFamily('building', 'default')).toBe('residential');
+    expect(normalizeVariantIdForFamily('building', 'default')).toBe('compact_1cell');
   });
 
   it('normalizeVariantIdForFamily does not trim variant ids (whitespace-prefixed key is invalid)', () => {

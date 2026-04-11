@@ -70,11 +70,64 @@ function toDoc(doc: Record<string, unknown>): LocationMapDoc {
   };
 }
 
+/**
+ * A building location may be linked from **at most one** map cell in the campaign
+ * (see location modeling plan: single placement invariant).
+ */
+async function validateBuildingSinglePlacementInCampaign(
+  campaignId: string,
+  currentMapId: string | undefined,
+  cellEntries: LocationMapCellAuthoringEntry[],
+  byId: Map<string, Record<string, unknown>>,
+): Promise<ValidationError[]> {
+  const errors: ValidationError[] = [];
+
+  const perBuildingCellCount = new Map<string, number>();
+  for (const e of cellEntries) {
+    const lid = e.linkedLocationId?.trim();
+    if (!lid) continue;
+    const target = byId.get(lid);
+    if (!target || String(target.scale) !== 'building') continue;
+    perBuildingCellCount.set(lid, (perBuildingCellCount.get(lid) ?? 0) + 1);
+  }
+
+  for (const [buildingId, count] of perBuildingCellCount) {
+    if (count > 1) {
+      errors.push({
+        path: 'cellEntries',
+        code: 'DUPLICATE_BUILDING_LINK',
+        message: `Building "${buildingId}" cannot be linked from more than one cell on this map`,
+      });
+    }
+  }
+
+  for (const buildingId of perBuildingCellCount.keys()) {
+    const filter: Record<string, unknown> = {
+      campaignId,
+      cellEntries: { $elemMatch: { linkedLocationId: buildingId } },
+    };
+    if (currentMapId) {
+      filter.mapId = { $ne: currentMapId };
+    }
+    const other = await CampaignLocationMap.countDocuments(filter);
+    if (other > 0) {
+      errors.push({
+        path: 'cellEntries',
+        code: 'BUILDING_ALREADY_PLACED',
+        message: `Building "${buildingId}" is already linked from another map in this campaign`,
+      });
+    }
+  }
+
+  return errors;
+}
+
 async function validateCellAuthoringPolicy(
   campaignId: string,
   hostLocationId: string,
   hostScale: string,
   cellEntries: LocationMapCellAuthoringEntry[] | undefined,
+  options?: { currentMapId?: string },
 ): Promise<ValidationError[]> {
   const errors: ValidationError[] = [];
   if (!cellEntries || cellEntries.length === 0) return errors;
@@ -139,6 +192,14 @@ async function validateCellAuthoringPolicy(
       }
     }
   }
+
+  const placementErr = await validateBuildingSinglePlacementInCampaign(
+    campaignId,
+    options?.currentMapId,
+    cellEntries,
+    byId,
+  );
+  errors.push(...placementErr);
 
   return errors;
 }
@@ -281,6 +342,7 @@ export async function createLocationMap(
     locationId,
     locationScale,
     cellEntriesPayload,
+    {},
   );
   if (policyErr.length > 0) return { errors: policyErr };
 
@@ -472,6 +534,7 @@ export async function updateLocationMap(
     locationId,
     locationScale,
     mergedCellEntries,
+    { currentMapId: mapId },
   );
   if (policyErr.length > 0) return { errors: policyErr };
 

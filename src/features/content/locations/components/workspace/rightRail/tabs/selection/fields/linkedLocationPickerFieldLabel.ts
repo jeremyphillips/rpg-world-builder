@@ -13,3 +13,21 @@ export function linkedTargetPickerFieldLabel(linkedScale: LocationScaleId): stri
       return 'Linked location';
   }
 }
+
+/** Link text for opening the linked target’s edit route in a new tab */
+export function editLinkLabelForLinkedScale(linkedScale: LocationScaleId): string {
+  switch (linkedScale) {
+    case 'city':
+      return 'Edit city';
+    case 'building':
+      return 'Edit building';
+    case 'site':
+      return 'Edit site';
+    case 'floor':
+      return 'Edit floor';
+    case 'room':
+      return 'Edit room';
+    default:
+      return 'Edit location';
+  }
+}

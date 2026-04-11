@@ -23,7 +23,8 @@ describe('locationScaleMapContent.policy', () => {
       supportsCellFillPainting: true,
       pathKinds: ['road'],
       edgeKinds: [],
-      objectKinds: ['city', 'building', 'site', 'tree'],
+      /** `city` markers are world-scale only — no nested city placement on city maps. */
+      objectKinds: ['building', 'site', 'tree'],
     });
     expect(LOCATION_SCALE_MAP_CONTENT_POLICY.floor).toEqual({
       supportsCellFillPainting: true,
@@ -43,7 +44,7 @@ describe('locationScaleMapContent.policy', () => {
     expect(getLocationScaleMapContentPolicy('world')).toBe(LOCATION_SCALE_MAP_CONTENT_POLICY.world);
     expect(getAllowedPathKindsForScale('city')).toEqual(['road']);
     expect(getAllowedEdgeKindsForScale('floor')).toEqual(['wall']);
-    expect(getAllowedPlacedObjectKindsForScale('city')).toEqual(['city', 'building', 'site', 'tree']);
+    expect(getAllowedPlacedObjectKindsForScale('city')).toEqual(['building', 'site', 'tree']);
   });
 
   it('getAllowedCellFillFamiliesForScale derives from registry when supportsCellFillPainting; else empty', () => {

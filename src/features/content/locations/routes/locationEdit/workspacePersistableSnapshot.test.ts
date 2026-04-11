@@ -17,7 +17,8 @@ const baseForm = () => structuredClone(LOCATION_FORM_DEFAULTS);
 const buildingLoc = {
   source: 'campaign',
   scale: 'building',
-  buildingProfile: {},
+  buildingMeta: {},
+  buildingStructure: {},
 } as unknown as LocationContentItem;
 
 const sampleStairConnection = {

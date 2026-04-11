@@ -160,11 +160,28 @@ Registry **footprint** (feet) maps to a pixel layout box via **`computePlacedObj
 
 ---
 
-## 9. Related code index (quick)
+## 9. Future follow-ups: building form and map footprint (planned)
+
+The **building** placed-object family uses **footprint-oriented** registry variants (`compact_1cell`, `wide_2cell`, …) and is related to **structural form classes** and **`buildingMeta`** on the location side. Core types, defaults, and **`deriveBuildingObjectRecommendation`** live under `shared/domain/locations/building/`.
+
+**Plan (source of truth for scope and non-goals):** [Building form map variants](../../../.cursor/plans/building_form_map_variants_b471881f.plan.md).
+
+**Suggested follow-ups** (not implemented as part of that plan’s closure; track against the plan and related schema work):
+
+- Wire **`deriveBuildingObjectRecommendation`** into the city (or site) map **place tool** so the **default `variantId`** for a new building marker reflects **`buildingMeta`** + optional **form class** when known.
+- Optional **persistence** of chosen **form class** on the building location row when the API can store it without losing merge semantics.
+- **`deep_2cell`** (or similar) **registry variant** plus **multi-cell placement** rules if product needs depth beyond the v1 footprint set.
+- Align with **§16 placement backpointer** (`cityPlacementRef` / `placementId`) when the [location modeling schema plan](../../../.cursor/plans/location_modeling_schema_plan_b86f6970.plan.md) implements it — not a client-only shortcut.
+- Optional **one-time data migration** for persisted **`variantId`** strings that still use removed ids (e.g. legacy `residential` / `civic`), if campaigns must preserve distinct footprints instead of resolving unknown keys to the family default via `resolveFamilyVariant`.
+
+---
+
+## 10. Related code index (quick)
 
 | Area | Path |
 |------|------|
 | Registry | `domain/model/placedObjects/locationPlacedObject.registry.ts` |
+| Building form / map variant derivation (shared) | `shared/domain/locations/building/deriveBuildingObjectRecommendation.ts`, `locationBuildingForm.defaults.ts`, `locationBuilding.types.ts` |
 | Selectors / persistence | `domain/model/placedObjects/locationPlacedObject.selectors*.ts`, `locationPlacedObject.persistence.ts` |
 | Placement resolver | `domain/authoring/editor/placement/placementRegistryResolver.ts` |
 | Render items | `shared/domain/locations/map/locationMapAuthoredObjectRender.helpers.ts` |

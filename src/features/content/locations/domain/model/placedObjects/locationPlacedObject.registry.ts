@@ -122,6 +122,10 @@ export type AuthoredPlacedObjectVariantPresentation = {
   kind?: string;
   type?: string;
   size?: string;
+  /** Urban map footprint class (building family — single-cell vs multi-cell envelope). */
+  footprintClass?: string;
+  /** Massing hint for icon / preview (building family). */
+  massing?: string;
 };
 
 /**
@@ -180,8 +184,8 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
   city: {
     category: 'structure',
     placementMode: 'cell',
-    /** World: link marker to a child city. Include `city` to use the same link picker on city-scale host maps. */
-    allowedScales: ['world', 'city'],
+    /** World map only — nested city markers on an existing city map are not supported. */
+    allowedScales: ['world'],
     linkedScale: 'city',
     defaultVariantId: 'default',
     runtime: {
@@ -204,7 +208,10 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
     allowedScales: ['city', 'site'],
     /** City/site: marker links to a child building location (Selection rail). */
     linkedScale: 'building',
-    defaultVariantId: 'residential',
+    /**
+     * Variants describe **urban footprint / massing** on the host map, not business type.
+     */
+    defaultVariantId: 'compact_1cell',
     runtime: {
       blocksMovement: true,
       blocksLineOfSight: true,
@@ -212,20 +219,24 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
       isMovable: false,
     },
     variants: {
-      residential: {
-        label: 'Building',
-        description: 'Residential structure or home.',
+      compact_1cell: {
+        label: 'Small building',
+        description: 'Single-cell footprint; modest street frontage.',
         assetId: 'placeholder_no_art',
         presentation: {
-          kind: 'residential',
+          footprintClass: 'compact',
+          massing: 'low',
+          shape: 'rectangle',
         },
       },
-      civic: {
-        label: 'Civic Building',
-        description: 'Public, institutional, or community structure.',
+      wide_2cell: {
+        label: 'Wide building',
+        description: 'Broader street frontage or envelope.',
         assetId: 'placeholder_no_art',
         presentation: {
-          kind: 'civic',
+          footprintClass: 'wide',
+          massing: 'broad',
+          shape: 'rectangle',
         },
       },
     },
@@ -382,7 +393,7 @@ export const AUTHORED_PLACED_OBJECT_DEFINITIONS = {
         label: 'Treasure Chest',
         description: 'Chest, coffer, or locked loot container.',
         assetId: 'treasure_chest',
-        footprint: { kind: 'rect', widthFt: 3, depthFt: 2 },
+        footprint: { kind: 'rect', widthFt: 2, depthFt: 1.5 },
         presentation: {
           form: 'chest',
         },

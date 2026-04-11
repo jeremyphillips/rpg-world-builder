@@ -42,7 +42,7 @@ function itemKey(item: MapPlacePaletteItem): string {
 
 function paletteTooltipTitle(item: MapPlacePaletteItem): string {
   const base = item.description ? `${item.label} — ${item.description}` : item.label;
-  if (item.category === 'map-object' && item.variantCount > 1) {
+  if (item.variantCount > 1) {
     return `${base}\n\nClick the tile to place the default variant. Use the menu to choose another variant.`;
   }
   return base;
@@ -58,7 +58,7 @@ export function LocationMapEditorPlaceTray({
 }: LocationMapEditorPlaceTrayProps) {
   const [variantPicker, setVariantPicker] = useState<{
     anchor: HTMLElement;
-    kind: MapPlacePaletteItem & { category: 'map-object' };
+    item: MapPlacePaletteItem;
   } | null>(null);
 
   if (items.length === 0) return null;
@@ -72,8 +72,7 @@ export function LocationMapEditorPlaceTray({
         const selected = isFamilyTileSelected(item, activePlace);
         const showSectionHeading =
           index === 0 || item.paletteCategory !== items[index - 1]!.paletteCategory;
-        const showMapVariantPicker =
-          item.category === 'map-object' && item.variantCount > 1;
+        const showVariantPicker = item.variantCount > 1;
         const activeVariantLabel =
           selected && activePlace && activePlace.kind === item.kind
             ? getPlacedObjectVariantPickerRowsForFamily(item.kind).find(
@@ -100,8 +99,8 @@ export function LocationMapEditorPlaceTray({
         const onOpenVariantPicker = (e: MouseEvent<HTMLButtonElement>) => {
           e.preventDefault();
           e.stopPropagation();
-          if (item.category !== 'map-object') return;
-          setVariantPicker({ anchor: e.currentTarget, kind: item });
+          if (!showVariantPicker) return;
+          setVariantPicker({ anchor: e.currentTarget, item });
         };
 
         const tileInner = (
@@ -152,9 +151,9 @@ export function LocationMapEditorPlaceTray({
                 }}
               >
                 <Badge
-                  badgeContent={showMapVariantPicker ? item.variantCount : 0}
+                  badgeContent={showVariantPicker ? item.variantCount : 0}
                   color="default"
-                  invisible={!showMapVariantPicker}
+                  invisible={!showVariantPicker}
                   sx={{
                     '& .MuiBadge-badge': {
                       fontSize: 9,
@@ -192,7 +191,7 @@ export function LocationMapEditorPlaceTray({
                     {tileInner}
                   </Box>
                 </Badge>
-                {showMapVariantPicker ? (
+                {showVariantPicker ? (
                   <IconButton
                     type="button"
                     size="small"
@@ -225,21 +224,22 @@ export function LocationMapEditorPlaceTray({
           onClose={closePicker}
         >
           <List dense disablePadding>
-            {getPlacedObjectVariantPickerRowsForFamily(variantPicker.kind.kind).map((row) => {
+            {getPlacedObjectVariantPickerRowsForFamily(variantPicker.item.kind).map((row) => {
+              const cat = variantPicker.item.category;
               return (
                 <Tooltip key={row.variantId} title={row.description ?? row.label} placement="right">
                   <ListItemButton
                     onClick={() => {
                       onSelectPlace({
-                        category: 'map-object',
-                        kind: variantPicker.kind.kind,
+                        category: cat,
+                        kind: variantPicker.item.kind,
                         variantId: row.variantId,
                       });
                       closePicker();
                     }}
                     selected={
-                      activePlace?.category === 'map-object' &&
-                      activePlace.kind === variantPicker.kind.kind &&
+                      activePlace?.category === cat &&
+                      activePlace.kind === variantPicker.item.kind &&
                       activePlace.variantId === row.variantId
                     }
                   >

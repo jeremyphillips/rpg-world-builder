@@ -59,7 +59,7 @@ function resolveBuildingStairConnections(
     }
   }
 
-  return building?.buildingProfile?.stairConnections;
+  return building?.buildingStructure?.verticalConnections;
 }
 
 function objectsOnCellForAuthorCell(

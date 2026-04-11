@@ -16,6 +16,7 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import MuiLink from '@mui/material/Link'
 
 export type PickerOption = {
   value: string
@@ -24,6 +25,13 @@ export type PickerOption = {
   keywords?: string[]
   /** When true, the option appears in the list but cannot be chosen */
   disabled?: boolean
+  /**
+   * When set on the selected option’s card (`renderSelectedAs="card"`), shows an external link
+   * (e.g. edit route). Prefer `linkLabel` for visible text.
+   */
+  link?: string
+  /** Visible text for {@link link}; defaults to “Open link” when `link` is set but label is omitted */
+  linkLabel?: string
 }
 
 export type OptionPickerFieldProps = {
@@ -137,6 +145,25 @@ export default function OptionPickerField({
   const renderSelectedLabel = (v: string) => resolveOption(v)?.label ?? v
 
   const renderSelectedDescription = (v: string) => resolveOption(v)?.description
+
+  const renderSelectedLink = (v: string) => {
+    const opt = resolveOption(v)
+    const href = opt?.link?.trim()
+    if (!href) return null
+    const text = opt?.linkLabel?.trim() || 'Open link'
+    return (
+      <MuiLink
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        variant="caption"
+        sx={{ display: 'inline-block', mt: 0.5 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {text}
+      </MuiLink>
+    )
+  }
 
   return (
     <FormControl
@@ -266,10 +293,11 @@ export default function OptionPickerField({
                           {renderSelectedLabel(v)}
                         </Typography>
                         {renderSelectedDescription(v) ? (
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="caption" color="text.secondary" display="block">
                             {renderSelectedDescription(v)}
                           </Typography>
                         ) : null}
+                        {renderSelectedLink(v)}
                       </Box>
                       <IconButton
                         size="small"

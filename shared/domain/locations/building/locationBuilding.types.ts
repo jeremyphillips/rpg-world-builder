@@ -1,6 +1,9 @@
 /**
- * Building-scale location profile — nested under shared location domain (`buildingProfile`).
+ * Building-scale location fields — nested under shared location domain.
  * Used when `scale === 'building'`; complements `scale` / `category`, does not replace them.
+ *
+ * Target persistence: `buildingMeta` (identity) + `buildingStructure` (topology).
+ * Legacy: `buildingProfile` combined both; migrate off with `scripts/migrateLocationBuildingProfile.ts`.
  */
 
 import type { LocationVerticalStairConnection } from './locationBuildingStairConnection.types';
@@ -79,10 +82,23 @@ export const LOCATION_BUILDING_FUNCTION_IDS = [
 export type LocationBuildingFunctionId = (typeof LOCATION_BUILDING_FUNCTION_IDS)[number];
 
 /**
- * Authoring profile for a building location — identity, mixed-use functions, access, staffing.
- * Nested on the location entity; add other scale profiles alongside (e.g. `cityProfile`) as needed.
+ * Structural **form class** for a building-scale location — footprint envelope class for the interior grid
+ * bootstrap, distinct from {@link LocationBuildingMeta} semantic identity.
  */
-export type LocationBuildingProfile = {
+export const LOCATION_BUILDING_FORM_CLASS_IDS = [
+  'compact_small',
+  'compact_medium',
+  'wide_medium',
+  'wide_large',
+] as const;
+
+export type LocationBuildingFormClassId = (typeof LOCATION_BUILDING_FORM_CLASS_IDS)[number];
+
+/**
+ * Identity / function — persisted under `buildingMeta`.
+ * Does not include interior topology (stairs, etc.).
+ */
+export type LocationBuildingMeta = {
   primaryType?: LocationBuildingPrimaryTypeId;
   primarySubtype?: LocationBuildingPrimarySubtypeId;
   /** Mixed-use or secondary roles (e.g. tavern + inn). */
@@ -96,9 +112,26 @@ export type LocationBuildingProfile = {
 
   factionId?: string;
   notes?: string;
+};
+
+/**
+ * Interior topology for a building — persisted under `buildingStructure`.
+ */
+export type LocationBuildingStructure = {
   /**
-   * Canonical **paired** stair connections between floor maps under this building.
+   * Canonical **paired** vertical links between floor maps under this building.
    * Source of truth for stair pairing; see {@link LocationVerticalStairConnection}. **Traversal** is TODO.
+   */
+  verticalConnections?: LocationVerticalStairConnection[];
+};
+
+/**
+ * @deprecated Legacy combined document — use {@link LocationBuildingMeta} + {@link LocationBuildingStructure}.
+ * May still appear on persisted rows until migration completes.
+ */
+export type LocationBuildingProfile = LocationBuildingMeta & {
+  /**
+   * @deprecated Use `buildingStructure.verticalConnections`.
    */
   stairConnections?: LocationVerticalStairConnection[];
 };

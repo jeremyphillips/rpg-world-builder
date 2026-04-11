@@ -16,6 +16,8 @@ export type LocationTabProps = {
   showFloorRailHint: boolean;
   floorRailHintLabel?: string | null;
   policyPanel: ReactNode | null;
+  /** City location edit: optional linkage health (above the metadata form). */
+  cityLinkagePanel?: ReactNode | null;
 };
 
 /**
@@ -29,9 +31,11 @@ export function LocationTab({
   showFloorRailHint,
   floorRailHintLabel,
   policyPanel,
+  cityLinkagePanel,
 }: LocationTabProps) {
   return (
     <Stack spacing={2}>
+      {cityLinkagePanel}
       {showFloorRailHint ? (
         <Typography variant="caption" color="text.secondary">
           Map and cells: {floorRailHintLabel ?? 'Floor'} (save updates this floor).

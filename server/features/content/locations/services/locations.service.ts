@@ -1,4 +1,6 @@
 import { CampaignLocation } from '../../../../shared/models/CampaignLocation.model';
+import { CampaignLocationMap } from '../../../../shared/models/CampaignLocationMap.model';
+import { CampaignLocationTransition } from '../../../../shared/models/CampaignLocationTransition.model';
 import type { AccessPolicy } from '../../../../../shared/domain/accessPolicy';
 import type { LocationBaseFields } from '../../../../../shared/domain/locations';
 import {
@@ -7,13 +9,15 @@ import {
   normalizeCategoryForScale,
 } from '../../../../../shared/domain/locations';
 import {
+  normalizeBuildingFieldsFromPersistedDoc,
+  parseBuildingWritePayload,
+} from '../../../../../shared/domain/locations/building/locationBuilding.normalize';
+import {
   buildAncestorIdsFromParentRow,
   type HierarchyValidationError,
   type LocationScaleId,
   validateLocationScaleNesting,
 } from './locationValidation';
-import { countMapsForLocation } from './locationMaps.service';
-import { countTransitionsReferencingLocation } from './locationTransitions.queries';
 
 /** Persistence row for a campaign location — shared domain fields plus campaign scope and timestamps. */
 export type LocationDoc = Omit<LocationBaseFields, 'ancestorIds'> & {
@@ -27,6 +31,11 @@ export type LocationDoc = Omit<LocationBaseFields, 'ancestorIds'> & {
 type ValidationError = HierarchyValidationError;
 
 function toDoc(doc: Record<string, unknown>): LocationDoc {
+  const building = normalizeBuildingFieldsFromPersistedDoc({
+    buildingMeta: doc.buildingMeta,
+    buildingStructure: doc.buildingStructure,
+    buildingProfile: doc.buildingProfile,
+  });
   return {
     id: doc.locationId as string,
     campaignId: doc.campaignId as string,
@@ -43,7 +52,8 @@ function toDoc(doc: Record<string, unknown>): LocationDoc {
     aliases: doc.aliases as string[] | undefined,
     tags: doc.tags as string[] | undefined,
     connections: doc.connections as LocationDoc['connections'],
-    buildingProfile: doc.buildingProfile as LocationDoc['buildingProfile'],
+    buildingMeta: building.buildingMeta,
+    buildingStructure: building.buildingStructure,
     createdAt: String(doc.createdAt),
     updatedAt: String(doc.updatedAt),
   };
@@ -210,40 +220,28 @@ export async function reparentLocationSubtree(campaignId: string, rootLocationId
   }
 }
 
-export async function assertLocationCanDelete(
-  campaignId: string,
-  locationId: string,
-): Promise<ValidationError[]> {
-  const errors: ValidationError[] = [];
+/**
+ * Removes maps for this location and any transitions that reference those maps or this location as a target.
+ * Call before deleting the {@link CampaignLocation} row so authored locations (with default maps) can be deleted.
+ */
+async function deleteMapsAndTransitionsForLocation(campaignId: string, locationId: string): Promise<void> {
+  const maps = await CampaignLocationMap.find({ campaignId, locationId }).select('mapId').lean();
+  const mapIds = maps
+    .map((m) => String((m as { mapId?: string }).mapId ?? '').trim())
+    .filter(Boolean);
 
-  const childCount = await CampaignLocation.countDocuments({ campaignId, parentId: locationId });
-  if (childCount > 0) {
-    errors.push({
-      path: 'locationId',
-      code: 'HAS_CHILDREN',
-      message: 'Cannot delete location while it has child locations',
-    });
+  const orConditions: Record<string, unknown>[] = [{ toLocationId: locationId }];
+  if (mapIds.length > 0) {
+    orConditions.push({ fromMapId: { $in: mapIds } });
+    orConditions.push({ toMapId: { $in: mapIds } });
   }
 
-  const mapCount = await countMapsForLocation(campaignId, locationId);
-  if (mapCount > 0) {
-    errors.push({
-      path: 'locationId',
-      code: 'HAS_MAPS',
-      message: 'Cannot delete location while it has maps',
-    });
-  }
+  await CampaignLocationTransition.deleteMany({
+    campaignId,
+    $or: orConditions,
+  });
 
-  const transitionCount = await countTransitionsReferencingLocation(campaignId, locationId);
-  if (transitionCount > 0) {
-    errors.push({
-      path: 'locationId',
-      code: 'HAS_TRANSITIONS',
-      message: 'Cannot delete location while transitions target it',
-    });
-  }
-
-  return errors;
+  await CampaignLocationMap.deleteMany({ campaignId, locationId });
 }
 
 function validateCreate(body: Record<string, unknown>): ValidationError[] {
@@ -253,6 +251,13 @@ function validateCreate(body: Record<string, unknown>): ValidationError[] {
   }
   if (typeof body.scale !== 'string' || body.scale.trim().length === 0) {
     errors.push({ path: 'scale', code: 'REQUIRED', message: 'scale is required' });
+  }
+  if ('buildingProfile' in body && body.buildingProfile !== undefined) {
+    errors.push({
+      path: 'buildingProfile',
+      code: 'DEPRECATED',
+      message: 'buildingProfile is removed; use buildingMeta and buildingStructure',
+    });
   }
   return errors;
 }
@@ -264,6 +269,13 @@ function validateUpdate(body: Record<string, unknown>): ValidationError[] {
   }
   if (body.scale !== undefined && (typeof body.scale !== 'string' || body.scale.trim().length === 0)) {
     errors.push({ path: 'scale', code: 'INVALID', message: 'scale must be a non-empty string' });
+  }
+  if ('buildingProfile' in body && body.buildingProfile !== undefined) {
+    errors.push({
+      path: 'buildingProfile',
+      code: 'DEPRECATED',
+      message: 'buildingProfile is removed; use buildingMeta and buildingStructure',
+    });
   }
   return errors;
 }
@@ -393,8 +405,21 @@ export async function createLocation(
     aliases: body.aliases as string[] | undefined,
     tags: body.tags as string[] | undefined,
     connections: body.connections as unknown[] | undefined,
-    ...(body.buildingProfile != null && typeof body.buildingProfile === 'object'
-      ? { buildingProfile: body.buildingProfile }
+    ...(String(scale) === 'building'
+      ? (() => {
+          const parsed = parseBuildingWritePayload(body as Record<string, unknown>);
+          const extra: Record<string, unknown> = {};
+          if (parsed.buildingMeta && Object.keys(parsed.buildingMeta).length > 0) {
+            extra.buildingMeta = parsed.buildingMeta;
+          }
+          if (
+            parsed.buildingStructure &&
+            Object.keys(parsed.buildingStructure).length > 0
+          ) {
+            extra.buildingStructure = parsed.buildingStructure;
+          }
+          return extra;
+        })()
       : {}),
   });
 
@@ -497,11 +522,20 @@ export async function updateLocation(
   if (body.tags !== undefined) $set.tags = body.tags;
   if (body.connections !== undefined) $set.connections = body.connections;
 
-  if ('buildingProfile' in body) {
-    if (body.buildingProfile === null) {
-      $unset.buildingProfile = '';
-    } else {
-      $set.buildingProfile = body.buildingProfile;
+  if (existingScale === 'building') {
+    if ('buildingMeta' in body) {
+      if (body.buildingMeta === null) {
+        $unset.buildingMeta = '';
+      } else if (typeof body.buildingMeta === 'object') {
+        $set.buildingMeta = body.buildingMeta;
+      }
+    }
+    if ('buildingStructure' in body) {
+      if (body.buildingStructure === null) {
+        $unset.buildingStructure = '';
+      } else if (typeof body.buildingStructure === 'object') {
+        $set.buildingStructure = body.buildingStructure;
+      }
     }
   }
 
@@ -531,6 +565,10 @@ export async function updateLocation(
   return { location: toDoc((fresh ?? doc) as Record<string, unknown>) };
 }
 
+/**
+ * Deletes a campaign location. Child locations are deleted first (depth-first), then maps/transitions for
+ * each node, then the location row — so parents with floors, buildings, etc. can be removed in one action.
+ */
 export async function deleteLocation(
   campaignId: string,
   locationId: string,
@@ -540,8 +578,15 @@ export async function deleteLocation(
     return { errors: [{ path: 'locationId', code: 'NOT_FOUND', message: 'Location not found' }] };
   }
 
-  const blockers = await assertLocationCanDelete(campaignId, locationId);
-  if (blockers.length > 0) return { errors: blockers };
+  const children = await CampaignLocation.find({ campaignId, parentId: locationId }).select('locationId').lean();
+  for (const row of children) {
+    const childId = String((row as { locationId?: string }).locationId ?? '').trim();
+    if (!childId) continue;
+    const childResult = await deleteLocation(campaignId, childId);
+    if ('errors' in childResult) return childResult;
+  }
+
+  await deleteMapsAndTransitionsForLocation(campaignId, locationId);
 
   const result = await CampaignLocation.deleteOne({ campaignId, locationId });
   if (result.deletedCount === 0) {

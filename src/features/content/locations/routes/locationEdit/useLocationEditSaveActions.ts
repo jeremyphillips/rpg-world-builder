@@ -59,7 +59,7 @@ type UseLocationEditSaveActionsParams = {
   floorChildren: BuildingWorkspaceFloorItem[];
   onFloorCreated: () => void;
   setActiveFloorId: (id: string | null) => void;
-  /** Canonical stair pairings for building saves; merged into `buildingProfile.stairConnections`. */
+  /** Canonical stair pairings for building saves; merged into `buildingStructure.verticalConnections`. */
   buildingStairConnectionsRef: RefObject<LocationVerticalStairConnection[]>;
   setBuildingStairConnections: Dispatch<SetStateAction<LocationVerticalStairConnection[]>>;
   setWorkspacePersistBaseline: (snapshot: string) => void;
@@ -111,7 +111,7 @@ export function useLocationEditSaveActions({
         );
         const updated = await locationRepo.updateEntry(campaignId, locationId, locationInput);
         if (isBuilding) {
-          setBuildingStairConnections(updated.buildingProfile?.stairConnections ?? []);
+          setBuildingStairConnections(updated.buildingStructure?.verticalConnections ?? []);
         }
         const mapLocationId = isBuilding ? activeFloorId! : locationId;
         const mapBootstrapName = isBuilding
@@ -134,7 +134,7 @@ export function useLocationEditSaveActions({
         });
         setGridDraftBaseline(structuredClone(gridDraftRef.current));
         const stairConnectionsForSnapshot = isBuilding
-          ? (updated.buildingProfile?.stairConnections ?? [])
+          ? (updated.buildingStructure?.verticalConnections ?? [])
           : buildingStairConnectionsRef.current;
         setWorkspacePersistBaseline(
           serializeLocationWorkspacePersistableSnapshot(

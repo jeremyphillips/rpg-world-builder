@@ -4,9 +4,9 @@
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type {
   LocationBuildingFunctionId,
+  LocationBuildingMeta,
   LocationBuildingPrimarySubtypeId,
   LocationBuildingPrimaryTypeId,
-  LocationBuildingProfile,
 } from '@/shared/domain/locations';
 import type { Location, LocationInput } from '@/features/content/locations/domain/model/location';
 import {
@@ -28,7 +28,7 @@ const toInput = buildToInput(LOCATION_FORM_FIELDS);
 const toFormValuesFromItem = buildToFormValues(LOCATION_FORM_FIELDS);
 const defaultFormValues = buildDefaultFormValues(LOCATION_FORM_FIELDS);
 
-function buildingProfileFromFormValues(values: LocationFormValues): LocationBuildingProfile | undefined {
+function buildingMetaFromFormValues(values: LocationFormValues): LocationBuildingMeta | undefined {
   if (trim(values.scale) !== 'building') return undefined;
   const primaryType = trim(values.buildingPrimaryType);
   const primarySubtype = trim(values.buildingPrimarySubtype);
@@ -65,12 +65,12 @@ export const locationToFormValues = (loc: Location): LocationFormValues => ({
   sortOrder: loc.sortOrder != null ? String(loc.sortOrder) : '',
   aliases: (loc.aliases ?? []).join(', '),
   tags: (loc.tags ?? []).join(', '),
-  buildingPrimaryType: loc.buildingProfile?.primaryType ?? '',
-  buildingPrimarySubtype: loc.buildingProfile?.primarySubtype ?? '',
-  buildingFunctions: loc.buildingProfile?.functions ? [...loc.buildingProfile.functions] : [],
-  buildingIsPublicStorefront: Boolean(loc.buildingProfile?.isPublicStorefront),
-  buildingOwnerRefs: characterRefsToPickerValues(loc.buildingProfile?.ownerRefs),
-  buildingStaffRefs: characterRefsToPickerValues(loc.buildingProfile?.staffRefs),
+  buildingPrimaryType: loc.buildingMeta?.primaryType ?? '',
+  buildingPrimarySubtype: loc.buildingMeta?.primarySubtype ?? '',
+  buildingFunctions: loc.buildingMeta?.functions ? [...loc.buildingMeta.functions] : [],
+  buildingIsPublicStorefront: Boolean(loc.buildingMeta?.isPublicStorefront),
+  buildingOwnerRefs: characterRefsToPickerValues(loc.buildingMeta?.ownerRefs),
+  buildingStaffRefs: characterRefsToPickerValues(loc.buildingMeta?.staffRefs),
 });
 
 export const toLocationInput = (values: LocationFormValues): LocationInput => {
@@ -85,7 +85,7 @@ export const toLocationInput = (values: LocationFormValues): LocationInput => {
           number: trim(merged.labelNumber) || undefined,
         }
       : undefined;
-  const buildingProfile = buildingProfileFromFormValues(merged);
+  const buildingMeta = buildingMetaFromFormValues(merged);
 
   if (scale === 'world') {
     return {
@@ -93,19 +93,22 @@ export const toLocationInput = (values: LocationFormValues): LocationInput => {
       category: undefined,
       parentId: undefined,
       label,
-      buildingProfile: undefined,
+      buildingMeta: undefined,
+      buildingStructure: undefined,
     };
   }
   if (scale !== 'building') {
     return {
       ...base,
       label,
-      buildingProfile: undefined,
+      buildingMeta: undefined,
+      buildingStructure: undefined,
     };
   }
   return {
     ...base,
     label,
-    buildingProfile,
+    buildingMeta,
+    buildingStructure: undefined,
   };
 };

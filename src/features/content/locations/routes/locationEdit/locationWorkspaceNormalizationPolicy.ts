@@ -22,7 +22,7 @@ export const LOCATION_WORKSPACE_NORMALIZATION = {
     compareSite: 'serializeLocationWorkspacePersistableSnapshot → buildHomebrewWorkspacePersistableParts → toLocationInput',
     saveSite: 'same',
     whitespace:
-      'Name and description use trim via form registry parse (`getNameDescriptionFieldSpecs`). Building profile strings trimmed in toLocationInput / buildingProfileFromFormValues.',
+      'Name and description use trim via form registry parse (`getNameDescriptionFieldSpecs`). Building identity strings trimmed in toLocationInput / buildingMetaFromFormValues.',
   },
   mapSlice: {
     policy: 'normalized for compare and save' satisfies LocationWorkspaceNormalizationPolicy,

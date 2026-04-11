@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+import { useBuildingLinkPlacementReservedIds } from '@/features/content/locations/routes/locationEdit/useBuildingLinkPlacementReservedIds';
+
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
@@ -18,7 +20,12 @@ import {
 import { buildLinkedLocationPickerOptions } from '@/features/content/locations/domain/authoring/editor';
 import { getDefaultVariantPresentationForKind } from '@/features/content/locations/domain/model/placedObjects/locationPlacedObject.types';
 
-import { deriveLocationMapStairEndpointLinkStatus, resolveStairEndpointPairing } from '@/shared/domain/locations';
+import {
+  deriveBuildingCityLinkStatusForPicker,
+  deriveLocationMapStairEndpointLinkStatus,
+  resolveStairEndpointPairing,
+  sortBuildingPickerOptionsByLinkStatus,
+} from '@/shared/domain/locations';
 
 import type { LocationCellObjectDraft } from '../../../../../authoring/draft/locationGridDraft.types';
 
@@ -92,7 +99,7 @@ export function LocationMapObjectInspector({
     resolvedPlacedKind !== null
       ? getPlacedObjectDefinition(resolvedPlacedKind).linkedScale
       : undefined;
-  const linkedPickerOptions =
+  const baseLinkedPickerOptions =
     linkedScaleTarget !== undefined
       ? buildLinkedLocationPickerOptions({
           campaignId,
@@ -103,6 +110,66 @@ export function LocationMapObjectInspector({
           linkedScale: linkedScaleTarget,
         })
       : [];
+
+  const buildingLinkPrefetchEnabled =
+    linkedScaleTarget === 'building' && Boolean(campaignId);
+
+  const {
+    reservedBuildingIds,
+    linkedOnCurrentHostBuildingIds,
+    linkedAnywhereBuildingIds,
+    isLoading: buildingLinkPlacementLoading,
+  } = useBuildingLinkPlacementReservedIds({
+    campaignId,
+    locations,
+    mapHostLocationId,
+    mapHostScale,
+    currentCellId: cellId,
+    enabled: buildingLinkPrefetchEnabled,
+  });
+
+  const linkedPickerOptions = useMemo(() => {
+    if (linkedScaleTarget !== 'building') return baseLinkedPickerOptions;
+    const hostId = mapHostLocationId.trim();
+    const cur = linkedLocationId?.trim();
+    const statusById = new Map<
+      string,
+      ReturnType<typeof deriveBuildingCityLinkStatusForPicker>
+    >();
+    const rows = baseLinkedPickerOptions.map((o) => {
+      const b = locationById.get(o.value);
+      const reservedElsewhere =
+        reservedBuildingIds.has(o.value) && o.value !== cur;
+      if (!b) {
+        return { ...o, disabled: Boolean(o.disabled) };
+      }
+      const st = deriveBuildingCityLinkStatusForPicker({
+        cityHostLocationId: hostId,
+        building: b,
+        reservedForAnotherCell: reservedElsewhere,
+        linkedOnThisCityHost: linkedOnCurrentHostBuildingIds,
+        linkedAnywhereInCampaign: linkedAnywhereBuildingIds,
+        isCurrentCellSelection: cur === o.value,
+      });
+      statusById.set(o.value, st);
+      const disabled = !st.selectable || o.disabled;
+      const description =
+        st.status !== 'ready' && st.status !== 'linkedHere'
+          ? st.message ?? st.label
+          : o.description;
+      return { ...o, disabled, description };
+    });
+    return sortBuildingPickerOptionsByLinkStatus(rows, statusById);
+  }, [
+    baseLinkedPickerOptions,
+    linkedScaleTarget,
+    locationById,
+    mapHostLocationId,
+    reservedBuildingIds,
+    linkedOnCurrentHostBuildingIds,
+    linkedAnywhereBuildingIds,
+    linkedLocationId,
+  ]);
 
   if (!obj) {
     return (
@@ -167,6 +234,11 @@ export function LocationMapObjectInspector({
         }}
         campaignId={campaignId}
         hostEditLocationSource={hostEditLocation?.source}
+        helperText={
+          buildingLinkPrefetchEnabled && buildingLinkPlacementLoading
+            ? 'Checking existing building placements…'
+            : undefined
+        }
       />
     ) : null;
 

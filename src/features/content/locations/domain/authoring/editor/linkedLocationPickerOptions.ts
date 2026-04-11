@@ -2,8 +2,9 @@ import { getAllowedLinkedLocationOptions } from '@/shared/domain/locations';
 import type { LocationScaleId } from '@/shared/domain/locations';
 import type { Location } from '@/features/content/locations/domain/model/location';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
+import type { PickerOption } from '@/ui/patterns/form/OptionPickerField';
 
-export type LinkedLocationPickerOption = { value: string; label: string };
+export type LinkedLocationPickerOption = PickerOption;
 
 /**
  * Campaign locations allowed as a link target for a given registry `linkedScale`, matching map link policy.
@@ -15,7 +16,7 @@ export function buildLinkedLocationPickerOptions(args: {
   mapHostLocationIdResolved: string;
   mapHostScaleResolved: string;
   linkedScale: LocationScaleId;
-}): LinkedLocationPickerOption[] {
+}): PickerOption[] {
   const {
     campaignId,
     loc,

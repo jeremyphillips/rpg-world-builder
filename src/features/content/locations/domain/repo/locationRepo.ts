@@ -5,7 +5,7 @@ import { apiFetch, ApiError } from '@/app/api';
 import type { Visibility } from '@/shared/types/visibility';
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import { isCampaignLocationListScale } from '@/shared/domain/locations';
-import type { LocationBuildingProfile } from '@/shared/domain/locations';
+import type { LocationBuildingMeta, LocationBuildingStructure } from '@/shared/domain/locations';
 import type {
   Location,
   LocationBaseFields,
@@ -34,7 +34,8 @@ type CampaignLocationDto = {
   aliases?: string[];
   tags?: string[];
   connections?: LocationBaseFields['connections'];
-  buildingProfile?: LocationBuildingProfile;
+  buildingMeta?: LocationBuildingMeta;
+  buildingStructure?: LocationBuildingStructure;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -65,7 +66,8 @@ function toCampaignLocation(
     aliases: dto.aliases,
     tags: dto.tags,
     connections: dto.connections,
-    buildingProfile: dto.buildingProfile,
+    buildingMeta: dto.buildingMeta,
+    buildingStructure: dto.buildingStructure,
   };
 }
 
@@ -144,6 +146,11 @@ async function deleteCampaignLocation(campaignId: string, locationId: string): P
     return true;
   } catch (err: unknown) {
     if (err instanceof ApiError && err.status === 404) return false;
+    if (err instanceof ApiError && err.status === 400 && err.payload) {
+      const payload = err.payload as { errors?: { message?: string }[] };
+      const msg = payload.errors?.map((e) => e.message).filter(Boolean).join(' ');
+      if (msg) throw new Error(msg);
+    }
     throw err;
   }
 }
@@ -177,7 +184,8 @@ function toSummary(loc: Location, allowedInCampaign: boolean): LocationSummary {
     aliases: loc.aliases,
     tags: loc.tags,
     connections: loc.connections,
-    buildingProfile: loc.buildingProfile,
+    buildingMeta: loc.buildingMeta,
+    buildingStructure: loc.buildingStructure,
     accessPolicy: loc.accessPolicy,
     patched: loc.patched,
     allowedInCampaign,
@@ -210,7 +218,8 @@ function locationInputToBody(input: LocationInput): Record<string, unknown> {
 
   const scale = String(input.scale ?? '').trim();
   if (scale === 'building') {
-    body.buildingProfile = input.buildingProfile ?? null;
+    if (input.buildingMeta !== undefined) body.buildingMeta = input.buildingMeta;
+    if (input.buildingStructure !== undefined) body.buildingStructure = input.buildingStructure;
   }
 
   return body;
