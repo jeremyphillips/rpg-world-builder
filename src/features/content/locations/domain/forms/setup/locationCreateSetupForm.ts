@@ -2,8 +2,9 @@ import type { GridSizePreset } from '@/shared/domain/grid/gridPresets';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import {
   getDefaultGeometryForScale,
+  LOCATION_BUILDING_FORM_DEFAULT_GRID_SIZES,
   normalizeGridCellUnitForScale,
-  type LocationBuildingInteriorBootstrapPresetId,
+  type LocationBuildingFormClassId,
   type LocationScaleId,
 } from '@/shared/domain/locations';
 
@@ -12,12 +13,6 @@ import { LOCATION_FORM_DEFAULTS } from '../config/locationForm.config';
 import type { LocationFormValues } from '../types/locationForm.types';
 import { sanitizeLocationFormValues } from '../rules/locationFormSanitize';
 
-const INTERIOR_TO_GRID_PRESET: Record<LocationBuildingInteriorBootstrapPresetId, GridSizePreset> = {
-  compact: 'small',
-  standard: 'medium',
-  large: 'large',
-};
-
 export type LocationCreateSetupDraft = {
   name: string;
   scale: string;
@@ -25,12 +20,13 @@ export type LocationCreateSetupDraft = {
   category: string;
   gridCellUnit: string;
   gridPresetKey: GridSizePreset;
-  /** Building scale — maps to `buildingMeta` + first-floor grid via {@link INTERIOR_TO_GRID_PRESET} */
+  /** Building scale — maps to `buildingMeta` + first-floor grid via {@link LOCATION_BUILDING_FORM_DEFAULT_GRID_SIZES} */
   buildingPrimaryType?: string;
   buildingPrimarySubtype?: string;
   buildingFunctions?: string[];
   buildingIsPublicStorefront?: boolean;
-  interiorPresetKey?: LocationBuildingInteriorBootstrapPresetId;
+  /** Structural form class — drives default interior grid columns/rows at 5′ cells. */
+  buildingFormClassId?: LocationBuildingFormClassId;
 };
 
 export function buildLocationFormValuesFromSetup(
@@ -39,10 +35,11 @@ export function buildLocationFormValuesFromSetup(
 ): LocationFormValues {
   const scale = draft.scale as LocationScaleId;
   const isBuilding = scale === 'building';
-  const interiorKey: LocationBuildingInteriorBootstrapPresetId =
-    draft.interiorPresetKey ?? 'standard';
-  const gridPresetKey = isBuilding ? INTERIOR_TO_GRID_PRESET[interiorKey] : draft.gridPresetKey;
-  const preset = GRID_SIZE_PRESETS[gridPresetKey];
+  const formClass: LocationBuildingFormClassId = draft.buildingFormClassId ?? 'compact_medium';
+  const gridPresetKey = isBuilding ? ('medium' as GridSizePreset) : draft.gridPresetKey;
+  const preset = isBuilding
+    ? LOCATION_BUILDING_FORM_DEFAULT_GRID_SIZES[formClass]
+    : GRID_SIZE_PRESETS[gridPresetKey];
   const base: LocationFormValues = {
     ...LOCATION_FORM_DEFAULTS,
     name: draft.name.trim(),

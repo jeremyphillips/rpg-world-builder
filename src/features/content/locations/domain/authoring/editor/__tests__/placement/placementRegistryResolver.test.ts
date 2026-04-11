@@ -67,7 +67,7 @@ describe('placementRegistryResolver', () => {
 
   it('resolves linked-content building on world to marker with authoredPlaceKindId (link in Selection rail)', () => {
     const r = resolvePlacementCellClick(
-      { category: 'linked-content', kind: 'building', variantId: 'residential' },
+      { category: 'linked-content', kind: 'building', variantId: 'compact_1cell' },
       'c-0-1',
       'world',
     );
@@ -75,7 +75,7 @@ describe('placementRegistryResolver', () => {
     if (r.kind === 'append-object') {
       expect(r.objectDraft.kind).toBe('marker');
       expect(r.objectDraft.authoredPlaceKindId).toBe('building');
-      expect(r.objectDraft.variantId).toBe('residential');
+      expect(r.objectDraft.variantId).toBe('compact_1cell');
     }
   });
 

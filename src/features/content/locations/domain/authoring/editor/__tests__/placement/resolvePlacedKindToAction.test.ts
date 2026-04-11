@@ -63,7 +63,7 @@ describe('resolvePlacedKindToAction', () => {
   it('linked-content building on city maps to marker with authoredPlaceKindId building', () => {
     expect(
       resolvePlacedKindToAction(
-        { category: 'linked-content', kind: 'building', variantId: 'residential' },
+        { category: 'linked-content', kind: 'building', variantId: 'compact_1cell' },
         'city',
       ),
     ).toEqual({

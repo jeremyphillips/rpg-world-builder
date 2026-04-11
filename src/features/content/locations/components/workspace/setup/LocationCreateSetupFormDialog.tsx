@@ -24,10 +24,12 @@ import {
   getAllowedCellUnitOptionsForScale,
   getDefaultCellUnitForScalePolicy,
   LOCATION_BUILDING_FUNCTION_IDS,
+  LOCATION_BUILDING_FORM_CLASS_IDS,
+  LOCATION_BUILDING_FORM_DEFAULT_GRID_SIZES,
   LOCATION_BUILDING_PRIMARY_TYPE_IDS,
   normalizeCategoryForScale,
   normalizeGridCellUnitForScale,
-  type LocationBuildingInteriorBootstrapPresetId,
+  type LocationBuildingFormClassId,
 } from '@/shared/domain/locations';
 import type { GridSizePreset } from '@/shared/domain/grid/gridPresets';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
@@ -57,14 +59,22 @@ const BUILDING_FUNCTION_OPTIONS = LOCATION_BUILDING_FUNCTION_IDS.map((id) => ({
   label: LOCATION_BUILDING_FUNCTION_META[id].label,
 }));
 
-const INTERIOR_PRESET_MENU: {
-  value: LocationBuildingInteriorBootstrapPresetId;
+const BUILDING_FORM_CLASS_MENU: {
+  value: LocationBuildingFormClassId;
   label: string;
-}[] = [
-  { value: 'compact', label: 'Compact interior' },
-  { value: 'standard', label: 'Standard interior' },
-  { value: 'large', label: 'Large interior' },
-];
+}[] = LOCATION_BUILDING_FORM_CLASS_IDS.map((id) => {
+  const g = LOCATION_BUILDING_FORM_DEFAULT_GRID_SIZES[id];
+  const labelById: Record<LocationBuildingFormClassId, string> = {
+    compact_small: 'Compact — small (20′×20′ interior @ 5′ cells)',
+    compact_medium: 'Compact — medium (30′×30′ @ 5′ cells)',
+    wide_medium: 'Wide — medium (40′×30′ @ 5′ cells)',
+    wide_large: 'Wide — large (50′×40′ @ 5′ cells)',
+  };
+  return {
+    value: id,
+    label: `${labelById[id]} (${g.columns}×${g.rows} cells)`,
+  };
+});
 
 function emptyDraft(): LocationCreateSetupDraft {
   return {
@@ -78,7 +88,7 @@ function emptyDraft(): LocationCreateSetupDraft {
     buildingPrimarySubtype: '',
     buildingFunctions: [],
     buildingIsPublicStorefront: false,
-    interiorPresetKey: 'standard',
+    buildingFormClassId: 'compact_medium',
   };
 }
 
@@ -114,13 +124,13 @@ function draftAfterScaleChange(
       buildingPrimarySubtype: '',
       buildingFunctions: [],
       buildingIsPublicStorefront: false,
-      interiorPresetKey: undefined,
+      buildingFormClassId: undefined,
     };
   }
 
   return {
     ...base,
-    interiorPresetKey: prev.interiorPresetKey ?? 'standard',
+    buildingFormClassId: prev.buildingFormClassId ?? 'compact_medium',
     buildingFunctions: prev.buildingFunctions ?? [],
   };
 }
@@ -220,7 +230,9 @@ function LocationCreateSetupFormFields({
       setValue('buildingIsPublicStorefront', next.buildingIsPublicStorefront ?? false, {
         shouldDirty: true,
       });
-      setValue('interiorPresetKey', next.interiorPresetKey ?? 'standard', { shouldDirty: true });
+      setValue('buildingFormClassId', next.buildingFormClassId ?? 'compact_medium', {
+        shouldDirty: true,
+      });
     },
     [getValues, setValue],
   );
@@ -305,15 +317,15 @@ function LocationCreateSetupFormFields({
             helperText="Shops, temples, guild halls, inns, and similar when visitors are welcome."
           />
           <FormSelectField
-            name="interiorPresetKey"
-            label="Interior layout"
-            options={INTERIOR_PRESET_MENU}
+            name="buildingFormClassId"
+            label="Building form"
+            options={BUILDING_FORM_CLASS_MENU}
             required
             disabled={formDisabled}
           />
           <Typography variant="caption" color="text.secondary" display="block">
-            Sets the first interior map grid size. City placement and building markers are chosen later on the
-            city map.
+            Structural footprint class for the first interior map (5′ cells). Semantic type and functions are
+            above; city-map building marker footprint is chosen when you place the marker.
           </Typography>
         </>
       ) : null}
@@ -373,8 +385,8 @@ export function LocationCreateSetupFormDialog({
           setLocalValidationError('Please select a building type.');
           return;
         }
-        if (!data.interiorPresetKey) {
-          setLocalValidationError('Please select an interior layout.');
+        if (!data.buildingFormClassId) {
+          setLocalValidationError('Please select a building form.');
           return;
         }
       }

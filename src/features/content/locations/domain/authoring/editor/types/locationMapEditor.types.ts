@@ -103,14 +103,14 @@ export type MapPaintPaletteSection = {
   families: readonly MapPaintPaletteFamilyRow[];
 };
 
-/** Place palette: linked content vs map objects only (policy + meta). One row per **family**. */
+/** Place palette: linked content vs map objects only (policy + meta). One row per family; tray popover for multi-variant. */
 export type MapPlacePaletteItem =
   | {
       category: 'linked-content';
       kind: LocationPlacedObjectKindId;
       /** Family id for registry (same as `kind`). */
       familyId: LocationPlacedObjectKindId;
-      /** Primary-click variant (same as `defaultVariantId` on this row); Phase 2 keeps linked rows single-variant. */
+      /** Registry default variant id (primary tile + default placement). */
       variantId: string;
       defaultVariantId: string;
       variantCount: number;

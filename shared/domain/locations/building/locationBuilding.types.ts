@@ -82,10 +82,17 @@ export const LOCATION_BUILDING_FUNCTION_IDS = [
 export type LocationBuildingFunctionId = (typeof LOCATION_BUILDING_FUNCTION_IDS)[number];
 
 /**
- * Create-time interior bootstrap only (drives first-floor grid sizing). Not persisted on `buildingStructure`
- * until server merge can preserve `verticalConnections`.
+ * Structural **form class** for a building-scale location — footprint envelope class for the interior grid
+ * bootstrap, distinct from {@link LocationBuildingMeta} semantic identity.
  */
-export type LocationBuildingInteriorBootstrapPresetId = 'compact' | 'standard' | 'large';
+export const LOCATION_BUILDING_FORM_CLASS_IDS = [
+  'compact_small',
+  'compact_medium',
+  'wide_medium',
+  'wide_large',
+] as const;
+
+export type LocationBuildingFormClassId = (typeof LOCATION_BUILDING_FORM_CLASS_IDS)[number];
 
 /**
  * Identity / function — persisted under `buildingMeta`.

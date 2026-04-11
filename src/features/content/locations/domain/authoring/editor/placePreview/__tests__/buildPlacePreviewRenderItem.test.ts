@@ -16,7 +16,7 @@ describe('buildPlacePreviewRenderItem', () => {
 
   it('returns a synthetic item for linked-content marker family at hover cell', () => {
     const item = buildPlacePreviewRenderItem(
-      { category: 'linked-content', kind: 'building', variantId: 'residential' },
+      { category: 'linked-content', kind: 'building', variantId: 'compact_1cell' },
       '1,2',
       'city',
     );

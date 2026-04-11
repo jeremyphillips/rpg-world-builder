@@ -135,13 +135,16 @@ export function getPaintPaletteSectionsForScale(scale: LocationScaleId): MapPain
 
 /**
  * Place tool: discrete items only (linked child locations vs local map objects), from policy + meta.
+ * One row per family; multi-variant families use the tray popover (same as map-object).
  */
 export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePaletteItem[] {
   const options = getPlacedObjectPaletteOptionsForScale(scale);
-  const items = options.map((opt) => {
+  const items: MapPlacePaletteItem[] = [];
+  for (const opt of options) {
     if (opt.linkedScale) {
-      return {
-        category: 'linked-content' as const,
+      const linkedScale = opt.linkedScale;
+      items.push({
+        category: 'linked-content',
         kind: opt.kind,
         familyId: opt.kind,
         variantId: opt.defaultVariantId,
@@ -151,11 +154,12 @@ export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePa
         label: opt.label,
         description: opt.description,
         previewImageUrl: opt.previewImageUrl,
-        linkedScale: opt.linkedScale,
-      };
+        linkedScale,
+      });
+      continue;
     }
-    return {
-      category: 'map-object' as const,
+    items.push({
+      category: 'map-object',
       kind: opt.kind,
       familyId: opt.kind,
       variantId: opt.defaultVariantId,
@@ -165,12 +169,12 @@ export function getPlacePaletteItemsForScale(scale: LocationScaleId): MapPlacePa
       label: opt.label,
       description: opt.description,
       previewImageUrl: opt.previewImageUrl,
-    };
-  });
+    });
+  }
   return [...items].sort((a, b) => {
     const byCat = comparePlacedObjectPaletteCategories(a.paletteCategory, b.paletteCategory);
     if (byCat !== 0) return byCat;
-    return a.label.localeCompare(b.label);
+    return a.kind.localeCompare(b.kind);
   });
 }
 

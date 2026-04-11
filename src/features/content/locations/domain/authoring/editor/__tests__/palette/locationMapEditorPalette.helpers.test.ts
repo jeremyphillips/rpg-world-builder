@@ -55,13 +55,16 @@ describe('locationMapEditorPalette.helpers', () => {
     expect(city?.previewImageUrl).toMatch(/\.png/);
   });
 
-  it('city scale marks building family as linked-content with linkedScale building', () => {
+  it('city scale lists one building linked-content row with variantCount 2 (tray popover), not city markers', () => {
     const items = getPlacePaletteItemsForScale('city');
+    expect(items.some((i) => i.kind === 'city')).toBe(false);
     const building = items.find((i) => i.kind === 'building');
     expect(building?.category).toBe('linked-content');
-    expect(building?.label).toBe('Building');
+    expect(building?.variantCount).toBe(2);
+    expect(building?.label).toBe('Small building');
     if (building?.category === 'linked-content') {
       expect(building.linkedScale).toBe('building');
+      expect(building.defaultVariantId).toBe('compact_1cell');
     }
   });
 
