@@ -7,6 +7,7 @@ import {
   buildLevelOptions,
   buildClassOptions,
 } from './spellList.options';
+import { SPELL_CORE_UI } from '../spellPresentation';
 
 export function buildSpellCustomFilters(
   items: SpellSummary[],
@@ -18,22 +19,22 @@ export function buildSpellCustomFilters(
 
   return [
     {
-      id: 'school',
-      label: 'School',
+      id: SPELL_CORE_UI.school.key,
+      label: SPELL_CORE_UI.school.label,
       type: 'select' as const,
       options: schoolOptions,
       accessor: (r) => r.school,
     },
     {
-      id: 'level',
-      label: 'Level',
+      id: SPELL_CORE_UI.level.key,
+      label: SPELL_CORE_UI.level.label,
       type: 'select' as const,
       options: levelOptions,
       accessor: (r) => String(r.level),
     },
     {
-      id: 'classes',
-      label: 'Class',
+      id: SPELL_CORE_UI.classes.key,
+      label: SPELL_CORE_UI.classes.listFilterLabel,
       type: 'multiSelect' as const,
       options: classOptions,
       accessor: (r) => r.classes ?? [],

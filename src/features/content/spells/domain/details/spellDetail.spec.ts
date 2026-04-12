@@ -6,27 +6,25 @@ import { renderSpellAttackSaveDetailDisplay } from './display/spellAttackSaveDis
 import { renderSpellCastingTimeDetailDisplay } from './display/spellCastingTimeDetail';
 import { renderSpellDurationDetailDisplay } from './display/spellDurationDetail';
 import { renderSpellDamageEffectsDetailDisplay } from './display/spellDamageEffectsDisplay';
-import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
+import { getMagicSchoolDisplayName } from '@/features/content/shared/domain/vocab';
 import { classIdToName } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
-
-const schoolLabel = (value: string) =>
-  MAGIC_SCHOOL_OPTIONS.find((o) => o.id === value)?.name ?? value;
+import { formatSpellLevelShort, SPELL_CORE_UI } from '../spellPresentation';
 
 const classLabel = (id: string) => classIdToName(DEFAULT_SYSTEM_RULESET_ID, id);
 
 export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
   {
-    key: 'level',
-    label: 'Level',
+    key: SPELL_CORE_UI.level.key,
+    label: SPELL_CORE_UI.level.label,
     order: 10,
-    render: (spell) => (spell.level === 0 ? 'Cantrip' : `${spell.level}`),
+    render: (spell) => formatSpellLevelShort(spell.level),
   },
   {
-    key: 'school',
-    label: 'School',
+    key: SPELL_CORE_UI.school.key,
+    label: SPELL_CORE_UI.school.label,
     order: 20,
-    render: (spell) => schoolLabel(spell.school),
+    render: (spell) => getMagicSchoolDisplayName(spell.school),
   },
   {
     key: 'range',
@@ -65,8 +63,8 @@ export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
     render: (spell) => renderSpellDamageEffectsDetailDisplay(spell),
   },
   {
-    key: 'classes',
-    label: 'Classes',
+    key: SPELL_CORE_UI.classes.key,
+    label: SPELL_CORE_UI.classes.label,
     order: 30,
     render: (spell) =>
       spell.classes.map((c) => classLabel(c)).join(', ') || '—',

@@ -10,6 +10,7 @@ import { getSpellcastingClasses } from '@/features/mechanics/domain/classes';
 import { getSystemClasses } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import type { SpellFormValues } from '../types/spellForm.types';
+import { SPELL_CORE_UI } from '../../spellPresentation';
 
 export type SpellFormFieldsOptions = {
   /**
@@ -94,8 +95,8 @@ export function getSpellFormFields(
       Spell & Record<string, unknown>
     >(),
     {
-      name: 'school',
-      label: 'School',
+      name: SPELL_CORE_UI.school.key,
+      label: SPELL_CORE_UI.school.label,
       kind: 'select' as const,
       required: true,
       options: MAGIC_SCHOOL_OPTIONS.map((o) => ({ value: o.id, label: o.name })),
@@ -105,8 +106,8 @@ export function getSpellFormFields(
       format: (v: unknown) => (v ?? '') as SpellFormValues['school'],
     },
     {
-      name: 'level',
-      label: 'Level',
+      name: SPELL_CORE_UI.level.key,
+      label: SPELL_CORE_UI.level.label,
       kind: 'numberText' as const,
       required: true,
       placeholder: '0–9 (0 = cantrip)',
@@ -116,8 +117,8 @@ export function getSpellFormFields(
       format: (v: unknown) => numToStr(v),
     },
     {
-      name: 'classes',
-      label: 'Classes',
+      name: SPELL_CORE_UI.classes.key,
+      label: SPELL_CORE_UI.classes.label,
       kind: 'checkboxGroup' as const,
       options: classOptions,
       defaultValue: [] as SpellFormValues['classes'],

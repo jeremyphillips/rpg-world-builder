@@ -1,16 +1,15 @@
 import type { SpellSummary } from '../repo/spellRepo';
-import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab/magicSchools.vocab';
-export type FilterOption = { label: string; value: string };
+import { getMagicSchoolDisplayName } from '@/features/content/shared/domain/vocab/magicSchools.vocab';
+import { formatSpellLevelShort } from '../spellPresentation';
 
-const schoolLabel = (value: string) =>
-  MAGIC_SCHOOL_OPTIONS.find((o) => o.id === value)?.name ?? value;
+export type FilterOption = { label: string; value: string };
 
 /** Build school options from current items. */
 export function buildSchoolOptions(items: SpellSummary[]): FilterOption[] {
   const schools = [...new Set(items.map((i) => i.school))].sort();
   return [
     { label: 'All', value: '' },
-    ...schools.map((s) => ({ label: schoolLabel(s), value: s })),
+    ...schools.map((s) => ({ label: getMagicSchoolDisplayName(s), value: s })),
   ];
 }
 
@@ -20,7 +19,7 @@ export function buildLevelOptions(items: SpellSummary[]): FilterOption[] {
   return [
     { label: 'All', value: '' },
     ...levels.map((l) => ({
-      label: l === 0 ? 'Cantrip' : String(l),
+      label: formatSpellLevelShort(l),
       value: String(l),
     })),
   ];

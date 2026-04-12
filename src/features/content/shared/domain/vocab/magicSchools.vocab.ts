@@ -56,3 +56,7 @@ export const MAGIC_SCHOOL_OPTIONS = [
 ] as const;
 
 export type MagicSchool = (typeof MAGIC_SCHOOL_OPTIONS)[number]['id'];
+
+export function getMagicSchoolDisplayName(schoolId: string): string {
+  return MAGIC_SCHOOL_OPTIONS.find((o) => o.id === schoolId)?.name ?? schoolId;
+}
