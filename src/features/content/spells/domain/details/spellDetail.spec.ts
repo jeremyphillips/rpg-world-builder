@@ -1,6 +1,7 @@
 import type { Spell } from '@/features/content/spells/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatSpellRangeAreaDisplay } from './spellRangeAreaText';
+import { renderSpellComponentsDisplay } from './spellComponentsDisplay';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
 import { classIdToName } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
@@ -41,6 +42,12 @@ export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
   //   order: 50,
   //   render: (spell) => (spell.concentration ? 'Yes' : 'No'),
   // },
+  {
+    key: 'components',
+    label: 'Components',
+    order: 25,
+    render: (spell) => renderSpellComponentsDisplay(spell),
+  },
   {
     key: 'classes',
     label: 'Classes',

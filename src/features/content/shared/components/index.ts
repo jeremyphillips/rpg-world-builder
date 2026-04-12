@@ -22,6 +22,7 @@ export {
 } from './EntryEditorLayout';
 export { default as ValidationBlockedAlert } from './ValidationBlockedAlert';
 export { default as ContentDetailScaffold } from './ContentDetailScaffold';
+export { DetailInlineTooltip, type DetailInlineTooltipProps } from './DetailInlineTooltip';
 export {
   EntryFormEditorLayout,
   type EntryFormEditorLayoutProps,
