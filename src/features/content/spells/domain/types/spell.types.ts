@@ -24,7 +24,9 @@ export type SpellTags = {
   functions?: SpellFunctionTag[];
 };
 
-export type SpellLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+/** Single source of truth for authored spell tier (0 = cantrip). */
+export const SPELL_LEVELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+export type SpellLevel = (typeof SPELL_LEVELS)[number];
 
 export type SpellRange =
   | { kind: 'self' }

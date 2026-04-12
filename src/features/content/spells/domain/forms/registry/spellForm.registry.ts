@@ -3,6 +3,7 @@
  */
 import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
+import { SPELL_LEVELS } from '@/features/content/spells/domain/types/spell.types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
 import { numberRange, type FieldSpec } from '@/features/content/shared/forms/registry';
@@ -110,9 +111,13 @@ export function getSpellFormFields(
       label: SPELL_CORE_UI.level.label,
       kind: 'numberText' as const,
       required: true,
-      placeholder: '0–9 (0 = cantrip)',
-      defaultValue: '0' as SpellFormValues['level'],
-      validation: numberRange(0, 9, { integer: true }),
+      placeholder: `${SPELL_LEVELS[0]}–${SPELL_LEVELS[SPELL_LEVELS.length - 1]} (${SPELL_LEVELS[0]} = cantrip)`,
+      defaultValue: String(SPELL_LEVELS[0]) as SpellFormValues['level'],
+      validation: numberRange(
+        SPELL_LEVELS[0],
+        SPELL_LEVELS[SPELL_LEVELS.length - 1],
+        { integer: true },
+      ),
       parse: (v: unknown) => numOrUndefined(v),
       format: (v: unknown) => numToStr(v),
     },
