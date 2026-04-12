@@ -1,6 +1,7 @@
 /**
  * Spell form field registry — single source of truth for config + mapping.
  */
+import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
@@ -13,33 +14,32 @@ import type { SpellFormValues } from '../types/spellForm.types';
 
 export type SpellFormFieldsOptions = {
   /**
-   * Campaign catalog `classesById` (allowed classes only). When omitted, uses the full system
-   * spellcasting class list — e.g. before catalog load or for non-campaign tooling.
+   * Campaign catalog `classesById`: merged system + campaign entries, already filtered by
+   * content rules. When omitted, uses system spellcasting classes only (e.g. tooling without catalog).
    */
-  classesById?: Record<string, { name?: string }> | undefined;
+  classesById?: Record<string, CharacterClass> | undefined;
 };
 
 /**
- * Checkbox options + allowed-id map for the classes field, aligned with campaign-allowed classes.
+ * Checkbox options + allowed-id map for the classes field.
+ * With catalog: uses merged campaign classes and keeps only spellcasting progression.
+ * Without catalog: system spellcasting classes only.
  */
 export function buildSpellClassCheckboxOptions(
-  classesById: Record<string, { name?: string }> | undefined,
+  classesById: Record<string, CharacterClass> | undefined,
 ): { options: { value: string; label: string }[]; allowedById: Record<string, unknown> } {
-  const spellcasting = getSpellcastingClasses([...getSystemClasses(DEFAULT_SYSTEM_RULESET_ID)]);
   if (classesById == null) {
+    const spellcasting = getSpellcastingClasses([...getSystemClasses(DEFAULT_SYSTEM_RULESET_ID)]);
     const options = spellcasting.map((c) => ({ value: c.id, label: c.name }));
     return {
       options,
       allowedById: Object.fromEntries(options.map((o) => [o.value, true])),
     };
   }
-  const allowedIds = new Set(Object.keys(classesById));
+
+  const spellcasting = getSpellcastingClasses(Object.values(classesById));
   const options = spellcasting
-    .filter((c) => allowedIds.has(c.id))
-    .map((c) => ({
-      value: c.id,
-      label: classesById[c.id]?.name ?? c.name,
-    }))
+    .map((c) => ({ value: c.id, label: c.name }))
     .sort((a, b) => a.label.localeCompare(b.label));
   return {
     options,
