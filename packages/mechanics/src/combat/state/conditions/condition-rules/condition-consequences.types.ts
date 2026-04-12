@@ -92,12 +92,7 @@ export interface BattlefieldAbsenceConsequence {
   presenceReason?: 'banished' | 'off-grid'
 }
 
-/** Rule entry for a named marker (core SRD condition or custom engine state). */
+/** Runtime rule: consequences only. Display names live in shared `effectConditions` vocab. */
 export interface MarkerRule {
-  id: string
-  label: string
   consequences: ConditionConsequence[]
 }
-
-/** @deprecated Use {@link MarkerRule}; name kept for call sites tied to core conditions. */
-export type ConditionRule = MarkerRule

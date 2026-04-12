@@ -27,6 +27,7 @@ export {
   CONDITION_IMMUNITY_ONLY_DEFINITIONS,
   EFFECT_CONDITION_IDS,
   CONDITION_IMMUNITY_ONLY_IDS,
+  getEffectConditionById,
   getEffectConditionRulesText,
   getEffectConditionRulesTextForKey,
 } from '../conditions/effect-condition-definitions';

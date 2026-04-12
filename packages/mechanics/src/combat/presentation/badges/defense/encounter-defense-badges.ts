@@ -1,7 +1,7 @@
 import type { Condition } from '@/features/mechanics/domain/conditions/condition.types'
+import { EFFECT_CONDITION_DEFINITIONS } from '@/features/content/shared/domain/vocab/effectConditions.vocab'
 import {
   CONDITION_IMMUNITY_ONLY_DEFINITIONS,
-  EFFECT_CONDITION_DEFINITIONS,
   type ConditionImmunityId,
 } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'

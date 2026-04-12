@@ -15,8 +15,6 @@ import {
 
 export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   blinded: {
-    id: 'blinded',
-    label: 'Blinded',
     consequences: [
       { kind: 'visibility', cannotSee: true },
       ...outgoingAttackDisadvantage(),
@@ -25,22 +23,14 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   },
 
   charmed: {
-    id: 'charmed',
-    label: 'Charmed',
-    consequences: [
-      { kind: 'source_relative', cannotAttackSource: true },
-    ],
+    consequences: [{ kind: 'source_relative', cannotAttackSource: true }],
   },
 
   deafened: {
-    id: 'deafened',
-    label: 'Deafened',
     consequences: [],
   },
 
   frightened: {
-    id: 'frightened',
-    label: 'Frightened',
     consequences: [
       { kind: 'source_relative', cannotMoveCloserToSource: true, whileSourceInSight: true },
       ...outgoingAttackDisadvantage(),
@@ -49,24 +39,14 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   },
 
   grappled: {
-    id: 'grappled',
-    label: 'Grappled',
-    consequences: [
-      ...immobile(),
-    ],
+    consequences: [...immobile()],
   },
 
   incapacitated: {
-    id: 'incapacitated',
-    label: 'Incapacitated',
-    consequences: [
-      ...cannotAct(),
-    ],
+    consequences: [...cannotAct()],
   },
 
   invisible: {
-    id: 'invisible',
-    label: 'Invisible',
     consequences: [
       { kind: 'visibility', unseenByDefault: true },
       ...incomingAttackDisadvantage(),
@@ -75,8 +55,6 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   },
 
   paralyzed: {
-    id: 'paralyzed',
-    label: 'Paralyzed',
     consequences: [
       ...cannotAct(),
       ...immobile(),
@@ -88,8 +66,6 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   },
 
   petrified: {
-    id: 'petrified',
-    label: 'Petrified',
     consequences: [
       ...cannotAct(),
       ...immobile(),
@@ -102,8 +78,6 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   },
 
   poisoned: {
-    id: 'poisoned',
-    label: 'Poisoned',
     consequences: [
       ...outgoingAttackDisadvantage(),
       { kind: 'check_mod', abilities: 'all', modifier: 'disadvantage' },
@@ -111,8 +85,6 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   },
 
   prone: {
-    id: 'prone',
-    label: 'Prone',
     consequences: [
       { kind: 'movement', standUpCostsHalfMovement: true },
       ...outgoingAttackDisadvantage(),
@@ -122,8 +94,6 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   },
 
   restrained: {
-    id: 'restrained',
-    label: 'Restrained',
     consequences: [
       ...immobile(),
       ...outgoingAttackDisadvantage(),
@@ -133,8 +103,6 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   },
 
   stunned: {
-    id: 'stunned',
-    label: 'Stunned',
     consequences: [
       ...cannotAct(),
       ...immobile(),
@@ -145,8 +113,6 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
   },
 
   unconscious: {
-    id: 'unconscious',
-    label: 'Unconscious',
     consequences: [
       ...cannotAct(),
       ...immobile(),
@@ -158,4 +124,3 @@ export const CONDITION_RULES: Record<EffectConditionId, MarkerRule> = {
     ],
   },
 }
-

@@ -1,4 +1,4 @@
-import { getEffectConditionRulesTextForKey } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
+import { getEffectConditionRulesTextForKey } from '@/features/content/shared/domain/vocab/effectConditions.vocab'
 
 /** Glossary strings for core stat badges on the active combatant card. */
 export const COMBATANT_CORE_STAT_TOOLTIP_BY_LABEL: Record<string, string> = {
