@@ -63,9 +63,8 @@ export default function SpellDetailRoute() {
       )}
 
       <KeyValueSection
-        title="Spell Details"
         items={items}
-        columns={3}
+        columns={4}
         sx={{ mt: 2, mb: 8 }}
       />
 

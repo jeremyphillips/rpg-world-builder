@@ -64,14 +64,14 @@ export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
     render: (spell) =>
       spell.classes.map((c) => classLabel(c)).join(', ') || '—',
   },
-  {
-    key: 'effects',
-    label: 'Effects',
-    order: 60,
-    render: (spell) => {
-      const arr = spell.effects;
-      if (!arr || arr.length === 0) return '—';
-      return `${arr.length} effect(s)`;
-    },
-  },
+  // {
+  //   key: 'effects',
+  //   label: 'Effects',
+  //   order: 60,
+  //   render: (spell) => {
+  //     const arr = spell.effects;
+  //     if (!arr || arr.length === 0) return '—';
+  //     return `${arr.length} effect(s)`;
+  //   },
+  // },
 ];

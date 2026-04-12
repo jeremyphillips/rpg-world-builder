@@ -13,7 +13,7 @@ export type KeyValueItem = {
 export interface KeyValueSectionProps {
   title?: ReactNode;
   items: KeyValueItem[];
-  columns?: 1 | 2 | 3;
+  columns?: 1 | 2 | 3 | 4;
   emptyValue?: ReactNode;
   dense?: boolean;
   showDividers?: boolean;
@@ -37,6 +37,27 @@ const KeyValueSection = ({
   const gap = dense ? 1.5 : 3;
   const itemGap = dense ? 0.25 : 0.5;
 
+  const gridTemplateColumns =
+    columns === 1
+      ? { xs: '1fr' }
+      : columns === 2
+        ? {
+            xs: '1fr',
+            md: 'repeat(2, minmax(0, 1fr))',
+          }
+        : columns === 3
+          ? {
+              xs: '1fr',
+              sm: 'repeat(2, minmax(0, 1fr))',
+              md: 'repeat(3, minmax(0, 1fr))',
+            }
+          : {
+              xs: '1fr',
+              sm: 'repeat(2, minmax(0, 1fr))',
+              md: 'repeat(3, minmax(0, 1fr))',
+              lg: 'repeat(4, minmax(0, 1fr))',
+            };
+
   return (
     <Box sx={sx}>
       {title && (
@@ -48,16 +69,7 @@ const KeyValueSection = ({
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            ...(columns === 3 && { sm: 'repeat(2, minmax(0, 1fr))' }),
-            md:
-              columns === 3
-                ? 'repeat(3, minmax(0, 1fr))'
-                : columns === 2
-                  ? 'repeat(2, minmax(0, 1fr))'
-                  : '1fr',
-          },
+          gridTemplateColumns,
           gap,
         }}
       >
