@@ -1,9 +1,9 @@
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
 import type { AreaOfEffectTemplate } from '@/features/mechanics/domain/effects/area.types';
 import type { SpellRange } from '@/features/content/spells/domain/types/spell.types';
-import { formatSpellRange } from './spellRangeFormat';
+import { formatSpellRange } from './spellRangeDisplay';
 
-export { formatSpellRange } from './spellRangeFormat';
+export { formatSpellRange } from './spellRangeDisplay';
 
 function isTargetingWithArea(e: Effect): e is Effect & { kind: 'targeting'; area: AreaOfEffectTemplate } {
   return e.kind === 'targeting' && 'area' in e && e.area != null;

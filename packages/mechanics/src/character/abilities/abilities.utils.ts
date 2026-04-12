@@ -13,8 +13,13 @@ export const abilityIdToName = (id: AbilityRef) =>
     : abilityRegistry.byKey[id as AbilityKey].name;
 
 /** Returns uppercase abbreviation (e.g. STR, DEX) for list/compact displays. */
-export const abilityIdToAbbrev = (id: string): string =>
-  String(id ?? '').toUpperCase();
+export const abilityIdToAbbrev = (id: AbilityRef): string => {
+  const abilityId =
+    id in abilityRegistry.byId
+      ? abilityRegistry.byId[id as AbilityId].id
+      : abilityRegistry.byKey[id as AbilityKey].id;
+  return abilityId.toUpperCase();
+};
 
 export const abilityKeyToId = (key: AbilityKey) =>
   abilityRegistry.byKey[key].id;

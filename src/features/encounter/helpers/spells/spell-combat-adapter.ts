@@ -1,5 +1,5 @@
 import type { Spell, SpellDuration, SpellRange } from '@/features/content/spells/domain/types/spell.types'
-import { formatSpellRange } from '@/features/content/spells/domain/details/spellRangeFormat'
+import { formatSpellRange } from '@/features/content/spells/domain/details/display/spellRangeDisplay'
 import type { EffectDuration } from '@/features/mechanics/domain/effects/timing.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type {

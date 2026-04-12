@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import type { Spell } from '@/features/content/spells/domain/types';
 import type { Effect, SaveEffect } from '@/features/mechanics/domain/effects/effects.types';
-import { abilityIdToAbbrev, abilityIdToKey } from '@/features/mechanics/domain/character';
+import { abilityIdToAbbrev } from '@/features/mechanics/domain/character';
 
 function findFirstTopLevelSaveEffect(effects: Effect[]): SaveEffect | undefined {
   for (const e of effects) {
@@ -18,7 +18,7 @@ export function formatSpellAttackSaveDisplay(spell: Spell): string {
 
   const save = findFirstTopLevelSaveEffect(spell.effects);
   if (save) {
-    const abbr = abilityIdToAbbrev(abilityIdToKey(save.save.ability));
+    const abbr = abilityIdToAbbrev(save.save.ability);
     return `${abbr} save`;
   }
 

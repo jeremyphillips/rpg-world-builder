@@ -1,10 +1,11 @@
 import type { Spell } from '@/features/content/spells/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
-import { formatSpellRangeAreaDisplay } from './spellRangeAreaText';
-import { renderSpellComponentsDisplay } from './spellComponentsDisplay';
-import { renderSpellAttackSaveDetailDisplay } from './spellAttackSaveDisplay';
-import { renderSpellCastingTimeDetailDisplay } from './spellCastingTimeDetail';
-import { renderSpellDurationDetailDisplay } from './spellDurationDetail';
+import { formatSpellRangeAreaDisplay } from './display/spellRangeAreaDisplay';
+import { renderSpellComponentsDisplay } from './display/spellComponentsDisplay';
+import { renderSpellAttackSaveDetailDisplay } from './display/spellAttackSaveDisplay';
+import { renderSpellCastingTimeDetailDisplay } from './display/spellCastingTimeDetail';
+import { renderSpellDurationDetailDisplay } from './display/spellDurationDetail';
+import { renderSpellDamageEffectsDetailDisplay } from './display/spellDamageEffectsDisplay';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab';
 import { classIdToName } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
@@ -56,6 +57,12 @@ export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
     label: 'Attack/Save',
     order: 26,
     render: (spell) => renderSpellAttackSaveDetailDisplay(spell),
+  },
+  {
+    key: 'damage-effects',
+    label: 'Damage Type/Effects',
+    order: 27,
+    render: (spell) => renderSpellDamageEffectsDetailDisplay(spell),
   },
   {
     key: 'classes',
