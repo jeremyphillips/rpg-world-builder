@@ -168,7 +168,13 @@ export default function DynamicFormRenderer({
         const hasHeader = (label != null && label !== '') || (helperText != null && helperText !== '');
         const hasGroupHelper = helperText != null && helperText !== '';
         return (
-          <Box key={groupKey}>
+          <Box
+            key={groupKey}
+            sx={(theme) => ({
+              pb: 4,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+            })}
+          >
             {hasHeader && (
               <Box sx={{ mb: 1 }}>
                 {label != null && label !== '' && (
