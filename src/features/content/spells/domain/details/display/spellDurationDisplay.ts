@@ -3,25 +3,22 @@ import type {
   TimedDuration,
   TurnBoundarySpellDuration,
 } from '@/features/content/spells/domain/types/spell.types';
-import type { TimeUnit } from '@/shared/time';
+import type { TimeUnit } from '@/shared/domain/time';
 import { getSpellDurationKindName } from '@/features/content/spells/domain/vocab/spellDurationKinds.vocab';
 
 export type SpellDurationPresentation = 'inline' | 'badge';
 
 function formatSpellTimeAmount(value: number, unit: TimeUnit): string {
-  const unitLabel =
-    unit === 'minute'
-      ? value === 1
-        ? 'minute'
-        : 'minutes'
-      : unit === 'hour'
-        ? value === 1
-          ? 'hour'
-          : 'hours'
-        : value === 1
-          ? 'day'
-          : 'days';
-  return `${value} ${unitLabel}`;
+  const plural = value === 1 ? 0 : 1;
+  const labels: Record<TimeUnit, [string, string]> = {
+    minute: ['minute', 'minutes'],
+    hour: ['hour', 'hours'],
+    day: ['day', 'days'],
+    week: ['week', 'weeks'],
+    month: ['month', 'months'],
+    year: ['year', 'years'],
+  };
+  return `${value} ${labels[unit][plural]}`;
 }
 
 function formatTimed(d: TimedDuration, presentation: SpellDurationPresentation): string {

@@ -12,7 +12,6 @@ export type {
   EntryPatch,
 } from './patches/contentPatch.types';
 export * from './repo';
-export * from './utils';
 export * from './validation';
 export * from './rules/rules.constants';
 export * from './rules/ritualCastingTime';

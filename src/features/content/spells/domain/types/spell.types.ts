@@ -7,9 +7,9 @@ import type { SpellRoleTag } from '../vocab/spellRoleTags.vocab';
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types';
 import type { Visibility } from '@/shared/types/visibility';
 import type { ContentItem } from '@/features/content/shared/domain/types/content.types';
-import type { Distance } from '@/shared/distance';
+import type { Distance } from '@/shared/domain/distance';
 import type { Coin } from '@/shared/money/types';
-import type { TimeUnit } from '@/shared/time';
+import type { TimeUnit } from '@/shared/domain/time';
 import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
 import type { ContentResolutionMeta } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { CasterOptionField } from '@/features/mechanics/domain/spells/caster-options';

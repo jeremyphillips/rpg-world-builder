@@ -130,8 +130,8 @@ export const SPELLS_LEVEL_8_M_Z: readonly SpellEntry[] = [
       summary: '60ft sphere: Con save or 12d6 Radiant + Blinded 1 min. Dispels Darkness.',
     },
   },
-  // OUTLIER: Duration is "up to 6 rounds" but TimeUnit (shared/time) only has minute|hour|day.
-  // Using kind:'special' as workaround. Revisit if TimeUnit gains 'round' support.
+  // OUTLIER: Duration is "up to 6 rounds" but spell timed duration units (`@/shared/domain/time`) omit combat round.
+  // Using kind:'special' as workaround. Revisit if spell TimedDuration gains 'round' or similar.
   {
     id: 'tsunami',
     name: 'Tsunami',
