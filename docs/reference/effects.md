@@ -43,7 +43,7 @@ Boundaries:
 
 ### Spells
 
-- `castingTime` owns casting cadence and reaction trigger text.
+- `castingTime` owns casting cadence, reaction trigger text, optional per-mode `label` (multi-mode spells), optional `alternate` modes only when the spell has distinct casting-time options, and `canBeCastAsRitual` at the `SpellCastingTime` level (not ritual flags on individual modes).
 - `range` owns placement distance.
 - `duration` owns spell duration and concentration by default.
 - `components` own V/S/M facts.
@@ -110,8 +110,8 @@ See [resolution.md §9 — Targeting families](./resolution.md#targeting-familie
 
 ### Rituals And Alternate Modes
 
-- Ritual handling belongs in `castingTime.normal` or `castingTime.alternate`.
-- Do not duplicate ritual facts in unrelated fields.
+- Ritual eligibility is `castingTime.canBeCastAsRitual`. Do not duplicate ritual-only alternate modes in `alternate` (those were legacy); use the boolean plus UI/tooltip for ritual rules.
+- `alternate` is only for spells with multiple **distinct** casting-time modes (e.g. Plant Growth overgrowth vs enrichment). Optional `label` on each mode names the variant in UI.
 
 ## 4. Canonical Naming Rules
 

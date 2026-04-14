@@ -4,17 +4,14 @@ import Box from '@mui/material/Box';
 import type { Spell } from '@/features/content/spells/domain/types';
 import { getRulesConcept } from '@/features/content/shared/domain/vocab/rulesConcepts.vocab';
 import { AppBadge, AppTooltip } from '@/ui/primitives';
-import {
-  formatSpellCastingTimeDisplay,
-  spellCastingTimeHasRitual,
-} from './spellCastingTimeDisplay';
+import { formatSpellCastingTimeDisplay } from './spellCastingTimeDisplay';
 
 /**
  * Casting time line: formatted text plus a ritual rules badge (with tooltip) when the spell can be cast as a ritual.
  */
 export function renderSpellCastingTimeDetailDisplay(spell: Spell): ReactNode {
   const text = formatSpellCastingTimeDisplay(spell);
-  const isRitual = spellCastingTimeHasRitual(spell.castingTime);
+  const isRitual = spell.castingTime.canBeCastAsRitual;
 
   if (!isRitual) {
     return text || '—';

@@ -55,7 +55,7 @@ describe('spell authoring audit helpers', () => {
       school: 'evocation',
       level: 0,
       classes: ['wizard'],
-      castingTime: { normal: { value: 1, unit: 'action' } },
+      castingTime: { normal: { value: 1, unit: 'action' }, canBeCastAsRitual: false },
       range: { kind: 'distance', value: { value: 30, unit: 'ft' } },
       duration: { kind: 'instantaneous' },
       components: { verbal: true },

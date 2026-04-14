@@ -47,12 +47,15 @@ export type SpellCastingTimeMode = {
   value: number;
   unit: CastingTimeUnit;
   trigger?: string;
-  ritual?: boolean;
+  /** Named variant for multi-mode spells (e.g. Overgrowth vs Enrichment). */
+  label?: string;
 };
 
 export type SpellCastingTime = {
   normal: SpellCastingTimeMode;
+  /** Only when the spell has multiple distinct casting-time modes in the rules. */
   alternate?: SpellCastingTimeMode[];
+  canBeCastAsRitual: boolean;
 };
 
 export type TimedDuration = {

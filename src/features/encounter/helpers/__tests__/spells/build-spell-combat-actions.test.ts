@@ -18,7 +18,7 @@ describe('buildSpellCombatActions', () => {
       school: 'evocation',
       level: 0,
       classes: ['wizard'],
-      castingTime: { normal: { value: 1, unit: 'action' } },
+      castingTime: { normal: { value: 1, unit: 'action' }, canBeCastAsRitual: false },
       range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
       duration: { kind: 'instantaneous' },
       components: { verbal: true, somatic: true },
@@ -475,7 +475,7 @@ describe('buildSpellCombatActions', () => {
       id: 'healing-word',
       name: 'Healing Word',
       level: 1,
-      castingTime: { normal: { value: 1, unit: 'bonus-action' } },
+      castingTime: { normal: { value: 1, unit: 'bonus-action' }, canBeCastAsRitual: false },
       effects: [{ kind: 'note', text: 'Heals 2d4 + modifier.' }],
     })
 
@@ -621,7 +621,7 @@ describe('buildSpellCombatActions', () => {
       id: 'shield',
       name: 'Shield',
       range: { kind: 'self' },
-      castingTime: { normal: { value: 1, unit: 'reaction' } },
+      castingTime: { normal: { value: 1, unit: 'reaction' }, canBeCastAsRitual: false },
       duration: { kind: 'until-turn-boundary', subject: 'self', turn: 'next', boundary: 'start' },
       effects: [
         { kind: 'modifier', target: 'armor_class', mode: 'add', value: 5 },

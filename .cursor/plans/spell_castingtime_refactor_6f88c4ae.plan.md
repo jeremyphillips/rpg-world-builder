@@ -4,16 +4,16 @@ overview: Redefine `SpellCastingTime` with `normal` + optional `alternate` (mult
 todos:
   - id: types-constants
     content: Define SpellCastingTime + SpellCastingTimeMode (normal/alternate/label/trigger/canBeCastAsRitual); add rules.constants.ts and ritualCastingTime.ts; re-export from shared domain index
-    status: pending
+    status: completed
   - id: display-encounter
     content: Update spellCastingTimeDisplay (labels + alternates + ritual badge); spell-combat-adapter uses normal.unit only
-    status: pending
+    status: completed
   - id: spell-data
     content: Rewrite packages/mechanics/.../spells/data/*.ts (ritual flags to canBeCastAsRitual; Plant Growth + any multi-mode with labels)
-    status: pending
+    status: completed
   - id: tests-docs
     content: Update encounter spell tests and docs/reference/effects.md
-    status: pending
+    status: completed
 isProject: false
 ---
 

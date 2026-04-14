@@ -4,7 +4,7 @@ import type {
 } from '@/features/content/spells/domain/types/spell.types';
 
 export function formatCastingTimeMode(mode: SpellCastingTimeMode): string {
-  const { value, unit, trigger } = mode;
+  const { value, unit, trigger, label } = mode;
   let s: string;
   switch (unit) {
     case 'action':
@@ -30,26 +30,20 @@ export function formatCastingTimeMode(mode: SpellCastingTimeMode): string {
   if (unit === 'reaction' && trigger?.trim()) {
     s += ` (${trigger.trim()})`;
   }
+  if (label?.trim()) {
+    s = `${label.trim()}: ${s}`;
+  }
   return s;
 }
 
-/** True if the spell can be cast as a ritual (ritual flag on normal or any alternate mode). */
-export function spellCastingTimeHasRitual(ct: SpellCastingTime): boolean {
-  if (ct.normal.ritual) return true;
-  return ct.alternate?.some((m) => m.ritual) ?? false;
-}
-
 /**
- * Human-readable casting time: primary mode first, then alternate modes.
- * When the spell has a ritual option, ritual-only alternate lines are omitted (use the ritual badge in the UI).
+ * Human-readable casting time: primary mode first, then alternates (multi-mode spells only).
  */
 export function formatSpellCastingTimeDisplay(spell: { castingTime: SpellCastingTime }): string {
   const ct = spell.castingTime;
-  const omitRitualAlternates = spellCastingTimeHasRitual(ct);
   const parts: string[] = [formatCastingTimeMode(ct.normal)];
   if (ct.alternate) {
     for (const m of ct.alternate) {
-      if (omitRitualAlternates && m.ritual) continue;
       parts.push(formatCastingTimeMode(m));
     }
   }
