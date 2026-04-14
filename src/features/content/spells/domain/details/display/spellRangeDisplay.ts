@@ -9,7 +9,7 @@ export function formatSpellDistance(d: { value: number; unit: string }): string 
 
 /**
  * Single line for `spell.range` (detail UI, combat display meta, etc.).
- * Fixed kinds use {@link SPELL_RANGE_KIND_OPTIONS}; `distance` uses feet/miles; `special` uses `description`.
+ * Fixed kinds use {@link SPELL_RANGE_DEFINITIONS} display names; `distance` uses feet/miles; `special` uses `description`.
  */
 export function formatSpellRange(range: SpellRange): string {
   switch (range.kind) {

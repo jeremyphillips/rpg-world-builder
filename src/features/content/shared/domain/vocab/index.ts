@@ -4,4 +4,5 @@ export * from './effectConditions.vocab';
 export * from './magicSchools.vocab';
 export * from './rulesConcepts.vocab';
 export * from './spellComponents.vocab';
+export * from './spellRanges.vocab';
 export * from './triggers.vocab';

@@ -1,21 +1,21 @@
 /**
- * Display labels for spell range kinds that are fixed strings (not distance numerics or special prose).
+ * Re-exports canonical spell range vocabulary from shared content vocab.
+ * Prefer importing from `@/features/content/shared/domain/vocab` in new code.
  */
-export const SPELL_RANGE_KIND_OPTIONS = [
-  { id: 'self', name: 'Self' },
-  { id: 'touch', name: 'Touch' },
-  { id: 'sight', name: 'Sight' },
-  { id: 'unlimited', name: 'Unlimited' },
-] as const;
 
-/** Range kinds authored as static labels in `SPELL_RANGE_KIND_OPTIONS`. */
-export type SpellRangeKindId = (typeof SPELL_RANGE_KIND_OPTIONS)[number]['id'];
+import type { SpellRangeDefinition, SpellRangeKind } from '@/features/content/shared/domain/vocab';
 
-const SPELL_RANGE_KIND_NAME = new Map<string, string>(
-  SPELL_RANGE_KIND_OPTIONS.map((o) => [o.id, o.name] as const),
-);
+export type { SpellRangeDefinition, SpellRangeKind };
 
-/** Display name for a fixed range kind, or undefined if not a vocab kind. */
-export function getSpellRangeKindName(kind: SpellRangeKindId): string {
-  return SPELL_RANGE_KIND_NAME.get(kind) ?? kind;
-}
+export {
+  SPELL_RANGE_DEFINITION_BY_ID,
+  SPELL_RANGE_DEFINITIONS,
+  SPELL_RANGE_KINDS,
+  getSpellRangeById,
+  getSpellRangeKindName,
+  getSpellRangeRulesText,
+  getSpellRangeRulesTextForKey,
+} from '@/features/content/shared/domain/vocab';
+
+/** @deprecated Use {@link SpellRangeKind}. */
+export type SpellRangeKindId = SpellRangeKind;

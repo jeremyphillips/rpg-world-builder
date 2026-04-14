@@ -1,5 +1,5 @@
 import type { ClassId } from '@/shared/types/ruleset';
-import type { MagicSchool } from '@/features/content/shared/domain/vocab';
+import type { MagicSchool, SpellRangeKind } from '@/features/content/shared/domain/vocab';
 import type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
 import type { Effect, EffectConditionId } from '@/features/mechanics/domain/effects/effects.types';
 import type { SpellFunctionTag } from '../vocab/spellFunctionTags.vocab';
@@ -29,12 +29,12 @@ export const SPELL_LEVELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 export type SpellLevel = (typeof SPELL_LEVELS)[number];
 
 export type SpellRange =
-  | { kind: 'self' }
-  | { kind: 'touch' }
-  | { kind: 'distance'; value: Distance }
-  | { kind: 'sight' }
-  | { kind: 'unlimited' }
-  | { kind: 'special'; description: string }
+  | { kind: Extract<SpellRangeKind, 'self'> }
+  | { kind: Extract<SpellRangeKind, 'touch'> }
+  | { kind: Extract<SpellRangeKind, 'distance'>; value: Distance }
+  | { kind: Extract<SpellRangeKind, 'sight'> }
+  | { kind: Extract<SpellRangeKind, 'unlimited'> }
+  | { kind: Extract<SpellRangeKind, 'special'>; description: string };
 
 export type CastingTimeUnit =
   | 'action'
