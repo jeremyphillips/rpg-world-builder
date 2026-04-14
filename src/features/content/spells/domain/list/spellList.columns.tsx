@@ -3,6 +3,7 @@ import type { AppDataGridColumn } from '@/ui/patterns';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab/magicSchools.vocab';
 import { getSpellResolutionStatus } from '@/features/content/spells/domain/types';
 import type { SpellListRow } from './spellList.types';
+import { formatSpellLevelShortFromUnknown } from '@/features/content/spells/domain/spellPresentation';
 
 const schoolLabel = (value: string) =>
   MAGIC_SCHOOL_OPTIONS.find((o) => o.id === value)?.name ?? value;
@@ -30,8 +31,7 @@ export function buildSpellCustomColumns(
       headerName: 'Level',
       width: 90,
       type: 'number',
-      valueFormatter: (v) =>
-        v === 0 ? 'Cantrip' : v != null ? String(v) : '—',
+      valueFormatter: (v) => formatSpellLevelShortFromUnknown(v),
     },
     {
       field: 'classes',

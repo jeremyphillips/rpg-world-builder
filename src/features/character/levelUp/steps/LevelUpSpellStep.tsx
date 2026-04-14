@@ -19,15 +19,7 @@ import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function levelHeading(level: number): string {
-  if (level === 0) return 'Cantrips'
-  return `${level}${level === 1 ? 'st' : level === 2 ? 'nd' : level === 3 ? 'rd' : 'th'} Level`
-}
+import { formatSpellLevelHeadingUnsafe } from '@/features/content/spells/domain/spellPresentation'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -245,7 +237,7 @@ export default function LevelUpSpellStep({
             return (
               <Chip
                 key={level}
-                label={`${levelHeading(level)}: ${count} / ${max}`}
+                label={`${formatSpellLevelHeadingUnsafe(level)}: ${count} / ${max}`}
                 size="small"
                 color={full ? 'success' : 'default'}
                 variant="outlined"
@@ -277,7 +269,7 @@ export default function LevelUpSpellStep({
             <Box key={level} sx={{ mb: 3 }}>
               <Divider sx={{ mb: 1.5 }} />
               <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-                {levelHeading(level)}
+                {formatSpellLevelHeadingUnsafe(level)}
                 <Typography
                   component="span"
                   variant="body2"

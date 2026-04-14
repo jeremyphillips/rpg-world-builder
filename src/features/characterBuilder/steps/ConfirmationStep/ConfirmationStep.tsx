@@ -2,6 +2,7 @@ import { useCharacterBuilder } from '../../context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import type { ClassProgression } from '@/features/content/classes/domain/types'
+import { formatSpellLevelHeadingUnsafe } from '@/features/content/spells/domain/spellPresentation'
 import type { StepId } from '../../types'
 import { skillProficiencyIdToName } from '@/features/mechanics/domain/character'
 
@@ -296,7 +297,7 @@ const ConfirmationStep = () => {
                   .map(([level, names]) => (
                     <Box key={level} sx={{ mb: 0.75 }}>
                       <Typography variant="caption" color="text.secondary">
-                        {level === 0 ? 'Cantrips' : `Level ${level}`}
+                        {formatSpellLevelHeadingUnsafe(level)}
                       </Typography>
                       <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.25 }}>
                         {names.sort().map(name => (

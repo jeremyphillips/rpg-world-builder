@@ -6,6 +6,10 @@ import { HorizontalCompactActionCard, HorizontalCompactCard } from '@/ui/pattern
 import { CardBadge } from '@/ui/primitives'
 import type { CardBadgeProps } from '@/ui/primitives'
 import type { Spell } from '@/features/content/spells/domain/types'
+import {
+  formatSpellLevelName,
+  formatSpellLevelShort,
+} from '@/features/content/spells/domain/spellPresentation'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -26,11 +30,6 @@ function schoolLabel(school: string): string {
   return school.charAt(0).toUpperCase() + school.slice(1)
 }
 
-function levelLabel(level: number): string {
-  if (level === 0) return 'Cantrip'
-  return `Level ${level}`
-}
-
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -49,7 +48,7 @@ const SpellHorizontalCard = ({
       : undefined
 
   const badgeItems: CardBadgeProps[] = [
-    { type: 'tag', value: levelLabel(spell.level) },
+    { type: 'tag', value: formatSpellLevelName(spell.level) },
     { type: 'tag', value: schoolLabel(spell.school) },
   ]
 
@@ -77,7 +76,7 @@ const SpellHorizontalCard = ({
   )
 
   const shared = {
-    headline: `${spell.name} \u00B7 Lvl ${spell.level}`,
+    headline: `${spell.name} \u00B7 ${formatSpellLevelShort(spell.level)}`,
     subheadline,
     titleBadges,
     footerActionTo: spellDetailPath,
