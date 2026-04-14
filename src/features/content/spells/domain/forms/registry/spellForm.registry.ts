@@ -11,6 +11,7 @@ import { getSpellcastingClasses } from '@/features/mechanics/domain/classes';
 import { getSystemClasses } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import type { SpellFormValues } from '../types/spellForm.types';
+import { spellComponentsPatchBindings } from '../spellComponentsPatchBinding';
 import { formatSpellLevelShort, SPELL_CORE_UI } from '../../spellPresentation';
 import {
   SPELL_CASTING_TIME_UNIT_OPTIONS,
@@ -198,6 +199,11 @@ export function getSpellSimpleFieldSpecs(
         const arr = Array.isArray(v) ? v : [];
         return arr.length > 0 ? `${arr.length} effect(s)` : '—';
       },
+      patchBinding: {
+        domainPath: 'effects',
+        parse: (v) => formatEffectsJson(v),
+        serialize: (ui, _cur) => parseEffectsJson(ui) ?? [],
+      },
     },
   ];
 }
@@ -270,6 +276,7 @@ function compositeFieldSpecs(): FieldSpec<
   return [
     {
       name: 'castingTimeUnit',
+      path: 'castingTime.normal.unit',
       label: 'Unit',
       placeholder: 'Select unit',
       kind: 'select' as const,
@@ -282,6 +289,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'castingTimeValue',
+      path: 'castingTime.normal.value',
       label: 'Value',
       kind: 'numberText' as const,
       helperText: 'Minute / hour casts',
@@ -295,6 +303,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'castingTimeTrigger',
+      path: 'castingTime.normal.trigger',
       label: 'Trigger',
       kind: 'select' as const,
       options: SPELL_TRIGGER_SELECT_OPTIONS,
@@ -306,6 +315,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'castingTimeCanRitual',
+      path: 'castingTime.canBeCastAsRitual',
       label: 'Ritual',
       kind: 'checkbox' as const,
       defaultValue: false as SpellFormValues['castingTimeCanRitual'],
@@ -314,6 +324,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationKind',
+      path: 'duration.kind',
       label: 'Kind',
       kind: 'select' as const,
       required: true,
@@ -324,6 +335,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationTimedValue',
+      path: 'duration.value',
       label: 'Value',
       kind: 'numberText' as const,
       defaultValue: '1' as SpellFormValues['durationTimedValue'],
@@ -333,6 +345,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationTimedUnit',
+      path: 'duration.unit',
       label: 'Unit',
       kind: 'select' as const,
       options: SPELL_TIME_UNIT_OPTIONS,
@@ -343,6 +356,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationTimedUpTo',
+      path: 'duration.upTo',
       label: 'Up to',
       kind: 'checkbox' as const,
       defaultValue: false as SpellFormValues['durationTimedUpTo'],
@@ -352,6 +366,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationConcentration',
+      path: 'duration.concentration',
       label: 'Concentration',
       kind: 'checkbox' as const,
       defaultValue: false as SpellFormValues['durationConcentration'],
@@ -361,6 +376,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationSpecialText',
+      path: 'duration.description',
       label: 'Special duration text',
       kind: 'textarea' as const,
       defaultValue: '' as SpellFormValues['durationSpecialText'],
@@ -368,6 +384,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationUntilTriggeredText',
+      path: 'duration.description',
       label: 'Until triggered (description)',
       kind: 'textarea' as const,
       defaultValue: '' as SpellFormValues['durationUntilTriggeredText'],
@@ -375,6 +392,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationTurnBoundarySubject',
+      path: 'duration.subject',
       label: 'Subject',
       kind: 'select' as const,
       options: [
@@ -389,6 +407,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationTurnBoundaryTurn',
+      path: 'duration.turn',
       label: 'Turn',
       kind: 'select' as const,
       options: [
@@ -402,6 +421,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'durationTurnBoundaryBoundary',
+      path: 'duration.boundary',
       label: 'Boundary',
       kind: 'select' as const,
       options: [
@@ -415,6 +435,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'rangeKind',
+      path: 'range.kind',
       label: 'Kind',
       kind: 'select' as const,
       required: true,
@@ -425,6 +446,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'rangeDistanceValue',
+      path: 'range.value.value',
       label: 'Distance',
       kind: 'numberText' as const,
       defaultValue: '' as SpellFormValues['rangeDistanceValue'],
@@ -434,6 +456,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'rangeDistanceUnit',
+      path: 'range.value.unit',
       label: 'Unit',
       kind: 'select' as const,
       options: SPELL_DISTANCE_UNIT_OPTIONS,
@@ -444,6 +467,7 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'rangeSpecialDescription',
+      path: 'range.description',
       label: 'Special',
       kind: 'text' as const,
       defaultValue: '' as SpellFormValues['rangeSpecialDescription'],
@@ -457,9 +481,52 @@ function compositeFieldSpecs(): FieldSpec<
       kind: 'checkboxGroup' as const,
       options: SPELL_COMPONENT_CHECKBOX_OPTIONS,
       defaultValue: [] as SpellFormValues['componentIds'],
+      patchBinding: spellComponentsPatchBindings.componentIds,
+    },
+    {
+      name: 'materialDescription',
+      label: 'Description',
+      kind: 'text' as const,
+      defaultValue: '' as SpellFormValues['materialDescription'],
+      visibleWhen: when.contains('componentIds', 'material'),
+      group: GROUP_MATERIAL,
+      width: 4,
+      patchBinding: spellComponentsPatchBindings.materialDescription,
+    },
+    {
+      name: 'materialCostValue',
+      label: 'Cost',
+      kind: 'numberText' as const,
+      defaultValue: '' as SpellFormValues['materialCostValue'],
+      visibleWhen: when.contains('componentIds', 'material'),
+      group: GROUP_MATERIAL,
+      width: 2,
+      patchBinding: spellComponentsPatchBindings.materialCostValue,
+    },
+    {
+      name: 'materialCostUnit',
+      label: 'Coin',
+      kind: 'select' as const,
+      options: SPELL_MATERIAL_COIN_OPTIONS,
+      defaultValue: 'gp' as SpellFormValues['materialCostUnit'],
+      visibleWhen: when.contains('componentIds', 'material'),
+      group: GROUP_MATERIAL,
+      width: 2,
+      patchBinding: spellComponentsPatchBindings.materialCostUnit,
+    },
+    {
+      name: 'materialConsumed',
+      label: 'Consumed',
+      kind: 'checkbox' as const,
+      defaultValue: false as SpellFormValues['materialConsumed'],
+      visibleWhen: when.contains('componentIds', 'material'),
+      group: GROUP_MATERIAL,
+      width: 4,
+      patchBinding: spellComponentsPatchBindings.materialConsumed,
     },
     {
       name: 'descriptionFull',
+      path: 'description.full',
       label: 'Full',
       kind: 'textarea' as const,
       placeholder: 'Full spell description',
@@ -473,49 +540,13 @@ function compositeFieldSpecs(): FieldSpec<
     },
     {
       name: 'descriptionSummary',
+      path: 'description.summary',
       label: 'Short',
       kind: 'text' as const,
       placeholder: 'Short summary',
       defaultValue: '' as SpellFormValues['descriptionSummary'],
       group: { id: 'spellDescription', direction: 'column', spacing: 2 },
-    },
-    {
-      name: 'materialDescription',
-      label: 'Description',
-      kind: 'text' as const,
-      defaultValue: '' as SpellFormValues['materialDescription'],
-      visibleWhen: when.contains('componentIds', 'material'),
-      group: GROUP_MATERIAL,
-      width: 4,
-    },
-    {
-      name: 'materialCostValue',
-      label: 'Cost',
-      kind: 'numberText' as const,
-      defaultValue: '' as SpellFormValues['materialCostValue'],
-      visibleWhen: when.contains('componentIds', 'material'),
-      group: GROUP_MATERIAL,
-      width: 2,
-    },
-    {
-      name: 'materialCostUnit',
-      label: 'Coin',
-      kind: 'select' as const,
-      options: SPELL_MATERIAL_COIN_OPTIONS,
-      defaultValue: 'gp' as SpellFormValues['materialCostUnit'],
-      visibleWhen: when.contains('componentIds', 'material'),
-      group: GROUP_MATERIAL,
-      width: 2,
-    },
-    {
-      name: 'materialConsumed',
-      label: 'Consumed',
-      kind: 'checkbox' as const,
-      defaultValue: false as SpellFormValues['materialConsumed'],
-      visibleWhen: when.contains('componentIds', 'material'),
-      group: GROUP_MATERIAL,
-      width: 4,
-    },
+    }
   ];
 }
 

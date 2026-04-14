@@ -11,6 +11,30 @@ import { evaluateCondition } from './conditions';
 import { PatchValidationProvider } from './validation/PatchValidationContext';
 import DynamicFormRenderer from './DynamicFormRenderer';
 
+/**
+ * `visibleWhen` paths are form field names (e.g. `castingTimeUnit`). Patch `driver.getValue(name)`
+ * resolves domain keys on the merged entry, so map through `FieldConfig.path` / `patchBinding`
+ * the same way `DriverField` does.
+ */
+function resolvePatchConditionValue(
+  fields: FieldConfig[],
+  path: string,
+  driver: { getValue: (p: string) => unknown },
+): unknown {
+  const field = fields.find((f) => f.name === path);
+  if (field?.patchBinding) {
+    const domainVal = driver.getValue(field.patchBinding.domainPath);
+    return field.patchBinding.parse(domainVal);
+  }
+  if (field?.path) {
+    return driver.getValue(field.path);
+  }
+  if (field) {
+    return driver.getValue(field.name);
+  }
+  return driver.getValue(path);
+}
+
 function getAtPath(obj: Record<string, unknown>, path: string): unknown {
   const segments = path.split('.');
   let current: unknown = obj;
@@ -49,7 +73,7 @@ function ConditionalFormRendererPatch({
   const prevVisibleRef = useRef<Record<string, boolean>>({});
   const isInitialRenderRef = useRef(true);
 
-  const getValue = (path: string) => driver.getValue(path);
+  const getValue = (path: string) => resolvePatchConditionValue(fields, path, driver);
   const visibleFields = fields.filter((f) => {
     if (!f.visibleWhen) return true;
     return evaluateCondition(f.visibleWhen, getValue);
