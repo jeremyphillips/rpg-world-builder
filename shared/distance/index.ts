@@ -1,1 +1,1 @@
-export * from './distance.types';
+export * from '../domain/distance';
