@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 
 import Button from '@mui/material/Button'
-import { AppTextField } from '@/ui/patterns/form'
+import { AppTextField } from '@/ui/primitives'
 import Typography from '@mui/material/Typography'
 import { AppAlert } from '@/ui/primitives'
 import CircularProgress from '@mui/material/CircularProgress'

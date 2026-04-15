@@ -6,7 +6,8 @@ export type AppTextFieldProps = TextFieldProps;
 
 /**
  * App-level text field: outlined MUI `TextField` with shared defaults.
- * Use anywhere (local state, controlled props). For react-hook-form, see {@link AppFormTextField}.
+ * Use anywhere (local state, controlled props). For react-hook-form, see
+ * `AppFormTextField` in `@/ui/patterns/form/AppFormTextField`.
  */
 export const AppTextField = forwardRef<HTMLDivElement, AppTextFieldProps>(
   function AppTextField(props, ref) {

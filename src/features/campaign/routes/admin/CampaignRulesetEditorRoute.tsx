@@ -11,7 +11,7 @@ import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import { AppTextField } from '@/ui/patterns/form';
+import { AppTextField } from '@/ui/primitives';
 
 import { JsonPreviewField } from '@/ui/patterns';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';

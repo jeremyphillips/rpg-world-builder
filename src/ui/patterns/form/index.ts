@@ -1,5 +1,4 @@
 export { default as AppForm } from './AppForm'
-export { AppTextField, type AppTextFieldProps } from './AppTextField'
 export {
   default as AppFormTextField,
   type AppFormTextFieldProps,

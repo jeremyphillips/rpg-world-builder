@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import Box from '@mui/material/Box'
-import { AppTextField } from '@/ui/patterns/form'
+import { AppTextField } from '@/ui/primitives'
 import IconButton from '@mui/material/IconButton'
 
 import SendIcon from '@mui/icons-material/Send'

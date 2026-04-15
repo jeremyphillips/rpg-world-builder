@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 
 import Button from '@mui/material/Button'
-import { AppTextField } from '@/ui/patterns/form'
+import { AppTextField } from '@/ui/primitives'
 import Typography from '@mui/material/Typography'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'

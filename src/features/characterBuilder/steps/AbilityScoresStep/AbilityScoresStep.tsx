@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import Box from '@mui/material/Box';
-import { AppTextField } from '@/ui/patterns/form';
+import { AppTextField } from '@/ui/primitives';
 import Typography from '@mui/material/Typography';
 import { useCharacterBuilder } from '@/features/characterBuilder/context';
 import { ABILITY_KEYS, type AbilityKey, type AbilityScoreValue } from '@/features/mechanics/domain/character';

@@ -78,7 +78,6 @@ export type { EditableSelectProps } from './form/editable/EditableSelect'
 export type { EditableNumberFieldProps } from './form/editable/EditableNumberField' 
 
 export { default as AppForm } from './form/AppForm'
-export { AppTextField, type AppTextFieldProps } from './form/AppTextField'
 export {
   default as AppFormTextField,
   type AppFormTextFieldProps,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import { AppTextField } from './AppTextField';
+import { AppTextField } from '@/ui/primitives';
 
 type JsonPreviewFieldProps = {
   label: string;

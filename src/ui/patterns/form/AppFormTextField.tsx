@@ -1,7 +1,7 @@
 import { Controller, useFormContext } from 'react-hook-form';
 import type { RegisterOptions } from 'react-hook-form';
 import { formGridStretchOutlinedSx, useFormLayoutStretch } from './FormLayoutStretchContext';
-import { AppTextField } from './AppTextField';
+import { AppTextField } from '@/ui/primitives';
 
 export type AppFormTextFieldProps = {
   name: string;

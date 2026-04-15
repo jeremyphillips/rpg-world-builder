@@ -5,7 +5,7 @@ import { useBuildingLinkPlacementReservedIds } from '@/features/content/location
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import { AppTextField } from '@/ui/patterns/form';
+import { AppTextField } from '@/ui/primitives';
 import Typography from '@mui/material/Typography';
 
 import type { Location } from '@/features/content/locations/domain/model/location';

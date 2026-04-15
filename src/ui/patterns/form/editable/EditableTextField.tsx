@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { AppTextField } from '../AppTextField'
+import { AppTextField } from '@/ui/primitives'
 import Button from '@mui/material/Button'
 import SaveIcon from '@mui/icons-material/Save'
 import EditableField from './EditableField'

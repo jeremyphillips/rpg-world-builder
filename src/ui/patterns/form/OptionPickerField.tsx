@@ -14,7 +14,7 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
-import { AppTextField } from './AppTextField'
+import { AppTextField } from '@/ui/primitives'
 import Typography from '@mui/material/Typography'
 import MuiLink from '@mui/material/Link'
 

@@ -18,7 +18,7 @@ import {
   Select,
   Typography,
 } from '@mui/material';
-import { AppTextField } from './AppTextField';
+import { AppTextField } from '@/ui/primitives';
 import type { FieldConfig } from './form.types';
 import type { Visibility } from '@/shared/types/visibility';
 import { formGridStretchOutlinedSx, useFormLayoutStretch } from './FormLayoutStretchContext';

@@ -1,5 +1,6 @@
 import Stack from '@mui/material/Stack';
-import { AppFormTextField, AppTextField } from '@/ui/patterns/form';
+import { AppFormTextField } from '@/ui/patterns/form';
+import { AppTextField } from '@/ui/primitives';
 
 /** Controlled name + description for Selection rail (e.g. path inspector). */
 export type RailNameDescriptionFieldsProps = {

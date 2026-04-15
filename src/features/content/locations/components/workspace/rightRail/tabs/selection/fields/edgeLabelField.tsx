@@ -1,4 +1,4 @@
-import { AppTextField } from '@/ui/patterns/form';
+import { AppTextField } from '@/ui/primitives';
 
 export type EdgeLabelFieldProps = {
   value: string;

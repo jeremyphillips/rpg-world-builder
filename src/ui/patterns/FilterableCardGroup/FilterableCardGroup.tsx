@@ -2,7 +2,7 @@ import { useState, useMemo, type ReactNode } from 'react'
 
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
-import { AppTextField } from '@/ui/patterns/form'
+import { AppTextField } from '@/ui/primitives'
 import MenuItem from '@mui/material/MenuItem'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
