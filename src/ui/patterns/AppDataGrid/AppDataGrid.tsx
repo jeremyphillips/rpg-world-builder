@@ -10,7 +10,7 @@ import {
 import Box from '@mui/material/Box'
 import GlobalStyles from '@mui/material/GlobalStyles'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/patterns/form'
 import MenuItem from '@mui/material/MenuItem'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
@@ -458,7 +458,7 @@ export default function AppDataGrid<T>({
           sx={{ mb: 2, alignItems: 'center', flexWrap: 'wrap' }}
         >
           {searchable && (
-            <TextField
+            <AppTextField
               size="small"
               placeholder={searchPlaceholder}
               value={search}
@@ -480,7 +480,7 @@ export default function AppDataGrid<T>({
             switch (f.type) {
               case 'select':
                 return (
-                  <TextField
+                  <AppTextField
                     key={f.id}
                     select
                     size="small"
@@ -494,11 +494,11 @@ export default function AppDataGrid<T>({
                         {opt.label}
                       </MenuItem>
                     ))}
-                  </TextField>
+                  </AppTextField>
                 )
               case 'multiSelect':
                 return (
-                  <TextField
+                  <AppTextField
                     key={f.id}
                     select
                     size="small"
@@ -519,11 +519,11 @@ export default function AppDataGrid<T>({
                         {opt.label}
                       </MenuItem>
                     ))}
-                  </TextField>
+                  </AppTextField>
                 )
               case 'boolean':
                 return (
-                  <TextField
+                  <AppTextField
                     key={f.id}
                     select
                     size="small"
@@ -535,7 +535,7 @@ export default function AppDataGrid<T>({
                     <MenuItem value="all">All</MenuItem>
                     <MenuItem value="true">{f.trueLabel ?? 'Yes'}</MenuItem>
                     <MenuItem value="false">{f.falseLabel ?? 'No'}</MenuItem>
-                  </TextField>
+                  </AppTextField>
                 )
             }
           })}

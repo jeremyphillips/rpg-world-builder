@@ -21,7 +21,7 @@ type FormSelectFieldProps = {
   required?: boolean;
   disabled?: boolean;
   placeholder?: string;
-  /** Passed to MUI `FormControl` / `Select`. Default `medium` matches `FormTextField`; theme sets `MuiSelect` to `small`. */
+  /** Passed to MUI `FormControl` / `Select`. Default `medium` matches `AppFormTextField`; theme sets `MuiSelect` to `small`. */
   size?: 'small' | 'medium';
   /** Fires after the field value updates (e.g. action selects without submitting a form). */
   onAfterChange?: (value: string) => void;

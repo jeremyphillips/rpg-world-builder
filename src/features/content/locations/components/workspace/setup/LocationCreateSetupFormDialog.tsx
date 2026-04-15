@@ -34,7 +34,7 @@ import {
 import type { GridSizePreset } from '@/shared/domain/grid/gridPresets';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import { AppModal } from '@/ui/patterns';
-import { AppForm, FormCheckboxField, FormSelectField, FormTextField } from '@/ui/patterns/form';
+import { AppForm, AppFormTextField, FormCheckboxField, FormSelectField } from '@/ui/patterns/form';
 import FormOptionPickerField from '@/ui/patterns/form/FormOptionPickerField';
 
 const FORM_ID = 'location-create-setup-form';
@@ -239,7 +239,7 @@ function LocationCreateSetupFormFields({
 
   return (
     <>
-      <FormTextField name="name" label="Name" required disabled={formDisabled} />
+      <AppFormTextField name="name" label="Name" required disabled={formDisabled} />
 
       <FormSelectField
         name="scale"

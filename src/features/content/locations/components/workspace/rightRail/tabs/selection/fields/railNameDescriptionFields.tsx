@@ -1,7 +1,5 @@
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-
-import FormTextField from '@/ui/patterns/form/FormTextField';
+import { AppFormTextField, AppTextField } from '@/ui/patterns/form';
 
 /** Controlled name + description for Selection rail (e.g. path inspector). */
 export type RailNameDescriptionFieldsProps = {
@@ -23,14 +21,14 @@ export function RailNameDescriptionFields({
 }: RailNameDescriptionFieldsProps) {
   return (
     <Stack spacing={2}>
-      <TextField
+      <AppTextField
         label={nameLabel}
         size="small"
         value={name}
         onChange={(e) => onNameChange(e.target.value)}
         fullWidth
       />
-      <TextField
+      <AppTextField
         label={descriptionLabel}
         size="small"
         value={description}
@@ -44,7 +42,7 @@ export function RailNameDescriptionFields({
 }
 
 /**
- * RHF-backed name + description using shared `FormTextField` patterns.
+ * RHF-backed name + description using {@link AppFormTextField}.
  * Must render under `FormProvider` (e.g. region metadata form).
  */
 export type RailNameDescriptionFormFieldsProps = {
@@ -66,14 +64,14 @@ export function RailNameDescriptionFormFields({
 }: RailNameDescriptionFormFieldsProps) {
   return (
     <Stack spacing={2}>
-      <FormTextField
+      <AppFormTextField
         name={nameFieldName}
         label={nameLabel}
         required={nameRequired}
         size="small"
         onAfterChange={onNameAfterChange}
       />
-      <FormTextField name={descriptionFieldName} label={descriptionLabel} multiline rows={3} size="small" />
+      <AppFormTextField name={descriptionFieldName} label={descriptionLabel} multiline rows={3} size="small" />
     </Stack>
   );
 }

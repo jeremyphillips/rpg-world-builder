@@ -1,6 +1,7 @@
 export { default as CampaignsRoute } from './CampaignsRoute'
 export { default as DashboardRoute } from './DashboardRoute'
-export { default as CampaignRoute } from './CampaignRoute'
+export { default as CampaignLayoutRoute } from './CampaignLayoutRoute'
+export { default as CampaignHubRoute } from './CampaignHubRoute'
 export { default as PartyRoute } from './PartyRoute'
 export { default as RulesRoute } from './RulesRoute'
 export { WorldLayout } from './world'

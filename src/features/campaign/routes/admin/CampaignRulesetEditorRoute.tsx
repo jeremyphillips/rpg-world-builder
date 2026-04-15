@@ -11,7 +11,7 @@ import Divider from '@mui/material/Divider';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
+import { AppTextField } from '@/ui/patterns/form';
 
 import { JsonPreviewField } from '@/ui/patterns';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
@@ -185,7 +185,7 @@ function ContentRuleEditor({
     <Box>
       <Typography variant="subtitle2" sx={{ mb: 1 }}>{label}</Typography>
 
-      <TextField
+      <AppTextField
         select
         size="small"
         value={policy}
@@ -196,7 +196,7 @@ function ContentRuleEditor({
       >
         <MenuItem value="all_except">Allow all except…</MenuItem>
         <MenuItem value="only">Allow only…</MenuItem>
-      </TextField>
+      </AppTextField>
 
       <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
         <Button size="small" variant="text" onClick={onSelectAll}>Select all</Button>
@@ -471,7 +471,7 @@ export default function CampaignRulesetEditorRoute() {
               label="Multiclassing enabled"
             />
 
-            <TextField
+            <AppTextField
               label="Min level to multiclass"
               type="number"
               size="small"
@@ -481,7 +481,7 @@ export default function CampaignRulesetEditorRoute() {
               sx={{ maxWidth: 220 }}
             />
 
-            <TextField
+            <AppTextField
               label="Max classes (blank = unlimited)"
               type="number"
               size="small"
@@ -491,7 +491,7 @@ export default function CampaignRulesetEditorRoute() {
               sx={{ maxWidth: 220 }}
             />
 
-            <TextField
+            <AppTextField
               label="XP mode"
               select
               size="small"
@@ -501,7 +501,7 @@ export default function CampaignRulesetEditorRoute() {
             >
               <MenuItem value="shared">Shared</MenuItem>
               <MenuItem value="per_class">Per Class</MenuItem>
-            </TextField>
+            </AppTextField>
 
             <Divider />
 

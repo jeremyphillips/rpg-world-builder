@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import Divider from '@mui/material/Divider'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/patterns/form'
 import Typography from '@mui/material/Typography'
 
 import { AppModal } from '@/ui/patterns'
@@ -64,7 +64,7 @@ export function CombatTargetSelectModal({
       secondaryAction={{ label: 'Cancel', onClick: onClose }}
     >
       <Stack spacing={2}>
-        <TextField
+        <AppTextField
           fullWidth
           size="small"
           placeholder="Filter combatants…"

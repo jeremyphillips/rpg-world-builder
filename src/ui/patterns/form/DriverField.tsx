@@ -16,9 +16,9 @@ import {
   Radio,
   RadioGroup,
   Select,
-  TextField,
   Typography,
 } from '@mui/material';
+import { AppTextField } from './AppTextField';
 import type { FieldConfig } from './form.types';
 import type { Visibility } from '@/shared/types/visibility';
 import { formGridStretchOutlinedSx, useFormLayoutStretch } from './FormLayoutStretchContext';
@@ -120,7 +120,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
     case 'text':
       return (
         <Box sx={stretchColumnSx}>
-          <TextField
+          <AppTextField
           label={field.label}
           fullWidth
           sx={stretch && !field.multiline ? formGridStretchOutlinedSx : undefined}
@@ -143,7 +143,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
     case 'textarea':
       return (
         <Box>
-          <TextField
+          <AppTextField
             label={field.label}
             fullWidth
             multiline
@@ -303,7 +303,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
     case 'datetime':
       return (
         <Box>
-          <TextField
+          <AppTextField
             label={field.label}
             fullWidth
             type="datetime-local"

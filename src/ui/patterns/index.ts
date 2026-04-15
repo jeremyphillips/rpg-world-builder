@@ -78,7 +78,11 @@ export type { EditableSelectProps } from './form/editable/EditableSelect'
 export type { EditableNumberFieldProps } from './form/editable/EditableNumberField' 
 
 export { default as AppForm } from './form/AppForm'
-export { default as FormTextField } from './form/FormTextField'
+export { AppTextField, type AppTextFieldProps } from './form/AppTextField'
+export {
+  default as AppFormTextField,
+  type AppFormTextFieldProps,
+} from './form/AppFormTextField'
 export { default as FormSelectField } from './form/FormSelectField'
 export { default as FormRadioField } from './form/FormRadioField'
 export { default as FormCheckboxField } from './form/FormCheckboxField'

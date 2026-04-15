@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 
 import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/patterns/form'
 import Typography from '@mui/material/Typography'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
@@ -158,7 +158,7 @@ export default function EditWealthModal({
     onChange: (v: number) => void,
     opts?: { min?: number },
   ) => (
-    <TextField
+    <AppTextField
       label={label}
       type="number"
       size="small"

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/patterns/form'
 import Typography from '@mui/material/Typography'
 
 import { AppAvatar } from '@/ui/primitives'
@@ -70,7 +70,7 @@ export function SelectEntityModal({
       <Stack spacing={2}>
         {headerSlot}
 
-        <TextField
+        <AppTextField
           fullWidth
           size="small"
           placeholder={filterPlaceholder}

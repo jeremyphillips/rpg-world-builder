@@ -1,4 +1,4 @@
-import TextField from '@mui/material/TextField';
+import { AppTextField } from '@/ui/patterns/form';
 
 export type EdgeLabelFieldProps = {
   value: string;
@@ -8,7 +8,7 @@ export type EdgeLabelFieldProps = {
 
 export function EdgeLabelField({ value, onChange, label = 'Label' }: EdgeLabelFieldProps) {
   return (
-    <TextField
+    <AppTextField
       label={label}
       size="small"
       value={value}

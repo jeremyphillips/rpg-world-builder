@@ -26,7 +26,7 @@ import type { GameSessionPatch } from '../api/gameSessionApi'
 import type { GameSession, GameSessionStatus } from '../domain/game-session.types'
 import FormDateTimeField from '@/ui/patterns/form/FormDateTimeField'
 import FormSelectField from '@/ui/patterns/form/FormSelectField'
-import FormTextField from '@/ui/patterns/form/FormTextField'
+import AppFormTextField from '@/ui/patterns/form/AppFormTextField'
 import {
   ConfirmModal,
   EntitySummaryCard,
@@ -407,7 +407,7 @@ function GameSessionSetupFormFields({
         lobby now. Status is updated by those actions, not by a separate control.
       </Typography>
 
-      <FormTextField name="title" label="Session title" required size="small" disabled={!canEdit} />
+      <AppFormTextField name="title" label="Session title" required size="small" disabled={!canEdit} />
       <FormDateTimeField name="scheduledFor" label="Scheduled start" disabled={!canEdit} />
       <Typography variant="caption" color="text.secondary" display="block">
         Planned start is for display and planning only. The lobby does not open automatically at this

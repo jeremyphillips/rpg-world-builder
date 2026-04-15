@@ -10,7 +10,7 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/patterns/form'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
@@ -161,7 +161,7 @@ const ConfirmationStep = () => {
         <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: '0.08em' }}>
           Character Name
         </Typography>
-        <TextField
+        <AppTextField
           fullWidth
           size="small"
           placeholder="Optional — will be generated"

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 
 import Button from '@mui/material/Button'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/patterns/form'
 import Typography from '@mui/material/Typography'
 import { AppAlert } from '@/ui/primitives'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -138,7 +138,7 @@ export default function AwardXpModal({
       >
         {error && <AppAlert tone="danger" sx={{ mb: 2 }}>{error}</AppAlert>}
 
-        <TextField
+        <AppTextField
           label="XP to award"
           type="number"
           value={amount}

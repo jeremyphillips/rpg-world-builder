@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import { useFormContext, useWatch } from 'react-hook-form';
 import type { FieldConfig } from './form.types';
 import { useFormLayoutStretch } from './FormLayoutStretchContext';
-import FormTextField from './FormTextField';
+import AppFormTextField from './AppFormTextField';
 import FormSelectField from './FormSelectField'
 import FormRadioField from './FormRadioField'
 import FormCheckboxField from './FormCheckboxField'
@@ -71,7 +71,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'text':
       return (
         <FieldWithDescription field={field}>
-          <FormTextField
+          <AppFormTextField
           name={field.name}
           label={field.label}
           required={field.required}
@@ -86,7 +86,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'textarea':
       return (
         <FieldWithDescription field={field}>
-          <FormTextField
+          <AppFormTextField
             name={field.name}
             label={field.label}
             required={field.required}

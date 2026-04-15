@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Outlet, Navigate, useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../providers/AuthProvider'
 import { useNotifications } from '../../providers/NotificationProvider'
 import { useActiveCampaign } from '../../providers/ActiveCampaignProvider'
@@ -25,6 +25,8 @@ import type { Campaign } from '@/shared/types/campaign.types'
 import type { SxProps, Theme } from '@mui/material/styles'
 import { HEADER_HEIGHT } from './auth-layout.constants'
 import { isAuthMainFocusPath } from './auth-main-path'
+import { layoutWidthModeFromMatches } from '@/app/routing/layoutWidth'
+import { AppContainer } from '@/ui/primitives'
 import { AuthDrawer } from './drawer/AuthDrawer'
 
 const CHROME_MAIN_SX: SxProps<Theme> = {
@@ -50,7 +52,9 @@ export default function AuthLayout() {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications()
   const { campaignId: activeCampaignId, campaign: activeCampaignData, setActiveCampaign, clearActiveCampaign } = useActiveCampaign()
   const location = useLocation()
+  const matches = useMatches()
   const navigate = useNavigate()
+  const layoutWidthMode = layoutWidthModeFromMatches(matches)
 
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -250,7 +254,13 @@ export default function AuthLayout() {
         )}
 
         <Box key="main-outlet" component="main" sx={isFocus ? FOCUS_MAIN_SX : CHROME_MAIN_SX}>
-          <Outlet />
+          {layoutWidthMode === 'contained' ? (
+            <AppContainer>
+              <Outlet />
+            </AppContainer>
+          ) : (
+            <Outlet />
+          )}
         </Box>
       </Box>
     </Box>

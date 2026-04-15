@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '../AppTextField'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import SaveIcon from '@mui/icons-material/Save'
@@ -52,7 +52,7 @@ export default function EditableNumberField({
       )}
       renderEdit={({ onSave: save, onClose, saving }) => (
         <>
-          <TextField
+          <AppTextField
             type="number"
             value={local}
             onChange={(e) => setLocal(e.target.value)}

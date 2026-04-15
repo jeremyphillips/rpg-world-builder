@@ -2,7 +2,7 @@ import { useState, useMemo, type ReactNode } from 'react'
 
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/patterns/form'
 import MenuItem from '@mui/material/MenuItem'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
@@ -72,7 +72,7 @@ export default function FilterableCardGroup<T>({
     <Box>
       {/* Toolbar */}
       <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-        <TextField
+        <AppTextField
           size="small"
           placeholder={searchPlaceholder}
           value={search}
@@ -89,7 +89,7 @@ export default function FilterableCardGroup<T>({
           sx={{ minWidth: 260 }}
         />
         {filterOptions && filterOptions.length > 0 && (
-          <TextField
+          <AppTextField
             select
             size="small"
             value={filter}
@@ -102,7 +102,7 @@ export default function FilterableCardGroup<T>({
                 {opt.label}
               </MenuItem>
             ))}
-          </TextField>
+          </AppTextField>
         )}
       </Stack>
 

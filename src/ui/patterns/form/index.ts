@@ -1,5 +1,9 @@
 export { default as AppForm } from './AppForm'
-export { default as FormTextField } from './FormTextField'
+export { AppTextField, type AppTextFieldProps } from './AppTextField'
+export {
+  default as AppFormTextField,
+  type AppFormTextFieldProps,
+} from './AppFormTextField'
 export { default as FormSelectField } from './FormSelectField'
 export { default as FormRadioField } from './FormRadioField'
 export { default as FormCheckboxField } from './FormCheckboxField'

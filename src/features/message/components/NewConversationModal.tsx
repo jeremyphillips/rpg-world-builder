@@ -13,7 +13,7 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import Checkbox from '@mui/material/Checkbox'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/patterns/form'
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -137,7 +137,7 @@ export const NewConversationModal = ({
           )
         ) : (
           <Box>
-            <TextField
+            <AppTextField
               label="Group name (optional)"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}

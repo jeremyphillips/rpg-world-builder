@@ -4,8 +4,6 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import EditIcon from '@mui/icons-material/Edit';
-import { AppContainer } from '@/ui/primitives';
-
 import type { Visibility } from '@/shared/types/visibility';
 import type { ContentSource } from '@/features/content/shared/domain/types';
 import { AppPageHeader, VisibilityBadge } from '@/ui/patterns';
@@ -37,58 +35,56 @@ const ContentDetailScaffold = ({
   const isRestricted = policyScope === 'restricted' || policyScope === 'dm';
 
   return (
-    <AppContainer>
-      <Box>
-        <AppPageHeader
-          headline={title}
-          breadcrumbData={breadcrumbData}
-          actions={[
-            <Button
-              key="back"
-              component={Link}
-              to={listPath}
-              size="small"
-              startIcon={<ChevronLeftIcon />}
-            >
-              Back to list
-            </Button>,
-          ]}
-        />
+    <Box>
+      <AppPageHeader
+        headline={title}
+        breadcrumbData={breadcrumbData}
+        actions={[
+          <Button
+            key="back"
+            component={Link}
+            to={listPath}
+            size="small"
+            startIcon={<ChevronLeftIcon />}
+          >
+            Back to list
+          </Button>,
+        ]}
+      />
 
-        {/* {source === 'system' && (
+      {/* {source === 'system' && (
           <AppAlert tone="info" sx={{ mb: 2 }}>
             This is a system entry and is not editable.
           </Alert>
         )} */}
 
-        {isRestricted && source === 'campaign' && (
-          <AppAlert tone="warning" sx={{ mb: 2 }}>
-            This content has restricted visibility — not all campaign members can see it.
-          </AppAlert>
-        )}
+      {isRestricted && source === 'campaign' && (
+        <AppAlert tone="warning" sx={{ mb: 2 }}>
+          This content has restricted visibility — not all campaign members can see it.
+        </AppAlert>
+      )}
 
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            {canEdit && (
-              <Button
-                component={Link}
-                to={editPath}
-                variant="contained"
-                size="small"
-                startIcon={<EditIcon />}
-              >
-                Edit
-              </Button>
-            )}
-            {accessPolicy && accessPolicy.scope !== 'public' && (
-              <VisibilityBadge visibility={accessPolicy} />
-            )}
-          </Stack>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          {canEdit && (
+            <Button
+              component={Link}
+              to={editPath}
+              variant="contained"
+              size="small"
+              startIcon={<EditIcon />}
+            >
+              Edit
+            </Button>
+          )}
+          {accessPolicy && accessPolicy.scope !== 'public' && (
+            <VisibilityBadge visibility={accessPolicy} />
+          )}
         </Stack>
+      </Stack>
 
-        {children}
-      </Box>
-    </AppContainer>
+      {children}
+    </Box>
   );
 };
 

@@ -1,9 +1,9 @@
-import { TextField } from '@mui/material';
 import { Controller, useFormContext } from 'react-hook-form';
 import type { RegisterOptions } from 'react-hook-form';
 import { formGridStretchOutlinedSx, useFormLayoutStretch } from './FormLayoutStretchContext';
+import { AppTextField } from './AppTextField';
 
-type FormTextFieldProps = {
+export type AppFormTextFieldProps = {
   name: string;
   label: string;
   required?: boolean;
@@ -18,7 +18,11 @@ type FormTextFieldProps = {
   onAfterChange?: (value: string) => void;
 };
 
-export default function FormTextField({
+/**
+ * react-hook-form adapter: binds {@link AppTextField} via `Controller` + `useFormContext`.
+ * Must render under `FormProvider`.
+ */
+export default function AppFormTextField({
   name,
   label,
   required,
@@ -30,7 +34,7 @@ export default function FormTextField({
   rules,
   size = 'medium',
   onAfterChange,
-}: FormTextFieldProps) {
+}: AppFormTextFieldProps) {
   const { control } = useFormContext();
   const stretch = useFormLayoutStretch();
 
@@ -43,7 +47,7 @@ export default function FormTextField({
         required: required ? `${label} is required` : false,
       }}
       render={({ field, fieldState }) => (
-        <TextField
+        <AppTextField
           {...field}
           onChange={(e) => {
             const v = e.target.value;

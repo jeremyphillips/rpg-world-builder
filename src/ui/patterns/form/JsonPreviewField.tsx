@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
+import { AppTextField } from './AppTextField';
 
 type JsonPreviewFieldProps = {
   label: string;
@@ -54,7 +54,7 @@ const JsonPreviewField = ({
 
   return (
     <Box>
-      <TextField
+      <AppTextField
         label={label}
         required={required}
         multiline
