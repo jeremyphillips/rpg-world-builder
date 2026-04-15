@@ -1,9 +1,7 @@
 /**
- * Enriched display metadata for authored spell tier (`0` = cantrip). Numeric `SpellLevel` remains the
- * source of truth in spell data; this module owns labels, headings, and short forms for UI.
+ * Enriched display metadata for authored spell tier (`0` = cantrip). This array is the source of truth
+ * for which numeric levels exist; `SpellLevel` is derived from `id` values.
  */
-import { SPELL_LEVELS, type SpellLevel } from './types/spell.types';
-
 export const SPELL_LEVEL_DEFINITIONS = [
   { id: 0, name: 'Cantrip', heading: 'Cantrips', shortName: 'Cantrip', ordinal: 'Cantrip' },
   { id: 1, name: '1st Level', heading: '1st Level', shortName: '1st', ordinal: '1st' },
@@ -15,9 +13,12 @@ export const SPELL_LEVEL_DEFINITIONS = [
   { id: 7, name: '7th Level', heading: '7th Level', shortName: '7th', ordinal: '7th' },
   { id: 8, name: '8th Level', heading: '8th Level', shortName: '8th', ordinal: '8th' },
   { id: 9, name: '9th Level', heading: '9th Level', shortName: '9th', ordinal: '9th' },
-] as const satisfies readonly { id: SpellLevel; name: string; heading: string; shortName: string; ordinal: string }[];
+] as const;
 
 export type SpellLevelDefinition = (typeof SPELL_LEVEL_DEFINITIONS)[number];
+
+/** Authored spell tier (`0` = cantrip); aligned with `SPELL_LEVEL_DEFINITIONS` `id` values. */
+export type SpellLevel = SpellLevelDefinition['id'];
 
 const SPELL_LEVEL_DEFINITION_BY_ID: ReadonlyMap<SpellLevel, SpellLevelDefinition> = new Map(
   SPELL_LEVEL_DEFINITIONS.map((row) => [row.id, row]),
@@ -26,7 +27,7 @@ const SPELL_LEVEL_DEFINITION_BY_ID: ReadonlyMap<SpellLevel, SpellLevelDefinition
 export { SPELL_LEVEL_DEFINITION_BY_ID };
 
 export function isSpellLevel(n: number): n is SpellLevel {
-  return Number.isInteger(n) && n >= SPELL_LEVELS[0] && n <= SPELL_LEVELS[SPELL_LEVELS.length - 1];
+  return Number.isInteger(n) && SPELL_LEVEL_DEFINITION_BY_ID.has(n as SpellLevel);
 }
 
 export function getSpellLevelDefinition(level: SpellLevel): SpellLevelDefinition {

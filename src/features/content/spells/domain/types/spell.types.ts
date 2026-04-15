@@ -17,6 +17,9 @@ import type { SpellCastingTimeDurationUnit, TimeUnit } from '@/shared/domain/tim
 import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
 import type { ContentResolutionMeta } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { CasterOptionField } from '@/features/mechanics/domain/spells/caster-options';
+import type { SpellLevel } from '../spellLevel.definitions';
+
+export type { SpellLevel };
 
 /** Authored spell outcomes — never `kind: 'targeting'` (targeting lives on the group). */
 export type SpellEffect = Exclude<Effect, { kind: 'targeting' }>;
@@ -35,10 +38,6 @@ export type SpellTags = {
   roles?: SpellRoleTag[];
   functions?: SpellFunctionTag[];
 };
-
-/** Single source of truth for authored spell tier (0 = cantrip). */
-export const SPELL_LEVELS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
-export type SpellLevel = (typeof SPELL_LEVELS)[number];
 
 export type SpellRange =
   | { kind: Extract<SpellRangeKind, 'self'> }

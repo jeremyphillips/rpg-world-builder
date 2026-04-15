@@ -2,8 +2,7 @@
  * Spell form field registry — simple FieldSpecs + composite UI fields (no parse; assembly handles nested domain).
  */
 import type { CharacterClass } from '@/features/content/classes/domain/types';
-import type { Spell, SpellInput, SpellLevel } from '@/features/content/spells/domain/types';
-import { SPELL_LEVELS } from '@/features/content/spells/domain/types/spell.types';
+import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import { when } from '@/ui/patterns';
 import { type FieldSpec } from '@/features/content/shared/forms/registry';
@@ -12,7 +11,12 @@ import { getSystemClasses } from '@/features/mechanics/domain/rulesets/system/cl
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import type { SpellFormValues } from '../types/spellForm.types';
 import { spellComponentsPatchBindings } from '../spellComponentsPatchBinding';
-import { formatSpellLevelShort, SPELL_CORE_UI } from '../../spellPresentation';
+import {
+  formatSpellLevelShort,
+  isSpellLevel,
+  SPELL_CORE_UI,
+  SPELL_LEVEL_DEFINITIONS,
+} from '../../spellPresentation';
 import {
   SPELL_CASTING_TIME_UNIT_OPTIONS,
   SPELL_COMPONENT_CHECKBOX_OPTIONS,
@@ -25,9 +29,9 @@ import {
   SPELL_TRIGGER_SELECT_OPTIONS,
 } from '../options/spellForm.options';
 
-const SPELL_LEVEL_SELECT_OPTIONS = SPELL_LEVELS.map((lvl) => ({
-  value: String(lvl),
-  label: formatSpellLevelShort(lvl),
+const SPELL_LEVEL_SELECT_OPTIONS = SPELL_LEVEL_DEFINITIONS.map((row) => ({
+  value: String(row.id),
+  label: formatSpellLevelShort(row.id),
 }));
 
 export type SpellFormFieldsOptions = {
@@ -154,13 +158,11 @@ export function getSpellSimpleFieldSpecs(
       required: true,
       options: SPELL_LEVEL_SELECT_OPTIONS,
       placeholder: 'Select level',
-      // defaultValue: String(SPELL_LEVELS[0]) as SpellFormValues['level'],
+      // defaultValue: String(SPELL_LEVEL_DEFINITIONS[0].id) as SpellFormValues['level'],
       parse: (v: unknown) => {
         if (v === '' || v == null) return undefined;
         const n = Number(v);
-        return SPELL_LEVELS.includes(n as SpellLevel)
-          ? (n as SpellInput['level'])
-          : undefined;
+        return isSpellLevel(n) ? (n as SpellInput['level']) : undefined;
       },
       format: (v: unknown) => numToStr(v),
       group: {
