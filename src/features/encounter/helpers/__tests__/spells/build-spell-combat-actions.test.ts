@@ -1,10 +1,34 @@
 import { describe, expect, it } from 'vitest'
 
-import type { Spell } from '@/features/content/spells/domain/types/spell.types'
+import type { Spell, SpellEffect, SpellEffectTargeting } from '@/features/content/spells/domain/types/spell.types'
+import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { isHostileAction } from '@/features/mechanics/domain/combat'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import { getSystemSpell } from '@/features/mechanics/domain/rulesets/system/spells'
 import { buildSpellCombatActions, deriveSpellHostility } from '../../spells'
+
+/** Test helper: old flat `effects` rows (including `kind: 'targeting'`) → `effectGroups`. */
+function flatEffectsToGroups(flat: Effect[]): Spell['effectGroups'] {
+  const groups: Spell['effectGroups'] = []
+  let current: { targeting?: SpellEffectTargeting; effects: SpellEffect[] } = { effects: [] }
+  for (const e of flat) {
+    if (e.kind === 'targeting') {
+      if (current.targeting !== undefined) {
+        groups.push(current)
+        current = { effects: [] }
+      }
+      const { kind: _k, ...rest } = e as Extract<Effect, { kind: 'targeting' }>
+      current.targeting = rest as SpellEffectTargeting
+    } else {
+      current.effects.push(e as SpellEffect)
+    }
+  }
+  if (current.targeting !== undefined || current.effects.length > 0) {
+    groups.push(current)
+  }
+  return groups
+}
+
 describe('buildSpellCombatActions', () => {
   const baseArgs = {
     runtimeId: 'pc-1',
@@ -13,7 +37,10 @@ describe('buildSpellCombatActions', () => {
     casterLevel: 1,
   }
 
-  function makeSpell(partial: Partial<Spell> & Pick<Spell, 'id' | 'name' | 'effects'>): Spell {
+  function makeSpell(
+    partial: Partial<Spell> & Pick<Spell, 'id' | 'name'> & { effects?: Effect[] },
+  ): Spell {
+    const { effects, ...rest } = partial
     return {
       school: 'evocation',
       level: 0,
@@ -23,7 +50,8 @@ describe('buildSpellCombatActions', () => {
       duration: { kind: 'instantaneous' },
       components: { verbal: true, somatic: true },
       description: { full: '', summary: '' },
-      ...partial,
+      ...rest,
+      ...(effects ? { effectGroups: flatEffectsToGroups(effects) } : {}),
     } as Spell
   }
 

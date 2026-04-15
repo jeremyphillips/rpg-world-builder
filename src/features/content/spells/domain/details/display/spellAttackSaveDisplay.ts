@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { flattenSpellEffects } from '@/features/content/spells/domain/spellEffectGroups';
 import type { Spell } from '@/features/content/spells/domain/types';
 import type { Effect, SaveEffect } from '@/features/mechanics/domain/effects/effects.types';
 import { abilityIdToAbbrev } from '@/features/mechanics/domain/character';
@@ -16,7 +17,7 @@ export function formatSpellAttackSaveDisplay(spell: Spell): string {
   if (dm === 'melee-spell-attack') return 'Melee attack';
   if (dm === 'ranged-spell-attack') return 'Ranged attack';
 
-  const save = findFirstTopLevelSaveEffect(spell.effects);
+  const save = findFirstTopLevelSaveEffect(flattenSpellEffects(spell));
   if (save) {
     const abbr = abilityIdToAbbrev(save.save.ability);
     return `${abbr} save`;

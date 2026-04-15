@@ -1,3 +1,4 @@
+import { flattenSpellEffects } from '@/features/content/spells/domain/spellEffectGroups'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
@@ -9,7 +10,7 @@ export type BattlefieldAttachedSourceResolutionOptions = {
   monstersById?: Record<string, Monster>
 }
 
-/** Loads authored top-level `effects` for an attached aura (spell data or monster special action). */
+/** Loads authored spell effects (flattened groups) or monster action/trait effects for an attached aura. */
 export function getEffectsForAttachedBattlefieldSource(
   source: AttachedBattlefieldEffectSource,
   opts: BattlefieldAttachedSourceResolutionOptions,
@@ -18,7 +19,7 @@ export function getEffectsForAttachedBattlefieldSource(
     case 'spell': {
       if (typeof opts.spellLookup !== 'function') return []
       const spell = opts.spellLookup(source.spellId)
-      return spell?.effects ?? []
+      return spell ? flattenSpellEffects(spell) : []
     }
     case 'monster-action': {
       const monster = opts.monstersById?.[source.monsterId]

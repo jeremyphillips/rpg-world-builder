@@ -44,7 +44,7 @@ function campaignSpellDocToSpell(d: spellsService.CampaignSpellDoc): Spell {
     range: d.range,
     duration: d.duration,
     components: d.components,
-    effects: d.effects as Spell['effects'],
+    effectGroups: d.effectGroups as Spell['effectGroups'],
     ...(d.scaling !== undefined && { scaling: d.scaling as Spell['scaling'] }),
     ...(d.resolution !== undefined && { resolution: d.resolution as Spell['resolution'] }),
     ...(d.deliveryMethod !== undefined && {

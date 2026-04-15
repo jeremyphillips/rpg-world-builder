@@ -82,8 +82,8 @@ export function validateSpellInputBody(body: Record<string, unknown>): SpellVali
     errors.push({ path: 'classes', code: 'INVALID_TYPE', message: 'classes must be an array of strings' });
   }
 
-  if (!Array.isArray(body.effects)) {
-    errors.push({ path: 'effects', code: 'INVALID_TYPE', message: 'effects must be an array' });
+  if (!Array.isArray(body.effectGroups)) {
+    errors.push({ path: 'effectGroups', code: 'INVALID_TYPE', message: 'effectGroups must be an array' });
   }
 
   if (!isPlainObject(body.castingTime)) {

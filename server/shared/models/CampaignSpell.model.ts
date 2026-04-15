@@ -67,7 +67,7 @@ const campaignSpellSchema = new Schema(
     range: { type: Schema.Types.Mixed, required: true },
     duration: { type: Schema.Types.Mixed, required: true },
     components: { type: Schema.Types.Mixed, required: true },
-    effects: {
+    effectGroups: {
       type: Schema.Types.Mixed,
       default: [],
     },

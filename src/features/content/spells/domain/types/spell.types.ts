@@ -18,8 +18,16 @@ import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
 import type { ContentResolutionMeta } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { CasterOptionField } from '@/features/mechanics/domain/spells/caster-options';
 
-// later: Extract<Effect, ...>[]
-export type SpellEffects = Effect[];
+/** Authored spell outcomes — never `kind: 'targeting'` (targeting lives on the group). */
+export type SpellEffect = Exclude<Effect, { kind: 'targeting' }>;
+
+/** Targeting context for a spell effect group (same payload as legacy `TargetingEffect` minus `kind`). */
+export type SpellEffectTargeting = Omit<Extract<Effect, { kind: 'targeting' }>, 'kind'>;
+
+export type SpellEffectGroup = {
+  targeting?: SpellEffectTargeting;
+  effects: SpellEffect[];
+};
 
 export type SpellTags = {
   damageTypes?: DamageType[];
@@ -121,8 +129,8 @@ export type SpellScalingRule = {
 /** Encounter/combat adapter extras; keep spell effects as the primary payload. */
 export type SpellHpThresholdResolution = {
   maxHp: number
-  /** When target current HP is **greater** than `maxHp`, these effects apply instead of the spell’s main `effects` (after targeting is stripped). */
-  aboveMaxHpEffects: SpellEffects
+  /** When target current HP is **greater** than `maxHp`, these effects apply instead of the spell’s main payload. */
+  aboveMaxHpEffects: SpellEffect[]
 }
 
 export type SpellResolutionMeta = ContentResolutionMeta & {
@@ -153,7 +161,7 @@ export interface SpellBase {
   duration: SpellDuration;
   components: SpellComponents;
   deliveryMethod?: SpellDeliveryMethod;
-  effects: SpellEffects;
+  effectGroups: SpellEffectGroup[];
   scaling?: SpellScalingRule[];
   resolution?: SpellResolutionMeta;
   description: {

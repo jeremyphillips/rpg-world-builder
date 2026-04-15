@@ -8,6 +8,11 @@ export * from './forms';
 export { SPELL_DETAIL_SPECS } from './details/spellDetail.spec';
 export * from './list';
 export type { SpellLevelDefinition } from './spellPresentation';
+export {
+  flattenSpellEffects,
+  getPrimarySpellTargeting,
+  findSpellTargetingWithArea,
+} from './spellEffectGroups';
 
 export {
   SPELL_CORE_UI,

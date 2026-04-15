@@ -13,7 +13,7 @@ import type {
   SpellComponents,
   SpellDeliveryMethod,
   SpellDuration,
-  SpellEffects,
+  SpellEffectGroup,
   SpellInput,
   SpellLevel,
   SpellRange,
@@ -47,7 +47,7 @@ type CampaignSpellDto = {
   school: MagicSchool;
   level: SpellLevel;
   classes: ClassId[];
-  effects: SpellEffects;
+  effectGroups: SpellEffectGroup[];
   accessPolicy?: AccessPolicy;
   duration: SpellDuration;
   components: SpellComponents;
@@ -86,7 +86,7 @@ function toSpell(dto: CampaignSpellDto): Spell {
     scaling: dto.scaling,
     resolution: dto.resolution,
     deliveryMethod: dto.deliveryMethod,
-    effects: dto.effects as Spell['effects'],
+    effectGroups: dto.effectGroups as Spell['effectGroups'],
     source: 'campaign',
     campaignId: dto.campaignId,
     accessPolicy: dto.accessPolicy as Spell['accessPolicy'],

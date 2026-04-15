@@ -24,7 +24,7 @@ export type CampaignSpellDoc = {
   range: SpellRange;
   duration: SpellDuration;
   components: SpellComponents;
-  effects: unknown[];
+  effectGroups: unknown[];
   accessPolicy?: AccessPolicy;
   scaling?: unknown;
   resolution?: unknown;
@@ -101,7 +101,7 @@ function spellBodyToPersistence(
     range: body.range,
     duration: body.duration,
     components: body.components,
-    effects: Array.isArray(body.effects) ? body.effects : [],
+    effectGroups: Array.isArray(body.effectGroups) ? body.effectGroups : [],
     accessPolicy: body.accessPolicy,
   };
   if (body.scaling !== undefined) out.scaling = body.scaling;

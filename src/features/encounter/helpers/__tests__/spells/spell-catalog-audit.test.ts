@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Spell } from '@/features/content/spells/domain/types/spell.types'
+import type { Spell, SpellEffect } from '@/features/content/spells/domain/types/spell.types'
 import { getSystemSpells } from '@/features/mechanics/domain/rulesets/system/spells'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import {
@@ -48,7 +48,7 @@ describe('system spell catalog audit', () => {
 })
 
 describe('spell authoring audit helpers', () => {
-  function spellWithEffects(effects: Spell['effects']): Spell {
+  function spellWithEffects(effects: SpellEffect[]): Spell {
     return {
       id: 'audit-helper',
       name: 'Audit Helper',
@@ -60,7 +60,7 @@ describe('spell authoring audit helpers', () => {
       duration: { kind: 'instantaneous' },
       components: { verbal: true },
       description: { full: '', summary: '' },
-      effects,
+      effectGroups: [{ effects }],
     } as Spell
   }
 

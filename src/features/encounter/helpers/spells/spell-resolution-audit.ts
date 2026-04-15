@@ -1,13 +1,14 @@
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
+import { flattenSpellEffects } from '@/features/content/spells/domain/spellEffectGroups'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { classifySpellResolutionMode, isFullyActionableEffectKind } from './spell-resolution-classifier'
 
 export type MechanicalSupportLevel = 'none' | 'partial' | 'full'
 
-const SUPPORT_ONLY_KINDS = new Set<string>(['note', 'targeting'])
+const SUPPORT_ONLY_KINDS = new Set<string>(['note'])
 
 export function collectEffectKinds(spell: Spell): string[] {
-  const effects = spell.effects ?? []
+  const effects = flattenSpellEffects(spell)
   const kinds = new Set<string>()
   for (const e of effects) {
     kinds.add(e.kind)
@@ -16,7 +17,7 @@ export function collectEffectKinds(spell: Spell): string[] {
 }
 
 export function computeMechanicalSupportLevel(spell: Spell): MechanicalSupportLevel {
-  const effects = spell.effects ?? []
+  const effects = flattenSpellEffects(spell)
   if (effects.length === 0) return 'none'
   const kinds = collectEffectKinds(spell)
   const onlySupport = kinds.every((k) => SUPPORT_ONLY_KINDS.has(k))
@@ -52,7 +53,7 @@ export function walkNestedEffects(effects: Effect[] | undefined, visit: (e: Effe
 }
 
 export function computeSpellTargetingAuditFlags(spell: Spell): SpellTargetingAuditFlags {
-  const root = spell.effects ?? []
+  const root = flattenSpellEffects(spell)
   let hasInstances = false
   let hasChosenCreatures = false
   let hasCreaturesInArea = false
@@ -63,27 +64,31 @@ export function computeSpellTargetingAuditFlags(spell: Spell): SpellTargetingAud
 
   walkNestedEffects(root, (e) => {
     if (e.kind === 'damage' && e.instances) hasInstances = true
-    if (e.kind === 'targeting') {
-      if (e.target === 'chosen-creatures') hasChosenCreatures = true
-      if (e.target === 'creatures-in-area') hasCreaturesInArea = true
-      if (e.area) hasAreaOnTargeting = true
-      if (typeof e.count === 'number') maxCount = Math.max(maxCount, e.count)
-      if (e.canSelectSameTargetMultipleTimes) canRepeatTarget = true
-      if (typeof e.rangeFeet === 'number') rangeFeet = e.rangeFeet
-    }
   })
+
+  for (const g of spell.effectGroups ?? []) {
+    const t = g.targeting
+    if (!t) continue
+    if (t.target === 'chosen-creatures') hasChosenCreatures = true
+    if (t.target === 'creatures-in-area') hasCreaturesInArea = true
+    if (t.area) hasAreaOnTargeting = true
+    if (typeof t.count === 'number') maxCount = Math.max(maxCount, t.count)
+    if (t.canSelectSameTargetMultipleTimes) canRepeatTarget = true
+    if (typeof t.rangeFeet === 'number') rangeFeet = t.rangeFeet
+  }
 
   const hasMultipleTargets =
     maxCount > 1 || canRepeatTarget || hasCreaturesInArea || hasChosenCreatures || hasAreaOnTargeting
 
-  const hasExplicitCreatureTargeting = root.some(
-    (e) =>
-      e.kind === 'targeting' &&
-      (e.target === 'one-creature' ||
-        e.target === 'one-dead-creature' ||
-        e.target === 'chosen-creatures' ||
-        e.target === 'creatures-in-area'),
-  )
+  const hasExplicitCreatureTargeting =
+    spell.effectGroups?.some(
+      (g) =>
+        g.targeting &&
+        (g.targeting.target === 'one-creature' ||
+          g.targeting.target === 'one-dead-creature' ||
+          g.targeting.target === 'chosen-creatures' ||
+          g.targeting.target === 'creatures-in-area'),
+    ) ?? false
 
   const requiresTargetSelection =
     spell.range?.kind !== 'self' &&
@@ -110,7 +115,7 @@ export function computeSpellTargetingAuditFlags(spell: Spell): SpellTargetingAud
 export function computeAmbiguousDelivery(spell: Spell): boolean {
   const mode = classifySpellResolutionMode(spell)
   if (mode === 'attack-roll') return false
-  const effects = spell.effects ?? []
+  const effects = flattenSpellEffects(spell)
   const hasTopLevelDamage = effects.some((e) => e.kind === 'damage')
   if (!hasTopLevelDamage) return false
   if (effects.some((e) => e.kind === 'save')) return false
@@ -122,7 +127,7 @@ export function computeAmbiguousDelivery(spell: Spell): boolean {
 /** True if any `save` effect (including nested under saves) authors a numeric DC. Prefer leaving DC unset for caster-derived spell DCs per effects.md. */
 export function spellHasExplicitSaveDc(spell: Spell): boolean {
   let found = false
-  walkNestedEffects(spell.effects ?? [], (e) => {
+  walkNestedEffects(flattenSpellEffects(spell), (e) => {
     if (e.kind === 'save' && typeof e.save.dc === 'number') found = true
   })
   return found
@@ -132,14 +137,14 @@ export function spellHasExplicitSaveDc(spell: Spell): boolean {
  * Top-level `damage` alongside a top-level `save` on the same spell — often damage should live only under `save.onFail` / `onSuccess`.
  */
 export function spellHasTopLevelDamageAndSave(spell: Spell): boolean {
-  const root = spell.effects ?? []
+  const root = flattenSpellEffects(spell)
   return root.some((e) => e.kind === 'damage') && root.some((e) => e.kind === 'save')
 }
 
 /** Heuristic: spell attack delivery likely but `deliveryMethod` missing (review list only). */
 export function spellMissingDeliveryMethodAttackCandidate(spell: Spell): boolean {
   if (spell.deliveryMethod) return false
-  const root = spell.effects ?? []
+  const root = flattenSpellEffects(spell)
   if (!root.some((e) => e.kind === 'damage')) return false
   if (root.some((e) => e.kind === 'save')) return false
   const r = spell.range

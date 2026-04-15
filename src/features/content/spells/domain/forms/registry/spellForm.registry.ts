@@ -66,7 +66,7 @@ const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const strOrEmpty = (v: unknown): string => (v != null ? String(v) : '');
 const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);
 
-const parseEffectsJson = (v: unknown): SpellInput['effects'] | undefined => {
+const parseEffectGroupsJson = (v: unknown): SpellInput['effectGroups'] | undefined => {
   if (v == null || v === '') return undefined;
   if (typeof v !== 'string') return undefined;
   try {
@@ -77,7 +77,7 @@ const parseEffectsJson = (v: unknown): SpellInput['effects'] | undefined => {
   }
 };
 
-const formatEffectsJson = (v: unknown): string => {
+const formatEffectGroupsJson = (v: unknown): string => {
   if (v == null || !Array.isArray(v)) return '[]';
   try {
     return JSON.stringify(v, null, 2);
@@ -184,25 +184,25 @@ export function getSpellSimpleFieldSpecs(
         arrOrEmpty(v).filter((id) => id in allowedById) as SpellFormValues['classes'],
     },
     {
-      name: 'effects',
-      label: 'Effects',
+      name: 'effectGroups',
+      label: 'Effect groups',
       kind: 'json' as const,
-      placeholder: '[{ "kind": "note", "text": "..." }]',
+      placeholder: '[{ "targeting": { ... }, "effects": [{ "kind": "note", "text": "..." }] }]',
       helperText:
-        'Canonical effect objects with kind (e.g. note, modifier, grant, condition, save, activation).',
+        'Array of effect groups: optional targeting per group plus canonical effect objects (note, save, damage, …).',
       minRows: 4,
       maxRows: 16,
-      defaultValue: '[]' as SpellFormValues['effects'],
-      parse: (v: unknown) => parseEffectsJson(v),
-      format: (v: unknown) => formatEffectsJson(v),
+      defaultValue: '[]' as SpellFormValues['effectGroups'],
+      parse: (v: unknown) => parseEffectGroupsJson(v),
+      format: (v: unknown) => formatEffectGroupsJson(v),
       formatForDisplay: (v: unknown) => {
         const arr = Array.isArray(v) ? v : [];
-        return arr.length > 0 ? `${arr.length} effect(s)` : '—';
+        return arr.length > 0 ? `${arr.length} group(s)` : '—';
       },
       patchBinding: {
-        domainPath: 'effects',
-        parse: (v) => formatEffectsJson(v),
-        serialize: (ui, _cur) => parseEffectsJson(ui) ?? [],
+        domainPath: 'effectGroups',
+        parse: (v) => formatEffectGroupsJson(v),
+        serialize: (ui, _cur) => parseEffectGroupsJson(ui) ?? [],
       },
     },
   ];
@@ -568,7 +568,7 @@ export function getSpellFormFields(
     'accessPolicy',
     SPELL_CORE_UI.classes.key,
   ] as const;
-  const tailNames = ['effects', 'imageKey'] as const;
+  const tailNames = ['effectGroups', 'imageKey'] as const;
 
   return [...pickSpellFieldsByName(simple, headNames), ...composite, ...pickSpellFieldsByName(simple, tailNames)];
 }

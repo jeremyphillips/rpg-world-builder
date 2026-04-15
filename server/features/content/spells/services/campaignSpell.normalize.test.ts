@@ -11,7 +11,7 @@ describe('normalizeRawCampaignSpellToCanonical', () => {
       classes: ['wizard'],
       ritual: true,
       concentration: true,
-      effects: [],
+      effectGroups: [],
     });
     expect(out.description).toEqual({ full: 'Legacy full text', summary: '' });
     expect(out.castingTime.canBeCastAsRitual).toBe(true);
@@ -35,7 +35,7 @@ describe('normalizeRawCampaignSpellToCanonical', () => {
       range: { kind: 'self' },
       duration: { kind: 'instantaneous' },
       components: {},
-      effects: [],
+      effectGroups: [],
     });
     expect(out.description.summary).toBe('s');
     expect(out.duration.kind).toBe('instantaneous');

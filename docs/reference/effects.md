@@ -43,6 +43,7 @@ Boundaries:
 
 ### Spells
 
+- **`effectGroups`** — canonical authored payload for spell outcomes and per-group targeting (see **Spell `effectGroups`** below).
 - `castingTime` owns casting cadence, reaction trigger text, optional per-mode `label` (multi-mode spells), optional `alternate` modes only when the spell has distinct casting-time options, and `canBeCastAsRitual` at the `SpellCastingTime` level (not ritual flags on individual modes).
 - `range` owns placement distance.
 - `duration` owns spell duration and concentration by default.
@@ -51,9 +52,22 @@ Boundaries:
 - `description.full` is authoritative rules text.
 - `description.summary` is short UI copy.
 - **Catalog audit:** run `npm run test:run -- src/features/encounter/helpers/__tests__/spells/spell-catalog-audit.test.ts` for merged-system-spell metrics (stranded counts, ambiguous delivery, explicit `save.dc`, etc.). Counts are for reporting, not CI gates; see `spells/spell-resolution-audit.ts` and [resolution.md](./resolution.md) §7 “Spell combat adapter”.
-- **`resolution.hpThreshold`** — optional HP-gated branches: main `effects` when target current HP ≤ `maxHp`, `aboveMaxHpEffects` when above (combat adapter maps to `CombatActionDefinition`). Use for spells like Power Word Kill; keep rules text in `description.full`.
+- **`resolution.hpThreshold`** — optional HP-gated branches: effects from **`effectGroups`** (flattened) when target current HP ≤ `maxHp`, and **`aboveMaxHpEffects`** when above (combat adapter maps to `CombatActionDefinition`). Use for spells like Power Word Kill; keep rules text in `description.full`.
+
+#### Spell `effectGroups`
+
+Spells author **`effectGroups: SpellEffectGroup[]`** ([`spell.types.ts`](../../src/features/content/spells/domain/types/spell.types.ts)). Each group has:
+
+- **`targeting`** (optional): selection context — same fields as the shared **`targeting`** effect primitive, but **without** `kind` (not a row in the `SpellEffect` union).
+- **`effects`**: **`SpellEffect[]`** — shared `Effect` kinds **except** `kind: 'targeting'` (e.g. `save`, `damage`, `emanation`, `note`, `spawn`, …).
+
+Use **multiple groups** when the spell needs more than one targeting context (uncommon; most spells use a single group).
+
+Helpers: **`flattenSpellEffects`** concatenates every `group.effects` for audits and adapters; **`getPrimarySpellTargeting`** reads **`effectGroups[0]?.targeting`** for encounter behavior that previously used the first flat `targeting` row.
+
+**Other containers** (monster actions, traits, nested `onFail` / `interval.effects`, combat action payloads) still use **`Effect[]`** and may include **`{ kind: 'targeting', ... }`** where selection belongs in the effect list.
 - **`resolution.casterOptions`** — optional encounter choices (e.g. Hex disadvantage ability, Symbol glyph effect, Antipathy vs Sympathy). Shape: `CasterOptionField` in [`caster-options.ts`](../../packages/mechanics/src/spells/caster-options.ts): `kind: 'ability'` (`id`/`label`), `kind: 'enum'` (single-select, `options: { value, label }[]`), or `kind: 'enum-multi'` (multi-select; wire format in `ResolveCombatActionSelection.casterOptions` is **comma-separated sorted values** under the field `id`, via `serializeEnumMultiStored` / `parseEnumMultiStored`). The spell combat adapter copies these to `CombatActionDefinition.casterOptions`; encounter UI uses a dedicated spell-options drawer view and passes values into `ResolveCombatActionSelection.casterOptions` (keyed by field `id`). Resolution appends them to combat log summaries (`formatCasterOptionSummary`). Antipathy/Sympathy keeps authored values `antipathy` / `sympathy`; map to `frightened` / `charmed` via `ANTIPATHY_SYMPATHY_MODE_TO_CONDITION` / `getConditionFromAntipathySympathyMode` when applying conditions.
-- **Summon spells (ally creatures)** — spells that create or call creatures to fight alongside the party should eventually reference **catalog `Monster` ids** (same ids as `monstersById` in the ruleset) rather than opaque string tokens. Use **`resolution.casterOptions`** for caster-facing choices that affect which stat block applies: e.g. skeleton vs zombie, giant insect form, or “CR band” options for Conjure Minor Elementals / Conjure Woodland Beings. Pair structured choices with a **`spawn`** effect (see §13 `spawn`) and keep **`description.full`** authoritative for full 5e rules. Runtime behavior (adding combatants to the encounter’s **party** side, initiative placement, random pick from `type: 'fey'` / `type: 'elemental'` pools) is specified in [resolution.md — Summon spells and spawn](./resolution.md#summon-spells-and-spawn) and the [`spawn` row in the supported-effect matrix](./resolution.md#supported-effect-matrix).
+- **Summon spells (ally creatures)** — spells that create or call creatures to fight alongside the party should eventually reference **catalog `Monster` ids** (same ids as `monstersById` in the ruleset) rather than opaque string tokens. Use **`resolution.casterOptions`** for caster-facing choices that affect which stat block applies: e.g. skeleton vs zombie, giant insect form, or “CR band” options for Conjure Minor Elementals / Conjure Woodland Beings. Pair structured choices with a **`spawn`** row in **`effectGroups[].effects`** (see §13 `spawn`) and keep **`description.full`** authoritative for full 5e rules. Runtime behavior (adding combatants to the encounter’s **party** side, initiative placement, random pick from `type: 'fey'` / `type: 'elemental'` pools) is specified in [resolution.md — Summon spells and spawn](./resolution.md#summon-spells-and-spawn) and the [`spawn` row in the supported-effect matrix](./resolution.md#supported-effect-matrix).
 
 ### Delivery Method
 
@@ -61,21 +75,21 @@ Boundaries:
 - Use when: the spell requires a spell attack roll as its primary delivery.
 - Do not use when: the spell uses a saving throw, auto-hits, or has no attack roll.
 - The adapter uses `deliveryMethod` to classify the spell as an attack-roll action and to build the attack profile from the caster's spell attack bonus.
-- Attack metadata belongs on the spell container, not in the effects array.
+- Attack metadata belongs on the spell container (`deliveryMethod`), not on `targeting` — damage and riders still live in each group’s **`effects`** array.
 
 ### Range
 
 - Top-level spell range = where the origin or target point can be chosen.
-- `targeting` = who or what is affected after placement.
+- For spells, **`effectGroups[].targeting`** = who or what is affected after placement (and optional `area` template).
 - Do not restate spell range in `targeting` unless it is distinct from the parent range.
 
 ### Area targeting and encounter combat (limitations)
 
-Authored `targeting` with `creatures-in-area` and `area` (cone, sphere, line, etc.) describes the **intended template** for rules text, UI, audits, and future spatial engines. It is **not** wired to point-and-shape simulation in encounter combat today.
+Authored **`effectGroups[].targeting`** with `creatures-in-area` and `area` (cone, sphere, line, etc.) describes the **intended template** for rules text, UI, audits, and future spatial engines. It is **not** wired to point-and-shape simulation in encounter combat today.
 
 **What the spell combat adapter does**
 
-- Area-style spells are mapped to **`all-enemies`** action targeting (`buildSpellTargeting` in `spells/spell-combat-adapter.ts`), **except** spells that combine **`kind: 'emanation'`** with **`targeting`** whose `target` is **`creatures-in-area`** and whose hostility is **not** classified as hostile by **`deriveSpellHostility`** (see `spells/spell-hostility.ts`: top-level/nested **`damage`** or **`save`** → hostile). Those **non-hostile attached auras** (e.g. Pass without Trace, Aura of Life, Antilife Shell, Antimagic Field, Holy Aura) map to **`self`** targeting so encounter resolution does not treat them as “pick all enemies in range.” Hostile attached auras (e.g. Spirit Guardians) still use **`all-enemies`** with the same authored **`area`** for distance banding.
+- Area-style spells are mapped to **`all-enemies`** action targeting (`buildSpellTargeting` in `spells/spell-combat-adapter.ts`), **except** spells that combine **`kind: 'emanation'`** (in a group’s **`effects`**) with **`targeting`** on that spell whose `target` is **`creatures-in-area`** and whose hostility is **not** classified as hostile by **`deriveSpellHostility`** (see `spells/spell-hostility.ts`: flattened **`damage`** or **`save`** → hostile). Those **non-hostile attached auras** (e.g. Pass without Trace, Aura of Life, Antilife Shell, Antimagic Field, Holy Aura) map to **`self`** targeting so encounter resolution does not treat them as “pick all enemies in range.” Hostile attached auras (e.g. Spirit Guardians) still use **`all-enemies`** with the same authored **`area`** for distance banding.
 - **`CombatActionTargetingProfile.rangeFt`** is set from spell range (distance/touch) for ranged/touch AoE, or — for **`range: self`** spells with an authored **`area`** — coarsely from **`area.size`** (maximum reach from the caster; not template intersection).
 - When the encounter has **`EncounterState.space`** and **`placements`**, **`isValidActionTarget`** enforces caster-to-target distance against **`rangeFt`** (Chebyshev grid distance). This does **not** replace full area geometry; it is a distance band only.
 - Resolution uses **`getActionTargetCandidates`**: every **living enemy** combatant that passes `isValidActionTarget` can receive the spell’s effects — there is **no** check that a creature lies inside the authored `area` or origin point.
@@ -102,7 +116,7 @@ See [resolution.md §9 — Targeting families](./resolution.md#targeting-familie
 
 ### Saving Throws
 
-- `targeting` defines affected entities.
+- For spells, **`effectGroups[].targeting`** (when present) defines affected entities; **`save`** rows live in **`effectGroups[].effects`**.
 - `save` defines the saving throw.
 - `save.onFail` and `save.onSuccess` own branching outcomes.
 - If damage changes on success or failure, that damage belongs under `save` outcomes.
@@ -134,8 +148,12 @@ Status meanings:
 - Purpose: selection and affected-entity shape
 - Use when: modeling targets, areas, sight requirements, target count, repeat-target rules, creature type restrictions
 - Do not use when: storing spell placement range or save/damage outcomes
+- **Spells:** put this payload on **`effectGroups[].targeting`**, not as `kind: 'targeting'` inside **`effectGroups[].effects`**.
+- **Other `Effect[]` lists** (monster actions, traits, nested branches): use a full effect row **`{ kind: 'targeting', ... }`**.
 - Key fields: `target`, `targetType`, `requiresWilling` (set in spell data for willing touch / ally buffs in encounter), `creatureTypeFilter`, `condition` (effect meta), `requiresSight`, `count`, `canSelectSameTargetMultipleTimes`, `area`
-- Encounter rules do **not** infer `requiresWilling` from spell text; author it on the `targeting` effect when the rules require a willing target.
+- Encounter rules do **not** infer `requiresWilling` from spell text; author it on **spell group `targeting`** or on the **`targeting`** effect row in non-spell lists when the rules require a willing target.
+
+**`Effect[]` shape (monsters, nested, non-spell):**
 
 ```ts
 { kind: 'targeting', target: 'creatures-in-area', area: { kind: 'sphere', size: 20 } }
@@ -149,12 +167,19 @@ Status meanings:
 { kind: 'targeting', target: 'one-creature', targetType: 'creature', creatureTypeFilter: ['humanoid'] }
 ```
 
+**Spell `effectGroups` shape (same fields, no `kind`):**
+
+```ts
+// inside effectGroups[i]
+targeting: { target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 20 } }
+```
+
 - `one-dead-creature`: targets a single creature at 0 HP. The spell combat adapter maps this to `dead-creature` action targeting, which restricts selection to 0 HP combatants regardless of side.
 - `creatureTypeFilter`: restricts valid targets to creatures whose `creatureType` matches one of the listed types. The spell combat adapter propagates this to `CombatActionTargetingProfile.creatureTypeFilter`, and both the resolution engine and the encounter UI filter targets accordingly. Uses `MonsterType` values from the shared monster vocabulary.
-- **Equivalent:** `condition: { kind: 'creature-type', target: 'target', creatureTypes: [...] }` on the same targeting effect is also mapped to combat `creatureTypeFilter` when `target` is `'target'` (the selected creature). Prefer one style per spell; `creatureTypeFilter` is slightly shorter for pure type gates.
+- **Equivalent:** `condition: { kind: 'creature-type', target: 'target', creatureTypes: [...] }` on the same **targeting** payload (spell group or `kind: 'targeting'` row) is also mapped to combat `creatureTypeFilter` when `target` is `'target'` (the selected creature). Prefer one style per spell; `creatureTypeFilter` is slightly shorter for pure type gates.
 - **`creatures-in-area` in encounter combat:** the adapter normally treats area spells as **`all-enemies`** — see §3 **Area targeting and encounter combat (limitations)** above. **Exception:** **`emanation`** + **`creatures-in-area`** + **non-hostile** spell (per **`deriveSpellHostility`**) → **`self`** so buff and utility auras are not resolved as enemy-only AoE.
 
-**Hostile application (encounter / charm rules):** `deriveSpellHostility` (see `spells/spell-hostility.ts`) walks spell `effects` and sets `CombatActionDefinition.hostileApplication` when definitive: `resolution.hostileIntent` override → `requiresWilling` → `SPELL_STATE_HOSTILITY` for `state` ids (e.g. `hallowed` non-hostile) → any `damage` or `save` → hostile; healing (`hit-points` heal) → non-hostile; otherwise unknown (legacy `targeting` kind rules). Prefer explicit `requiresWilling` for willing touch buffs when the tree has no damage/save/state map hit.
+**Hostile application (encounter / charm rules):** `deriveSpellHostility` (see `spells/spell-hostility.ts`) walks **flattened** spell **`effectGroups`** (all `group.effects`, including nested save branches) and **`effectGroups[0]?.targeting`** for `requiresWilling`, then sets `CombatActionDefinition.hostileApplication` when definitive: `resolution.hostileIntent` override → **`requiresWilling` on primary targeting** → `SPELL_STATE_HOSTILITY` for `state` ids (e.g. `hallowed` non-hostile) → any `damage` or `save` → hostile; healing (`hit-points` heal) → non-hostile; otherwise unknown. Prefer explicit `requiresWilling` on **group `targeting`** for willing touch buffs when the tree has no damage/save/state map hit.
 
 ### `emanation` {#emanation}
 
@@ -163,9 +188,9 @@ Hub (spells, monster actions, traits, runtime, UI, gaps): [resource/emanation.md
 - Status: `provisional`
 - Purpose: mark a spell as a **self-centered area** that moves with the caster on the encounter grid (e.g. Spirit Guardians), distinct from one-shot AoE placement.
 - Key fields: `attachedTo: 'self'`, `area` (template and radius, e.g. sphere 15 ft), **`selectUnaffectedAtCast`** (required boolean). Set **`true`** only when the rules match the **Spirit Guardians** pattern (designate creatures that **ignore** harmful aura effects). The encounter UI labels this flow “unaffected creatures”; do **not** set **`true`** for buff-only auras where the rules instead name “creatures you choose” to receive a benefit (e.g. Pass without Trace, Holy Aura) until the UI supports alternate copy — use **`false`** and rely on **`description.full`** + **`resolution.caveats`** for chosen-ally nuance.
-- **Pairing with `targeting`:** author a **`targeting`** effect with the **same** sphere (or template) **`area`** as **`emanation`** so **`deriveCombatAreaTemplate`** and encounter metadata stay aligned. Hostile spells with damage/saves (e.g. Spirit Guardians) combine **`emanation`** + **`creatures-in-area`** with **`all-enemies`** combat targeting. **Non-hostile** attached auras (no qualifying damage/save in the hostility walk — see **`deriveSpellHostility`**) still use **`creatures-in-area`** for **geometry** in data, but **`buildSpellTargeting`** maps them to **`self`** so resolution does not apply the enemy-only AoE path.
+- **Pairing with `targeting` (spells):** in the **same `effectGroup`**, put **`targeting`** with the **same** sphere (or template) **`area`** as the **`emanation`** row in **`effects`**, so **`deriveCombatAreaTemplate`** and encounter metadata stay aligned. (Order may be **`emanation`** first, then **`targeting`** — both belong to one group.) Hostile spells with damage/saves (e.g. Spirit Guardians) combine **`emanation`** + **`creatures-in-area`** with **`all-enemies`** combat targeting. **Non-hostile** attached auras (no qualifying damage/save in the hostility walk — see **`deriveSpellHostility`**) still use **`creatures-in-area`** for **geometry** in data, but **`buildSpellTargeting`** maps them to **`self`** so resolution does not apply the enemy-only AoE path.
 - **Stationary vs moving:** SRD text sometimes says “Emanation” for an area that **does not move with the caster** (e.g. Leomund’s Tiny Hut, Globe of Invulnerability). Do **not** use **`emanation`** in authored content for a **fixed** footprint unless you intend the runtime **`anchor: kind 'place'`** (or future object **`snapshotCellId`**) path. Standard encounter casts still default **`anchor: creature`** on the caster. Object-centered light/dark (**Daylight**, **Darkness**) may still use **`note`** + **`resolution.caveats`** until anchored object content ships.
-- The spell combat adapter derives **`CombatActionDefinition.attachedEmanation`** (radius, `selectUnaffectedAtCast`) and keeps **`targeting`** + emanation for resolution; other authored effects may be filtered or deferred for the current encounter phase.
+- The spell combat adapter derives **`CombatActionDefinition.attachedEmanation`** (radius, `selectUnaffectedAtCast`) and uses **primary group `targeting`** plus **`emanation`** from flattened spell effects for resolution; other authored effects may be filtered or deferred for the current encounter phase.
 - At cast time, the encounter UI can collect **unaffected combatant ids** when **`selectUnaffectedAtCast`** is **true** (reusing the combatant-picker modal pattern). When **`ruleset.mechanics.combat.encounter.suppressSameSideHostile`** is true, same-side party members are treated as non-hostile for the aura without manual selection.
 - **Runtime:** rows are **`BattlefieldEffectInstance`** on **`EncounterState.attachedAuraInstances`**. **`source`** (`AttachedBattlefieldEffectSource`) is who authored the effect; **`casterCombatantId`** owns concentration and supplies the synthetic action actor; **`anchor`** (`BattlefieldEffectAnchor`: creature, place, or object) is where the sphere is centered. Interval, overlap, movement-entry, and grid rendering use **`resolveBattlefieldEffectOriginCellId`**. Spell casts from the adapter default **`anchor: creature`** on the caster. Removed when concentration on that spell ends (spell-sourced rows).
 - **Authoring boundary:** the shared runtime can represent place/object anchors and resolve them generically. **`CombatActionDefinition.attachedEmanation`** and spell/monster adapters in the current pipeline do **not** yet expose anchor choice (e.g. non-caster creature, place-at-cast, object-from-content). Instances created from normal spell/trait resolution still use the **creature-on-caster** default. A follow-up can add optional anchor metadata to actions/spells/monsters (e.g. self/source creature, target creature, chosen place, object) and wire adapters/UI to populate **`BattlefieldEffectInstance.anchor`** accordingly.
@@ -220,7 +245,7 @@ Hub (spells, monster actions, traits, runtime, UI, gaps): [resource/emanation.md
 { kind: 'modifier', target: 'armor_class', mode: 'add', value: 5 }
 ```
 
-- **`target: 'speed'`** — In normal combat resolution, speed add/set/multiply modifiers from actions apply to **combatant state** when the effect is applied. For **attached emanation** spells that also author a **speed multiply** (e.g. “creatures in the area have speed halved”), the encounter engine may instead apply that **`multiply`** **only while** the creature’s grid position overlaps the active **`AttachedAuraInstance`** sphere (see **`emanation`** above and [space.md](./space.md)). Authored spell `effects` remain the source of the multiplier; overlap is evaluated at movement and turn boundaries, not at cast time.
+- **`target: 'speed'`** — In normal combat resolution, speed add/set/multiply modifiers from actions apply to **combatant state** when the effect is applied. For **attached emanation** spells that also author a **speed multiply** (e.g. “creatures in the area have speed halved”), the encounter engine may instead apply that **`multiply`** **only while** the creature’s grid position overlaps the active **`AttachedAuraInstance`** sphere (see **`emanation`** above and [space.md](./space.md)). Authored spell **`effectGroups` → flattened `effects`** remain the source of the multiplier; overlap is evaluated at movement and turn boundaries, not at cast time.
 
 ### `immunity`
 
@@ -476,38 +501,52 @@ Scopes an effect to interactions involving specific creature types. The `target`
 
 ## 7. Common Authoring Patterns
 
+Spell examples use **`effectGroups`**. Each snippet assumes a single group unless noted; put **`targeting`** on the group and mechanical rows in **`effects`**. For the same logical spell expressed as a flat **`Effect[]`** (e.g. in tests or non-spell content), use **`{ kind: 'targeting', ... }`** rows instead of group **`targeting`**.
+
 ### Save-Based Spell
 
-- `targeting` defines affected entities
-- `save` defines the save
-- `save.onFail` and `save.onSuccess` own branching outcomes
+- **`targeting`** on the group defines affected entities
+- **`save`** in **`effects`** defines the save
+- **`save.onFail`** and **`save.onSuccess`** own branching outcomes
 - damage belongs under `save` outcomes when it changes by save result
 
 ```ts
-[
-  { kind: 'targeting', target: 'creatures-in-area', area: { kind: 'sphere', size: 20 } },
-  { kind: 'save', save: { ability: 'dex' }, onFail: [{ kind: 'damage', damage: '8d6', damageType: 'fire' }], onSuccess: [{ kind: 'damage', damage: '4d6', damageType: 'fire' }] },
-]
+effectGroups: [
+  {
+    targeting: { target: 'creatures-in-area', targetType: 'creature', area: { kind: 'sphere', size: 20 } },
+    effects: [
+      {
+        kind: 'save',
+        save: { ability: 'dex' },
+        onFail: [{ kind: 'damage', damage: '8d6', damageType: 'fire' }],
+        onSuccess: [{ kind: 'damage', damage: '4d6', damageType: 'fire' }],
+      },
+    ],
+  },
+],
 ```
 
 ### Attack-Roll Spell
 
 - `deliveryMethod` on the spell container declares the attack type
-- `targeting` defines affected entities
-- `damage` defines the hit payload
+- **`targeting`** on the group defines affected entities
+- **`damage`** in **`effects`** defines the hit payload
 - the adapter builds the attack profile (bonus, damage, type) from the caster's spell attack bonus and the spell's `damage` effect
-- on-hit riders beyond damage go into the effects array and are mapped to `onHitEffects`
+- on-hit riders beyond damage go into the group's **`effects`** and are mapped to `onHitEffects`
 
 ```ts
 // spell container fields
 { deliveryMethod: 'ranged-spell-attack' }
 
-// effects array
-[
-  { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-  { kind: 'damage', damage: '1d10', damageType: 'fire', levelScaling: { thresholds: [{ level: 5, damage: '2d10' }] } },
-  { kind: 'note', text: "A flammable object hit by this spell starts burning if it isn't being worn or carried." },
-]
+effectGroups: [
+  {
+    targeting: { target: 'one-creature', targetType: 'creature' },
+    effects: [
+      { kind: 'damage', damage: '1d10', damageType: 'fire', levelScaling: { thresholds: [{ level: 5, damage: '2d10' }] } },
+      { kind: 'note', text: "A flammable object hit by this spell starts burning if it isn't being worn or carried." },
+    ],
+  },
+],
 ```
 
 ### Multi-Instance Attack Spell
@@ -518,10 +557,24 @@ Scopes an effect to interactions involving specific creature types. The `target`
 - each instance is resolved as a separate attack roll against the target
 
 ```ts
-[
-  { kind: 'targeting', target: 'chosen-creatures', targetType: 'creature', canSelectSameTargetMultipleTimes: true },
-  { kind: 'damage', damage: '1d10', damageType: 'force', instances: { count: 1, canSplitTargets: true }, levelScaling: { thresholds: [{ level: 5, instances: 2 }, { level: 11, instances: 3 }, { level: 17, instances: 4 }] } },
-]
+effectGroups: [
+  {
+    targeting: {
+      target: 'chosen-creatures',
+      targetType: 'creature',
+      canSelectSameTargetMultipleTimes: true,
+    },
+    effects: [
+      {
+        kind: 'damage',
+        damage: '1d10',
+        damageType: 'force',
+        instances: { count: 1, canSplitTargets: true },
+        levelScaling: { thresholds: [{ level: 5, instances: 2 }, { level: 11, instances: 3 }, { level: 17, instances: 4 }] },
+      },
+    ],
+  },
+],
 ```
 
 ### Attack-Roll Rider
@@ -546,49 +599,67 @@ Scopes an effect to interactions involving specific creature types. The `target`
 
 - spell owns reaction trigger text
 - spell duration owns the main timing
-- effects own the protection outcomes
+- **`effects`** own the protection outcomes
 
 ```ts
-[
-  { kind: 'modifier', target: 'armor_class', mode: 'add', value: 5 },
-  { kind: 'immunity', scope: 'spell', spellIds: ['magic-missile'], duration: { kind: 'until-turn-boundary', subject: 'self', turn: 'next', boundary: 'start' } },
-]
+effectGroups: [
+  {
+    effects: [
+      { kind: 'modifier', target: 'armor_class', mode: 'add', value: 5 },
+      {
+        kind: 'immunity',
+        scope: 'spell',
+        spellIds: ['magic-missile'],
+        duration: { kind: 'until-turn-boundary', subject: 'self', turn: 'next', boundary: 'start' },
+      },
+    ],
+  },
+],
 ```
 
 ### Healing Spell
 
-- `targeting` defines the affected creature
-- `hit-points` with `mode: 'heal'` defines the healing payload
+- **`targeting`** defines the affected creature
+- **`hit-points`** with `mode: 'heal'` defines the healing payload
 - `abilityModifier: true` signals the adapter to inject the caster's spellcasting ability modifier
 - the adapter classifies healing spells as `effects` resolution mode with `single-creature` targeting
 
 ```ts
-[
-  { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-  { kind: 'hit-points', mode: 'heal', value: '2d8', abilityModifier: true },
-]
+effectGroups: [
+  {
+    targeting: { target: 'one-creature', targetType: 'creature' },
+    effects: [{ kind: 'hit-points', mode: 'heal', value: '2d8', abilityModifier: true }],
+  },
+],
 ```
 
 ### Resurrection Spell
 
-- `targeting` with `one-dead-creature` restricts to 0 HP creatures
-- `hit-points` with `mode: 'heal'` restores HP (flat value, no dice)
+- **`targeting`** with `one-dead-creature` restricts to 0 HP creatures
+- **`hit-points`** with `mode: 'heal'` restores HP (flat value, no dice)
 - unsupported nuance (time limit, creature type restrictions, penalties) goes in `note`
 - the adapter classifies as `effects` mode with `dead-creature` action targeting
 
 ```ts
-[
-  { kind: 'targeting', target: 'one-dead-creature', targetType: 'creature' },
-  { kind: 'hit-points', mode: 'heal', value: 1 },
-  { kind: 'note', text: 'Target must have been dead no longer than 10 days and not Undead. -4 d20 penalty, reduced by 1 per Long Rest.' },
-]
+effectGroups: [
+  {
+    targeting: { target: 'one-dead-creature', targetType: 'creature' },
+    effects: [
+      { kind: 'hit-points', mode: 'heal', value: 1 },
+      {
+        kind: 'note',
+        text: 'Target must have been dead no longer than 10 days and not Undead. -4 d20 penalty, reduced by 1 per Long Rest.',
+      },
+    ],
+  },
+],
 ```
 
 ### Area Effect
 
 - owner range chooses placement
-- `targeting.area` describes the template
-- `save`, `damage`, and riders describe outcomes after placement
+- **`effectGroups[].targeting.area`** describes the template
+- **`save`**, **`damage`**, and riders in **`effects`** describe outcomes after placement
 
 ### Intentionally Under-Modeled Effect
 
@@ -596,31 +667,59 @@ Scopes an effect to interactions involving specific creature types. The `target`
 - put the unsupported remainder in `note` or owned description text
 
 ```ts
-[
-  { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-  { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'condition', conditionId: 'charmed' }] },
-  { kind: 'note', text: 'Charmed target pursues a suggested course of activity. Ends if caster or allies damage target.', category: 'flavor' },
-]
+effectGroups: [
+  {
+    targeting: { target: 'one-creature', targetType: 'creature' },
+    effects: [
+      { kind: 'save', save: { ability: 'wis' }, onFail: [{ kind: 'condition', conditionId: 'charmed' }] },
+      {
+        kind: 'note',
+        text: 'Charmed target pursues a suggested course of activity. Ends if caster or allies damage target.',
+        category: 'flavor',
+      },
+    ],
+  },
+],
 ```
 
 ### Auto-Hit Spell
 
-- `damage` defines the hit payload (no `deliveryMethod`, no top-level `save`)
+- **`damage`** defines the hit payload (no `deliveryMethod`, no top-level `save` in flattened effects)
 - the adapter classifies as `auto-hit` resolution mode — skips attack roll, applies damage directly
 - multi-instance auto-hit spells (e.g. Magic Missile) use `damage.instances` and generate sequence steps
 
 ```ts
-[
-  { kind: 'targeting', target: 'chosen-creatures', count: 3, canSelectSameTargetMultipleTimes: true, requiresSight: true },
-  { kind: 'damage', damage: '1d4+1', damageType: 'force', instances: { count: 3, simultaneous: true, canSplitTargets: true, canStackOnSingleTarget: true } },
-]
+effectGroups: [
+  {
+    targeting: {
+      target: 'chosen-creatures',
+      targetType: 'creature',
+      count: 3,
+      canSelectSameTargetMultipleTimes: true,
+      requiresSight: true,
+    },
+    effects: [
+      {
+        kind: 'damage',
+        damage: '1d4+1',
+        damageType: 'force',
+        instances: {
+          count: 3,
+          simultaneous: true,
+          canSplitTargets: true,
+          canStackOnSingleTarget: true,
+        },
+      },
+    ],
+  },
+],
 ```
 
 ### HP-Threshold Spell
 
 - `resolution.hpThreshold` gates effect application on the target's current HP
-- below-threshold effects come from the spell's `effects` array
-- above-threshold effects come from `resolution.hpThreshold.aboveEffects`
+- below-threshold effects come from **`effectGroups`** (flattened)
+- above-threshold effects come from **`resolution.hpThreshold.aboveMaxHpEffects`** (`SpellEffect[]`, no group wrapper)
 - the adapter maps these to `CombatActionDefinition.hpThreshold` and `aboveThresholdEffects`
 
 ```ts
@@ -628,15 +727,17 @@ Scopes an effect to interactions involving specific creature types. The `target`
 resolution: {
   hpThreshold: {
     maxHp: 100,
-    aboveEffects: [{ kind: 'damage', damage: '12d12', damageType: 'psychic' }],
+    aboveMaxHpEffects: [{ kind: 'damage', damage: '12d12', damageType: 'psychic' }],
   },
 }
 
-// effects array (applied when target HP <= threshold)
-[
-  { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-  { kind: 'hit-points', mode: 'damage', value: 9999 },
-]
+// effectGroups (applied when target HP <= threshold)
+effectGroups: [
+  {
+    targeting: { target: 'one-creature', targetType: 'creature' },
+    effects: [{ kind: 'damage', damage: '5000', damageType: 'psychic' }],
+  },
+],
 ```
 
 ### Repeat-Save Condition
@@ -662,14 +763,21 @@ resolution: {
 ### Object-Targeting Spell
 
 - spell range defines placement
-- `targeting` describes the affected object(s)
-- effects describe the outcome
+- **`targeting`** describes the affected object(s)
+- **`effects`** describe the outcome
 
 ```ts
-[
-  { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-  { kind: 'note', text: 'You touch one object that is no larger than 10 feet in any dimension. The object sheds bright light in a 20-foot radius and dim light for an additional 20 feet.' },
-]
+effectGroups: [
+  {
+    targeting: { target: 'one-creature', targetType: 'creature' },
+    effects: [
+      {
+        kind: 'note',
+        text: 'You touch one object that is no larger than 10 feet in any dimension. The object sheds bright light in a 20-foot radius and dim light for an additional 20 feet.',
+      },
+    ],
+  },
+],
 ```
 
 Targeting guidance must support: creatures, objects, creatures or objects, points in space, self, self plus secondary targets, and areas originating from self or a chosen point. Do not let spell authoring drift into creature-only assumptions.
@@ -730,7 +838,7 @@ The derived `SpellResolutionStatus` is computed at runtime by `getSpellResolutio
 
 | Status | Condition |
 |--------|-----------|
-| `stub` | No structured effects (only `note` effects) |
+| `stub` | No structured spell effects in **`effectGroups`** (flattened: only `note` rows, or empty) |
 | `partial` | Has structured effects but also has `under-modeled` notes or `resolution.caveats` |
 | `full` | All effects are structured; notes are `flavor`-only or absent |
 
@@ -750,11 +858,11 @@ Rules:
 
 ### Spell Combat Adapter
 
-The spell combat adapter (`buildSpellCombatActions`) converts canonical spell content into executable `CombatActionDefinition` objects for the combat simulation. It classifies spells into four resolution modes:
+The spell combat adapter (`buildSpellCombatActions`) converts canonical spell content into executable `CombatActionDefinition` objects for the combat simulation. It classifies spells into four resolution modes (using **flattened** `effectGroups` for mechanical rows):
 
-- `attack-roll`: spells with `deliveryMethod`. The adapter builds an attack profile from the caster's spell attack bonus and the spell's `damage` effect. Multi-instance spells (beams, rays) generate sequence steps for independent attack rolls.
-- `auto-hit`: spells with a top-level `damage` effect but no `deliveryMethod` and no top-level `save`. Damage is applied directly without an attack roll. Multi-instance auto-hit spells (e.g. Magic Missile) generate sequence steps for independent resolution. HP-threshold gating is applied when `resolution.hpThreshold` is present.
-- `effects`: spells with a top-level `save` effect or a `hit-points` heal effect. The adapter injects the caster's spell save DC into save effects and the spellcasting ability modifier into `hit-points` effects where `abilityModifier` is `true`. Healing spells use `single-creature` targeting (any living combatant including self and allies). The engine's `applyActionEffects` handles save branching, damage, healing, conditions, states, and notes recursively.
+- `attack-roll`: spells with `deliveryMethod`. The adapter builds an attack profile from the caster's spell attack bonus and the spell's **`damage`** effect (in group **`effects`**). Multi-instance spells (beams, rays) generate sequence steps for independent attack rolls.
+- `auto-hit`: spells with a **flattened** top-level `damage` effect but no `deliveryMethod` and no top-level `save`. Damage is applied directly without an attack roll. Multi-instance auto-hit spells (e.g. Magic Missile) generate sequence steps for independent resolution. HP-threshold gating is applied when `resolution.hpThreshold` is present.
+- `effects`: spells with a **flattened** top-level `save` effect or a `hit-points` heal effect. The adapter injects the caster's spell save DC into save effects and the spellcasting ability modifier into `hit-points` effects where `abilityModifier` is `true`. Healing spells use `single-creature` targeting (any living combatant including self and allies). The engine's `applyActionEffects` handles save branching, damage, healing, conditions, states, and notes recursively.
 - `log-only`: all other spells (utility, buff, stubs). The adapter generates a log-text summary from effect text or the spell description.
 
 Adapter inputs derived from the caster:

@@ -1,4 +1,5 @@
 import type { Spell, SpellDuration, SpellRange } from '@/features/content/spells/domain/types/spell.types'
+import { flattenSpellEffects, getPrimarySpellTargeting } from '@/features/content/spells/domain/spellEffectGroups'
 import { formatSpellRange } from '@/features/content/spells/domain/details/display/spellRangeDisplay'
 import type { EffectDuration } from '@/features/mechanics/domain/effects/timing.types'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
@@ -13,7 +14,7 @@ import { deriveSpellHostility, spellHostilityToHostileApplication } from './spel
 export { formatSpellRange }
 
 function spellHasEmanationEffect(spell: Spell): boolean {
-  return (spell.effects ?? []).some((e) => e.kind === 'emanation')
+  return flattenSpellEffects(spell).some((e) => e.kind === 'emanation')
 }
 
 /** Resource key for persisting spell use. Export for onSpellSlotSpent handlers. */
@@ -98,7 +99,7 @@ export function buildSpellDisplayMeta(spell: Spell): CombatActionDefinition['dis
 }
 
 export function buildSpellLogText(spell: Spell): string {
-  const effectText = (spell.effects ?? [])
+  const effectText = flattenSpellEffects(spell)
     .map((effect) => effect.text?.trim())
     .filter((text): text is string => Boolean(text))
     .join(' ')
@@ -113,12 +114,8 @@ function buildSpellActionCost(spell: Spell): { action?: boolean; bonusAction?: b
   return { action: true }
 }
 
-function getSpellTargetingEffect(spell: Spell): Extract<Effect, { kind: 'targeting' }> | undefined {
-  return spell.effects?.find((e): e is Extract<Effect, { kind: 'targeting' }> => e.kind === 'targeting')
-}
-
 function getSpellEmanationEffect(spell: Spell): Extract<Effect, { kind: 'emanation' }> | undefined {
-  return spell.effects?.find((e): e is Extract<Effect, { kind: 'emanation' }> => e.kind === 'emanation')
+  return flattenSpellEffects(spell).find((e): e is Extract<Effect, { kind: 'emanation' }> => e.kind === 'emanation')
 }
 
 function deriveAttachedEmanation(spell: Spell): CombatActionDefinition['attachedEmanation'] | undefined {
@@ -139,8 +136,8 @@ function deriveAttachedEmanation(spell: Spell): CombatActionDefinition['attached
 
 /** Maps spell AoE metadata to grid placement; cone/line/cylinder omit template until modeled. */
 function deriveCombatAreaTemplate(spell: Spell): CombatActionAreaTemplate | undefined {
-  const t = getSpellTargetingEffect(spell)
-  if (t?.kind !== 'targeting' || !t.area) return undefined
+  const t = getPrimarySpellTargeting(spell)
+  if (!t?.area) return undefined
   if (t.target !== 'creatures-in-area') return undefined
   if (t.area.kind === 'sphere') return { kind: 'sphere', radiusFt: t.area.size }
   if (t.area.kind === 'cube') return { kind: 'cube', edgeFt: t.area.size }
@@ -153,12 +150,12 @@ function deriveAreaPlacement(spell: Spell, hasAreaTemplate: boolean): 'remote' |
 }
 
 function getSpellRequiresSight(spell: Spell): boolean {
-  return getSpellTargetingEffect(spell)?.requiresSight === true
+  return getPrimarySpellTargeting(spell)?.requiresSight === true
 }
 
 function getSpellCreatureTypeFilter(spell: Spell): string[] | undefined {
-  const targeting = getSpellTargetingEffect(spell)
-  if (targeting?.kind !== 'targeting') return undefined
+  const targeting = getPrimarySpellTargeting(spell)
+  if (!targeting) return undefined
   if (targeting.creatureTypeFilter?.length) {
     return [...targeting.creatureTypeFilter]
   }
@@ -173,10 +170,9 @@ function buildSpellTargeting(spell: Spell): CombatActionTargetingProfile {
   const sight = getSpellRequiresSight(spell) ? { requiresSight: true as const } : {}
   const rangeFt = deriveSpellRangeFt(spell.range)
   const rangeField = rangeFt != null ? { rangeFt } : {}
-  const effects = spell.effects ?? []
-  const hasDeadCreatureTargeting = effects.some(
-    (e) => e.kind === 'targeting' && e.target === 'one-dead-creature',
-  )
+  const effects = flattenSpellEffects(spell)
+  const hasDeadCreatureTargeting =
+    spell.effectGroups?.some((g) => g.targeting?.target === 'one-dead-creature') ?? false
   if (hasDeadCreatureTargeting) {
     const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
     return { kind: 'dead-creature', creatureTypeFilter, ...sight, ...rangeField }
@@ -190,8 +186,8 @@ function buildSpellTargeting(spell: Spell): CombatActionTargetingProfile {
   /** Persistent sphere centered on a chosen creature; anchor uses shared target selection (`targetId`). */
   if (emanationAnchor?.anchorMode === 'creature') {
     const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
-    const targeting = effects.find((e) => e.kind === 'targeting')
-    if (targeting?.kind === 'targeting' && targeting.requiresWilling) {
+    const targeting = getPrimarySpellTargeting(spell)
+    if (targeting?.requiresWilling) {
       return { kind: 'single-target', creatureTypeFilter, requiresWilling: true, ...sight, ...rangeField }
     }
     return { kind: 'single-target', creatureTypeFilter, ...sight, ...rangeField }
@@ -209,11 +205,8 @@ function buildSpellTargeting(spell: Spell): CombatActionTargetingProfile {
     return { kind: 'self', ...sight, ...rangeField }
   }
 
-  const primaryTargeting = getSpellTargetingEffect(spell)
-  if (
-    primaryTargeting?.kind === 'targeting' &&
-    (primaryTargeting.area != null || primaryTargeting.target === 'creatures-in-area')
-  ) {
+  const primaryTargeting = getPrimarySpellTargeting(spell)
+  if (primaryTargeting && (primaryTargeting.area != null || primaryTargeting.target === 'creatures-in-area')) {
     /** Self-centered attached auras (e.g. buffs) use `creatures-in-area` for geometry only — not hostile pick-all-enemies. */
     if (spellHasEmanationEffect(spell) && deriveSpellHostility(spell) !== 'hostile') {
       return { kind: 'self', ...sight }
@@ -227,9 +220,9 @@ function buildSpellTargeting(spell: Spell): CombatActionTargetingProfile {
   }
 
   if (spell.range?.kind === 'self') return { kind: 'self' }
-  const targeting = effects.find((e) => e.kind === 'targeting')
+  const targeting = getPrimarySpellTargeting(spell)
   const creatureTypeFilter = getSpellCreatureTypeFilter(spell)
-  if (targeting?.kind === 'targeting' && targeting.requiresWilling) {
+  if (targeting?.requiresWilling) {
     return { kind: 'single-target', creatureTypeFilter, requiresWilling: true, ...sight, ...rangeField }
   }
   return { kind: 'single-target', creatureTypeFilter, ...sight, ...rangeField }
@@ -241,9 +234,9 @@ function buildSpellTargeting(spell: Spell): CombatActionTargetingProfile {
  */
 function spellShouldUseEffectsSequence(spell: Spell, casterLevel: number): boolean {
   if (resolveInstanceCount(spell, casterLevel) <= 1) return false
-  const root = spell.effects ?? []
+  const root = flattenSpellEffects(spell)
   if (root.some((e) => e.kind === 'save')) return false
-  const mechanicalRoot = root.filter((e) => e.kind !== 'targeting' && e.kind !== 'note')
+  const mechanicalRoot = root.filter((e) => e.kind !== 'note')
   if (mechanicalRoot.length !== 1) return false
   const only = mechanicalRoot[0]
   return only?.kind === 'damage' && Boolean(only.instances)
@@ -258,7 +251,7 @@ function injectSpellSaveDc(effects: Effect[], spellSaveDc: number): Effect[] {
 }
 
 function findSpellDamageEffect(spell: Spell): Extract<Effect, { kind: 'damage' }> | undefined {
-  return (spell.effects ?? []).find((e): e is Extract<Effect, { kind: 'damage' }> => e.kind === 'damage')
+  return flattenSpellEffects(spell).find((e): e is Extract<Effect, { kind: 'damage' }> => e.kind === 'damage')
 }
 
 function resolveInstanceCount(spell: Spell, casterLevel: number): number {
@@ -341,8 +334,8 @@ function buildSpellAttackAction(
   const damage = damageEffect ? String(damageEffect.damage) : undefined
   const damageType = damageEffect?.damageType as string | undefined
 
-  const onHitEffects = (spell.effects ?? []).filter(
-    (e) => e.kind !== 'targeting' && e.kind !== 'damage' && e.kind !== 'note',
+  const onHitEffects = flattenSpellEffects(spell).filter(
+    (e) => e.kind !== 'damage' && e.kind !== 'note',
   )
 
   const displayMeta = buildSpellDisplayMeta(spell)
@@ -419,11 +412,11 @@ function buildSpellEffectsAction(
 ): CombatActionDefinition {
   const enrichedEffects = enrichSpellEffectsForCombat(
     spell,
-    spell.effects ?? [],
+    flattenSpellEffects(spell),
     spellSaveDc,
     spellcastingAbilityModifier,
   )
-  let resolvableEffects = enrichedEffects.filter((e) => e.kind !== 'targeting' && e.kind !== 'emanation')
+  let resolvableEffects = enrichedEffects.filter((e) => e.kind !== 'emanation')
   // Phase 1: defer interval damage / speed — aura + concentration + grid only.
   if (spell.id === 'spirit-guardians') {
     resolvableEffects = resolvableEffects.filter((e) => e.kind !== 'interval' && e.kind !== 'modifier')
@@ -431,9 +424,7 @@ function buildSpellEffectsAction(
 
   const hpCfg = spell.resolution?.hpThreshold
   const aboveThresholdEffects = hpCfg?.aboveMaxHpEffects?.length
-    ? enrichSpellEffectsForCombat(spell, hpCfg.aboveMaxHpEffects, spellSaveDc, spellcastingAbilityModifier).filter(
-        (e) => e.kind !== 'targeting',
-      )
+    ? enrichSpellEffectsForCombat(spell, hpCfg.aboveMaxHpEffects, spellSaveDc, spellcastingAbilityModifier)
     : undefined
 
   const attachedEmanation = deriveAttachedEmanation(spell)

@@ -12,7 +12,7 @@ export type SpellFormValues = Omit<ContentFormValues, 'description'> & {
   school: MagicSchool | '';
   level: string;
   classes: ClassId[];
-  effects: string;
+  effectGroups: string;
 
   castingTimeUnit: string;
   /** Used when unit is minute or hour */

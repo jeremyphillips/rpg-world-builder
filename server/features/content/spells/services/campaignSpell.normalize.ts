@@ -186,7 +186,7 @@ export type CanonicalSpellFields = {
   range: SpellRange;
   duration: SpellDuration;
   components: SpellComponents;
-  effects: unknown[];
+  effectGroups: unknown[];
   scaling?: unknown;
   resolution?: unknown;
   deliveryMethod?: string;
@@ -212,7 +212,7 @@ export function normalizeRawCampaignSpellToCanonical(
   const duration = parseDuration(doc.duration, legacyConcentration);
   const range = parseRange(doc.range);
   const components = parseComponents(doc.components);
-  const effects = Array.isArray(doc.effects) ? doc.effects : [];
+  const effectGroups = Array.isArray(doc.effectGroups) ? doc.effectGroups : [];
 
   return {
     name,
@@ -225,7 +225,7 @@ export function normalizeRawCampaignSpellToCanonical(
     range,
     duration,
     components,
-    effects,
+    effectGroups,
     ...(doc.scaling !== undefined && { scaling: doc.scaling }),
     ...(doc.resolution !== undefined && { resolution: doc.resolution }),
     ...(typeof doc.deliveryMethod === 'string' && { deliveryMethod: doc.deliveryMethod }),
