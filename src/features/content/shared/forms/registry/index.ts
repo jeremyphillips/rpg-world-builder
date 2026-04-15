@@ -5,9 +5,20 @@ export type {
   ValidationRule,
   ValidationSpec,
 } from './fieldSpec.types';
+export type {
+  FormNodeSpec,
+  NestedFieldSpec,
+  RepeatableGroupSpec,
+} from './formNodeSpec.types';
+export { isRepeatableGroupSpec } from './formNodeSpec.types';
 export { numberRange } from '@/ui/patterns';
 export type { DetailSpec } from './detailSpec.types';
-export { buildFieldConfigs, type BuildFieldConfigsOptions } from './buildFieldConfigs';
+export {
+  buildFieldConfigs,
+  fieldSpecToFieldConfig,
+  type BuildFieldConfigsOptions,
+} from './buildFieldConfigs';
+export { buildFormLayout } from './buildFormLayout';
 export {
   buildDetailItems,
   type BuildDetailItemsOptions,
@@ -17,4 +28,5 @@ export {
   buildToInput,
   buildToFormValues,
   buildDefaultFormValues,
+  buildDefaultFormValuesFromFormNodes,
 } from './buildMappers';

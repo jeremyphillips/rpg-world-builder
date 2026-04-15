@@ -5,11 +5,24 @@ import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import { when } from '@/ui/patterns';
-import { type FieldSpec } from '@/features/content/shared/forms/registry';
+import type {
+  FieldSpec,
+  FormNodeSpec,
+  RepeatableGroupSpec,
+} from '@/features/content/shared/forms/registry';
+import {
+  TARGET_ELIGIBILITY_DEFINITIONS,
+  TARGET_SELECTION_DEFINITIONS,
+} from '@/features/content/shared/domain/vocab/spellTargeting.vocab';
 import { getSpellcastingClasses } from '@/features/mechanics/domain/classes';
 import { getSystemClasses } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import type { SpellFormValues } from '../types/spellForm.types';
+
+export const SPELL_EFFECT_KIND_OPTIONS = [
+  { value: 'damage', label: 'Damage' },
+  { value: 'condition', label: 'Condition' },
+] as const;
 import { spellComponentsPatchBindings } from '../spellComponentsPatchBinding';
 import {
   formatSpellLevelShort,
@@ -70,25 +83,77 @@ const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const strOrEmpty = (v: unknown): string => (v != null ? String(v) : '');
 const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);
 
-const parseEffectGroupsJson = (v: unknown): SpellInput['effectGroups'] | undefined => {
-  if (v == null || v === '') return undefined;
-  if (typeof v !== 'string') return undefined;
-  try {
-    const parsed = JSON.parse(v) as unknown;
-    return Array.isArray(parsed) ? parsed : undefined;
-  } catch {
-    return undefined;
-  }
+const parseEffectGroupsForInput = (v: unknown): SpellInput['effectGroups'] | undefined => {
+  if (v == null) return undefined;
+  if (!Array.isArray(v)) return undefined;
+  return v as SpellInput['effectGroups'];
 };
 
-const formatEffectGroupsJson = (v: unknown): string => {
-  if (v == null || !Array.isArray(v)) return '[]';
-  try {
-    return JSON.stringify(v, null, 2);
-  } catch {
-    return '[]';
-  }
+const formatEffectGroupsForForm = (v: unknown): SpellFormValues['effectGroups'] => {
+  if (v == null || !Array.isArray(v)) return [];
+  return v as SpellFormValues['effectGroups'];
 };
+
+function buildSpellEffectGroupsFormNode(): RepeatableGroupSpec<
+  SpellFormValues,
+  SpellInput & Record<string, unknown>,
+  Spell & Record<string, unknown>
+> {
+  const selectionOptions = TARGET_SELECTION_DEFINITIONS.map((d) => ({
+    value: d.id,
+    label: d.name,
+  }));
+  const eligibilityOptions = TARGET_ELIGIBILITY_DEFINITIONS.map((d) => ({
+    value: d.id,
+    label: d.name,
+  }));
+
+  return {
+    kind: 'repeatable-group',
+    name: 'effectGroups',
+    label: 'Effect groups',
+    itemLabel: 'Effect group',
+    patchBinding: {
+      domainPath: 'effectGroups',
+      parse: (v) => (Array.isArray(v) ? v : []),
+      serialize: (ui, _cur) => ui,
+    },
+    children: [
+      {
+        name: 'targeting.selection',
+        label: 'Selection',
+        kind: 'select',
+        options: selectionOptions,
+        defaultFromOptions: 'first',
+        placeholder: 'Selection',
+      },
+      {
+        name: 'targeting.targetType',
+        label: 'Target type',
+        kind: 'select',
+        options: eligibilityOptions,
+        defaultFromOptions: 'first',
+        placeholder: 'Target type',
+      },
+      {
+        kind: 'repeatable-group',
+        name: 'effects',
+        label: 'Effects',
+        itemLabel: 'Effect',
+        children: [
+          {
+            name: 'kind',
+            label: 'Kind',
+            kind: 'select',
+            options: [...SPELL_EFFECT_KIND_OPTIONS],
+            defaultFromOptions: 'first',
+            placeholder: 'Kind',
+          },
+        ],
+      },
+    ],
+  };
+}
 
 /**
  * FieldSpecs whose `parse` maps directly onto SpellInput keys (plus name/image/access).
@@ -188,24 +253,13 @@ export function getSpellSimpleFieldSpecs(
     {
       name: 'effectGroups',
       label: 'Effect groups',
-      kind: 'json' as const,
-      placeholder:
-        '[{ "targeting": { "selection": "one", "targetType": "creature" }, "effects": [...] }]',
-      helperText:
-        'Effect groups: optional targeting per group (`selection`, `targetType`, optional `area`, `requiresSight`, …) plus canonical effect rows (note, save, damage, …).',
-      minRows: 4,
-      maxRows: 16,
-      defaultValue: '[]' as SpellFormValues['effectGroups'],
-      parse: (v: unknown) => parseEffectGroupsJson(v),
-      format: (v: unknown) => formatEffectGroupsJson(v),
+      kind: 'text' as const,
+      skipInForm: true,
+      parse: (v: unknown) => parseEffectGroupsForInput(v),
+      format: (v: unknown) => formatEffectGroupsForForm(v),
       formatForDisplay: (v: unknown) => {
         const arr = Array.isArray(v) ? v : [];
         return arr.length > 0 ? `${arr.length} group(s)` : '—';
-      },
-      patchBinding: {
-        domainPath: 'effectGroups',
-        parse: (v) => formatEffectGroupsJson(v),
-        serialize: (ui, _cur) => parseEffectGroupsJson(ui) ?? [],
       },
     },
   ];
@@ -555,7 +609,7 @@ function compositeFieldSpecs(): FieldSpec<
 
 export function getSpellFormFields(
   options?: SpellFormFieldsOptions,
-): FieldSpec<
+): FormNodeSpec<
   SpellFormValues,
   SpellInput & Record<string, unknown>,
   Spell & Record<string, unknown>
@@ -571,9 +625,14 @@ export function getSpellFormFields(
     'accessPolicy',
     SPELL_CORE_UI.classes.key,
   ] as const;
-  const tailNames = ['effectGroups', 'imageKey'] as const;
+  const tailNames = ['imageKey'] as const;
 
-  return [...pickSpellFieldsByName(simple, headNames), ...composite, ...pickSpellFieldsByName(simple, tailNames)];
+  return [
+    ...pickSpellFieldsByName(simple, headNames),
+    ...composite,
+    buildSpellEffectGroupsFormNode(),
+    ...pickSpellFieldsByName(simple, tailNames),
+  ];
 }
 
 export const SPELL_FORM_FIELDS = getSpellFormFields();

@@ -128,3 +128,16 @@ export type FieldConfig =
       type: 'hidden'
       label?: string
     }
+
+/** Nested repeatable list — RHF `useFieldArray` name = `name`; children use dot paths under each index. */
+export type RepeatableGroupLayoutConfig = {
+  type: 'repeatable-group';
+  name: string;
+  label?: string;
+  itemLabel: string;
+  defaultItem?: Record<string, unknown>;
+  patchBinding?: BaseFieldConfig['patchBinding'];
+  children: FormLayoutNode[];
+};
+
+export type FormLayoutNode = FieldConfig | RepeatableGroupLayoutConfig;

@@ -3,11 +3,12 @@ import FormHelperText from '@mui/material/FormHelperText';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { FieldConfig } from './form.types';
+import type { FieldConfig, FormLayoutNode } from './form.types';
 import DynamicField from './DynamicField';
 import DriverField from './DriverField';
 import type { PatchDriver } from './DriverField';
 import { FormLayoutStretchProvider } from './FormLayoutStretchContext';
+import RepeatableGroupField from './RepeatableGroupField';
 
 export type FormDriver =
   | { kind: 'rhf' }
@@ -19,7 +20,7 @@ export type FormDriver =
     };
 
 type DynamicFormRendererProps = {
-  fields: FieldConfig[];
+  fields: FormLayoutNode[];
   spacing?: number;
   /**
    * When omitted or kind: 'rhf', uses react-hook-form (FormProvider must wrap).
@@ -42,26 +43,36 @@ type Chunk =
       label?: string;
       helperText?: string;
       spacing?: number;
-    };
+    }
+  | { type: 'repeatable'; group: Extract<FormLayoutNode, { type: 'repeatable-group' }> };
 
-function chunkFields(fields: FieldConfig[]): Chunk[] {
+function chunkFields(fields: FormLayoutNode[]): Chunk[] {
   const chunks: Chunk[] = [];
   let i = 0;
   while (i < fields.length) {
     const f = fields[i];
-    if (f.type === 'hidden' || !f.group) {
-      chunks.push({ type: 'single', field: f });
+    if ('type' in f && f.type === 'repeatable-group') {
+      chunks.push({ type: 'repeatable', group: f });
       i++;
       continue;
     }
-    const groupId = f.group.id;
+    const fc = f as FieldConfig;
+    if (fc.type === 'hidden' || !fc.group) {
+      chunks.push({ type: 'single', field: fc });
+      i++;
+      continue;
+    }
+    const groupId = fc.group!.id;
     const groupFields: FieldConfig[] = [];
-    const direction = f.group.direction ?? 'row';
-    const label = f.group.label;
-    const helperText = f.group.helperText;
-    const spacing = f.group.spacing;
-    while (i < fields.length && fields[i].group?.id === groupId) {
-      groupFields.push(fields[i]);
+    const direction = fc.group.direction ?? 'row';
+    const label = fc.group.label;
+    const helperText = fc.group.helperText;
+    const spacing = fc.group.spacing;
+    while (i < fields.length) {
+      const g = fields[i] as FieldConfig;
+      if ('type' in g && g.type === 'repeatable-group') break;
+      if (!g.group || g.group.id !== groupId) break;
+      groupFields.push(g);
       i++;
     }
     chunks.push({ type: 'group', fields: groupFields, direction, label, helperText, spacing });
@@ -132,6 +143,17 @@ export default function DynamicFormRenderer({
   return (
     <Stack spacing={spacing}>
       {chunks.map((chunk) => {
+        if (chunk.type === 'repeatable') {
+          return (
+            <RepeatableGroupField
+              key={chunk.group.name}
+              config={chunk.group}
+              arrayPath={chunk.group.name}
+              usePatchDriver={!!usePatchDriver}
+              patchDriver={patchDriver}
+            />
+          );
+        }
         if (chunk.type === 'single') {
           const field = chunk.field;
           if (field.type === 'hidden') {

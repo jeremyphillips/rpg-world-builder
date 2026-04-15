@@ -4,10 +4,11 @@
  */
 import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
 import type { SpellFormValues } from '../types/spellForm.types';
+import { buildDefaultValues } from '@/ui/patterns';
 import {
+  buildFormLayout,
   buildToInput,
   buildToFormValues,
-  buildDefaultFormValues,
 } from '@/features/content/shared/forms/registry';
 import {
   getSpellFormFields,
@@ -22,8 +23,8 @@ export function spellToFormValues(
   spell: Spell,
   options?: SpellFormMapperOptions,
 ): SpellFormValues {
-  const fields = getSpellFormFields(options);
-  const defaultFormValues = buildDefaultFormValues(fields);
+  const formNodes = getSpellFormFields(options);
+  const defaultFormValues = buildDefaultValues<SpellFormValues>(buildFormLayout(formNodes, {}));
   const simpleFromItem = buildToFormValues(getSpellSimpleFieldSpecs(options))(
     spell as Spell & Record<string, unknown>,
   );

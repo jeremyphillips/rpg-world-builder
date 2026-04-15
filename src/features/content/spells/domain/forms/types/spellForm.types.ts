@@ -4,7 +4,20 @@
  */
 import type { ContentFormValues } from '@/features/content/shared/domain/types';
 import type { MagicSchool } from '@/features/content/shared/domain/vocab';
+import type {
+  TargetEligibilityKind,
+  TargetSelectionKind,
+} from '@/features/content/shared/domain/vocab/spellTargeting.vocab';
 import type { ClassId } from '@/shared/types/ruleset';
+
+/** Prototype authoring row; maps to domain `effectGroups` via mapper (minimal effect payloads). */
+export type SpellEffectGroupFormRow = {
+  targeting: {
+    selection: TargetSelectionKind | '';
+    targetType: TargetEligibilityKind | '';
+  };
+  effects: { kind: 'damage' | 'condition' | '' }[];
+};
 
 export type SpellFormValues = Omit<ContentFormValues, 'description'> & {
   descriptionFull: string;
@@ -12,7 +25,7 @@ export type SpellFormValues = Omit<ContentFormValues, 'description'> & {
   school: MagicSchool | '';
   level: string;
   classes: ClassId[];
-  effectGroups: string;
+  effectGroups: SpellEffectGroupFormRow[];
 
   castingTimeUnit: string;
   /** Used when unit is minute or hour */
