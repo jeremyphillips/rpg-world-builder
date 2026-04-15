@@ -72,7 +72,7 @@ export const WEAPON_FORM_FIELDS = [
   },
   {
     name: 'damageDefaultCount',
-    label: 'Dice No.',
+    label: 'Dice Count',
     kind: 'numberText' as const,
     defaultValue: '1' as WeaponFormValues['damageDefaultCount'],
     group: { id: 'damageDiceDefault', label: 'Damage (Default)' },
@@ -90,7 +90,7 @@ export const WEAPON_FORM_FIELDS = [
   },
   {
     name: 'damageDefaultDie',
-    label: 'Die Type',
+    label: 'Die Face',
     kind: 'select' as const,
     options: DIE_FACE_OPTIONS,
     defaultValue: '6' as WeaponFormValues['damageDefaultDie'],

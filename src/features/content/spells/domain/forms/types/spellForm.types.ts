@@ -21,7 +21,14 @@ export type SpellEffectFormRow = {
   noteText: string;
   /** Reserved if we wire `EffectNoteCategory` later */
   noteCategory: string;
-  damageValue: string;
+  /** Damage effect — UI mode; only one branch is assembled to the domain payload. */
+  damageFormat: 'dice' | 'flat' | '';
+  damageDiceCount: string;
+  /** Die face id string (see `DIE_FACE_OPTIONS` values in shared dice module). */
+  damageDieFace: string;
+  /** Signed integer as string, e.g. `2` or `-1`; empty = no modifier */
+  damageModifier: string;
+  damageFlatValue: string;
   damageType: string;
   conditionId: EffectConditionId | '';
   moveDistance: string;

@@ -1,4 +1,9 @@
-import type { DiceOrFlat } from '@/shared/domain/dice';
+import {
+  buildXdY,
+  type DiceOrFlat,
+  toCount,
+  toDieFace,
+} from '@/shared/domain/dice';
 import type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
 import type { SpellEffect, SpellEffectGroup } from '@/features/content/spells/domain/types';
 import type { SpellEffectFormRow, SpellEffectGroupFormRow } from '../types/spellForm.types';
@@ -21,17 +26,70 @@ function parseDiceOrFlat(raw: unknown): DiceOrFlat | undefined {
   return t as DiceOrFlat;
 }
 
-function formatDiceOrFlat(v: DiceOrFlat): string {
-  if (typeof v === 'number') return String(v);
-  return String(v);
-}
-
 function parseOptionalPositiveInt(raw: string): number | undefined {
   const t = raw.trim();
   if (t === '') return undefined;
   const n = Number(t);
   if (!Number.isFinite(n) || n < 0) return undefined;
   return Math.floor(n);
+}
+
+/** Builds `XdY`, `XdY+N`, or `XdY-N` from draft dice fields (dice mode only). */
+export function assembleDiceDamageString(row: Pick<SpellEffectFormRow, 'damageDiceCount' | 'damageDieFace' | 'damageModifier'>): string | undefined {
+  const count = toCount(row.damageDiceCount, 1);
+  const die = toDieFace(row.damageDieFace, 6);
+  const base = buildXdY({ count, die });
+  const modRaw = String(row.damageModifier ?? '').trim();
+  if (modRaw === '') return base;
+  const mod = parseInt(modRaw, 10);
+  if (!Number.isFinite(mod) || mod === 0) return base;
+  return `${base}${mod > 0 ? '+' : ''}${mod}`;
+}
+
+/** Maps domain `DiceOrFlat` into draft damage fields for round-trip editing. */
+export function damageToDraftFields(damage: DiceOrFlat): Pick<
+  SpellEffectFormRow,
+  'damageFormat' | 'damageDiceCount' | 'damageDieFace' | 'damageModifier' | 'damageFlatValue'
+> {
+  if (typeof damage === 'number') {
+    return {
+      damageFormat: 'flat',
+      damageDiceCount: '1',
+      damageDieFace: '6',
+      damageModifier: '',
+      damageFlatValue: String(damage),
+    };
+  }
+  const s = String(damage).trim();
+  const m = s.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
+  if (m) {
+    const modPart = m[3];
+    const modDisplay = modPart ? String(parseInt(modPart, 10)) : '';
+    return {
+      damageFormat: 'dice',
+      damageDiceCount: m[1],
+      damageDieFace: m[2],
+      damageModifier: modDisplay,
+      damageFlatValue: '',
+    };
+  }
+  const n = Number(s);
+  if (!Number.isNaN(n) && s === String(n)) {
+    return {
+      damageFormat: 'flat',
+      damageDiceCount: '1',
+      damageDieFace: '6',
+      damageModifier: '',
+      damageFlatValue: s,
+    };
+  }
+  return {
+    damageFormat: 'flat',
+    damageDiceCount: '1',
+    damageDieFace: '6',
+    damageModifier: '',
+    damageFlatValue: s,
+  };
 }
 
 /** Default row for a new effect in the nested repeat (includes all draft keys). */
@@ -41,7 +99,11 @@ export function createDefaultSpellEffectFormRow(): SpellEffectFormRow {
     kind: isSpellEffectPhase1Kind(firstKind) ? firstKind : 'damage',
     noteText: '',
     noteCategory: '',
-    damageValue: '',
+    damageFormat: 'dice',
+    damageDiceCount: '1',
+    damageDieFace: '6',
+    damageModifier: '',
+    damageFlatValue: '',
     damageType: '',
     conditionId: '',
     moveDistance: '',
@@ -64,7 +126,14 @@ export function formRowToSpellEffect(row: SpellEffectFormRow): SpellEffect | nul
       return { kind: 'note', text } as SpellEffect;
     }
     case 'damage': {
-      const damage = parseDiceOrFlat(row.damageValue);
+      const mode = row.damageFormat === 'flat' ? 'flat' : 'dice';
+      let damage: DiceOrFlat | undefined;
+      if (mode === 'flat') {
+        damage = parseDiceOrFlat(row.damageFlatValue);
+      } else {
+        const assembled = assembleDiceDamageString(row);
+        damage = assembled !== undefined ? (assembled as DiceOrFlat) : undefined;
+      }
       if (damage === undefined) return null;
       const out: SpellEffect = {
         kind: 'damage',
@@ -124,7 +193,7 @@ export function spellEffectToFormRow(effect: SpellEffect): SpellEffectFormRow {
       return {
         ...base,
         kind: 'damage',
-        damageValue: formatDiceOrFlat(effect.damage),
+        ...damageToDraftFields(effect.damage),
         damageType: effect.damageType ?? '',
       };
     case 'condition':

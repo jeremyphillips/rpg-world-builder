@@ -13,7 +13,16 @@ describe('spellForm effectGroups (nested form)', () => {
         {
           targeting: { selection: 'one', targetType: 'creature' },
           effects: [
-            { ...baseEffect, kind: 'damage', damageValue: '2d6', damageType: 'fire' },
+            {
+              ...baseEffect,
+              kind: 'damage',
+              damageFormat: 'dice',
+              damageDiceCount: '2',
+              damageDieFace: '6',
+              damageModifier: '',
+              damageFlatValue: '',
+              damageType: 'fire',
+            },
             { ...baseEffect, kind: 'condition', conditionId: 'frightened' },
           ],
         },

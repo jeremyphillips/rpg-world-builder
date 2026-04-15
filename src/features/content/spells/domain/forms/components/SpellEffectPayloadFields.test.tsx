@@ -9,12 +9,18 @@ import { SpellEffectPayloadFields } from './SpellEffectPayloadFields';
 
 function TestWrapper({
   kind,
+  rowOverrides,
   children,
 }: {
   kind: string;
+  rowOverrides?: Partial<SpellEffectFormRow>;
   children: (prefix: string) => ReactNode;
 }) {
-  const row: SpellEffectFormRow = { ...createDefaultSpellEffectFormRow(), kind: kind as SpellEffectFormRow['kind'] };
+  const row: SpellEffectFormRow = {
+    ...createDefaultSpellEffectFormRow(),
+    kind: kind as SpellEffectFormRow['kind'],
+    ...rowOverrides,
+  };
   const methods = useForm<SpellFormValues>({
     defaultValues: {
       effectGroups: [
@@ -29,23 +35,45 @@ function TestWrapper({
 }
 
 describe('SpellEffectPayloadFields', () => {
-  it('shows damage fields when kind is damage', () => {
+  it('shows dice-mode damage fields by default (Damage Format, Dice Count, Die Face, Modifier)', () => {
     render(
-      <TestWrapper kind="damage">{(prefix) => <SpellEffectPayloadFields namePrefix={prefix} patchDriver={null} />}</TestWrapper>,
+      <TestWrapper kind="damage">
+        {(prefix) => <SpellEffectPayloadFields namePrefix={prefix} patchDriver={null} />}
+      </TestWrapper>,
     );
-    expect(screen.getByLabelText(/Damage \(dice or number\)/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Damage Format$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Dice Count$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Die Face$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Modifier$/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Damage Value$/i)).not.toBeInTheDocument();
+  });
+
+  it('shows flat damage value when Damage Format is flat', () => {
+    render(
+      <TestWrapper kind="damage" rowOverrides={{ damageFormat: 'flat' }}>
+        {(prefix) => <SpellEffectPayloadFields namePrefix={prefix} patchDriver={null} />}
+      </TestWrapper>,
+    );
+    expect(screen.getByLabelText(/^Damage Format$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Damage Value$/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Dice Count$/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Die Face$/i)).not.toBeInTheDocument();
   });
 
   it('shows note field when kind is note', () => {
     render(
-      <TestWrapper kind="note">{(prefix) => <SpellEffectPayloadFields namePrefix={prefix} patchDriver={null} />}</TestWrapper>,
+      <TestWrapper kind="note">
+        {(prefix) => <SpellEffectPayloadFields namePrefix={prefix} patchDriver={null} />}
+      </TestWrapper>,
     );
     expect(screen.getByLabelText(/Note text/i)).toBeInTheDocument();
   });
 
   it('shows stub notice when kind is save', () => {
     render(
-      <TestWrapper kind="save">{(prefix) => <SpellEffectPayloadFields namePrefix={prefix} patchDriver={null} />}</TestWrapper>,
+      <TestWrapper kind="save">
+        {(prefix) => <SpellEffectPayloadFields namePrefix={prefix} patchDriver={null} />}
+      </TestWrapper>,
     );
     expect(screen.getByText(/not be saved to the spell until supported/i)).toBeInTheDocument();
   });

@@ -6,12 +6,18 @@ import type { FieldConfig } from '@/ui/patterns';
 import DynamicField from '@/ui/patterns/form/DynamicField';
 import DriverField from '@/ui/patterns/form/DriverField';
 import type { PatchDriver } from '@/ui/patterns/form/patchDriver.types';
+import { DIE_FACE_OPTIONS } from '@/shared/domain/dice';
 import { DAMAGE_TYPE_SELECT_OPTIONS } from '@/features/content/shared/domain/vocab/damageTypesSelect.vocab';
 import { EFFECT_CONDITION_DEFINITIONS } from '@/features/content/shared/domain/vocab/effectConditions.vocab';
 import { RESOURCE_RECHARGE_OPTIONS } from '@/features/content/shared/domain/vocab/resourceRecharge.vocab';
 
 const STUB_MSG =
   'Advanced — full authoring for this effect kind is not available in this editor version yet. This row will not be saved to the spell until supported.';
+
+const DAMAGE_FORMAT_OPTIONS = [
+  { value: 'dice', label: 'Dice' },
+  { value: 'flat', label: 'Flat' },
+] as const;
 
 function joinPrefix(prefix: string, name: string): string {
   return `${prefix}.${name}`;
@@ -49,6 +55,141 @@ function PrefixedDriverField({
     name: joinPrefix(namePrefix, relativeName),
   };
   return <DriverField field={full} driver={driver} />;
+}
+
+type RenderFieldFn = (relativeName: string, field: FieldConfig) => ReactElement;
+
+function SpellDamagePayloadFieldsRhf({
+  namePrefix,
+  renderField,
+  damageTypeOptions,
+}: {
+  namePrefix: string;
+  renderField: RenderFieldFn;
+  damageTypeOptions: { value: string; label: string }[];
+}): ReactElement {
+  const fmt =
+    (useWatch({ name: `${namePrefix}.damageFormat` }) as string | undefined | null) ?? 'dice';
+
+  return (
+    <Stack spacing={2}>
+      {renderField('damageFormat', {
+        name: 'damageFormat',
+        label: 'Damage Format',
+        type: 'select',
+        options: [...DAMAGE_FORMAT_OPTIONS],
+        defaultFromOptions: 'first',
+      })}
+      {fmt === 'flat'
+        ? renderField('damageFlatValue', {
+            name: 'damageFlatValue',
+            label: 'Damage Value',
+            type: 'text',
+            inputType: 'number',
+            placeholder: 'e.g. 8',
+          })
+        : (
+            <Stack spacing={2}>
+              {renderField('damageDiceCount', {
+                name: 'damageDiceCount',
+                label: 'Dice Count',
+                type: 'text',
+                inputType: 'number',
+                placeholder: 'e.g. 1',
+              })}
+              {renderField('damageDieFace', {
+                name: 'damageDieFace',
+                label: 'Die Face',
+                type: 'select',
+                options: [...DIE_FACE_OPTIONS],
+                defaultFromOptions: 'first',
+                placeholder: 'Die',
+              })}
+              {renderField('damageModifier', {
+                name: 'damageModifier',
+                label: 'Modifier',
+                type: 'text',
+                placeholder: '0',
+                helperText: 'Optional; added to the roll (e.g. 2 or -1)',
+              })}
+            </Stack>
+          )}
+      {renderField('damageType', {
+        name: 'damageType',
+        label: 'Damage type',
+        type: 'select',
+        options: damageTypeOptions,
+        placeholder: 'Optional',
+      })}
+    </Stack>
+  );
+}
+
+function SpellDamagePayloadFieldsPatch({
+  namePrefix,
+  patchDriver,
+  renderField,
+  damageTypeOptions,
+}: {
+  namePrefix: string;
+  patchDriver: PatchDriver;
+  renderField: RenderFieldFn;
+  damageTypeOptions: { value: string; label: string }[];
+}): ReactElement {
+  const fmt = String(patchDriver.getValue(`${namePrefix}.damageFormat`) ?? 'dice');
+
+  return (
+    <Stack spacing={2}>
+      {renderField('damageFormat', {
+        name: 'damageFormat',
+        label: 'Damage Format',
+        type: 'select',
+        options: [...DAMAGE_FORMAT_OPTIONS],
+        defaultFromOptions: 'first',
+      })}
+      {fmt === 'flat'
+        ? renderField('damageFlatValue', {
+            name: 'damageFlatValue',
+            label: 'Damage Value',
+            type: 'text',
+            inputType: 'number',
+            placeholder: 'e.g. 8',
+          })
+        : (
+            <Stack spacing={2}>
+              {renderField('damageDiceCount', {
+                name: 'damageDiceCount',
+                label: 'Dice Count',
+                type: 'text',
+                inputType: 'number',
+                placeholder: 'e.g. 1',
+              })}
+              {renderField('damageDieFace', {
+                name: 'damageDieFace',
+                label: 'Die Face',
+                type: 'select',
+                options: [...DIE_FACE_OPTIONS],
+                defaultFromOptions: 'first',
+                placeholder: 'Die',
+              })}
+              {renderField('damageModifier', {
+                name: 'damageModifier',
+                label: 'Modifier',
+                type: 'text',
+                placeholder: '0',
+                helperText: 'Optional; added to the roll (e.g. 2 or -1)',
+              })}
+            </Stack>
+          )}
+      {renderField('damageType', {
+        name: 'damageType',
+        label: 'Damage type',
+        type: 'select',
+        options: damageTypeOptions,
+        placeholder: 'Optional',
+      })}
+    </Stack>
+  );
 }
 
 function PayloadByKind({
@@ -104,22 +245,23 @@ function PayloadByKind({
         </Stack>
       );
     case 'damage':
+      if (usePatch) {
+        if (!patchDriver) return null;
+        return (
+          <SpellDamagePayloadFieldsPatch
+            namePrefix={namePrefix}
+            patchDriver={patchDriver}
+            renderField={renderField}
+            damageTypeOptions={damageTypeOptions}
+          />
+        );
+      }
       return (
-        <Stack spacing={2}>
-          {renderField('damageValue', {
-            name: 'damageValue',
-            label: 'Damage (dice or number)',
-            type: 'text',
-            placeholder: 'e.g. 1d6 or 8',
-          })}
-          {renderField('damageType', {
-            name: 'damageType',
-            label: 'Damage type',
-            type: 'select',
-            options: damageTypeOptions,
-            placeholder: 'Optional',
-          })}
-        </Stack>
+        <SpellDamagePayloadFieldsRhf
+          namePrefix={namePrefix}
+          renderField={renderField}
+          damageTypeOptions={damageTypeOptions}
+        />
       );
     case 'condition':
       return (
