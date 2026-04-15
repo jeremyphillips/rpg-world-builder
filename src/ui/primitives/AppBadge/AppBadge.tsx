@@ -9,6 +9,8 @@ export interface AppBadgeProps {
   variant?: ChipProps['variant'];
   size?: 'small' | 'medium';
   icon?: React.ReactElement;
+  /** When set, shows a dismiss control (e.g. filter / tag badges). */
+  onDelete?: ChipProps['onDelete'];
   sx?: SxProps<Theme>;
 }
 
@@ -27,6 +29,7 @@ export const AppBadge = ({
   variant = 'outlined',
   size = 'small',
   icon,
+  onDelete,
   sx,
 }: AppBadgeProps) => {
   return (
@@ -36,6 +39,7 @@ export const AppBadge = ({
       size={size}
       color={toneToChipColor[tone]}
       variant={variant}
+      onDelete={onDelete}
       sx={sx}
     />
   );

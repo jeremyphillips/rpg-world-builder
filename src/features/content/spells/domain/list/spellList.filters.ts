@@ -21,9 +21,9 @@ export function buildSpellCustomFilters(
     {
       id: SPELL_CORE_UI.school.key,
       label: SPELL_CORE_UI.school.label,
-      type: 'select' as const,
+      type: 'multiSelect' as const,
       options: schoolOptions,
-      accessor: (r) => r.school,
+      accessor: (r) => r.school ? [r.school] : [],
     },
     {
       id: SPELL_CORE_UI.level.key,

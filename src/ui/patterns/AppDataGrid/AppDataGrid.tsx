@@ -9,13 +9,12 @@ import {
 } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import GlobalStyles from '@mui/material/GlobalStyles'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
 import Switch from '@mui/material/Switch'
-import { AppMultiSelectField, AppSelect, AppTextField, AppTooltip } from '@/ui/primitives'
+import { AppBadge, AppMultiSelectField, AppSelect, AppTextField, AppTooltip } from '@/ui/primitives'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiLink from '@mui/material/Link'
@@ -588,12 +587,12 @@ export default function AppDataGrid<T>({
     [filterById, renderFilterControl],
   )
 
-  const badgeChipElements = useMemo(() => {
+  const badgeElements = useMemo(() => {
     if (!toolbarLayout) return []
     const out: ReactNode[] = []
     if (search.trim()) {
       out.push(
-        <Chip
+        <AppBadge
           key="search"
           size="small"
           variant="outlined"
@@ -609,7 +608,7 @@ export default function AppDataGrid<T>({
         ? f.formatActiveChipValue({ value: cur, filter: f })
         : formatDefaultActiveChipValue(f, cur)
       out.push(
-        <Chip
+        <AppBadge
           key={`filter-${f.id}`}
           size="small"
           variant="outlined"
@@ -645,7 +644,7 @@ export default function AppDataGrid<T>({
       {showToolbar && (
         <>
           {toolbarLayout ? (
-            <Stack spacing={2} sx={{ mb: 3 }}>
+            <Stack spacing={2} sx={{ mb: 1.5 }}>
               <Stack
                 direction="row"
                 flexWrap="wrap"
@@ -708,26 +707,37 @@ export default function AppDataGrid<T>({
                         />
                       }
                       label="Hide disallowed"
-                      sx={{ flexShrink: 0 }}
+                      sx={(theme) => ({
+                        flexShrink: 0,
+                        '& .MuiFormControlLabel-label': {
+                          ...theme.typography.body2,
+                        },
+                      })}
                     />
                   )}
                 </Stack>
               )}
 
-              {hasActiveToolbarState && (
-                <Stack
-                  direction="row"
-                  flexWrap="wrap"
-                  alignItems="center"
-                  gap={1}
-                  sx={{ rowGap: 1 }}
-                >
-                  {badgeChipElements}
-                  <Button size="small" variant="text" onClick={resetToolbar}>
-                    Reset
-                  </Button>
-                </Stack>
-              )}
+              <Box
+                sx={{
+                  minHeight: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 1,
+                  rowGap: 1,
+                  mt: 0,
+                }}
+              >
+                {hasActiveToolbarState && (
+                  <>
+                    {badgeElements}
+                    <Button size="small" variant="text" onClick={resetToolbar}>
+                      Reset
+                    </Button>
+                  </>
+                )}
+              </Box>
             </Stack>
           ) : (
             <Stack

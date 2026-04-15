@@ -145,7 +145,7 @@ Optional on each **`AppDataGridFilter`**:
 - **`description`:** short help text next to the label (info icon).
 - **`formatActiveChipValue`:** override text for the active-filter badge chip.
 
-When **`toolbarLayout`** is set, search and non-default filters produce a **badge row** with per-chip delete and a **Reset** control that clears search and all filter values.
+When **`toolbarLayout`** is set, a **badge strip** is always reserved (**`minHeight`** 30px); when search or filters are active, it shows dismissible **`AppBadge`** items and a **Reset** control so the layout does not jump when the first badge appears.
 
 ### Column header helper (optional)
 
