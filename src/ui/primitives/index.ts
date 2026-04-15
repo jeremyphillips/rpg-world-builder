@@ -37,6 +37,12 @@ export {
 } from './forms/AppImageUploadField'
 export { AppSelect, type AppSelectProps, type SelectOption } from './forms/AppSelect'
 export {
+  AppMultiSelectField,
+  type AppMultiSelectFieldProps,
+  type MultiSelectOption,
+  type AppMultiSelectFieldDisplayMode,
+} from './forms/AppMultiSelectField'
+export {
   AppJsonPreviewField,
   type AppJsonPreviewFieldProps,
 } from './forms/AppJsonPreviewField'

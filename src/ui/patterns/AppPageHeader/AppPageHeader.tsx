@@ -14,7 +14,7 @@ export default function AppPageHeader({
   actions = [],
 }: AppPageHeaderProps) {
   return (
-    <Box sx={{ mt: 4 }}>
+    <Box sx={{ mt: 4, mb: 4 }}>
       {breadcrumbData && <Breadcrumbs items={breadcrumbData} />}
 
       <Stack 

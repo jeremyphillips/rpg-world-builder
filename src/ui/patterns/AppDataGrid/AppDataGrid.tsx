@@ -10,8 +10,7 @@ import {
 import Box from '@mui/material/Box'
 import GlobalStyles from '@mui/material/GlobalStyles'
 import Stack from '@mui/material/Stack'
-import { AppTextField } from '@/ui/primitives'
-import MenuItem from '@mui/material/MenuItem'
+import { AppMultiSelectField, AppSelect, AppTextField } from '@/ui/primitives'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiLink from '@mui/material/Link'
@@ -224,6 +223,14 @@ export interface AppDataGridProps<T> {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+const APP_DATA_GRID_FILTER_FIELD_SX = { minWidth: 160 }
+
+/** When options include `value: ''` (e.g. "All"), pass label as placeholder for AppSelect empty state. */
+function selectPlaceholderForFilterOptions(options: FilterOption[]): string | undefined {
+  const empty = options.find((o) => o.value === '')
+  return empty?.label
+}
 
 function getFilterDefault<T>(f: AppDataGridFilter<T>): unknown {
   if (f.defaultValue !== undefined) return f.defaultValue
@@ -478,64 +485,49 @@ export default function AppDataGrid<T>({
 
           {resolvedFilters.map((f) => {
             switch (f.type) {
-              case 'select':
+              case 'select': {
+                const placeholder = selectPlaceholderForFilterOptions(f.options)
                 return (
-                  <AppTextField
+                  <AppSelect
                     key={f.id}
-                    select
-                    size="small"
-                    value={getFilterValue(f) as string}
-                    onChange={(e) => setFilterValue(f.id, e.target.value)}
                     label={f.label}
-                    sx={{ minWidth: 160 }}
-                  >
-                    {f.options.map((opt) => (
-                      <MenuItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </MenuItem>
-                    ))}
-                  </AppTextField>
+                    options={f.options}
+                    value={getFilterValue(f) as string}
+                    onChange={(v) => setFilterValue(f.id, v)}
+                    size="small"
+                    sx={APP_DATA_GRID_FILTER_FIELD_SX}
+                    placeholder={placeholder}
+                  />
                 )
+              }
               case 'multiSelect':
                 return (
-                  <AppTextField
+                  <AppMultiSelectField
                     key={f.id}
-                    select
-                    size="small"
-                    value={(getFilterValue(f) as string[]) ?? []}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      setFilterValue(
-                        f.id,
-                        typeof val === 'string' ? val.split(',') : val,
-                      )
-                    }}
                     label={f.label}
-                    sx={{ minWidth: 160 }}
-                    slotProps={{ select: { multiple: true } }}
-                  >
-                    {f.options.map((opt) => (
-                      <MenuItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </MenuItem>
-                    ))}
-                  </AppTextField>
+                    options={f.options}
+                    value={(getFilterValue(f) as string[]) ?? []}
+                    onChange={(v) => setFilterValue(f.id, v)}
+                    size="small"
+                    displayMode="summary"
+                    sx={APP_DATA_GRID_FILTER_FIELD_SX}
+                  />
                 )
               case 'boolean':
                 return (
-                  <AppTextField
+                  <AppSelect
                     key={f.id}
-                    select
-                    size="small"
-                    value={getFilterValue(f) as string}
-                    onChange={(e) => setFilterValue(f.id, e.target.value)}
                     label={f.label}
-                    sx={{ minWidth: 160 }}
-                  >
-                    <MenuItem value="all">All</MenuItem>
-                    <MenuItem value="true">{f.trueLabel ?? 'Yes'}</MenuItem>
-                    <MenuItem value="false">{f.falseLabel ?? 'No'}</MenuItem>
-                  </AppTextField>
+                    options={[
+                      { value: 'all', label: 'All' },
+                      { value: 'true', label: f.trueLabel ?? 'Yes' },
+                      { value: 'false', label: f.falseLabel ?? 'No' },
+                    ]}
+                    value={getFilterValue(f) as string}
+                    onChange={(v) => setFilterValue(f.id, v)}
+                    size="small"
+                    sx={APP_DATA_GRID_FILTER_FIELD_SX}
+                  />
                 )
             }
           })}

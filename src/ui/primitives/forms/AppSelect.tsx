@@ -1,13 +1,22 @@
 import type { FocusEvent, Ref } from 'react';
 import { useId, useState } from 'react';
 
-import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import FormHelperText from '@mui/material/FormHelperText';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import type { SxProps, Theme } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
+
+/**
+ * AppSelect empty-state contract (outlined MUI Select):
+ *
+ * - With `placeholder`: `displayEmpty` + a single `renderValue` path for empty vs selected; the label
+ *   shrinks while empty (`showPlaceholder`) so the placeholder matches standard outlined behavior.
+ * - Without `placeholder`: no custom `renderValue`; empty value uses plain MUI label/select (label may sit
+ *   in-field until focus/open). Callers must not add screen-level wrappers to simulate placeholder.
+ */
 
 export type SelectOption = {
   label: string;
@@ -37,7 +46,7 @@ export type AppSelectProps = {
   sx?: SxProps<Theme>;
 };
 
-/** Outlined select with internal label shrink + optional empty placeholder; for RHF see `AppFormSelect`. */
+/** Outlined select; see file-level contract. For RHF see `AppFormSelect`. */
 export function AppSelect({
   label,
   options,
@@ -97,9 +106,9 @@ export function AppSelect({
             ? (selected) => {
                 if (selected === '' || selected == null) {
                   return (
-                    <Box component="span" sx={{ color: 'text.secondary' }}>
+                    <Typography component="span" variant="inherit" color="text.secondary" sx={{ lineHeight: 'inherit' }}>
                       {placeholder}
-                    </Box>
+                    </Typography>
                   );
                 }
                 const opt = options.find((o) => o.value === selected);

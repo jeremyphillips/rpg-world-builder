@@ -87,6 +87,10 @@ export {
   type AppFormSelectProps,
 } from './form/AppFormSelect'
 export {
+  default as AppFormMultiSelectField,
+  type AppFormMultiSelectFieldProps,
+} from './form/AppFormMultiSelectField'
+export {
   default as AppFormRadioGroup,
   type AppFormRadioGroupProps,
 } from './form/AppFormRadioGroup'
