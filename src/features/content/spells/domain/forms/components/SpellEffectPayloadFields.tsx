@@ -24,7 +24,7 @@ function PrefixedDynamicField({
 }: {
   namePrefix: string;
   relativeName: string;
-  field: Omit<FieldConfig, 'name'> & { name: string };
+  field: FieldConfig;
 }): ReactElement {
   const full: FieldConfig = {
     ...field,
@@ -41,7 +41,7 @@ function PrefixedDriverField({
 }: {
   namePrefix: string;
   relativeName: string;
-  field: Omit<FieldConfig, 'name'> & { name: string };
+  field: FieldConfig;
   driver: PatchDriver;
 }): ReactElement {
   const full: FieldConfig = {
@@ -77,7 +77,7 @@ function PayloadByKind({
     label: o.label,
   }));
 
-  const renderField = (relativeName: string, field: Omit<FieldConfig, 'name'> & { name: string }) =>
+  const renderField = (relativeName: string, field: FieldConfig) =>
     usePatch ? (
       <PrefixedDriverField
         key={relativeName}

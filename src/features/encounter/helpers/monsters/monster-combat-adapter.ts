@@ -2,7 +2,7 @@ import type { MonsterAction, MonsterSpecialAction } from '@/features/content/mon
 import type { MonsterEquippedWeapon } from '@/features/content/monsters/domain/types/monster-equipment.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types/weapon.types'
-import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
+import type { DiceOrFlat } from '@/shared/domain/dice';
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import {
   buildCreatureResolutionInput,

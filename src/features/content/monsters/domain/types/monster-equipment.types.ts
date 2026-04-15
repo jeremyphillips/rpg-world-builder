@@ -1,4 +1,4 @@
-import type { DiceOrFlat } from "@/features/mechanics/domain/dice";
+import type { DiceOrFlat } from '@/shared/domain/dice';
 
 export type MonsterWeaponAction = {
   kind: 'weapon';

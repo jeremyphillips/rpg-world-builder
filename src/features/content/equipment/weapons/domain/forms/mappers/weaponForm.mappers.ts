@@ -15,7 +15,7 @@ import {
   toCount,
   toCountOrZero,
   toDieFace,
-} from '@/features/mechanics/domain/dice';
+} from '@/shared/domain/dice';
 import { WEAPON_FORM_FIELDS } from '../registry/weaponForm.registry';
 import type { WeaponFormValues } from '../types/weaponForm.types';
 

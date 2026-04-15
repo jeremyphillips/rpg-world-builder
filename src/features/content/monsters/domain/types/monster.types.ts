@@ -1,4 +1,4 @@
-import type { DieFace } from "@/features/mechanics/domain/dice";
+import type { DieFace } from '@/shared/domain/dice';
 import type {
   ContentId,
   ContentSummary,

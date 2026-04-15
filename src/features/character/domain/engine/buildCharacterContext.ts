@@ -4,7 +4,7 @@ import type { EvaluationContext, CreatureSnapshot } from '@/features/mechanics/d
 import { getClassProgression } from '@/features/mechanics/domain/progression/class'
 import { resolveLoadout, resolveWieldedWeaponIds } from '@/features/mechanics/domain/equipment/loadout'
 import { ABILITY_KEYS, type AbilityScoreMapResolved, type AbilityScoreValue } from '@/features/mechanics/domain/character';
-import type { DieFace } from '@/features/mechanics/domain/dice/dice.types'
+import type { DieFace } from '@/shared/domain/dice';
 
 /**
  * Flatten ability scores to a record of numbers.

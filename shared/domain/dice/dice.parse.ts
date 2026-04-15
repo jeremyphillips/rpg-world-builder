@@ -1,5 +1,5 @@
-import type { DieFace } from './dice.types';
-import { DIE_FACES } from './dice.constants';
+import type { DieFace } from './dice.definitions';
+import { DIE_FACES } from './dice.definitions';
 
 export type ParsedXdY = { count: number; die: DieFace };
 
@@ -39,10 +39,7 @@ export type ParseXdYOptions = {
  * Parses XdY strings (e.g. "2d6") into { count, die }.
  * Accepts only ^\d+d\d+$ (case-insensitive). No modifiers.
  */
-export function parseXdY(
-  s: string | undefined,
-  opts?: ParseXdYOptions
-): ParsedXdY {
+export function parseXdY(s: string | undefined, opts?: ParseXdYOptions): ParsedXdY {
   const defaultCount = opts?.defaultCount ?? 1;
   const defaultDie = opts?.defaultDie ?? 6;
   const minCount = defaultCount === 0 ? 0 : 1;

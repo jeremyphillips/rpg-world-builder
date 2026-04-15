@@ -1,4 +1,4 @@
-import type { DiceOrFlat } from '@/features/mechanics/domain/dice';
+import type { DiceOrFlat } from '@/shared/domain/dice';
 import type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
 import type { SpellEffect, SpellEffectGroup } from '@/features/content/spells/domain/types';
 import type { SpellEffectFormRow, SpellEffectGroupFormRow } from '../types/spellForm.types';

@@ -14,7 +14,7 @@ import {
   toCount,
   toCountOrZero,
   toDieFace,
-} from '@/features/mechanics/domain/dice';
+} from '@/shared/domain/dice';
 import {
   WEAPON_CATEGORY_OPTIONS,
   WEAPON_MODE_OPTIONS,

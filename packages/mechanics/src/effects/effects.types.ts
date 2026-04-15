@@ -3,7 +3,7 @@ import type { TriggerType } from '../triggers/trigger.types';
 import type { TurnHookKind, TurnHookSelfTrigger } from '../triggers/turn-hooks.types';
 import type { StatTarget } from '../resolution/resolvers/stat-resolver';
 import type { FormulaEffect } from '../resolution/engines/formula.engine';
-import type { DiceOrFlat } from '../dice/dice.types';
+import type { DiceOrFlat } from '@/shared/domain/dice';
 import type { AbilityKey, AbilityRef } from '../character';
 import type { EffectDuration } from './timing.types';
 import type { DamageType, EnergyDamageType } from '../damage/damage.types';

@@ -14,7 +14,7 @@ import type { ContentItem } from '@/features/content/shared/domain/types/content
 import type { Distance } from '@/shared/domain/distance';
 import type { Coin } from '@/shared/money/types';
 import type { SpellCastingTimeDurationUnit, TimeUnit } from '@/shared/domain/time';
-import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
+import type { DiceOrFlat } from '@/shared/domain/dice';
 import type { ContentResolutionMeta } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { CasterOptionField } from '@/features/mechanics/domain/spells/caster-options';
 import type { SpellLevel } from '../spellLevel.definitions';

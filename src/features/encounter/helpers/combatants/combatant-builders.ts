@@ -2,7 +2,7 @@ import type { useCombatStats } from '@/features/character/hooks'
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { ImmunityType, CreatureResistanceDamageType } from '@/features/mechanics/domain/creatures/immunities.types'
-import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
+import type { DiceOrFlat } from '@/shared/domain/dice';
 import {
   CONDITION_IMMUNITY_ONLY_IDS,
   DAMAGE_IMPLIES_CONDITION,
