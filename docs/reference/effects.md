@@ -150,7 +150,7 @@ Status meanings:
 - Do not use when: storing spell placement range or save/damage outcomes
 - **Spells:** put this payload on **`effectGroups[].targeting`**, not as `kind: 'targeting'` inside **`effectGroups[].effects`**.
 - **Other `Effect[]` lists** (monster actions, traits, nested branches): use a full effect row **`{ kind: 'targeting', ... }`**.
-- Key fields: **`selection`** (`'one' | 'chosen' | 'in-area' | 'entered-during-move'`), **`targetType`** (`'creature' | 'dead-creature' | 'object'`), `requiresWilling` (set in spell data for willing touch / ally buffs in encounter), `creatureTypeFilter`, `condition` (effect meta), `requiresSight`, `count`, `canSelectSameTargetMultipleTimes`, `area`
+- Key fields: **`selection`** (`'one' | 'chosen' | 'in-area' | 'entered-during-move'`), **`targetType`** (`'creature' | 'dead-creature' | 'object'`), `requiresWilling` (set in spell data for willing touch / ally buffs in encounter), `creatureTypeFilter`, `condition` (effect meta), `requiresSight`, `count`, `canSelectSameTargetMultipleTimes`, `area`. See [`spellTargeting.vocab.ts`](../../src/features/content/shared/domain/vocab/spellTargeting.vocab.ts) for `TargetSelectionKind` / `TargetEligibilityKind`.
 - Encounter rules do **not** infer `requiresWilling` from spell text; author it on **spell group `targeting`** or on the **`targeting`** effect row in non-spell lists when the rules require a willing target.
 
 **`Effect[]` shape (monsters, nested, non-spell):**
@@ -861,7 +861,7 @@ Rules:
 The spell combat adapter (`buildSpellCombatActions`) converts canonical spell content into executable `CombatActionDefinition` objects for the combat simulation. `classifySpellResolutionMode` returns **three** outcomes (using **flattened** `effectGroups` for mechanical rows); the resulting actions always use **`CombatActionDefinition.resolutionMode`** values defined on that type (**`attack-roll`**, **`effects`**, or **`log-only`** — there is no separate **`auto-hit`** enum value):
 
 - `attack-roll`: spells with `deliveryMethod`. The adapter builds an attack profile from the caster's spell attack bonus and the spell's **`damage`** effect (in group **`effects`**). Multi-instance spells (beams, rays) generate **`sequence`** steps for independent attack rolls.
-- `effects`: everything else that is mechanically actionable — including a **flattened** top-level **`save`**, **`hit-points`** heal, **`spawn`**, **`damage`** without `deliveryMethod` and without relying on the attack-roll path (direct damage / “no roll” application through **`applyActionEffects`**), multi-instance **`damage.instances`** (e.g. Magic Missile **`sequence`**), **`modifier`** / **`immunity`**, etc. The adapter injects the caster's spell save DC into save effects and the spellcasting ability modifier into `hit-points` where `abilityModifier` is `true`. Healing uses `single-creature` combat targeting. HP-threshold gating is applied when `resolution.hpThreshold` is present.
+- `effects`: spells classified as mechanically actionable by **`classifySpellResolutionMode`** in [`spell-resolution-classifier.ts`](../../src/features/encounter/helpers/spells/spell-resolution-classifier.ts) but **without** `deliveryMethod` — flattened **`save`**, **`hit-points`** heal, **`spawn`**, top-level **`damage`** (direct application, including multi-instance **`damage.instances`** / **`sequence`** e.g. Magic Missile), **`modifier`**, **`immunity`**, **`emanation`**, etc. The adapter injects the caster's spell save DC into save effects and the spellcasting ability modifier into `hit-points` where `abilityModifier` is `true`. Healing uses **`single-creature`** combat targeting. HP-threshold gating is applied when **`resolution.hpThreshold`** is present.
 - `log-only`: spells with no actionable flattened payload (e.g. **`note`**-only stubs, or kinds not treated as actionable by the classifier). The adapter generates a log-text summary from effect text or the spell description.
 
 Adapter inputs derived from the caster:
@@ -946,7 +946,7 @@ How effect kinds evolve as more spells are authored:
 
 Already stable. No scaling concerns.
 
-- `save`, `damage`, `hit-points`, `condition` (including `repeatSave`), `state` (including `repeatSave`), `note`, `targeting`
+- `save`, `damage`, `hit-points`, `condition` (including `repeatSave`), `state` (including `repeatSave`), `note`, `targeting` (as a **`kind: 'targeting'`** row in non-spell **`Effect[]`**; spells use group **`targeting`** without `kind`)
 
 ### Tier 2 — Extended Partial Support
 

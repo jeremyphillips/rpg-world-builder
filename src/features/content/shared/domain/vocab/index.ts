@@ -2,6 +2,7 @@ export * from './actionEconomy.vocab';
 export * from './alignment.vocab';
 export * from './areaOfEffect.vocab';
 export * from './effectConditions.vocab';
+export * from './effectKinds.vocab';
 export * from './magicSchools.vocab';
 export * from './rulesConcepts.vocab';
 export * from './spellComponents.vocab';

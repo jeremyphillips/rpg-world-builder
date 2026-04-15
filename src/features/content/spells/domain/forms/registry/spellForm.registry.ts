@@ -14,15 +14,11 @@ import {
   TARGET_ELIGIBILITY_DEFINITIONS,
   TARGET_SELECTION_DEFINITIONS,
 } from '@/features/content/shared/domain/vocab/spellTargeting.vocab';
+import { getAuthorableEffectKindSelectOptions } from '@/features/content/shared/domain/vocab/effectKinds.vocab';
 import { getSpellcastingClasses } from '@/features/mechanics/domain/classes';
 import { getSystemClasses } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import type { SpellFormValues } from '../types/spellForm.types';
-
-export const SPELL_EFFECT_KIND_OPTIONS = [
-  { value: 'damage', label: 'Damage' },
-  { value: 'condition', label: 'Condition' },
-] as const;
 import { spellComponentsPatchBindings } from '../spellComponentsPatchBinding';
 import {
   formatSpellLevelShort,
@@ -156,7 +152,7 @@ function buildSpellEffectGroupsFormNode(): RepeatableGroupSpec<
             name: 'kind',
             label: 'Kind',
             kind: 'select',
-            options: [...SPELL_EFFECT_KIND_OPTIONS],
+            options: getAuthorableEffectKindSelectOptions(),
             defaultFromOptions: 'first',
             placeholder: 'Kind',
           },

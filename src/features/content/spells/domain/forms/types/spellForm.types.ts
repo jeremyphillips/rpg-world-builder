@@ -4,6 +4,7 @@
  */
 import type { ContentFormValues } from '@/features/content/shared/domain/types';
 import type { MagicSchool } from '@/features/content/shared/domain/vocab';
+import type { AuthorableEffectKind } from '@/features/content/shared/domain/vocab/effectKinds.vocab';
 import type {
   TargetEligibilityKind,
   TargetSelectionKind,
@@ -16,7 +17,7 @@ export type SpellEffectGroupFormRow = {
     selection: TargetSelectionKind | '';
     targetType: TargetEligibilityKind | '';
   };
-  effects: { kind: 'damage' | 'condition' | '' }[];
+  effects: { kind: AuthorableEffectKind | '' }[];
 };
 
 export type SpellFormValues = Omit<ContentFormValues, 'description'> & {
