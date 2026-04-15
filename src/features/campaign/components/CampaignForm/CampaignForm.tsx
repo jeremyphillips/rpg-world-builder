@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import {
   AppForm,
   DynamicFormRenderer,
-  FormActions,
+  AppFormActions,
   type FieldConfig,
 } from '@/ui/patterns'
 import Button from '@mui/material/Button'
@@ -66,7 +66,7 @@ export default function CampaignForm({
           >
             Cancel
           </Button>
-          <FormActions submitLabel={submitLabel} />
+          <AppFormActions submitLabel={submitLabel} />
         </Stack>
       )}
     </AppForm>

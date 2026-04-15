@@ -146,7 +146,10 @@ export {
   type AppSelectProps,
 } from '@/ui/primitives'
 
-export { default as FormActions } from './form/FormActions'
+export {
+  default as AppFormActions,
+  type AppFormActionsProps,
+} from './form/AppFormActions'
 
 export { ZoomControl } from './ZoomControl/ZoomControl'
 export type { ZoomControlProps } from './ZoomControl/ZoomControl'

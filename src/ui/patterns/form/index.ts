@@ -34,7 +34,10 @@ export type {
   PickerOption,
   OptionPickerFieldProps,
 } from './OptionPickerField'
-export { default as FormActions } from './FormActions'
+export {
+  default as AppFormActions,
+  type AppFormActionsProps,
+} from './AppFormActions'
 export { default as DynamicField } from './DynamicField'
 export {
   default as DynamicFormRenderer,
