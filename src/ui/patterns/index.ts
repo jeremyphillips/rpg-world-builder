@@ -83,7 +83,11 @@ export {
   type AppFormTextFieldProps,
 } from './form/AppFormTextField'
 export { default as FormSelectField } from './form/FormSelectField'
-export { default as FormRadioField } from './form/FormRadioField'
+export {
+  default as AppFormRadioGroup,
+  type AppFormRadioGroupProps,
+} from './form/AppFormRadioGroup'
+export type { RadioOption } from '@/ui/primitives'
 export { default as FormCheckboxField } from './form/FormCheckboxField'
 export { default as DynamicField } from './form/DynamicField'
 export {

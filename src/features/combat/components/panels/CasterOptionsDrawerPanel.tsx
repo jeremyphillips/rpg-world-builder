@@ -6,8 +6,8 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
 import {
+  AppFormRadioGroup,
   FormCheckboxField,
-  FormRadioField,
   FormSelectField,
 } from '@/ui/patterns'
 import {
@@ -117,7 +117,7 @@ function CasterOptionsDrawerPanelInner({
                 required
               />
             ) : (
-              <FormRadioField
+              <AppFormRadioGroup
                 key={field.id}
                 name={field.id}
                 label={field.label}

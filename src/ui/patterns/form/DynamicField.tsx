@@ -6,7 +6,7 @@ import type { FieldConfig } from './form.types';
 import { useFormLayoutStretch } from './FormLayoutStretchContext';
 import AppFormTextField from './AppFormTextField';
 import FormSelectField from './FormSelectField'
-import FormRadioField from './FormRadioField'
+import AppFormRadioGroup from './AppFormRadioGroup'
 import FormCheckboxField from './FormCheckboxField'
 import FormImageUploadField from './FormImageUploadField'
 import FormDateTimeField from './FormDateTimeField'
@@ -116,7 +116,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'radio':
       return (
         <FieldWithDescription field={field}>
-          <FormRadioField
+          <AppFormRadioGroup
             name={field.name}
             label={field.label}
             options={field.options}
