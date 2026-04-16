@@ -42,10 +42,6 @@ export default function ClassListRoute() {
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
   const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
-  const viewerContext = useMemo(
-    () => toViewerContext(campaign?.viewer, viewerCharacterIds),
-    [campaign?.viewer, viewerCharacterIds],
-  );
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
@@ -175,7 +171,7 @@ export default function ClassListRoute() {
         emptyMessage="No classes found."
         density="compact"
         height={560}
-        viewerContext={viewerContext}
+        viewerContext={controller.viewerContext}
         toolbarLayout={CLASS_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}

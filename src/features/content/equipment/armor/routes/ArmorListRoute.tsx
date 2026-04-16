@@ -42,10 +42,6 @@ export default function ArmorListRoute() {
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
   const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
-  const viewerContext = useMemo(
-    () => toViewerContext(campaign?.viewer, viewerCharacterIds),
-    [campaign?.viewer, viewerCharacterIds],
-  );
 
   const { armor: ownedIds } = useViewerEquipment();
   const hasViewer = ownedIds.size > 0;
@@ -198,7 +194,7 @@ export default function ArmorListRoute() {
         emptyMessage="No armor found."
         density="compact"
         height={560}
-        viewerContext={viewerContext}
+        viewerContext={controller.viewerContext}
         toolbarLayout={ARMOR_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}

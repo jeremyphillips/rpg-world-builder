@@ -42,10 +42,6 @@ export default function RaceListRoute() {
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
   const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
-  const viewerContext = useMemo(
-    () => toViewerContext(campaign?.viewer, viewerCharacterIds),
-    [campaign?.viewer, viewerCharacterIds],
-  );
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
@@ -172,7 +168,7 @@ export default function RaceListRoute() {
         emptyMessage="No races found."
         density="compact"
         height={560}
-        viewerContext={viewerContext}
+        viewerContext={controller.viewerContext}
         toolbarLayout={RACE_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}

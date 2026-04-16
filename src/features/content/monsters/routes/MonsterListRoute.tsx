@@ -44,10 +44,6 @@ export default function MonsterListRoute() {
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
   const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
-  const viewerContext = useMemo(
-    () => toViewerContext(campaign?.viewer, viewerCharacterIds),
-    [campaign?.viewer, viewerCharacterIds],
-  );
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
@@ -181,7 +177,7 @@ export default function MonsterListRoute() {
         emptyMessage="No monsters found."
         density="compact"
         height={560}
-        viewerContext={viewerContext}
+        viewerContext={controller.viewerContext}
         toolbarLayout={MONSTER_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}

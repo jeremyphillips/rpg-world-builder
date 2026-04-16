@@ -44,10 +44,6 @@ export default function SkillProficiencyListRoute() {
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
   const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
-  const viewerContext = useMemo(
-    () => toViewerContext(campaign?.viewer, viewerCharacterIds),
-    [campaign?.viewer, viewerCharacterIds],
-  );
 
   const { skills: ownedIds } = useViewerProficiencies();
   const hasViewer = ownedIds.size > 0;
@@ -193,7 +189,7 @@ export default function SkillProficiencyListRoute() {
         emptyMessage="No skill proficiencies found."
         density="compact"
         height={560}
-        viewerContext={viewerContext}
+        viewerContext={controller.viewerContext}
         toolbarLayout={SKILL_PROFICIENCY_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}
