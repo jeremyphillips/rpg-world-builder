@@ -41,8 +41,7 @@ export default function SpellDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Spell not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/spells`;
-  const editPath = `${listPath}/${spellId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/spells/${spellId}/edit`;
 
   const items = buildDetailItemsFromSpecs(SPELL_DETAIL_SPECS, spell, {});
 
@@ -50,9 +49,8 @@ export default function SpellDetailRoute() {
     <ContentDetailScaffold
       title={spell.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={spell.source}
       accessPolicy={spell.accessPolicy}
     >

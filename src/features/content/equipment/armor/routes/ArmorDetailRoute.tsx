@@ -38,8 +38,7 @@ export default function ArmorDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Armor not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/equipment/armor`;
-  const editPath = `${listPath}/${armorId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/equipment/armor/${armorId}/edit`;
 
   const dexLabel = armor.dex
     ? armor.dex.mode === 'full' ? 'Full' : armor.dex.mode === 'capped' ? `Capped (+${armor.dex.maxBonus})` : 'None'
@@ -53,9 +52,8 @@ export default function ArmorDetailRoute() {
     <ContentDetailScaffold
       title={armor.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={armor.source}
       accessPolicy={armor.accessPolicy}
     >

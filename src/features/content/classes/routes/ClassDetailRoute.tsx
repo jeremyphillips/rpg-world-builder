@@ -40,8 +40,7 @@ export default function ClassDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Class not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/classes`;
-  const editPath = `${listPath}/${classId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/classes/${classId}/edit`;
 
   const items = buildDetailItemsFromSpecs(CLASS_DETAIL_SPECS, charClass, {});
 
@@ -51,9 +50,8 @@ export default function ClassDetailRoute() {
     <ContentDetailScaffold
       title={charClass.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={source}
       accessPolicy={charClass.accessPolicy}
     >

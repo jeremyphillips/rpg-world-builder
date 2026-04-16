@@ -42,8 +42,7 @@ export default function MonsterDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Monster not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/monsters`;
-  const editPath = `${listPath}/${monsterId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/monsters/${monsterId}/edit`;
 
   const items = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, {
     armorById: catalog.armorById,
@@ -53,9 +52,8 @@ export default function MonsterDetailRoute() {
     <ContentDetailScaffold
       title={monster.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={monster.source}
       accessPolicy={monster.accessPolicy}
     >

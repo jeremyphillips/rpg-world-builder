@@ -41,8 +41,7 @@ export default function RaceDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Race not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/races`;
-  const editPath = `${listPath}/${raceId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/races/${raceId}/edit`;
 
   const items = buildDetailItemsFromSpecs(RACE_DETAIL_SPECS, race, {});
 
@@ -50,9 +49,8 @@ export default function RaceDetailRoute() {
     <ContentDetailScaffold
       title={race.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={race.source}
       accessPolicy={race.accessPolicy}
     >

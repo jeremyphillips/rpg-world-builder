@@ -38,8 +38,7 @@ export default function WeaponDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Weapon not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/equipment/weapons`;
-  const editPath = `${listPath}/${weaponId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/equipment/weapons/${weaponId}/edit`;
   const canEdit = canManage && weapon.source === 'campaign';
 
   const items = buildDetailItemsFromSpecs(WEAPON_DETAIL_SPECS, weapon, {});
@@ -48,9 +47,8 @@ export default function WeaponDetailRoute() {
     <ContentDetailScaffold
       title={weapon.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canEdit || (canManage && weapon.source === 'system')}
+      canManage={canEdit || (canManage && weapon.source === 'system')}
       source={weapon.source}
       accessPolicy={weapon.accessPolicy}
     >

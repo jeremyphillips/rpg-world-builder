@@ -39,8 +39,7 @@ export default function GearDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Gear not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/equipment/gear`;
-  const editPath = `${listPath}/${gearId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/equipment/gear/${gearId}/edit`;
 
   const items = buildDetailItemsFromSpecs(GEAR_DETAIL_SPECS, gear, {});
 
@@ -48,9 +47,8 @@ export default function GearDetailRoute() {
     <ContentDetailScaffold
       title={gear.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={gear.source}
       accessPolicy={gear.accessPolicy}
     >

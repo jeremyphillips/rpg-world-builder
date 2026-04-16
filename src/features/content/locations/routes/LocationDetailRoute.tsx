@@ -68,8 +68,7 @@ export default function LocationDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Location not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/locations`;
-  const editPath = `${listPath}/${locationId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/locations/${locationId}/edit`;
 
   const items = buildDetailItemsFromSpecs(LOCATION_DETAIL_SPECS, loc, {
     mapGridSummary,
@@ -79,9 +78,8 @@ export default function LocationDetailRoute() {
     <ContentDetailScaffold
       title={loc.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={loc.source}
       accessPolicy={loc.accessPolicy}
     >

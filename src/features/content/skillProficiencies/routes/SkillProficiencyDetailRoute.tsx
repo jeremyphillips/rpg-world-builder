@@ -43,8 +43,7 @@ export default function SkillProficiencyDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Skill proficiency not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/skill-proficiencies`;
-  const editPath = `${listPath}/${skillProficiencyId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/skill-proficiencies/${skillProficiencyId}/edit`;
 
   const items = buildDetailItemsFromSpecs(SKILL_PROFICIENCY_DETAIL_SPECS, skillProficiency, {});
 
@@ -52,9 +51,8 @@ export default function SkillProficiencyDetailRoute() {
     <ContentDetailScaffold
       title={skillProficiency.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={skillProficiency.source}
       accessPolicy={skillProficiency.accessPolicy}
     >

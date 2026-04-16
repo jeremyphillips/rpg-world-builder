@@ -38,8 +38,7 @@ export default function MagicItemDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Magic item not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/equipment/magic-items`;
-  const editPath = `${listPath}/${magicItemId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/equipment/magic-items/${magicItemId}/edit`;
 
   const items = buildDetailItemsFromSpecs(MAGIC_ITEM_DETAIL_SPECS, item, {});
 
@@ -47,9 +46,8 @@ export default function MagicItemDetailRoute() {
     <ContentDetailScaffold
       title={item.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={item.source}
       accessPolicy={item.accessPolicy}
     >
