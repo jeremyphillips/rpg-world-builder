@@ -5,7 +5,7 @@ import type { AppDataGridToolbarLayout } from '@/ui/patterns';
  */
 export const MONSTER_LIST_TOOLBAR_LAYOUT: AppDataGridToolbarLayout = {
   rows: [
-    ['monsterType', 'sizeCategory'],
+    ['monsterType', 'sizeCategory', 'challengeRating'],
     ['source', 'visibility', 'allowedInCampaign'],
   ],
   utilities: ['hideDisallowed'],

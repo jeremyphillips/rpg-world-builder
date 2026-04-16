@@ -23,8 +23,14 @@ import Avatar from '@mui/material/Avatar'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import SearchIcon from '@mui/icons-material/Search'
 
+import { ContentToolbarDiscreteRangeField } from '@/features/content/shared/components'
+
 import type { AppDataGridFilter, FilterOption } from './appDataGridFilter.types'
-import { getFilterDefault, getActiveFilterBadgeSegments } from './appDataGridFilter.utils'
+import {
+  getFilterDefault,
+  getActiveFilterBadgeSegments,
+  getClampedRangeFilterValue,
+} from './appDataGridFilter.utils'
 import { indexAppDataGridFiltersById } from './indexAppDataGridFiltersById'
 import {
   APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID,
@@ -195,7 +201,12 @@ export interface AppDataGridProps<T> {
   searchable?: boolean
   /** Placeholder for the search field */
   searchPlaceholder?: string
-  /** Columns to search across (defaults to all columns) */
+  /**
+   * When set, used instead of {@link searchColumns} for toolbar search (forgiving
+   * matching should be implemented by the parent).
+   */
+  searchRowMatch?: (row: T, query: string) => boolean
+  /** Columns to search across (defaults to all columns). Ignored when `searchRowMatch` is set. */
   searchColumns?: string[]
   /** MUI `size` for toolbar search + filter controls (default `small` for dense toolbars). */
   toolbarFieldSize?: 'small' | 'medium'
@@ -252,6 +263,10 @@ function isFilterValueActive<T>(f: AppDataGridFilter<T>, value: unknown): boolea
   if (f.type === 'boolean') {
     return value !== 'all'
   }
+  if (f.type === 'range') {
+    const cur = getClampedRangeFilterValue(f, value)
+    return cur.min !== f.defaultValue.min || cur.max !== f.defaultValue.max
+  }
   return value !== def
 }
 
@@ -277,6 +292,7 @@ export default function AppDataGrid<T>({
   multiSelect = false,
   searchable = false,
   searchPlaceholder = 'Search…',
+  searchRowMatch,
   searchColumns,
   toolbarFieldSize = 'small',
   loading = false,
@@ -352,12 +368,18 @@ export default function AppDataGrid<T>({
             const rowValue = f.accessor(row)
             return current === 'true' ? rowValue === true : rowValue === false
           }
+          case 'range': {
+            const span = getClampedRangeFilterValue(f, current)
+            const v = f.accessor(row)
+            return v >= span.min && v <= span.max
+          }
         }
       })
 
       if (!passesFilters) return false
 
       if (searchable && search) {
+        if (searchRowMatch) return searchRowMatch(row, search)
         const lowerSearch = search.toLowerCase()
         const colsToSearch = searchColumns ?? columns.map((c) => c.field)
         return colsToSearch.some((fieldKey) => {
@@ -371,7 +393,7 @@ export default function AppDataGrid<T>({
 
       return true
     })
-  }, [rows, resolvedFilters, filterValues, searchable, search, searchColumns, columns])
+  }, [rows, resolvedFilters, filterValues, searchable, search, searchRowMatch, searchColumns, columns])
 
   // ── Map AppDataGridColumn → MUI GridColDef ────────────────────────
   const muiColumns: GridColDef[] = useMemo(() => {
@@ -589,6 +611,19 @@ export default function AppDataGrid<T>({
               sx={APP_DATA_GRID_FILTER_FIELD_SX}
             />
           )
+        case 'range': {
+          const clamped = getClampedRangeFilterValue(f, getFilterValue(f))
+          return (
+            <ContentToolbarDiscreteRangeField
+              label={f.label}
+              steps={f.steps}
+              value={clamped}
+              onChange={(next) => setFilterValue(f.id, next)}
+              formatValue={f.formatStepValue}
+              size={toolbarFieldSize}
+            />
+          )
+        }
       }
     },
     [getFilterValue, setFilterValue, toolbarFieldSize],

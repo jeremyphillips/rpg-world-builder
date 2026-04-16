@@ -1,3 +1,5 @@
+import { clampMinMaxToSteps, type NumericRange } from '@/features/content/shared/toolbar/discreteNumericRange'
+
 import type { AppDataGridFilter, FilterOption } from './appDataGridFilter.types'
 
 export function getFilterDefault<T>(f: AppDataGridFilter<T>): unknown {
@@ -9,7 +11,18 @@ export function getFilterDefault<T>(f: AppDataGridFilter<T>): unknown {
       return []
     case 'boolean':
       return 'all'
+    case 'range':
+      return f.defaultValue
   }
+}
+
+/** Resolves stored range filter value and clamps to current `steps`. */
+export function getClampedRangeFilterValue<T>(
+  f: Extract<AppDataGridFilter<T>, { type: 'range' }>,
+  stored: unknown,
+): NumericRange {
+  const raw = (stored as NumericRange | undefined) ?? f.defaultValue
+  return clampMinMaxToSteps(raw, f.steps)
 }
 
 function optionLabel(options: FilterOption[], value: string): string | undefined {
@@ -45,6 +58,13 @@ export function getActiveFilterBadgeSegments<T>(
     return [{ label: raw }]
   }
 
+  if (f.type === 'range') {
+    const v = getClampedRangeFilterValue(f, value)
+    const a = f.formatStepValue(v.min)
+    const b = f.formatStepValue(v.max)
+    return [{ label: `${a}\u2013${b}` }]
+  }
+
   switch (f.type) {
     case 'select': {
       const v = String(value ?? '')
@@ -63,6 +83,8 @@ export function getActiveFilterBadgeSegments<T>(
       if (v === 'false') return [{ label: f.falseLabel ?? 'No' }]
       return [{ label: 'All' }]
     }
+    default:
+      return []
   }
 }
 
@@ -92,6 +114,10 @@ export function formatDefaultActiveChipValue<T>(
       if (v === 'true') return f.trueLabel ?? 'Yes'
       if (v === 'false') return f.falseLabel ?? 'No'
       return 'All'
+    }
+    case 'range': {
+      const v = getClampedRangeFilterValue(f, value)
+      return `${f.formatStepValue(v.min)}\u2013${f.formatStepValue(v.max)}`
     }
   }
 }

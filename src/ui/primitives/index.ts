@@ -69,5 +69,11 @@ export type { AppToastProps } from './AppToast/AppToast'
 
 export { default as AppTooltip } from './AppTooltip'
 export type { AppTooltipProps } from './AppTooltip'
+
+export { default as AppPopover } from './AppPopover/AppPopover'
+export type { AppPopoverProps } from './AppPopover/AppPopover'
+
+export { default as AppSlider } from './AppSlider/AppSlider'
+export type { AppSliderProps } from './AppSlider/AppSlider'
 export { AppTooltipWrap } from './AppTooltipWrap'
 export type { AppTooltipWrapProps } from './AppTooltipWrap'

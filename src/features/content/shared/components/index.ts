@@ -3,6 +3,8 @@ export {
   type ContentListItem,
   type ContentViewerContext,
 } from './ContentTypeListPage';
+export { default as ContentToolbarDiscreteRangeField } from './ContentToolbarDiscreteRangeField';
+export type { ContentToolbarDiscreteRangeFieldProps } from './ContentToolbarDiscreteRangeField';
 export {
   buildCampaignContentColumns,
   buildCampaignContentFilters,

@@ -22,6 +22,11 @@ import { AppPageHeader } from '@/ui/patterns';
 import type { BreadcrumbItem } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
+import {
+  createContentSearchMatcher,
+  DEFAULT_CONTENT_SEARCH_NAME_ONLY,
+  type ContentSearchConfig,
+} from '@/features/content/shared/search';
 
 export type ContentListItem = {
   id: string;
@@ -60,7 +65,11 @@ export interface ContentTypeListPageProps<T> {
    */
   onAdd?: () => void;
   searchPlaceholder?: string;
-  searchColumns?: string[];
+  /**
+   * Which row fields participate in toolbar search (shared normalization).
+   * Defaults to {@link DEFAULT_CONTENT_SEARCH_NAME_ONLY} (name only).
+   */
+  contentSearch?: ContentSearchConfig<T>;
   emptyMessage?: string;
   density?: 'compact' | 'standard' | 'comfortable';
   height?: number | string;
@@ -94,7 +103,7 @@ const ContentTypeListPage = <T,>({
   toolbar,
   onAdd,
   searchPlaceholder,
-  searchColumns = ['name'],
+  contentSearch,
   emptyMessage,
   density = 'compact',
   height = 500,
@@ -105,6 +114,12 @@ const ContentTypeListPage = <T,>({
 }: ContentTypeListPageProps<T>) => {
   const defaultBreadcrumbs = useBreadcrumbs();
   const resolvedBreadcrumbs = breadcrumbData ?? defaultBreadcrumbs;
+
+  const resolvedContentSearch = contentSearch ?? DEFAULT_CONTENT_SEARCH_NAME_ONLY;
+  const searchRowMatch = useMemo(
+    () => createContentSearchMatcher(resolvedContentSearch as ContentSearchConfig<T>),
+    [resolvedContentSearch],
+  );
 
   const resolvedHeadline = headline ?? typeLabelPlural;
   const resolvedSearchPlaceholder = searchPlaceholder ?? `Search ${typeLabelPlural.toLowerCase()}…`;
@@ -155,7 +170,7 @@ const ContentTypeListPage = <T,>({
         filters={filters}
         searchable
         searchPlaceholder={resolvedSearchPlaceholder}
-        searchColumns={searchColumns}
+        searchRowMatch={searchRowMatch}
         loading={loading}
         emptyMessage={resolvedEmptyMessage}
         toolbar={toolbarNode}

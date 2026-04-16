@@ -105,18 +105,18 @@ export function buildMonsterCustomColumns(
     },
     {
       field: 'challengeRating',
-      headerName: 'Challenge Rating',
+      headerName: 'CR',
       width: 100,
       accessor: (row) => row.lore.challengeRating ? 
         `${row.lore.challengeRating.toString()}` : '—',
         // (XP: ${row.lore.xpValue?.toLocaleString()})
     },
-    {
-      field: 'equipment',
-      headerName: 'Equipment',
-      flex: 1,
-      minWidth: 120,
-      accessor: getEquipmentDisplay,
-    },
+    // {
+    //   field: 'equipment',
+    //   headerName: 'Equipment',
+    //   flex: 1,
+    //   minWidth: 120,
+    //   accessor: getEquipmentDisplay,
+    // },
   ];
 }

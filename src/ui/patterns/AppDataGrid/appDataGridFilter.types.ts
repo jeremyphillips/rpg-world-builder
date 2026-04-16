@@ -64,6 +64,18 @@ export type AppDataGridFilter<T> =
       defaultValue?: 'all' | 'true' | 'false'
       visibility?: AppDataGridFilterVisibility
     } & AppDataGridFilterMeta<T>)
+  | ({
+      id: string
+      label: string
+      type: 'range'
+      /** Sorted unique numeric values present in the catalog (slider stops). */
+      steps: readonly number[]
+      accessor: (row: T) => number
+      defaultValue: { min: number; max: number }
+      /** Thumb labels and trigger summary for numeric step values. */
+      formatStepValue: (n: number) => string
+      visibility?: AppDataGridFilterVisibility
+    } & AppDataGridFilterMeta<T>)
 
 export type AppDataGridActiveChipFormatContext<T> = {
   value: unknown

@@ -24,6 +24,7 @@ import {
   validateMonsterChange,
   buildMonsterCustomColumns,
   buildMonsterCustomFilters,
+  deriveSortedChallengeRatingSteps,
   MONSTER_LIST_TOOLBAR_LAYOUT,
   type MonsterListRow,
 } from '@/features/content/monsters/domain';
@@ -79,7 +80,12 @@ export default function MonsterListRoute() {
     () => buildMonsterCustomColumns(catalog.armorById as Record<string, CreatureArmorCatalogEntry>),
     [catalog.armorById],
   );
-  const customFilters = useMemo(() => buildMonsterCustomFilters(), []);
+  const crSteps = useMemo(() => deriveSortedChallengeRatingSteps(items), [items]);
+
+  const customFilters = useMemo(
+    () => buildMonsterCustomFilters({ crSteps }),
+    [crSteps],
+  );
 
   const handleToggleAllowed = useValidatedAllowedToggle({
     campaignId,
@@ -176,7 +182,6 @@ export default function MonsterListRoute() {
         loading={controller.loading}
         error={controller.error}
         searchPlaceholder="Search monsters…"
-        searchColumns={['name', 'monsterType']}
         emptyMessage="No monsters found."
         density="compact"
         height={560}
