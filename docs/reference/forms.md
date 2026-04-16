@@ -120,7 +120,7 @@ Multi-select built on MUI **`Autocomplete`** (**`multiple`**, **`disableCloseOnS
 
 ## `AppDataGrid` toolbar filters
 
-**Path:** `src/ui/patterns/AppDataGrid/AppDataGrid.tsx`
+**Path:** `src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`
 
 Toolbar behavior is configured with optional **`toolbarConfig`**. Filter definitions live under **`toolbarConfig.filters.definitions`**; they render with **`AppSelect`** (**`select`**, **`boolean`**) and **`AppMultiSelectCheckbox`** (**`multiSelect`** filter type), not **`TextField`** + **`select`**. Search uses **`AppTextField`** via **`toolbarConfig.search`**.
 
@@ -136,7 +136,9 @@ Loading, empty message, density, height, and row class names use optional **`pre
 
 - **`platformAdminOnly`:** if **`true`**, the filter is shown only when **`viewer.isPlatformAdmin`** is true. Omit **`visibility`** (or leave flags unset) so everyone sees the filter.
 
-**Helper:** **`filterAppDataGridFiltersByVisibility(filters, viewer)`** — pass a **`ViewerContext`** from **`toViewerContext(campaign?.viewer, characterIds)`** after composing filters, then pass the filtered array as **`toolbarConfig.filters.definitions`** on **`AppDataGrid`**. Row filtering uses only filters still in the array; hidden filters are not applied. The older **`filterAppDataGridFiltersForViewer`** name remains as a compatibility alias.
+**Helpers:** **`filterAppDataGridFiltersByVisibility(filters, viewer)`** and **`filterAppDataGridColumnsByVisibility(columns, viewer)`** — use these when you compose **`AppDataGrid`** directly and need to drop hidden schema entries yourself. The older **`filterAppDataGridFiltersForViewer`** / **`filterAppDataGridColumnsForViewer`** names remain as compatibility aliases.
+
+**Content lists:** **`ContentTypeListPage`** now applies AppDataGrid `visibility` rules internally. Pass **`viewerContext`** and provide raw **`columns`** / **`filters`**; routes no longer need to remember to pre-filter them before rendering the page wrapper.
 
 ### Toolbar layout (optional)
 
@@ -147,7 +149,7 @@ Loading, empty message, density, height, and row class names use optional **`pre
 - **`utilities`:** non-filter controls (for example **`hideDisallowed`**) that read/write existing filter state only (same **`allowedInCampaign`** value as the Allowed dropdown).
 - When **`toolbarConfig.layout`** is omitted, the toolbar stays a **single wrapping row** in filter **`definitions`** declaration order.
 
-**Helpers:** **`indexAppDataGridFiltersById(filters)`** (`src/ui/patterns/AppDataGrid/indexAppDataGridFiltersById.ts`) — builds a **`Map`** by id (warns in dev on duplicate ids).
+**Helper:** **`indexFiltersById(filters)`** — builds a **`Map`** by id (warns in dev on duplicate ids).
 
 ### Filter metadata (badges and tooltips)
 
@@ -155,7 +157,7 @@ Optional on each **`AppDataGridFilter`**:
 
 - **`description`:** short help text next to the label (info icon).
 - **`badgePrefixFilterLabel`:** when **`true`**, badge text is **`${label}: ${value}`**; when omitted or **`false`** (default), badges show the value segment only (for example **`Wizard`** instead of **`Classes: Wizard`**).
-- **`formatActiveChipValue`:** override badge text. Return a **`string`** for one badge, or **`string[]`** for **`multiSelect`** (one badge per entry; order should align with the selected value ids for per-badge delete). For **`select`**, use this to customize wording (for example spell level as **`1st Level`**).
+- **`formatActiveBadgeValue`:** override badge text. Return a **`string`** for one badge, or **`string[]`** for **`multiSelect`** (one badge per entry; order should align with the selected value ids for per-badge delete). For **`select`**, use this to customize wording (for example spell level as **`1st Level`**). The older **`formatActiveChipValue`** name remains as a compatibility alias.
 
 When **`toolbarConfig.layout`** is set, a **badge strip** is always reserved (**`minHeight`** 30px); when search or filters are active, it shows dismissible **`AppBadge`** items and a **Reset** control so the layout does not jump when the first badge appears. **`multiSelect`** filters emit **one badge per selected option**; deleting a badge removes only that value from the selection. Search continues to use **`Search: …`** for the search chip. Range filters on the primary row use **`medium`** for **`ContentToolbarDiscreteRangeField`** when **`fieldSizes.primary`** is **`large`** (secondary row cannot be **`large`**).
 
@@ -212,7 +214,7 @@ The shared **`sx`** also targets **`.MuiOutlinedInput-root .MuiSelect-select`** 
 | **`App*`** primitives | `@/ui/primitives` |
 | **`AppMultiSelectCheckbox`**, **`AppMultiSelect`** | `@/ui/primitives` |
 | **`AppDataGrid`** (toolbar filters) | `@/ui/patterns` |
-| **`filterAppDataGridFiltersByVisibility`**, **`AppDataGridVisibility`**, **`AppDataGridToolbarLayout`**, **`indexFiltersById`** | `@/ui/patterns` |
+| **`filterAppDataGridFiltersByVisibility`**, **`filterAppDataGridColumnsByVisibility`**, **`AppDataGridVisibility`**, **`AppDataGridToolbarLayout`**, **`indexFiltersById`** | `@/ui/patterns` |
 | **`FieldConfig`**, **`FormLayoutNode`** | `@/ui/patterns/form` (re-exported from **`form.types`**) |
 
 For inline editing outside full-page forms, **`src/ui/patterns/form/editable/`** exposes **`EditableTextField`**, **`EditableSelect`**, and similar pattern components (local state / save callbacks rather than **`AppForm`**).
