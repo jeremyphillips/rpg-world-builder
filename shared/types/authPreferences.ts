@@ -30,6 +30,11 @@ export type AuthUserPreferences = {
   }
 }
 
+/** Keys under `preferences.ui.contentLists` (e.g. hide-disallowed list prefs). */
+export type ContentListPreferencesKey = keyof NonNullable<
+  NonNullable<AuthUserPreferences['ui']>['contentLists']
+>
+
 export const DEFAULT_NOTIFICATION_PREFS: NotificationPreferences = {
   sessionScheduled: true,
   inviteReceived: true,

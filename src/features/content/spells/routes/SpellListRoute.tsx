@@ -3,7 +3,6 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 
-import { apiFetch } from '@/app/api';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
@@ -20,6 +19,7 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
+import { useContentListPreferences } from '@/features/content/shared/hooks/useContentListPreferences';
 import {
   spellRepo,
   validateSpellChange,
@@ -32,10 +32,7 @@ import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import {
-  APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID,
-  filterAppDataGridFiltersForViewer,
-} from '@/ui/patterns';
+import { filterAppDataGridFiltersForViewer } from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
@@ -141,39 +138,12 @@ export default function SpellListRoute() {
     ],
   );
 
-  const initialFilterValues = useMemo(() => {
-    if (!canManage) return undefined;
-    const hide = user?.preferences?.ui?.contentLists?.spells?.hideDisallowed;
-    return {
-      allowedInCampaign: hide ? 'true' : 'all',
-    };
-  }, [canManage, user?.preferences?.ui?.contentLists?.spells?.hideDisallowed]);
-
-  const handleFilterValueChange = useCallback(
-    async (filterId: string, value: unknown) => {
-      if (filterId !== APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID) return;
-      const allowed = String(value);
-      const hideDisallowed = allowed === 'true';
-      try {
-        await apiFetch('/api/auth/me', {
-          method: 'PATCH',
-          body: {
-            preferences: {
-              ui: {
-                contentLists: {
-                  spells: { hideDisallowed },
-                },
-              },
-            },
-          },
-        });
-        await refreshUser();
-      } catch {
-        // Runtime filter still applies; preference may not persist.
-      }
-    },
-    [refreshUser],
-  );
+  const { initialFilterValues, onFilterValueChange } = useContentListPreferences({
+    canManage,
+    user,
+    refreshUser,
+    contentListKey: 'spells',
+  });
 
   if (controller.loading || authLoading) {
     return (
@@ -231,7 +201,7 @@ export default function SpellListRoute() {
         height={560}
         toolbarLayout={SPELL_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
-        onFilterValueChange={handleFilterValueChange}
+        onFilterValueChange={onFilterValueChange}
       />
     </Stack>
   );
