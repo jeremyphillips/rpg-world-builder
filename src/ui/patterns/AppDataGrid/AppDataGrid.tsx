@@ -38,7 +38,11 @@ import {
 } from './appDataGridToolbar.types'
 
 import { resolveImageUrl } from '@/shared/lib/media'
-import type { AppDataGridToolbarFieldSize } from '@/ui/sizes'
+import type {
+  AppDataGridToolbarFieldSizes,
+  MuiDenseInputSize,
+  MuiTextFieldSize,
+} from '@/ui/sizes'
 
 
 // ---------------------------------------------------------------------------
@@ -172,8 +176,11 @@ export type AppDataGridToolbarFiltersConfig<T> = {
 }
 
 export type AppDataGridToolbarConfig<T> = {
-  /** MUI `size` for toolbar search + filter controls (default `small` for dense toolbars). */
-  fieldSize?: AppDataGridToolbarFieldSize
+  /**
+   * MUI `size` per toolbar row. Primary defaults to `medium`, secondary to `small`.
+   * Secondary row does not support `large`.
+   */
+  fieldSizes?: AppDataGridToolbarFieldSizes
   /** Optional actions above the grid (e.g. Add buttons) */
   actions?: ReactNode
   /**
@@ -286,7 +293,8 @@ export default function AppDataGrid<T>({
   const searchRowMatch = searchCfg?.rowMatch
   const searchColumns = searchCfg?.columns
 
-  const toolbarFieldSize = tc?.fieldSize ?? 'small'
+  const primaryFieldSize: MuiTextFieldSize = tc?.fieldSizes?.primary ?? 'medium'
+  const secondaryFieldSize: MuiDenseInputSize = tc?.fieldSizes?.secondary ?? 'small'
   const toolbar = tc?.actions
   const toolbarLayout = tc?.layout
 
@@ -534,7 +542,7 @@ export default function AppDataGrid<T>({
   }, [])
 
   const renderFilterControl = useCallback(
-    (f: AppDataGridFilter<T>) => {
+    (f: AppDataGridFilter<T>, size: MuiTextFieldSize) => {
       const labelEndAdornment = f.description ? (
         <AppTooltip title={f.description}>
           <IconButton size="small" aria-label="Filter info" sx={{ p: 0.25 }}>
@@ -542,6 +550,7 @@ export default function AppDataGrid<T>({
           </IconButton>
         </AppTooltip>
       ) : undefined
+      const rangeSize: MuiDenseInputSize = size === 'large' ? 'medium' : size
       switch (f.type) {
         case 'select': {
           const placeholder = selectPlaceholderForFilterOptions(f.options)
@@ -552,7 +561,7 @@ export default function AppDataGrid<T>({
               options={f.options}
               value={getFilterValue(f) as string}
               onChange={(v) => setFilterValue(f.id, v)}
-              size={toolbarFieldSize}
+              size={size}
               fullWidth={false}
               sx={APP_DATA_GRID_FILTER_FIELD_SX}
               placeholder={placeholder}
@@ -567,7 +576,7 @@ export default function AppDataGrid<T>({
               options={f.options}
               value={(getFilterValue(f) as string[]) ?? []}
               onChange={(v) => setFilterValue(f.id, v)}
-              size={toolbarFieldSize}
+              size={size}
               fullWidth={false}
               displayMode="summary"
               sx={APP_DATA_GRID_FILTER_FIELD_SX}
@@ -585,7 +594,7 @@ export default function AppDataGrid<T>({
               ]}
               value={getFilterValue(f) as string}
               onChange={(v) => setFilterValue(f.id, v)}
-              size={toolbarFieldSize}
+              size={size}
               fullWidth={false}
               sx={APP_DATA_GRID_FILTER_FIELD_SX}
             />
@@ -599,20 +608,20 @@ export default function AppDataGrid<T>({
               value={clamped}
               onChange={(next) => setFilterValue(f.id, next)}
               formatValue={f.formatStepValue}
-              size={toolbarFieldSize}
+              size={rangeSize}
             />
           )
         }
       }
     },
-    [getFilterValue, setFilterValue, toolbarFieldSize],
+    [getFilterValue, setFilterValue],
   )
 
   const renderFilterById = useCallback(
-    (id: string) => {
+    (id: string, size: MuiTextFieldSize) => {
       const f = filterById.get(id)
       if (!f) return null
-      return renderFilterControl(f)
+      return renderFilterControl(f, size)
     },
     [filterById, renderFilterControl],
   )
@@ -660,9 +669,10 @@ export default function AppDataGrid<T>({
     return out
   }, [toolbarLayout, search, filterValues, resolvedFilters, setFilterValue])
 
-  const gap = toolbarFieldSize === 'small' ? 1.5 : 3
-  const row1Ids = toolbarLayout?.rows[0] ?? []
-  const row2Ids = toolbarLayout?.rows[1] ?? []
+  const gapPrimary = primaryFieldSize === 'small' ? 1.5 : 3
+  const gapSecondary = secondaryFieldSize === 'small' ? 1.5 : 3
+  const primaryIds = toolbarLayout?.primary ?? []
+  const secondaryIds = toolbarLayout?.secondary ?? []
 
   const allowedFilter = filterById.get(APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID)
   const allowedValue = allowedFilter
@@ -689,12 +699,12 @@ export default function AppDataGrid<T>({
                 direction="row"
                 flexWrap="wrap"
                 alignItems="center"
-                gap={gap}
+                gap={gapPrimary}
                 sx={{ width: '100%' }}
               >
                 {searchable && (
                   <AppTextField
-                    size={toolbarFieldSize}
+                    size={primaryFieldSize}
                     placeholder={searchPlaceholder}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -710,25 +720,25 @@ export default function AppDataGrid<T>({
                     sx={{ minWidth: 260 }}
                   />
                 )}
-                {row1Ids.map((id) => {
-                  const el = renderFilterById(id)
+                {primaryIds.map((id) => {
+                  const el = renderFilterById(id, primaryFieldSize)
                   return el ? <Box key={id}>{el}</Box> : null
                 })}
                 {toolbar && <Box sx={{ ml: 'auto' }}>{toolbar}</Box>}
               </Stack>
 
-              {(row2Ids.length > 0 || showHideDisallowedUtility) && (
+              {(secondaryIds.length > 0 || showHideDisallowedUtility) && (
                 <Stack
                   direction="row"
                   flexWrap="wrap"
                   alignItems="center"
                   justifyContent={showHideDisallowedUtility ? 'space-between' : 'flex-start'}
-                  gap={gap}
+                  gap={gapSecondary}
                   sx={{ width: '100%' }}
                 >
-                  <Stack direction="row" flexWrap="wrap" alignItems="center" gap={gap}>
-                    {row2Ids.map((id) => {
-                      const el = renderFilterById(id)
+                  <Stack direction="row" flexWrap="wrap" alignItems="center" gap={gapSecondary}>
+                    {secondaryIds.map((id) => {
+                      const el = renderFilterById(id, secondaryFieldSize)
                       return el ? <Box key={id}>{el}</Box> : null
                     })}
                   </Stack>
@@ -786,12 +796,12 @@ export default function AppDataGrid<T>({
                 mb: 3,
                 alignItems: 'center',
                 flexWrap: 'wrap',
-                gap: toolbarFieldSize === 'small' ? 1.5 : 3,
+                gap: primaryFieldSize === 'small' ? 1.5 : 3,
               }}
             >
               {searchable && (
                 <AppTextField
-                  size={toolbarFieldSize}
+                  size={primaryFieldSize}
                   placeholder={searchPlaceholder}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -809,7 +819,7 @@ export default function AppDataGrid<T>({
               )}
 
               {resolvedFilters.map((f) => (
-                <Box key={f.id}>{renderFilterControl(f)}</Box>
+                <Box key={f.id}>{renderFilterControl(f, primaryFieldSize)}</Box>
               ))}
 
               {toolbar && <Box sx={{ ml: 'auto' }}>{toolbar}</Box>}

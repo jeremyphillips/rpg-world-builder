@@ -5,9 +5,7 @@ import type { AppDataGridToolbarLayout } from '@/ui/patterns';
  * Missing ids (e.g. `owned`) are skipped at render time.
  */
 export const WEAPON_LIST_TOOLBAR_LAYOUT: AppDataGridToolbarLayout = {
-  rows: [
-    ['category', 'property', 'owned'],
-    ['source', 'visibility', 'allowedInCampaign'],
-  ],
+  primary: ['category', 'property', 'owned'],
+  secondary: ['source', 'visibility', 'allowedInCampaign'],
   utilities: ['hideDisallowed'],
 };

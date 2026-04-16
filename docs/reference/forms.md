@@ -124,7 +124,7 @@ Multi-select built on MUI **`Autocomplete`** (**`multiple`**, **`disableCloseOnS
 
 Toolbar behavior is configured with optional **`toolbarConfig`**. Filter definitions live under **`toolbarConfig.filters.definitions`**; they render with **`AppSelect`** (**`select`**, **`boolean`**) and **`AppMultiSelectCheckbox`** (**`multiSelect`** filter type), not **`TextField`** + **`select`**. Search uses **`AppTextField`** via **`toolbarConfig.search`**.
 
-- **`toolbarConfig.fieldSize`:** **`'small'` | `'medium'`** (default **`small`**) — MUI **`size`** for the search field and all filter controls.
+- **`toolbarConfig.fieldSizes`:** optional **`primary`** and **`secondary`** — MUI **`size`** per toolbar row. Primary (search + first row of filters) defaults to **`medium`**; secondary defaults to **`small`**. Secondary accepts only **`small`** | **`medium`** (no **`large`**).
 - Selects with an **`value: ''`** “All”-style row pass **`placeholder`** from that option’s label; **`AppSelect`** dedupes the empty menu row (see above).
 - Toolbar controls use **`fullWidth={false}`** and shared **`sx`** so filters stay inline in a horizontal **`Stack`** (not full-width).
 
@@ -142,7 +142,8 @@ Loading, empty message, density, height, and row class names use optional **`pre
 
 **Types:** **`AppDataGridToolbarLayout`**, optional **`toolbarConfig.layout`** on **`AppDataGrid`** (and **`toolbarLayout`** on **`ContentTypeListPage`**, which maps into **`toolbarConfig`**).
 
-- **`rows`:** each entry is an array of **filter `id` strings** for one horizontal row. **`AppDataGrid`** indexes the composed **`toolbarConfig.filters.definitions`** array by id; ids missing after viewer filtering are skipped.
+- **`primary`:** filter **`id`** strings for the first horizontal row (search and actions also render on this row).
+- **`secondary`:** optional second row of filter **`id`** strings.
 - **`utilities`:** non-filter controls (for example **`hideDisallowed`**) that read/write existing filter state only (same **`allowedInCampaign`** value as the Allowed dropdown).
 - When **`toolbarConfig.layout`** is omitted, the toolbar stays a **single wrapping row** in filter **`definitions`** declaration order.
 
@@ -156,7 +157,7 @@ Optional on each **`AppDataGridFilter`**:
 - **`badgePrefixFilterLabel`:** when **`true`**, badge text is **`${label}: ${value}`**; when omitted or **`false`** (default), badges show the value segment only (for example **`Wizard`** instead of **`Classes: Wizard`**).
 - **`formatActiveChipValue`:** override badge text. Return a **`string`** for one badge, or **`string[]`** for **`multiSelect`** (one badge per entry; order should align with the selected value ids for per-badge delete). For **`select`**, use this to customize wording (for example spell level as **`1st Level`**).
 
-When **`toolbarConfig.layout`** is set, a **badge strip** is always reserved (**`minHeight`** 30px); when search or filters are active, it shows dismissible **`AppBadge`** items and a **Reset** control so the layout does not jump when the first badge appears. **`multiSelect`** filters emit **one badge per selected option**; deleting a badge removes only that value from the selection. Search continues to use **`Search: …`** for the search chip.
+When **`toolbarConfig.layout`** is set, a **badge strip** is always reserved (**`minHeight`** 30px); when search or filters are active, it shows dismissible **`AppBadge`** items and a **Reset** control so the layout does not jump when the first badge appears. **`multiSelect`** filters emit **one badge per selected option**; deleting a badge removes only that value from the selection. Search continues to use **`Search: …`** for the search chip. Range filters on the primary row use **`medium`** for **`ContentToolbarDiscreteRangeField`** when **`fieldSizes.primary`** is **`large`** (secondary row cannot be **`large`**).
 
 ### Column header helper (optional)
 
@@ -194,7 +195,7 @@ The shared **`sx`** also targets **`.MuiOutlinedInput-root .MuiSelect-select`** 
 
 - Global MUI theme (component defaults, palette) applies to all **`App*`** / MUI usage.
 - **`MuiTextField`** and **`MuiSelect`** default **`size: 'medium'`**; outlined **`MuiOutlinedInput`** applies **`minHeight: 56`** for **non-small**, non-multiline inputs so medium density aligns across text fields and selects.
-- Primitives such as **`AppSelect`** default **`size`** to **`medium`** unless a screen overrides it (for example **`AppDataGrid`** **`toolbarConfig.fieldSize`**).
+- Primitives such as **`AppSelect`** default **`size`** to **`medium`** unless a screen overrides it (for example **`AppDataGrid`** **`toolbarConfig.fieldSizes`**).
 - Many form controls use **`size="small"`** where set explicitly for density; **`AppForm`** uses **`Stack`** spacing **`3`** by default.
 - Prefer **`sx`** with theme callbacks (**`(theme) => ({ … })`**) when you need palette-aware borders or spacing, consistent with existing form code.
 

@@ -5,9 +5,7 @@ import type { AppDataGridToolbarLayout } from '@/ui/patterns';
  * Missing ids (e.g. `owned`) are skipped at render time.
  */
 export const MAGIC_ITEM_LIST_TOOLBAR_LAYOUT: AppDataGridToolbarLayout = {
-  rows: [
-    ['slot', 'rarity', 'attunement', 'owned'],
-    ['source', 'visibility', 'allowedInCampaign'],
-  ],
+  primary: ['slot', 'rarity', 'attunement', 'owned'],
+  secondary: ['source', 'visibility', 'allowedInCampaign'],
   utilities: ['hideDisallowed'],
 };

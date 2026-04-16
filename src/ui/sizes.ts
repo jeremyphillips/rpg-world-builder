@@ -16,8 +16,11 @@ export type MuiButtonSize = NonNullable<ButtonProps['size']>
  */
 export type MuiDenseInputSize = Extract<MuiTextFieldSize, 'small' | 'medium'>
 
-/** {@link AppDataGrid} toolbar search + filter controls. */
-export type AppDataGridToolbarFieldSize = MuiDenseInputSize
+/** Per-row MUI `size` for {@link AppDataGrid} toolbar (secondary row has no `large`). */
+export type AppDataGridToolbarFieldSizes = {
+  primary?: MuiTextFieldSize
+  secondary?: MuiDenseInputSize
+}
 
 /** `AppMultiSelect` (Autocomplete) — only dense MUI sizes. */
 export type AppMultiSelectSize = MuiDenseInputSize
