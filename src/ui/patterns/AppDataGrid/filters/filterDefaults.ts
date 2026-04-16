@@ -1,4 +1,4 @@
-import { clampMinMaxToSteps, type NumericRange } from '@/features/content/shared/toolbar/discreteNumericRange'
+import { clampMinMaxToSteps, type NumericRange } from './discreteNumericRange'
 
 import type { AppDataGridFilter } from '../types'
 

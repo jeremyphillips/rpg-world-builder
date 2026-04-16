@@ -16,6 +16,8 @@ export {
   indexFiltersById,
   getActiveFilterBadgeSegments,
   getClampedRangeFilterValue,
+  clampMinMaxToSteps,
+  deriveSortedUniqueNumericSteps,
   getFilterDefault,
   formatDefaultActiveBadgeValue,
   formatDefaultActiveChipValue,

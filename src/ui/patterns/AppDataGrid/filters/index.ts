@@ -1,4 +1,11 @@
 export {
+  clampMinMaxToSteps,
+  deriveSortedUniqueNumericSteps,
+  indexRangeToValues,
+  valuesToIndexRange,
+  type NumericRange,
+} from './discreteNumericRange'
+export {
   getFilterDefault,
   getClampedRangeFilterValue,
 } from './filterDefaults'

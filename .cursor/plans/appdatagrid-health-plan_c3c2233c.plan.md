@@ -1,18 +1,21 @@
 ---
 name: appdatagrid-health-plan
-overview: Create a staged refactor plan for `ui/patterns/AppDataGrid` based on the architectural review. The plan focuses on reducing coordination risk in the core grid, clarifying naming and ownership boundaries, and containing schema drift before more toolbar features land.
+overview: Re-evaluate `ui/patterns/AppDataGrid` against the current codebase and prioritize the refactors with the best scalability payoff. The updated plan focuses on containing the core component, removing feature-layer coupling from the shared pattern, reducing repeated content-list composition, and defining when the current client-side filtering/search model stops being enough.
 todos:
   - id: contain-core
-    content: Define the internal responsibility seams inside `src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx` and identify the first safe extractions.
+    content: Define the first safe extractions inside `src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`, especially around toolbar state, filter control rendering, and active badge derivation.
     status: pending
-  - id: cleanup-naming
-    content: Create a rename map for weak or misleading AppDataGrid names, especially around `toolbarFilters`, badge/chip terminology, and filter indexing exports.
+  - id: remove-feature-coupling
+    content: Design how `AppDataGrid` stops importing content-feature components directly while preserving range filters and campaign utilities ergonomics.
     status: pending
-  - id: unify-visibility
-    content: Design a single viewer-visibility concept shared by grid columns and filters.
+  - id: reduce-route-duplication
+    content: Decide what campaign content-list behavior should be lifted into `ContentTypeListPage` or a shared wrapper so new list routes do not keep repeating the same wiring.
     status: pending
-  - id: review-feature-boundary
-    content: Decide whether campaign-content-specific utility behavior should remain inside `AppDataGrid` or move up into the content-list layer.
+  - id: stabilize-api
+    content: Tighten naming and public exports around filters, visibility helpers, badge formatting, and toolbar layout so the shared API stays coherent as more grids are added.
+    status: pending
+  - id: define-scale-thresholds
+    content: Document the row-count and UX signals that should trigger a move beyond the current client-side filter and search pipeline, including selection and bulk-action needs.
     status: pending
 isProject: false
 ---
@@ -20,84 +23,90 @@ isProject: false
 # AppDataGrid Health Plan
 
 ## Goal
-Stabilize [`src/ui/patterns/AppDataGrid`](src/ui/patterns/AppDataGrid) before more toolbar and filter features land, without rewriting the module. The main objective is to reduce pressure on the core component, clarify ownership boundaries, and prevent schema duplication from spreading further into feature code.
+Stabilize [`src/ui/patterns/AppDataGrid`](src/ui/patterns/AppDataGrid) as a reusable shared pattern before more list pages and richer toolbar behavior land. The target is not a rewrite. The target is to make the existing grid easier to extend, less coupled to content-specific code, and clearer about when it should stop being a purely client-side list primitive.
 
-## Current Assessment
-The module is still usable and worth preserving, but it is beginning to centralize too many concerns.
+## Re-evaluated Assessment
+The first-pass plan was directionally correct, but the current code shifts the highest-value refactors slightly.
 
-The most important pressure points are:
-- [`src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`](src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx) is becoming a coordination hub for toolbar rendering, search/filter state, badge derivation, column adaptation, and special-case product behavior.
-- [`src/ui/patterns/AppDataGrid/filters/toolbarFilters.ts`](src/ui/patterns/AppDataGrid/filters/toolbarFilters.ts) now owns more than its name suggests: defaults, range normalization, and badge formatting.
-- [`src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts) and [`src/ui/patterns/AppDataGrid/types/appDataGridFilter.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGridFilter.types.ts) are mostly healthy, but naming and public API shape are starting to blur responsibilities.
-- [`src/ui/patterns/AppDataGrid/viewer/columnsForViewer.ts`](src/ui/patterns/AppDataGrid/viewer/columnsForViewer.ts) and [`src/ui/patterns/AppDataGrid/viewer/filtersForViewer.ts`](src/ui/patterns/AppDataGrid/viewer/filtersForViewer.ts) duplicate the same viewer-policy pattern.
-- [`src/features/content/shared/components/contentListTemplate.tsx`](src/features/content/shared/components/contentListTemplate.tsx), [`src/features/content/shared/components/ContentTypeListPage.tsx`](src/features/content/shared/components/ContentTypeListPage.tsx), and routes like [`src/features/content/spells/routes/SpellListRoute.tsx`](src/features/content/spells/routes/SpellListRoute.tsx) show that content-list composition is standardized, but also reveal repeated viewer filtering, toolbar layout wiring, and preference plumbing.
+The main pressure points now are:
+- [`src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`](src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx) is the primary scaling risk. It currently owns toolbar state, filter rendering, badge generation, layout orchestration, special-case campaign utilities, and the final MUI grid rendering.
+- The earlier plan referenced `toolbarFilters.ts`, but current filter behavior is split across [`src/ui/patterns/AppDataGrid/filters/filterDefaults.ts`](src/ui/patterns/AppDataGrid/filters/filterDefaults.ts), [`src/ui/patterns/AppDataGrid/filters/filterBadges.ts`](src/ui/patterns/AppDataGrid/filters/filterBadges.ts), and [`src/ui/patterns/AppDataGrid/core/appDataGridFiltering.ts`](src/ui/patterns/AppDataGrid/core/appDataGridFiltering.ts). The risk is less “one oversized helper file” and more “logic spread across loosely related helpers with naming drift”.
+- [`src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`](src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx) directly imports `ContentToolbarDiscreteRangeField` from the content feature layer. That means `ui/patterns` is not fully shared infrastructure anymore.
+- [`src/features/content/shared/components/ContentTypeListPage.tsx`](src/features/content/shared/components/ContentTypeListPage.tsx) and [`src/features/content/shared/components/contentListTemplate.tsx`](src/features/content/shared/components/contentListTemplate.tsx) do centralize a lot of content-list composition well, but route files still repeat a recognizable shell: presentation defaults, validation messaging, toolbar layout wiring, and row muting for disallowed content.
+- [`src/ui/patterns/AppDataGrid/core/appDataGridFiltering.ts`](src/ui/patterns/AppDataGrid/core/appDataGridFiltering.ts) is still appropriate for modest lists, but the search path currently does repeated column lookup inside per-row filtering. That is the clearest scalability ceiling in the runtime pipeline.
+- [`src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts) still has a selection TODO. That is not urgent today, but it is a real extension point if bulk actions or larger admin workflows land.
 
 ## Refactor Strategy
-Use a containment-first sequence. Start by making the existing module easier to reason about and safer to extend, then address public API drift, then decide whether any feature-specific behavior should move out of the shared pattern.
+Use a containment-first sequence, but front-load the changes that protect the shared-layer boundary.
 
 ```mermaid
 flowchart TD
-  review[Review Findings] --> containCore[Contain Core Responsibilities]
-  containCore --> clarifyApi[Clarify Names and Public API]
-  clarifyApi --> unifySchema[Unify Visibility and Filter Schema Rules]
-  unifySchema --> reduceFeatureLeakage[Reduce Feature-Specific Leakage]
-  reduceFeatureLeakage --> planNext[Reassess Larger Needs]
+  reviewFindings[ReviewFindings] --> containCore[ContainCoreComponent]
+  containCore --> decoupleSharedLayer[DecoupleSharedLayer]
+  decoupleSharedLayer --> standardizeListComposition[StandardizeListComposition]
+  standardizeListComposition --> tightenApi[TightenPublicApi]
+  tightenApi --> defineScalePath[DefineScalePath]
 ```
 
-## Stage 1: Worth Doing Now
-Focus on low-risk cleanup that improves clarity without changing the module's external behavior.
+## Stage 1: Highest Value Now
+These are the refactors most likely to improve scalability without creating product churn.
 
-- Shrink the responsibility surface of [`src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`](src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx) by defining internal seams for:
+- Contain [`src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`](src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx) by extracting internal seams for:
   - toolbar state and reset behavior
-  - filter application and search matching
+  - filter control rendering
   - active badge derivation
-  - column-to-MUI mapping
-- Clean up naming drift in the shared module:
-  - rename `toolbarFilters` to something responsibility-based like `filterState` or split it into smaller concern-based helpers
-  - align `chip` terminology with `badge` terminology in filter metadata and helper names
-  - remove the duplicate alias pattern around `mapFiltersById` / `indexAppDataGridFiltersById`
-- Narrow the public surface in [`src/ui/patterns/AppDataGrid/index.ts`](src/ui/patterns/AppDataGrid/index.ts) and [`src/ui/patterns/AppDataGrid/filters/index.ts`](src/ui/patterns/AppDataGrid/filters/index.ts) so internal-only helpers are not exported unless real consumers need them.
+  - toolbar row layout
+  - final grid presentation
+- Remove direct feature-layer coupling from the shared grid:
+  - replace the direct `ContentToolbarDiscreteRangeField` dependency with a shared primitive, slot, or injected renderer
+  - review whether owned-content presentation helpers belong in `ui/patterns` or should move back toward the content layer
+- Correct stale plan assumptions and naming drift:
+  - stop referring to the removed `toolbarFilters.ts`
+  - align `chip` compatibility naming toward `badge`
+  - narrow exports in [`src/ui/patterns/AppDataGrid/index.ts`](src/ui/patterns/AppDataGrid/index.ts) and [`src/ui/patterns/AppDataGrid/filters/index.ts`](src/ui/patterns/AppDataGrid/filters/index.ts)
 
-## Stage 2: Worth Planning Soon
-Address the design choices that will become more expensive as richer toolbar behavior is added.
+## Stage 2: High Value Soon
+These are the next refactors that improve scalability at the feature-composition level.
 
-- Introduce a clearer separation between generic grid infrastructure and toolbar-specific orchestration inside [`src/ui/patterns/AppDataGrid`](src/ui/patterns/AppDataGrid).
-- Unify viewer visibility concepts used by columns and filters so they do not continue as parallel implementations in:
-  - [`src/ui/patterns/AppDataGrid/viewer/columnsForViewer.ts`](src/ui/patterns/AppDataGrid/viewer/columnsForViewer.ts)
-  - [`src/ui/patterns/AppDataGrid/viewer/filtersForViewer.ts`](src/ui/patterns/AppDataGrid/viewer/filtersForViewer.ts)
-  - [`src/ui/patterns/AppDataGrid/types/appDataGridFilter.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGridFilter.types.ts)
-  - [`src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts)
-- Revisit whether campaign-content-specific toolbar utilities should remain embedded in shared grid behavior, especially the `allowedInCampaign` and `hideDisallowed` path currently coordinated through:
-  - [`src/ui/patterns/AppDataGrid/types/appDataGridToolbar.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGridToolbar.types.ts)
-  - [`src/features/content/shared/hooks/useContentListPreferences.ts`](src/features/content/shared/hooks/useContentListPreferences.ts)
-  - [`src/features/content/shared/components/contentListTemplate.tsx`](src/features/content/shared/components/contentListTemplate.tsx)
-- Reduce repetitive composition work in content list routes by deciding whether viewer filtering, layout resolution, and persisted filter wiring belong in route code or in the shared content-list layer.
+- Reduce repeated content-list route composition by deciding whether the following should move fully into [`src/features/content/shared/components/ContentTypeListPage.tsx`](src/features/content/shared/components/ContentTypeListPage.tsx) or a nearby shared wrapper:
+  - default grid presentation
+  - muted-row styling for disallowed content
+  - validation or warning banner placement
+  - preference-backed toolbar state wiring
+- Revisit toolbar layout ownership so filter ids and layout declarations do not drift apart across content lists. Candidate seams are:
+  - derive layout from a shared registry
+  - add validation around unknown layout ids
+  - centralize common secondary-row conventions for campaign content
+- Standardize search behavior so “content lists” and “direct AppDataGrid lists” do not diverge into separate UX models unless intentionally chosen.
 
-## Stage 3: Defer For Now
-These are real concerns, but they should wait until the containment work above is complete.
+## Stage 3: Plan But Defer
+These are real future needs, but they should not lead the current refactor.
 
-- A full rewrite of `AppDataGrid`
-- A generalized plugin system for all toolbar utilities
-- A server-driven filtering/search model unless current list sizes or upcoming requirements make it necessary
-- Breaking every filter variant or column behavior into tiny files before the larger ownership boundaries are clarified
+- Server-driven or indexed filtering/search
+- A controlled selection API for bulk actions
+- A generalized toolbar plugin framework
+- Breaking every helper into tiny files before boundaries are clearer
 
 ## Specific Review Targets
-Use these as the primary checkpoints when evaluating the refactor:
+Use these as the primary checkpoints for the implementation plan.
 
-- [`src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`](src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx): reduce god-file risk
-- [`src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts): keep the public grid contract understandable
-- [`src/ui/patterns/AppDataGrid/types/appDataGridFilter.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGridFilter.types.ts): preserve the healthy filter union while fixing naming drift
-- [`src/ui/patterns/AppDataGrid/filters/toolbarFilters.ts`](src/ui/patterns/AppDataGrid/filters/toolbarFilters.ts): split mixed responsibilities if it continues growing
-- [`src/features/content/shared/components/contentListTemplate.tsx`](src/features/content/shared/components/contentListTemplate.tsx): watch for schema duplication between shared content-list builders and grid config
-- [`src/features/content/shared/components/ContentTypeListPage.tsx`](src/features/content/shared/components/ContentTypeListPage.tsx): confirm whether this should absorb more repetitive route composition
+- [`src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`](src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx): reduce god-file risk and isolate campaign-specific behavior
+- [`src/ui/patterns/AppDataGrid/core/appDataGridFiltering.ts`](src/ui/patterns/AppDataGrid/core/appDataGridFiltering.ts): make the current client-side path cheaper and define the future handoff point
+- [`src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts): keep the public contract understandable and prepare for future selection work
+- [`src/ui/patterns/AppDataGrid/types/appDataGridToolbar.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGridToolbar.types.ts): clarify what belongs to generic toolbar layout versus content-specific utilities
+- [`src/features/content/shared/components/ContentTypeListPage.tsx`](src/features/content/shared/components/ContentTypeListPage.tsx): absorb repeated route-level wiring where it truly is shared
+- [`src/features/content/shared/components/contentListTemplate.tsx`](src/features/content/shared/components/contentListTemplate.tsx): keep shared campaign content columns and filters from turning into a second schema source
 
 ## Success Criteria
 This effort should be considered successful if:
-- `AppDataGrid` is easier to scan and extend without reading one large file end to end
-- the module’s names describe responsibility instead of historical implementation details
-- toolbar-specific logic has clearer boundaries
-- viewer visibility rules have one clearer source of truth
-- content-list features can keep composing the grid without increasing duplication around layout, gating, or persisted filter behavior
+- `AppDataGrid` no longer requires reading one large file to safely add a toolbar feature
+- `ui/patterns/AppDataGrid` does not depend directly on content feature components
+- content-list routes add domain-specific columns and filters without repeating shared list scaffolding
+- the public filter and visibility API is easier to understand and harder to misuse
+- the team has an explicit threshold for when to move beyond the current client-side filter/search pipeline
 
-## Recommended Next Step
-Start with a small design pass on [`src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`](src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx) and [`src/ui/patterns/AppDataGrid/filters/toolbarFilters.ts`](src/ui/patterns/AppDataGrid/filters/toolbarFilters.ts) to define the internal seams and naming cleanup that can happen without changing behavior. That gives the team a practical first refactor slice and creates a cleaner base before touching viewer rules or content-specific utilities.
+## Recommended Next Steps
+1. Start with a design pass on [`src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx`](src/ui/patterns/AppDataGrid/core/AppDataGrid.tsx), [`src/ui/patterns/AppDataGrid/core/appDataGridFiltering.ts`](src/ui/patterns/AppDataGrid/core/appDataGridFiltering.ts), and [`src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts`](src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts) to define the internal seams and the public API surface that must stay stable.
+2. In parallel, decide the shared-layer boundary for range filters and campaign utilities so `ui/patterns` can stop importing from `features/content`.
+3. After the shared-layer boundary is clear, tighten [`src/features/content/shared/components/ContentTypeListPage.tsx`](src/features/content/shared/components/ContentTypeListPage.tsx) around the repetitive content-list route shell.
+4. Document explicit scale triggers for a future server-side or indexed search/filter path instead of leaving that decision implicit.

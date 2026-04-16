@@ -1,4 +1,4 @@
-import { deriveSortedUniqueNumericSteps } from '@/features/content/shared/toolbar/discreteNumericRange';
+import { deriveSortedUniqueNumericSteps } from '@/ui/patterns';
 
 import type { MonsterListRow } from './monsterList.types';
 
