@@ -8,3 +8,4 @@ export type {
 export * from './status'
 export * from './visibility'
 export * from './ruleset'
+export * from './authPreferences'

@@ -63,6 +63,10 @@ export interface ContentTypeListPageProps<T> {
    * When set, {@link AppDataGrid} renders filters in row order by id (not array order) and shows an active-filter badge row.
    */
   toolbarLayout?: AppDataGridToolbarLayout;
+  /** Initial session filter state (passed through to `AppDataGrid`). */
+  initialFilterValues?: Record<string, unknown>;
+  /** Persist or react to filter changes (passed through to `AppDataGrid`). */
+  onFilterValueChange?: (filterId: string, value: unknown) => void;
 }
 
 const ContentTypeListPage = <T,>({
@@ -87,6 +91,8 @@ const ContentTypeListPage = <T,>({
   height = 500,
   getRowClassName,
   toolbarLayout,
+  initialFilterValues,
+  onFilterValueChange,
 }: ContentTypeListPageProps<T>) => {
   const defaultBreadcrumbs = useBreadcrumbs();
   const resolvedBreadcrumbs = breadcrumbData ?? defaultBreadcrumbs;
@@ -130,6 +136,8 @@ const ContentTypeListPage = <T,>({
         height={height}
         getRowClassName={getRowClassName}
         toolbarLayout={toolbarLayout}
+        initialFilterValues={initialFilterValues}
+        onFilterValueChange={onFilterValueChange}
       />
     </Box>
   );

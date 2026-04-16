@@ -49,10 +49,12 @@ export function chunkFormLayoutNodes(fields: FormLayoutNode[]): FormLayoutChunk[
     const helperText = fc.group.helperText;
     const spacing = fc.group.spacing;
     while (i < fields.length) {
-      const g = fields[i] as FieldConfig;
+      const g = fields[i];
       if ('type' in g && g.type === 'repeatable-group') break;
-      if (!g.group || g.group.id !== groupId) break;
-      groupFields.push(g);
+      if ('type' in g && g.type === 'custom') break;
+      const fg = g as FieldConfig;
+      if (!fg.group || fg.group.id !== groupId) break;
+      groupFields.push(fg);
       i++;
     }
     chunks.push({ type: 'group', fields: groupFields, direction, label, helperText, spacing });

@@ -13,7 +13,9 @@ const coreKeys = [
 
 describe('spellPresentation contract', () => {
   it('form fields include core keys', () => {
-    const keys = new Set(getSpellFormFields().map((f) => f.name));
+    const keys = new Set(
+      getSpellFormFields().map((f) => ('name' in f ? f.name : f.key)),
+    );
     for (const k of coreKeys) {
       expect(keys.has(k)).toBe(true);
     }

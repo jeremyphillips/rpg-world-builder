@@ -218,6 +218,16 @@ export interface AppDataGridProps<T> {
    * When omitted, legacy single-row toolbar in `filters` declaration order.
    */
   toolbarLayout?: AppDataGridToolbarLayout
+  /**
+   * Initial session filter state (e.g. seed `allowedInCampaign` from persisted user preferences).
+   * Applied once on mount; parent should memoize and wait until values are stable (e.g. auth loaded).
+   */
+  initialFilterValues?: Record<string, unknown>
+  /**
+   * Called after any filter value changes (including the Hide disallowed utility).
+   * Use to persist UI preferences; **not** invoked for Reset (session-only clear).
+   */
+  onFilterValueChange?: (filterId: string, value: unknown) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -277,13 +287,21 @@ export default function AppDataGrid<T>({
   height = 400,
   getRowClassName,
   toolbarLayout,
+  initialFilterValues,
+  onFilterValueChange,
 }: AppDataGridProps<T>) {
   const [search, setSearch] = useState('')
-  const [filterValues, setFilterValues] = useState<Record<string, unknown>>({})
+  const [filterValues, setFilterValues] = useState<Record<string, unknown>>(
+    () => ({ ...initialFilterValues }),
+  )
 
-  const setFilterValue = useCallback((id: string, value: unknown) => {
-    setFilterValues((prev) => ({ ...prev, [id]: value }))
-  }, [])
+  const setFilterValue = useCallback(
+    (id: string, value: unknown) => {
+      setFilterValues((prev) => ({ ...prev, [id]: value }))
+      onFilterValueChange?.(id, value)
+    },
+    [onFilterValueChange],
+  )
 
   // ── Normalise filters (new API or legacy shim) ────────────────────
   const resolvedFilters = useMemo<AppDataGridFilter<T>[]>(() => {
@@ -508,6 +526,7 @@ export default function AppDataGrid<T>({
     })
   }, [filterValues, resolvedFilters, search])
 
+  /** Clears search and runtime filters only; does not PATCH persisted user preferences. */
   const resetToolbar = useCallback(() => {
     setSearch('')
     setFilterValues({})

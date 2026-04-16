@@ -2,7 +2,7 @@
  * Builds RHF defaultValues from FieldConfig[] / FormLayoutNode[].
  * Uses field.defaultValue, or field.defaultFromOptions === 'first' for option-based fields.
  */
-import type { FieldConfig, FormLayoutNode } from '../form.types';
+import type { FormLayoutNode } from '../form.types';
 
 function isRepeatableGroup(
   n: FormLayoutNode,

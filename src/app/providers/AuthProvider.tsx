@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { apiFetch, ApiError } from '../api'
+import type { AuthUserPreferences } from '@/shared'
 
 interface AuthUser {
   id: string
@@ -12,11 +13,7 @@ interface AuthUser {
   avatarUrl?: string
   bio?: string
   website?: string
-  notificationPreferences?: {
-    sessionScheduled: boolean
-    inviteReceived: boolean
-    mentionedInChat: boolean
-  }
+  preferences?: AuthUserPreferences
 }
 
 interface AuthContextType {

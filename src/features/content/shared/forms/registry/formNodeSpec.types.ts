@@ -8,11 +8,7 @@ export type CustomFormNodeSpecContext = {
   patchDriver: PatchDriver | null;
 };
 
-export type CustomFormNodeSpec<
-  FormValues extends Record<string, unknown>,
-  InputShape extends Record<string, unknown> = Record<string, unknown>,
-  ItemShape extends Record<string, unknown> = Record<string, unknown>,
-> = {
+export type CustomFormNodeSpec = {
   kind: 'custom';
   /** Stable key for layout chunking / React keys */
   key: string;
@@ -56,7 +52,7 @@ export type FormNodeSpec<
   | FieldSpec<FormValues, InputShape, ItemShape>
   | NestedFieldSpec<FormValues, InputShape, ItemShape>
   | RepeatableGroupSpec<FormValues, InputShape, ItemShape>
-  | CustomFormNodeSpec<FormValues, InputShape, ItemShape>;
+  | CustomFormNodeSpec;
 
 export function isRepeatableGroupSpec<
   FormValues extends Record<string, unknown>,
@@ -74,6 +70,6 @@ export function isCustomFormNodeSpec<
   ItemShape extends Record<string, unknown>,
 >(
   spec: FormNodeSpec<FormValues, InputShape, ItemShape>,
-): spec is CustomFormNodeSpec<FormValues, InputShape, ItemShape> {
-  return (spec as CustomFormNodeSpec<FormValues, InputShape, ItemShape>).kind === 'custom';
+): spec is CustomFormNodeSpec {
+  return (spec as CustomFormNodeSpec).kind === 'custom';
 }

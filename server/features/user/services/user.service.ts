@@ -71,6 +71,13 @@ export async function createUser(data: {
     passwordHash,
     role: data.role,
     active: true,
+    preferences: {
+      notifications: {
+        sessionScheduled: true,
+        inviteReceived: true,
+        mentionedInChat: true,
+      },
+    },
     createdAt: now,
     updatedAt: now,
   })

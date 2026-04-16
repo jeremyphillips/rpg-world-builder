@@ -20,7 +20,6 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "audit:spells-willing": "tsx scripts/audit-spell-touch-willing.ts",
-    "migrate:location-building-profile": "tsx scripts/migrateLocationBuildingProfile.ts",
     "build:location-objects-manifest": "tsx scripts/location-objects-assets/generateLocationObjectsManifest.ts",
     "validate:location-objects-manifest": "tsx scripts/location-objects-assets/validateLocationObjectsManifest.ts",
     "validate:location-objects": "npm run validate:location-objects-manifest && vitest run src/features/content/locations/domain/model/placedObjects/__tests__/locationObjectsRegistryManifest.crossReference.test.ts",

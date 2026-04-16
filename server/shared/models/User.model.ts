@@ -11,10 +11,14 @@ const UserSchema = new mongoose.Schema({
   avatarKey: { type: String },
   bio: { type: String },
   website: { type: String },
-  notificationPreferences: {
-    sessionScheduled: { type: Boolean, default: true },
-    inviteReceived: { type: Boolean, default: true },
-    mentionedInChat: { type: Boolean, default: true },
+  preferences: {
+    notifications: {
+      sessionScheduled: { type: Boolean, default: true },
+      inviteReceived: { type: Boolean, default: true },
+      mentionedInChat: { type: Boolean, default: true },
+    },
+    /** UI affordances (content list defaults, etc.). */
+    ui: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
 }, { timestamps: true })
 

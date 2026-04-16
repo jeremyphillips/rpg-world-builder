@@ -95,21 +95,21 @@ const fields: FieldConfig[] = [
   // ── Notifications ──
   {
     type: 'checkbox',
-    name: 'notificationPreferences.sessionScheduled',
+    name: 'preferences.notifications.sessionScheduled',
     label: 'Session scheduled',
     helperText: 'Receive an email when a new session is scheduled.',
     section: 'notifications'
   },
   {
     type: 'checkbox',
-    name: 'notificationPreferences.inviteReceived',
+    name: 'preferences.notifications.inviteReceived',
     label: 'Invite received',
     helperText: 'Receive an email when you get a campaign invite.',
     section: 'notifications'
   },
   {
     type: 'checkbox',
-    name: 'notificationPreferences.mentionedInChat',
+    name: 'preferences.notifications.mentionedInChat',
     label: 'Mentioned in chat',
     helperText: 'Receive an email when someone mentions you in chat.',
     section: 'notifications'
