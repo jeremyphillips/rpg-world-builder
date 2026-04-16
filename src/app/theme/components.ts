@@ -1,5 +1,47 @@
 import type { Components, Theme } from '@mui/material/styles'
 
+import { CONTROL_SIZES } from './controlSizes'
+
+/** 1px outline border top + bottom (MUI outlined field). */
+const OUTLINED_BORDER_Y_PX = 2
+
+/**
+ * Match single-line control height to `box.height` by sizing vertical padding; assumes 16px root rem.
+ * Does not use minHeight as the primary lever — fixed height on the root + explicit inner padding.
+ */
+function outlineInputVerticalPaddingPx(size: 'small' | 'medium' | 'large'): number {
+  const { box, content } = CONTROL_SIZES[size]
+  const rem = parseFloat(content.fontSize)
+  const fontPx = rem * 16
+  const lineBoxPx = fontPx * content.lineHeight
+  const innerPx = box.height - OUTLINED_BORDER_Y_PX
+  return Math.max(0, (innerPx - lineBoxPx) / 2)
+}
+
+function outlinedInputSizeStyles(size: 'small' | 'medium' | 'large') {
+  const { box, content } = CONTROL_SIZES[size]
+  const padY = outlineInputVerticalPaddingPx(size)
+  /** Vertical only — keep MUI horizontal padding (Select needs extra end padding for the icon). */
+  const inputSlot = {
+    fontSize: content.fontSize,
+    lineHeight: content.lineHeight,
+    paddingTop: padY,
+    paddingBottom: padY,
+    minHeight: 0,
+  }
+
+  return {
+    height: box.height,
+    boxSizing: 'border-box' as const,
+    '& .MuiOutlinedInput-input': inputSlot,
+    '& .MuiSelect-select': {
+      ...inputSlot,
+      display: 'flex',
+      alignItems: 'center',
+    },
+  }
+}
+
 export const components: Components<Theme> = {
   MuiCssBaseline: {
     styleOverrides: {
@@ -15,16 +57,26 @@ export const components: Components<Theme> = {
     styleOverrides: {
       root: {
         borderRadius: 8,
-        padding: '8px 20px',
-        fontSize: '0.875rem',
-      },
-      sizeLarge: {
-        padding: '12px 28px',
-        fontSize: '1rem',
+        boxSizing: 'border-box',
+        textTransform: 'none',
       },
       sizeSmall: {
-        padding: '4px 12px',
-        fontSize: '0.8rem',
+        minHeight: CONTROL_SIZES.small.box.height,
+        padding: `0 ${CONTROL_SIZES.small.box.px}px`,
+        fontSize: CONTROL_SIZES.small.content.fontSize,
+        lineHeight: CONTROL_SIZES.small.content.lineHeight,
+      },
+      sizeMedium: {
+        minHeight: CONTROL_SIZES.medium.box.height,
+        padding: `0 ${CONTROL_SIZES.medium.box.px}px`,
+        fontSize: CONTROL_SIZES.medium.content.fontSize,
+        lineHeight: CONTROL_SIZES.medium.content.lineHeight,
+      },
+      sizeLarge: {
+        minHeight: CONTROL_SIZES.large.box.height,
+        padding: `0 ${CONTROL_SIZES.large.box.px}px`,
+        fontSize: CONTROL_SIZES.large.content.fontSize,
+        lineHeight: CONTROL_SIZES.large.content.lineHeight,
       },
     },
   },
@@ -34,7 +86,6 @@ export const components: Components<Theme> = {
       size: 'medium',
     },
   },
-  /** Match default `TextField` / `Select` medium density (~56px outlined control). */
   MuiSelect: {
     defaultProps: {
       size: 'medium',
@@ -43,10 +94,14 @@ export const components: Components<Theme> = {
   MuiOutlinedInput: {
     styleOverrides: {
       root: ({ ownerState }) => {
-        if (ownerState.multiline || ownerState.size === 'small') {
-          return {};
+        if (ownerState.multiline) {
+          return {}
         }
-        return { minHeight: 56 };
+        const size = ownerState.size ?? 'medium'
+        if (size === 'small' || size === 'medium' || size === 'large') {
+          return outlinedInputSizeStyles(size)
+        }
+        return {}
       },
     },
   },

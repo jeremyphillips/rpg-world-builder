@@ -10,8 +10,8 @@ export type AppFormSelectProps = {
   required?: boolean;
   disabled?: boolean;
   placeholder?: string;
-  /** Passed to MUI `FormControl` / `Select`. Default `medium` matches `AppFormTextField`; theme sets `MuiSelect` to `small`. */
-  size?: 'small' | 'medium';
+  /** Passed to MUI `FormControl` / `Select`. Default `medium` matches `AppFormTextField`. */
+  size?: 'small' | 'medium' | 'large';
   /** Fires after the field value updates (e.g. action selects without submitting a form). */
   onAfterChange?: (value: string) => void;
 };

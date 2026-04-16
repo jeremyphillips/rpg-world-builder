@@ -36,7 +36,7 @@ type AppSelectBase = {
   helperText?: string;
   disabled?: boolean;
   required?: boolean;
-  size?: 'small' | 'medium';
+  size?: 'small' | 'medium' | 'large';
   fullWidth?: boolean;
   /** Applied to `FormControl` (e.g. grid stretch from form layout context). */
   sx?: SxProps<Theme>;

@@ -16,7 +16,7 @@ export type AppFormMultiSelectCheckboxProps<TValue extends string = string> = {
   placeholder?: string;
   displayMode?: MultiSelectFieldDisplayMode;
   summaryText?: (selectedOptions: MultiSelectOption<TValue>[]) => string;
-  size?: 'small' | 'medium';
+  size?: 'small' | 'medium' | 'large';
   /** Fires after the field value updates. */
   onAfterChange?: (value: TValue[]) => void;
 };

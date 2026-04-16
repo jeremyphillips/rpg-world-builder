@@ -20,6 +20,7 @@ import GavelIcon from '@mui/icons-material/Gavel'
 import PlaceIcon from '@mui/icons-material/Place'
 import SettingsIcon from '@mui/icons-material/Settings'
 import ShieldIcon from '@mui/icons-material/Shield'
+
 import { ROUTES } from '@/app/routes'
 import type { Campaign } from '@/shared/types/campaign.types'
 import { AppSelect } from '@/ui/primitives'
@@ -67,7 +68,7 @@ export function DrawerCampaignSection({
           value: c._id,
           label: c.identity?.name ?? c._id,
         }))}
-        size="small"
+        size="large"
         sx={{ fontSize: '0.9rem' }}
       />
 

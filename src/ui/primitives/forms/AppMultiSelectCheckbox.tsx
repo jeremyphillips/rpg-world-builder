@@ -33,7 +33,7 @@ export type AppMultiSelectCheckboxProps<TValue extends string = string> = {
   displayMode?: MultiSelectFieldDisplayMode;
   /** Override default summary (`None selected` / `1 selected` / `N selected`). Do not include the field `label` here — it is shown by the floating label. */
   summaryText?: (selectedOptions: MultiSelectOption<TValue>[]) => string;
-  size?: 'small' | 'medium';
+  size?: 'small' | 'medium' | 'large';
   fullWidth?: boolean;
   /** For RHF / Controller: forwarded to the underlying `Select`. */
   inputRef?: Ref<unknown>;

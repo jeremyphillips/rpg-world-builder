@@ -13,7 +13,7 @@ export type AppFormTextFieldProps = {
   disabled?: boolean;
   type?: 'text' | 'email' | 'password' | 'number' | 'datetime-local';
   rules?: RegisterOptions;
-  size?: 'small' | 'medium';
+  size?: 'small' | 'medium' | 'large';
   /** Fires after the field value updates (e.g. sync workspace draft without form submit). */
   onAfterChange?: (value: string) => void;
 };
