@@ -36,7 +36,7 @@ export default function GearListRoute() {
   const canManage = useActiveCampaignCanManageContent();
   const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
-  const { context: viewerCtx, loading: viewerQueryLoading } = useViewerCharacterQuery();
+  const { mergedContext: viewerCtx, ready: viewerQueryReady } = useViewerCharacterQuery();
   const ownedIds = viewerCtx.inventory.gearIds;
 
   const listSummaries = useCallback(
@@ -126,7 +126,7 @@ export default function GearListRoute() {
     ],
   );
 
-  if (controller.loading || authLoading || viewerQueryLoading) {
+  if (controller.loading || authLoading || !viewerQueryReady) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress />

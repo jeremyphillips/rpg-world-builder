@@ -18,44 +18,86 @@ import { useCampaignMembers } from './useCampaignMembers'
 
 type CharacterResponse = { character: CharacterDetailDto }
 
-export function useViewerCharacterQuery(): {
-  context: CharacterQueryContext
+export type UseViewerCharacterQueryOptions = {
+  /**
+   * When set, only this viewer character is loaded (must appear in campaign viewer ids).
+   * Invalid or missing ids are ignored and all viewer characters are fetched.
+   */
+  characterId?: string | null
+}
+
+export function useViewerCharacterQuery(
+  options?: UseViewerCharacterQueryOptions,
+): {
+  mergedContext: CharacterQueryContext
+  contextsById: ReadonlyMap<string, CharacterQueryContext>
   loading: boolean
+  ready: boolean
+  activeContext: CharacterQueryContext | null
 } {
   const { viewerCharacterIds } = useCampaignMembers()
-  const [built, setBuilt] = useState<CharacterQueryContext[]>([])
-  const [loading, setLoading] = useState(false)
+  const characterId = options?.characterId ?? null
+
+  const fetchIds = useMemo(() => {
+    if (viewerCharacterIds.length === 0) return []
+    if (characterId && viewerCharacterIds.includes(characterId)) {
+      return [characterId]
+    }
+    return [...viewerCharacterIds]
+  }, [viewerCharacterIds, characterId])
+
+  const fetchKey = useMemo(() => fetchIds.slice().sort().join(','), [fetchIds])
+
+  const [contextsById, setContextsById] = useState<Map<string, CharacterQueryContext>>(
+    () => new Map(),
+  )
+  const [completedForKey, setCompletedForKey] = useState<string | null>('')
+
+  const ready = completedForKey === fetchKey
+  const loading = fetchIds.length > 0 && !ready
 
   useEffect(() => {
-    if (viewerCharacterIds.length === 0) {
-      setBuilt([])
-      setLoading(false)
+    if (fetchIds.length === 0) {
+      setContextsById(new Map())
+      setCompletedForKey('')
       return
     }
 
+    setCompletedForKey(null)
     let cancelled = false
-    setLoading(true)
 
     Promise.all(
-      viewerCharacterIds.map((id) =>
+      fetchIds.map((id) =>
         apiFetch<CharacterResponse>(`/api/characters/${id}`)
-          .then((d) => buildCharacterQueryContext(toCharacterForEngine(d.character)))
-          .catch(() => createEmptyCharacterQueryContext()),
+          .then((d) => [id, buildCharacterQueryContext(toCharacterForEngine(d.character))] as const)
+          .catch(() => [id, createEmptyCharacterQueryContext()] as const),
       ),
-    )
-      .then((results) => {
-        if (!cancelled) setBuilt(results)
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+    ).then((results) => {
+      if (cancelled) return
+      setContextsById(new Map(results))
+      setCompletedForKey(fetchKey)
+    })
 
     return () => {
       cancelled = true
     }
-  }, [viewerCharacterIds])
+  }, [fetchKey, fetchIds])
 
-  const context = useMemo(() => mergeCharacterQueryContexts(built), [built])
+  const mergedContext = useMemo(
+    () => mergeCharacterQueryContexts([...contextsById.values()]),
+    [contextsById],
+  )
 
-  return { context, loading }
+  const activeContext = useMemo(() => {
+    if (!characterId) return null
+    return contextsById.get(characterId) ?? null
+  }, [characterId, contextsById])
+
+  return {
+    mergedContext,
+    contextsById,
+    loading,
+    ready,
+    activeContext,
+  }
 }

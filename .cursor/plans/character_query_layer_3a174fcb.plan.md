@@ -1,31 +1,37 @@
 ---
 name: Character Query Layer
-overview: Design a shared, normalized character query context that centralizes how features derive read-only information from character state, replacing ad-hoc ownership/availability/proficiency checks with a single build-once, query-many pattern.
+overview: Design a shared, normalized CharacterQueryContext and evolve the viewer hook with explicit scope (single vs merged), explicit readiness, and a return shape that supports PC-owned UI today and DM “owned by character” filtering next—without locking ownership to merged-only.
 todos:
   - id: types
     content: Create `characterQueryContext.types.ts` with the phase-1 `CharacterQueryContext` shape
-    status: pending
+    status: completed
   - id: builder
     content: Create `buildCharacterQueryContext.ts` that maps `Character` to `CharacterQueryContext`
-    status: pending
+    status: completed
   - id: merge
     content: Create `mergeCharacterQueryContexts.ts` for multi-character union (viewer hook replacement)
-    status: pending
+    status: completed
   - id: selectors
     content: Create initial selector files grouped by concern (inventory, spells, proficiency, economy, combat, progression)
-    status: pending
+    status: completed
   - id: tests
     content: Write tests for builder, merge, and selectors
-    status: pending
+    status: completed
   - id: hook
     content: Create `useViewerCharacterQuery` hook in campaign/hooks to replace the three viewer hooks
-    status: pending
+    status: completed
+  - id: hook-scope-ready
+    content: Refine hook — explicit scope (single/merged), contextsById, mergedContext, loading, ready; fix empty-merge-before-fetch readiness bug
+    status: completed
   - id: migrate-routes
-    content: Migrate six content list routes to use `useViewerCharacterQuery`
-    status: pending
+    content: Migrate six content list routes to use refined hook + correct ownership slice (active PC vs merged per product choice)
+    status: completed
   - id: deprecate
     content: Deprecate and remove old `useViewerEquipment`, `useViewerSpells`, `useViewerProficiencies`
-    status: pending
+    status: completed
+  - id: doc-reference
+    content: Add `docs/reference/character-query-layer.md` (read-only derived querying; purpose, scope, readiness, consumers, rollout)
+    status: completed
 isProject: false
 ---
 
@@ -233,7 +239,7 @@ meetsLevelRequirement(ctx: CharacterQueryContext, minLevel: number): boolean
 mergeCharacterQueryContexts(contexts: CharacterQueryContext[]): CharacterQueryContext
 ```
 
-This replaces the per-hook union logic (the `for (const eq of equipMap)` loops). The merged context is what content list routes use as "viewer owned ids."
+This replaces the per-hook union logic (the `for (const eq of equipMap)` loops). **Ownership UI should not assume merged is the only mode** — see [§8 Ownership & query scope refinement](#8-ownership--query-scope-refinement-post-implementation).
 
 ---
 
@@ -281,22 +287,21 @@ src/features/campaign/hooks/
 
 **This is pure extraction -- no consumers change yet.**
 
-### Stage 2: Create `useViewerCharacterQuery` hook
+### Stage 2: Create `useViewerCharacterQuery` hook (iterate per §8)
 
 - Single hook replaces `useViewerEquipment`, `useViewerSpells`, `useViewerProficiencies`
 - One `GET /api/characters/:id` per viewer character (same network, but single fetch per character instead of 3)
-- Runs each response through `buildCharacterQueryContext`, then `mergeCharacterQueryContexts`
-- Returns `{ context: CharacterQueryContext; loading: boolean }`
-- Consistent return shape (always includes `loading`)
+- Runs each response through `buildCharacterQueryContext`; exposes **per-id contexts** and optional **merged** context
+- Must expose **readiness** (`ready`) so consumers never treat pre-fetch empty context as authoritative — see §8.2–8.3
+- Return shape should support **scope** (single character vs merged) — see §8.1, §8.3
 
 ### Stage 3: Migrate content list routes
 
-- Update all six owning list routes to use `useViewerCharacterQuery` instead of the three separate hooks
-- Each route extracts `ownedIds` from the context via the appropriate selector or direct set access:
-  - `context.inventory.weaponIds` instead of `useViewerEquipment().weapons`
-  - `context.spells.knownSpellIds` instead of `useViewerSpells()`
-  - `context.proficiencies.skillIds` instead of `useViewerProficiencies().skills`
-- Existing `contentListTemplate.tsx` / `ownedMembership.ts` continue to receive `ReadonlySet<string>` -- no changes needed there
+- Update all six owning list routes to use the **refined** hook (§8.4)
+- Each route derives `ownedIds` from the **chosen scope** (active PC vs merged — product decision in §8.4), not blindly from merged-only:
+  - `context.inventory.weaponIds` (etc.) from the **selected** `CharacterQueryContext`
+  - `context.spells.knownSpellIds`, `context.proficiencies.skillIds` likewise
+- Existing `contentListTemplate.tsx` / `ownedMembership.ts` continue to receive `ReadonlySet<string>` -- no changes needed there **once** `ownedIds` is sourced from the correct context slice
 
 ### Stage 4: Deprecate and remove old viewer hooks
 
@@ -317,15 +322,131 @@ No adapters needed. The `CharacterQueryContext` is a new, additive type. Old hoo
 
 ---
 
-## 8. Recommended Next Step
+## 8. Ownership & query scope refinement (post-implementation)
 
-**Create `characterQueryContext.types.ts` and `buildCharacterQueryContext.ts` with tests.**
+**Implemented:** [`useViewerCharacterQuery.ts`](src/features/campaign/hooks/useViewerCharacterQuery.ts) fetches per `fetchIds` (all viewer ids, or one id when `characterId` is valid), stores **`contextsById`**, derives **`mergedContext`**, exposes **`ready`** (keyed to the completed fetch batch), **`loading`**, and **`activeContext`** when `characterId` is set. List routes gate ownership UI on **`ready`** so empty pre-fetch merge is never treated as authoritative.
 
-This is the smallest, safest extraction:
-- Zero consumer changes
-- Pure functions, fully testable in isolation
-- Establishes the canonical type that all future work references
-- Exercises existing helpers (`getSkillIds`, `moneyToCp`, loadout resolution)
-- Can be reviewed and merged without touching any route or hook
+**Historical issue (pre-fix):** the hook returned `{ context, loading }` with **`loading` initially `false`** and merged **`mergeCharacterQueryContexts([])`** before fetches completed.
 
-After that merges, the natural follow-up is `mergeCharacterQueryContexts` + `useViewerCharacterQuery`, then migrating list routes one at a time.
+### 1. Current issue summary
+
+| Issue | Detail |
+|--------|--------|
+| **Merged-only mental model** | Plan text previously implied merged viewer context is *the* ownership source. Product needs **single-character** ownership (active PC, DM pick) **and** optional merged union — not one hard-coded default forever. |
+| **Readiness bug** | ~~Fixed: `ready` + list spinners until fetch completes.~~ Previously: first paint could show empty merge while `loading` was false. |
+| **No explicit scope** | ~~Partially addressed: optional `characterId` fetches one viewer character; `contextsById` supports DM pick.~~ Active “current PC” from prefs/URL is still a product follow-up. |
+| **Future DM filter** | “Owned by character” needs a **single** `CharacterQueryContext` for the **selected** character id — same builder/merge layer, different **selection** input. |
+
+---
+
+### 2. Recommended scope model
+
+**Keep `CharacterQueryContext` as the unit of truth per character.** Do **not** replace merge; **make scope explicit** at the hook/API layer.
+
+Recommended pattern:
+
+```text
+type ViewerCharacterQueryScope =
+  | { kind: 'single'; characterId: string }
+  | { kind: 'mergedViewer' }
+  | { kind: 'none' }   // zero viewer characters — no ownership queries
+```
+
+- **`useViewerCharacterQuery({ scope })`** (or overloads with `characterId?: string | null` where `null`/`undefined` means merged viewer) is a clean API.
+- **Lower-level alternative** (composable): **`useViewerCharacterQueryBase()`** returns `contextsById`, `mergedContext`, `loading`, `ready` — callers pick **single** vs **merged**. Prefer this if many consumers need different slices without a single scope enum.
+
+**Recommendation:** Prefer **one hook** with optional **`characterId?: string | null`**:
+- `undefined` / omitted → fetch all viewer ids, expose **merged** + **byId** (see §8.4).
+- **Explicit `characterId`** → fetch only that id (or filter `built` to one) — **single context** for that character’s inventory/spells/proficiencies.
+
+**Merged viewer** remains a **convenience** (e.g. “everything my characters own”), not the only mode.
+
+---
+
+### 3. Recommended readiness model
+
+**Rule:** Consumers must not derive `ownedIds` from a merged `CharacterQueryContext` when **`ready === false`**.
+
+Concrete options (combine as needed):
+
+1. **`ready: boolean`** — `true` iff the hook has finished the fetch cycle for the current `viewerCharacterIds` (and optional `characterId`) and `built` is consistent with that request. When `viewerCharacterIds.length === 0`, `ready === true` immediately (empty is authoritative).
+2. **Initial `loading`** — when `viewerCharacterIds.length > 0`, initialize **`loading: true`** (or derive loading from `!ready`) so the first paint does not show “empty ownership” as truth.
+3. **Optional `contextsById: Map<string, CharacterQueryContext>`** — partial fills are visible only if you explicitly want progressive UI; **default** for ownership UI: gate on **`ready`**.
+
+**Recommendation:** Expose **`ready`** explicitly alongside **`loading`**. **`loading`** = in-flight network; **`ready`** = safe to use for ownership membership. For lists, block rendering of ownership-dependent props until **`ready`** (or `|| viewerCharacterIds.length === 0`).
+
+---
+
+### 4. Recommended hook return shape
+
+Avoid returning **only** one merged `context` as the sole primitive.
+
+**Recommended shape (next iteration):**
+
+```typescript
+{
+  // Per-character (authoritative for DM pick + single-PC)
+  contextsById: ReadonlyMap<string, CharacterQueryContext>
+  // Convenience union (optional; for “all my stuff” modes)
+  mergedContext: CharacterQueryContext
+  loading: boolean
+  ready: boolean
+  // Optional: single resolved context when scope is characterId
+  activeContext: CharacterQueryContext | null | undefined
+}
+```
+
+- **`contextsById`** — cheap to use for DM: **filter character id → one context** → `inventory.*` / `spells` / `proficiencies`.
+- **`mergedContext`** — `mergeCharacterQueryContexts([...contextsById.values()])` when needed; **not** the only export.
+- **`activeContext`** — if `characterId` is passed and valid, same as `contextsById.get(characterId)`; helps PC-owned lists without re-lookup.
+
+**Selectors** (`getOwnedIdsForContentType`, etc.) stay on **`CharacterQueryContext`**; the hook does not duplicate domain logic.
+
+---
+
+### 5. What current PC-owned UI should consume
+
+| Question | Recommendation |
+|----------|----------------|
+| **Single vs merged for PC?** | **Prefer single active PC** when the app has a “current character” (or default to the **only** viewer PC if exactly one). **Merged** is a fallback when multiple PCs and no selection yet — product should choose whether to show “union” or “pick a character first.” |
+| **Where does “current character” come from?** | When it exists: **campaign prefs**, **URL**, or **active character provider** — out of scope for the hook; hook accepts **`characterId`** from props/context. |
+| **No explicit current character yet** | **Safest temporary behavior:** **Do not** treat merged empty pre-fetch as truth; **gate on `ready`**. If multiple PCs and no selection, either merged **after ready** or **first** viewer character id as deterministic default — **document the choice** in the route. |
+
+**Tradeoff:**
+
+- **Merged** (union): “Anything **any** of my PCs owns” — broader; wrong for “this character’s sheet” mental model.
+- **Single active**: “What **this** PC owns” — matches sheet and future DM “by character” semantics.
+
+---
+
+### 6. How future DM “owned by character” filtering plugs in
+
+- **DM filter** selects a **campaign character id** (party member).
+- **Ownership** for that row = **`contextsById.get(selectedCharacterId)`** or **`buildCharacterQueryContext`** after a single fetch — same `CharacterQueryContext` slice as PC.
+- **Hook** should **already expose `contextsById` (or fetch-one-by-id)** so the grid filter does not re-merge or re-fetch ad hoc.
+- **Merged** remains a **separate convenience** (e.g. analytics or rare “all party-owned” views), **not** the default for DM list filtering.
+
+---
+
+### 7. Recommended immediate next step
+
+**Before** wiring more ownership UI to the hook:
+
+1. **Refine `useViewerCharacterQuery`** (§8.2–8.4): add **`ready`**, fix initial **`loading`/empty merge** behavior, return **`contextsById` + `mergedContext`** (and optional **`activeContext`** when `characterId` is passed).
+2. **Then** point content lists at **`ready`** + **chosen scope** (single vs merged) for `ownedIds`.
+
+**Can wait until DM feature lands:** UI for the DM character dropdown filter itself (hook can expose data first).
+
+**Deferred:** Full campaign “active character” UX if not present — only the **API contract** (`characterId` + `ready`) needs to be in place now.
+
+---
+
+## 9. Recommended Next Step
+
+**First:** Refine the viewer hook per **§8** (readiness + scope + return shape). **Second:** Wire PC-owned filter/icon to **`ready`** and **single vs merged** `CharacterQueryContext` per **§8.4–8.5**.
+
+**Greenfield / not yet implemented:** If `CharacterQueryContext` + builder are not yet in the tree, create `characterQueryContext.types.ts` and `buildCharacterQueryContext.ts` with tests first — then hook refinement (§8).
+
+**Deliverable checklist (§8):** (1) issue summary — §8.1; (2) scope model — §8.2; (3) readiness — §8.3; (4) hook return shape — §8.4; (5) PC-owned UI consumption — §8.5; (6) future DM filter — §8.6; (7) immediate next step — §8.7.
+
+**Reference doc:** Maintain [`docs/reference/character-query-layer.md`](../../docs/reference/character-query-layer.md) as the canonical description of read-only derived character querying (purpose, drift, boundaries, core pieces, scope/readiness models, selectors vs context, consumers, rollout). Update it when the hook API or merge semantics change.
