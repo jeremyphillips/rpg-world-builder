@@ -5,6 +5,13 @@ import { CONTROL_SIZES } from './controlSizes'
 /** 1px outline border top + bottom (MUI outlined field). */
 const OUTLINED_BORDER_Y_PX = 2
 
+/** Space reserved for the absolutely positioned dropdown icon (outlined Select). */
+const SELECT_ICON_GUTTER_PX: Record<'small' | 'medium' | 'large', number> = {
+  small: 28,
+  medium: 32,
+  large: 44,
+}
+
 /**
  * Match single-line control height to `box.height` by sizing vertical padding; assumes 16px root rem.
  * Does not use minHeight as the primary lever — fixed height on the root + explicit inner padding.
@@ -34,10 +41,19 @@ function outlinedInputSizeStyles(size: 'small' | 'medium' | 'large') {
     height: box.height,
     boxSizing: 'border-box' as const,
     '& .MuiOutlinedInput-input': inputSlot,
+    // Block (not flex): ellipsis needs a non-flex formatting context; flex makes the label text
+    // an anonymous flex item with min-width:auto so it won't shrink under the icon.
     '& .MuiSelect-select': {
       ...inputSlot,
-      display: 'flex',
-      alignItems: 'center',
+      display: 'block',
+      minWidth: 0,
+      width: '100%',
+      maxWidth: '100%',
+      boxSizing: 'border-box',
+      paddingRight: SELECT_ICON_GUTTER_PX[size],
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
     },
   }
 }
