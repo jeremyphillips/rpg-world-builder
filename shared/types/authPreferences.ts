@@ -19,6 +19,7 @@ export type AuthUserPreferences = {
     contentLists?: {
       spells?: ContentListUiPreferences
       monsters?: ContentListUiPreferences
+      skillProficiencies?: ContentListUiPreferences
     }
   }
 }

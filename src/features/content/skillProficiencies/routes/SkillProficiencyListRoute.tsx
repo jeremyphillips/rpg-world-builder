@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 
+import { apiFetch } from '@/app/api';
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import {
   ContentTypeListPage,
@@ -22,16 +24,22 @@ import {
   validateSkillProficiencyChange,
   buildSkillProficiencyCustomColumns,
   buildSkillProficiencyCustomFilters,
+  SKILL_PROFICIENCY_LIST_TOOLBAR_LAYOUT,
   type SkillProficiencyListRow,
 } from '@/features/content/skillProficiencies/domain';
 import type { SkillProficiencySummary } from '@/features/content/skillProficiencies/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
+import {
+  APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID,
+  filterAppDataGridFiltersForViewer,
+} from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 
 export default function SkillProficiencyListRoute() {
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const { campaign, campaignId } = useActiveCampaign();
   const { catalog } = useCampaignRules();
   const breadcrumbs = useBreadcrumbs();
@@ -40,8 +48,13 @@ export default function SkillProficiencyListRoute() {
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
   const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
+  const viewerContext = useMemo(
+    () => toViewerContext(campaign?.viewer, viewerCharacterIds),
+    [campaign?.viewer, viewerCharacterIds],
+  );
 
   const { skills: ownedIds } = useViewerProficiencies();
+  const hasViewer = ownedIds.size > 0;
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
@@ -98,25 +111,70 @@ export default function SkillProficiencyListRoute() {
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
         customColumns,
-        ownedIds,
+        ownedIds: hasViewer ? ownedIds : undefined,
         hasCampaignSources,
       }),
-    [canManage, characterNameById, handleToggleAllowed, customColumns, ownedIds, hasCampaignSources],
+    [canManage, characterNameById, handleToggleAllowed, customColumns, hasViewer, ownedIds, hasCampaignSources],
   );
 
   const filters = useMemo(
     () =>
-      buildCampaignContentFilters<SkillProficiencyListRow>({
-        canManage,
-        onToggleAllowedInCampaign: handleToggleAllowed,
-        customFilters,
-        ownedIds,
-        hasCampaignSources,
-      }),
-    [canManage, handleToggleAllowed, customFilters, ownedIds, hasCampaignSources],
+      filterAppDataGridFiltersForViewer(
+        buildCampaignContentFilters<SkillProficiencyListRow>({
+          canManage,
+          onToggleAllowedInCampaign: handleToggleAllowed,
+          customFilters,
+          ownedIds: hasViewer ? ownedIds : undefined,
+          hasCampaignSources,
+        }),
+        viewerContext,
+      ),
+    [
+      canManage,
+      handleToggleAllowed,
+      customFilters,
+      hasViewer,
+      ownedIds,
+      hasCampaignSources,
+      viewerContext,
+    ],
   );
 
-  if (controller.loading) {
+  const initialFilterValues = useMemo(() => {
+    if (!canManage) return undefined;
+    const hide = user?.preferences?.ui?.contentLists?.skillProficiencies?.hideDisallowed;
+    return {
+      allowedInCampaign: hide ? 'true' : 'all',
+    };
+  }, [canManage, user?.preferences?.ui?.contentLists?.skillProficiencies?.hideDisallowed]);
+
+  const handleFilterValueChange = useCallback(
+    async (filterId: string, value: unknown) => {
+      if (filterId !== APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID) return;
+      const allowed = String(value);
+      const hideDisallowed = allowed === 'true';
+      try {
+        await apiFetch('/api/auth/me', {
+          method: 'PATCH',
+          body: {
+            preferences: {
+              ui: {
+                contentLists: {
+                  skillProficiencies: { hideDisallowed },
+                },
+              },
+            },
+          },
+        });
+        await refreshUser();
+      } catch {
+        // Runtime filter still applies; preference may not persist.
+      }
+    },
+    [refreshUser],
+  );
+
+  if (controller.loading || authLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress />
@@ -170,6 +228,9 @@ export default function SkillProficiencyListRoute() {
         emptyMessage="No skill proficiencies found."
         density="compact"
         height={560}
+        toolbarLayout={SKILL_PROFICIENCY_LIST_TOOLBAR_LAYOUT}
+        initialFilterValues={initialFilterValues}
+        onFilterValueChange={handleFilterValueChange}
       />
     </Stack>
   );

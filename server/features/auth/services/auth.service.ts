@@ -197,6 +197,10 @@ function applyPreferencesPatch(
   if (hideSpells !== undefined) {
     $set['preferences.ui.contentLists.spells.hideDisallowed'] = hideSpells
   }
+  const hideSkillProficiencies = preferences.ui?.contentLists?.skillProficiencies?.hideDisallowed
+  if (hideSkillProficiencies !== undefined) {
+    $set['preferences.ui.contentLists.skillProficiencies.hideDisallowed'] = hideSkillProficiencies
+  }
 }
 
 export async function updateProfile(
