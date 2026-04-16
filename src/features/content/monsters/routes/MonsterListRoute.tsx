@@ -31,7 +31,6 @@ import {
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { filterAppDataGridFiltersByVisibility } from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
@@ -113,16 +112,13 @@ export default function MonsterListRoute() {
 
   const filters = useMemo(
     () =>
-      filterAppDataGridFiltersByVisibility(
-        buildCampaignContentFilters<MonsterListRow>({
-          canManage,
-          onToggleAllowedInCampaign: handleToggleAllowed,
-          customFilters,
-          hasCampaignSources,
-        }),
-        viewerContext,
-      ),
-    [canManage, handleToggleAllowed, customFilters, hasCampaignSources, viewerContext],
+      buildCampaignContentFilters<MonsterListRow>({
+        canManage,
+        onToggleAllowedInCampaign: handleToggleAllowed,
+        customFilters,
+        hasCampaignSources,
+      }),
+    [canManage, handleToggleAllowed, customFilters, hasCampaignSources],
   );
 
   const { initialFilterValues, onFilterValueChange } = useContentListPreferences({
@@ -185,6 +181,7 @@ export default function MonsterListRoute() {
         emptyMessage="No monsters found."
         density="compact"
         height={560}
+        viewerContext={viewerContext}
         toolbarLayout={MONSTER_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}

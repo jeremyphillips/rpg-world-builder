@@ -11,7 +11,11 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 
-import { AppDataGrid } from '@/ui/patterns';
+import {
+  AppDataGrid,
+  filterAppDataGridColumnsByVisibility,
+  filterAppDataGridFiltersByVisibility,
+} from '@/ui/patterns';
 import type {
   AppDataGridColumn,
   AppDataGridFilter,
@@ -83,6 +87,8 @@ export interface ContentTypeListPageProps<T> {
   initialFilterValues?: Record<string, unknown>;
   /** Persist or react to filter changes (passed through to `AppDataGrid`). */
   onFilterValueChange?: (filterId: string, value: unknown) => void;
+  /** Viewer used to apply AppDataGrid `visibility` rules before rendering. */
+  viewerContext: ContentViewerContext | undefined;
 }
 
 const ContentTypeListPage = <T,>({
@@ -111,6 +117,7 @@ const ContentTypeListPage = <T,>({
   toolbarLayout,
   initialFilterValues,
   onFilterValueChange,
+  viewerContext,
 }: ContentTypeListPageProps<T>) => {
   const defaultBreadcrumbs = useBreadcrumbs();
   const resolvedBreadcrumbs = breadcrumbData ?? defaultBreadcrumbs;
@@ -124,6 +131,14 @@ const ContentTypeListPage = <T,>({
   const resolvedHeadline = headline ?? typeLabelPlural;
   const resolvedSearchPlaceholder = searchPlaceholder ?? `Search ${typeLabelPlural.toLowerCase()}…`;
   const resolvedEmptyMessage = emptyMessage ?? `No ${typeLabelPlural.toLowerCase()} found.`;
+  const resolvedColumns = useMemo(
+    () => filterAppDataGridColumnsByVisibility(columns, viewerContext),
+    [columns, viewerContext],
+  );
+  const resolvedFilters = useMemo(
+    () => filterAppDataGridFiltersByVisibility(filters, viewerContext),
+    [filters, viewerContext],
+  );
 
   const headerActions = useMemo(() => {
     const base = (actions ?? []).filter(Boolean) as ReactNode[];
@@ -164,7 +179,7 @@ const ContentTypeListPage = <T,>({
       />
       <AppDataGrid
         rows={rows}
-        columns={columns}
+        columns={resolvedColumns}
         getRowId={getRowId}
         getDetailLink={getDetailLink}
         toolbarConfig={{
@@ -174,7 +189,7 @@ const ContentTypeListPage = <T,>({
             rowMatch: searchRowMatch,
           },
           filters: {
-            definitions: filters,
+            definitions: resolvedFilters,
             initialValues: initialFilterValues,
             onValueChange: onFilterValueChange,
           },

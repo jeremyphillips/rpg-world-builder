@@ -29,7 +29,6 @@ import {
 } from '@/features/content/races/domain';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { filterAppDataGridFiltersByVisibility } from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
@@ -103,16 +102,13 @@ export default function RaceListRoute() {
 
   const filters = useMemo(
     () =>
-      filterAppDataGridFiltersByVisibility(
-        buildCampaignContentFilters<RaceListRow>({
-          canManage,
-          onToggleAllowedInCampaign: handleToggleAllowed,
-          customFilters,
-          hasCampaignSources,
-        }),
-        viewerContext,
-      ),
-    [canManage, handleToggleAllowed, customFilters, hasCampaignSources, viewerContext],
+      buildCampaignContentFilters<RaceListRow>({
+        canManage,
+        onToggleAllowedInCampaign: handleToggleAllowed,
+        customFilters,
+        hasCampaignSources,
+      }),
+    [canManage, handleToggleAllowed, customFilters, hasCampaignSources],
   );
 
   const { initialFilterValues, onFilterValueChange } = useContentListPreferences({
@@ -176,6 +172,7 @@ export default function RaceListRoute() {
         emptyMessage="No races found."
         density="compact"
         height={560}
+        viewerContext={viewerContext}
         toolbarLayout={RACE_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}

@@ -30,7 +30,6 @@ import {
 import type { ContentSummary } from '@/features/content/shared/domain/types/content.types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { filterAppDataGridFiltersByVisibility } from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
@@ -121,16 +120,13 @@ export default function GearListRoute() {
 
   const filters = useMemo(
     () =>
-      filterAppDataGridFiltersByVisibility(
-        buildCampaignContentFilters<GearListRow>({
-          canManage,
-          onToggleAllowedInCampaign: handleToggleAllowed,
-          ownedIds: hasViewer ? ownedIds : undefined,
-          customFilters,
-          hasCampaignSources,
-        }),
-        viewerContext,
-      ),
+      buildCampaignContentFilters<GearListRow>({
+        canManage,
+        onToggleAllowedInCampaign: handleToggleAllowed,
+        ownedIds: hasViewer ? ownedIds : undefined,
+        customFilters,
+        hasCampaignSources,
+      }),
     [
       canManage,
       handleToggleAllowed,
@@ -138,7 +134,6 @@ export default function GearListRoute() {
       ownedIds,
       customFilters,
       hasCampaignSources,
-      viewerContext,
     ],
   );
 
@@ -203,6 +198,7 @@ export default function GearListRoute() {
         emptyMessage="No gear found."
         density="compact"
         height={560}
+        viewerContext={viewerContext}
         toolbarLayout={GEAR_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}

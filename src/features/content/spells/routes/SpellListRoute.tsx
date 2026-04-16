@@ -32,7 +32,6 @@ import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { filterAppDataGridColumnsByVisibility, filterAppDataGridFiltersByVisibility } from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
@@ -104,17 +103,14 @@ export default function SpellListRoute() {
 
   const columns = useMemo(
     () =>
-      filterAppDataGridColumnsByVisibility(
-        buildCampaignContentColumns<SpellListRow>({
-          canManage,
-          characterNameById: canManage ? characterNameById : undefined,
-          onToggleAllowedInCampaign: handleToggleAllowed,
-          ownedIds: hasViewer ? ownedIds : undefined,
-          customColumns,
-          hasCampaignSources,
-        }),
-        viewerContext,
-      ),
+      buildCampaignContentColumns<SpellListRow>({
+        canManage,
+        characterNameById: canManage ? characterNameById : undefined,
+        onToggleAllowedInCampaign: handleToggleAllowed,
+        ownedIds: hasViewer ? ownedIds : undefined,
+        customColumns,
+        hasCampaignSources,
+      }),
     [
       canManage,
       characterNameById,
@@ -123,22 +119,18 @@ export default function SpellListRoute() {
       ownedIds,
       customColumns,
       hasCampaignSources,
-      viewerContext,
     ],
   );
 
   const filters = useMemo(
     () =>
-      filterAppDataGridFiltersByVisibility(
-        buildCampaignContentFilters<SpellListRow>({
-          canManage,
-          onToggleAllowedInCampaign: handleToggleAllowed,
-          ownedIds: hasViewer ? ownedIds : undefined,
-          customFilters,
-          hasCampaignSources,
-        }),
-        viewerContext,
-      ),
+      buildCampaignContentFilters<SpellListRow>({
+        canManage,
+        onToggleAllowedInCampaign: handleToggleAllowed,
+        ownedIds: hasViewer ? ownedIds : undefined,
+        customFilters,
+        hasCampaignSources,
+      }),
     [
       canManage,
       handleToggleAllowed,
@@ -146,7 +138,6 @@ export default function SpellListRoute() {
       ownedIds,
       customFilters,
       hasCampaignSources,
-      viewerContext,
     ],
   );
 
@@ -211,6 +202,7 @@ export default function SpellListRoute() {
         emptyMessage="No spells found."
         density="compact"
         height={560}
+        viewerContext={viewerContext}
         toolbarLayout={SPELL_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}

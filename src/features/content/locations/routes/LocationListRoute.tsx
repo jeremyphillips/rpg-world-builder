@@ -30,7 +30,6 @@ import {
 import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { filterAppDataGridFiltersByVisibility } from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
@@ -109,16 +108,13 @@ export default function LocationListRoute() {
 
   const filters = useMemo(
     () =>
-      filterAppDataGridFiltersByVisibility(
-        buildCampaignContentFilters<LocationListRow>({
-          canManage,
-          onToggleAllowedInCampaign: handleToggleAllowed,
-          customFilters,
-          hasCampaignSources,
-        }),
-        viewerContext,
-      ),
-    [canManage, handleToggleAllowed, customFilters, hasCampaignSources, viewerContext],
+      buildCampaignContentFilters<LocationListRow>({
+        canManage,
+        onToggleAllowedInCampaign: handleToggleAllowed,
+        customFilters,
+        hasCampaignSources,
+      }),
+    [canManage, handleToggleAllowed, customFilters, hasCampaignSources],
   );
 
   const { initialFilterValues, onFilterValueChange } = useContentListPreferences({
@@ -178,6 +174,7 @@ export default function LocationListRoute() {
         emptyMessage="No locations found."
         density="compact"
         height={560}
+        viewerContext={viewerContext}
         toolbarLayout={LOCATION_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}

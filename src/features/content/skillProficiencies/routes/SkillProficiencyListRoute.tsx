@@ -30,7 +30,6 @@ import {
 import type { SkillProficiencySummary } from '@/features/content/skillProficiencies/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { filterAppDataGridFiltersByVisibility } from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
@@ -116,16 +115,13 @@ export default function SkillProficiencyListRoute() {
 
   const filters = useMemo(
     () =>
-      filterAppDataGridFiltersByVisibility(
-        buildCampaignContentFilters<SkillProficiencyListRow>({
-          canManage,
-          onToggleAllowedInCampaign: handleToggleAllowed,
-          customFilters,
-          ownedIds: hasViewer ? ownedIds : undefined,
-          hasCampaignSources,
-        }),
-        viewerContext,
-      ),
+      buildCampaignContentFilters<SkillProficiencyListRow>({
+        canManage,
+        onToggleAllowedInCampaign: handleToggleAllowed,
+        customFilters,
+        ownedIds: hasViewer ? ownedIds : undefined,
+        hasCampaignSources,
+      }),
     [
       canManage,
       handleToggleAllowed,
@@ -133,7 +129,6 @@ export default function SkillProficiencyListRoute() {
       hasViewer,
       ownedIds,
       hasCampaignSources,
-      viewerContext,
     ],
   );
 
@@ -198,6 +193,7 @@ export default function SkillProficiencyListRoute() {
         emptyMessage="No skill proficiencies found."
         density="compact"
         height={560}
+        viewerContext={viewerContext}
         toolbarLayout={SKILL_PROFICIENCY_LIST_TOOLBAR_LAYOUT}
         initialFilterValues={initialFilterValues}
         onFilterValueChange={onFilterValueChange}
