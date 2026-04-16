@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useViewerSpells } from '@/features/campaign/hooks';
 import {
@@ -33,7 +34,6 @@ import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
 export default function SpellListRoute() {
@@ -43,8 +43,7 @@ export default function SpellListRoute() {
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/spells`;
 
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
+  const canManage = useActiveCampaignCanManageContent();
   const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
   const ownedIds = useViewerSpells();

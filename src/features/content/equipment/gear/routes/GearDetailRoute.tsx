@@ -4,12 +4,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
 import { gearRepo } from '../domain/repo/gearRepo';
 import type { Gear } from '@/features/content/equipment/gear/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/shared/lib/media';
@@ -18,12 +18,10 @@ import { GEAR_DETAIL_SPECS } from '../domain/details/gearDetail.spec';
 import { AppAlert } from '@/ui/primitives';
 
 export default function GearDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
   const { gearId } = useParams<{ gearId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: gear, loading, error, notFound } = useCampaignContentEntry<Gear>({
     campaignId: campaignId ?? undefined,

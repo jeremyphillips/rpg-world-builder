@@ -4,6 +4,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
 import {
   skillProficiencyRepo,
@@ -12,18 +13,15 @@ import {
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
 
 export default function SkillProficiencyDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
   const { skillProficiencyId } = useParams<{ skillProficiencyId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: skillProficiency, loading, error, notFound } = useCampaignContentEntry<SkillProficiency>({
     campaignId: campaignId ?? undefined,

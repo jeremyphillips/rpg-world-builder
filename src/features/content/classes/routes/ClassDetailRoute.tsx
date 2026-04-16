@@ -4,23 +4,21 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
 import { classRepo, type ClassContentItem } from '@/features/content/classes/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
 import { CLASS_DETAIL_SPECS } from '@/features/content/classes/domain/forms';
 
 export default function ClassDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
   const { classId } = useParams<{ classId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: charClass, loading, error, notFound } = useCampaignContentEntry<ClassContentItem>({
     campaignId: campaignId ?? undefined,

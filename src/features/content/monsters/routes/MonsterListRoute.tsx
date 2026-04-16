@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import {
   ContentTypeListPage,
@@ -32,7 +33,6 @@ import {
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
 export default function MonsterListRoute() {
@@ -42,8 +42,7 @@ export default function MonsterListRoute() {
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/monsters`;
 
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
+  const canManage = useActiveCampaignCanManageContent();
   const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
   const listSummaries = useCallback(

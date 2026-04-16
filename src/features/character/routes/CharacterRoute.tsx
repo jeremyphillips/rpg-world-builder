@@ -11,19 +11,12 @@ import { useCharacterForm } from '@/features/character/hooks'
 import { useCharacterActions } from '@/features/character/hooks'
 import { CharacterView } from '@/features/character/components/views'
 import { AppAlert } from '@/ui/primitives';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities'
-import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
-import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds'
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent'
 
 export default function CharacterRoute() {
-  const { campaign } = useActiveCampaign()
-  const viewerCharacterIds = useActiveCampaignViewerCharacterIds()
+  const canManage = useActiveCampaignCanManageContent()
   const { id } = useParams<{ id: string }>()
   const location = useLocation()
-
-  const ctx = toViewerContext(campaign?.viewer, viewerCharacterIds);
-  const canManage = canManageContent(ctx);
-
 
   const breadcrumbs = useBreadcrumbs()
 

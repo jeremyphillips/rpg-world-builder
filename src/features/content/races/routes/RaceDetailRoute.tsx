@@ -4,11 +4,11 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
 import type { Race } from '@/features/content/races/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/shared/lib/media';
@@ -16,12 +16,10 @@ import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/regis
 import { raceRepo, RACE_DETAIL_SPECS } from '@/features/content/races/domain';
 
 export default function RaceDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
   const { raceId } = useParams<{ raceId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: race, loading, error, notFound } = useCampaignContentEntry<Race>({
     campaignId: campaignId ?? undefined,

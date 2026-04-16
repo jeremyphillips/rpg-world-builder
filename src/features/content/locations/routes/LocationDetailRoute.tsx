@@ -5,11 +5,11 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { ContentDetailScaffold } from '@/features/content/shared/components';
 import type { LocationContentItem } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { resolveImageUrl } from '@/shared/lib/media';
@@ -17,12 +17,10 @@ import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/regis
 import { locationRepo, listLocationMaps, LOCATION_DETAIL_SPECS } from '@/features/content/locations/domain';
 
 export default function LocationDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
   const { locationId } = useParams<{ locationId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: loc, loading, error, notFound } = useCampaignContentEntry<LocationContentItem>({
     campaignId: campaignId ?? undefined,

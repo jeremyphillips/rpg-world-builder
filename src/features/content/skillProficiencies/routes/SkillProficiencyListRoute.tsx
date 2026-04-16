@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import {
   ContentTypeListPage,
   buildCampaignContentColumns,
@@ -31,7 +32,6 @@ import {
 import type { SkillProficiencySummary } from '@/features/content/skillProficiencies/domain/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 
@@ -42,8 +42,7 @@ export default function SkillProficiencyListRoute() {
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/skill-proficiencies`;
 
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
+  const canManage = useActiveCampaignCanManageContent();
   const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
   const { skills: ownedIds } = useViewerProficiencies();
