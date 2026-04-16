@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
@@ -12,6 +11,7 @@ import {
   ContentTypeListPage,
   buildCampaignContentColumns,
   buildCampaignContentFilters,
+  getMutedRowClassNameForDisallowedCampaignContent,
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
@@ -20,7 +20,6 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
-import { useContentListPreferences } from '@/features/content/shared/hooks/useContentListPreferences';
 import {
   raceRepo,
   validateRaceChange,
@@ -29,12 +28,11 @@ import {
   RACE_LIST_TOOLBAR_LAYOUT,
   type RaceListRow,
 } from '@/features/content/races/domain';
-import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
 
 export default function RaceListRoute() {
-  const { user, loading: authLoading, refreshUser } = useAuth();
+  const { loading: authLoading } = useAuth();
   const { campaign, campaignId } = useActiveCampaign();
   const { catalog } = useCampaignRules();
   const breadcrumbs = useBreadcrumbs();
@@ -107,13 +105,6 @@ export default function RaceListRoute() {
     [canManage, handleToggleAllowed, customFilters, hasCampaignSources],
   );
 
-  const { initialFilterValues, onFilterValueChange } = useContentListPreferences({
-    canManage,
-    user,
-    refreshUser,
-    contentListKey: 'races',
-  });
-
   if (controller.loading || authLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -123,56 +114,45 @@ export default function RaceListRoute() {
   }
 
   return (
-    <Stack spacing={2}>
-      {validationBlocked && (
-        validationBlocked.blockingEntities.length > 0 ? (
-          <ValidationBlockedAlert
-            contentType="race"
-            mode="disallow"
-            blockingEntities={validationBlocked.blockingEntities}
-            onClose={() => setValidationBlocked(null)}
-          />
-        ) : (
-          <AppAlert
-            tone="warning"
-            onClose={() => setValidationBlocked(null)}
-          >
-            {validationBlocked.message ?? 'Cannot disable this race.'}
-          </AppAlert>
-        )
-      )}
-      <ContentTypeListPage<RaceListRow>
-        typeLabel="Race"
-        typeLabelPlural="Races"
-        headline="Races"
-        breadcrumbData={breadcrumbs}
-        canManage={canManage}
-        onAdd={controller.onAdd}
-        addButtonLabel="Add Race"
-        rows={items}
-        columns={columns}
-        filters={filters}
-        getRowId={(r) => r.id}
-        getDetailLink={controller.getDetailLink}
-        getRowClassName={
-          canManage
-            ? (params: GridRowClassNameParams) =>
-                (params.row as RaceListRow).allowedInCampaign === false
-                  ? 'AppDataGrid-row--disabled'
-                  : ''
-            : undefined
-        }
-        loading={controller.loading}
-        error={controller.error}
-        searchPlaceholder="Search races…"
-        emptyMessage="No races found."
-        density="compact"
-        height={560}
-        viewerContext={controller.viewerContext}
-        toolbarLayout={RACE_LIST_TOOLBAR_LAYOUT}
-        initialFilterValues={initialFilterValues}
-        onFilterValueChange={onFilterValueChange}
-      />
-    </Stack>
+    <ContentTypeListPage<RaceListRow>
+      typeLabel="Race"
+      typeLabelPlural="Races"
+      headline="Races"
+      breadcrumbData={breadcrumbs}
+      canManage={canManage}
+      onAdd={controller.onAdd}
+      addButtonLabel="Add Race"
+      rows={items}
+      columns={columns}
+      filters={filters}
+      getRowId={(r) => r.id}
+      getDetailLink={controller.getDetailLink}
+      getRowClassName={getMutedRowClassNameForDisallowedCampaignContent<RaceListRow>(canManage)}
+      loading={controller.loading}
+      error={controller.error}
+      searchPlaceholder="Search races…"
+      emptyMessage="No races found."
+      density="compact"
+      height={560}
+      viewerContext={controller.viewerContext}
+      toolbarLayout={RACE_LIST_TOOLBAR_LAYOUT}
+      contentListPreferencesKey="races"
+      topBanner={
+        validationBlocked ? (
+          validationBlocked.blockingEntities.length > 0 ? (
+            <ValidationBlockedAlert
+              contentType="race"
+              mode="disallow"
+              blockingEntities={validationBlocked.blockingEntities}
+              onClose={() => setValidationBlocked(null)}
+            />
+          ) : (
+            <AppAlert tone="warning" onClose={() => setValidationBlocked(null)}>
+              {validationBlocked.message ?? 'Cannot disable this race.'}
+            </AppAlert>
+          )
+        ) : undefined
+      }
+    />
   );
 }

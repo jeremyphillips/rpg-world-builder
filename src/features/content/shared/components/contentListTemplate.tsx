@@ -15,7 +15,7 @@ import type { AppDataGridColumn, AppDataGridFilter } from '@/ui/patterns';
 import { makeOwnedColumn, makeOwnedFilter } from '@/ui/patterns';
 import { AppTooltip } from '@/ui/primitives';
 import type { Visibility } from '@/shared/types/visibility';
-import type { GridRenderCellParams } from '@mui/x-data-grid';
+import type { GridRenderCellParams, GridRowClassNameParams } from '@mui/x-data-grid';
 import { canViewContent, type ViewerContext } from '@/shared/domain/capabilities';
 import {
   SOURCE_FILTER_OPTIONS,
@@ -25,6 +25,21 @@ import {
 /** Default column header helper for the Allowed-in-campaign column (all campaign content lists). */
 export const CAMPAIGN_ALLOWED_IN_CAMPAIGN_COLUMN_HEADER_HELPER_TEXT =
   'Whether this entry is usable in play for this campaign. Disallowed rows may appear muted; use Hide disallowed to remove them from the list while browsing.';
+
+/** CSS class applied by campaign list routes for rows with `allowedInCampaign === false` (see AppDataGrid GlobalStyles). */
+export const CAMPAIGN_CONTENT_DISALLOWED_ROW_CLASS_NAME = 'AppDataGrid-row--disabled';
+
+/**
+ * Muted styling for disallowed campaign content when the viewer can manage the list.
+ * Returns `undefined` when `canManage` is false so no extra row class logic runs.
+ */
+export function getMutedRowClassNameForDisallowedCampaignContent<
+  T extends { allowedInCampaign?: boolean },
+>(canManage: boolean): ((params: GridRowClassNameParams) => string) | undefined {
+  if (!canManage) return undefined;
+  return (params) =>
+    (params.row as T).allowedInCampaign === false ? CAMPAIGN_CONTENT_DISALLOWED_ROW_CLASS_NAME : '';
+}
 
 // ---------------------------------------------------------------------------
 // Visibility icon spec (for Name column)

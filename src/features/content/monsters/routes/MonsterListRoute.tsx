@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
@@ -12,6 +11,7 @@ import {
   ContentTypeListPage,
   buildCampaignContentColumns,
   buildCampaignContentFilters,
+  getMutedRowClassNameForDisallowedCampaignContent,
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
@@ -20,7 +20,6 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
-import { useContentListPreferences } from '@/features/content/shared/hooks/useContentListPreferences';
 import {
   monsterRepo,
   validateMonsterChange,
@@ -31,12 +30,11 @@ import {
   type MonsterListRow,
 } from '@/features/content/monsters/domain';
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
-import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
 
 export default function MonsterListRoute() {
-  const { user, loading: authLoading, refreshUser } = useAuth();
+  const { loading: authLoading } = useAuth();
   const { campaign, campaignId } = useActiveCampaign();
   const { catalog } = useCampaignRules();
   const breadcrumbs = useBreadcrumbs();
@@ -117,13 +115,6 @@ export default function MonsterListRoute() {
     [canManage, handleToggleAllowed, customFilters, hasCampaignSources],
   );
 
-  const { initialFilterValues, onFilterValueChange } = useContentListPreferences({
-    canManage,
-    user,
-    refreshUser,
-    contentListKey: 'monsters',
-  });
-
   if (controller.loading || authLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -133,55 +124,45 @@ export default function MonsterListRoute() {
   }
 
   return (
-    <Stack spacing={2}>
-      {validationBlocked &&
-        (validationBlocked.blockingEntities.length > 0 ? (
-          <ValidationBlockedAlert
-            contentType="monster"
-            mode="disallow"
-            blockingEntities={validationBlocked.blockingEntities}
-            onClose={() => setValidationBlocked(null)}
-          />
-        ) : (
-          <AppAlert
-            tone="warning"
-            onClose={() => setValidationBlocked(null)}
-          >
-            {validationBlocked.message ?? 'Cannot disable this monster.'}
-          </AppAlert>
-        ))}
-      <ContentTypeListPage<MonsterListRow>
-        typeLabel="Monster"
-        typeLabelPlural="Monsters"
-        headline="Monsters"
-        breadcrumbData={breadcrumbs}
-        canManage={canManage}
-        onAdd={controller.onAdd}
-        addButtonLabel="Add Monster"
-        rows={items}
-        columns={columns}
-        filters={filters}
-        getRowId={(r) => r.id}
-        getDetailLink={controller.getDetailLink}
-        getRowClassName={
-          canManage
-            ? (params: GridRowClassNameParams) =>
-                (params.row as MonsterListRow).allowedInCampaign === false
-                  ? 'AppDataGrid-row--disabled'
-                  : ''
-            : undefined
-        }
-        loading={controller.loading}
-        error={controller.error}
-        searchPlaceholder="Search monsters…"
-        emptyMessage="No monsters found."
-        density="compact"
-        height={560}
-        viewerContext={controller.viewerContext}
-        toolbarLayout={MONSTER_LIST_TOOLBAR_LAYOUT}
-        initialFilterValues={initialFilterValues}
-        onFilterValueChange={onFilterValueChange}
-      />
-    </Stack>
+    <ContentTypeListPage<MonsterListRow>
+      typeLabel="Monster"
+      typeLabelPlural="Monsters"
+      headline="Monsters"
+      breadcrumbData={breadcrumbs}
+      canManage={canManage}
+      onAdd={controller.onAdd}
+      addButtonLabel="Add Monster"
+      rows={items}
+      columns={columns}
+      filters={filters}
+      getRowId={(r) => r.id}
+      getDetailLink={controller.getDetailLink}
+      getRowClassName={getMutedRowClassNameForDisallowedCampaignContent<MonsterListRow>(canManage)}
+      loading={controller.loading}
+      error={controller.error}
+      searchPlaceholder="Search monsters…"
+      emptyMessage="No monsters found."
+      density="compact"
+      height={560}
+      viewerContext={controller.viewerContext}
+      toolbarLayout={MONSTER_LIST_TOOLBAR_LAYOUT}
+      contentListPreferencesKey="monsters"
+      topBanner={
+        validationBlocked ? (
+          validationBlocked.blockingEntities.length > 0 ? (
+            <ValidationBlockedAlert
+              contentType="monster"
+              mode="disallow"
+              blockingEntities={validationBlocked.blockingEntities}
+              onClose={() => setValidationBlocked(null)}
+            />
+          ) : (
+            <AppAlert tone="warning" onClose={() => setValidationBlocked(null)}>
+              {validationBlocked.message ?? 'Cannot disable this monster.'}
+            </AppAlert>
+          )
+        ) : undefined
+      }
+    />
   );
 }

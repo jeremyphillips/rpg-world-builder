@@ -6,9 +6,10 @@
  * them via buildCampaignContentColumns / buildCampaignContentFilters or
  * custom definitions.
  */
-import { useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 
 import {
@@ -25,7 +26,11 @@ import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { AppPageHeader } from '@/ui/patterns';
 import type { BreadcrumbItem } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/app/navigation';
+import { useAuth } from '@/app/providers/AuthProvider';
 import { AppAlert } from '@/ui/primitives';
+import type { ContentListPreferencesKey } from '@/shared';
+import { useContentListPreferences } from '@/features/content/shared/hooks/useContentListPreferences';
+import { warnToolbarLayoutFilterIdsInDev } from '@/features/content/shared/toolbar/warnToolbarLayoutFilterIds';
 import {
   createContentSearchMatcher,
   DEFAULT_CONTENT_SEARCH_NAME_ONLY,
@@ -89,6 +94,13 @@ export interface ContentTypeListPageProps<T> {
   onFilterValueChange?: (filterId: string, value: unknown) => void;
   /** Viewer used to apply AppDataGrid `visibility` rules before rendering. */
   viewerContext: ContentViewerContext | undefined;
+  /**
+   * When set, persists toolbar list preferences (e.g. hide disallowed) via {@link useContentListPreferences}.
+   * Omit when the list does not use persisted campaign content list prefs.
+   */
+  contentListPreferencesKey?: ContentListPreferencesKey;
+  /** Optional banner above the page header (e.g. validation blocked alerts). */
+  topBanner?: ReactNode;
 }
 
 const ContentTypeListPage = <T,>({
@@ -118,7 +130,17 @@ const ContentTypeListPage = <T,>({
   initialFilterValues,
   onFilterValueChange,
   viewerContext,
+  contentListPreferencesKey,
+  topBanner,
 }: ContentTypeListPageProps<T>) => {
+  const { user, refreshUser } = useAuth();
+  const prefsFromAuth = useContentListPreferences({
+    canManage,
+    user,
+    refreshUser,
+    contentListKey: contentListPreferencesKey,
+  });
+
   const defaultBreadcrumbs = useBreadcrumbs();
   const resolvedBreadcrumbs = breadcrumbData ?? defaultBreadcrumbs;
 
@@ -139,6 +161,13 @@ const ContentTypeListPage = <T,>({
     () => filterAppDataGridFiltersByVisibility(filters, viewerContext),
     [filters, viewerContext],
   );
+
+  useEffect(() => {
+    warnToolbarLayoutFilterIdsInDev(toolbarLayout, resolvedFilters);
+  }, [toolbarLayout, resolvedFilters]);
+
+  const mergedInitialFilterValues = initialFilterValues ?? prefsFromAuth.initialFilterValues;
+  const mergedOnFilterValueChange = onFilterValueChange ?? prefsFromAuth.onFilterValueChange;
 
   const headerActions = useMemo(() => {
     const base = (actions ?? []).filter(Boolean) as ReactNode[];
@@ -170,8 +199,8 @@ const ContentTypeListPage = <T,>({
     return <AppAlert tone="danger">{error}</AppAlert>;
   }
 
-  return (
-    <Box>
+  const gridSection = (
+    <>
       <AppPageHeader
         headline={resolvedHeadline}
         breadcrumbData={resolvedBreadcrumbs}
@@ -190,8 +219,8 @@ const ContentTypeListPage = <T,>({
           },
           filters: {
             definitions: resolvedFilters,
-            initialValues: initialFilterValues,
-            onValueChange: onFilterValueChange,
+            initialValues: mergedInitialFilterValues,
+            onValueChange: mergedOnFilterValueChange,
           },
           layout: toolbarLayout,
           actions: toolbarNode,
@@ -204,7 +233,16 @@ const ContentTypeListPage = <T,>({
           getRowClassName,
         }}
       />
-    </Box>
+    </>
+  );
+
+  return topBanner ? (
+    <Stack spacing={2}>
+      {topBanner}
+      {gridSection}
+    </Stack>
+  ) : (
+    <Box>{gridSection}</Box>
   );
 };
 

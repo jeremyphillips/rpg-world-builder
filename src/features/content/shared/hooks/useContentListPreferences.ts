@@ -10,13 +10,16 @@ export interface UseContentListPreferencesParams {
   canManage: boolean;
   user: UserWithPreferences;
   refreshUser: () => Promise<void>;
-  contentListKey: ContentListPreferencesKey;
+  /** When omitted, no persisted list prefs are applied (empty initial values, no-op change handler). */
+  contentListKey?: ContentListPreferencesKey;
 }
 
 /**
  * Reads/writes persisted UI prefs for campaign content list toolbars (e.g. hide disallowed via Allowed filter).
  * Extend this hook as more list-level preferences are added.
  */
+const noopOnFilterValueChange = async (_filterId: string, _value: unknown) => {};
+
 export function useContentListPreferences({
   canManage,
   user,
@@ -26,17 +29,20 @@ export function useContentListPreferences({
   initialFilterValues: { allowedInCampaign: string } | undefined;
   onFilterValueChange: (filterId: string, value: unknown) => Promise<void>;
 } {
-  const hideDisallowedPref = user?.preferences?.ui?.contentLists?.[contentListKey]?.hideDisallowed;
+  const hideDisallowedPref = contentListKey
+    ? user?.preferences?.ui?.contentLists?.[contentListKey]?.hideDisallowed
+    : undefined;
 
   const initialFilterValues = useMemo(() => {
-    if (!canManage) return undefined;
+    if (!contentListKey || !canManage) return undefined;
     return {
       allowedInCampaign: hideDisallowedPref ? 'true' : 'all',
     };
-  }, [canManage, hideDisallowedPref]);
+  }, [canManage, contentListKey, hideDisallowedPref]);
 
   const onFilterValueChange = useCallback(
     async (filterId: string, value: unknown) => {
+      if (!contentListKey) return;
       if (filterId !== APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID) return;
       const allowed = String(value);
       const hideDisallowed = allowed === 'true';
@@ -61,5 +67,8 @@ export function useContentListPreferences({
     [contentListKey, refreshUser],
   );
 
-  return { initialFilterValues, onFilterValueChange };
+  return {
+    initialFilterValues,
+    onFilterValueChange: contentListKey ? onFilterValueChange : noopOnFilterValueChange,
+  };
 }

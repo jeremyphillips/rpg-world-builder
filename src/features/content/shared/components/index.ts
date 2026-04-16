@@ -9,6 +9,8 @@ export {
   buildCampaignContentColumns,
   buildCampaignContentFilters,
   CAMPAIGN_ALLOWED_IN_CAMPAIGN_COLUMN_HEADER_HELPER_TEXT,
+  CAMPAIGN_CONTENT_DISALLOWED_ROW_CLASS_NAME,
+  getMutedRowClassNameForDisallowedCampaignContent,
   makePreColumns,
   makePostColumns,
   makePostFilters,

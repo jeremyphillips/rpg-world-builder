@@ -138,7 +138,7 @@ Loading, empty message, density, height, and row class names use optional **`pre
 
 **Helpers:** **`filterAppDataGridFiltersByVisibility(filters, viewer)`** and **`filterAppDataGridColumnsByVisibility(columns, viewer)`** — use these when you compose **`AppDataGrid`** directly and need to drop hidden schema entries yourself. The older **`filterAppDataGridFiltersForViewer`** / **`filterAppDataGridColumnsForViewer`** names remain as compatibility aliases.
 
-**Content lists:** **`ContentTypeListPage`** now applies AppDataGrid `visibility` rules internally. Pass **`viewerContext`** and provide raw **`columns`** / **`filters`**; routes no longer need to remember to pre-filter them before rendering the page wrapper.
+**Content lists:** **`ContentTypeListPage`** now applies AppDataGrid `visibility` rules internally. Pass **`viewerContext`** and provide raw **`columns`** / **`filters`**; routes no longer need to remember to pre-filter them before rendering the page wrapper. Campaign list routes can pass **`contentListPreferencesKey`** (matching `preferences.ui.contentLists` in auth prefs) so **`useContentListPreferences`** runs inside the page; use **`topBanner`** for validation alerts above the header. Muted disallowed rows use **`getMutedRowClassNameForDisallowedCampaignContent`** from **`contentListTemplate`** / the shared components barrel.
 
 ### Toolbar layout (optional)
 

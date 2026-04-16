@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
@@ -12,6 +11,7 @@ import {
   ContentTypeListPage,
   buildCampaignContentColumns,
   buildCampaignContentFilters,
+  getMutedRowClassNameForDisallowedCampaignContent,
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
@@ -20,7 +20,6 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
-import { useContentListPreferences } from '@/features/content/shared/hooks/useContentListPreferences';
 import { gearRepo } from '../domain/repo/gearRepo';
 import { validateGearChange } from '../domain/validation/validateGearChange';
 import {
@@ -30,12 +29,11 @@ import {
   type GearListRow,
 } from '../domain/list';
 import type { ContentSummary } from '@/features/content/shared/domain/types/content.types';
-import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
 
 export default function GearListRoute() {
-  const { user, loading: authLoading, refreshUser } = useAuth();
+  const { loading: authLoading } = useAuth();
   const { campaign, campaignId } = useActiveCampaign();
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/equipment/gear`;
@@ -133,13 +131,6 @@ export default function GearListRoute() {
     ],
   );
 
-  const { initialFilterValues, onFilterValueChange } = useContentListPreferences({
-    canManage,
-    user,
-    refreshUser,
-    contentListKey: 'gear',
-  });
-
   if (controller.loading || authLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -149,56 +140,45 @@ export default function GearListRoute() {
   }
 
   return (
-    <Stack spacing={2}>
-      {validationBlocked && (
-        validationBlocked.blockingEntities.length > 0 ? (
-          <ValidationBlockedAlert
-            contentType="gear"
-            mode="disallow"
-            blockingEntities={validationBlocked.blockingEntities}
-            onClose={() => setValidationBlocked(null)}
-          />
-        ) : (
-          <AppAlert
-            tone="warning"
-            onClose={() => setValidationBlocked(null)}
-          >
-            {validationBlocked.message ?? 'Cannot disable this gear.'}
-          </AppAlert>
-        )
-      )}
-      <ContentTypeListPage<GearListRow>
-        typeLabel="Gear"
-        typeLabelPlural="Gear"
-        headline="Gear"
-        breadcrumbData={breadcrumbs}
-        canManage={canManage}
-        onAdd={controller.onAdd}
-        addButtonLabel="Add Gear"
-        rows={items}
-        columns={columns}
-        filters={filters}
-        getRowId={(r) => r.id}
-        getDetailLink={controller.getDetailLink}
-        getRowClassName={
-          canManage
-            ? (params: GridRowClassNameParams) =>
-                (params.row as GearListRow).allowedInCampaign === false
-                  ? 'AppDataGrid-row--disabled'
-                  : ''
-            : undefined
-        }
-        loading={controller.loading}
-        error={controller.error}
-        searchPlaceholder="Search gear…"
-        emptyMessage="No gear found."
-        density="compact"
-        height={560}
-        viewerContext={controller.viewerContext}
-        toolbarLayout={GEAR_LIST_TOOLBAR_LAYOUT}
-        initialFilterValues={initialFilterValues}
-        onFilterValueChange={onFilterValueChange}
-      />
-    </Stack>
+    <ContentTypeListPage<GearListRow>
+      typeLabel="Gear"
+      typeLabelPlural="Gear"
+      headline="Gear"
+      breadcrumbData={breadcrumbs}
+      canManage={canManage}
+      onAdd={controller.onAdd}
+      addButtonLabel="Add Gear"
+      rows={items}
+      columns={columns}
+      filters={filters}
+      getRowId={(r) => r.id}
+      getDetailLink={controller.getDetailLink}
+      getRowClassName={getMutedRowClassNameForDisallowedCampaignContent<GearListRow>(canManage)}
+      loading={controller.loading}
+      error={controller.error}
+      searchPlaceholder="Search gear…"
+      emptyMessage="No gear found."
+      density="compact"
+      height={560}
+      viewerContext={controller.viewerContext}
+      toolbarLayout={GEAR_LIST_TOOLBAR_LAYOUT}
+      contentListPreferencesKey="gear"
+      topBanner={
+        validationBlocked ? (
+          validationBlocked.blockingEntities.length > 0 ? (
+            <ValidationBlockedAlert
+              contentType="gear"
+              mode="disallow"
+              blockingEntities={validationBlocked.blockingEntities}
+              onClose={() => setValidationBlocked(null)}
+            />
+          ) : (
+            <AppAlert tone="warning" onClose={() => setValidationBlocked(null)}>
+              {validationBlocked.message ?? 'Cannot disable this gear.'}
+            </AppAlert>
+          )
+        ) : undefined
+      }
+    />
   );
 }

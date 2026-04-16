@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
@@ -11,6 +10,7 @@ import {
   ContentTypeListPage,
   buildCampaignContentColumns,
   buildCampaignContentFilters,
+  getMutedRowClassNameForDisallowedCampaignContent,
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
@@ -19,7 +19,6 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
-import { useContentListPreferences } from '@/features/content/shared/hooks/useContentListPreferences';
 import { useViewerProficiencies } from '@/features/campaign/hooks';
 import {
   skillProficiencyRepo,
@@ -30,13 +29,12 @@ import {
   type SkillProficiencyListRow,
 } from '@/features/content/skillProficiencies/domain';
 import type { SkillProficiencySummary } from '@/features/content/skillProficiencies/domain/types';
-import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 
 export default function SkillProficiencyListRoute() {
-  const { user, loading: authLoading, refreshUser } = useAuth();
+  const { loading: authLoading } = useAuth();
   const { campaign, campaignId } = useActiveCampaign();
   const { catalog } = useCampaignRules();
   const breadcrumbs = useBreadcrumbs();
@@ -128,13 +126,6 @@ export default function SkillProficiencyListRoute() {
     ],
   );
 
-  const { initialFilterValues, onFilterValueChange } = useContentListPreferences({
-    canManage,
-    user,
-    refreshUser,
-    contentListKey: 'skillProficiencies',
-  });
-
   if (controller.loading || authLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -144,56 +135,47 @@ export default function SkillProficiencyListRoute() {
   }
 
   return (
-    <Stack spacing={2}>
-      {validationBlocked && (
-        validationBlocked.blockingEntities.length > 0 ? (
-          <ValidationBlockedAlert
-            contentType="skill proficiency"
-            mode="disallow"
-            blockingEntities={validationBlocked.blockingEntities}
-            onClose={() => setValidationBlocked(null)}
-          />
-        ) : (
-          <AppAlert
-            tone="warning"
-            onClose={() => setValidationBlocked(null)}
-          >
-            {validationBlocked.message ?? 'Cannot disable this skill proficiency.'}
-          </AppAlert>
-        )
+    <ContentTypeListPage<SkillProficiencyListRow>
+      typeLabel="Skill Proficiency"
+      typeLabelPlural="Skill Proficiencies"
+      headline="Skill Proficiencies"
+      breadcrumbData={breadcrumbs}
+      canManage={canManage}
+      onAdd={controller.onAdd}
+      addButtonLabel="Add Skill Proficiency"
+      rows={items}
+      columns={columns}
+      filters={filters}
+      getRowId={(r) => r.id}
+      getDetailLink={controller.getDetailLink}
+      getRowClassName={getMutedRowClassNameForDisallowedCampaignContent<SkillProficiencyListRow>(
+        canManage,
       )}
-      <ContentTypeListPage<SkillProficiencyListRow>
-        typeLabel="Skill Proficiency"
-        typeLabelPlural="Skill Proficiencies"
-        headline="Skill Proficiencies"
-        breadcrumbData={breadcrumbs}
-        canManage={canManage}
-        onAdd={controller.onAdd}
-        addButtonLabel="Add Skill Proficiency"
-        rows={items}
-        columns={columns}
-        filters={filters}
-        getRowId={(r) => r.id}
-        getDetailLink={controller.getDetailLink}
-        getRowClassName={
-          canManage
-            ? (params: GridRowClassNameParams) =>
-                (params.row as SkillProficiencyListRow).allowedInCampaign === false
-                  ? 'AppDataGrid-row--disabled'
-                  : ''
-            : undefined
-        }
-        loading={controller.loading}
-        error={controller.error}
-        searchPlaceholder="Search skills…"
-        emptyMessage="No skill proficiencies found."
-        density="compact"
-        height={560}
-        viewerContext={controller.viewerContext}
-        toolbarLayout={SKILL_PROFICIENCY_LIST_TOOLBAR_LAYOUT}
-        initialFilterValues={initialFilterValues}
-        onFilterValueChange={onFilterValueChange}
-      />
-    </Stack>
+      loading={controller.loading}
+      error={controller.error}
+      searchPlaceholder="Search skills…"
+      emptyMessage="No skill proficiencies found."
+      density="compact"
+      height={560}
+      viewerContext={controller.viewerContext}
+      toolbarLayout={SKILL_PROFICIENCY_LIST_TOOLBAR_LAYOUT}
+      contentListPreferencesKey="skillProficiencies"
+      topBanner={
+        validationBlocked ? (
+          validationBlocked.blockingEntities.length > 0 ? (
+            <ValidationBlockedAlert
+              contentType="skill proficiency"
+              mode="disallow"
+              blockingEntities={validationBlocked.blockingEntities}
+              onClose={() => setValidationBlocked(null)}
+            />
+          ) : (
+            <AppAlert tone="warning" onClose={() => setValidationBlocked(null)}>
+              {validationBlocked.message ?? 'Cannot disable this skill proficiency.'}
+            </AppAlert>
+          )
+        ) : undefined
+      }
+    />
   );
 }

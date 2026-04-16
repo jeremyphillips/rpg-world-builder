@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
@@ -11,6 +10,7 @@ import {
   ContentTypeListPage,
   buildCampaignContentColumns,
   buildCampaignContentFilters,
+  getMutedRowClassNameForDisallowedCampaignContent,
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
@@ -19,7 +19,6 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
-import { useContentListPreferences } from '@/features/content/shared/hooks/useContentListPreferences';
 import {
   classRepo,
   validateClassChange,
@@ -30,12 +29,11 @@ import {
   type ClassSummary,
 } from '@/features/content/classes/domain';
 import type { ContentSummary } from '@/features/content/shared/domain/types';
-import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
 
 export default function ClassListRoute() {
-  const { user, loading: authLoading, refreshUser } = useAuth();
+  const { loading: authLoading } = useAuth();
   const { campaign, campaignId } = useActiveCampaign();
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/classes`;
@@ -110,13 +108,6 @@ export default function ClassListRoute() {
     [canManage, handleToggleAllowed, customFilters, hasCampaignSources],
   );
 
-  const { initialFilterValues, onFilterValueChange } = useContentListPreferences({
-    canManage,
-    user,
-    refreshUser,
-    contentListKey: 'classes',
-  });
-
   if (controller.loading || authLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -126,56 +117,45 @@ export default function ClassListRoute() {
   }
 
   return (
-    <Stack spacing={2}>
-      {validationBlocked && (
-        validationBlocked.blockingEntities.length > 0 ? (
-          <ValidationBlockedAlert
-            contentType="class"
-            mode="disallow"
-            blockingEntities={validationBlocked.blockingEntities}
-            onClose={() => setValidationBlocked(null)}
-          />
-        ) : (
-          <AppAlert
-            tone="warning"
-            onClose={() => setValidationBlocked(null)}
-          >
-            {validationBlocked.message ?? 'Cannot disable this class.'}
-          </AppAlert>
-        )
-      )}
-      <ContentTypeListPage<ClassSummary>
-        typeLabel="Class"
-        typeLabelPlural="Classes"
-        headline="Classes"
-        breadcrumbData={breadcrumbs}
-        canManage={canManage}
-        onAdd={controller.onAdd}
-        addButtonLabel="Add Class"
-        rows={items}
-        columns={columns}
-        filters={filters}
-        getRowId={(r) => r.id}
-        getDetailLink={controller.getDetailLink}
-        getRowClassName={
-          canManage
-            ? (params: GridRowClassNameParams) =>
-                (params.row as ClassListRow).allowedInCampaign === false
-                  ? 'AppDataGrid-row--disabled'
-                  : ''
-            : undefined
-        }
-        loading={controller.loading}
-        error={controller.error}
-        searchPlaceholder="Search classes…"
-        emptyMessage="No classes found."
-        density="compact"
-        height={560}
-        viewerContext={controller.viewerContext}
-        toolbarLayout={CLASS_LIST_TOOLBAR_LAYOUT}
-        initialFilterValues={initialFilterValues}
-        onFilterValueChange={onFilterValueChange}
-      />
-    </Stack>
+    <ContentTypeListPage<ClassSummary>
+      typeLabel="Class"
+      typeLabelPlural="Classes"
+      headline="Classes"
+      breadcrumbData={breadcrumbs}
+      canManage={canManage}
+      onAdd={controller.onAdd}
+      addButtonLabel="Add Class"
+      rows={items}
+      columns={columns}
+      filters={filters}
+      getRowId={(r) => r.id}
+      getDetailLink={controller.getDetailLink}
+      getRowClassName={getMutedRowClassNameForDisallowedCampaignContent<ClassListRow>(canManage)}
+      loading={controller.loading}
+      error={controller.error}
+      searchPlaceholder="Search classes…"
+      emptyMessage="No classes found."
+      density="compact"
+      height={560}
+      viewerContext={controller.viewerContext}
+      toolbarLayout={CLASS_LIST_TOOLBAR_LAYOUT}
+      contentListPreferencesKey="classes"
+      topBanner={
+        validationBlocked ? (
+          validationBlocked.blockingEntities.length > 0 ? (
+            <ValidationBlockedAlert
+              contentType="class"
+              mode="disallow"
+              blockingEntities={validationBlocked.blockingEntities}
+              onClose={() => setValidationBlocked(null)}
+            />
+          ) : (
+            <AppAlert tone="warning" onClose={() => setValidationBlocked(null)}>
+              {validationBlocked.message ?? 'Cannot disable this class.'}
+            </AppAlert>
+          )
+        ) : undefined
+      }
+    />
   );
 }
