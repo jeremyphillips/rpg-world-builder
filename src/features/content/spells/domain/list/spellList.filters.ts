@@ -7,7 +7,12 @@ import {
   buildLevelOptions,
   buildClassOptions,
 } from './spellList.options';
-import { SPELL_CORE_UI, formatSpellLevelName, isSpellLevel } from '../spellPresentation';
+import {
+  SPELL_UI,
+  formatSpellLevelName,
+  isSpellLevel,
+  spellListFilterLabel,
+} from '../spellPresentation';
 
 export function buildSpellCustomFilters(
   items: SpellSummary[],
@@ -19,15 +24,15 @@ export function buildSpellCustomFilters(
 
   return [
     {
-      id: SPELL_CORE_UI.school.key,
-      label: SPELL_CORE_UI.school.label,
+      id: SPELL_UI.school.key,
+      label: spellListFilterLabel(SPELL_UI.school),
       type: 'multiSelect' as const,
       options: schoolOptions,
-      accessor: (r) => r.school ? [r.school] : [],
+      accessor: (r) => (r.school ? [r.school] : []),
     },
     {
-      id: SPELL_CORE_UI.level.key,
-      label: SPELL_CORE_UI.level.label,
+      id: SPELL_UI.level.key,
+      label: spellListFilterLabel(SPELL_UI.level),
       type: 'select' as const,
       options: levelOptions,
       accessor: (r) => String(r.level),
@@ -40,15 +45,15 @@ export function buildSpellCustomFilters(
       },
     },
     {
-      id: SPELL_CORE_UI.classes.key,
-      label: SPELL_CORE_UI.classes.listFilterLabel,
+      id: SPELL_UI.classes.key,
+      label: spellListFilterLabel(SPELL_UI.classes),
       type: 'multiSelect' as const,
       options: classOptions,
       accessor: (r) => r.classes ?? [],
     },
     {
-      id: 'resolutionStatus',
-      label: 'Status',
+      id: SPELL_UI.resolutionStatus.key,
+      label: spellListFilterLabel(SPELL_UI.resolutionStatus),
       type: 'select' as const,
       options: [
         { label: 'All', value: '' },
@@ -57,7 +62,7 @@ export function buildSpellCustomFilters(
         { label: 'Full', value: 'full' },
       ],
       accessor: (r) => getSpellResolutionStatus(r),
-      visibility: { platformAdminOnly: true },
+      visibility: SPELL_UI.resolutionStatus.ui.visibility,
     },
   ];
 }

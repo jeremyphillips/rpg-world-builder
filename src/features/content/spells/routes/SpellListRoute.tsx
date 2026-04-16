@@ -32,7 +32,7 @@ import type { ContentSummary } from '@/features/content/shared/domain/types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { filterAppDataGridFiltersForViewer } from '@/ui/patterns';
+import { filterAppDataGridColumnsForViewer, filterAppDataGridFiltersForViewer } from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
@@ -104,15 +104,27 @@ export default function SpellListRoute() {
 
   const columns = useMemo(
     () =>
-      buildCampaignContentColumns<SpellListRow>({
-        canManage,
-        characterNameById: canManage ? characterNameById : undefined,
-        onToggleAllowedInCampaign: handleToggleAllowed,
-        ownedIds: hasViewer ? ownedIds : undefined,
-        customColumns,
-        hasCampaignSources,
-      }),
-    [canManage, characterNameById, handleToggleAllowed, hasViewer, ownedIds, customColumns, hasCampaignSources],
+      filterAppDataGridColumnsForViewer(
+        buildCampaignContentColumns<SpellListRow>({
+          canManage,
+          characterNameById: canManage ? characterNameById : undefined,
+          onToggleAllowedInCampaign: handleToggleAllowed,
+          ownedIds: hasViewer ? ownedIds : undefined,
+          customColumns,
+          hasCampaignSources,
+        }),
+        viewerContext,
+      ),
+    [
+      canManage,
+      characterNameById,
+      handleToggleAllowed,
+      hasViewer,
+      ownedIds,
+      customColumns,
+      hasCampaignSources,
+      viewerContext,
+    ],
   );
 
   const filters = useMemo(

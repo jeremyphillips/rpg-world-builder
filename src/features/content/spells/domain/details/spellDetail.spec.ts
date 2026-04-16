@@ -9,20 +9,20 @@ import { renderSpellDamageEffectsDetailDisplay } from './display/spellDamageEffe
 import { getMagicSchoolDisplayName } from '@/features/content/shared/domain/vocab';
 import { classIdToName } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
-import { formatSpellLevelShort, SPELL_CORE_UI } from '../spellPresentation';
+import { formatSpellLevelShort, SPELL_UI } from '../spellPresentation';
 
 const classLabel = (id: string) => classIdToName(DEFAULT_SYSTEM_RULESET_ID, id);
 
 export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
   {
-    key: SPELL_CORE_UI.level.key,
-    label: SPELL_CORE_UI.level.label,
+    key: SPELL_UI.level.key,
+    label: SPELL_UI.level.ui.label,
     order: 10,
     render: (spell) => formatSpellLevelShort(spell.level),
   },
   {
-    key: SPELL_CORE_UI.school.key,
-    label: SPELL_CORE_UI.school.label,
+    key: SPELL_UI.school.key,
+    label: SPELL_UI.school.ui.label,
     order: 20,
     render: (spell) => getMagicSchoolDisplayName(spell.school),
   },
@@ -63,8 +63,8 @@ export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
     render: (spell) => renderSpellDamageEffectsDetailDisplay(spell),
   },
   {
-    key: SPELL_CORE_UI.classes.key,
-    label: SPELL_CORE_UI.classes.label,
+    key: SPELL_UI.classes.key,
+    label: SPELL_UI.classes.ui.label,
     order: 30,
     render: (spell) =>
       spell.classes.map((c) => classLabel(c)).join(', ') || '—',

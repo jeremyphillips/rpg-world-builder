@@ -1,6 +1,6 @@
 import { clampMinMaxToSteps, type NumericRange } from '@/features/content/shared/toolbar/discreteNumericRange'
 
-import type { AppDataGridFilter, FilterOption } from './appDataGridFilter.types'
+import type { AppDataGridFilter, FilterOption } from './types'
 
 export function getFilterDefault<T>(f: AppDataGridFilter<T>): unknown {
   switch (f.type) {

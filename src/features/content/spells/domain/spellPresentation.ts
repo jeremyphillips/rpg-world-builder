@@ -1,15 +1,61 @@
+import type { AppDataGridFilterVisibility } from '@/ui/patterns';
+
 /**
- * Shared spell UI identity: field keys and labels used by form, list filters, and detail.
+ * Shared spell field UI metadata (labels, visibility). Keys align with form fields, list filters,
+ * columns, and detail specs where applicable.
  */
-export const SPELL_CORE_UI = {
-  school: { key: 'school' as const, label: 'School' as const },
-  level: { key: 'level' as const, label: 'Level' as const },
+export type SpellFieldUiVisibility = AppDataGridFilterVisibility & {
+  dmOnly?: boolean;
+};
+
+export type SpellFieldUiDescriptor = {
+  label: string;
+  listFilterLabel?: string;
+  columnLabel?: string;
+  activeChipLabel?: string;
+  visibility?: SpellFieldUiVisibility;
+};
+
+export const SPELL_UI = {
+  school: {
+    key: 'school' as const,
+    ui: {
+      label: 'School',
+    },
+  },
+  level: {
+    key: 'level' as const,
+    ui: {
+      label: 'Level',
+    },
+  },
   classes: {
     key: 'classes' as const,
-    label: 'Classes' as const,
-    listFilterLabel: 'Classes' as const,
+    ui: {
+      label: 'Classes',
+      listFilterLabel: 'Classes',
+    },
+  },
+  resolutionStatus: {
+    key: 'resolutionStatus' as const,
+    ui: {
+      label: 'Status',
+      visibility: { platformAdminOnly: true },
+    },
   },
 } as const;
+
+export function spellListFilterLabel(field: {
+  ui: { listFilterLabel?: string; label: string };
+}): string {
+  return field.ui.listFilterLabel ?? field.ui.label;
+}
+
+export function spellColumnHeaderName(field: {
+  ui: { columnLabel?: string; label: string };
+}): string {
+  return field.ui.columnLabel ?? field.ui.label;
+}
 
 export type { SpellLevelDefinition } from './spellLevel.definitions';
 

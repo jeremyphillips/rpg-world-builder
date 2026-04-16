@@ -29,7 +29,7 @@ import { spellComponentsPatchBindings } from '../spellComponentsPatchBinding';
 import {
   formatSpellLevelShort,
   isSpellLevel,
-  SPELL_CORE_UI,
+  SPELL_UI,
   SPELL_LEVEL_DEFINITIONS,
 } from '../../spellPresentation';
 import {
@@ -214,8 +214,8 @@ export function getSpellSimpleFieldSpecs(
       format: (v) => (v ?? DEFAULT_VISIBILITY_PUBLIC) as SpellFormValues['accessPolicy'],
     },
     {
-      name: SPELL_CORE_UI.school.key,
-      label: 'School',
+      name: SPELL_UI.school.key,
+      label: SPELL_UI.school.ui.label,
       kind: 'select' as const,
       required: true,
       options: SPELL_SCHOOL_SELECT_OPTIONS,
@@ -232,8 +232,8 @@ export function getSpellSimpleFieldSpecs(
       width: 6,
     },
     {
-      name: SPELL_CORE_UI.level.key,
-      label: 'Level',
+      name: SPELL_UI.level.key,
+      label: SPELL_UI.level.ui.label,
       kind: 'select' as const,
       required: true,
       options: SPELL_LEVEL_SELECT_OPTIONS,
@@ -253,8 +253,8 @@ export function getSpellSimpleFieldSpecs(
       width: 6,
     },
     {
-      name: SPELL_CORE_UI.classes.key,
-      label: SPELL_CORE_UI.classes.label,
+      name: SPELL_UI.classes.key,
+      label: SPELL_UI.classes.ui.label,
       kind: 'checkboxGroup' as const,
       options: classOptions,
       defaultValue: [] as SpellFormValues['classes'],
@@ -635,10 +635,10 @@ export function getSpellFormFields(
   /** Top: identity + school/level + visibility + classes; bottom: effects then image (after composite blocks). */
   const headNames = [
     'name',
-    SPELL_CORE_UI.school.key,
-    SPELL_CORE_UI.level.key,
+    SPELL_UI.school.key,
+    SPELL_UI.level.key,
     'accessPolicy',
-    SPELL_CORE_UI.classes.key,
+    SPELL_UI.classes.key,
   ] as const;
   const tailNames = ['imageKey'] as const;
 

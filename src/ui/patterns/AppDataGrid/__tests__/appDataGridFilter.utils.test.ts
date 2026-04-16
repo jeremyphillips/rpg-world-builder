@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { AppDataGridFilter } from './appDataGridFilter.types';
-import { getActiveFilterBadgeSegments } from './appDataGridFilter.utils';
+import type { AppDataGridFilter } from '../types';
+import { getActiveFilterBadgeSegments } from '../appDataGridFilter.utils';
 
 type Row = { id: string };
 

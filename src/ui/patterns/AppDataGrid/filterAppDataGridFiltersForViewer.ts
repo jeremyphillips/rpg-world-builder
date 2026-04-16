@@ -1,6 +1,6 @@
 import type { ViewerContext } from '@/shared/domain/capabilities';
 
-import type { AppDataGridFilter } from './appDataGridFilter.types';
+import type { AppDataGridFilter } from './types';
 
 /**
  * Drops filters the current viewer is not allowed to see (see `visibility` on {@link AppDataGridFilter}).

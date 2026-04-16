@@ -6,6 +6,7 @@ export { default as AppHero } from './AppHero/AppHero'
 
 export { default as AppDataGrid } from './AppDataGrid/AppDataGrid'
 export { filterAppDataGridFiltersForViewer } from './AppDataGrid/filterAppDataGridFiltersForViewer'
+export { filterAppDataGridColumnsForViewer } from './AppDataGrid/filterAppDataGridColumnsForViewer'
 export { makeOwnedColumn, makeOwnedFilter } from './AppDataGrid/helpers/ownership'
 export type {
   AppDataGridProps,
@@ -21,7 +22,7 @@ export type {
   AppDataGridToolbarFiltersConfig,
   AppDataGridSelectionConfig,
   AppDataGridPresentationConfig,
-} from './AppDataGrid/AppDataGrid'
+} from './AppDataGrid/types'
 export type { AppDataGridToolbarFieldSizes } from '@/ui/sizes'
 export { indexAppDataGridFiltersById } from './AppDataGrid/indexAppDataGridFiltersById'
 export {
@@ -29,7 +30,7 @@ export {
   getClampedRangeFilterValue,
   type AppDataGridBadgeSegment,
 } from './AppDataGrid/appDataGridFilter.utils'
-export { APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID } from './AppDataGrid/appDataGridToolbar.types'
+export { APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID } from './AppDataGrid/types'
 
 export { default as KeyValueSection } from './content/KeyValueSection/KeyValueSection'
 export type { KeyValueSectionProps, KeyValueItem } from './content/KeyValueSection/KeyValueSection'

@@ -1,4 +1,4 @@
-import type { AppDataGridFilter } from './appDataGridFilter.types'
+import type { AppDataGridFilter } from './types'
 
 /**
  * Index filters by `id` for toolbar layout resolution. Warns in dev on duplicate ids.

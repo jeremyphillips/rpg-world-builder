@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { SPELL_DETAIL_SPECS } from '../details/spellDetail.spec';
 import { getSpellFormFields } from '../forms/registry/spellForm.registry';
 import { buildSpellCustomFilters } from '../list/spellList.filters';
-import { SPELL_CORE_UI } from '../spellPresentation';
+import { SPELL_UI } from '../spellPresentation';
 
 const coreKeys = [
-  SPELL_CORE_UI.school.key,
-  SPELL_CORE_UI.level.key,
-  SPELL_CORE_UI.classes.key,
+  SPELL_UI.school.key,
+  SPELL_UI.level.key,
+  SPELL_UI.classes.key,
 ] as const;
 
 describe('spellPresentation contract', () => {

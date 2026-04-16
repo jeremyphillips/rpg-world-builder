@@ -15,7 +15,7 @@ export {
 } from './spellEffectGroups';
 
 export {
-  SPELL_CORE_UI,
+  SPELL_UI,
   SPELL_LEVEL_DEFINITIONS,
   SPELL_LEVEL_DEFINITION_BY_ID,
   getSpellLevelDefinition,
