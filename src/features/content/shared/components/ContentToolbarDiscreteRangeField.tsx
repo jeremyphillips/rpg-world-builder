@@ -11,6 +11,7 @@ import {
   valuesToIndexRange,
   type NumericRange,
 } from '@/features/content/shared/toolbar/discreteNumericRange';
+import type { MuiDenseInputSize } from '@/ui/sizes';
 
 export type ContentToolbarDiscreteRangeFieldProps = {
   label: string;
@@ -20,7 +21,7 @@ export type ContentToolbarDiscreteRangeFieldProps = {
   formatValue: (n: number) => string;
   /** Applied to the field control (not the whole toolbar row). */
   'aria-label'?: string;
-  size?: 'small' | 'medium';
+  size?: MuiDenseInputSize;
 };
 
 /**

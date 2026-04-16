@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 
+import type { MuiDenseInputSize } from '@/ui/sizes';
+
 import { AppTextField } from './AppTextField';
 
 export type AppJsonPreviewFieldProps = {
@@ -14,7 +16,7 @@ export type AppJsonPreviewFieldProps = {
   helperText?: string;
   minRows?: number;
   maxRows?: number;
-  size?: 'small' | 'medium';
+  size?: MuiDenseInputSize;
   showInsertExample?: boolean;
   insertExampleLabel?: string;
   required?: boolean;

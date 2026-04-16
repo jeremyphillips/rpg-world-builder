@@ -78,6 +78,7 @@ export default defineConfig({
       "@/ui/patterns": path.resolve(__dirname, "src/ui/patterns"),
       "@/ui/primitives": path.resolve(__dirname, "src/ui/primitives"),
       "@/ui/types": path.resolve(__dirname, "src/ui/types"),
+      "@/ui/sizes": path.resolve(__dirname, "src/ui/sizes.ts"),
       "@/utils": path.resolve(__dirname, "src/utils"),
       "@repo-assets": path.resolve(__dirname, "assets"),
     }

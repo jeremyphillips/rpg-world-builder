@@ -38,6 +38,7 @@ import {
 } from './appDataGridToolbar.types'
 
 import { resolveImageUrl } from '@/shared/lib/media'
+import type { AppDataGridToolbarFieldSize } from '@/ui/sizes'
 
 
 // ---------------------------------------------------------------------------
@@ -172,7 +173,7 @@ export type AppDataGridToolbarFiltersConfig<T> = {
 
 export type AppDataGridToolbarConfig<T> = {
   /** MUI `size` for toolbar search + filter controls (default `small` for dense toolbars). */
-  fieldSize?: 'small' | 'medium'
+  fieldSize?: AppDataGridToolbarFieldSize
   /** Optional actions above the grid (e.g. Add buttons) */
   actions?: ReactNode
   /**

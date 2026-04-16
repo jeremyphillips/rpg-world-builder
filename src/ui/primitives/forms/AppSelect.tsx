@@ -11,6 +11,8 @@ import type { SelectChangeEvent, SelectProps } from '@mui/material/Select';
 import type { SxProps, Theme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 
+import type { MuiTextFieldSize } from '@/ui/sizes';
+
 /**
  * AppSelect empty-state contract (outlined MUI Select):
  *
@@ -36,7 +38,7 @@ type AppSelectBase = {
   helperText?: string;
   disabled?: boolean;
   required?: boolean;
-  size?: 'small' | 'medium' | 'large';
+  size?: MuiTextFieldSize;
   fullWidth?: boolean;
   /** Applied to `FormControl` (e.g. grid stretch from form layout context). */
   sx?: SxProps<Theme>;

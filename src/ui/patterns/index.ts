@@ -22,6 +22,7 @@ export type {
   AppDataGridSelectionConfig,
   AppDataGridPresentationConfig,
 } from './AppDataGrid/AppDataGrid'
+export type { AppDataGridToolbarFieldSize } from '@/ui/sizes'
 export { indexAppDataGridFiltersById } from './AppDataGrid/indexAppDataGridFiltersById'
 export {
   getActiveFilterBadgeSegments,

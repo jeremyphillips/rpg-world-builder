@@ -2,6 +2,7 @@ import { Controller, useFormContext } from 'react-hook-form';
 import type { RegisterOptions } from 'react-hook-form';
 import { formGridStretchOutlinedSx, useFormLayoutStretch } from './FormLayoutStretchContext';
 import { AppTextField } from '@/ui/primitives';
+import type { MuiTextFieldSize } from '@/ui/sizes';
 
 export type AppFormTextFieldProps = {
   name: string;
@@ -13,7 +14,7 @@ export type AppFormTextFieldProps = {
   disabled?: boolean;
   type?: 'text' | 'email' | 'password' | 'number' | 'datetime-local';
   rules?: RegisterOptions;
-  size?: 'small' | 'medium' | 'large';
+  size?: MuiTextFieldSize;
   /** Fires after the field value updates (e.g. sync workspace draft without form submit). */
   onAfterChange?: (value: string) => void;
 };

@@ -19,6 +19,8 @@ import {
   type MultiSelectOption,
 } from './multiSelectFieldShared';
 
+import type { AppMultiSelectSize } from '@/ui/sizes';
+
 export type { MultiSelectOption, MultiSelectFieldDisplayMode };
 
 export type AppMultiSelectDisplayMode = MultiSelectFieldDisplayMode;
@@ -37,7 +39,7 @@ export type AppMultiSelectProps<TValue extends string = string> = {
   displayMode?: MultiSelectFieldDisplayMode;
   /** Override default summary (`None selected` / `1 selected` / `N selected`). Do not include the field `label` here — it is shown by the floating label. */
   summaryText?: (selectedOptions: MultiSelectOption<TValue>[]) => string;
-  size?: 'small' | 'medium';
+  size?: AppMultiSelectSize;
   fullWidth?: boolean;
   /** For RHF / Controller: forwarded to the text input. */
   inputRef?: Ref<HTMLInputElement>;

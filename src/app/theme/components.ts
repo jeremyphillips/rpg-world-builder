@@ -1,12 +1,14 @@
 import type { Components, Theme } from '@mui/material/styles'
 
+import type { MuiTextFieldSize } from '@/ui/sizes'
+
 import { CONTROL_SIZES } from './controlSizes'
 
 /** 1px outline border top + bottom (MUI outlined field). */
 const OUTLINED_BORDER_Y_PX = 2
 
 /** Space reserved for the absolutely positioned dropdown icon (outlined Select). */
-const SELECT_ICON_GUTTER_PX: Record<'small' | 'medium' | 'large', number> = {
+const SELECT_ICON_GUTTER_PX: Record<MuiTextFieldSize, number> = {
   small: 28,
   medium: 32,
   large: 44,
@@ -16,7 +18,7 @@ const SELECT_ICON_GUTTER_PX: Record<'small' | 'medium' | 'large', number> = {
  * Match single-line control height to `box.height` by sizing vertical padding; assumes 16px root rem.
  * Does not use minHeight as the primary lever — fixed height on the root + explicit inner padding.
  */
-function outlineInputVerticalPaddingPx(size: 'small' | 'medium' | 'large'): number {
+function outlineInputVerticalPaddingPx(size: MuiTextFieldSize): number {
   const { box, content } = CONTROL_SIZES[size]
   const rem = parseFloat(content.fontSize)
   const fontPx = rem * 16
@@ -25,7 +27,7 @@ function outlineInputVerticalPaddingPx(size: 'small' | 'medium' | 'large'): numb
   return Math.max(0, (innerPx - lineBoxPx) / 2)
 }
 
-function outlinedInputSizeStyles(size: 'small' | 'medium' | 'large') {
+function outlinedInputSizeStyles(size: MuiTextFieldSize) {
   const { box, content } = CONTROL_SIZES[size]
   const padY = outlineInputVerticalPaddingPx(size)
   /** Vertical only — keep MUI horizontal padding (Select needs extra end padding for the icon). */

@@ -2,12 +2,13 @@ import React from 'react';
 import Chip, { type ChipProps } from '@mui/material/Chip';
 import type { SxProps, Theme } from '@mui/material/styles';
 import type { AppBadgeTone } from '@/ui/types';
+import type { ChipBadgeSize } from '@/ui/sizes';
 
 export interface AppBadgeProps {
   label: React.ReactNode;
   tone?: AppBadgeTone;
   variant?: ChipProps['variant'];
-  size?: 'small' | 'medium';
+  size?: ChipBadgeSize;
   icon?: React.ReactElement;
   /** When set, shows a dismiss control (e.g. filter / tag badges). */
   onDelete?: ChipProps['onDelete'];

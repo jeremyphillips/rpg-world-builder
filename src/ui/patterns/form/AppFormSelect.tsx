@@ -1,6 +1,7 @@
 import { Controller, useFormContext } from 'react-hook-form';
 
 import { AppSelect, type SelectOption } from '@/ui/primitives';
+import type { MuiTextFieldSize } from '@/ui/sizes';
 import { formGridStretchOutlinedSx, useFormLayoutStretch } from './FormLayoutStretchContext';
 
 export type AppFormSelectProps = {
@@ -11,7 +12,7 @@ export type AppFormSelectProps = {
   disabled?: boolean;
   placeholder?: string;
   /** Passed to MUI `FormControl` / `Select`. Default `medium` matches `AppFormTextField`. */
-  size?: 'small' | 'medium' | 'large';
+  size?: MuiTextFieldSize;
   /** Fires after the field value updates (e.g. action selects without submitting a form). */
   onAfterChange?: (value: string) => void;
 };

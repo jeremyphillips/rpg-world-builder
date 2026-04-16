@@ -5,6 +5,7 @@ import {
   type MultiSelectFieldDisplayMode,
   type MultiSelectOption,
 } from '@/ui/primitives';
+import type { MuiTextFieldSize } from '@/ui/sizes';
 import { formGridStretchOutlinedSx, useFormLayoutStretch } from './FormLayoutStretchContext';
 
 export type AppFormMultiSelectCheckboxProps<TValue extends string = string> = {
@@ -16,7 +17,7 @@ export type AppFormMultiSelectCheckboxProps<TValue extends string = string> = {
   placeholder?: string;
   displayMode?: MultiSelectFieldDisplayMode;
   summaryText?: (selectedOptions: MultiSelectOption<TValue>[]) => string;
-  size?: 'small' | 'medium' | 'large';
+  size?: MuiTextFieldSize;
   /** Fires after the field value updates. */
   onAfterChange?: (value: TValue[]) => void;
 };

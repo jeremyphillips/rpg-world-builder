@@ -62,6 +62,7 @@
       "@/ui/patterns/*": ["ui/patterns/*"],
       "@/ui/primitives": ["ui/primitives/index.ts"],
       "@/ui/types": ["ui/types/index.ts"],
+      "@/ui/sizes": ["ui/sizes.ts"],
       "@/data": ["data/index.ts"],
       "@/data/*": ["data/*"],
       "@/domain/*": ["domain/*"],
