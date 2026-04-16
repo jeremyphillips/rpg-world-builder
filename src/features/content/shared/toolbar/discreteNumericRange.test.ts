@@ -22,7 +22,7 @@ describe('deriveSortedUniqueNumericSteps', () => {
 
   it('returns empty array when no numeric values', () => {
     expect(
-      deriveSortedUniqueNumericSteps([{ n: null }], (r) => r.n as number | undefined),
+      deriveSortedUniqueNumericSteps([{ n: null }], (r) => r.n as unknown as number | undefined),
     ).toEqual([]);
   });
 });

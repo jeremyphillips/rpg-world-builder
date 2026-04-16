@@ -121,19 +121,23 @@ export default function SessionsRoute() {
         getDetailLink={(row) =>
           ROUTES.SESSION.replace(':id', campaignId!).replace(':sessionId', row.id)
         }
-        filters={statusFilters}
-        searchable
-        searchPlaceholder="Search sessions…"
-        searchColumns={['title']}
-        loading={loading}
-        emptyMessage="No sessions yet."
-        toolbar={
-          isAdmin ? (
+        toolbarConfig={{
+          filters: { definitions: statusFilters },
+          search: {
+            enabled: true,
+            placeholder: 'Search sessions…',
+            columns: ['title'],
+          },
+          actions: isAdmin ? (
             <Button variant="contained" startIcon={<AddIcon />} onClick={openModal}>
               Create session
             </Button>
-          ) : undefined
-        }
+          ) : undefined,
+        }}
+        presentation={{
+          loading,
+          emptyMessage: 'No sessions yet.',
+        }}
       />
 
       <FormModal

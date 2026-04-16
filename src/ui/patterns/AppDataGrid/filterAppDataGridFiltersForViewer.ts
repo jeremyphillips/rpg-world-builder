@@ -4,7 +4,8 @@ import type { AppDataGridFilter } from './appDataGridFilter.types';
 
 /**
  * Drops filters the current viewer is not allowed to see (see `visibility` on {@link AppDataGridFilter}).
- * Call in the route (or list page) after composing `filters`, before passing to {@link AppDataGrid}.
+ * Call in the route (or list page) after composing filter definitions, before passing them as
+ * `toolbarConfig.filters.definitions` on `AppDataGrid`.
  *
  * When `viewer` is undefined, **platformAdminOnly** filters are hidden.
  */

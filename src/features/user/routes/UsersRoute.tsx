@@ -156,18 +156,24 @@ export default function UsersRoute() {
         rows={rows}
         columns={columns}
         getRowId={(row) => row.id}
-        filters={roleFilters}
-        searchable
-        searchPlaceholder="Search users…"
-        searchColumns={['username', 'email']}
-        loading={loading}
-        pageSizeOptions={[10, 25, 50]}
-        emptyMessage="No users found."
-        toolbar={
-          <Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setOpen(true)}>
-            Add User
-          </Button>
-        }
+        toolbarConfig={{
+          filters: { definitions: roleFilters },
+          search: {
+            enabled: true,
+            placeholder: 'Search users…',
+            columns: ['username', 'email'],
+          },
+          actions: (
+            <Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setOpen(true)}>
+              Add User
+            </Button>
+          ),
+        }}
+        presentation={{
+          loading,
+          pageSizeOptions: [10, 25, 50],
+          emptyMessage: 'No users found.',
+        }}
       />
 
       <FormModal

@@ -141,6 +141,73 @@ export type {
 export type { AppDataGridToolbarLayout, AppDataGridToolbarUtility } from './appDataGridToolbar.types'
 export { APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID } from './appDataGridToolbar.types'
 
+export type AppDataGridToolbarSearchConfig<T> = {
+  /** Show a search field above the grid */
+  enabled?: boolean
+  /** Placeholder for the search field */
+  placeholder?: string
+  /**
+   * When set, used instead of {@link AppDataGridToolbarSearchConfig.columns} for toolbar search (forgiving
+   * matching should be implemented by the parent).
+   */
+  rowMatch?: (row: T, query: string) => boolean
+  /** Columns to search across (defaults to all columns). Ignored when `rowMatch` is set. */
+  columns?: string[]
+}
+
+export type AppDataGridToolbarFiltersConfig<T> = {
+  /** Toolbar filter definitions (select / multiSelect / boolean / range). */
+  definitions: AppDataGridFilter<T>[]
+  /**
+   * Initial session filter state (e.g. seed `allowedInCampaign` from persisted user preferences).
+   * Applied once on mount; parent should memoize and wait until values are stable (e.g. auth loaded).
+   */
+  initialValues?: Record<string, unknown>
+  /**
+   * Called after any filter value changes (including the Hide disallowed utility).
+   * Use to persist UI preferences; **not** invoked for Reset (session-only clear).
+   */
+  onValueChange?: (filterId: string, value: unknown) => void
+}
+
+export type AppDataGridToolbarConfig<T> = {
+  /** MUI `size` for toolbar search + filter controls (default `small` for dense toolbars). */
+  fieldSize?: 'small' | 'medium'
+  /** Optional actions above the grid (e.g. Add buttons) */
+  actions?: ReactNode
+  /**
+   * When set, toolbar renders in row order by filter id (not array order) and shows an active-filter badge row.
+   * When omitted, single-row toolbar in filter `definitions` declaration order.
+   */
+  layout?: AppDataGridToolbarLayout
+  search?: AppDataGridToolbarSearchConfig<T>
+  filters?: AppDataGridToolbarFiltersConfig<T>
+}
+
+export type AppDataGridSelectionConfig = {
+  /**
+   * Enable row multi-select (checkbox column).
+   * TODO: expose onSelectionChange callback and selectedIds controlled prop
+   * for bulk actions (delete, export, etc.).
+   */
+  enabled?: boolean
+}
+
+export type AppDataGridPresentationConfig = {
+  /** Show a loading overlay */
+  loading?: boolean
+  /** Message displayed when there are no rows */
+  emptyMessage?: string
+  /** Pagination page-size options */
+  pageSizeOptions?: number[]
+  /** Row density */
+  density?: 'compact' | 'standard' | 'comfortable'
+  /** Height of the grid container (default 400) */
+  height?: number | string
+  /** Optional function to add CSS class names to rows (e.g. for muted styling) */
+  getRowClassName?: (params: GridRowClassNameParams) => string
+}
+
 export interface AppDataGridProps<T> {
   /** Data rows */
   rows: T[]
@@ -151,57 +218,12 @@ export interface AppDataGridProps<T> {
   /** Build the detail route link for a row (used by linkColumn) */
   getDetailLink?: (row: T) => string
 
-  /** Toolbar filter definitions (select / multiSelect / boolean / range). */
-  filters?: AppDataGridFilter<T>[]
-
-  /**
-   * Enable row multi-select.
-   * TODO: expose onSelectionChange callback and selectedIds controlled prop
-   * to support bulk actions (delete, export, etc.).
-   */
-  multiSelect?: boolean
-  /** Show a search field above the grid */
-  searchable?: boolean
-  /** Placeholder for the search field */
-  searchPlaceholder?: string
-  /**
-   * When set, used instead of {@link searchColumns} for toolbar search (forgiving
-   * matching should be implemented by the parent).
-   */
-  searchRowMatch?: (row: T, query: string) => boolean
-  /** Columns to search across (defaults to all columns). Ignored when `searchRowMatch` is set. */
-  searchColumns?: string[]
-  /** MUI `size` for toolbar search + filter controls (default `small` for dense toolbars). */
-  toolbarFieldSize?: 'small' | 'medium'
-  /** Show a loading overlay */
-  loading?: boolean
-  /** Message displayed when there are no rows */
-  emptyMessage?: string
-  /** Pagination page-size options */
-  pageSizeOptions?: number[]
-  /** Row density */
-  density?: 'compact' | 'standard' | 'comfortable'
-  /** Optional toolbar rendered above the grid (e.g. action buttons) */
-  toolbar?: ReactNode
-  /** Height of the grid container (default 400) */
-  height?: number | string
-  /** Optional function to add CSS class names to rows (e.g. for muted styling) */
-  getRowClassName?: (params: GridRowClassNameParams) => string
-  /**
-   * When set, toolbar renders in row order by filter id (not array order) and shows an active-filter badge row.
-   * When omitted, legacy single-row toolbar in `filters` declaration order.
-   */
-  toolbarLayout?: AppDataGridToolbarLayout
-  /**
-   * Initial session filter state (e.g. seed `allowedInCampaign` from persisted user preferences).
-   * Applied once on mount; parent should memoize and wait until values are stable (e.g. auth loaded).
-   */
-  initialFilterValues?: Record<string, unknown>
-  /**
-   * Called after any filter value changes (including the Hide disallowed utility).
-   * Use to persist UI preferences; **not** invoked for Reset (session-only clear).
-   */
-  onFilterValueChange?: (filterId: string, value: unknown) => void
+  /** Toolbar: search, filters, layout, and actions */
+  toolbarConfig?: AppDataGridToolbarConfig<T>
+  /** Row selection (checkbox column) */
+  selection?: AppDataGridSelectionConfig
+  /** Loading, empty state, density, sizing, row styling */
+  presentation?: AppDataGridPresentationConfig
 }
 
 // ---------------------------------------------------------------------------
@@ -248,24 +270,35 @@ export default function AppDataGrid<T>({
   columns,
   getRowId,
   getDetailLink,
-  filters,
-  multiSelect = false,
-  searchable = false,
-  searchPlaceholder = 'Search…',
-  searchRowMatch,
-  searchColumns,
-  toolbarFieldSize = 'small',
-  loading = false,
-  emptyMessage = 'No data.',
-  pageSizeOptions = [10, 25, 50],
-  density = 'standard',
-  toolbar,
-  height = 400,
-  getRowClassName,
-  toolbarLayout,
-  initialFilterValues,
-  onFilterValueChange,
+  toolbarConfig,
+  selection,
+  presentation,
 }: AppDataGridProps<T>) {
+  const tc = toolbarConfig
+  const filterBundle = tc?.filters
+  const onFilterValueChange = filterBundle?.onValueChange
+  const initialFilterValues = filterBundle?.initialValues
+
+  const searchCfg = tc?.search
+  const searchable = searchCfg?.enabled ?? false
+  const searchPlaceholder = searchCfg?.placeholder ?? 'Search…'
+  const searchRowMatch = searchCfg?.rowMatch
+  const searchColumns = searchCfg?.columns
+
+  const toolbarFieldSize = tc?.fieldSize ?? 'small'
+  const toolbar = tc?.actions
+  const toolbarLayout = tc?.layout
+
+  const pres = presentation
+  const loading = pres?.loading ?? false
+  const emptyMessage = pres?.emptyMessage ?? 'No data.'
+  const pageSizeOptions = pres?.pageSizeOptions ?? [10, 25, 50]
+  const density = pres?.density ?? 'standard'
+  const height = pres?.height ?? 400
+  const getRowClassName = pres?.getRowClassName
+
+  const multiSelect = selection?.enabled ?? false
+
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState<Record<string, unknown>>(
     () => ({ ...initialFilterValues }),
@@ -279,7 +312,10 @@ export default function AppDataGrid<T>({
     [onFilterValueChange],
   )
 
-  const resolvedFilters = useMemo<AppDataGridFilter<T>[]>(() => filters ?? [], [filters])
+  const resolvedFilters = useMemo<AppDataGridFilter<T>[]>(
+    () => filterBundle?.definitions ?? [],
+    [filterBundle?.definitions],
+  )
 
   const getFilterValue = useCallback(
     (f: AppDataGridFilter<T>): unknown =>

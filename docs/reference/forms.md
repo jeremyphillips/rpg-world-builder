@@ -122,11 +122,13 @@ Multi-select built on MUI **`Autocomplete`** (**`multiple`**, **`disableCloseOnS
 
 **Path:** `src/ui/patterns/AppDataGrid/AppDataGrid.tsx`
 
-Typed **`filters`** render with **`AppSelect`** (**`select`**, **`boolean`**) and **`AppMultiSelectCheckbox`** (**`multiSelect`**), not **`TextField`** + **`select`**. Search uses **`AppTextField`**.
+Toolbar behavior is configured with optional **`toolbarConfig`**. Filter definitions live under **`toolbarConfig.filters.definitions`**; they render with **`AppSelect`** (**`select`**, **`boolean`**) and **`AppMultiSelectCheckbox`** (**`multiSelect`** filter type), not **`TextField`** + **`select`**. Search uses **`AppTextField`** via **`toolbarConfig.search`**.
 
-- **`toolbarFieldSize`:** **`'small'` | `'medium'`** (default **`small`**) — single prop controlling MUI **`size`** for the search field and all filter controls.
+- **`toolbarConfig.fieldSize`:** **`'small'` | `'medium'`** (default **`small`**) — MUI **`size`** for the search field and all filter controls.
 - Selects with an **`value: ''`** “All”-style row pass **`placeholder`** from that option’s label; **`AppSelect`** dedupes the empty menu row (see above).
 - Toolbar controls use **`fullWidth={false}`** and shared **`sx`** so filters stay inline in a horizontal **`Stack`** (not full-width).
+
+Loading, empty message, density, height, and row class names use optional **`presentation`**. Row checkbox selection uses optional **`selection.enabled`**.
 
 ### Filter visibility (viewer)
 
@@ -134,15 +136,15 @@ Typed **`filters`** render with **`AppSelect`** (**`select`**, **`boolean`**) an
 
 - **`platformAdminOnly`:** if **`true`**, the filter is shown only when **`viewer.isPlatformAdmin`** is true. Omit **`visibility`** (or leave flags unset) so everyone sees the filter.
 
-**Helper:** **`filterAppDataGridFiltersForViewer(filters, viewer)`** (`src/ui/patterns/AppDataGrid/filterAppDataGridFiltersForViewer.ts`) — pass a **`ViewerContext`** from **`toViewerContext(campaign?.viewer, characterIds)`** after composing filters, then pass the result to **`AppDataGrid`**. Row filtering uses only filters still in the array; hidden filters are not applied.
+**Helper:** **`filterAppDataGridFiltersForViewer(filters, viewer)`** (`src/ui/patterns/AppDataGrid/filterAppDataGridFiltersForViewer.ts`) — pass a **`ViewerContext`** from **`toViewerContext(campaign?.viewer, characterIds)`** after composing filters, then pass the filtered array as **`toolbarConfig.filters.definitions`** on **`AppDataGrid`**. Row filtering uses only filters still in the array; hidden filters are not applied.
 
 ### Toolbar layout (optional)
 
-**Types:** **`AppDataGridToolbarLayout`**, optional **`toolbarLayout`** on **`AppDataGrid`** (and **`ContentTypeListPage`**).
+**Types:** **`AppDataGridToolbarLayout`**, optional **`toolbarConfig.layout`** on **`AppDataGrid`** (and **`toolbarLayout`** on **`ContentTypeListPage`**, which maps into **`toolbarConfig`**).
 
-- **`rows`:** each entry is an array of **filter `id` strings** for one horizontal row. **`AppDataGrid`** indexes the composed **`filters`** array by id; ids missing after viewer filtering are skipped.
+- **`rows`:** each entry is an array of **filter `id` strings** for one horizontal row. **`AppDataGrid`** indexes the composed **`toolbarConfig.filters.definitions`** array by id; ids missing after viewer filtering are skipped.
 - **`utilities`:** non-filter controls (for example **`hideDisallowed`**) that read/write existing filter state only (same **`allowedInCampaign`** value as the Allowed dropdown).
-- When **`toolbarLayout`** is omitted, the toolbar stays a **single wrapping row** in **`filters` declaration order** (legacy behavior).
+- When **`toolbarConfig.layout`** is omitted, the toolbar stays a **single wrapping row** in filter **`definitions`** declaration order.
 
 **Helpers:** **`indexAppDataGridFiltersById(filters)`** (`src/ui/patterns/AppDataGrid/indexAppDataGridFiltersById.ts`) — builds a **`Map`** by id (warns in dev on duplicate ids).
 
@@ -154,7 +156,7 @@ Optional on each **`AppDataGridFilter`**:
 - **`badgePrefixFilterLabel`:** when **`true`**, badge text is **`${label}: ${value}`**; when omitted or **`false`** (default), badges show the value segment only (for example **`Wizard`** instead of **`Classes: Wizard`**).
 - **`formatActiveChipValue`:** override badge text. Return a **`string`** for one badge, or **`string[]`** for **`multiSelect`** (one badge per entry; order should align with the selected value ids for per-badge delete). For **`select`**, use this to customize wording (for example spell level as **`1st Level`**).
 
-When **`toolbarLayout`** is set, a **badge strip** is always reserved (**`minHeight`** 30px); when search or filters are active, it shows dismissible **`AppBadge`** items and a **Reset** control so the layout does not jump when the first badge appears. **`multiSelect`** filters emit **one badge per selected option**; deleting a badge removes only that value from the selection. Search continues to use **`Search: …`** for the search chip.
+When **`toolbarConfig.layout`** is set, a **badge strip** is always reserved (**`minHeight`** 30px); when search or filters are active, it shows dismissible **`AppBadge`** items and a **Reset** control so the layout does not jump when the first badge appears. **`multiSelect`** filters emit **one badge per selected option**; deleting a badge removes only that value from the selection. Search continues to use **`Search: …`** for the search chip.
 
 ### Column header helper (optional)
 
@@ -192,7 +194,7 @@ The shared **`sx`** also targets **`.MuiOutlinedInput-root .MuiSelect-select`** 
 
 - Global MUI theme (component defaults, palette) applies to all **`App*`** / MUI usage.
 - **`MuiTextField`** and **`MuiSelect`** default **`size: 'medium'`**; outlined **`MuiOutlinedInput`** applies **`minHeight: 56`** for **non-small**, non-multiline inputs so medium density aligns across text fields and selects.
-- Primitives such as **`AppSelect`** default **`size`** to **`medium`** unless a screen overrides it (for example **`AppDataGrid`** **`toolbarFieldSize`**).
+- Primitives such as **`AppSelect`** default **`size`** to **`medium`** unless a screen overrides it (for example **`AppDataGrid`** **`toolbarConfig.fieldSize`**).
 - Many form controls use **`size="small"`** where set explicitly for density; **`AppForm`** uses **`Stack`** spacing **`3`** by default.
 - Prefer **`sx`** with theme callbacks (**`(theme) => ({ … })`**) when you need palette-aware borders or spacing, consistent with existing form code.
 

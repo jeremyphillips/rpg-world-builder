@@ -16,6 +16,11 @@ export type {
   AppDataGridActiveChipFormatContext,
   AppDataGridToolbarLayout,
   AppDataGridToolbarUtility,
+  AppDataGridToolbarConfig,
+  AppDataGridToolbarSearchConfig,
+  AppDataGridToolbarFiltersConfig,
+  AppDataGridSelectionConfig,
+  AppDataGridPresentationConfig,
 } from './AppDataGrid/AppDataGrid'
 export { indexAppDataGridFiltersById } from './AppDataGrid/indexAppDataGridFiltersById'
 export {

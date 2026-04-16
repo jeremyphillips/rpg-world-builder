@@ -3,14 +3,13 @@ import { clampMinMaxToSteps, type NumericRange } from '@/features/content/shared
 import type { AppDataGridFilter, FilterOption } from './appDataGridFilter.types'
 
 export function getFilterDefault<T>(f: AppDataGridFilter<T>): unknown {
-  if (f.defaultValue !== undefined) return f.defaultValue
   switch (f.type) {
     case 'select':
-      return f.options[0]?.value ?? ''
+      return f.defaultValue ?? f.options[0]?.value ?? ''
     case 'multiSelect':
-      return []
+      return f.defaultValue ?? []
     case 'boolean':
-      return 'all'
+      return f.defaultValue ?? 'all'
     case 'range':
       return f.defaultValue
   }

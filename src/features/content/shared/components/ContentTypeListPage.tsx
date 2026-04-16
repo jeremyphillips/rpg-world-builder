@@ -167,19 +167,27 @@ const ContentTypeListPage = <T,>({
         columns={columns}
         getRowId={getRowId}
         getDetailLink={getDetailLink}
-        filters={filters}
-        searchable
-        searchPlaceholder={resolvedSearchPlaceholder}
-        searchRowMatch={searchRowMatch}
-        loading={loading}
-        emptyMessage={resolvedEmptyMessage}
-        toolbar={toolbarNode}
-        density={density}
-        height={height}
-        getRowClassName={getRowClassName}
-        toolbarLayout={toolbarLayout}
-        initialFilterValues={initialFilterValues}
-        onFilterValueChange={onFilterValueChange}
+        toolbarConfig={{
+          search: {
+            enabled: true,
+            placeholder: resolvedSearchPlaceholder,
+            rowMatch: searchRowMatch,
+          },
+          filters: {
+            definitions: filters,
+            initialValues: initialFilterValues,
+            onValueChange: onFilterValueChange,
+          },
+          layout: toolbarLayout,
+          actions: toolbarNode,
+        }}
+        presentation={{
+          loading,
+          emptyMessage: resolvedEmptyMessage,
+          density,
+          height,
+          getRowClassName,
+        }}
       />
     </Box>
   );

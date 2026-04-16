@@ -30,15 +30,6 @@ function getTraitsDisplay(traits?: { name: string }[]): string {
   return traits.map((t) => t.name).join(', ');
 }
 
-function getEquipmentDisplay(row: MonsterListRow): string {
-  const eq = row.mechanics?.equipment;
-  if (!eq) return '—';
-  const weapons = Object.keys(eq.weapons ?? {});
-  const armor = Object.keys(eq.armor ?? {});
-  const keys = [...weapons, ...armor];
-  return keys.length > 0 ? keys.join(', ') : '—';
-}
-
 function getMonsterTypeDisplay(row: MonsterListRow): string {
   const id = row.type;
   if (!id) return '—';
