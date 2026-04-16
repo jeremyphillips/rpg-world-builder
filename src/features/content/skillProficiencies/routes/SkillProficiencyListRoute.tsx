@@ -19,7 +19,7 @@ import {
   type ValidationBlockedState,
 } from '@/features/content/shared/hooks/useValidatedAllowedToggle';
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
-import { useViewerProficiencies } from '@/features/campaign/hooks';
+import { useViewerCharacterQuery } from '@/features/campaign/hooks';
 import {
   skillProficiencyRepo,
   validateSkillProficiencyChange,
@@ -42,8 +42,8 @@ export default function SkillProficiencyListRoute() {
   const canManage = useActiveCampaignCanManageContent();
   const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
-  const { skills: ownedIds } = useViewerProficiencies();
-  const hasViewer = ownedIds.size > 0;
+  const { context: viewerCtx, loading: viewerQueryLoading } = useViewerCharacterQuery();
+  const ownedIds = viewerCtx.proficiencies.skillIds;
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
@@ -100,10 +100,19 @@ export default function SkillProficiencyListRoute() {
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
         customColumns,
-        ownedIds: hasViewer ? ownedIds : undefined,
+        ownedIds,
+        viewerContext: controller.viewerContext,
         hasCampaignSources,
       }),
-    [canManage, characterNameById, handleToggleAllowed, customColumns, hasViewer, ownedIds, hasCampaignSources],
+    [
+      canManage,
+      characterNameById,
+      handleToggleAllowed,
+      customColumns,
+      ownedIds,
+      controller.viewerContext,
+      hasCampaignSources,
+    ],
   );
 
   const filters = useMemo(
@@ -112,20 +121,19 @@ export default function SkillProficiencyListRoute() {
         canManage,
         onToggleAllowedInCampaign: handleToggleAllowed,
         customFilters,
-        ownedIds: hasViewer ? ownedIds : undefined,
+        ownedIds,
         hasCampaignSources,
       }),
     [
       canManage,
       handleToggleAllowed,
       customFilters,
-      hasViewer,
       ownedIds,
       hasCampaignSources,
     ],
   );
 
-  if (controller.loading || authLoading) {
+  if (controller.loading || authLoading || viewerQueryLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress />

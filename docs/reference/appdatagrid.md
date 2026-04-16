@@ -18,7 +18,7 @@ Campaign routes that pass **`preferences.contentListPreferencesKey`** to **`Cont
 | Types (`AppDataGridColumn`, `AppDataGridFilter`, toolbar config, …) | `@/ui/patterns` (re-exported from `./AppDataGrid/types`) |
 | Filter helpers (`getFilterDefault`, `getActiveFilterBadgeSegments`, discrete range math, …) | `@/ui/patterns` or `@/ui/patterns/AppDataGrid/filters` |
 | Viewer visibility (`filterAppDataGridFiltersByVisibility`, …) | `@/ui/patterns` |
-| Campaign “owned” column/filter | `makeOwnedColumn`, `makeOwnedFilter` from `@/ui/patterns` |
+| Campaign owned membership (PC filter + name icon) | [`contentListTemplate`](../../src/features/content/shared/components/contentListTemplate.tsx) + [`ownedMembershipFilter`](../../src/features/content/shared/domain/ownedMembershipFilter.ts) (`AppDataGridVisibility.pcViewerOnly`) |
 | Discrete range toolbar control | `AppToolbarDiscreteRangeField` from `@/ui/patterns/AppDataGrid` (also re-exported from `@/ui/patterns` when listed in the patterns barrel) |
 
 Prefer **`@/ui/patterns`** for app code so imports stay stable if internal paths shift.
@@ -102,6 +102,6 @@ Use **`onSelectionChange`** without **`selectedRowIds`** for uncontrolled select
 - [`src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts`](../../src/ui/patterns/AppDataGrid/types/appDataGrid.types.ts) — props and `AppDataGridSelectionConfig`
 - [`src/features/content/shared/components/ContentTypeListPage.tsx`](../../src/features/content/shared/components/ContentTypeListPage.tsx) — campaign content list wrapper
 
-### Owned column / filter helpers
+### PC “owned” membership (campaign lists)
 
-[`makeOwnedColumn`](../../src/ui/patterns/AppDataGrid/helpers/ownedContent.tsx) and **`makeOwnedFilter`** live under **`ui/patterns/AppDataGrid/helpers`** for discoverability next to the grid, but they **compose campaign-content UI** (e.g. **`makeBooleanGlyphColumn`** from the content feature). Treat them as **campaign list utilities**, not generic `ui` primitives.
+Ownership for equipment/spells/skill lists is **not** an `AppDataGrid` column helper. Campaign routes pass **`ownedIds`** into **`buildCampaignContentColumns` / `buildCampaignContentFilters`**; the **Owned** filter uses **`visibility: { pcViewerOnly: true }`** so DMs do not see it, and the **Name** column appends an owned icon for PCs (see **`contentListTemplate.tsx`**).

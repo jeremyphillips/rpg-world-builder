@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { isAppDataGridVisibleToViewer } from '../viewer/visibilityForViewer';
 import type { AppDataGridFilter } from '../types';
 import { filterAppDataGridFiltersByVisibility } from '../viewer/filtersForViewer';
 
@@ -58,5 +59,53 @@ describe('filterAppDataGridFiltersByVisibility', () => {
       'a',
       'c',
     ]);
+  });
+});
+
+const pcOnlyFilter: AppDataGridFilter<{ id: string }> = {
+  id: 'owned',
+  label: 'Owned',
+  type: 'select',
+  defaultValue: 'all',
+  options: [
+    { value: 'all', label: 'All' },
+    { value: 'owned', label: 'Owned' },
+  ],
+  accessor: () => 'owned',
+  visibility: { pcViewerOnly: true },
+};
+
+describe('filter pcViewerOnly visibility', () => {
+  const pcViewer = { campaignRole: 'pc' as const, isOwner: false, isPlatformAdmin: false, characterIds: ['c1'] };
+  const dmViewer = { campaignRole: 'dm' as const, isOwner: false, isPlatformAdmin: false, characterIds: [] };
+
+  it('isAppDataGridVisibleToViewer: hides pcViewerOnly for DMs', () => {
+    expect(isAppDataGridVisibleToViewer({ pcViewerOnly: true }, dmViewer)).toBe(false);
+  });
+
+  it('isAppDataGridVisibleToViewer: shows pcViewerOnly for non-managers', () => {
+    expect(isAppDataGridVisibleToViewer({ pcViewerOnly: true }, pcViewer)).toBe(true);
+  });
+
+  it('isAppDataGridVisibleToViewer: hides pcViewerOnly when viewer undefined', () => {
+    expect(isAppDataGridVisibleToViewer({ pcViewerOnly: true }, undefined)).toBe(false);
+  });
+
+  it('filterAppDataGridFiltersByVisibility keeps pc-only filter for PCs', () => {
+    expect(
+      filterAppDataGridFiltersByVisibility(
+        [...filtersNoVisibility, pcOnlyFilter],
+        pcViewer,
+      ).map((f) => f.id),
+    ).toContain('owned');
+  });
+
+  it('filterAppDataGridFiltersByVisibility drops pc-only filter for DMs', () => {
+    expect(
+      filterAppDataGridFiltersByVisibility(
+        [...filtersNoVisibility, pcOnlyFilter],
+        dmViewer,
+      ).map((f) => f.id),
+    ).not.toContain('owned');
   });
 });

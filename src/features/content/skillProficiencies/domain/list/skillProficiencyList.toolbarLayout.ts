@@ -5,7 +5,7 @@ import type { AppDataGridToolbarLayout } from '@/ui/patterns';
  * Missing ids (e.g. `owned` when the viewer has no proficiencies) are skipped at render time.
  */
 export const SKILL_PROFICIENCY_LIST_TOOLBAR_LAYOUT: AppDataGridToolbarLayout = {
-  primary: ['ability', 'suggestedClasses', 'tags', 'owned'],
-  secondary: ['source', 'visibility', 'allowedInCampaign'],
+  primary: ['ability', 'suggestedClasses', 'tags'],
+  secondary: ['owned', 'source', 'visibility', 'allowedInCampaign'],
   utilities: ['hideDisallowed'],
 };

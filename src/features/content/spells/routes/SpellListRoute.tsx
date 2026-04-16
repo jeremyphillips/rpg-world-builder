@@ -7,7 +7,7 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
-import { useViewerSpells } from '@/features/campaign/hooks';
+import { useViewerCharacterQuery } from '@/features/campaign/hooks';
 import {
   ContentTypeListPage,
   buildCampaignContentColumns,
@@ -43,8 +43,8 @@ export default function SpellListRoute() {
   const canManage = useActiveCampaignCanManageContent();
   const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
-  const ownedIds = useViewerSpells();
-  const hasViewer = ownedIds.size > 0;
+  const { context: viewerCtx, loading: viewerQueryLoading } = useViewerCharacterQuery();
+  const ownedIds = viewerCtx.spells.knownSpellIds;
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
@@ -100,7 +100,8 @@ export default function SpellListRoute() {
         canManage,
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
-        ownedIds: hasViewer ? ownedIds : undefined,
+        ownedIds,
+        viewerContext: controller.viewerContext,
         customColumns,
         hasCampaignSources,
       }),
@@ -108,8 +109,8 @@ export default function SpellListRoute() {
       canManage,
       characterNameById,
       handleToggleAllowed,
-      hasViewer,
       ownedIds,
+      controller.viewerContext,
       customColumns,
       hasCampaignSources,
     ],
@@ -120,21 +121,20 @@ export default function SpellListRoute() {
       buildCampaignContentFilters<SpellListRow>({
         canManage,
         onToggleAllowedInCampaign: handleToggleAllowed,
-        ownedIds: hasViewer ? ownedIds : undefined,
+        ownedIds,
         customFilters,
         hasCampaignSources,
       }),
     [
       canManage,
       handleToggleAllowed,
-      hasViewer,
       ownedIds,
       customFilters,
       hasCampaignSources,
     ],
   );
 
-  if (controller.loading || authLoading) {
+  if (controller.loading || authLoading || viewerQueryLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress />

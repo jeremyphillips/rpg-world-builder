@@ -9,10 +9,10 @@ import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import LockIcon from '@mui/icons-material/Lock';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 import type { AppDataGridColumn, AppDataGridFilter } from '@/ui/patterns';
-import { makeOwnedColumn, makeOwnedFilter } from '@/ui/patterns';
 import { AppTooltip } from '@/ui/primitives';
 import type { Visibility } from '@/shared/types/visibility';
 import type { GridRenderCellParams, GridRowClassNameParams } from '@mui/x-data-grid';
@@ -21,6 +21,8 @@ import {
   SOURCE_FILTER_OPTIONS,
   getSourceColumnDisplay,
 } from '@/features/content/shared/domain/sourceLabels';
+import { createOwnedMembershipFilter } from '@/features/content/shared/domain/ownedMembershipFilter';
+import { showPcOwnedNameIcon } from '@/features/content/shared/domain/ownedMembership';
 
 /** Default column header helper for the Allowed-in-campaign column (all campaign content lists). */
 export const CAMPAIGN_ALLOWED_IN_CAMPAIGN_COLUMN_HEADER_HELPER_TEXT =
@@ -156,8 +158,11 @@ const VISIBILITY_FILTER_OPTIONS = [
 export function makePreColumns<T extends CampaignContentListRow>(params: {
   canManage?: boolean;
   characterNameById?: Record<string, string>;
+  /** When set with a PC viewer, shows an owned icon in the Name column (no owned column). */
+  ownedIds?: ReadonlySet<string>;
+  viewerContext?: ViewerContext;
 }): AppDataGridColumn<T>[] {
-  const { canManage = false, characterNameById } = params;
+  const { canManage = false, characterNameById, ownedIds, viewerContext } = params;
   const nameColumn: AppDataGridColumn<T> = {
     field: 'name',
     headerName: 'Name',
@@ -181,6 +186,28 @@ export function makePreColumns<T extends CampaignContentListRow>(params: {
           </AppTooltip>
         </Box>
       ) : null;
+      const showOwnedIcon = showPcOwnedNameIcon({
+        viewerContext,
+        ownedIds,
+        rowId: row.id,
+      });
+      const ownedIconWithTooltip = showOwnedIcon ? (
+        <Box component="span" sx={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
+          <AppTooltip title="You own this">
+            <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
+              <Inventory2OutlinedIcon
+                fontSize="small"
+                sx={{
+                  color: 'success.main',
+                  opacity: 0.9,
+                  ml: 0.75,
+                  verticalAlign: 'middle',
+                }}
+              />
+            </Box>
+          </AppTooltip>
+        </Box>
+      ) : null;
       return (
         <Box
           sx={{
@@ -195,6 +222,7 @@ export function makePreColumns<T extends CampaignContentListRow>(params: {
             {name}
           </Typography>
           {iconWithTooltip}
+          {ownedIconWithTooltip}
         </Box>
       );
     },
@@ -215,7 +243,6 @@ export function makePreColumns<T extends CampaignContentListRow>(params: {
 }
 
 export function makePostColumns<T extends CampaignContentListRow>(params: {
-  ownedIds?: ReadonlySet<string>;
   canManage?: boolean;
   onToggleAllowedInCampaign?: (id: string, checked: boolean) => void;
   /** Backend may return 'allowed'; use this to map. Default: 'allowedInCampaign' */
@@ -226,7 +253,6 @@ export function makePostColumns<T extends CampaignContentListRow>(params: {
   allowedColumnHeaderHelperText?: string;
 }): AppDataGridColumn<T>[] {
   const {
-    ownedIds,
     canManage = false,
     onToggleAllowedInCampaign,
     allowedField = 'allowedInCampaign' as keyof T,
@@ -238,10 +264,6 @@ export function makePostColumns<T extends CampaignContentListRow>(params: {
     allowedColumnHeaderHelperText ?? CAMPAIGN_ALLOWED_IN_CAMPAIGN_COLUMN_HEADER_HELPER_TEXT;
 
   const cols: AppDataGridColumn<T>[] = [];
-
-  if (ownedIds != null && ownedIds.size > 0) {
-    cols.push(makeOwnedColumn<T>({ ownedIds }));
-  }
 
   if (canManage && hasCampaignSources) {
     cols.push({
@@ -281,6 +303,7 @@ export function makePostColumns<T extends CampaignContentListRow>(params: {
 export function buildCampaignContentColumns<T extends CampaignContentListRow>(params: {
   customColumns?: AppDataGridColumn<T>[];
   ownedIds?: ReadonlySet<string>;
+  viewerContext?: ViewerContext;
   canManage?: boolean;
   characterNameById?: Record<string, string>;
   onToggleAllowedInCampaign?: (id: string, checked: boolean) => void;
@@ -294,6 +317,8 @@ export function buildCampaignContentColumns<T extends CampaignContentListRow>(pa
   const pre = makePreColumns<T>({
     canManage: params.canManage,
     characterNameById: params.characterNameById,
+    ownedIds: params.ownedIds,
+    viewerContext: params.viewerContext,
   });
   const post = makePostColumns<T>(params);
   return [...pre, ...customColumns, ...post];
@@ -331,8 +356,8 @@ export function makePostFilters<T extends CampaignContentListRow>(params: {
 
   const filters: AppDataGridFilter<T>[] = [];
 
-  if (ownedIds != null && ownedIds.size > 0) {
-    filters.push(makeOwnedFilter<T>({ ownedIds }));
+  if (ownedIds !== undefined) {
+    filters.push(createOwnedMembershipFilter<T>(ownedIds));
   }
 
   if (enablePrivateToMeFilter && !canManage && viewerContext) {

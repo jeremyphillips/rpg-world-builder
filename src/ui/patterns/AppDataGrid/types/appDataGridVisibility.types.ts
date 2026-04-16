@@ -5,6 +5,11 @@
 export type AppDataGridVisibility = {
   /** If true, show this item only when `viewer.isPlatformAdmin` is true. */
   platformAdminOnly?: boolean
+  /**
+   * If true, show this item only for viewers who are not campaign content managers
+   * (`!canManageContent(viewer)` — typically PC / player-facing UI).
+   */
+  pcViewerOnly?: boolean
 }
 
 /** @deprecated Use `AppDataGridVisibility` instead. */

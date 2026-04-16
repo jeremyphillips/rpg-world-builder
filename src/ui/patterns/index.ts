@@ -12,8 +12,6 @@ export {
   filterAppDataGridColumnsByVisibility,
   filterAppDataGridColumnsForViewer,
   isAppDataGridVisibleToViewer,
-  makeOwnedColumn,
-  makeOwnedFilter,
   indexFiltersById,
   getActiveFilterBadgeSegments,
   getClampedRangeFilterValue,

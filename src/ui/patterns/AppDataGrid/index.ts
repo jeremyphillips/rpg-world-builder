@@ -1,7 +1,7 @@
 /**
  * AppDataGrid package — see `docs/reference/appdatagrid.md` for imports, badge naming, and scale guidance.
  *
- * Barrel: component, types, filters, viewer helpers, owned-content column/filter helpers, discrete range field.
+ * Barrel: component, types, filters, viewer helpers, discrete range field.
  */
 export { default as AppDataGrid } from './core/AppDataGrid'
 export { default } from './core/AppDataGrid'
@@ -10,4 +10,3 @@ export type { AppToolbarDiscreteRangeFieldProps } from './toolbar/AppToolbarDisc
 export * from './types'
 export * from './filters'
 export * from './viewer'
-export { makeOwnedColumn, makeOwnedFilter } from './helpers/ownedContent'
