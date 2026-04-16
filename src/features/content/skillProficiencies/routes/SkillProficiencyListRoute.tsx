@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds';
 import {
   ContentTypeListPage,
   buildCampaignContentColumns,
@@ -43,7 +44,7 @@ export default function SkillProficiencyListRoute() {
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
-  const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
+  const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
   const { skills: ownedIds } = useViewerProficiencies();
   const hasViewer = ownedIds.size > 0;

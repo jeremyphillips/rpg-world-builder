@@ -12,6 +12,7 @@
  */
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useActiveCampaign } from './ActiveCampaignProvider';
+import { useActiveCampaignViewerCharacterIds } from './useActiveCampaignViewerCharacterIds';
 import {
   resolveCampaignRulesContext,
   type CampaignRulesContext,
@@ -38,6 +39,7 @@ const CampaignRulesCtx = createContext<CampaignRulesContext | undefined>(undefin
 
 export const CampaignRulesProvider = ({ children }: { children: ReactNode }) => {
   const { campaign, campaignId } = useActiveCampaign();
+  const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
   const [dbRuleset, setDbRuleset] = useState<Ruleset | null>(null);
   const [campaignContent, setCampaignContent] = useState<Partial<CampaignCatalog>>({});
@@ -70,7 +72,6 @@ export const CampaignRulesProvider = ({ children }: { children: ReactNode }) => 
   }, [campaignId]);
 
   const value = useMemo<CampaignRulesContext>(() => {
-    const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
     const ctx = toViewerContext(campaign?.viewer, viewerCharacterIds);
     const canManage = canManageContent(ctx);
 
@@ -85,7 +86,7 @@ export const CampaignRulesProvider = ({ children }: { children: ReactNode }) => 
       catalog: buildCampaignCatalog(systemCatalog, campaignContent, ruleset),
       canManage,
     };
-  }, [campaign, dbRuleset, campaignContent]);
+  }, [campaign, dbRuleset, campaignContent, viewerCharacterIds]);
 
   return (
     <CampaignRulesCtx.Provider value={value}>

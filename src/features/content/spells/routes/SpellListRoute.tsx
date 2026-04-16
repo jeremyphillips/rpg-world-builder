@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useViewerSpells } from '@/features/campaign/hooks';
 import {
@@ -44,7 +45,7 @@ export default function SpellListRoute() {
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
-  const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
+  const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
   const ownedIds = useViewerSpells();
   const hasViewer = ownedIds.size > 0;

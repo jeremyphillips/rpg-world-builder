@@ -13,13 +13,14 @@ import { CharacterView } from '@/features/character/components/views'
 import { AppAlert } from '@/ui/primitives';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
+import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds'
 
 export default function CharacterRoute() {
   const { campaign } = useActiveCampaign()
+  const viewerCharacterIds = useActiveCampaignViewerCharacterIds()
   const { id } = useParams<{ id: string }>()
   const location = useLocation()
 
-  const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
   const ctx = toViewerContext(campaign?.viewer, viewerCharacterIds);
   const canManage = canManageContent(ctx);
 

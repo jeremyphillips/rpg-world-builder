@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds';
 import { useViewerEquipment } from '@/features/campaign/hooks';
 import {
   ContentTypeListPage,
@@ -41,7 +42,7 @@ export default function GearListRoute() {
 
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
-  const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
+  const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
   const { gear: ownedIds } = useViewerEquipment();
   const hasViewer = ownedIds.size > 0;
