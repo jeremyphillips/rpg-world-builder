@@ -201,6 +201,22 @@ function applyPreferencesPatch(
   if (hideSkillProficiencies !== undefined) {
     $set['preferences.ui.contentLists.skillProficiencies.hideDisallowed'] = hideSkillProficiencies
   }
+  const hideArmor = preferences.ui?.contentLists?.armor?.hideDisallowed
+  if (hideArmor !== undefined) {
+    $set['preferences.ui.contentLists.armor.hideDisallowed'] = hideArmor
+  }
+  const hideGear = preferences.ui?.contentLists?.gear?.hideDisallowed
+  if (hideGear !== undefined) {
+    $set['preferences.ui.contentLists.gear.hideDisallowed'] = hideGear
+  }
+  const hideWeapons = preferences.ui?.contentLists?.weapons?.hideDisallowed
+  if (hideWeapons !== undefined) {
+    $set['preferences.ui.contentLists.weapons.hideDisallowed'] = hideWeapons
+  }
+  const hideMagicItems = preferences.ui?.contentLists?.magicItems?.hideDisallowed
+  if (hideMagicItems !== undefined) {
+    $set['preferences.ui.contentLists.magicItems.hideDisallowed'] = hideMagicItems
+  }
 }
 
 export async function updateProfile(

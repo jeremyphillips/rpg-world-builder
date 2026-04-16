@@ -20,6 +20,10 @@ export type AuthUserPreferences = {
       spells?: ContentListUiPreferences
       monsters?: ContentListUiPreferences
       skillProficiencies?: ContentListUiPreferences
+      armor?: ContentListUiPreferences
+      gear?: ContentListUiPreferences
+      weapons?: ContentListUiPreferences
+      magicItems?: ContentListUiPreferences
     }
   }
 }

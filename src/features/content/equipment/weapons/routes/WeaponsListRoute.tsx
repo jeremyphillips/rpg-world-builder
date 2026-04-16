@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 
+import { apiFetch } from '@/app/api';
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useViewerEquipment } from '@/features/campaign/hooks';
 import {
@@ -20,6 +22,7 @@ import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hook
 import { weaponRepo } from '../domain/repo/weaponRepo';
 import { validateWeaponChange } from '../domain/validation/validateWeaponChange';
 import {
+  WEAPON_LIST_TOOLBAR_LAYOUT,
   buildWeaponCustomColumns,
   buildWeaponCustomFilters,
   type WeaponListRow,
@@ -27,10 +30,15 @@ import {
 import type { ContentSummary } from '@/features/content/shared/domain/types/content.types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
+import {
+  APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID,
+  filterAppDataGridFiltersForViewer,
+} from '@/ui/patterns';
 import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
 export default function WeaponsListRoute() {
+  const { user, loading: authLoading, refreshUser } = useAuth();
   const { campaign, campaignId } = useActiveCampaign();
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/equipment/weapons`;
@@ -38,6 +46,10 @@ export default function WeaponsListRoute() {
   const ctx = toViewerContext(campaign?.viewer);
   const canManage = canManageContent(ctx);
   const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
+  const viewerContext = useMemo(
+    () => toViewerContext(campaign?.viewer, viewerCharacterIds),
+    [campaign?.viewer, viewerCharacterIds],
+  );
 
   const { weapons: ownedIds } = useViewerEquipment();
   const hasViewer = ownedIds.size > 0;
@@ -112,17 +124,62 @@ export default function WeaponsListRoute() {
 
   const filters = useMemo(
     () =>
-      buildCampaignContentFilters<WeaponListRow>({
-        canManage,
-        onToggleAllowedInCampaign: handleToggleAllowed,
-        ownedIds: hasViewer ? ownedIds : undefined,
-        customFilters,
-        hasCampaignSources,
-      }),
-    [canManage, handleToggleAllowed, hasViewer, ownedIds, customFilters, hasCampaignSources],
+      filterAppDataGridFiltersForViewer(
+        buildCampaignContentFilters<WeaponListRow>({
+          canManage,
+          onToggleAllowedInCampaign: handleToggleAllowed,
+          ownedIds: hasViewer ? ownedIds : undefined,
+          customFilters,
+          hasCampaignSources,
+        }),
+        viewerContext,
+      ),
+    [
+      canManage,
+      handleToggleAllowed,
+      hasViewer,
+      ownedIds,
+      customFilters,
+      hasCampaignSources,
+      viewerContext,
+    ],
   );
 
-  if (controller.loading) {
+  const initialFilterValues = useMemo(() => {
+    if (!canManage) return undefined;
+    const hide = user?.preferences?.ui?.contentLists?.weapons?.hideDisallowed;
+    return {
+      allowedInCampaign: hide ? 'true' : 'all',
+    };
+  }, [canManage, user?.preferences?.ui?.contentLists?.weapons?.hideDisallowed]);
+
+  const handleFilterValueChange = useCallback(
+    async (filterId: string, value: unknown) => {
+      if (filterId !== APP_DATA_GRID_ALLOWED_IN_CAMPAIGN_FILTER_ID) return;
+      const allowed = String(value);
+      const hideDisallowed = allowed === 'true';
+      try {
+        await apiFetch('/api/auth/me', {
+          method: 'PATCH',
+          body: {
+            preferences: {
+              ui: {
+                contentLists: {
+                  weapons: { hideDisallowed },
+                },
+              },
+            },
+          },
+        });
+        await refreshUser();
+      } catch {
+        // Runtime filter still applies; preference may not persist.
+      }
+    },
+    [refreshUser],
+  );
+
+  if (controller.loading || authLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress />
@@ -176,6 +233,9 @@ export default function WeaponsListRoute() {
         emptyMessage="No weapons found."
         density="compact"
         height={560}
+        toolbarLayout={WEAPON_LIST_TOOLBAR_LAYOUT}
+        initialFilterValues={initialFilterValues}
+        onFilterValueChange={handleFilterValueChange}
       />
     </Stack>
   );
