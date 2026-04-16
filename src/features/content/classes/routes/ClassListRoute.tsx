@@ -24,7 +24,6 @@ import {
   validateClassChange,
   buildClassCustomColumns,
   buildClassListFilters,
-  CLASS_LIST_TOOLBAR_LAYOUT,
   type ClassListRow,
   type ClassSummary,
 } from '@/features/content/classes/domain';
@@ -138,7 +137,6 @@ export default function ClassListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={CLASS_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="classes"
       topBanner={
         validationBlocked ? (

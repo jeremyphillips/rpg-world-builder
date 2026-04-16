@@ -22,12 +22,7 @@ import {
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import { weaponRepo } from '../domain/repo/weaponRepo';
 import { validateWeaponChange } from '../domain/validation/validateWeaponChange';
-import {
-  WEAPON_LIST_TOOLBAR_LAYOUT,
-  buildWeaponCustomColumns,
-  buildWeaponCustomFilters,
-  type WeaponListRow,
-} from '../domain/list';
+import { buildWeaponCustomColumns, buildWeaponCustomFilters, type WeaponListRow } from '../domain/list';
 import type { ContentSummary } from '@/features/content/shared/domain/types/content.types';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
@@ -161,7 +156,6 @@ export default function WeaponsListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={WEAPON_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="weapons"
       topBanner={
         validationBlocked ? (

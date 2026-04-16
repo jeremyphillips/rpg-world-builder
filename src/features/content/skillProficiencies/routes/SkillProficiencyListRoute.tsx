@@ -25,7 +25,6 @@ import {
   validateSkillProficiencyChange,
   buildSkillProficiencyCustomColumns,
   buildSkillProficiencyCustomFilters,
-  SKILL_PROFICIENCY_LIST_TOOLBAR_LAYOUT,
   type SkillProficiencyListRow,
 } from '@/features/content/skillProficiencies/domain';
 import type { SkillProficiencySummary } from '@/features/content/skillProficiencies/domain/types';
@@ -158,7 +157,6 @@ export default function SkillProficiencyListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={SKILL_PROFICIENCY_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="skillProficiencies"
       topBanner={
         validationBlocked ? (

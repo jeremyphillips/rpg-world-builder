@@ -24,7 +24,6 @@ import {
   validateLocationChange,
   buildLocationCustomColumns,
   buildLocationListFilters,
-  LOCATION_LIST_TOOLBAR_LAYOUT,
   type LocationListRow,
   type LocationSummary,
 } from '@/features/content/locations/domain';
@@ -141,7 +140,6 @@ export default function LocationListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={LOCATION_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="locations"
       topBanner={
         validationBlocked ? (

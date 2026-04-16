@@ -26,7 +26,6 @@ import {
   validateSpellChange,
   buildSpellCustomColumns,
   buildSpellCustomFilters,
-  SPELL_LIST_TOOLBAR_LAYOUT,
   type SpellListRow,
 } from '@/features/content/spells/domain';
 import type { ContentSummary } from '@/features/content/shared/domain/types';
@@ -165,7 +164,6 @@ export default function SpellListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={SPELL_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="spells"
       topBanner={
         validationBlocked ? (

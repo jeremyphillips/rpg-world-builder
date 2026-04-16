@@ -25,7 +25,6 @@ import {
   validateRaceChange,
   buildRaceCustomColumns,
   buildRaceCustomFilters,
-  RACE_LIST_TOOLBAR_LAYOUT,
   type RaceListRow,
 } from '@/features/content/races/domain';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -135,7 +134,6 @@ export default function RaceListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={RACE_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="races"
       topBanner={
         validationBlocked ? (

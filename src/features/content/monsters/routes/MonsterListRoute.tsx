@@ -26,7 +26,6 @@ import {
   buildMonsterCustomColumns,
   buildMonsterCustomFilters,
   deriveSortedChallengeRatingSteps,
-  MONSTER_LIST_TOOLBAR_LAYOUT,
   type MonsterListRow,
 } from '@/features/content/monsters/domain';
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
@@ -145,7 +144,6 @@ export default function MonsterListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={MONSTER_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="monsters"
       topBanner={
         validationBlocked ? (

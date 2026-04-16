@@ -22,12 +22,7 @@ import {
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import { armorRepo } from '../domain/repo/armorRepo';
 import { validateArmorChange } from '../domain/validation/validateArmorChange';
-import {
-  ARMOR_LIST_TOOLBAR_LAYOUT,
-  buildArmorCustomColumns,
-  buildArmorCustomFilters,
-  type ArmorListRow,
-} from '../domain/list';
+import { buildArmorCustomColumns, buildArmorCustomFilters, type ArmorListRow } from '../domain/list';
 import type { ContentSummary } from '@/features/content/shared/domain/types/content.types';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
@@ -161,7 +156,6 @@ export default function ArmorListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={ARMOR_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="armor"
       topBanner={
         validationBlocked ? (

@@ -23,7 +23,6 @@ import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hook
 import { magicItemRepo } from '../domain/repo/magicItemRepo';
 import { validateMagicItemChange } from '../domain/validation/validateMagicItemChange';
 import {
-  MAGIC_ITEM_LIST_TOOLBAR_LAYOUT,
   buildMagicItemCustomColumns,
   buildMagicItemCustomFilters,
   type MagicItemListRow,
@@ -161,7 +160,6 @@ export default function MagicItemsListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={MAGIC_ITEM_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="magicItems"
       topBanner={
         validationBlocked ? (

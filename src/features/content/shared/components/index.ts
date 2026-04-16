@@ -3,6 +3,10 @@ export {
   type ContentListItem,
   type ContentViewerContext,
 } from './ContentTypeListPage';
+export {
+  CAMPAIGN_CONTENT_LIST_TOOLBAR_LAYOUT_BY_PREFS_KEY,
+  getCampaignContentListToolbarLayout,
+} from '../toolbar/campaignContentListToolbarLayouts';
 export { default as ContentToolbarDiscreteRangeField } from './ContentToolbarDiscreteRangeField';
 export type { ContentToolbarDiscreteRangeFieldProps } from './ContentToolbarDiscreteRangeField';
 export {

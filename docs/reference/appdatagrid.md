@@ -4,6 +4,10 @@ This document describes the **public surface** of [`src/ui/patterns/AppDataGrid`
 
 For toolbar control details and `ContentTypeListPage`, see [forms.md](./forms.md).
 
+### Campaign content lists (toolbar layout registry)
+
+Campaign routes that pass **`contentListPreferencesKey`** to **`ContentTypeListPage`** no longer pass **`toolbarLayout`** manually. Layouts are resolved from **`CAMPAIGN_CONTENT_LIST_TOOLBAR_LAYOUT_BY_PREFS_KEY`** in [`src/features/content/shared/toolbar/campaignContentListToolbarLayouts.ts`](../../src/features/content/shared/toolbar/campaignContentListToolbarLayouts.ts), which maps each auth prefs key to the domain-defined `*LIST_TOOLBAR_LAYOUT` constant. Override with an explicit **`toolbarLayout`** prop when a screen must diverge.
+
 ---
 
 ## Imports

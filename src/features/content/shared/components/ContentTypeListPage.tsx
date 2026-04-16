@@ -5,6 +5,10 @@
  * defaults. Columns and filters are passed as props; the caller composes
  * them via buildCampaignContentColumns / buildCampaignContentFilters or
  * custom definitions.
+ *
+ * **Search:** toolbar search uses {@link createContentSearchMatcher} with {@link DEFAULT_CONTENT_SEARCH_NAME_ONLY}
+ * unless `contentSearch` overrides it — same normalization path any screen should use for “content list” search UX.
+ * Direct `AppDataGrid` usage should pass `search.rowMatch` explicitly when diverging from this behavior.
  */
 import { useEffect, useMemo, type ReactNode } from 'react';
 import Box from '@mui/material/Box';
@@ -30,6 +34,7 @@ import { useAuth } from '@/app/providers/AuthProvider';
 import { AppAlert } from '@/ui/primitives';
 import type { ContentListPreferencesKey } from '@/shared';
 import { useContentListPreferences } from '@/features/content/shared/hooks/useContentListPreferences';
+import { CAMPAIGN_CONTENT_LIST_TOOLBAR_LAYOUT_BY_PREFS_KEY } from '@/features/content/shared/toolbar/campaignContentListToolbarLayouts';
 import { warnToolbarLayoutFilterIdsInDev } from '@/features/content/shared/toolbar/warnToolbarLayoutFilterIds';
 import {
   createContentSearchMatcher,
@@ -86,6 +91,8 @@ export interface ContentTypeListPageProps<T> {
   getRowClassName?: (params: GridRowClassNameParams) => string;
   /**
    * When set, {@link AppDataGrid} renders filters in row order by id (not array order) and shows an active-filter badge row.
+   * When {@link contentListPreferencesKey} is set and this is omitted, the layout is taken from
+   * {@link CAMPAIGN_CONTENT_LIST_TOOLBAR_LAYOUT_BY_PREFS_KEY} so filter ids stay aligned with prefs.
    */
   toolbarLayout?: AppDataGridToolbarLayout;
   /** Initial session filter state (passed through to `AppDataGrid`). */
@@ -162,9 +169,15 @@ const ContentTypeListPage = <T,>({
     [filters, viewerContext],
   );
 
+  const resolvedToolbarLayout =
+    toolbarLayout ??
+    (contentListPreferencesKey
+      ? CAMPAIGN_CONTENT_LIST_TOOLBAR_LAYOUT_BY_PREFS_KEY[contentListPreferencesKey]
+      : undefined);
+
   useEffect(() => {
-    warnToolbarLayoutFilterIdsInDev(toolbarLayout, resolvedFilters);
-  }, [toolbarLayout, resolvedFilters]);
+    warnToolbarLayoutFilterIdsInDev(resolvedToolbarLayout, resolvedFilters);
+  }, [resolvedToolbarLayout, resolvedFilters]);
 
   const mergedInitialFilterValues = initialFilterValues ?? prefsFromAuth.initialFilterValues;
   const mergedOnFilterValueChange = onFilterValueChange ?? prefsFromAuth.onFilterValueChange;
@@ -222,7 +235,7 @@ const ContentTypeListPage = <T,>({
             initialValues: mergedInitialFilterValues,
             onValueChange: mergedOnFilterValueChange,
           },
-          layout: toolbarLayout,
+          layout: resolvedToolbarLayout,
           actions: toolbarNode,
         }}
         presentation={{

@@ -22,12 +22,7 @@ import {
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import { gearRepo } from '../domain/repo/gearRepo';
 import { validateGearChange } from '../domain/validation/validateGearChange';
-import {
-  GEAR_LIST_TOOLBAR_LAYOUT,
-  buildGearCustomColumns,
-  buildGearCustomFilters,
-  type GearListRow,
-} from '../domain/list';
+import { buildGearCustomColumns, buildGearCustomFilters, type GearListRow } from '../domain/list';
 import type { ContentSummary } from '@/features/content/shared/domain/types/content.types';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
@@ -161,7 +156,6 @@ export default function GearListRoute() {
       density="compact"
       height={560}
       viewerContext={controller.viewerContext}
-      toolbarLayout={GEAR_LIST_TOOLBAR_LAYOUT}
       contentListPreferencesKey="gear"
       topBanner={
         validationBlocked ? (
