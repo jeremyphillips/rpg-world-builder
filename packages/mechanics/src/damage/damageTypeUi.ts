@@ -15,6 +15,15 @@ export const DAMAGE_TYPE_ROWS = [
 
 export type DamageTypeRowId = (typeof DAMAGE_TYPE_ROWS)[number]['id']
 
+const DAMAGE_TYPE_DISPLAY_NAME_BY_ID: ReadonlyMap<string, string> = new Map(
+  DAMAGE_TYPE_ROWS.map((r) => [r.id, r.name]),
+)
+
+/** User-facing damage type label from {@link DAMAGE_TYPE_ROWS}; undefined if unknown. */
+export function getDamageTypeDisplayName(id: string): string | undefined {
+  return DAMAGE_TYPE_DISPLAY_NAME_BY_ID.get(id)
+}
+
 /** For AppFormSelect / MUI: `value` + `label`. */
 export const DAMAGE_TYPE_SELECT_OPTIONS: { value: string; label: string }[] = DAMAGE_TYPE_ROWS.map((r) => ({
   value: r.id,

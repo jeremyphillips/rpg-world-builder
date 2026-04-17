@@ -189,6 +189,12 @@ export function getEffectConditionById(
   return EFFECT_CONDITION_BY_ID.get(id)
 }
 
+/** User-facing label for a core effect condition id; undefined if `id` is not in {@link EFFECT_CONDITION_DEFINITIONS}. */
+export function getEffectConditionDisplayName(id: string): string | undefined {
+  if (!(EFFECT_CONDITION_IDS as readonly string[]).includes(id)) return undefined
+  return EFFECT_CONDITION_BY_ID.get(id as EffectConditionId)?.name
+}
+
 /** SRD-style rules blurb for tooltips; undefined if id is unknown. */
 export function getEffectConditionRulesText(id: EffectConditionId): string | undefined {
   return EFFECT_CONDITION_BY_ID.get(id)?.rulesText
