@@ -3,7 +3,7 @@
 This document is the **navigation hub** for how **emanations** and **persistent battlefield sphere effects** work across spells, monster special actions, and monster traits in encounter combat.
 
 - **Field-level authoring rules** for the `emanation` effect kind: [effects.md § `emanation`](../reference/effects.md#emanation)
-- **Monster trait patterns** (pairing `emanation` with `interval`, save DC, triggers): [monster-authoring.md § Traits: emanations and attached battlefield](../reference/monster-authoring.md#traits-emanations-and-attached-battlefield)
+- **Monster trait patterns** (pairing `emanation` with `interval`, save DC, triggers): [monster-authoring.md § Traits: emanations and attached battlefield](./content/monster-authoring.md#traits-emanations-and-attached-battlefield)
 - **Turn/movement resolution** (intervals, spatial entry, speed): [resolution.md](../reference/resolution.md) (attached-aura notes; see §4.4 and tactical bullets around attached auras)
 
 ## 1. Purpose and scope
@@ -139,6 +139,6 @@ flowchart LR
 ## See also
 
 - [effects.md § `emanation`](../reference/effects.md#emanation) — authoritative effect fields and limitations
-- [monster-authoring.md § Traits: emanations](../reference/monster-authoring.md#traits-emanations-and-attached-battlefield)
+- [monster-authoring.md § Traits: emanations](./content/monster-authoring.md#traits-emanations-and-attached-battlefield)
 - [resolution.md](../reference/resolution.md) — attached aura interval, movement entry, spatial speed
 - [space.md § Movement](../reference/space.md) — movement budget and spatial presentation

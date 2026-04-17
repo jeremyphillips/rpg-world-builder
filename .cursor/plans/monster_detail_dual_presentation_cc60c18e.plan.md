@@ -4,22 +4,22 @@ overview: Evolve the shared `DetailSpec` contract and `buildDetailItemsFromSpecs
 todos:
   - id: types-detail-spec
     content: Extend detailSpec.types.ts with placement/audience/getValue/renderFriendly/renderRaw/hideIfEmpty; make render optional when dual path used; JSDoc platformOwner -> isPlatformAdmin
-    status: pending
+    status: completed
   - id: builder-sections
     content: Extend buildDetailItemsFromSpecs with optional 4th arg; implement main/advanced filtering, audience gate, default raw JSON, isEmpty helper
-    status: pending
+    status: completed
   - id: monster-display
     content: Add monsters/domain/details/display/*.ts for abilities, senses, languages, actions, legendary, proficiencies, equipment, immunities/vulnerabilities
-    status: pending
+    status: completed
   - id: monster-sections
     content: Add MonsterView/sections/*.tsx friendly components wired to display helpers
-    status: pending
+    status: completed
   - id: monster-spec-route
     content: Refactor monsterDetail.spec.tsx + MonsterDetailRoute + registry exports; MUI accordion below grid
-    status: pending
+    status: completed
   - id: tests
     content: Add builder unit tests; adjust armor test if needed; optional RTL smoke for system monster
-    status: pending
+    status: completed
 isProject: false
 ---
 

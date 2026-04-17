@@ -116,7 +116,7 @@ For each of the **7** monsters:
 
 ## 5. Documentation
 
-Update `[docs/reference/monster-authoring.md](docs/reference/monster-authoring.md)`:
+Update `[docs/reference/content/monster-authoring.md](docs/reference/content/monster-authoring.md)`:
 
 - New subsection **Legendary actions**: shape of `MonsterLegendaryActions`, `**reference` vs `inline`**, `**actionId`** resolution (including weapon `weaponRef`), optional `**heal**` vs `**additionalEffects**`, and defaults (`cost` defaults to 1).
 - Document `**TurnHookKind**` / when to use `**refresh: 'turn-start'**` vs a separate **legendary timing** field for “after another creature’s turn.”

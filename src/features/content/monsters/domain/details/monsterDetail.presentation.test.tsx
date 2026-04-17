@@ -58,6 +58,19 @@ describe('monster detail presentation', () => {
     expect(actions?.value).toBeDefined();
   });
 
+  it('advanced structured fields render default raw JSON in a pre for platform admins', () => {
+    expect(goblin).toBeDefined();
+    const advanced = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, goblin!, ctx, {
+      section: 'advanced',
+      viewer: { isPlatformAdmin: true },
+    });
+    const actions = advanced.find((row) => row.label === 'Actions');
+    const { container } = render(<Fragment>{actions?.value}</Fragment>);
+    const pre = container.querySelector('pre');
+    expect(pre).toBeTruthy();
+    expect(pre?.textContent).toMatch(/"kind"\s*:/);
+  });
+
   it('MonsterAbilitiesSummary renders ability abbreviations and scores', () => {
     expect(goblin).toBeDefined();
     render(<MonsterAbilitiesSummary monster={goblin!} />);
