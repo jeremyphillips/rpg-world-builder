@@ -74,13 +74,14 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 For content types that use the shared detail layout:
 
 1. Wrap in **`ContentDetailScaffold`**.
-2. Optionally render **`ContentDetailMetaRow`** with items from **`buildDetailItemsFromSpecs(detailSpecs, entity, ctx, { section: 'meta', viewer })`** — page metadata (source, visibility, …) belongs **next to page identity**, not inside the main stat-block grid. Set **`hideAccessPolicyBadge`** on the scaffold when the meta row replaces the legacy standalone non-public visibility badge.
+2. Optionally render **`ContentDetailMetaRow`**. Prefer **`buildContentDetailSectionsFromSpecs({ specs, item, ctx, viewerContext })`** from the forms registry: it returns **`metaItems`**, **`mainItems`**, **`advancedItems`**, and **`viewer`** (via **`toDetailSpecViewer`**) in one call, composing **`buildDetailItemsFromSpecs`** for each section with a consistent viewer. For one-off rows, **`buildDetailItemsFromSpecs(detailSpecs, entity, ctx, { section: 'meta' | 'main' | 'advanced', viewer })`** remains the primitive. Page metadata (source, visibility, …) belongs **next to page identity**, not inside the main stat-block grid. Set **`hideAccessPolicyBadge`** on the scaffold when the meta row replaces the legacy standalone non-public visibility badge.
 3. Use **`ContentDetailImageKeyValueGrid`** with `imageContentType`, `imageKey`, `alt`, and children.
-4. Inside the grid’s main column, render **`KeyValueSection`** with items from **`buildDetailItemsFromSpecs(detailSpecs, entity, ctx, { section: 'main' })`** (or omit options when default main-only behavior is enough).
+4. Inside the grid’s main column, render **`KeyValueSection`** with **`mainItems`** from the grouped builder (or **`buildDetailItemsFromSpecs`** when not using the grouped helper).
 
 ### 5.2 Spec-driven items
 
-- **Detail spec arrays** live next to domain (e.g. `spellDetail.spec.ts`, `monsterDetail.spec.tsx`). One array drives **meta**, **main**, and **advanced**; do not fork parallel spec lists per surface.
+- **Detail spec arrays** live next to domain (e.g. `spellDetail.spec.tsx`, `monsterDetail.spec.tsx`). One array drives **meta**, **main**, and **advanced**; do not fork parallel spec lists per surface.
+- **`buildContentDetailSectionsFromSpecs`** / **`toDetailSpecViewer`:** route-level DRY helpers for campaign **`ViewerContext`** → detail viewer slice and **`meta` / `main` / `advanced`** row lists.
 - **`buildDetailItemsFromSpecs`** supports:
   - **`placement`:** `meta` | `main` | `advanced` | `main-and-advanced` (legacy `both` is normalized to `main-and-advanced`).
   - **`metaAudience`:** who may see a meta row (`all` | `platformOwner` | `dm-or-platformOwner`). Evaluated only for `section: 'meta'` (DM/co-DM or platform admin for `dm-or-platformOwner`; see `canViewDetailMetaDmOrPlatformOwner` in shared capabilities).

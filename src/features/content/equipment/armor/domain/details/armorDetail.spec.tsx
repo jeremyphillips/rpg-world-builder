@@ -1,13 +1,38 @@
 import type { Armor } from '@/features/content/equipment/armor/domain/types';
-import type { DetailSpec } from '@/features/content/shared/forms/registry';
+import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
 import { AppBadge } from '@/ui/primitives';
+import { VisibilityBadge } from '@/ui/patterns';
 
 export type ArmorDetailCtx = {
   dexLabel: string;
 };
 
 export const ARMOR_DETAIL_SPECS: DetailSpec<Armor, ArmorDetailCtx>[] = [
+  {
+    key: 'source',
+    label: 'Source',
+    order: 10,
+    render: (armor) => (
+      <AppBadge
+        label={armor.source}
+        tone={armor.source === 'system' ? 'info' : 'default'}
+      />
+    ),
+    ...metaAll,
+  },
+  {
+    key: 'visibility',
+    label: 'Visibility',
+    order: 20,
+    render: (armor) =>
+      armor.accessPolicy && armor.accessPolicy.scope !== 'public' ? (
+        <VisibilityBadge visibility={armor.accessPolicy} />
+      ) : (
+        'Public'
+      ),
+    ...metaDmOrPlatformOwner,
+  },
   {
     key: 'category',
     label: 'Category',
@@ -65,16 +90,5 @@ export const ARMOR_DETAIL_SPECS: DetailSpec<Armor, ArmorDetailCtx>[] = [
     order: 90,
     render: (armor) =>
       armor.weight ? `${armor.weight.value} ${armor.weight.unit}` : '—',
-  },
-  {
-    key: 'source',
-    label: 'Source',
-    order: 100,
-    render: (armor) => (
-      <AppBadge
-        label={armor.source}
-        tone={armor.source === 'system' ? 'info' : 'default'}
-      />
-    ),
   },
 ];

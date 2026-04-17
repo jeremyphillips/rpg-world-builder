@@ -22,7 +22,7 @@ import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { monsterRepo, MONSTER_DETAIL_SPECS, type MonsterDetailCtx } from '@/features/content/monsters/domain';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 
 export default function MonsterDetailRoute() {
   const { campaignId } = useActiveCampaign();
@@ -56,29 +56,13 @@ export default function MonsterDetailRoute() {
     armorById: catalog.armorById,
   } satisfies MonsterDetailCtx;
 
-  const viewerForDetail =
-    viewerContext === undefined
-      ? undefined
-      : {
-          isPlatformAdmin: viewerContext.isPlatformAdmin,
-          campaignRole: viewerContext.campaignRole,
-        };
-
-  const metaItems = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, detailCtx, {
-    section: 'meta',
-    viewer: viewerForDetail,
+  const { metaItems, mainItems, advancedItems, viewer } = buildContentDetailSectionsFromSpecs({
+    specs: MONSTER_DETAIL_SPECS,
+    item: monster,
+    ctx: detailCtx,
+    viewerContext,
   });
-
-  const mainItems = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, detailCtx, {
-    section: 'main',
-  });
-
-  const isPlatformAdmin = Boolean(viewerContext?.isPlatformAdmin);
-  const advancedItems = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, detailCtx, {
-    section: 'advanced',
-    viewer: viewerForDetail,
-  });
-  const showAdvancedSection = isPlatformAdmin && advancedItems.length > 0;
+  const showAdvancedSection = Boolean(viewer?.isPlatformAdmin) && advancedItems.length > 0;
 
   return (
     <ContentDetailScaffold

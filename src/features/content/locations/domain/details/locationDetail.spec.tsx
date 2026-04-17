@@ -1,5 +1,5 @@
 import type { Location } from '@/features/content/locations/domain/model/location';
-import type { DetailSpec } from '@/features/content/shared/forms/registry';
+import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
 import { AppBadge } from '@/ui/primitives';
 import { VisibilityBadge } from '@/ui/patterns';
 
@@ -19,6 +19,7 @@ export const LOCATION_DETAIL_SPECS: DetailSpec<Location, LocationDetailCtx>[] = 
     render: (loc) => (
       <AppBadge label={loc.source} tone={loc.source === 'system' ? 'info' : 'default'} />
     ),
+    ...metaAll,
   },
   {
     key: 'visibility',
@@ -30,6 +31,7 @@ export const LOCATION_DETAIL_SPECS: DetailSpec<Location, LocationDetailCtx>[] = 
       ) : (
         'Public'
       ),
+    ...metaDmOrPlatformOwner,
   },
   {
     key: 'scale',

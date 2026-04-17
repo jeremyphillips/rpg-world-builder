@@ -5,19 +5,25 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { magicItemRepo } from '../domain/repo/magicItemRepo';
 import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { MAGIC_ITEM_DETAIL_SPECS } from '../domain/details/magicItemDetail.spec';
 
 export default function MagicItemDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { magicItemId } = useParams<{ magicItemId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -37,7 +43,12 @@ export default function MagicItemDetailRoute() {
 
   const editPath = `/campaigns/${campaignId}/world/equipment/magic-items/${magicItemId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(MAGIC_ITEM_DETAIL_SPECS, item, {});
+  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+    specs: MAGIC_ITEM_DETAIL_SPECS,
+    item,
+    ctx: {},
+    viewerContext,
+  });
 
   return (
     <ContentDetailScaffold
@@ -47,7 +58,9 @@ export default function MagicItemDetailRoute() {
       canManage={canManage}
       source={item.source}
       accessPolicy={item.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {item.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -59,7 +72,7 @@ export default function MagicItemDetailRoute() {
         imageKey={item.imageKey}
         alt={item.name}
       >
-        <KeyValueSection title="" items={items} columns={2} />
+        <KeyValueSection title="" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
       {item.description && (

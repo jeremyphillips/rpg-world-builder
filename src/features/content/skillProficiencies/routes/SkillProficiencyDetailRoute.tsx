@@ -5,7 +5,12 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import {
   skillProficiencyRepo,
   SKILL_PROFICIENCY_DETAIL_SPECS,
@@ -15,11 +20,12 @@ import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCamp
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 
 export default function SkillProficiencyDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { skillProficiencyId } = useParams<{ skillProficiencyId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -43,7 +49,12 @@ export default function SkillProficiencyDetailRoute() {
 
   const editPath = `/campaigns/${campaignId}/world/skill-proficiencies/${skillProficiencyId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(SKILL_PROFICIENCY_DETAIL_SPECS, skillProficiency, {});
+  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+    specs: SKILL_PROFICIENCY_DETAIL_SPECS,
+    item: skillProficiency,
+    ctx: {},
+    viewerContext,
+  });
 
   return (
     <ContentDetailScaffold
@@ -53,7 +64,9 @@ export default function SkillProficiencyDetailRoute() {
       canManage={canManage}
       source={skillProficiency.source}
       accessPolicy={skillProficiency.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {skillProficiency.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -65,7 +78,7 @@ export default function SkillProficiencyDetailRoute() {
         imageKey={skillProficiency.imageKey}
         alt={skillProficiency.name}
       >
-        <KeyValueSection title="Skill Details" items={items} columns={2} />
+        <KeyValueSection title="Skill Details" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
       {skillProficiency.description && (

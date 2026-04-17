@@ -5,19 +5,25 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { spellRepo } from '@/features/content/spells/domain';
 import type { Spell } from '@/features/content/spells/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { SPELL_DETAIL_SPECS } from '@/features/content/spells/domain';
 
 export default function SpellDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { spellId } = useParams<{ spellId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -41,7 +47,12 @@ export default function SpellDetailRoute() {
 
   const editPath = `/campaigns/${campaignId}/world/spells/${spellId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(SPELL_DETAIL_SPECS, spell, {});
+  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+    specs: SPELL_DETAIL_SPECS,
+    item: spell,
+    ctx: {},
+    viewerContext,
+  });
 
   return (
     <ContentDetailScaffold
@@ -51,7 +62,9 @@ export default function SpellDetailRoute() {
       canManage={canManage}
       source={spell.source}
       accessPolicy={spell.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {spell.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -63,7 +76,7 @@ export default function SpellDetailRoute() {
         imageKey={spell.imageKey}
         alt={spell.name}
       >
-        <KeyValueSection items={items} columns={4} sx={{ mb: 0 }} />
+        <KeyValueSection items={mainItems} columns={4} sx={{ mb: 0 }} />
       </ContentDetailImageKeyValueGrid>
 
       {spell.description.full && (

@@ -6,18 +6,24 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import type { LocationContentItem } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { locationRepo, listLocationMaps, LOCATION_DETAIL_SPECS } from '@/features/content/locations/domain';
 
 export default function LocationDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { locationId } = useParams<{ locationId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -67,8 +73,15 @@ export default function LocationDetailRoute() {
 
   const editPath = `/campaigns/${campaignId}/world/locations/${locationId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(LOCATION_DETAIL_SPECS, loc, {
+  const detailCtx = {
     mapGridSummary,
+  };
+
+  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+    specs: LOCATION_DETAIL_SPECS,
+    item: loc,
+    ctx: detailCtx,
+    viewerContext,
   });
 
   return (
@@ -79,7 +92,9 @@ export default function LocationDetailRoute() {
       canManage={canManage}
       source={loc.source}
       accessPolicy={loc.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {loc.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -91,7 +106,7 @@ export default function LocationDetailRoute() {
         imageKey={loc.imageKey}
         alt={loc.name}
       >
-        <KeyValueSection title="Location details" items={items} columns={2} />
+        <KeyValueSection title="Location details" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
       {loc.description && (

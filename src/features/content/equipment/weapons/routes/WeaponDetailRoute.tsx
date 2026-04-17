@@ -5,19 +5,25 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { weaponRepo } from '../domain/repo/weaponRepo';
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { WEAPON_DETAIL_SPECS } from '../domain/details/weaponDetail.spec';
 
 export default function WeaponDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { weaponId } = useParams<{ weaponId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -38,7 +44,12 @@ export default function WeaponDetailRoute() {
   const editPath = `/campaigns/${campaignId}/world/equipment/weapons/${weaponId}/edit`;
   const canEdit = canManage && weapon.source === 'campaign';
 
-  const items = buildDetailItemsFromSpecs(WEAPON_DETAIL_SPECS, weapon, {});
+  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+    specs: WEAPON_DETAIL_SPECS,
+    item: weapon,
+    ctx: {},
+    viewerContext,
+  });
 
   return (
     <ContentDetailScaffold
@@ -48,7 +59,9 @@ export default function WeaponDetailRoute() {
       canManage={canEdit || (canManage && weapon.source === 'system')}
       source={weapon.source}
       accessPolicy={weapon.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {weapon.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -60,7 +73,7 @@ export default function WeaponDetailRoute() {
         imageKey={weapon.imageKey}
         alt={weapon.name}
       >
-        <KeyValueSection title="Weapon Details" items={items} columns={2} />
+        <KeyValueSection title="Weapon Details" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
       {weapon.description && (

@@ -5,20 +5,26 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { gearRepo } from '../domain/repo/gearRepo';
 import type { Gear } from '@/features/content/equipment/gear/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { GEAR_DETAIL_SPECS } from '../domain/details/gearDetail.spec';
 import { AppAlert } from '@/ui/primitives';
 
 export default function GearDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { gearId } = useParams<{ gearId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -38,7 +44,12 @@ export default function GearDetailRoute() {
 
   const editPath = `/campaigns/${campaignId}/world/equipment/gear/${gearId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(GEAR_DETAIL_SPECS, gear, {});
+  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+    specs: GEAR_DETAIL_SPECS,
+    item: gear,
+    ctx: {},
+    viewerContext,
+  });
 
   return (
     <ContentDetailScaffold
@@ -48,7 +59,9 @@ export default function GearDetailRoute() {
       canManage={canManage}
       source={gear.source}
       accessPolicy={gear.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {gear.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -60,7 +73,7 @@ export default function GearDetailRoute() {
         imageKey={gear.imageKey}
         alt={gear.name}
       >
-        <KeyValueSection title="Gear Details" items={items} columns={2} />
+        <KeyValueSection title="Gear Details" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
       {gear.description && (

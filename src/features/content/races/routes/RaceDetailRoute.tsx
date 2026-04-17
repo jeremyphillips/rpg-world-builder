@@ -5,18 +5,24 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import type { Race } from '@/features/content/races/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { raceRepo, RACE_DETAIL_SPECS } from '@/features/content/races/domain';
 
 export default function RaceDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { raceId } = useParams<{ raceId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -40,7 +46,12 @@ export default function RaceDetailRoute() {
 
   const editPath = `/campaigns/${campaignId}/world/races/${raceId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(RACE_DETAIL_SPECS, race, {});
+  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+    specs: RACE_DETAIL_SPECS,
+    item: race,
+    ctx: {},
+    viewerContext,
+  });
 
   return (
     <ContentDetailScaffold
@@ -50,7 +61,9 @@ export default function RaceDetailRoute() {
       canManage={canManage}
       source={race.source}
       accessPolicy={race.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {race.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -62,7 +75,9 @@ export default function RaceDetailRoute() {
         imageKey={race.imageKey}
         alt={race.name}
       >
-        <KeyValueSection title="Race Details" items={items} columns={2} />
+        {mainItems.length > 0 ? (
+          <KeyValueSection title="Race Details" items={mainItems} columns={2} />
+        ) : null}
       </ContentDetailImageKeyValueGrid>
 
       {race.description && (

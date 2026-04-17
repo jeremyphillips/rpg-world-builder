@@ -44,7 +44,15 @@ export {
 export {
   buildDetailItemsFromSpecs,
   type BuildDetailItemsFromSpecsOptions,
+  type BuildDetailViewer,
 } from './buildDetailItemsFromSpecs';
+export {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+  type BuildContentDetailSectionsFromSpecsArgs,
+  type BuildContentDetailSectionsFromSpecsResult,
+  type ContentDetailSectionItems,
+} from './buildContentDetailSectionsFromSpecs';
 export {
   buildToInput,
   buildToFormValues,

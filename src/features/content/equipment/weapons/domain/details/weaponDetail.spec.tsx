@@ -1,11 +1,36 @@
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
-import type { DetailSpec } from '@/features/content/shared/forms/registry';
+import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
 import { AppBadge } from '@/ui/primitives';
+import { VisibilityBadge } from '@/ui/patterns';
 
 export type WeaponDetailCtx = Record<string, never>;
 
 export const WEAPON_DETAIL_SPECS: DetailSpec<Weapon, WeaponDetailCtx>[] = [
+  {
+    key: 'source',
+    label: 'Source',
+    order: 10,
+    render: (weapon) => (
+      <AppBadge
+        label={weapon.source}
+        tone={weapon.source === 'system' ? 'info' : 'default'}
+      />
+    ),
+    ...metaAll,
+  },
+  {
+    key: 'visibility',
+    label: 'Visibility',
+    order: 20,
+    render: (weapon) =>
+      weapon.accessPolicy && weapon.accessPolicy.scope !== 'public' ? (
+        <VisibilityBadge visibility={weapon.accessPolicy} />
+      ) : (
+        'Public'
+      ),
+    ...metaDmOrPlatformOwner,
+  },
   {
     key: 'category',
     label: 'Category',
@@ -60,16 +85,5 @@ export const WEAPON_DETAIL_SPECS: DetailSpec<Weapon, WeaponDetailCtx>[] = [
     order: 90,
     render: (weapon) =>
       weapon.weight ? `${weapon.weight.value} ${weapon.weight.unit}` : '—',
-  },
-  {
-    key: 'source',
-    label: 'Source',
-    order: 100,
-    render: (weapon) => (
-      <AppBadge
-        label={weapon.source}
-        tone={weapon.source === 'system' ? 'info' : 'default'}
-      />
-    ),
   },
 ];

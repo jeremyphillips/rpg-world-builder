@@ -1,11 +1,36 @@
 import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types';
-import type { DetailSpec } from '@/features/content/shared/forms/registry';
+import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
 import { AppBadge } from '@/ui/primitives';
+import { VisibilityBadge } from '@/ui/patterns';
 
 export type MagicItemDetailCtx = Record<string, never>;
 
 export const MAGIC_ITEM_DETAIL_SPECS: DetailSpec<MagicItem, MagicItemDetailCtx>[] = [
+  {
+    key: 'source',
+    label: 'Source',
+    order: 10,
+    render: (item) => (
+      <AppBadge
+        label={item.source}
+        tone={item.source === 'system' ? 'info' : 'default'}
+      />
+    ),
+    ...metaAll,
+  },
+  {
+    key: 'visibility',
+    label: 'Visibility',
+    order: 20,
+    render: (item) =>
+      item.accessPolicy && item.accessPolicy.scope !== 'public' ? (
+        <VisibilityBadge visibility={item.accessPolicy} />
+      ) : (
+        'Public'
+      ),
+    ...metaDmOrPlatformOwner,
+  },
   {
     key: 'slot',
     label: 'Slot',
@@ -42,16 +67,5 @@ export const MAGIC_ITEM_DETAIL_SPECS: DetailSpec<MagicItem, MagicItemDetailCtx>[
     order: 80,
     render: (item) =>
       item.weight ? `${item.weight.value} ${item.weight.unit}` : '—',
-  },
-  {
-    key: 'source',
-    label: 'Source',
-    order: 90,
-    render: (item) => (
-      <AppBadge
-        label={item.source}
-        tone={item.source === 'system' ? 'info' : 'default'}
-      />
-    ),
   },
 ];

@@ -5,19 +5,25 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { armorRepo } from '../domain/repo/armorRepo';
 import type { Armor } from '@/features/content/equipment/armor/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { ARMOR_DETAIL_SPECS } from '../domain/details/armorDetail.spec';
 
 export default function ArmorDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { armorId } = useParams<{ armorId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -41,8 +47,13 @@ export default function ArmorDetailRoute() {
     ? armor.dex.mode === 'full' ? 'Full' : armor.dex.mode === 'capped' ? `Capped (+${armor.dex.maxBonus})` : 'None'
     : '—';
 
-  const items = buildDetailItemsFromSpecs(ARMOR_DETAIL_SPECS, armor, {
-    dexLabel,
+  const detailCtx = { dexLabel };
+
+  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+    specs: ARMOR_DETAIL_SPECS,
+    item: armor,
+    ctx: detailCtx,
+    viewerContext,
   });
 
   return (
@@ -53,7 +64,9 @@ export default function ArmorDetailRoute() {
       canManage={canManage}
       source={armor.source}
       accessPolicy={armor.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {armor.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -65,7 +78,7 @@ export default function ArmorDetailRoute() {
         imageKey={armor.imageKey}
         alt={armor.name}
       >
-        <KeyValueSection title="Armor Details" items={items} columns={2} />
+        <KeyValueSection title="Armor Details" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
       {armor.description && (

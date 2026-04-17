@@ -1,5 +1,5 @@
 import type { Race } from '@/features/content/races/domain/types';
-import type { DetailSpec } from '@/features/content/shared/forms/registry';
+import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
 import { AppBadge } from '@/ui/primitives';
 import { VisibilityBadge } from '@/ui/patterns';
 
@@ -16,6 +16,7 @@ export const RACE_DETAIL_SPECS: DetailSpec<Race, RaceDetailCtx>[] = [
         tone={race.source === 'system' ? 'info' : 'default'}
       />
     ),
+    ...metaAll,
   },
   {
     key: 'visibility',
@@ -27,5 +28,6 @@ export const RACE_DETAIL_SPECS: DetailSpec<Race, RaceDetailCtx>[] = [
       ) : (
         'Public'
       ),
+    ...metaDmOrPlatformOwner,
   },
 ];

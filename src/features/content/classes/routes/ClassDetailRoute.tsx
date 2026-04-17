@@ -5,18 +5,24 @@ import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { classRepo, type ClassContentItem } from '@/features/content/classes/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert, AppBadge } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { CLASS_DETAIL_SPECS } from '@/features/content/classes/domain/forms';
 
 export default function ClassDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { classId } = useParams<{ classId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
@@ -40,7 +46,12 @@ export default function ClassDetailRoute() {
 
   const editPath = `/campaigns/${campaignId}/world/classes/${classId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(CLASS_DETAIL_SPECS, charClass, {});
+  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+    specs: CLASS_DETAIL_SPECS,
+    item: charClass,
+    ctx: {},
+    viewerContext,
+  });
 
   const source = charClass.source ?? 'system';
 
@@ -52,7 +63,9 @@ export default function ClassDetailRoute() {
       canManage={canManage}
       source={source}
       accessPolicy={charClass.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {charClass.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -64,7 +77,7 @@ export default function ClassDetailRoute() {
         imageKey={charClass.imageKey}
         alt={charClass.name}
       >
-        <KeyValueSection title="Class Details" items={items} columns={2} />
+        <KeyValueSection title="Class Details" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
       {charClass.description && (
