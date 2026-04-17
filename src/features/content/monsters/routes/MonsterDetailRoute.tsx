@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
+import Grid from '@mui/material/Grid';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
@@ -61,18 +62,24 @@ export default function MonsterDetailRoute() {
         </Box>
       )}
 
-      {monster?.imageKey && (
-        <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(monster.imageKey)} alt={monster.name} style={{ maxHeight: 500 }} />
-        </Box>
-      )}
-
-      <KeyValueSection
-        title="Monster Details"
-        items={items}
-        columns={2}
-        sx={{ mt: 2 }}
-      />
+      
+        <Grid container columns={12} spacing={2} sx={{ mt: 2 }}>
+          <Grid size={{ xs: 12, md: 8 }} sx={{ order: { xs: 2, md: 1 } }}>
+            <KeyValueSection title="Monster Details" items={items} columns={2} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }} sx={{ order: { xs: 1, md: 2 } }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            {monster.imageKey && (
+              <img
+                src={resolveImageUrl(monster.imageKey)}
+                alt={monster.name}
+                style={{ maxHeight: 500, width: '100%', objectFit: 'contain' }}
+              />
+             )}  
+            </Box>
+          </Grid>
+        </Grid>
+      
     </ContentDetailScaffold>
   );
 }
