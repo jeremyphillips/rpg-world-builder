@@ -17,7 +17,7 @@ function formatSenseEntry(sense: MonsterSense): string {
 }
 
 /**
- * Readable senses line, e.g. `Darkvision 120 ft., Blindsight 30 ft., passive Perception 20`.
+ * Readable senses block: one entry per line (special senses, then passive Perception).
  */
 export function formatMonsterSensesLine(senses: MonsterSenses | undefined): string {
   if (!senses) return '—';
@@ -34,5 +34,5 @@ export function formatMonsterSensesLine(senses: MonsterSenses | undefined): stri
     parts.push(`passive Perception ${senses.passivePerception}`);
   }
 
-  return parts.length > 0 ? parts.join(', ') : '—';
+  return parts.length > 0 ? parts.join('\n') : '—';
 }

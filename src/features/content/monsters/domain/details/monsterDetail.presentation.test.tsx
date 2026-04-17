@@ -28,6 +28,29 @@ describe('monster detail presentation', () => {
   const aboleth = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'aboleth');
   const goblin = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'goblin-warrior');
 
+  it('buildDetailItemsFromSpecs main section excludes meta-only fields', () => {
+    expect(goblin).toBeDefined();
+    const main = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, goblin!, ctx, { section: 'main' });
+    expect(main.find((row) => row.label === 'Source')).toBeUndefined();
+    expect(main.find((row) => row.label === 'Visibility')).toBeUndefined();
+  });
+
+  it('buildDetailItemsFromSpecs meta section includes source for any viewer but gates visibility', () => {
+    expect(goblin).toBeDefined();
+    const metaPlayer = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, goblin!, ctx, {
+      section: 'meta',
+      viewer: { isPlatformAdmin: false, campaignRole: null },
+    });
+    expect(metaPlayer.find((row) => row.label === 'Source')).toBeDefined();
+    expect(metaPlayer.find((row) => row.label === 'Visibility')).toBeUndefined();
+
+    const metaDm = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, goblin!, ctx, {
+      section: 'meta',
+      viewer: { isPlatformAdmin: false, campaignRole: 'dm' },
+    });
+    expect(metaDm.find((row) => row.label === 'Visibility')).toBeDefined();
+  });
+
   it('buildDetailItemsFromSpecs main section includes friendly Actions content for a system monster', () => {
     expect(aboleth).toBeDefined();
     const main = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, aboleth!, ctx, { section: 'main' });

@@ -1,6 +1,23 @@
 import type { ReactNode } from 'react';
 
-export type DetailPlacement = 'main' | 'advanced' | 'both';
+/**
+ * Where a detail spec contributes rows. Legacy {@link DetailPlacement} also accepts `both`
+ * (normalized to `main-and-advanced` in the builder).
+ */
+export type DetailSurface = 'meta' | 'main' | 'advanced' | 'main-and-advanced';
+
+/**
+ * @deprecated Use `DetailSurface | 'both'`. `both` is normalized to `main-and-advanced`.
+ */
+export type DetailPlacement = DetailSurface | 'both';
+
+/**
+ * Who may see a **meta** row when building with `section: 'meta'`.
+ *
+ * - `dm-or-platformOwner`: DM / co-DM or platform admin (see `canViewDetailMetaDmOrPlatformOwner`).
+ * - `platformOwner`: platform admin only (`isPlatformAdmin`).
+ */
+export type DetailMetaAudience = 'all' | 'platformOwner' | 'dm-or-platformOwner';
 
 /**
  * Who may see the advanced/raw cell when building with `section: 'advanced'`.
@@ -42,6 +59,11 @@ export type DetailSpec<T, Ctx = unknown> = {
   placement?: DetailPlacement;
 
   /**
+   * Audience for **meta** rows when `section: 'meta'`. Default `all`.
+   */
+  metaAudience?: DetailMetaAudience;
+
+  /**
    * Audience for the advanced/raw row when `section: 'advanced'`. Default `all`.
    * `platformOwner` requires `viewer.isPlatformAdmin` when building the advanced section.
    */
@@ -53,6 +75,6 @@ export type DetailSpec<T, Ctx = unknown> = {
   /** Hint for structured/stat-block fields; optional for styling or future use. */
   isStructured?: boolean;
 
-  /** Hide this field for both sections. */
+  /** Hide this field for all sections. */
   hidden?: (item: T) => boolean;
 };

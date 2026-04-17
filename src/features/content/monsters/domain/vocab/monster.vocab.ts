@@ -23,6 +23,37 @@ export const MONSTER_TYPE_OPTIONS = [
 
 export type MonsterType = (typeof MONSTER_TYPE_OPTIONS)[number]['id']
 
+/** Closed vocabulary for {@link MonsterFields.subtype} display (ids must stay in sync with domain types). */
+export const MONSTER_SUBTYPE_OPTIONS = [
+  { id: 'goblinoid', name: 'Goblinoid' },
+  { id: 'aquatic', name: 'Aquatic' },
+  { id: 'gnome', name: 'Gnome' },
+] as const
+
+/**
+ * User-facing type label from {@link MONSTER_TYPE_OPTIONS}; `—` when absent; unknown ids pass through.
+ */
+export function getMonsterTypeDisplayName(typeId: string | undefined | null): string {
+  if (typeId == null || typeId === '') return '—';
+  const opt = MONSTER_TYPE_OPTIONS.find((o) => o.id === typeId);
+  return opt?.name ?? typeId;
+}
+
+/**
+ * User-facing subtype label from {@link MONSTER_SUBTYPE_OPTIONS}; `—` when absent; unknown ids pass through.
+ */
+export function getMonsterSubtypeDisplayName(subtypeId: string | undefined | null): string {
+  if (subtypeId == null || subtypeId === '') return '—';
+  const opt = MONSTER_SUBTYPE_OPTIONS.find((o) => o.id === subtypeId);
+  return opt?.name ?? subtypeId;
+}
+
+/** Options for monster list type filter: All + rows from {@link MONSTER_TYPE_OPTIONS}. */
+export const MONSTER_TYPE_FILTER_OPTIONS = [
+  { label: 'All', value: 'all' },
+  ...MONSTER_TYPE_OPTIONS.map((c) => ({ label: c.name, value: c.id })),
+] as const
+
 export const EXTRAPLANAR_CREATURE_TYPE_IDS = [
   ...MONSTER_TYPE_OPTIONS.filter(
     (m): m is (typeof MONSTER_TYPE_OPTIONS)[number] & {

@@ -59,7 +59,7 @@ export default function MagicItemDetailRoute() {
         imageKey={item.imageKey}
         alt={item.name}
       >
-        <KeyValueSection title="Magic Item Details" items={items} columns={2} />
+        <KeyValueSection title="" items={items} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
       {item.description && (

@@ -16,9 +16,17 @@ export { isCustomFormNodeSpec, isRepeatableGroupSpec } from './formNodeSpec.type
 export { numberRange } from '@/ui/patterns';
 export type {
   DetailSpec,
+  DetailSurface,
   DetailPlacement,
+  DetailMetaAudience,
   DetailAudience,
 } from './detailSpec.types';
+export {
+  metaAll,
+  metaDmOrPlatformOwner,
+  mainOnly,
+  structuredMainAndAdvanced,
+} from './detailSpec.presets';
 export {
   isEmptyDetailValue,
   defaultDetailRawRender,

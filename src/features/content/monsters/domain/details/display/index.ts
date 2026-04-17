@@ -2,6 +2,7 @@ export * from './monsterDisplayFormatUtils';
 export * from './monsterAbilityScoresDisplay';
 export * from './monsterSensesDisplay';
 export * from './monsterLanguagesDisplay';
+export * from './monsterChallengeRatingDisplay';
 export * from './monsterActionsDisplay';
 export * from './monsterLegendaryActionsDisplay';
 export * from './monsterTraitsDisplay';

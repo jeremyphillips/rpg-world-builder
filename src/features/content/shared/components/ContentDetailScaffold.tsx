@@ -16,6 +16,11 @@ interface ContentDetailScaffoldProps {
   canManage: boolean;
   source: ContentSource;
   accessPolicy?: Visibility;
+  /**
+   * When true, omit the standalone non-public VisibilityBadge below the header.
+   * Use when the route renders spec-driven meta (e.g. ContentDetailMetaRow) for visibility.
+   */
+  hideAccessPolicyBadge?: boolean;
   children: React.ReactNode;
 }
 
@@ -26,6 +31,7 @@ const ContentDetailScaffold = ({
   canManage,
   source,
   accessPolicy,
+  hideAccessPolicyBadge = false,
   children,
 }: ContentDetailScaffoldProps) => {
   const policyScope = accessPolicy?.scope;
@@ -60,7 +66,7 @@ const ContentDetailScaffold = ({
         </AppAlert>
       )}
 
-      {accessPolicy && accessPolicy.scope !== 'public' && (
+      {!hideAccessPolicyBadge && accessPolicy && accessPolicy.scope !== 'public' && (
         <Box sx={{ mb: 3 }}>
           <VisibilityBadge visibility={accessPolicy} />
         </Box>

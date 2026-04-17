@@ -39,7 +39,8 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 | --- | --- |
 | **`AppDataGrid`** | Primary table for **list** routes: columns, filters, sorting, viewer-aware visibility. Primitive details stay in [appdatagrid.md](../appdatagrid.md). |
 | **`ContentTypeListPage` / campaign list prefs** | Higher-level list shell: toolbar layout registry, preferences keys—see [appdatagrid.md](../appdatagrid.md) and [forms.md](../forms.md). |
-| **`ContentDetailScaffold`** | Detail page chrome: title, breadcrumbs, edit path, optional manage/visibility. |
+| **`ContentDetailScaffold`** | Detail page chrome: title, breadcrumbs, edit path, optional manage; optional standalone non-public visibility badge (omit when meta drives visibility). |
+| **`ContentDetailMetaRow`** | Compact **inline** metadata under the header (source, gated visibility, etc.) — spec-driven via `buildDetailItemsFromSpecs(..., { section: 'meta' })`; not a `KeyValueSection`. |
 | **`ContentDetailImageKeyValueGrid`** | Top detail layout: **key/value column(s)** + **image column** (responsive grid). Primary shell for stat-block–style content. |
 | **`KeyValueSection`** | Renders label/value rows from `KeyValueItem[]` (often produced by builders below). |
 | **Detail spec arrays** | Declarative `DetailSpec[]` per content type (e.g. `MONSTER_DETAIL_SPECS`, `SPELL_DETAIL_SPECS`): order, labels, and how each field renders. Built with `buildDetailItemsFromSpecs` from `@/features/content/shared/forms/registry`. |
@@ -55,7 +56,7 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 | Layer | Owns | Should not own |
 | --- | --- | --- |
 | **Route file (`*Route.tsx`)** | Data loading (hooks), campaign context, composing scaffolds/grids, calling builders with **ctx**, privilege gates (e.g. accordion visibility). | Heavy formatting, large JSX field bodies, form field definitions. |
-| **Detail spec (`*Detail.spec.ts` / `.tsx`)** | Field **order**, **labels**, **keys**, wiring to `render` / `getValue` + `renderFriendly` / `renderRaw`, `placement`, `hideIfEmpty`. | Business rules unrelated to presentation; persistence. |
+| **Detail spec (`*Detail.spec.ts` / `.tsx`)** | Field **order**, **labels**, **keys**, wiring to `render` / `getValue` + `renderFriendly` / `renderRaw`, `placement` (meta / main / advanced / main-and-advanced), `metaAudience`, `rawAudience`, `hideIfEmpty`. | Business rules unrelated to presentation; persistence. |
 | **Display utils** | Formatting, labels from vocabs, reusable one-line or short multi-line **text** for detail (and tests). | Fetching, React Router, campaign hooks. |
 | **View section components** | Structured **friendly** layouts (stacks, typography, section semantics). | Direct API calls; duplicating domain calculations that belong in mechanics/domain. |
 | **Form registries** | Edit/create **controls**, validation hooks, mapping to DTO shapes. | Detail-only presentation; duplicating detail spec rows. |
@@ -73,24 +74,30 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 For content types that use the shared detail layout:
 
 1. Wrap in **`ContentDetailScaffold`**.
-2. Use **`ContentDetailImageKeyValueGrid`** with `imageContentType`, `imageKey`, `alt`, and children.
-3. Inside the grid’s main column, render **`KeyValueSection`** with items from **`buildDetailItemsFromSpecs(detailSpecs, entity, ctx, { section: 'main' })`** (or omit options when default main-only behavior is enough).
+2. Optionally render **`ContentDetailMetaRow`** with items from **`buildDetailItemsFromSpecs(detailSpecs, entity, ctx, { section: 'meta', viewer })`** — page metadata (source, visibility, …) belongs **next to page identity**, not inside the main stat-block grid. Set **`hideAccessPolicyBadge`** on the scaffold when the meta row replaces the legacy standalone non-public visibility badge.
+3. Use **`ContentDetailImageKeyValueGrid`** with `imageContentType`, `imageKey`, `alt`, and children.
+4. Inside the grid’s main column, render **`KeyValueSection`** with items from **`buildDetailItemsFromSpecs(detailSpecs, entity, ctx, { section: 'main' })`** (or omit options when default main-only behavior is enough).
 
 ### 5.2 Spec-driven items
 
-- **Detail spec arrays** live next to domain (e.g. `spellDetail.spec.ts`, `monsterDetail.spec.tsx`).
-- **`buildDetailItemsFromSpecs`** supports optional **dual presentation**: `getValue`, `renderFriendly`, optional `renderRaw`, `placement` (`main` | `advanced` | `both`), `rawAudience` (e.g. platform-admin-only raw rows).
+- **Detail spec arrays** live next to domain (e.g. `spellDetail.spec.ts`, `monsterDetail.spec.tsx`). One array drives **meta**, **main**, and **advanced**; do not fork parallel spec lists per surface.
+- **`buildDetailItemsFromSpecs`** supports:
+  - **`placement`:** `meta` | `main` | `advanced` | `main-and-advanced` (legacy `both` is normalized to `main-and-advanced`).
+  - **`metaAudience`:** who may see a meta row (`all` | `platformOwner` | `dm-or-platformOwner`). Evaluated only for `section: 'meta'` (DM/co-DM or platform admin for `dm-or-platformOwner`; see `canViewDetailMetaDmOrPlatformOwner` in shared capabilities).
+  - **Dual presentation:** `getValue`, `renderFriendly`, optional `renderRaw`, **`rawAudience`** for `section: 'advanced'` (`all` | `platformOwner` — platform-admin-only raw JSON).
+- **Presets** (e.g. `metaAll`, `metaDmOrPlatformOwner`, `structuredMainAndAdvanced`) live in the shared forms registry for concise spec authoring.
 
-### 5.3 Friendly vs advanced / raw
+### 5.3 Surfaces: meta, main, advanced
 
-- **Main section:** User-facing, readable summaries (often via view section components + display utils).
-- **Advanced section:** Optional **structured JSON** (or custom `renderRaw`) for **privileged** viewers (e.g. platform admin), typically in a **collapsed accordion** below the image grid so the primary experience stays clean.
+- **Meta:** Compact inline row under the title/edit line — not `KeyValueSection` layout. Use for shared header-adjacent metadata (source, visibility with audience gating).
+- **Main:** User-facing, readable summaries inside **`KeyValueSection`** (view section components + display utils).
+- **Advanced:** Optional **structured JSON** (or custom `renderRaw`) for **platform admins**, typically in a **collapsed accordion** below the image grid. `placement: 'main-and-advanced'` shows friendly content in main and raw in advanced for the same spec.
 
 **Explicit rule:** **Detail presentation config must not be derived from form registries.** Forms and detail answer different questions (editing shape vs read-only display). Sharing **domain types** and **display helpers** is fine; auto-generating detail rows from `FIELD_SPECS` is not the default pattern.
 
 ### 5.4 Transitional note
 
-Dual **main + advanced** presentation is **rolled out per content type**. Types that only use `render` + main section are still valid; see §8.
+Dual **main + advanced** presentation is **rolled out per content type**. Types that only use `render` + main section are still valid; legacy **`placement: 'both'`** remains supported; see §8.
 
 ---
 
@@ -126,7 +133,7 @@ Conservative snapshot of cross-cutting behavior. Update this table when a conten
 
 | Content type | List | Detail | Create / Edit | Image resolver | Advanced raw view | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Monster** | standardized | standardized | standardized | standardized | standardized | Dual detail (main + platform-admin accordion) is the reference implementation for raw JSON. |
+| **Monster** | standardized | standardized | standardized | standardized | standardized | Reference: meta row (source + gated visibility) + main summaries + platform-admin advanced raw JSON; single `MONSTER_DETAIL_SPECS` array. |
 | **Spell** | standardized | standardized | standardized | standardized | planned | Detail uses shared grid + specs; extend dual presentation when needed. |
 | **Equipment** (weapons, armor, gear, magic items) | standardized | standardized | standardized | partial | planned | Hub + per-kind routes; image keys vary by kind. |
 | **Class** | standardized | standardized | standardized | partial | planned | — |

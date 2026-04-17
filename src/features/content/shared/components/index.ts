@@ -40,6 +40,11 @@ export type {
   ViewerOwnedCharacterScopeOption,
 } from './ViewerOwnedCharacterScopeSelect';
 export { default as ContentDetailScaffold } from './ContentDetailScaffold';
+export {
+  default as ContentDetailMetaRow,
+  type ContentDetailMetaItem,
+  type ContentDetailMetaRowProps,
+} from './detail/ContentDetailMetaRow';
 export { default as ContentDetailImageKeyValueGrid } from './ContentDetailImageKeyValueGrid';
 export type { ContentDetailImageKeyValueGridProps } from './ContentDetailImageKeyValueGrid';
 export { DetailInlineTooltip, type DetailInlineTooltipProps } from './DetailInlineTooltip';

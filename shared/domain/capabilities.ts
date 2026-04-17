@@ -43,6 +43,18 @@ export function canViewDmScoped(ctx: ViewerContext): boolean {
   return canBypassVisibility(ctx)
 }
 
+/**
+ * Whether the viewer may see **detail meta** rows gated as `dm-or-platformOwner`
+ * (DM / co-DM or platform admin — not campaign owner alone).
+ */
+export function canViewDetailMetaDmOrPlatformOwner(
+  viewer: Partial<Pick<ViewerContext, 'isPlatformAdmin' | 'campaignRole'>> | null | undefined,
+): boolean {
+  if (!viewer) return false
+  if (viewer.isPlatformAdmin) return true
+  return viewer.campaignRole != null && DM_LEVEL_ROLES.has(viewer.campaignRole)
+}
+
 export function canViewRestricted(
   ctx: ViewerContext,
   allowCharacterIds: string[],

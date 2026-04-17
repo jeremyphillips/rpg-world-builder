@@ -1,28 +1,53 @@
 import type { ReactNode } from 'react';
 
+import { canViewDetailMetaDmOrPlatformOwner } from '@/shared/domain/capabilities';
+import type { ViewerContext } from '@/shared/domain/capabilities';
+
 import { defaultDetailRawRender, isEmptyDetailValue } from './detailSpec.helpers';
 import type { DetailSpec } from './detailSpec.types';
 
+/** Partial viewer slice for detail builders; omit fields when unknown. */
+export type BuildDetailViewer = Partial<Pick<ViewerContext, 'isPlatformAdmin' | 'campaignRole'>>;
+
 export type BuildDetailItemsFromSpecsOptions = {
-  section?: 'main' | 'advanced';
-  /** Required for advanced audience checks (`rawAudience: 'platformOwner'`). */
-  viewer?: { isPlatformAdmin: boolean };
+  section?: 'meta' | 'main' | 'advanced';
+  /** Used for meta audience checks and advanced `rawAudience: 'platformOwner'`. */
+  viewer?: BuildDetailViewer;
 };
+
+function normalizePlacement(
+  placement: DetailSpec<unknown, unknown>['placement'],
+): 'meta' | 'main' | 'advanced' | 'main-and-advanced' {
+  const p = placement ?? 'main';
+  if (p === 'both') return 'main-and-advanced';
+  return p;
+}
 
 function placementMatches(
   placement: DetailSpec<unknown, unknown>['placement'],
-  section: 'main' | 'advanced',
+  section: 'meta' | 'main' | 'advanced',
 ): boolean {
-  const p = placement ?? 'main';
+  const n = normalizePlacement(placement);
+  if (section === 'meta') return n === 'meta';
   if (section === 'main') {
-    return p === 'main' || p === 'both';
+    return n === 'main' || n === 'main-and-advanced';
   }
-  return p === 'advanced' || p === 'both';
+  return n === 'advanced' || n === 'main-and-advanced';
+}
+
+function metaAudienceAllows(
+  metaAudience: DetailSpec<unknown, unknown>['metaAudience'],
+  viewer: BuildDetailViewer | undefined,
+): boolean {
+  const a = metaAudience ?? 'all';
+  if (a === 'all') return true;
+  if (a === 'platformOwner') return Boolean(viewer?.isPlatformAdmin);
+  return canViewDetailMetaDmOrPlatformOwner(viewer);
 }
 
 function advancedAudienceAllows(
   rawAudience: DetailSpec<unknown, unknown>['rawAudience'],
-  viewer: BuildDetailItemsFromSpecsOptions['viewer'],
+  viewer: BuildDetailViewer | undefined,
 ): boolean {
   if (rawAudience === 'platformOwner') {
     return Boolean(viewer?.isPlatformAdmin);
@@ -99,12 +124,16 @@ export const buildDetailItemsFromSpecs = <T, Ctx>(
     .filter((spec) => !spec.hidden?.(item))
     .filter((spec) => placementMatches(spec.placement, section))
     .filter((spec) => {
+      if (section !== 'meta') return true;
+      return metaAudienceAllows(spec.metaAudience, viewer);
+    })
+    .filter((spec) => {
       if (section !== 'advanced') return true;
       return advancedAudienceAllows(spec.rawAudience, viewer);
     })
     .filter((spec) => {
-      if (section === 'main') return !shouldHideMainRow(spec, item, ctx);
-      return !shouldHideAdvancedRow(spec, item, ctx);
+      if (section === 'advanced') return !shouldHideAdvancedRow(spec, item, ctx);
+      return !shouldHideMainRow(spec, item, ctx);
     })
     .sort((a, b) => a.order - b.order)
     .map((spec) => ({

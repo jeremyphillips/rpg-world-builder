@@ -1,6 +1,12 @@
 import type { Monster } from '@/features/content/monsters/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import {
+  metaAll,
+  metaDmOrPlatformOwner,
+  structuredMainAndAdvanced,
+} from '@/features/content/shared/forms/registry';
+import { getAlignmentDisplayName } from '@/features/content/shared/domain/vocab/alignment.vocab';
+import {
   MonsterAbilitiesSummary,
   MonsterActionsSummary,
   MonsterEquipmentSummary,
@@ -20,21 +26,16 @@ import {
   formatMonsterArmorClassBreakdown,
   formatMovement,
 } from '@/features/content/monsters/utils/formatters';
+import { formatMonsterChallengeRatingLine } from '@/features/content/monsters/domain/details/display/monsterChallengeRatingDisplay';
+import {
+  getMonsterSubtypeDisplayName,
+  getMonsterTypeDisplayName,
+} from '@/features/content/monsters/domain/vocab/monster.vocab';
 import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
 
 export type MonsterDetailCtx = {
   armorById: Record<string, CreatureArmorCatalogEntry>;
-};
-
-const structuredBoth: Pick<
-  DetailSpec<Monster, MonsterDetailCtx>,
-  'placement' | 'rawAudience' | 'hideIfEmpty' | 'isStructured'
-> = {
-  placement: 'both',
-  rawAudience: 'platformOwner',
-  hideIfEmpty: true,
-  isStructured: true,
 };
 
 export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
@@ -48,6 +49,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
         tone={m.source === 'system' ? 'info' : 'default'}
       />
     ),
+    ...metaAll,
   },
   {
     key: 'visibility',
@@ -59,17 +61,27 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
       ) : (
         'Public'
       ),
+    ...metaDmOrPlatformOwner,
   },
-  { key: 'name', label: 'Name', order: 30, render: (m) => m.name },
-  { key: 'type', label: 'Type', order: 40, render: (m) => m.type ?? '—' },
-  { key: 'subtype', label: 'Subtype', order: 50, render: (m) => m.subtype ?? '—' },
+  // { key: 'name', label: 'Name', order: 30, render: (m) => m.name },
+  { key: 'type', label: 'Type', order: 40, render: (m) => getMonsterTypeDisplayName(m.type) },
+  { key: 'subtype', label: 'Subtype', order: 50, render: (m) => getMonsterSubtypeDisplayName(m.subtype) },
   { key: 'sizeCategory', label: 'Size Category', order: 60, render: (m) => m.sizeCategory ?? '—' },
   {
-    key: 'description.long',
-    label: 'Description',
-    order: 70,
-    render: (m) => m.description?.long ?? '—',
+    key: 'abilities',
+    label: 'Abilities',
+    order: 65,
+    getValue: (m) => m.mechanics?.abilities,
+    renderFriendly: (_v, m) => <MonsterAbilitiesSummary monster={m} />,
+    ...structuredMainAndAdvanced,
   },
+  // TODO: determine if this should display
+  // {
+  //   key: 'description.long',
+  //   label: 'Description',
+  //   order: 70,
+  //   render: (m) => m.description?.long ?? '—',
+  // },
   {
     key: 'hitPoints',
     label: 'Hit Points',
@@ -104,7 +116,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 110,
     getValue: (m) => m.mechanics?.actions,
     renderFriendly: (_v, m) => <MonsterActionsSummary monster={m} kind="actions" />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'bonusActions',
@@ -112,7 +124,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 120,
     getValue: (m) => m.mechanics?.bonusActions,
     renderFriendly: (_v, m) => <MonsterActionsSummary monster={m} kind="bonusActions" />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'legendaryActions',
@@ -120,7 +132,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 125,
     getValue: (m) => m.mechanics?.legendaryActions,
     renderFriendly: (_v, m) => <MonsterLegendaryActionsSummary monster={m} />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'traits',
@@ -128,15 +140,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 130,
     getValue: (m) => m.mechanics?.traits,
     renderFriendly: (_v, m) => <MonsterTraitsSummary monster={m} />,
-    ...structuredBoth,
-  },
-  {
-    key: 'abilities',
-    label: 'Abilities',
-    order: 140,
-    getValue: (m) => m.mechanics?.abilities,
-    renderFriendly: (_v, m) => <MonsterAbilitiesSummary monster={m} />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'senses',
@@ -144,7 +148,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 150,
     getValue: (m) => m.mechanics?.senses,
     renderFriendly: (_v, m) => <MonsterSensesSummary monster={m} />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'proficiencies',
@@ -157,7 +161,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
       return { proficiencies, savingThrows };
     },
     renderFriendly: (_v, m) => <MonsterProficienciesSummary monster={m} />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'equipment',
@@ -165,7 +169,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 170,
     getValue: (m) => m.mechanics?.equipment,
     renderFriendly: (_v, m) => <MonsterEquipmentSummary monster={m} />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'immunities',
@@ -173,7 +177,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 180,
     getValue: (m) => m.mechanics?.immunities,
     renderFriendly: (_v, m) => <MonsterImmunitiesSummary monster={m} />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'resistances',
@@ -181,7 +185,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 185,
     getValue: (m) => m.mechanics?.resistances,
     renderFriendly: (_v, m) => <MonsterResistancesSummary monster={m} />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'vulnerabilities',
@@ -189,7 +193,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 190,
     getValue: (m) => m.mechanics?.vulnerabilities,
     renderFriendly: (_v, m) => <MonsterVulnerabilitiesSummary monster={m} />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'languages',
@@ -197,24 +201,32 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     order: 200,
     getValue: (m) => m.languages,
     renderFriendly: (_v, m) => <MonsterLanguagesSummary monster={m} />,
-    ...structuredBoth,
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'alignment',
     label: 'Alignment',
     order: 210,
-    render: (m) => m.lore?.alignment ?? '—',
+    render: (m) => {
+      const id = m.lore?.alignment;
+      if (id == null) return '—';
+      return getAlignmentDisplayName(id) ?? id;
+    },
   },
   {
     key: 'challengeRating',
     label: 'Challenge Rating',
     order: 220,
-    render: (m) => m.lore?.challengeRating ?? '—',
-  },
-  {
-    key: 'xpValue',
-    label: 'XP Value',
-    order: 230,
-    render: (m) => m.lore?.xpValue ?? '—',
+    getValue: (m) => {
+      const cr = m.lore?.challengeRating;
+      if (cr === undefined) return undefined;
+      return {
+        challengeRating: cr,
+        xpValue: m.lore?.xpValue,
+        proficiencyBonus: m.mechanics?.proficiencyBonus,
+      };
+    },
+    renderFriendly: (_v, m) => formatMonsterChallengeRatingLine(m),
+    ...structuredMainAndAdvanced,
   },
 ];

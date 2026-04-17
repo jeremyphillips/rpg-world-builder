@@ -11,7 +11,11 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
-import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
+import {
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import type { Monster } from '@/features/content/monsters/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -52,6 +56,19 @@ export default function MonsterDetailRoute() {
     armorById: catalog.armorById,
   } satisfies MonsterDetailCtx;
 
+  const viewerForDetail =
+    viewerContext === undefined
+      ? undefined
+      : {
+          isPlatformAdmin: viewerContext.isPlatformAdmin,
+          campaignRole: viewerContext.campaignRole,
+        };
+
+  const metaItems = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, detailCtx, {
+    section: 'meta',
+    viewer: viewerForDetail,
+  });
+
   const mainItems = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, detailCtx, {
     section: 'main',
   });
@@ -59,7 +76,7 @@ export default function MonsterDetailRoute() {
   const isPlatformAdmin = Boolean(viewerContext?.isPlatformAdmin);
   const advancedItems = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, detailCtx, {
     section: 'advanced',
-    viewer: { isPlatformAdmin },
+    viewer: viewerForDetail,
   });
   const showAdvancedSection = isPlatformAdmin && advancedItems.length > 0;
 
@@ -71,7 +88,9 @@ export default function MonsterDetailRoute() {
       canManage={canManage}
       source={monster.source}
       accessPolicy={monster.accessPolicy}
+      hideAccessPolicyBadge
     >
+      <ContentDetailMetaRow items={metaItems} />
       {monster.patched && (
         <Box sx={{ mb: 2 }}>
           <AppBadge label="Patched" tone="warning" size="small" />
@@ -83,7 +102,7 @@ export default function MonsterDetailRoute() {
         imageKey={monster.imageKey}
         alt={monster.name}
       >
-        <KeyValueSection title="Monster Details" items={mainItems} columns={2} />
+        <KeyValueSection title="" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
       {showAdvancedSection ? (

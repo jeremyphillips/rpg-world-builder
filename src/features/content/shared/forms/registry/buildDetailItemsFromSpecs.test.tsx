@@ -109,4 +109,47 @@ describe('buildDetailItemsFromSpecs', () => {
     expect(main).toHaveLength(1);
     expect(main[0]?.value).toBe('friendly');
   });
+
+  it('meta section includes only meta placement and respects metaAudience', () => {
+    const specs: DetailSpec<Item, unknown>[] = [
+      { key: 'source', label: 'Source', order: 10, placement: 'meta', render: () => 'sys' },
+      {
+        key: 'visibility',
+        label: 'Visibility',
+        order: 20,
+        placement: 'meta',
+        metaAudience: 'dm-or-platformOwner',
+        render: () => 'dm-only',
+      },
+      { key: 'name', label: 'Name', order: 5, render: () => 'n' },
+    ];
+    const metaPlayer = buildDetailItemsFromSpecs(specs, item, {}, {
+      section: 'meta',
+      viewer: { isPlatformAdmin: false, campaignRole: null },
+    });
+    expect(metaPlayer.map((r) => r.label)).toEqual(['Source']);
+
+    const metaDm = buildDetailItemsFromSpecs(specs, item, {}, {
+      section: 'meta',
+      viewer: { isPlatformAdmin: false, campaignRole: 'dm' },
+    });
+    expect(metaDm.map((r) => r.label)).toEqual(['Source', 'Visibility']);
+  });
+
+  it('main-and-advanced placement matches main and advanced sections', () => {
+    const specs: DetailSpec<Item, unknown>[] = [
+      {
+        key: 'data',
+        label: 'Data',
+        order: 10,
+        placement: 'main-and-advanced',
+        getValue: (i) => i.data,
+        renderFriendly: (v) => String((v as { x: number }).x),
+      },
+    ];
+    const main = buildDetailItemsFromSpecs(specs, item, {}, { section: 'main' });
+    expect(main).toHaveLength(1);
+    const adv = buildDetailItemsFromSpecs(specs, item, {}, { section: 'advanced' });
+    expect(adv).toHaveLength(1);
+  });
 });

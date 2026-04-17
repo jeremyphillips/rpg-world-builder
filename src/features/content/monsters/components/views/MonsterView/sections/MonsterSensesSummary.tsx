@@ -9,7 +9,7 @@ export type MonsterSensesSummaryProps = {
 
 export default function MonsterSensesSummary({ monster }: MonsterSensesSummaryProps) {
   return (
-    <Typography variant="body2" component="div">
+    <Typography variant="body2" component="div" sx={{ whiteSpace: 'pre-line' }}>
       {formatMonsterSensesLine(monster.mechanics?.senses)}
     </Typography>
   );

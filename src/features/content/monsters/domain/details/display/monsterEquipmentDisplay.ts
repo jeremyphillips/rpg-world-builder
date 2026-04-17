@@ -9,27 +9,45 @@ function formatArmorEntry(ref: string, a: NonNullable<MonsterEquipment['armor']>
   return a.aliasName ?? humanizeKebabCase(a.armorId ?? ref);
 }
 
-/**
- * Lists equipped weapons and armor labels for the stat block.
- */
-export function formatMonsterEquipmentSummary(equipment: MonsterEquipment | undefined): string {
-  if (!equipment) return '—';
+export type MonsterEquipmentSummaryParts = {
+  /** Comma-separated weapon display names (no "Weapons:" prefix). */
+  weapons?: string;
+  /** Comma-separated armor display names (no "Armor:" prefix). */
+  armor?: string;
+};
 
-  const parts: string[] = [];
+/**
+ * Parsed lists for UI that needs structured labels (e.g. bold type names).
+ */
+export function getMonsterEquipmentSummaryParts(
+  equipment: MonsterEquipment | undefined,
+): MonsterEquipmentSummaryParts {
+  if (!equipment) return {};
+
+  const parts: MonsterEquipmentSummaryParts = {};
 
   if (equipment.weapons && Object.keys(equipment.weapons).length > 0) {
-    const line = Object.entries(equipment.weapons)
+    parts.weapons = Object.entries(equipment.weapons)
       .map(([ref, w]) => formatWeaponEntry(ref, w))
       .join(', ');
-    parts.push(`Weapons: ${line}`);
   }
 
   if (equipment.armor && Object.keys(equipment.armor).length > 0) {
-    const line = Object.entries(equipment.armor)
+    parts.armor = Object.entries(equipment.armor)
       .map(([ref, a]) => formatArmorEntry(ref, a))
       .join(', ');
-    parts.push(`Armor: ${line}`);
   }
 
-  return parts.length > 0 ? parts.join(' · ') : '—';
+  return parts;
+}
+
+/**
+ * Plain-text summary for contexts that only accept a string (one line per category).
+ */
+export function formatMonsterEquipmentSummary(equipment: MonsterEquipment | undefined): string {
+  const { weapons, armor } = getMonsterEquipmentSummaryParts(equipment);
+  const lines: string[] = [];
+  if (weapons) lines.push(`Weapons: ${weapons}`);
+  if (armor) lines.push(`Armor: ${armor}`);
+  return lines.length > 0 ? lines.join('\n') : '—';
 }
