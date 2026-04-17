@@ -1,7 +1,20 @@
 import type { Monster } from '@/features/content/monsters/domain/types';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
+import {
+  MonsterAbilitiesSummary,
+  MonsterActionsSummary,
+  MonsterEquipmentSummary,
+  MonsterImmunitiesSummary,
+  MonsterLanguagesSummary,
+  MonsterLegendaryActionsSummary,
+  MonsterProficienciesSummary,
+  MonsterResistancesSummary,
+  MonsterSensesSummary,
+  MonsterTraitsSummary,
+  MonsterVulnerabilitiesSummary,
+} from '@/features/content/monsters/components/views/MonsterView/sections';
 import { AppBadge } from '@/ui/primitives';
-import { StructuredValue, VisibilityBadge } from '@/ui/patterns';
+import { VisibilityBadge } from '@/ui/patterns';
 import {
   formatHitPointsWithAverage,
   formatMonsterArmorClassBreakdown,
@@ -12,6 +25,16 @@ import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equi
 
 export type MonsterDetailCtx = {
   armorById: Record<string, CreatureArmorCatalogEntry>;
+};
+
+const structuredBoth: Pick<
+  DetailSpec<Monster, MonsterDetailCtx>,
+  'placement' | 'rawAudience' | 'hideIfEmpty' | 'isStructured'
+> = {
+  placement: 'both',
+  rawAudience: 'platformOwner',
+  hideIfEmpty: true,
+  isStructured: true,
 };
 
 export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
@@ -79,67 +102,102 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     key: 'actions',
     label: 'Actions',
     order: 110,
-    render: (m) => <StructuredValue value={m.mechanics?.actions} />,
+    getValue: (m) => m.mechanics?.actions,
+    renderFriendly: (_v, m) => <MonsterActionsSummary monster={m} kind="actions" />,
+    ...structuredBoth,
   },
   {
     key: 'bonusActions',
     label: 'Bonus Actions',
     order: 120,
-    render: (m) => <StructuredValue value={m.mechanics?.bonusActions} />,
+    getValue: (m) => m.mechanics?.bonusActions,
+    renderFriendly: (_v, m) => <MonsterActionsSummary monster={m} kind="bonusActions" />,
+    ...structuredBoth,
   },
   {
     key: 'legendaryActions',
     label: 'Legendary Actions',
     order: 125,
-    render: (m) => <StructuredValue value={m.mechanics?.legendaryActions} />,
+    getValue: (m) => m.mechanics?.legendaryActions,
+    renderFriendly: (_v, m) => <MonsterLegendaryActionsSummary monster={m} />,
+    ...structuredBoth,
   },
   {
     key: 'traits',
     label: 'Traits',
     order: 130,
-    render: (m) => <StructuredValue value={m.mechanics?.traits} />,
+    getValue: (m) => m.mechanics?.traits,
+    renderFriendly: (_v, m) => <MonsterTraitsSummary monster={m} />,
+    ...structuredBoth,
   },
   {
     key: 'abilities',
     label: 'Abilities',
     order: 140,
-    render: (m) => <StructuredValue value={m.mechanics?.abilities} />,
+    getValue: (m) => m.mechanics?.abilities,
+    renderFriendly: (_v, m) => <MonsterAbilitiesSummary monster={m} />,
+    ...structuredBoth,
   },
   {
     key: 'senses',
     label: 'Senses',
     order: 150,
-    render: (m) => <StructuredValue value={m.mechanics?.senses} />,
+    getValue: (m) => m.mechanics?.senses,
+    renderFriendly: (_v, m) => <MonsterSensesSummary monster={m} />,
+    ...structuredBoth,
   },
   {
     key: 'proficiencies',
     label: 'Proficiencies',
     order: 160,
-    render: (m) => <StructuredValue value={m.mechanics?.proficiencies} />,
+    getValue: (m) => {
+      const proficiencies = m.mechanics?.proficiencies;
+      const savingThrows = m.mechanics?.savingThrows;
+      if (!proficiencies && !savingThrows) return undefined;
+      return { proficiencies, savingThrows };
+    },
+    renderFriendly: (_v, m) => <MonsterProficienciesSummary monster={m} />,
+    ...structuredBoth,
   },
   {
     key: 'equipment',
     label: 'Equipment',
     order: 170,
-    render: (m) => <StructuredValue value={m.mechanics?.equipment} />,
+    getValue: (m) => m.mechanics?.equipment,
+    renderFriendly: (_v, m) => <MonsterEquipmentSummary monster={m} />,
+    ...structuredBoth,
   },
   {
     key: 'immunities',
     label: 'Immunities',
     order: 180,
-    render: (m) => <StructuredValue value={m.mechanics?.immunities} />,
+    getValue: (m) => m.mechanics?.immunities,
+    renderFriendly: (_v, m) => <MonsterImmunitiesSummary monster={m} />,
+    ...structuredBoth,
+  },
+  {
+    key: 'resistances',
+    label: 'Resistances',
+    order: 185,
+    getValue: (m) => m.mechanics?.resistances,
+    renderFriendly: (_v, m) => <MonsterResistancesSummary monster={m} />,
+    ...structuredBoth,
   },
   {
     key: 'vulnerabilities',
     label: 'Vulnerabilities',
     order: 190,
-    render: (m) => <StructuredValue value={m.mechanics?.vulnerabilities} />,
+    getValue: (m) => m.mechanics?.vulnerabilities,
+    renderFriendly: (_v, m) => <MonsterVulnerabilitiesSummary monster={m} />,
+    ...structuredBoth,
   },
   {
     key: 'languages',
     label: 'Languages',
     order: 200,
-    render: (m) => <StructuredValue value={m.languages} />,
+    getValue: (m) => m.languages,
+    renderFriendly: (_v, m) => <MonsterLanguagesSummary monster={m} />,
+    ...structuredBoth,
   },
   {
     key: 'alignment',

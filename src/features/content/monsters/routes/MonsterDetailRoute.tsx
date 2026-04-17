@@ -1,9 +1,15 @@
 import { useParams } from 'react-router-dom';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { ContentDetailImageKeyValueGrid, ContentDetailScaffold } from '@/features/content/shared/components';
 import type { Monster } from '@/features/content/monsters/domain/types';
@@ -17,6 +23,7 @@ import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/regis
 export default function MonsterDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { catalog } = useCampaignRules();
   const { monsterId } = useParams<{ monsterId: string }>();
   const breadcrumbs = useBreadcrumbs();
@@ -41,9 +48,20 @@ export default function MonsterDetailRoute() {
 
   const editPath = `/campaigns/${campaignId}/world/monsters/${monsterId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, {
+  const detailCtx = {
     armorById: catalog.armorById,
-  } satisfies MonsterDetailCtx);
+  } satisfies MonsterDetailCtx;
+
+  const mainItems = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, detailCtx, {
+    section: 'main',
+  });
+
+  const isPlatformAdmin = Boolean(viewerContext?.isPlatformAdmin);
+  const advancedItems = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, detailCtx, {
+    section: 'advanced',
+    viewer: { isPlatformAdmin },
+  });
+  const showAdvancedSection = isPlatformAdmin && advancedItems.length > 0;
 
   return (
     <ContentDetailScaffold
@@ -65,9 +83,21 @@ export default function MonsterDetailRoute() {
         imageKey={monster.imageKey}
         alt={monster.name}
       >
-        <KeyValueSection title="Monster Details" items={items} columns={2} />
+        <KeyValueSection title="Monster Details" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
+      {showAdvancedSection ? (
+        <Accordion defaultExpanded={false} disableGutters sx={{ mt: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="monster-advanced-content" id="monster-advanced-header">
+            <Typography component="span" variant="subtitle1" fontWeight={600}>
+              Advanced
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <KeyValueSection title="Advanced Monster Data" items={advancedItems} columns={1} dense />
+          </AccordionDetails>
+        </Accordion>
+      ) : null}
     </ContentDetailScaffold>
   );
 }
