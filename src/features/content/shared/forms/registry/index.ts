@@ -14,7 +14,15 @@ export type {
 } from './formNodeSpec.types';
 export { isCustomFormNodeSpec, isRepeatableGroupSpec } from './formNodeSpec.types';
 export { numberRange } from '@/ui/patterns';
-export type { DetailSpec } from './detailSpec.types';
+export type {
+  DetailSpec,
+  DetailPlacement,
+  DetailAudience,
+} from './detailSpec.types';
+export {
+  isEmptyDetailValue,
+  defaultDetailRawRender,
+} from './detailSpec.helpers';
 export {
   buildFieldConfigs,
   fieldSpecToFieldConfig,
@@ -25,7 +33,10 @@ export {
   buildDetailItems,
   type BuildDetailItemsOptions,
 } from './buildDetailItems';
-export { buildDetailItemsFromSpecs } from './buildDetailItemsFromSpecs';
+export {
+  buildDetailItemsFromSpecs,
+  type BuildDetailItemsFromSpecsOptions,
+} from './buildDetailItemsFromSpecs';
 export {
   buildToInput,
   buildToFormValues,
