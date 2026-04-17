@@ -1,8 +1,7 @@
 import type { ClassContentItem } from '@/features/content/classes/domain/repo/classRepo';
-import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
+import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { abilityIdToName, type AbilityId } from '@/features/mechanics/domain/character';
-import { AppBadge } from '@/ui/primitives';
-import { VisibilityBadge } from '@/ui/patterns';
 
 export type ClassDetailCtx = Record<string, never>;
 
@@ -19,30 +18,7 @@ const primaryAbilitiesLabel = (ids: AbilityId[]): string =>
   ids?.length ? ids.map((id) => abilityIdToName(id)).join(', ') : '—';
 
 export const CLASS_DETAIL_SPECS: DetailSpec<ClassContentItem, ClassDetailCtx>[] = [
-  {
-    key: 'source',
-    label: 'Source',
-    order: 8,
-    render: (c) => (
-      <AppBadge
-        label={c.source}
-        tone={c.source === 'system' ? 'info' : 'default'}
-      />
-    ),
-    ...metaAll,
-  },
-  {
-    key: 'visibility',
-    label: 'Visibility',
-    order: 9,
-    render: (c) =>
-      c.accessPolicy && c.accessPolicy.scope !== 'public' ? (
-        <VisibilityBadge visibility={c.accessPolicy} />
-      ) : (
-        'Public'
-      ),
-    ...metaDmOrPlatformOwner,
-  },
+  ...contentDetailMetaSpecs<ClassContentItem, ClassDetailCtx>(),
   {
     key: 'name',
     label: 'Name',

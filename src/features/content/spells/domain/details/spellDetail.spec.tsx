@@ -1,5 +1,6 @@
 import type { Spell } from '@/features/content/spells/domain/types';
-import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
+import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatSpellRangeAreaDisplay } from './display/spellRangeAreaDisplay';
 import { renderSpellComponentsDisplay } from './display/spellComponentsDisplay';
 import { renderSpellAttackSaveDetailDisplay } from './display/spellAttackSaveDisplay';
@@ -10,36 +11,11 @@ import { getMagicSchoolDisplayName } from '@/features/content/shared/domain/voca
 import { classIdToName } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import { formatSpellLevelShort, SPELL_UI } from '../spellPresentation';
-import { AppBadge } from '@/ui/primitives';
-import { VisibilityBadge } from '@/ui/patterns';
 
 const classLabel = (id: string) => classIdToName(DEFAULT_SYSTEM_RULESET_ID, id);
 
 export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
-  {
-    key: 'source',
-    label: 'Source',
-    order: 8,
-    render: (spell) => (
-      <AppBadge
-        label={spell.source}
-        tone={spell.source === 'system' ? 'info' : 'default'}
-      />
-    ),
-    ...metaAll,
-  },
-  {
-    key: 'visibility',
-    label: 'Visibility',
-    order: 9,
-    render: (spell) =>
-      spell.accessPolicy && spell.accessPolicy.scope !== 'public' ? (
-        <VisibilityBadge visibility={spell.accessPolicy} />
-      ) : (
-        'Public'
-      ),
-    ...metaDmOrPlatformOwner,
-  },
+  ...contentDetailMetaSpecs<Spell, unknown>(),
   {
     key: SPELL_UI.level.key,
     label: SPELL_UI.level.ui.label,

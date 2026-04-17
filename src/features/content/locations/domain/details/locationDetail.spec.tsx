@@ -1,7 +1,6 @@
 import type { Location } from '@/features/content/locations/domain/model/location';
-import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
-import { AppBadge } from '@/ui/primitives';
-import { VisibilityBadge } from '@/ui/patterns';
+import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import type { DetailSpec } from '@/features/content/shared/forms/registry';
 
 export type LocationDetailCtx = {
   /** e.g. "16 × 12, 5ft" when a default map exists */
@@ -12,27 +11,7 @@ const formatList = (v: string[] | undefined): string =>
   v?.length ? v.join(', ') : '—';
 
 export const LOCATION_DETAIL_SPECS: DetailSpec<Location, LocationDetailCtx>[] = [
-  {
-    key: 'source',
-    label: 'Source',
-    order: 10,
-    render: (loc) => (
-      <AppBadge label={loc.source} tone={loc.source === 'system' ? 'info' : 'default'} />
-    ),
-    ...metaAll,
-  },
-  {
-    key: 'visibility',
-    label: 'Visibility',
-    order: 15,
-    render: (loc) =>
-      loc.accessPolicy && loc.accessPolicy.scope !== 'public' ? (
-        <VisibilityBadge visibility={loc.accessPolicy} />
-      ) : (
-        'Public'
-      ),
-    ...metaDmOrPlatformOwner,
-  },
+  ...contentDetailMetaSpecs<Location, LocationDetailCtx>(),
   {
     key: 'scale',
     label: 'Scale',

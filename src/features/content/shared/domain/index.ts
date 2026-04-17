@@ -1,4 +1,8 @@
 export * from './types';
+export {
+  contentDetailMetaSpecs,
+  CONTENT_DETAIL_META_ORDER,
+} from './details/contentDetailMetaSpecs';
 export * from './sourceLabels';
 export * from './vocab';
 export * from './contentPatchRepo';

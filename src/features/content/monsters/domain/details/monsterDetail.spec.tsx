@@ -1,10 +1,7 @@
 import type { Monster } from '@/features/content/monsters/domain/types';
+import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
-import {
-  metaAll,
-  metaDmOrPlatformOwner,
-  structuredMainAndAdvanced,
-} from '@/features/content/shared/forms/registry';
+import { structuredMainAndAdvanced } from '@/features/content/shared/forms/registry';
 import { getAlignmentDisplayName } from '@/features/content/shared/domain/vocab/alignment.vocab';
 import {
   MonsterAbilitiesSummary,
@@ -19,8 +16,6 @@ import {
   MonsterTraitsSummary,
   MonsterVulnerabilitiesSummary,
 } from '@/features/content/monsters/components/views/MonsterView/sections';
-import { AppBadge } from '@/ui/primitives';
-import { VisibilityBadge } from '@/ui/patterns';
 import {
   formatHitPointsWithAverage,
   formatMonsterArmorClassBreakdown,
@@ -39,30 +34,7 @@ export type MonsterDetailCtx = {
 };
 
 export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
-  {
-    key: 'source',
-    label: 'Source',
-    order: 10,
-    render: (m) => (
-      <AppBadge
-        label={m.source}
-        tone={m.source === 'system' ? 'info' : 'default'}
-      />
-    ),
-    ...metaAll,
-  },
-  {
-    key: 'visibility',
-    label: 'Visibility',
-    order: 20,
-    render: (m) =>
-      m.accessPolicy && m.accessPolicy.scope !== 'public' ? (
-        <VisibilityBadge visibility={m.accessPolicy} />
-      ) : (
-        'Public'
-      ),
-    ...metaDmOrPlatformOwner,
-  },
+  ...contentDetailMetaSpecs<Monster, MonsterDetailCtx>(),
   // { key: 'name', label: 'Name', order: 30, render: (m) => m.name },
   { key: 'type', label: 'Type', order: 40, render: (m) => getMonsterTypeDisplayName(m.type) },
   { key: 'subtype', label: 'Subtype', order: 50, render: (m) => getMonsterSubtypeDisplayName(m.subtype) },

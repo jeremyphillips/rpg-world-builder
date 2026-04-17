@@ -1,33 +1,9 @@
 import type { Race } from '@/features/content/races/domain/types';
-import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
-import { AppBadge } from '@/ui/primitives';
-import { VisibilityBadge } from '@/ui/patterns';
+import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import type { DetailSpec } from '@/features/content/shared/forms/registry';
 
 export type RaceDetailCtx = Record<string, never>;
 
 export const RACE_DETAIL_SPECS: DetailSpec<Race, RaceDetailCtx>[] = [
-  {
-    key: 'source',
-    label: 'Source',
-    order: 10,
-    render: (race) => (
-      <AppBadge
-        label={race.source}
-        tone={race.source === 'system' ? 'info' : 'default'}
-      />
-    ),
-    ...metaAll,
-  },
-  {
-    key: 'visibility',
-    label: 'Visibility',
-    order: 20,
-    render: (race) =>
-      race.accessPolicy && race.accessPolicy.scope !== 'public' ? (
-        <VisibilityBadge visibility={race.accessPolicy} />
-      ) : (
-        'Public'
-      ),
-    ...metaDmOrPlatformOwner,
-  },
+  ...contentDetailMetaSpecs<Race, RaceDetailCtx>(),
 ];

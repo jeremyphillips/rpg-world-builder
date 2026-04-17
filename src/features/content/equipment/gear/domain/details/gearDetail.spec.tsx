@@ -1,36 +1,12 @@
 import type { Gear } from '@/features/content/equipment/gear/domain/types';
-import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
+import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
-import { AppBadge } from '@/ui/primitives';
-import { VisibilityBadge } from '@/ui/patterns';
 
 export type GearDetailCtx = Record<string, never>;
 
 export const GEAR_DETAIL_SPECS: DetailSpec<Gear, GearDetailCtx>[] = [
-  {
-    key: 'source',
-    label: 'Source',
-    order: 10,
-    render: (gear) => (
-      <AppBadge
-        label={gear.source}
-        tone={gear.source === 'system' ? 'info' : 'default'}
-      />
-    ),
-    ...metaAll,
-  },
-  {
-    key: 'visibility',
-    label: 'Visibility',
-    order: 20,
-    render: (gear) =>
-      gear.accessPolicy && gear.accessPolicy.scope !== 'public' ? (
-        <VisibilityBadge visibility={gear.accessPolicy} />
-      ) : (
-        'Public'
-      ),
-    ...metaDmOrPlatformOwner,
-  },
+  ...contentDetailMetaSpecs<Gear, GearDetailCtx>(),
   {
     key: 'category',
     label: 'Category',

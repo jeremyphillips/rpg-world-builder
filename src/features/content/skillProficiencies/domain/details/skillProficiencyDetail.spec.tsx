@@ -2,10 +2,9 @@
  * Skill Proficiency detail spec — lists all fields for detail view.
  */
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
-import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
+import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { abilityIdToName } from '@/features/mechanics/domain/character';
-import { AppBadge } from '@/ui/primitives';
-import { VisibilityBadge } from '@/ui/patterns';
 
 export type SkillProficiencyDetailCtx = Record<string, never>;
 
@@ -13,30 +12,7 @@ export const SKILL_PROFICIENCY_DETAIL_SPECS: DetailSpec<
   SkillProficiency,
   SkillProficiencyDetailCtx
 >[] = [
-  {
-    key: 'source',
-    label: 'Source',
-    order: 8,
-    render: (item) => (
-      <AppBadge
-        label={item.source}
-        tone={item.source === 'system' ? 'info' : 'default'}
-      />
-    ),
-    ...metaAll,
-  },
-  {
-    key: 'visibility',
-    label: 'Visibility',
-    order: 9,
-    render: (item) =>
-      item.accessPolicy && item.accessPolicy.scope !== 'public' ? (
-        <VisibilityBadge visibility={item.accessPolicy} />
-      ) : (
-        'Public'
-      ),
-    ...metaDmOrPlatformOwner,
-  },
+  ...contentDetailMetaSpecs<SkillProficiency, SkillProficiencyDetailCtx>(),
   {
     key: 'name',
     label: 'Name',
