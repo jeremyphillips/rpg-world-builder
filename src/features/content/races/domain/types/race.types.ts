@@ -12,6 +12,7 @@ import type {
   ContentItem,
   ContentInput,
 } from '@/features/content/shared/domain/types/content.types';
+import type { CreatureSense } from '@/features/content/shared/domain/vocab/creatureSenses.types';
 
 export type RaceId = ContentId;
 
@@ -22,6 +23,10 @@ export interface RaceFields {
   imageKey?: string | null;
   /** Setting restrictions (legacy, carried forward for compatibility) */
   campaigns?: string[];
+  /** Structured grants (senses, future: other). Traceable in {@link CreatureSense} `source`. */
+  grants?: {
+    senses?: readonly CreatureSense[];
+  };
 }
 
 export type Race = ContentItem & RaceFields;

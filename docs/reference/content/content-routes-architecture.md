@@ -42,6 +42,7 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 | **`ContentDetailScaffold`** | Detail page chrome: title, breadcrumbs, edit path, optional manage; optional standalone non-public visibility badge (omit when meta drives visibility). |
 | **`ContentDetailMetaRow`** | Compact **inline** metadata under the header (source, DM / platform–only patched badge when applicable, gated visibility, etc.) — spec-driven via `buildDetailItemsFromSpecs(..., { section: 'meta' })`; not a `KeyValueSection`. |
 | **`ContentDetailImageKeyValueGrid`** | Top detail layout: **key/value column(s)** + **image column** (responsive grid). Primary shell for stat-block–style content. |
+| **`ContentDetailAdvancedAccordion`** | Shared **collapsed-by-default** accordion below the image grid for **`advancedItems`** (platform-admin raw JSON / structured rows). Renders `null` when `items` is empty — pass **`advancedItems`** from **`buildContentDetailSectionsFromSpecs`** without a separate length gate. Props: **`sectionTitle`**, **`idPrefix`** (kebab-case for stable `id` / `aria-controls`). Implemented in `src/features/content/shared/components/detail/ContentDetailAdvancedAccordion.tsx`. |
 | **`KeyValueSection`** | Renders label/value rows from `KeyValueItem[]` (often produced by builders below). |
 | **Detail spec arrays** | Declarative `DetailSpec[]` per content type (e.g. `MONSTER_DETAIL_SPECS`, `SPELL_DETAIL_SPECS`): order, labels, and how each field renders. Built with `buildDetailItemsFromSpecs` from `@/features/content/shared/forms/registry`. |
 | **Display utils** | Pure (or mostly pure) formatters under `domain/details/display/` (e.g. spell/monster display helpers): **strings and small React fragments**, no route wiring. |
@@ -55,7 +56,7 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 
 | Layer | Owns | Should not own |
 | --- | --- | --- |
-| **Route file (`*Route.tsx`)** | Data loading (hooks), campaign context, composing scaffolds/grids, calling builders with **ctx**, privilege gates (e.g. accordion visibility). | Heavy formatting, large JSX field bodies, form field definitions. |
+| **Route file (`*Route.tsx`)** | Data loading (hooks), campaign context, composing scaffolds/grids, calling builders with **ctx**. Advanced/raw visibility comes from **specs + viewer** (empty **`advancedItems`** for non–platform admins); use **`ContentDetailAdvancedAccordion`** instead of duplicating MUI accordion markup per route. | Heavy formatting, large JSX field bodies, form field definitions. |
 | **Detail spec (`*Detail.spec.ts` / `.tsx`)** | Field **order**, **labels**, **keys**, wiring to `render` / `getValue` + `renderFriendly` / `renderRaw`, `placement` (meta / main / advanced / main-and-advanced), `metaAudience`, `rawAudience`, `hideIfEmpty`. | Business rules unrelated to presentation; persistence. |
 | **Display utils** | Formatting, labels from vocabs, reusable one-line or short multi-line **text** for detail (and tests). | Fetching, React Router, campaign hooks. |
 | **View section components** | Structured **friendly** layouts (stacks, typography, section semantics). | Direct API calls; duplicating domain calculations that belong in mechanics/domain. |
@@ -63,7 +64,7 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 | **Repo / API / mappers** | CRUD, campaign scoping, `toDomain` / `toDTO`. | React components. |
 | **Persistence / server** | Storage, authorization. | UI layout. |
 
-**Anti-patterns:** Bloated route files with inline field JSX for every column; detail rows copy-pasted from form configs; image URL concatenation in each route.
+**Anti-patterns:** Bloated route files with inline field JSX for every column; detail rows copy-pasted from form configs; image URL concatenation in each route; copy-pasting the **advanced** MUI `Accordion` block per detail route instead of **`ContentDetailAdvancedAccordion`**.
 
 ---
 
@@ -89,6 +90,7 @@ For content types that use the shared detail layout:
    Passing **`viewerContext`** alone is still supported (the builder calls **`toDetailSpecViewer`** internally). **`buildDetailItemsFromSpecs(..., { section, viewer })`** remains the lower-level primitive. Page metadata (source, patched when applicable, visibility, …) belongs **next to page identity**, not inside the main stat-block grid. Set **`hideAccessPolicyBadge`** on the scaffold when the meta row replaces the legacy standalone non-public visibility badge.
 3. Use **`ContentDetailImageKeyValueGrid`** with `imageContentType`, `imageKey`, `alt`, and children.
 4. Inside the grid’s main column, render **`KeyValueSection`** with **`mainItems`** from the grouped builder (or **`buildDetailItemsFromSpecs`** when not using the grouped helper).
+5. Below the grid, render **`ContentDetailAdvancedAccordion`** with **`items={advancedItems}`**, a per-type **`sectionTitle`** (e.g. “Advanced gear data”), and a unique **`idPrefix`** (e.g. `gear`, `magic-item`, `skill-proficiency`) for accessibility. Do not reimplement the accordion in each route.
 
 ### 5.2 Spec-driven items
 
@@ -108,7 +110,7 @@ For content types that use the shared detail layout:
 
 - **Meta:** Compact inline row under the title/edit line — not `KeyValueSection` layout. Typical rows: **Source** (all viewers); **Patched** when `item.patched` and **Visibility** (both gated with `metaAudience: 'privilegedContentMeta'` — evaluated via **`canViewPrivilegedContentMeta`**; do not use ad hoc `isDm || isPlatformAdmin` in routes for these rows).
 - **Main:** User-facing, readable summaries inside **`KeyValueSection`** (view section components + display utils).
-- **Advanced:** Optional **structured JSON** (or custom `renderRaw`) for **platform admins** (`rawAudience: 'platformOwner'` → `viewer.isPlatformAdmin`), typically in a **collapsed accordion** (default collapsed) below the image grid. `placement: 'main-and-advanced'` shows friendly content in main and raw in advanced for the same spec entry — **no duplicate advanced spec array**.
+- **Advanced:** Optional **structured JSON** (or custom `renderRaw`) for **platform admins** (`rawAudience: 'platformOwner'` → `viewer.isPlatformAdmin`), presented in **`ContentDetailAdvancedAccordion`** below the image grid (**collapsed by default**). `placement: 'main-and-advanced'` shows friendly content in main and raw in advanced for the same spec entry — **no duplicate advanced spec array**.
 
 ### 5.5 Privileged content metadata policy (`canViewPrivilegedContentMeta`)
 
@@ -137,6 +139,8 @@ Dual **main + advanced** presentation is **rolled out per content type**. Types 
 **Race / Class:** Same route shell. **Race** main is mostly **description** + optional **campaigns** legacy field; **class** main replaces prior raw **`JSON.stringify`** rows with short **proficiency / progression / requirements** summaries (full structure only in **`classRawRecord`** for platform admins).
 
 **Skill proficiencies / locations:** Same shell. **Skill** main uses **class name** labels for suggested classes, **newline-separated** examples, optional **combat UI** row; **`skillProficiencyRawRecord`** for admins. **Location** main adds **description** in-grid; campaign **map grid** summary still comes from route **`ctx`**; **`locationRawRecord`** includes **connections** and **building** payloads.
+
+**Shared advanced UI:** All standardized campaign content detail routes use **`ContentDetailAdvancedAccordion`** (§3, §5.1 step 5) so layout, default-collapsed behavior, and **`KeyValueSection`** wiring stay consistent.
 
 ---
 
@@ -172,18 +176,20 @@ Conservative snapshot of cross-cutting behavior. Update this table when a conten
 
 | Content type | List | Detail | Create / Edit | Image resolver | Advanced raw view | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Monster** | standardized | **reference (complete)** | standardized | standardized | standardized | Spec-driven **meta** (`ContentDetailMetaRow`) + **main** (`KeyValueSection` in grid) + **advanced** (platform-admin accordion, single `MONSTER_DETAIL_SPECS`); route uses `toDetailSpecViewer` + `buildContentDetailSectionsFromSpecs`. |
+| **Monster** | standardized | **reference (complete)** | standardized | standardized | standardized | Spec-driven **meta** (`ContentDetailMetaRow`) + **main** (`KeyValueSection` in grid) + **advanced** (`ContentDetailAdvancedAccordion`, single `MONSTER_DETAIL_SPECS`); route uses `toDetailSpecViewer` + `buildContentDetailSectionsFromSpecs`. |
 | **Gear** | standardized | **reference (complete)** | standardized | standardized | standardized | Same shell as Monster: `GEAR_DETAIL_SPECS`, `imageContentType="gear"`. |
 | **Weapon** | standardized | **reference (complete)** | standardized | standardized | standardized | `WEAPON_DETAIL_SPECS` + `imageContentType="weapon"` + platform-admin **Full record (JSON)** accordion; vocab labels for category/mode/damage type/properties. |
 | **Armor** | standardized | **reference (complete)** | standardized | standardized | standardized | `ARMOR_DETAIL_SPECS` + `imageContentType="armor"`; dex label via detail `ctx`; advanced full-record JSON. |
 | **Magic item** | standardized | **reference (complete)** | standardized | standardized (`equipment`) | standardized | `MAGIC_ITEM_DETAIL_SPECS`; main shows friendly slot/rarity + **effects** summary (`text` / `kind`); single advanced JSON row (`magicItemRawRecord`). `imageContentType` remains **`equipment`** (shared fallback map). |
-| **Spell** | standardized | **reference (complete)** | standardized | standardized | standardized | `SPELL_DETAIL_SPECS`: shared meta/patched + existing display helpers for level/school/range/casting/duration/components/attack-save/damage/classes; **description** in main; `spellRawRecord` advanced JSON; route uses `toDetailSpecViewer`, collapsed accordion, `imageContentType="spell"`, main grid **`columns={4}`** preserved. |
+| **Spell** | standardized | **reference (complete)** | standardized | standardized | standardized | `SPELL_DETAIL_SPECS`: shared meta/patched + existing display helpers for level/school/range/casting/duration/components/attack-save/damage/classes; **description** in main; `spellRawRecord` advanced JSON; `ContentDetailAdvancedAccordion`; `imageContentType="spell"`; main grid **`columns={4}`** preserved. |
 | **Equipment hub** | standardized | — | — | — | — | Campaign **equipment** landing groups weapon/armor/gear/magic-item list routes; each kind’s detail row above is the source of truth for that type’s shell. |
 | **Class** | standardized | **reference (complete)** | standardized | partial | standardized | `CLASS_DETAIL_SPECS`: friendly **proficiencies** / **progression** / **requirements** / **subclass** lines; **`classRawRecord`** advanced JSON; `imageContentType="class"`. |
 | **Race** | standardized | **reference (complete)** | standardized | partial | standardized | `RACE_DETAIL_SPECS`: **description** + optional **campaigns** in main; **`raceRawRecord`** advanced; `imageContentType="race"`. |
 | **Location** | standardized | **reference (complete)** | standardized | partial | standardized | `LOCATION_DETAIL_SPECS` on **`LocationContentItem`**; **map grid** line from async `ctx`; **`locationRawRecord`** advanced; `imageContentType="location"`. Workspace/map authoring still documented under [locations/](../locations/). |
 | **Skill proficiencies** | standardized | **reference (complete)** | standardized | partial | standardized | `SKILL_PROFICIENCY_DETAIL_SPECS`; suggested classes via **`classIdToName`**; **`skillProficiencyRawRecord`** advanced; `imageContentType="skillProficiencies"`. |
 | **Character / PC / NPC** | partial | partial | partial | partial | not applicable | **Not** the same module tree as `features/content/*` campaign lists; character builder and sheet UIs follow overlapping but separate patterns. |
+
+**Advanced raw view (§8 column):** For types marked **standardized** here, the collapsed **Advanced** surface is implemented with **`ContentDetailAdvancedAccordion`** + spec-driven **`advancedItems`** (not per-route accordion markup). See §3 and §5.1.
 
 **Legend (intentionally coarse):**
 

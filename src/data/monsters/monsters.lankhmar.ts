@@ -199,7 +199,7 @@ export const monstersLankhmar: readonly Monster[] = [
     type: "beast",
     sizeCategory: "large",
     languages: [],
-    senses: { special: [{ type: "low-light" }] },
+    // senses: { special: [{ type: "low-light" }] },
     meta: {
       createdFrom: { preset: "2e", setting: "lankhmar" },
       source: { book: "Lankhmar: City of Adventure" },
@@ -820,7 +820,7 @@ export const monstersLankhmar: readonly Monster[] = [
     type: "fey",
     sizeCategory: "small",
     languages: [{ id: "thunder-child" }, { id: "common" }],
-    senses: { special: [{ type: "infravision", range: 120 }] },
+    // senses: { special: [{ type: "infravision", range: 120 }] },
     meta: {
       createdFrom: { preset: "2e", setting: "lankhmar" },
       source: { book: "Lankhmar: City of Adventure" },

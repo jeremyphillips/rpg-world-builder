@@ -5,6 +5,7 @@ import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.ty
 import type { AbilityKey, AbilityRef } from '@/features/mechanics/domain/character'
 import type { BreakdownToken } from '@/features/mechanics/domain/resolution/resolvers/stat-resolver'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/combat/resolution/combat-action.types'
+import type { CreatureSenses } from '@/features/content/shared/domain/vocab/creatureSenses.types'
 
 export type CombatantSide = 'party' | 'enemies'
 
@@ -65,13 +66,10 @@ export type CombatantHideEligibilityFeatureFlagsRuntime = {
 }
 
 /**
- * Snapshot of authored senses on a combatant (e.g. from monster stat block). Used for darkvision / blindsight
- * range in viewer perception; optional on PCs until character/race wiring exists.
+ * Snapshot of authored senses on a combatant (e.g. monster stat block or character race grants).
+ * Used for darkvision / blindsight range in viewer perception.
  */
-export type CombatantSensesSnapshot = {
-  special?: Array<{ type: string; range?: number; notes?: string }>
-  passivePerception?: number
-}
+export type CombatantSensesSnapshot = CreatureSenses
 
 export type CombatantSkillRuntimeSnapshot = {
   /** Ruleset or creature proficiency bonus; used as `bonus × proficiencyLevel` for skills when deriving modifiers. */

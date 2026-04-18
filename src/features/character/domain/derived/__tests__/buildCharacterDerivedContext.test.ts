@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { CharacterClass } from '@/features/content/classes/domain/types'
 import { buildCharacterQueryContext } from '@/features/character/domain/query/buildCharacterQueryContext'
 import type { Character } from '@/features/character/domain/types'
+import { getDarkvisionRange } from '@/features/content/shared/domain/vocab/creatureSenses.selectors'
 
 import { buildCharacterDerivedContext } from '../buildCharacterDerivedContext'
 import {
@@ -23,6 +24,30 @@ function minimalCharacter(overrides: Partial<Character> = {}): Character {
 }
 
 describe('buildCharacterDerivedContext', () => {
+  it('has empty senses when character has no race', () => {
+    const character = minimalCharacter()
+    const query = buildCharacterQueryContext(character)
+    const derived = buildCharacterDerivedContext({ character, query })
+    expect(derived.senses.special).toEqual([])
+  })
+
+  it('applies system race darkvision grants (elf 60, dwarf 120, dragonborn 60, gnome 60, orc 120, tiefling 60)', () => {
+    const cases: { race: string; ft: number }[] = [
+      { race: 'elf', ft: 60 },
+      { race: 'dwarf', ft: 120 },
+      { race: 'dragonborn', ft: 60 },
+      { race: 'gnome', ft: 60 },
+      { race: 'orc', ft: 120 },
+      { race: 'tiefling', ft: 60 },
+    ]
+    for (const { race, ft } of cases) {
+      const character = minimalCharacter({ race })
+      const query = buildCharacterQueryContext(character)
+      const derived = buildCharacterDerivedContext({ character, query })
+      expect(getDarkvisionRange(derived.senses), race).toBe(ft)
+    }
+  })
+
   it('merges fighter weapon categories (simple, martial) and armor (allArmor, shields)', () => {
     const character = minimalCharacter({ classes: [{ classId: 'fighter', level: 3 }] })
     const query = buildCharacterQueryContext(character)

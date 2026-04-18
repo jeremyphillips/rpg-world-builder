@@ -1,19 +1,13 @@
-export type SenseType =
-  | 'darkvision'
-  | 'blindsight'
-  | 'tremorsense'
-  | 'truesense'
-  | 'normal'
-  | 'infravision'
-  | 'low-light';
+import type { CreatureSense, CreatureSenses } from '@/features/content/shared/domain/vocab/creatureSenses.types'
 
-export type MonsterSense = {
-  type: SenseType;
-  range?: number;
-  notes?: string;
-};
+export type SenseType = CreatureSense['type']
 
-export type MonsterSenses = {
-  special?: MonsterSense[];
-  passivePerception?: number;
-};
+export type MonsterSense = CreatureSense
+
+/**
+ * Stat-block authoring: `special` may be omitted when only passive Perception appears.
+ * Use {@link normalizeCreatureSenses} from creature senses vocab for engine/UI normalized shape.
+ */
+export type MonsterSenses = Omit<CreatureSenses, 'special'> & {
+  special?: CreatureSense[]
+}

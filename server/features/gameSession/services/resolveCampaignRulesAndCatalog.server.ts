@@ -6,7 +6,10 @@ import { normalizeCampaignRulesetPatch } from '@/features/mechanics/domain/rules
 import { resolveCampaignRuleset } from '@/features/mechanics/domain/rulesets/resolve/ruleset'
 import { buildCampaignCatalog, type CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog'
 import { getSystemRuleset, systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog'
-import type { CampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/types/ruleset.types'
+import type {
+  CampaignRulesetPatch,
+  SystemRulesetId,
+} from '@/features/mechanics/domain/rulesets/types/ruleset.types'
 import type { Ruleset } from '@/shared/types/ruleset'
 
 import { getPatchByCampaignId } from '../../campaign/services/rulesetPatch.service'
@@ -62,7 +65,7 @@ function campaignSpellDocToSpell(d: spellsService.CampaignSpellDoc): Spell {
  */
 export async function resolveCampaignRulesAndCatalogForGameSession(
   campaignId: string,
-): Promise<{ ruleset: Ruleset; catalog: CampaignCatalogAdmin }> {
+): Promise<{ ruleset: Ruleset; catalog: CampaignCatalogAdmin; systemId: SystemRulesetId }> {
   const patchDoc = await getPatchByCampaignId(campaignId)
   const rawPatch: CampaignRulesetPatch = patchDoc
     ? (patchDoc as unknown as CampaignRulesetPatch)
@@ -90,5 +93,5 @@ export async function resolveCampaignRulesAndCatalogForGameSession(
   }
 
   const catalog = buildCampaignCatalog(systemCatalog, overrides, ruleset)
-  return { ruleset, catalog }
+  return { ruleset, catalog, systemId: rawPatch.systemId }
 }

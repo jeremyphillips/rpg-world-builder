@@ -1,9 +1,14 @@
 import type { EquipmentProficiency } from '@/features/mechanics/domain/proficiencies/proficiency-adapters'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 
 import type { CharacterDerivedContext, BuildCharacterDerivedContextArgs } from './characterDerived.types'
 import { collectClassGrantedToolIds } from './grants/collectClassGrantedTools'
 import { collectClassGrantedWeaponArmor } from './grants/collectClassGrantedWeaponArmor'
 import { mergeEquipmentProficiency } from './grants/mergeEquipmentProficiency'
+import {
+  buildCreatureSensesFromResolvedRace,
+  resolveRaceForCharacter,
+} from './grants/raceSenseGrants'
 
 const EMPTY_WEAPON_ARMOR: EquipmentProficiency = { categories: [], items: [] }
 
@@ -15,7 +20,8 @@ const EMPTY_WEAPON_ARMOR: EquipmentProficiency = { categories: [], items: [] }
  */
 export function buildCharacterDerivedContext(args: BuildCharacterDerivedContextArgs): CharacterDerivedContext {
   const { character, query, catalogs, rulesetId } = args
-  const resolveOpts = { classesById: catalogs?.classesById, rulesetId }
+  const systemRulesetId = rulesetId ?? DEFAULT_SYSTEM_RULESET_ID
+  const resolveOpts = { classesById: catalogs?.classesById, rulesetId: systemRulesetId }
 
   const grantedWeaponArmor = collectClassGrantedWeaponArmor(character.classes, resolveOpts)
   const grantedToolIds = collectClassGrantedToolIds(character.classes, resolveOpts)
@@ -24,7 +30,14 @@ export function buildCharacterDerivedContext(args: BuildCharacterDerivedContextA
   const baseToolIds = new Set<string>()
   const grantedSkillIds = new Set<string>()
 
+  const race = resolveRaceForCharacter(character.race ?? query.identity.raceId ?? undefined, {
+    rulesetId: systemRulesetId,
+    racesById: catalogs?.racesById,
+  })
+  const senses = buildCreatureSensesFromResolvedRace(race)
+
   return {
+    senses,
     proficiencies: {
       base: {
         skillIds: baseSkillIds,

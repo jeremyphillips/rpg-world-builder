@@ -1,16 +1,12 @@
 import { useParams } from 'react-router-dom';
-import Accordion from '@mui/material/Accordion';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import AccordionSummary from '@mui/material/AccordionSummary';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
+  ContentDetailAdvancedAccordion,
   ContentDetailImageKeyValueGrid,
   ContentDetailMetaRow,
   ContentDetailScaffold,
@@ -62,8 +58,6 @@ export default function GearDetailRoute() {
     viewer,
   });
 
-  const showAdvancedSection = Boolean(viewer?.isPlatformAdmin) && advancedItems.length > 0;
-
   return (
     <ContentDetailScaffold
       title={gear.name}
@@ -84,26 +78,11 @@ export default function GearDetailRoute() {
         <KeyValueSection title="" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
-      {showAdvancedSection ? (
-        <Accordion
-          defaultExpanded={false}
-          disableGutters
-          sx={{ mt: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}
-        >
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="gear-advanced-content"
-            id="gear-advanced-header"
-          >
-            <Typography component="span" variant="subtitle1" fontWeight={600}>
-              Advanced
-            </Typography>
-          </AccordionSummary>
-          <AccordionDetails>
-            <KeyValueSection title="Advanced gear data" items={advancedItems} columns={1} dense />
-          </AccordionDetails>
-        </Accordion>
-      ) : null}
+      <ContentDetailAdvancedAccordion
+        items={advancedItems}
+        sectionTitle="Advanced gear data"
+        idPrefix="gear"
+      />
     </ContentDetailScaffold>
   );
 }

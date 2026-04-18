@@ -1,8 +1,10 @@
+import { normalizeCreatureSenses } from '@/features/content/shared/domain/vocab/creatureSenses.selectors';
+import { getCreatureSenseTypeDisplayName } from '@/features/content/shared/domain/vocab/creatureSenses.vocab';
 import type { MonsterSense, MonsterSenses } from '@/features/content/monsters/domain/types/monster-senses.types';
 import { humanizeKebabCase } from '@/features/content/monsters/domain/details/display/monsterDisplayFormatUtils';
 
 function formatSenseLabel(type: MonsterSense['type']): string {
-  return humanizeKebabCase(type);
+  return getCreatureSenseTypeDisplayName(type) ?? humanizeKebabCase(type);
 }
 
 function formatSenseEntry(sense: MonsterSense): string {
@@ -22,16 +24,17 @@ function formatSenseEntry(sense: MonsterSense): string {
 export function formatMonsterSensesLine(senses: MonsterSenses | undefined): string {
   if (!senses) return '—';
 
+  const normalized = normalizeCreatureSenses(senses);
   const parts: string[] = [];
 
-  if (senses.special?.length) {
-    for (const s of senses.special) {
+  if (normalized.special.length) {
+    for (const s of normalized.special) {
       parts.push(formatSenseEntry(s));
     }
   }
 
-  if (senses.passivePerception != null) {
-    parts.push(`passive Perception ${senses.passivePerception}`);
+  if (normalized.passivePerception != null) {
+    parts.push(`passive Perception ${normalized.passivePerception}`);
   }
 
   return parts.length > 0 ? parts.join('\n') : '—';
