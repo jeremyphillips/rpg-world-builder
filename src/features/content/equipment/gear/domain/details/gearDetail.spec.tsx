@@ -1,5 +1,5 @@
 import type { Gear } from '@/features/content/equipment/gear/domain/types';
-import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
 
@@ -7,6 +7,7 @@ export type GearDetailCtx = Record<string, never>;
 
 export const GEAR_DETAIL_SPECS: DetailSpec<Gear, GearDetailCtx>[] = [
   ...contentDetailMetaSpecs<Gear, GearDetailCtx>(),
+  ...contentDetailPatchedMetaSpecs<Gear, GearDetailCtx>(),
   {
     key: 'category',
     label: 'Category',

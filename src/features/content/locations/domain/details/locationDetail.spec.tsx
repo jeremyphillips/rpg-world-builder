@@ -1,5 +1,5 @@
 import type { Location } from '@/features/content/locations/domain/model/location';
-import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 
 export type LocationDetailCtx = {
@@ -12,6 +12,7 @@ const formatList = (v: string[] | undefined): string =>
 
 export const LOCATION_DETAIL_SPECS: DetailSpec<Location, LocationDetailCtx>[] = [
   ...contentDetailMetaSpecs<Location, LocationDetailCtx>(),
+  ...contentDetailPatchedMetaSpecs<Location, LocationDetailCtx>(),
   {
     key: 'scale',
     label: 'Scale',

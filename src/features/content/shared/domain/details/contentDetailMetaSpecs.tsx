@@ -9,7 +9,8 @@ import { VisibilityBadge } from '@/ui/patterns';
  */
 export const CONTENT_DETAIL_META_ORDER = {
   source: 8,
-  visibility: 9,
+  /** Leave 9 free for type-specific meta (e.g. patched) between source and visibility. */
+  visibility: 10,
 } as const;
 
 /**
@@ -44,6 +45,25 @@ export function contentDetailMetaSpecs<
           'Public'
         ),
       ...metaDmOrPlatformOwner,
+    },
+  ];
+}
+
+/**
+ * Meta row: system-patch indicator — badge only (no caption). Order 9 between source and visibility.
+ */
+export function contentDetailPatchedMetaSpecs<
+  T extends Pick<ContentBase, 'patched'>,
+  Ctx = unknown,
+>(): DetailSpec<T, Ctx>[] {
+  return [
+    {
+      key: 'patched',
+      label: null,
+      order: 9,
+      hidden: (item) => !item.patched,
+      render: () => <AppBadge label="Patched" tone="warning" size="small" />,
+      ...metaAll,
     },
   ];
 }

@@ -15,7 +15,7 @@ import {
 import type { LocationContentItem } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { locationRepo, listLocationMaps, LOCATION_DETAIL_SPECS } from '@/features/content/locations/domain';
@@ -95,11 +95,6 @@ export default function LocationDetailRoute() {
       hideAccessPolicyBadge
     >
       <ContentDetailMetaRow items={metaItems} />
-      {loc.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
 
       <ContentDetailImageKeyValueGrid
         imageContentType="location"

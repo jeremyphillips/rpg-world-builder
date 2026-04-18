@@ -1,5 +1,5 @@
 import type { Spell } from '@/features/content/spells/domain/types';
-import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatSpellRangeAreaDisplay } from './display/spellRangeAreaDisplay';
 import { renderSpellComponentsDisplay } from './display/spellComponentsDisplay';
@@ -16,6 +16,7 @@ const classLabel = (id: string) => classIdToName(DEFAULT_SYSTEM_RULESET_ID, id);
 
 export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
   ...contentDetailMetaSpecs<Spell, unknown>(),
+  ...contentDetailPatchedMetaSpecs<Spell, unknown>(),
   {
     key: SPELL_UI.level.key,
     label: SPELL_UI.level.ui.label,

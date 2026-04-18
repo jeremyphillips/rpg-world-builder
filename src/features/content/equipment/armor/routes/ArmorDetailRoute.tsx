@@ -15,7 +15,7 @@ import { armorRepo } from '../domain/repo/armorRepo';
 import type { Armor } from '@/features/content/equipment/armor/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { ARMOR_DETAIL_SPECS } from '../domain/details/armorDetail.spec';
@@ -67,11 +67,6 @@ export default function ArmorDetailRoute() {
       hideAccessPolicyBadge
     >
       <ContentDetailMetaRow items={metaItems} />
-      {armor.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
 
       <ContentDetailImageKeyValueGrid
         imageContentType="armor"

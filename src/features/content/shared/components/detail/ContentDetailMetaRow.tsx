@@ -29,34 +29,39 @@ export default function ContentDetailMetaRow({ items }: ContentDetailMetaRowProp
         mb: 4,
       }}
     >
-      {items.map((item, i) => (
-        <Box
-          key={i}
-          component="span"
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 0.75,
-            maxWidth: '100%',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <Typography component="span" variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
-            {item.label}
-          </Typography>
+      {items.map((item, i) => {
+        const showLabel = item.label != null && item.label !== '';
+        return (
           <Box
+            key={i}
             component="span"
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
-              minWidth: 0,
-              typography: 'body2',
+              gap: showLabel ? 0.75 : 0,
+              maxWidth: '100%',
+              whiteSpace: 'nowrap',
             }}
           >
-            {item.value ?? '—'}
+            {showLabel ? (
+              <Typography component="span" variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                {item.label}
+              </Typography>
+            ) : null}
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                minWidth: 0,
+                typography: 'body2',
+              }}
+            >
+              {item.value ?? '—'}
+            </Box>
           </Box>
-        </Box>
-      ))}
+        );
+      })}
     </Box>
   );
 }

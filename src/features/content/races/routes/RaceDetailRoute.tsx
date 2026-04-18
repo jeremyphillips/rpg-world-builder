@@ -14,7 +14,7 @@ import {
 import type { Race } from '@/features/content/races/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { raceRepo, RACE_DETAIL_SPECS } from '@/features/content/races/domain';
@@ -64,11 +64,6 @@ export default function RaceDetailRoute() {
       hideAccessPolicyBadge
     >
       <ContentDetailMetaRow items={metaItems} />
-      {race.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
 
       <ContentDetailImageKeyValueGrid
         imageContentType="race"

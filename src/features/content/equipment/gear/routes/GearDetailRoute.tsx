@@ -15,11 +15,10 @@ import { gearRepo } from '../domain/repo/gearRepo';
 import type { Gear } from '@/features/content/equipment/gear/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { GEAR_DETAIL_SPECS } from '../domain/details/gearDetail.spec';
-import { AppAlert } from '@/ui/primitives';
 
 export default function GearDetailRoute() {
   const { campaignId } = useActiveCampaign();
@@ -62,11 +61,6 @@ export default function GearDetailRoute() {
       hideAccessPolicyBadge
     >
       <ContentDetailMetaRow items={metaItems} />
-      {gear.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
 
       <ContentDetailImageKeyValueGrid
         imageContentType="gear"

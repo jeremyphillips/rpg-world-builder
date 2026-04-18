@@ -1,5 +1,5 @@
 import type { ClassContentItem } from '@/features/content/classes/domain/repo/classRepo';
-import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { abilityIdToName, type AbilityId } from '@/features/mechanics/domain/character';
 
@@ -19,6 +19,7 @@ const primaryAbilitiesLabel = (ids: AbilityId[]): string =>
 
 export const CLASS_DETAIL_SPECS: DetailSpec<ClassContentItem, ClassDetailCtx>[] = [
   ...contentDetailMetaSpecs<ClassContentItem, ClassDetailCtx>(),
+  ...contentDetailPatchedMetaSpecs<ClassContentItem, ClassDetailCtx>(),
   {
     key: 'name',
     label: 'Name',

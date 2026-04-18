@@ -15,7 +15,7 @@ import { weaponRepo } from '../domain/repo/weaponRepo';
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
 import { WEAPON_DETAIL_SPECS } from '../domain/details/weaponDetail.spec';
@@ -62,11 +62,6 @@ export default function WeaponDetailRoute() {
       hideAccessPolicyBadge
     >
       <ContentDetailMetaRow items={metaItems} />
-      {weapon.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
 
       <ContentDetailImageKeyValueGrid
         imageContentType="weapon"

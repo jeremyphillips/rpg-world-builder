@@ -1,7 +1,6 @@
 import type { Monster } from '@/features/content/monsters/domain/types';
-import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
-import type { DetailSpec } from '@/features/content/shared/forms/registry';
-import { structuredMainAndAdvanced } from '@/features/content/shared/forms/registry';
+import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
+import { structuredMainAndAdvanced, type DetailSpec } from '@/features/content/shared/forms/registry';
 import { getAlignmentDisplayName } from '@/features/content/shared/domain/vocab/alignment.vocab';
 import {
   MonsterAbilitiesSummary,
@@ -35,6 +34,7 @@ export type MonsterDetailCtx = {
 
 export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
   ...contentDetailMetaSpecs<Monster, MonsterDetailCtx>(),
+  ...contentDetailPatchedMetaSpecs<Monster, MonsterDetailCtx>(),
   // { key: 'name', label: 'Name', order: 30, render: (m) => m.name },
   { key: 'type', label: 'Type', order: 40, render: (m) => getMonsterTypeDisplayName(m.type) },
   { key: 'subtype', label: 'Subtype', order: 50, render: (m) => getMonsterSubtypeDisplayName(m.subtype) },

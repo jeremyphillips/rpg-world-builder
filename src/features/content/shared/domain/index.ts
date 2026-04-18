@@ -1,6 +1,7 @@
 export * from './types';
 export {
   contentDetailMetaSpecs,
+  contentDetailPatchedMetaSpecs,
   CONTENT_DETAIL_META_ORDER,
 } from './details/contentDetailMetaSpecs';
 export * from './sourceLabels';

@@ -1,5 +1,5 @@
 import type { Armor } from '@/features/content/equipment/armor/domain/types';
-import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
 
@@ -9,6 +9,7 @@ export type ArmorDetailCtx = {
 
 export const ARMOR_DETAIL_SPECS: DetailSpec<Armor, ArmorDetailCtx>[] = [
   ...contentDetailMetaSpecs<Armor, ArmorDetailCtx>(),
+  ...contentDetailPatchedMetaSpecs<Armor, ArmorDetailCtx>(),
   {
     key: 'category',
     label: 'Category',

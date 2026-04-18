@@ -40,7 +40,7 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 | **`AppDataGrid`** | Primary table for **list** routes: columns, filters, sorting, viewer-aware visibility. Primitive details stay in [appdatagrid.md](../appdatagrid.md). |
 | **`ContentTypeListPage` / campaign list prefs** | Higher-level list shell: toolbar layout registry, preferences keys—see [appdatagrid.md](../appdatagrid.md) and [forms.md](../forms.md). |
 | **`ContentDetailScaffold`** | Detail page chrome: title, breadcrumbs, edit path, optional manage; optional standalone non-public visibility badge (omit when meta drives visibility). |
-| **`ContentDetailMetaRow`** | Compact **inline** metadata under the header (source, gated visibility, etc.) — spec-driven via `buildDetailItemsFromSpecs(..., { section: 'meta' })`; not a `KeyValueSection`. |
+| **`ContentDetailMetaRow`** | Compact **inline** metadata under the header (source, optional patched badge, gated visibility, etc.) — spec-driven via `buildDetailItemsFromSpecs(..., { section: 'meta' })`; not a `KeyValueSection`. |
 | **`ContentDetailImageKeyValueGrid`** | Top detail layout: **key/value column(s)** + **image column** (responsive grid). Primary shell for stat-block–style content. |
 | **`KeyValueSection`** | Renders label/value rows from `KeyValueItem[]` (often produced by builders below). |
 | **Detail spec arrays** | Declarative `DetailSpec[]` per content type (e.g. `MONSTER_DETAIL_SPECS`, `SPELL_DETAIL_SPECS`): order, labels, and how each field renders. Built with `buildDetailItemsFromSpecs` from `@/features/content/shared/forms/registry`. |
@@ -74,7 +74,7 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 For content types that use the shared detail layout:
 
 1. Wrap in **`ContentDetailScaffold`**.
-2. Optionally render **`ContentDetailMetaRow`**. Prefer **`buildContentDetailSectionsFromSpecs({ specs, item, ctx, viewerContext })`** from the forms registry: it returns **`metaItems`**, **`mainItems`**, **`advancedItems`**, and **`viewer`** (via **`toDetailSpecViewer`**) in one call, composing **`buildDetailItemsFromSpecs`** for each section with a consistent viewer. For one-off rows, **`buildDetailItemsFromSpecs(detailSpecs, entity, ctx, { section: 'meta' | 'main' | 'advanced', viewer })`** remains the primitive. Page metadata (source, visibility, …) belongs **next to page identity**, not inside the main stat-block grid. Set **`hideAccessPolicyBadge`** on the scaffold when the meta row replaces the legacy standalone non-public visibility badge.
+2. Optionally render **`ContentDetailMetaRow`**. Prefer **`buildContentDetailSectionsFromSpecs({ specs, item, ctx, viewerContext })`** from the forms registry: it returns **`metaItems`**, **`mainItems`**, **`advancedItems`**, and **`viewer`** (via **`toDetailSpecViewer`**) in one call, composing **`buildDetailItemsFromSpecs`** for each section with a consistent viewer. For one-off rows, **`buildDetailItemsFromSpecs(detailSpecs, entity, ctx, { section: 'meta' | 'main' | 'advanced', viewer })`** remains the primitive. Page metadata (source, optional patched, visibility, …) belongs **next to page identity**, not inside the main stat-block grid. Set **`hideAccessPolicyBadge`** on the scaffold when the meta row replaces the legacy standalone non-public visibility badge.
 3. Use **`ContentDetailImageKeyValueGrid`** with `imageContentType`, `imageKey`, `alt`, and children.
 4. Inside the grid’s main column, render **`KeyValueSection`** with **`mainItems`** from the grouped builder (or **`buildDetailItemsFromSpecs`** when not using the grouped helper).
 
@@ -87,11 +87,14 @@ For content types that use the shared detail layout:
   - **`metaAudience`:** who may see a meta row (`all` | `platformOwner` | `dm-or-platformOwner`). Evaluated only for `section: 'meta'` (DM/co-DM or platform admin for `dm-or-platformOwner`; see `canViewDetailMetaDmOrPlatformOwner` in shared capabilities).
   - **Dual presentation:** `getValue`, `renderFriendly`, optional `renderRaw`, **`rawAudience`** for `section: 'advanced'` (`all` | `platformOwner` — platform-admin-only raw JSON).
 - **Presets** (e.g. `metaAll`, `metaDmOrPlatformOwner`, `structuredMainAndAdvanced`, `structuredAdvancedOnly`) live in the shared forms registry for concise spec authoring. Use **`structuredAdvancedOnly`** when a field should appear only in the platform-admin advanced section (raw JSON), not in main.
-- **Shared meta rows:** `contentDetailMetaSpecs()` in `@/features/content/shared/domain` (see `domain/details/contentDetailMetaSpecs.tsx`) returns the standard **Source** + **Visibility** meta entries for any `ContentBase` item so per-type `*Detail.spec.tsx` files do not duplicate them.
+- **Shared meta rows:** In `@/features/content/shared/domain` (`domain/details/contentDetailMetaSpecs.tsx`):
+  - **`contentDetailMetaSpecs()`** — standard **Source** (order 8) and **Visibility** (order 10) rows for any item with `ContentBase` `source` and `accessPolicy`.
+  - **`contentDetailPatchedMetaSpecs()`** — optional **Patched** row when `item.patched`: **badge only** (no label column; `ContentDetailMetaRow` omits empty captions), warning tone, **order 9** between source and visibility, `metaAll` audience. Spread it in the same `*Detail.spec.tsx` array immediately after `...contentDetailMetaSpecs()` (or equivalent ordering) for each campaign content type that uses the shared detail shell.
+  - **Do not** render a separate Patched block in `*DetailRoute.tsx`; keep the indicator in meta specs so layout and ordering stay consistent.
 
 ### 5.3 Surfaces: meta, main, advanced
 
-- **Meta:** Compact inline row under the title/edit line — not `KeyValueSection` layout. Use for shared header-adjacent metadata (source, visibility with audience gating).
+- **Meta:** Compact inline row under the title/edit line — not `KeyValueSection` layout. Use for shared header-adjacent metadata (source, optional **Patched** indicator when `item.patched`, visibility with audience gating).
 - **Main:** User-facing, readable summaries inside **`KeyValueSection`** (view section components + display utils).
 - **Advanced:** Optional **structured JSON** (or custom `renderRaw`) for **platform admins**, typically in a **collapsed accordion** below the image grid. `placement: 'main-and-advanced'` shows friendly content in main and raw in advanced for the same spec.
 
@@ -135,7 +138,7 @@ Conservative snapshot of cross-cutting behavior. Update this table when a conten
 
 | Content type | List | Detail | Create / Edit | Image resolver | Advanced raw view | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Monster** | standardized | standardized | standardized | standardized | standardized | Reference: meta row (source + gated visibility) + main summaries + platform-admin advanced raw JSON; single `MONSTER_DETAIL_SPECS` array. |
+| **Monster** | standardized | standardized | standardized | standardized | standardized | Reference: meta row (source + optional patched + gated visibility) + main summaries + platform-admin advanced raw JSON; single `MONSTER_DETAIL_SPECS` array. |
 | **Spell** | standardized | standardized | standardized | standardized | planned | Detail uses shared grid + specs; extend dual presentation when needed. |
 | **Equipment** (weapons, armor, gear, magic items) | standardized | standardized | standardized | partial | planned | Hub + per-kind routes; image keys vary by kind. |
 | **Class** | standardized | standardized | standardized | partial | planned | — |

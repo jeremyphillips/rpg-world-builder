@@ -1,5 +1,5 @@
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
-import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
 
@@ -7,6 +7,7 @@ export type WeaponDetailCtx = Record<string, never>;
 
 export const WEAPON_DETAIL_SPECS: DetailSpec<Weapon, WeaponDetailCtx>[] = [
   ...contentDetailMetaSpecs<Weapon, WeaponDetailCtx>(),
+  ...contentDetailPatchedMetaSpecs<Weapon, WeaponDetailCtx>(),
   {
     key: 'category',
     label: 'Category',

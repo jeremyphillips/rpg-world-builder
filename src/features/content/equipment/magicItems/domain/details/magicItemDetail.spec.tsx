@@ -1,5 +1,5 @@
 import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types';
-import { contentDetailMetaSpecs } from '@/features/content/shared/domain';
+import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import { structuredAdvancedOnly, type DetailSpec } from '@/features/content/shared/forms/registry';
 import { formatMoney } from '@/shared/money';
 
@@ -7,6 +7,7 @@ export type MagicItemDetailCtx = Record<string, never>;
 
 export const MAGIC_ITEM_DETAIL_SPECS: DetailSpec<MagicItem, MagicItemDetailCtx>[] = [
   ...contentDetailMetaSpecs<MagicItem, MagicItemDetailCtx>(),
+  ...contentDetailPatchedMetaSpecs<MagicItem, MagicItemDetailCtx>(),
   {
     key: 'slot',
     label: 'Slot',
