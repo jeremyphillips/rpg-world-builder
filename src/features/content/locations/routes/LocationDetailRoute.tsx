@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
@@ -17,7 +21,10 @@ import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCamp
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 import { locationRepo, listLocationMaps, LOCATION_DETAIL_SPECS } from '@/features/content/locations/domain';
 
 export default function LocationDetailRoute() {
@@ -77,12 +84,15 @@ export default function LocationDetailRoute() {
     mapGridSummary,
   };
 
-  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
     specs: LOCATION_DETAIL_SPECS,
     item: loc,
     ctx: detailCtx,
-    viewerContext,
+    viewer,
   });
+
+  const showAdvancedSection = Boolean(viewer?.isPlatformAdmin) && advancedItems.length > 0;
 
   return (
     <ContentDetailScaffold
@@ -101,14 +111,29 @@ export default function LocationDetailRoute() {
         imageKey={loc.imageKey}
         alt={loc.name}
       >
-        <KeyValueSection title="Location details" items={mainItems} columns={2} />
+        <KeyValueSection title="" items={mainItems} columns={2} />
       </ContentDetailImageKeyValueGrid>
 
-      {loc.description && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3, mt: 2 }}>
-          {loc.description}
-        </Typography>
-      )}
+      {showAdvancedSection ? (
+        <Accordion
+          defaultExpanded={false}
+          disableGutters
+          sx={{ mt: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="location-advanced-content"
+            id="location-advanced-header"
+          >
+            <Typography component="span" variant="subtitle1" fontWeight={600}>
+              Advanced
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <KeyValueSection title="Advanced location data" items={advancedItems} columns={1} dense />
+          </AccordionDetails>
+        </Accordion>
+      ) : null}
     </ContentDetailScaffold>
   );
 }
