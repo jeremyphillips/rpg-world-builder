@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { canViewDetailMetaDmOrPlatformOwner } from '@/shared/domain/capabilities';
+import { canViewPrivilegedContentMeta } from '@/shared/domain/capabilities';
 import type { ViewerContext } from '@/shared/domain/capabilities';
 
 import { defaultDetailRawRender, isEmptyDetailValue } from './detailSpec.helpers';
@@ -42,7 +42,7 @@ function metaAudienceAllows(
   const a = metaAudience ?? 'all';
   if (a === 'all') return true;
   if (a === 'platformOwner') return Boolean(viewer?.isPlatformAdmin);
-  return canViewDetailMetaDmOrPlatformOwner(viewer);
+  return canViewPrivilegedContentMeta(viewer);
 }
 
 function advancedAudienceAllows(

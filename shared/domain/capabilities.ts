@@ -44,10 +44,14 @@ export function canViewDmScoped(ctx: ViewerContext): boolean {
 }
 
 /**
- * Whether the viewer may see **detail meta** rows gated as `dm-or-platformOwner`
- * (DM / co-DM or platform admin — not campaign owner alone).
+ * Whether the viewer may see **privileged content metadata** (patched state, restricted
+ * visibility meta, and similar DM/platform-admin signals) on any surface — detail meta rows,
+ * list filters, row badges, etc.
+ *
+ * Allowed: platform admin, or DM / co-DM. Not allowed for campaign owner alone without
+ * those roles. False when no viewer is present.
  */
-export function canViewDetailMetaDmOrPlatformOwner(
+export function canViewPrivilegedContentMeta(
   viewer: Partial<Pick<ViewerContext, 'isPlatformAdmin' | 'campaignRole'>> | null | undefined,
 ): boolean {
   if (!viewer) return false

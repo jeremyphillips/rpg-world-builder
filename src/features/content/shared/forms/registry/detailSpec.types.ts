@@ -12,12 +12,17 @@ export type DetailSurface = 'meta' | 'main' | 'advanced' | 'main-and-advanced';
 export type DetailPlacement = DetailSurface | 'both';
 
 /**
- * Who may see a **meta** row when building with `section: 'meta'`.
+ * Who may see **meta** rows (detail shell) or other UI that mirrors the same audience rules.
  *
- * - `dm-or-platformOwner`: DM / co-DM or platform admin (see `canViewDetailMetaDmOrPlatformOwner`).
+ * - `privilegedContentMeta`: DM / co-DM or platform admin (`canViewPrivilegedContentMeta` in `shared/domain/capabilities`).
  * - `platformOwner`: platform admin only (`isPlatformAdmin`).
  */
-export type DetailMetaAudience = 'all' | 'platformOwner' | 'dm-or-platformOwner';
+export type ContentMetaAudience = 'all' | 'platformOwner' | 'privilegedContentMeta';
+
+/**
+ * @deprecated Use {@link ContentMetaAudience}. Name kept for existing detail-spec imports.
+ */
+export type DetailMetaAudience = ContentMetaAudience;
 
 /**
  * Who may see the advanced/raw cell when building with `section: 'advanced'`.
@@ -61,7 +66,7 @@ export type DetailSpec<T, Ctx = unknown> = {
   /**
    * Audience for **meta** rows when `section: 'meta'`. Default `all`.
    */
-  metaAudience?: DetailMetaAudience;
+  metaAudience?: ContentMetaAudience;
 
   /**
    * Audience for the advanced/raw row when `section: 'advanced'`. Default `all`.

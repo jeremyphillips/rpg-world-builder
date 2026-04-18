@@ -118,7 +118,7 @@ describe('buildDetailItemsFromSpecs', () => {
         label: 'Visibility',
         order: 20,
         placement: 'meta',
-        metaAudience: 'dm-or-platformOwner',
+        metaAudience: 'privilegedContentMeta',
         render: () => 'dm-only',
       },
       { key: 'name', label: 'Name', order: 5, render: () => 'n' },

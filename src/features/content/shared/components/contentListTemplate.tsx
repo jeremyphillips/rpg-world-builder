@@ -19,7 +19,7 @@ import type { Visibility } from '@/shared/types/visibility';
 import type { GridRenderCellParams, GridRowClassNameParams } from '@mui/x-data-grid';
 import {
   canViewContent,
-  canViewDetailMetaDmOrPlatformOwner,
+  canViewPrivilegedContentMeta,
   type ViewerContext,
 } from '@/shared/domain/capabilities';
 import {
@@ -450,7 +450,7 @@ export function makePostFilters<T extends CampaignContentListRow>(params: {
     });
   }
 
-  if (viewerContext && canViewDetailMetaDmOrPlatformOwner(viewerContext)) {
+  if (viewerContext && canViewPrivilegedContentMeta(viewerContext)) {
     filters.push({
       id: 'patched',
       label: 'Patched',

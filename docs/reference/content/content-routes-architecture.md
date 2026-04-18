@@ -84,17 +84,17 @@ For content types that use the shared detail layout:
 - **`buildContentDetailSectionsFromSpecs`** / **`toDetailSpecViewer`:** route-level DRY helpers for campaign **`ViewerContext`** → detail viewer slice and **`meta` / `main` / `advanced`** row lists.
 - **`buildDetailItemsFromSpecs`** supports:
   - **`placement`:** `meta` | `main` | `advanced` | `main-and-advanced` (legacy `both` is normalized to `main-and-advanced`).
-  - **`metaAudience`:** who may see a meta row (`all` | `platformOwner` | `dm-or-platformOwner`). Evaluated only for `section: 'meta'` (DM/co-DM or platform admin for `dm-or-platformOwner`; see `canViewDetailMetaDmOrPlatformOwner` in shared capabilities).
+  - **`metaAudience`:** who may see a meta row (`all` | `platformOwner` | `privilegedContentMeta`). Evaluated only for `section: 'meta'` (DM/co-DM or platform admin for `privilegedContentMeta`; see `canViewPrivilegedContentMeta` in shared capabilities — same rule for list filters and other privileged metadata UI).
   - **Dual presentation:** `getValue`, `renderFriendly`, optional `renderRaw`, **`rawAudience`** for `section: 'advanced'` (`all` | `platformOwner` — platform-admin-only raw JSON).
-- **Presets** (e.g. `metaAll`, `metaDmOrPlatformOwner`, `structuredMainAndAdvanced`, `structuredAdvancedOnly`) live in the shared forms registry for concise spec authoring. Use **`structuredAdvancedOnly`** when a field should appear only in the platform-admin advanced section (raw JSON), not in main.
+- **Presets** (e.g. `metaAll`, `metaPrivilegedContentMeta`, `structuredMainAndAdvanced`, `structuredAdvancedOnly`) live in the shared forms registry for concise spec authoring. Use **`structuredAdvancedOnly`** when a field should appear only in the platform-admin advanced section (raw JSON), not in main.
 - **Shared meta rows:** In `@/features/content/shared/domain` (`domain/details/contentDetailMetaSpecs.tsx`):
   - **`contentDetailMetaSpecs()`** — standard **Source** (order 8) and **Visibility** (order 10) rows for any item with `ContentBase` `source` and `accessPolicy`.
-  - **`contentDetailPatchedMetaSpecs()`** — optional **Patched** row when `item.patched`: **badge only** (no label column; `ContentDetailMetaRow` omits empty captions), warning tone, **order 9** between source and visibility, **`metaDmOrPlatformOwner`** audience (same as **Visibility** — DM / co-DM or platform admin only). Spread it in the same `*Detail.spec.tsx` array immediately after `...contentDetailMetaSpecs()` (or equivalent ordering) for each campaign content type that uses the shared detail shell.
+  - **`contentDetailPatchedMetaSpecs()`** — optional **Patched** row when `item.patched`: **badge only** (no label column; `ContentDetailMetaRow` omits empty captions), warning tone, **order 9** between source and visibility, **`metaPrivilegedContentMeta`** audience (same as **Visibility** — DM / co-DM or platform admin only). Spread it in the same `*Detail.spec.tsx` array immediately after `...contentDetailMetaSpecs()` (or equivalent ordering) for each campaign content type that uses the shared detail shell.
   - **Do not** render a separate Patched block in `*DetailRoute.tsx`; keep the indicator in meta specs so layout and ordering stay consistent.
 
 ### 5.3 Surfaces: meta, main, advanced
 
-- **Meta:** Compact inline row under the title/edit line — not `KeyValueSection` layout. Typical rows: **Source** (all viewers); **Patched** when `item.patched` and **Visibility** (both use `metaDmOrPlatformOwner` — DM / co-DM or platform admin only).
+- **Meta:** Compact inline row under the title/edit line — not `KeyValueSection` layout. Typical rows: **Source** (all viewers); **Patched** when `item.patched` and **Visibility** (both use `metaPrivilegedContentMeta` / `privilegedContentMeta` — DM / co-DM or platform admin only).
 - **Main:** User-facing, readable summaries inside **`KeyValueSection`** (view section components + display utils).
 - **Advanced:** Optional **structured JSON** (or custom `renderRaw`) for **platform admins**, typically in a **collapsed accordion** below the image grid. `placement: 'main-and-advanced'` shows friendly content in main and raw in advanced for the same spec.
 

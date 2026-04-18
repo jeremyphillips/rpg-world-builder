@@ -18,11 +18,13 @@ export type {
   DetailSpec,
   DetailSurface,
   DetailPlacement,
+  ContentMetaAudience,
   DetailMetaAudience,
   DetailAudience,
 } from './detailSpec.types';
 export {
   metaAll,
+  metaPrivilegedContentMeta,
   metaDmOrPlatformOwner,
   mainOnly,
   structuredMainAndAdvanced,

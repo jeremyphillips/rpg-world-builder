@@ -1,5 +1,5 @@
 import type { ContentBase } from '@/features/content/shared/domain/types/content.types';
-import { type DetailSpec, metaAll, metaDmOrPlatformOwner } from '@/features/content/shared/forms/registry';
+import { type DetailSpec, metaAll, metaPrivilegedContentMeta } from '@/features/content/shared/forms/registry';
 import { AppBadge } from '@/ui/primitives';
 import { VisibilityBadge } from '@/ui/patterns';
 
@@ -44,14 +44,14 @@ export function contentDetailMetaSpecs<
         ) : (
           'Public'
         ),
-      ...metaDmOrPlatformOwner,
+      ...metaPrivilegedContentMeta,
     },
   ];
 }
 
 /**
  * Meta row: system-patch indicator — badge only (no caption). Order 9 between source and visibility.
- * Same meta audience as visibility ({@link metaDmOrPlatformOwner}): DM / co-DM or platform admin only.
+ * Same audience as visibility ({@link metaPrivilegedContentMeta}): DM / co-DM or platform admin only.
  */
 export function contentDetailPatchedMetaSpecs<
   T extends Pick<ContentBase, 'patched'>,
@@ -64,7 +64,7 @@ export function contentDetailPatchedMetaSpecs<
       order: 9,
       hidden: (item) => !item.patched,
       render: () => <AppBadge label="Patched" tone="warning" size="small" />,
-      ...metaDmOrPlatformOwner,
+      ...metaPrivilegedContentMeta,
     },
   ];
 }

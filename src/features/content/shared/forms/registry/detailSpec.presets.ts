@@ -1,16 +1,19 @@
-import type { DetailMetaAudience, DetailSpec } from './detailSpec.types';
+import type { ContentMetaAudience, DetailSpec } from './detailSpec.types';
 
 /** Meta row, visible to all viewers (e.g. source). */
 export const metaAll = {
   placement: 'meta' as const,
-  metaAudience: 'all' as const satisfies DetailMetaAudience,
+  metaAudience: 'all' as const satisfies ContentMetaAudience,
 };
 
-/** Meta row for DM / co-DM or platform admin only (e.g. visibility). */
-export const metaDmOrPlatformOwner = {
+/** Meta row for privileged content metadata (DM / co-DM or platform admin only). */
+export const metaPrivilegedContentMeta = {
   placement: 'meta' as const,
-  metaAudience: 'dm-or-platformOwner' as const satisfies DetailMetaAudience,
+  metaAudience: 'privilegedContentMeta' as const satisfies ContentMetaAudience,
 };
+
+/** @deprecated Use {@link metaPrivilegedContentMeta}. */
+export const metaDmOrPlatformOwner = metaPrivilegedContentMeta;
 
 /** Main KeyValueSection only. */
 export const mainOnly = {
