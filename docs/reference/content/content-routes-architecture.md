@@ -132,6 +132,8 @@ Dual **main + advanced** presentation is **rolled out per content type**. Types 
 
 **Rollout notes (equipment):** **Gear** was the first non-monster adoption (empty detail `ctx`). **Weapons**, **armor**, and **magic items** follow the same route shape: explicit `toDetailSpecViewer` + grouped section build, meta row, image grid, collapsed advanced accordion for `rawAudience: 'platformOwner'` specs. Armor is the one equipment detail that passes a small **`ctx`** (dex contribution label). Magic items keep **`imageContentType="equipment"`** because that key is already in the shared fallback map (same fallback asset as other generic equipment).
 
+**Spell:** Same shell; main section keeps the wider **`KeyValueSection`** column count (4) for the stat-block grid. Advanced **`spellRawRecord`** includes `effectGroups`, `resolution`, `scaling`, and full `description` object for platform admins.
+
 ---
 
 ## 6. Image handling architecture
@@ -171,7 +173,7 @@ Conservative snapshot of cross-cutting behavior. Update this table when a conten
 | **Weapon** | standardized | **reference (complete)** | standardized | standardized | standardized | `WEAPON_DETAIL_SPECS` + `imageContentType="weapon"` + platform-admin **Full record (JSON)** accordion; vocab labels for category/mode/damage type/properties. |
 | **Armor** | standardized | **reference (complete)** | standardized | standardized | standardized | `ARMOR_DETAIL_SPECS` + `imageContentType="armor"`; dex label via detail `ctx`; advanced full-record JSON. |
 | **Magic item** | standardized | **reference (complete)** | standardized | standardized (`equipment`) | standardized | `MAGIC_ITEM_DETAIL_SPECS`; main shows friendly slot/rarity + **effects** summary (`text` / `kind`); single advanced JSON row (`magicItemRawRecord`). `imageContentType` remains **`equipment`** (shared fallback map). |
-| **Spell** | standardized | standardized | standardized | standardized | planned | Detail uses shared grid + specs; dual main/advanced rollout optional. |
+| **Spell** | standardized | **reference (complete)** | standardized | standardized | standardized | `SPELL_DETAIL_SPECS`: shared meta/patched + existing display helpers for level/school/range/casting/duration/components/attack-save/damage/classes; **description** in main; `spellRawRecord` advanced JSON; route uses `toDetailSpecViewer`, collapsed accordion, `imageContentType="spell"`, main grid **`columns={4}`** preserved. |
 | **Equipment hub** | standardized | — | — | — | — | Campaign **equipment** landing groups weapon/armor/gear/magic-item list routes; each kind’s detail row above is the source of truth for that type’s shell. |
 | **Class** | standardized | standardized | standardized | partial | planned | — |
 | **Race** | standardized | standardized | standardized | partial | planned | — |

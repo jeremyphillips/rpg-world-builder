@@ -14,72 +14,112 @@ import { formatSpellLevelShort, SPELL_UI } from '../spellPresentation';
 
 const classLabel = (id: string) => classIdToName(DEFAULT_SYSTEM_RULESET_ID, id);
 
-export const SPELL_DETAIL_SPECS: DetailSpec<Spell, unknown>[] = [
-  ...contentDetailMetaSpecs<Spell, unknown>(),
-  ...contentDetailPatchedMetaSpecs<Spell, unknown>(),
+export type SpellDetailCtx = Record<string, never>;
+
+/** Platform-admin advanced JSON: stable snapshot of persisted-relevant fields. */
+function spellAdvancedRecord(spell: Spell): Record<string, unknown> {
+  const scopeMeta: Record<string, unknown> =
+    spell.source === 'system'
+      ? { systemId: (spell as Spell & { systemId?: string }).systemId }
+      : { campaignId: (spell as Spell & { campaignId?: string }).campaignId };
+
+  return {
+    id: spell.id,
+    name: spell.name,
+    source: spell.source,
+    patched: spell.patched,
+    ...scopeMeta,
+    accessPolicy: spell.accessPolicy,
+    school: spell.school,
+    level: spell.level,
+    classes: spell.classes,
+    castingTime: spell.castingTime,
+    range: spell.range,
+    duration: spell.duration,
+    components: spell.components,
+    deliveryMethod: spell.deliveryMethod,
+    effectGroups: spell.effectGroups,
+    scaling: spell.scaling,
+    resolution: spell.resolution,
+    description: spell.description,
+    tags: spell.tags,
+    imageKey: spell.imageKey,
+  };
+}
+
+export const SPELL_DETAIL_SPECS: DetailSpec<Spell, SpellDetailCtx>[] = [
+  ...contentDetailMetaSpecs<Spell, SpellDetailCtx>(),
+  ...contentDetailPatchedMetaSpecs<Spell, SpellDetailCtx>(),
   {
     key: SPELL_UI.level.key,
     label: SPELL_UI.level.ui.label,
-    order: 10,
+    order: 40,
     render: (spell) => formatSpellLevelShort(spell.level),
   },
   {
     key: SPELL_UI.school.key,
     label: SPELL_UI.school.ui.label,
-    order: 20,
+    order: 45,
     render: (spell) => getMagicSchoolDisplayName(spell.school),
   },
   {
     key: 'range',
     label: 'Range/Area',
-    order: 20,
+    order: 50,
     render: (spell) => formatSpellRangeAreaDisplay(spell),
   },
   {
     key: 'castingTime',
     label: 'Casting Time',
-    order: 21,
+    order: 55,
     render: (spell) => renderSpellCastingTimeDetailDisplay(spell),
   },
   {
     key: 'duration',
     label: 'Duration',
-    order: 24,
+    order: 60,
     render: (spell) => renderSpellDurationDetailDisplay(spell),
   },
   {
     key: 'components',
     label: 'Components',
-    order: 25,
+    order: 65,
     render: (spell) => renderSpellComponentsDisplay(spell),
   },
   {
     key: 'attack-save',
     label: 'Attack/Save',
-    order: 26,
+    order: 70,
     render: (spell) => renderSpellAttackSaveDetailDisplay(spell),
   },
   {
     key: 'damage-effects',
     label: 'Damage Type/Effects',
-    order: 27,
+    order: 75,
     render: (spell) => renderSpellDamageEffectsDetailDisplay(spell),
   },
   {
     key: SPELL_UI.classes.key,
     label: SPELL_UI.classes.ui.label,
-    order: 30,
+    order: 80,
     render: (spell) =>
       spell.classes.map((c) => classLabel(c)).join(', ') || '—',
   },
-  // {
-  //   key: 'effects',
-  //   label: 'Effects',
-  //   order: 60,
-  //   render: (spell) => {
-  //     const arr = spell.effects;
-  //     if (!arr || arr.length === 0) return '—';
-  //     return `${arr.length} effect(s)`;
-  //   },
-  // },
+  {
+    key: 'description',
+    label: 'Description',
+    order: 90,
+    hidden: (spell) => !spell.description.full?.trim(),
+    render: (spell) => (
+      <span style={{ whiteSpace: 'pre-line' }}>{spell.description.full}</span>
+    ),
+  },
+  {
+    key: 'spellRawRecord',
+    label: 'Full record (JSON)',
+    order: 2000,
+    placement: 'advanced',
+    rawAudience: 'platformOwner',
+    getValue: (spell) => spellAdvancedRecord(spell),
+  },
 ];

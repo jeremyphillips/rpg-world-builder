@@ -1,7 +1,11 @@
 import { useParams } from 'react-router-dom';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
@@ -17,7 +21,10 @@ import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCamp
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 import { SPELL_DETAIL_SPECS } from '@/features/content/spells/domain';
 
 export default function SpellDetailRoute() {
@@ -47,12 +54,15 @@ export default function SpellDetailRoute() {
 
   const editPath = `/campaigns/${campaignId}/world/spells/${spellId}/edit`;
 
-  const { metaItems, mainItems } = buildContentDetailSectionsFromSpecs({
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
     specs: SPELL_DETAIL_SPECS,
     item: spell,
     ctx: {},
-    viewerContext,
+    viewer,
   });
+
+  const showAdvancedSection = Boolean(viewer?.isPlatformAdmin) && advancedItems.length > 0;
 
   return (
     <ContentDetailScaffold
@@ -71,14 +81,29 @@ export default function SpellDetailRoute() {
         imageKey={spell.imageKey}
         alt={spell.name}
       >
-        <KeyValueSection items={mainItems} columns={4} sx={{ mb: 0 }} />
+        <KeyValueSection title="" items={mainItems} columns={4} sx={{ mb: 0 }} />
       </ContentDetailImageKeyValueGrid>
 
-      {spell.description.full && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3, mt: 2 }}>
-          {spell.description.full}
-        </Typography>
-      )}
+      {showAdvancedSection ? (
+        <Accordion
+          defaultExpanded={false}
+          disableGutters
+          sx={{ mt: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}
+        >
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="spell-advanced-content"
+            id="spell-advanced-header"
+          >
+            <Typography component="span" variant="subtitle1" fontWeight={600}>
+              Advanced
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <KeyValueSection title="Advanced spell data" items={advancedItems} columns={1} dense />
+          </AccordionDetails>
+        </Accordion>
+      ) : null}
     </ContentDetailScaffold>
   );
 }
