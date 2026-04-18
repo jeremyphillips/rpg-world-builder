@@ -9,10 +9,11 @@ It is the **umbrella** reference for cross-cutting content UI patterns. It does 
 | Topic | See instead |
 | --- | --- |
 | **Monster stat-block semantics, AC, equipment modeling, effects** | [Monster authoring](./monster-authoring.md) |
+| **Content/CMS vs mechanics, character vs monster ownership, shared vocabulary, encounter adapters** | [Content vs mechanics boundaries](./content-vs-mechanics-boundaries.md) |
 | **AppDataGrid API, filters, toolbar internals, naming** | [AppDataGrid reference](../appdatagrid.md) |
 | **Form system mechanics** (field specs, dynamic forms) | [forms.md](../forms.md) |
 
-**Boundary rule:** If guidance applies to **many** content types (routing shape, detail specs, images, privileges), it belongs **here**. If it is **monster data semantics** or **authoring rules** for monsters, it belongs in **monster-authoring.md**. If it is **grid primitive** behavior, it belongs in **appdatagrid.md**.
+**Boundary rule:** If guidance applies to **many** content types (routing shape, detail specs, images, privileges), it belongs **here**. If it is **monster data semantics** or **authoring rules** for monsters, it belongs in **monster-authoring.md**. If it is **grid primitive** behavior, it belongs in **appdatagrid.md**. If the question is **where CMS/content ends and mechanics, encounter runtime, or shared vocab begins**, use **[content vs mechanics boundaries](./content-vs-mechanics-boundaries.md)**—this doc stays **route/UI** focused.
 
 ---
 
@@ -59,7 +60,7 @@ Route files should **compose** these pieces rather than reimplementing layouts a
 | **Route file (`*Route.tsx`)** | Data loading (hooks), campaign context, composing scaffolds/grids, calling builders with **ctx**. Advanced/raw visibility comes from **specs + viewer** (empty **`advancedItems`** for non–platform admins); use **`ContentDetailAdvancedAccordion`** instead of duplicating MUI accordion markup per route. | Heavy formatting, large JSX field bodies, form field definitions. |
 | **Detail spec (`*Detail.spec.ts` / `.tsx`)** | Field **order**, **labels**, **keys**, wiring to `render` / `getValue` + `renderFriendly` / `renderRaw`, `placement` (meta / main / advanced / main-and-advanced), `metaAudience`, `rawAudience`, `hideIfEmpty`. | Business rules unrelated to presentation; persistence. |
 | **Display utils** | Formatting, labels from vocabs, reusable one-line or short multi-line **text** for detail (and tests). | Fetching, React Router, campaign hooks. |
-| **View section components** | Structured **friendly** layouts (stacks, typography, section semantics). | Direct API calls; duplicating domain calculations that belong in mechanics/domain. |
+| **View section components** | Structured **friendly** layouts (stacks, typography, section semantics). | Direct API calls; duplicating domain calculations that belong in mechanics/domain (see [content vs mechanics boundaries](./content-vs-mechanics-boundaries.md) §2, §8). |
 | **Form registries** | Edit/create **controls**, validation hooks, mapping to DTO shapes. | Detail-only presentation; duplicating detail spec rows. |
 | **Repo / API / mappers** | CRUD, campaign scoping, `toDomain` / `toDTO`. | React components. |
 | **Persistence / server** | Storage, authorization. | UI layout. |
@@ -204,13 +205,15 @@ Conservative snapshot of cross-cutting behavior. Update this table when a conten
 
 | Document | Focus |
 | --- | --- |
+| [Content vs mechanics boundaries](./content-vs-mechanics-boundaries.md) | Layer ownership (`features/content/**`, character, `packages/mechanics`, encounter builders); shared vocabulary vs derivation; ruleset/system id; anti-patterns. |
 | [AppDataGrid reference](../appdatagrid.md) | Grid primitive, filters, toolbar, imports—**not** route orchestration. |
 | [Monster authoring](./monster-authoring.md) | Monster **data** and **authoring** semantics only. |
 | [forms.md](../forms.md) | Form system, `ContentTypeListPage`, field specs. |
+| [Character query layer](../character-query-layer.md) | `CharacterQueryContext` vs `CharacterDerivedContext`; query/derived boundaries. |
 | [locations/README.md](../locations/README.md) | Location workspace and map-specific flows (supplements list/detail for locations). |
 
 ---
 
 ## Document maintenance
 
-When adding a new **campaign content type**, update §8 and link new route files or domain folders here if they establish a new pattern. Keep **one** status matrix in this file to avoid scattering rollout notes across feature READMEs unless a feature needs a deep dive.
+When adding a new **campaign content type**, update §8 and link new route files or domain folders here if they establish a new pattern. Keep **one** status matrix in this file to avoid scattering rollout notes across feature READMEs unless a feature needs a deep dive. For **cross-layer** ownership (e.g. stat math, perception, encounter snapshots vs CMS presentation), align with [content vs mechanics boundaries](./content-vs-mechanics-boundaries.md) so logic does not drift into routes.
