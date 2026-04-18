@@ -11,8 +11,15 @@ import type { Visibility } from '@/shared/types/visibility';
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import type { CharacterClass } from '@/features/content/classes/domain/types';
 import { getSystemClasses, getSystemClass } from '@/features/mechanics/domain/rulesets/system/classes';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 // ---------------------------------------------------------------------------
@@ -200,19 +207,17 @@ export const classRepo = {
       getContentPatch(campaignId),
     ]);
 
-    const classPatches = contentPatch?.patches?.classes ?? {};
     const campaignIds = new Set(campaign.map((c) => c.id));
-
-    const patchedSystem: ClassContentItem[] = system
-      .filter((c) => !campaignIds.has(c.id))
-      .map((c): ClassContentItem => {
-        const patch = classPatches[c.id];
-        if (!patch) return { ...c, source: 'system', systemId } as ClassContentItem;
-        const merged = applyContentPatch<CharacterClass>(c, patch as Partial<CharacterClass>);
-        return { ...merged, source: 'system', systemId, patched: true } as ClassContentItem;
-      });
-
-    const merged: ClassContentItem[] = [...patchedSystem, ...campaign];
+    const mergedCore = mergeSystemCampaignWithPatches(
+      [...system],
+      campaign,
+      getPatchMapForType(contentPatch, 'classes'),
+    );
+    const merged: ClassContentItem[] = mergedCore.map((c): ClassContentItem =>
+      campaignIds.has(c.id)
+        ? (c as ClassContentItem)
+        : ({ ...c, source: 'system', systemId } as ClassContentItem),
+    );
 
     let results = merged.map(toSummary);
 
@@ -235,11 +240,11 @@ export const classRepo = {
     if (!systemClass) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const classPatch = contentPatch?.patches?.classes?.[id];
-    if (!classPatch) return { ...systemClass, source: 'system', systemId } as ClassContentItem;
-
-    const merged = applyContentPatch<CharacterClass>(systemClass, classPatch as Partial<CharacterClass>);
-    return { ...merged, source: 'system', systemId, patched: true } as ClassContentItem;
+    const patched = resolveSystemEntryWithPatch(
+      systemClass,
+      getEntryPatch(contentPatch, 'classes', id),
+    );
+    return { ...patched, source: 'system', systemId } as ClassContentItem;
   },
 
   async createEntry(campaignId: string, input: ClassInput): Promise<ClassContentItem> {

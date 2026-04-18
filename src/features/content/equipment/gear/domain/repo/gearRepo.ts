@@ -10,8 +10,15 @@ import type { Gear, GearSummary, GearInput, GearFields } from '@/features/conten
 import { getSystemGear, getSystemGearEntry } from '@/features/mechanics/domain/rulesets/system/gear';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import { campaignGearRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import { moneyToCp } from '@/shared/money';
 import { weightToLb } from '@/shared/weight';
 
@@ -69,22 +76,11 @@ export const gearRepo: CampaignContentRepo<Gear, GearSummary, GearInput> = {
       getContentPatch(campaignId),
     ]);
 
-    const gearPatches = contentPatch?.patches?.gear ?? {};
-    const campaignIds = new Set(campaign.map(c => c.id));
-
-    const patchedSystem: Gear[] = system
-      .filter(g => !campaignIds.has(g.id))
-      .map((g): Gear => {
-        const patch = gearPatches[g.id];
-        if (!patch) return g;
-        const merged = applyContentPatch<Gear>(g, patch as Partial<Gear>);
-        return { ...merged, patched: true };
-      });
-
-    const merged: Gear[] = [
-      ...patchedSystem,
-      ...campaign.map(campaignEntryToGear),
-    ];
+    const merged = mergeSystemCampaignWithPatches(
+      system,
+      campaign.map(campaignEntryToGear),
+      getPatchMapForType(contentPatch, 'gear'),
+    );
 
     let results = merged.map(toSummary);
 
@@ -107,11 +103,10 @@ export const gearRepo: CampaignContentRepo<Gear, GearSummary, GearInput> = {
     if (!systemGear) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const gearPatch = contentPatch?.patches?.gear?.[id];
-    if (!gearPatch) return systemGear;
-
-    const merged = applyContentPatch<Gear>(systemGear, gearPatch as Partial<Gear>);
-    return { ...merged, patched: true };
+    return resolveSystemEntryWithPatch(
+      systemGear,
+      getEntryPatch(contentPatch, 'gear', id),
+    );
   },
 
   async createEntry(

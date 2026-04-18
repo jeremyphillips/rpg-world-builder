@@ -22,8 +22,16 @@ import type { Visibility } from '@/shared/types/visibility';
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import type { Race, RaceSummary, RaceInput } from '@/features/content/races/domain/types';
 import { getSystemRaces, getSystemRace } from '@/features/mechanics/domain/rulesets/system/races';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+  summariesFromCatalogWithPatches,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 // ---------------------------------------------------------------------------
@@ -187,23 +195,18 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
 
     if (catalog) {
       const racesById = catalog.racesAllById ?? catalog.racesById;
-      const allowedSet = new Set(catalog.raceAllowedIds ?? []);
 
       if (!racesById) {
         return [];
       }
 
       const contentPatch = await getContentPatch(campaignId);
-      const racePatches = contentPatch?.patches?.races ?? {};
-
-      const treatAllAsAllowed = catalog.raceAllowedIds === undefined;
-      const results: RaceSummary[] = Object.values(racesById).map((race) => {
-        const r = race as Race;
-        const patchedFromPatch = r.source === 'system' && Boolean(racePatches[r.id]);
-        return toSummary(
-          { ...r, patched: patchedFromPatch || Boolean(r.patched) },
-          treatAllAsAllowed || allowedSet.has(race.id),
-        );
+      let results = summariesFromCatalogWithPatches({
+        catalogById: racesById as Record<string, Race>,
+        patchDoc: contentPatch,
+        contentTypeKey: 'races',
+        allowedIds: catalog.raceAllowedIds,
+        toSummary,
       });
 
       if (opts?.search) {
@@ -218,19 +221,11 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
       getContentPatch(campaignId),
     ]);
 
-    const racePatches = contentPatch?.patches?.races ?? {};
-    const campaignIds = new Set(campaign.map((r) => r.id));
-
-    const patchedSystem: Race[] = system
-      .filter((r) => !campaignIds.has(r.id))
-      .map((r): Race => {
-        const patch = racePatches[r.id];
-        if (!patch) return r;
-        const merged = applyContentPatch<Race>(r, patch as Partial<Race>);
-        return { ...merged, patched: true };
-      });
-
-    const merged: Race[] = [...patchedSystem, ...campaign];
+    const merged = mergeSystemCampaignWithPatches(
+      [...system],
+      campaign,
+      getPatchMapForType(contentPatch, 'races'),
+    );
 
     let results = merged.map((r) => toSummary(r, true));
 
@@ -253,11 +248,10 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
     if (!systemRace) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const racePatch = contentPatch?.patches?.races?.[id];
-    if (!racePatch) return systemRace;
-
-    const merged = applyContentPatch<Race>(systemRace, racePatch as Partial<Race>);
-    return { ...merged, patched: true };
+    return resolveSystemEntryWithPatch(
+      systemRace,
+      getEntryPatch(contentPatch, 'races', id),
+    );
   },
 
   async createEntry(

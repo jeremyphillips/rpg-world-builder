@@ -18,8 +18,15 @@ import {
   getSystemSkillProficiencies,
   getSystemSkillProficiency,
 } from '@/features/mechanics/domain/rulesets/system/skillProficiencies';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 // ---------------------------------------------------------------------------
@@ -187,26 +194,11 @@ export const skillProficiencyRepo: CampaignContentRepo<
       getContentPatch(campaignId),
     ]);
 
-    const skillProficiencyPatches =
-      contentPatch?.patches?.skillProficiencies ?? {};
-    const campaignIds = new Set(campaign.map((c) => c.id));
-
-    const patchedSystem: SkillProficiency[] = system
-      .filter((s) => !campaignIds.has(s.id))
-      .map((s): SkillProficiency => {
-        const patch = skillProficiencyPatches[s.id];
-        if (!patch) return s;
-        const merged = applyContentPatch<SkillProficiency>(
-          s,
-          patch as Partial<SkillProficiency>,
-        );
-        return { ...merged, patched: true };
-      });
-
-    const merged: SkillProficiency[] = [
-      ...patchedSystem,
-      ...campaign,
-    ];
+    const merged = mergeSystemCampaignWithPatches(
+      [...system],
+      campaign,
+      getPatchMapForType(contentPatch, 'skillProficiencies'),
+    );
 
     let results = merged;
 
@@ -229,14 +221,10 @@ export const skillProficiencyRepo: CampaignContentRepo<
     if (!systemEntry) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const patch = contentPatch?.patches?.skillProficiencies?.[id];
-    if (!patch) return systemEntry;
-
-    const merged = applyContentPatch<SkillProficiency>(
+    return resolveSystemEntryWithPatch(
       systemEntry,
-      patch as Partial<SkillProficiency>,
+      getEntryPatch(contentPatch, 'skillProficiencies', id),
     );
-    return { ...merged, patched: true };
   },
 
   async createEntry(

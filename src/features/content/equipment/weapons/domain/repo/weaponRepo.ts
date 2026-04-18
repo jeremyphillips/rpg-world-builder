@@ -18,8 +18,15 @@ import type { CampaignContentRepo, ListOptions } from '@/features/content/shared
 import type { Weapon, WeaponSummary, WeaponInput, WeaponFields } from '@/features/content/equipment/weapons/domain/types';
 import { getSystemWeapons, getSystemWeapon } from '@/features/mechanics/domain/rulesets/system/weapons';
 import { campaignWeaponRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import { moneyToCp } from '@/shared/money';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
@@ -79,22 +86,11 @@ export const weaponRepo: CampaignContentRepo<Weapon, WeaponSummary, WeaponInput>
       getContentPatch(campaignId),
     ]);
 
-    const weaponPatches = contentPatch?.patches?.weapons ?? {};
-    const campaignIds = new Set(campaign.map(c => c.id));
-
-    const patchedSystem: Weapon[] = system
-      .filter(w => !campaignIds.has(w.id))
-      .map((w): Weapon => {
-        const patch = weaponPatches[w.id];
-        if (!patch) return w;
-        const merged = applyContentPatch<Weapon>(w, patch as Partial<Weapon>);
-        return { ...merged, patched: true };
-      });
-
-    const merged: Weapon[] = [
-      ...patchedSystem,
-      ...campaign.map(campaignEntryToWeapon),
-    ];
+    const merged = mergeSystemCampaignWithPatches(
+      system,
+      campaign.map(campaignEntryToWeapon),
+      getPatchMapForType(contentPatch, 'weapons'),
+    );
 
     let results = merged.map(toSummary);
 
@@ -117,11 +113,10 @@ export const weaponRepo: CampaignContentRepo<Weapon, WeaponSummary, WeaponInput>
     if (!systemWeapon) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const weaponPatch = contentPatch?.patches?.weapons?.[id];
-    if (!weaponPatch) return systemWeapon;
-
-    const merged = applyContentPatch<Weapon>(systemWeapon, weaponPatch as Partial<Weapon>);
-    return { ...merged, patched: true };
+    return resolveSystemEntryWithPatch(
+      systemWeapon,
+      getEntryPatch(contentPatch, 'weapons', id),
+    );
   },
 
   async createEntry(

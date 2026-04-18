@@ -10,6 +10,11 @@ export * from './contentPatchRepo';
 export * from './contentPolicy';
 export * from './viewerContext';
 export { applyContentPatch } from './patches/applyContentPatch';
+export {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+  summariesFromCatalogWithPatches,
+} from './patches/patchedContentResolution';
 export type {
   ContentTypeKey,
   ContentPatchMap,

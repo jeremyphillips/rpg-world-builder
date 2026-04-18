@@ -11,8 +11,16 @@ import type { Visibility } from '@/shared/types/visibility';
 import type { CampaignContentRepo, ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import type { Monster, MonsterSummary, MonsterInput } from '@/features/content/monsters/domain/types';
 import { getSystemMonsters, getSystemMonster } from '@/features/mechanics/domain/rulesets/system/monsters';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+  summariesFromCatalogWithPatches,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
 type CampaignMonsterDto = {
@@ -140,26 +148,18 @@ export const monsterRepo: CampaignContentRepo<Monster, MonsterSummary, MonsterIn
     systemId: SystemRulesetId,
     opts?: ListOptions,
   ): Promise<MonsterSummary[]> {
-    const catalog = opts?.catalog as
-      | { monstersAllById?: Record<string, Monster>; monsterAllowedIds?: string[] }
-      | undefined;
+    const catalog = opts?.catalog;
 
     if (catalog?.monstersAllById) {
       const monstersById = catalog.monstersAllById;
-      const allowedSet = new Set(catalog.monsterAllowedIds ?? []);
 
       const contentPatch = await getContentPatch(campaignId);
-      const monsterPatches = contentPatch?.patches?.monsters ?? {};
-
-      const treatAllAsAllowed = catalog.monsterAllowedIds === undefined;
-      const results: MonsterSummary[] = Object.values(monstersById).map((m) => {
-        const monster = m as Monster;
-        const patchedFromPatch =
-          monster.source === 'system' && Boolean(monsterPatches[monster.id]);
-        return toSummary(
-          { ...monster, patched: patchedFromPatch || Boolean(monster.patched) },
-          treatAllAsAllowed || allowedSet.has(m.id),
-        );
+      const results = summariesFromCatalogWithPatches({
+        catalogById: monstersById as Record<string, Monster>,
+        patchDoc: contentPatch,
+        contentTypeKey: 'monsters',
+        allowedIds: catalog.monsterAllowedIds,
+        toSummary,
       });
 
       if (opts?.search) {
@@ -176,19 +176,11 @@ export const monsterRepo: CampaignContentRepo<Monster, MonsterSummary, MonsterIn
       getContentPatch(campaignId),
     ]);
 
-    const monsterPatches = contentPatch?.patches?.monsters ?? {};
-    const campaignIds = new Set(campaign.map((m) => m.id));
-
-    const patchedSystem: Monster[] = system
-      .filter((m) => !campaignIds.has(m.id))
-      .map((m): Monster => {
-        const patch = monsterPatches[m.id];
-        if (!patch) return m;
-        const merged = applyContentPatch<Monster>(m, patch as Partial<Monster>);
-        return { ...merged, patched: true };
-      });
-
-    const merged: Monster[] = [...patchedSystem, ...campaign];
+    const merged = mergeSystemCampaignWithPatches(
+      [...system],
+      campaign,
+      getPatchMapForType(contentPatch, 'monsters'),
+    );
 
     let results = merged.map((m) => toSummary(m, true));
 
@@ -211,11 +203,10 @@ export const monsterRepo: CampaignContentRepo<Monster, MonsterSummary, MonsterIn
     if (!systemMonster) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const monsterPatch = contentPatch?.patches?.monsters?.[id];
-    if (!monsterPatch) return systemMonster;
-
-    const merged = applyContentPatch<Monster>(systemMonster, monsterPatch as Partial<Monster>);
-    return { ...merged, patched: true };
+    return resolveSystemEntryWithPatch(
+      systemMonster,
+      getEntryPatch(contentPatch, 'monsters', id),
+    );
   },
 
   async createEntry(campaignId: string, input: MonsterInput): Promise<Monster> {
