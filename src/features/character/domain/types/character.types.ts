@@ -103,6 +103,8 @@ export type Character = {
   type: CharacterType
 
   race?: RaceId
+  /** Selected race definition options: keys are race definition group ids, values are option ids. */
+  raceChoices?: Record<string, string>
   alignment?: AlignmentId
 
   classes: CharacterClassInfo[]
@@ -151,6 +153,7 @@ export type CharacterPatchFields = Pick<
   | 'name'
   | 'alignment'
   | 'race'
+  | 'raceChoices'
   | 'classes'
   | 'xp'
   | 'totalLevel'

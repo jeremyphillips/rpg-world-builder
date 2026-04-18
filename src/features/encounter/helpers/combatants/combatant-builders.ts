@@ -189,7 +189,7 @@ export function buildCharacterCombatantInstance(args: {
     rulesetId: systemRulesetId,
     racesById,
   })
-  const pcSenses = buildCreatureSensesFromResolvedRace(race)
+  const pcSenses = buildCreatureSensesFromResolvedRace(race, character.raceChoices)
   const includePcSenses =
     pcSenses.special.length > 0 || pcSenses.passivePerception !== undefined
 

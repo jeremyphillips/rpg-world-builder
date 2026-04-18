@@ -5,6 +5,9 @@ import { buildCharacterQueryContext } from '@/features/character/domain/query/bu
 import type { Character } from '@/features/character/domain/types'
 import { getDarkvisionRange } from '@/features/content/shared/domain/vocab/creatureSenses.selectors'
 
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
+import { getSystemRace } from '@/features/mechanics/domain/rulesets/system/races'
+
 import { buildCharacterDerivedContext } from '../buildCharacterDerivedContext'
 import {
   hasEffectiveArmorProficiency,
@@ -46,6 +49,18 @@ describe('buildCharacterDerivedContext', () => {
       const derived = buildCharacterDerivedContext({ character, query })
       expect(getDarkvisionRange(derived.senses), race).toBe(ft)
     }
+  })
+
+  it('uses max darkvision when elf selects drow lineage (60 base + 120 option → 120 ft)', () => {
+    const character = minimalCharacter({
+      race: 'elf',
+      raceChoices: { 'elven-lineage': 'drow' },
+    })
+    const query = buildCharacterQueryContext(character)
+    const derived = buildCharacterDerivedContext({ character, query })
+    expect(getDarkvisionRange(derived.senses)).toBe(120)
+    const elfRace = getSystemRace(DEFAULT_SYSTEM_RULESET_ID, 'elf')
+    expect(elfRace?.definitionGroups?.[0]?.id).toBe('elven-lineage')
   })
 
   it('merges fighter weapon categories (simple, martial) and armor (allArmor, shields)', () => {

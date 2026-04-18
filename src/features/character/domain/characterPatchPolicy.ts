@@ -14,6 +14,7 @@ const OWNER_ALWAYS_KEYS = [
   'levelUpPending',
   'pendingLevel',
   'race',
+  'raceChoices',
   'abilityScores',
   'feats',
   'armorClass',

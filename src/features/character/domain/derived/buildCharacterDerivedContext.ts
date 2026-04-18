@@ -34,7 +34,7 @@ export function buildCharacterDerivedContext(args: BuildCharacterDerivedContextA
     rulesetId: systemRulesetId,
     racesById: catalogs?.racesById,
   })
-  const senses = buildCreatureSensesFromResolvedRace(race)
+  const senses = buildCreatureSensesFromResolvedRace(race, character.raceChoices)
 
   return {
     senses,

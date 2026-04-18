@@ -1,4 +1,5 @@
 import type { Race } from '@/features/content/races/domain/types'
+import { collectRaceCreatureSenses } from '@/features/content/races/domain/grants/collectRaceCreatureSenses'
 import type { CreatureSenses } from '@/features/content/shared/domain/vocab/creatureSenses.types'
 import { getSystemRace } from '@/features/mechanics/domain/rulesets/system/races'
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types'
@@ -22,9 +23,14 @@ export function resolveRaceForCharacter(
   return getSystemRace(opts.rulesetId, raceId)
 }
 
-/** Map `race.grants.senses` into normalized {@link CreatureSenses} for engine/UI. */
-export function buildCreatureSensesFromResolvedRace(race: Race | undefined): CreatureSenses {
-  const senses = race?.grants?.senses
-  if (!senses?.length) return { special: [] }
-  return { special: [...senses] }
+/**
+ * Map race grants + selected definition-option grants into {@link CreatureSenses}.
+ */
+export function buildCreatureSensesFromResolvedRace(
+  race: Race | undefined,
+  raceChoices?: Readonly<Record<string, string>> | undefined,
+): CreatureSenses {
+  const special = collectRaceCreatureSenses(race, raceChoices)
+  if (!special.length) return { special: [] }
+  return { special: [...special] }
 }

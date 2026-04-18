@@ -79,6 +79,14 @@ src/features/content/shared/domain/vocab/
 - Prefer **`truesight`** over ambiguous “truesense” in type ids.
 - **`source.label`** should not duplicate the sense **type** label; resolve sense type labels via **vocab metadata** / helpers (e.g. `getCreatureSenseTypeDisplayName`), not ad-hoc duplication on every row.
 
+### Race ancestry vs shared senses
+
+- **Race-specific** types (`RaceGrants`, `RaceDefinitionGroup`, lineage options, trait grants) live under **`src/features/content/races/domain/types/`**. Field names align with class **`SubclassSelection`** / **`Subclass`** (`selectionLevel`, `options`, per-option `features`) using **separate** TypeScript types—no shared generic with classes.
+- **Shared** creature sense **vocabulary** (`CreatureSense`, selectors, display names) stays under **`src/features/content/shared/domain/vocab/`**—do not add a broad “race vocab” there.
+- **Lineage / ancestry / ancestor** are modeled as **`RaceDefinitionGroup.kind`** on a single group model (not separate `lineageOptions` / `ancestryOptions` fields).
+- **`race.grants`** are **ongoing** capabilities (senses, traits, …), not character-creation-only **`generation`** data on the race document.
+- Persisted picks: **`Character.raceChoices`** maps stable **group id → option id** for selected definition rows.
+
 ---
 
 ## 5. Character vs monster derivation

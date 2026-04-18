@@ -92,6 +92,7 @@ export async function getCharacterDetail(characterId: string): Promise<Character
     levelUpPending: character.levelUpPending as boolean | undefined,
     pendingLevel: character.pendingLevel as number | undefined,
     xp: character.xp as number | undefined,
+    raceChoices: character.raceChoices as Record<string, string> | undefined,
   }
 
   const refs = await loadCharacterReadReferences({
@@ -185,6 +186,7 @@ export async function createCharacter(userId: string, data: CharacterDoc) {
     narrative: data.narrative ?? {},
     ai: data.ai ?? {},
     generation: data.generation ?? {},
+    ...(data.raceChoices != null ? { raceChoices: data.raceChoices } : {}),
     createdAt: now,
     updatedAt: now,
   })

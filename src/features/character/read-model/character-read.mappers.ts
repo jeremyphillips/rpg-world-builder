@@ -69,6 +69,7 @@ export type CharacterDocForDetail = {
   levelUpPending?: boolean
   pendingLevel?: number
   xp?: number
+  raceChoices?: Record<string, string>
 }
 
 type ResolveImageUrl = (key: string) => string | undefined
@@ -171,6 +172,7 @@ export function toCharacterDetailDto(
     imageUrl: imageKey ? (getPublicUrl(imageKey) ?? null) : null,
     imageKey: imageKey ?? null,
     race: raceId ? { id: raceId, name: raceEntry?.name ?? raceId } : null,
+    raceChoices: char.raceChoices,
     classes,
     level: char.totalLevel ?? 1,
     totalLevel: char.totalLevel ?? 1,
@@ -238,6 +240,7 @@ export function toCharacterForEngine(dto: CharacterDetailDto): import('@/feature
     },
     wealth: dto.wealth,
     narrative: dto.narrative,
+    raceChoices: dto.raceChoices,
     _id: dto.id,
   }
 }

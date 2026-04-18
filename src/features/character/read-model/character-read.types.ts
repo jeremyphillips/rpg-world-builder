@@ -83,6 +83,8 @@ export type CharacterDetailDto = {
   imageKey?: string | null
 
   race: { id: string; name: string } | null
+  /** Persisted race lineage/ancestry picks (group id → option id). */
+  raceChoices?: Record<string, string>
 
   classes: CharacterClassSummary[]
 
