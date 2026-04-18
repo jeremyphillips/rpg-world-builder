@@ -62,4 +62,26 @@ describe('buildContentDetailSectionsFromSpecs', () => {
     expect(result.mainItems.map((r) => r.label)).toEqual(['A', 'X']);
     expect(result.advancedItems).toHaveLength(1);
   });
+
+  it('uses an explicit viewer when provided instead of viewerContext', () => {
+    const specs: DetailSpec<Item, unknown>[] = [
+      { key: 'm', label: 'M', order: 1, placement: 'meta', render: () => 'meta' },
+    ];
+    const explicit = { isPlatformAdmin: false, campaignRole: 'co_dm' as const };
+
+    const result = buildContentDetailSectionsFromSpecs({
+      specs,
+      item,
+      ctx: {},
+      viewerContext: {
+        campaignRole: null,
+        isOwner: false,
+        isPlatformAdmin: false,
+        characterIds: [],
+      },
+      viewer: explicit,
+    });
+
+    expect(result.viewer).toEqual(explicit);
+  });
 });

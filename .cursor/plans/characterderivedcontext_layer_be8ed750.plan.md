@@ -4,16 +4,16 @@ overview: Audit of how weapon/armor/tool proficiencies, AC, and combat display a
 todos:
   - id: phase1-types
     content: Add domain/derived types (CharacterDerivedContext, option breakdowns, GrantSource) and buildCharacterDerivedContext args
-    status: pending
+    status: cancelled
   - id: phase1-grants
     content: Implement class weapon/armor/tool grant extraction + effective sets + selectors (category-aware)
-    status: pending
+    status: cancelled
   - id: phase1-loadout
     content: Implement current AC + per-owned-armor (with current shield) + per-owned-weapon attack rows using resolution helpers
-    status: pending
+    status: cancelled
   - id: phase1-wire-tests
     content: Wire 1–2 UI consumers; add unit/golden tests and AC parity test vs computeCombatStatsFromCharacter
-    status: pending
+    status: cancelled
 isProject: false
 ---
 

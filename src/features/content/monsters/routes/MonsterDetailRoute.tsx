@@ -22,7 +22,10 @@ import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { monsterRepo, MONSTER_DETAIL_SPECS, type MonsterDetailCtx } from '@/features/content/monsters/domain';
-import { buildContentDetailSectionsFromSpecs } from '@/features/content/shared/forms/registry';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 
 export default function MonsterDetailRoute() {
   const { campaignId } = useActiveCampaign();
@@ -56,12 +59,14 @@ export default function MonsterDetailRoute() {
     armorById: catalog.armorById,
   } satisfies MonsterDetailCtx;
 
-  const { metaItems, mainItems, advancedItems, viewer } = buildContentDetailSectionsFromSpecs({
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
     specs: MONSTER_DETAIL_SPECS,
     item: monster,
     ctx: detailCtx,
-    viewerContext,
+    viewer,
   });
+  /** Advanced/raw JSON: platform admin only (`rawAudience: 'platformOwner'` on structured specs). */
   const showAdvancedSection = Boolean(viewer?.isPlatformAdmin) && advancedItems.length > 0;
 
   return (

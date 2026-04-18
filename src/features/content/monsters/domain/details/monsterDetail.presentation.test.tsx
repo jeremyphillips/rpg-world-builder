@@ -51,6 +51,22 @@ describe('monster detail presentation', () => {
     expect(metaDm.find((row) => row.label === 'Visibility')).toBeDefined();
   });
 
+  it('buildDetailItemsFromSpecs meta gates Patched row to privileged content-meta viewers', () => {
+    expect(goblin).toBeDefined();
+    const patched = { ...goblin!, patched: true as boolean };
+    const metaPlayer = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, patched, ctx, {
+      section: 'meta',
+      viewer: { isPlatformAdmin: false, campaignRole: null },
+    });
+    expect(metaPlayer.find((row) => row.label === 'Patched')).toBeUndefined();
+
+    const metaDm = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, patched, ctx, {
+      section: 'meta',
+      viewer: { isPlatformAdmin: false, campaignRole: 'dm' },
+    });
+    expect(metaDm.find((row) => row.label === 'Patched')).toBeDefined();
+  });
+
   it('buildDetailItemsFromSpecs main section includes friendly Actions content for a system monster', () => {
     expect(aboleth).toBeDefined();
     const main = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, aboleth!, ctx, { section: 'main' });

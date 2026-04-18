@@ -26,6 +26,11 @@ export type BuildContentDetailSectionsFromSpecsArgs<T, Ctx> = {
   item: T;
   ctx: Ctx;
   viewerContext?: ViewerContext | undefined;
+  /**
+   * When set, used for all section builds instead of {@link toDetailSpecViewer}(viewerContext).
+   * Routes may call `toDetailSpecViewer(viewerContext)` once and pass it here for clarity.
+   */
+  viewer?: BuildDetailViewer | undefined;
 };
 
 export type BuildContentDetailSectionsFromSpecsResult = {
@@ -43,7 +48,7 @@ export type BuildContentDetailSectionsFromSpecsResult = {
 export function buildContentDetailSectionsFromSpecs<T, Ctx>(
   args: BuildContentDetailSectionsFromSpecsArgs<T, Ctx>,
 ): BuildContentDetailSectionsFromSpecsResult {
-  const viewer = toDetailSpecViewer(args.viewerContext);
+  const viewer = args.viewer ?? toDetailSpecViewer(args.viewerContext);
   const opts = { viewer };
   return {
     metaItems: buildDetailItemsFromSpecs(args.specs, args.item, args.ctx, {

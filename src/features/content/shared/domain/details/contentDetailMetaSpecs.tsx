@@ -50,8 +50,8 @@ export function contentDetailMetaSpecs<
 }
 
 /**
- * Meta row: system-patch indicator — badge only (no caption). Order 9 between source and visibility.
- * Same audience as visibility ({@link metaPrivilegedContentMeta}): DM / co-DM or platform admin only.
+ * Meta row: system-patch indicator — compact label + badge. Order 9 between source and visibility.
+ * Same audience as visibility ({@link metaPrivilegedContentMeta}): DM / co-DM or platform admin only (`canViewPrivilegedContentMeta`).
  */
 export function contentDetailPatchedMetaSpecs<
   T extends Pick<ContentBase, 'patched'>,
@@ -60,7 +60,7 @@ export function contentDetailPatchedMetaSpecs<
   return [
     {
       key: 'patched',
-      label: null,
+      label: 'Patched',
       order: 9,
       hidden: (item) => !item.patched,
       render: () => <AppBadge label="Patched" tone="warning" size="small" />,
