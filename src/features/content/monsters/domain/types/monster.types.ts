@@ -5,16 +5,12 @@ import type {
   ContentItem,
   ContentInput,
 } from '@/features/content/shared/domain/types/content.types';
-import type { MonsterAbilityScoreMap, AbilityId } from '@/features/mechanics/domain/character';
+import type { MonsterAbilityScoreMap } from '@/features/mechanics/domain/character';
 import type { ProficiencyBonus } from '@/shared/domain/proficiency';
+import type { CreatureProficiencyGroups } from '@/shared/domain/proficiency/authoredCreatureProficiencies';
 import type { AlignmentId } from "@/features/content/shared/domain/types";
 import type { CreatureTypeId, CreatureSizeId, CreatureSubtypeId } from '@/features/content/creatures/domain/values';
 
-import type {
-  CharacterProficiencies,
-  ProficiencySkillAdjustment,
-  ProficiencyWeaponAdjustment
-} from "@/features/character/domain/types";
 import type { MonsterEquipment, MonsterArmorClass } from "./monster-equipment.types";
 import type { MonsterSenses } from "./monster-senses.types";
 import type { MonsterTrait } from "./monster-traits.types";
@@ -59,9 +55,7 @@ export type MonsterChallengeRating =
   | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18
   | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
 
-export type MonsterProficiencies = CharacterProficiencies & {
-  weapons?: Record<string, ProficiencyWeaponAdjustment>;
-};
+export type MonsterProficiencies = CreatureProficiencyGroups;
 
 export interface MonsterFields {
   id: string;
@@ -85,7 +79,6 @@ export interface MonsterFields {
     armorClass: MonsterArmorClass;
     movement: Movement;
     abilities?: MonsterAbilityScoreMap;
-    savingThrows?: Partial<Record<AbilityId, ProficiencySkillAdjustment>>;
     traits?: MonsterTrait[];
     actions?: MonsterAction[];
     bonusActions?: MonsterAction[];

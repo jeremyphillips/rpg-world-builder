@@ -3,10 +3,7 @@ import {
   buildCreatureSensesFromResolvedRace,
   resolveRaceForCharacter,
 } from '@/features/character/domain/derived/grants/raceSenseGrants'
-import {
-  buildCharacterQueryContextFromDetailDto,
-  isProficientInSkill,
-} from '@/features/character/domain/query'
+import { buildCharacterQueryContextFromDetailDto } from '@/features/character/domain/query'
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { Race } from '@/features/content/races/domain/types'
 import { getDarkvisionRange, normalizeCreatureSenses } from '@/features/content/shared/domain/vocab/creatureSenses.selectors'
@@ -21,13 +18,17 @@ import {
 } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
 import type { Effect, EffectConditionId } from '@/features/mechanics/domain/effects/effects.types'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
-import { resolveProficiencyContribution } from '@/features/mechanics/domain/progression'
+import {
+  authoredExpertiseToResolved,
+  authoredStandardToResolved,
+  resolveProficiencyContribution,
+  type ResolvedProficiencyMode,
+} from '@/features/mechanics/domain/progression'
 import {
   type CombatActionDefinition,
   type CombatantAttackEntry,
   type CombatantInstance,
   type CombatantSide,
-  type CombatantSkillProficiencyLevel,
   type DamageResistanceMarker,
   createCombatTurnResources,
   type RuntimeTurnHook,
@@ -84,19 +85,17 @@ export function formatSigned(value: number): string {
   return value >= 0 ? `+${value}` : String(value)
 }
 
-function normalizeMonsterSkillProficiencyLevel(level: unknown): CombatantSkillProficiencyLevel {
-  if (level === 2) return 2
-  if (level === 1) return 1
-  return 0
-}
-
 function maxDarkvisionRangeFtFromMonsterSenses(monster: Monster): number | undefined {
   if (!monster.mechanics.senses) return undefined
   return getDarkvisionRange(normalizeCreatureSenses(monster.mechanics.senses))
 }
 
-export function toSavingThrowModifier(score: number | null | undefined, proficiencyLevel = 0, proficiencyBonus = 2): number {
-  return getAbilityModifier(score ?? 10) + resolveProficiencyContribution(proficiencyBonus, proficiencyLevel)
+export function toSavingThrowModifier(
+  score: number | null | undefined,
+  saveProficiency: ResolvedProficiencyMode | undefined,
+  proficiencyBonus = 2,
+): number {
+  return getAbilityModifier(score ?? 10) + resolveProficiencyContribution(proficiencyBonus, saveProficiency)
 }
 
 export function formatDice(value: DiceOrFlat | undefined): string | undefined {
@@ -201,9 +200,10 @@ export function buildCharacterCombatantInstance(args: {
   )
   const gearIds = Array.from(sheetCtx.inventory.gearIds)
 
-  /** Detail DTO lists skill ids only; expertise (level 2) is not represented until the API carries it. */
-  const skillLevel = (skillId: string): CombatantSkillProficiencyLevel =>
-    isProficientInSkill(sheetCtx, skillId) ? 1 : 0
+  const skillResolvedMode = (skillId: string): ResolvedProficiencyMode => {
+    const row = character.proficiencies.find((p) => p.id === skillId)
+    return authoredExpertiseToResolved(row?.proficiency)
+  }
 
   return {
     instanceId: runtimeId,
@@ -234,8 +234,8 @@ export function buildCharacterCombatantInstance(args: {
       speeds: { ground: 30 },
       skillRuntime: {
         proficiencyBonus: combatStats.proficiencyBonus,
-        perceptionProficiencyLevel: skillLevel('perception'),
-        stealthProficiencyLevel: skillLevel('stealth'),
+        perceptionProficiencyMode: skillResolvedMode('perception'),
+        stealthProficiencyMode: skillResolvedMode('stealth'),
         ...(hideEligibilityFromFeats != null ? { hideEligibilityFeatureFlags: hideEligibilityFromFeats } : {}),
       },
     },
@@ -341,32 +341,32 @@ export function buildMonsterCombatantInstance(args: {
         ? {
             strength: toSavingThrowModifier(
               monster.mechanics.abilities.str,
-              monster.mechanics.savingThrows?.str?.proficiencyLevel ?? 0,
+              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.str),
               monster.mechanics.proficiencyBonus,
             ),
             dexterity: toSavingThrowModifier(
               monster.mechanics.abilities.dex,
-              monster.mechanics.savingThrows?.dex?.proficiencyLevel ?? 0,
+              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.dex),
               monster.mechanics.proficiencyBonus,
             ),
             constitution: toSavingThrowModifier(
               monster.mechanics.abilities.con,
-              monster.mechanics.savingThrows?.con?.proficiencyLevel ?? 0,
+              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.con),
               monster.mechanics.proficiencyBonus,
             ),
             intelligence: toSavingThrowModifier(
               monster.mechanics.abilities.int,
-              monster.mechanics.savingThrows?.int?.proficiencyLevel ?? 0,
+              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.int),
               monster.mechanics.proficiencyBonus,
             ),
             wisdom: toSavingThrowModifier(
               monster.mechanics.abilities.wis,
-              monster.mechanics.savingThrows?.wis?.proficiencyLevel ?? 0,
+              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.wis),
               monster.mechanics.proficiencyBonus,
             ),
             charisma: toSavingThrowModifier(
               monster.mechanics.abilities.cha,
-              monster.mechanics.savingThrows?.cha?.proficiencyLevel ?? 0,
+              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.cha),
               monster.mechanics.proficiencyBonus,
             ),
           }
@@ -374,11 +374,11 @@ export function buildMonsterCombatantInstance(args: {
       speeds: monster.mechanics.movement,
       skillRuntime: {
         proficiencyBonus: monster.mechanics.proficiencyBonus,
-        perceptionProficiencyLevel: normalizeMonsterSkillProficiencyLevel(
-          monster.mechanics.proficiencies?.skills?.perception?.proficiencyLevel,
+        perceptionProficiencyMode: authoredExpertiseToResolved(
+          monster.mechanics.proficiencies?.skills?.perception,
         ),
-        stealthProficiencyLevel: normalizeMonsterSkillProficiencyLevel(
-          monster.mechanics.proficiencies?.skills?.stealth?.proficiencyLevel,
+        stealthProficiencyMode: authoredExpertiseToResolved(
+          monster.mechanics.proficiencies?.skills?.stealth,
         ),
         ...(monster.mechanics.senses?.passivePerception != null
           ? { passivePerception: monster.mechanics.senses.passivePerception }

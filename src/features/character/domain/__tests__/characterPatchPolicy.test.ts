@@ -5,7 +5,7 @@ import { narrowCharacterPatchForOwner } from '@/features/character/domain/charac
 describe('narrowCharacterPatchForOwner', () => {
   it('passes proficiencies, xp, equipment, alignment, and wealth for owners', () => {
     const proficiencies = {
-      skills: { religion: { proficiencyLevel: 1 as const }, intimidation: { proficiencyLevel: 1 as const } },
+      skills: { religion: 'proficient' as const, intimidation: 'proficient' as const },
     }
     const out = narrowCharacterPatchForOwner(
       {

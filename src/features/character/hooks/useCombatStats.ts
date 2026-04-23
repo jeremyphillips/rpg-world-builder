@@ -119,7 +119,7 @@ export function getCharacterAttacks(
 
     const atk = resolveWeaponAttackBonus(context, weaponInput, effects, {
       hand,
-      proficiencyLevel: 1,
+      proficiencyMode: 'proficient',
     })
     const dmg = resolveWeaponDamage(context, weaponInput, effects, { hand })
 

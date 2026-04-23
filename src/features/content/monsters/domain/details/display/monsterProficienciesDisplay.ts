@@ -10,24 +10,21 @@ function formatSkillLine(prof: MonsterProficiencies | undefined): string | undef
   const skills = prof?.skills;
   if (!skills || Object.keys(skills).length === 0) return undefined;
 
-  const parts = Object.entries(skills).map(([id, adj]) => {
+  const parts = Object.entries(skills).map(([id, tier]) => {
     const name = getSkillProficiencyCatalogDisplayName(id) ?? id;
-    if (adj.proficiencyLevel === 2) return `${name} (expertise)`;
+    if (tier === 'expertise') return `${name} (expertise)`;
     return name;
   });
 
   return parts.join(', ');
 }
 
-function formatSavingThrowsLine(monster: Monster): string | undefined {
-  const st = monster.mechanics.savingThrows;
+function formatSavingThrowsLine(prof: MonsterProficiencies | undefined): string | undefined {
+  const st = prof?.saves;
   if (!st || Object.keys(st).length === 0) return undefined;
 
-  const parts = Object.entries(st).map(([abilityId, adj]) => {
-    const abbr = abilityIdToAbbrev(abilityId as AbilityId);
-    if (adj.proficiencyLevel === 2) return `${abbr} (expertise)`;
-    if (adj.proficiencyLevel === 1) return `${abbr}`;
-    return abbr;
+  const parts = Object.entries(st).map(([abilityId]) => {
+    return abilityIdToAbbrev(abilityId as AbilityId);
   });
 
   return parts.join(', ');
@@ -63,7 +60,7 @@ export function getMonsterProficienciesSummaryParts(monster: Monster): MonsterPr
   const skills = formatSkillLine(prof);
   if (skills) parts.skills = skills;
 
-  const saves = formatSavingThrowsLine(monster);
+  const saves = formatSavingThrowsLine(prof);
   if (saves) parts.saves = saves;
 
   const wpn = formatWeaponProficienciesLine(monster);

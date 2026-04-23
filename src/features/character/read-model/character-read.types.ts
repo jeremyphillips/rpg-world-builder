@@ -4,7 +4,7 @@
  */
 
 import type { Money } from "@/shared/money/types"
-import type { ProficiencyAdjustment } from '@/features/character/domain/types'
+import type { AuthoredExpertiseProficiency } from '@/shared/domain/proficiency/authoredCreatureProficiencies'
 import type { AbilityKey } from '@/features/mechanics/domain/character'
 import type { SpellcastingAbility } from '@/features/content/classes/domain/types/progression.types'
 import type { CastingMode } from "@/features/mechanics/domain/progression"
@@ -101,7 +101,7 @@ export type CharacterDetailDto = {
     charisma: number
   }
 
-  proficiencies: { id: string; name: string }[]
+  proficiencies: { id: string; name: string; proficiency: AuthoredExpertiseProficiency }[]
 
   /** Selected feats as id + display name (ids match `hide-eligibility-feat-sources` / content). */
   feats?: { id: string; name: string }[]
@@ -173,7 +173,7 @@ export type CharacterDetailDto = {
 export type CharacterReadSource = {
   race?: string
   classes?: CharacterClassReadSource[]
-  proficiencies?: { skills?: Record<string, ProficiencyAdjustment> }
+  proficiencies?: { skills?: Partial<Record<string, AuthoredExpertiseProficiency>> }
   equipment?: {
     armor?: string[]
     weapons?: string[]

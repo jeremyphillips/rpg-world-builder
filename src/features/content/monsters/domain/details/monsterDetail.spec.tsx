@@ -126,12 +126,7 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     key: 'proficiencies',
     label: 'Proficiencies',
     order: 160,
-    getValue: (m) => {
-      const proficiencies = m.mechanics?.proficiencies;
-      const savingThrows = m.mechanics?.savingThrows;
-      if (!proficiencies && !savingThrows) return undefined;
-      return { proficiencies, savingThrows };
-    },
+    getValue: (m) => m.mechanics?.proficiencies,
     renderFriendly: (_v, m) => <MonsterProficienciesSummary monster={m} />,
     ...structuredMainAndAdvanced,
   },

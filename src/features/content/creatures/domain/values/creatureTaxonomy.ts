@@ -7,71 +7,45 @@ export type CreatureTypeRuleTag = (typeof CREATURE_TYPE_RULE_TAGS)[number]
  * {@link CREATURE_TYPE_DEFINITIONS} row references this list — add here first, then allow per type.
  */
 export const CREATURE_SUBTYPE_DEFINITIONS = [
-  { id: 'air', name: 'Air' },
-  { id: 'aquatic', name: 'Aquatic' },
+  { id: 'angel', name: 'Angel' },
+  { id: 'chromatic', name: 'Chromatic' },
+  { id: 'cleric', name: 'Cleric' },
   { id: 'demon', name: 'Demon' },
   { id: 'devil', name: 'Devil' },
-  { id: 'dwarf', name: 'Dwarf' },
-  { id: 'earth', name: 'Earth' },
-  { id: 'elf', name: 'Elf' },
-  { id: 'fire', name: 'Fire' },
-  { id: 'gnoll', name: 'Gnoll' },
-  { id: 'gnome', name: 'Gnome' },
+  // { id: 'dwarf', name: 'Dwarf' },
+  // { id: 'elf', name: 'Elf' },
+  { id: 'druid', name: 'Druid' },
+  { id: 'genie', name: 'Genie' },
+  // { id: 'gnome', name: 'Gnome' },
   { id: 'goblinoid', name: 'Goblinoid' },
-  { id: 'grimlock', name: 'Grimlock' },
-  { id: 'halfling', name: 'Halfling' },
-  { id: 'human', name: 'Human' },
-  { id: 'kobold', name: 'Kobold' },
-  { id: 'lizardfolk', name: 'Lizardfolk' },
-  { id: 'merfolk', name: 'Merfolk' },
-  { id: 'orc', name: 'Orc' },
-  { id: 'sahuagin', name: 'Sahuagin' },
-  { id: 'shapechanger', name: 'Shapechanger' },
+  // { id: 'halfling', name: 'Halfling' },
+  // { id: 'human', name: 'Human' },
+  { id: 'lycanthrope', name: 'Lycanthrope' },
+  { id: 'metallic', name: 'Metallic' },
+  // { id: 'orc', name: 'Orc' },
   { id: 'swarm', name: 'Swarm' },
   { id: 'titan', name: 'Titan' },
-  { id: 'water', name: 'Water' },
+  { id: 'wizard', name: 'Wizard' },
 ] as const
 
 export type CreatureSubtypeId = (typeof CREATURE_SUBTYPE_DEFINITIONS)[number]['id']
 
 const extraplanarRuleTags: readonly [CreatureTypeRuleTag] = ['extraplanar'] as const
 
-/**
- * Per-type `allowedSubtypeIds` constrain which subtype tags are valid for a type; expand in data.
- * Subtype UI options (`{ value, label }[]`) live in `domain/options/creatureTaxonomyOptions.ts`, not in this file.
- * Empty means no subtypes in UI for that type.
- */
-const humanoidSubtypeIds = [
-  'aquatic',
-  'dwarf',
-  'elf',
-  'gnoll',
-  'gnome',
-  'goblinoid',
-  'grimlock',
-  'halfling',
-  'human',
-  'kobold',
-  'lizardfolk',
-  'merfolk',
-  'orc',
-  'sahuagin',
-] as const
-
 export const CREATURE_TYPE_DEFINITIONS = [
   { id: 'aberration', name: 'Aberration', allowedSubtypeIds: [] as const, ruleTags: extraplanarRuleTags },
   { id: 'animal', name: 'Animal', allowedSubtypeIds: ['aquatic', 'swarm'] as const },
   { id: 'beast', name: 'Beast', allowedSubtypeIds: ['aquatic', 'swarm'] as const },
-  { id: 'celestial', name: 'Celestial', allowedSubtypeIds: [] as const, ruleTags: extraplanarRuleTags },
+  { id: 'celestial', name: 'Celestial', allowedSubtypeIds: ['angel'] as const, ruleTags: extraplanarRuleTags },
   { id: 'construct', name: 'Construct', allowedSubtypeIds: [] as const },
-  { id: 'dragon', name: 'Dragon', allowedSubtypeIds: [] as const },
+  { id: 'dragon', name: 'Dragon', allowedSubtypeIds: ['chromatic', 'metallic'] as const },
   {
     id: 'elemental',
     name: 'Elemental',
-    allowedSubtypeIds: ['air', 'earth', 'fire', 'water'] as const,
+    allowedSubtypeIds: ['genie'] as const,
     ruleTags: extraplanarRuleTags,
   },
-  { id: 'fey', name: 'Fey', allowedSubtypeIds: [] as const, ruleTags: extraplanarRuleTags },
+  { id: 'fey', name: 'Fey', allowedSubtypeIds: ['goblinoid'] as const, ruleTags: extraplanarRuleTags },
   {
     id: 'fiend',
     name: 'Fiend',
@@ -79,11 +53,11 @@ export const CREATURE_TYPE_DEFINITIONS = [
     ruleTags: extraplanarRuleTags,
   },
   { id: 'giant', name: 'Giant', allowedSubtypeIds: ['titan'] as const },
-  { id: 'humanoid', name: 'Humanoid', allowedSubtypeIds: humanoidSubtypeIds },
-  { id: 'monstrosity', name: 'Monstrosity', allowedSubtypeIds: ['shapechanger', 'swarm', 'titan'] as const },
+  { id: 'humanoid', name: 'Humanoid', allowedSubtypeIds: ['cleric', 'druid', 'wizard'] as const },
+  { id: 'monstrosity', name: 'Monstrosity', allowedSubtypeIds: ['swarm', 'titan', 'lycanthrope'] as const },
   { id: 'ooze', name: 'Ooze', allowedSubtypeIds: [] as const },
   { id: 'plant', name: 'Plant', allowedSubtypeIds: [] as const },
-  { id: 'undead', name: 'Undead', allowedSubtypeIds: ['shapechanger'] as const, ruleTags: extraplanarRuleTags },
+  { id: 'undead', name: 'Undead', allowedSubtypeIds: ['wizard'] as const, ruleTags: extraplanarRuleTags },
   { id: 'vermin', name: 'Vermin', allowedSubtypeIds: ['swarm'] as const },
 ] as const
 

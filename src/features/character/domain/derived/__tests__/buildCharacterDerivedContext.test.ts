@@ -172,7 +172,7 @@ describe('buildCharacterDerivedContext', () => {
 
   it('flows base skill ids from CharacterQueryContext', () => {
     const character = minimalCharacter({
-      proficiencies: { skills: { athletics: { proficiencyLevel: 1 }, stealth: { proficiencyLevel: 1 } } },
+      proficiencies: { skills: { athletics: 'proficient', stealth: 'proficient' } },
     })
     const query = buildCharacterQueryContext(character)
     const derived = buildCharacterDerivedContext({ character, query })

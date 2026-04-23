@@ -53,7 +53,11 @@ When the block lists **Gear** but you model AC as **`kind: 'natural'`** (no worn
 ## Proficiency and skills
 
 - Set `mechanics.proficiencyBonus` from the stat block.
-- Store **proficiency shape** in `proficiencies.skills` with `proficiencyLevel` (1 = proficiency, 2 = double proficiency / “expertise” in effect). Total bonus = ability modifier + `resolveProficiencyContribution(pb, level)` — do not duplicate the final +N in data.
+- Store authored tiers under `mechanics.proficiencies` (see `CreatureProficiencyGroups` in [`authoredCreatureProficiencies.ts`](../../../shared/domain/proficiency/authoredCreatureProficiencies.ts)):
+  - **skills** / **tools:** `'proficient' | 'expertise'`
+  - **weapons** / **armor** / **saves:** `'proficient'` only (no expertise)
+- **Saving throws** live in `proficiencies.saves` (not a separate `savingThrows` field). Omit entries for non-proficient saves.
+- Mechanics resolves numeric contribution via `ResolvedProficiencyMode` and `resolveProficiencyContribution` — do not store final +N skill totals in data.
 
 ## Passive Perception
 

@@ -25,7 +25,7 @@ function minimalDto(overrides: Partial<CharacterDetailDto> = {}): CharacterDetai
       wisdom: 10,
       charisma: 8,
     },
-    proficiencies: [{ id: 'athletics', name: 'Athletics' }],
+    proficiencies: [{ id: 'athletics', name: 'Athletics', proficiency: 'proficient' }],
     equipment: {
       armor: [{ id: 'chain-mail', name: 'Chain Mail' }],
       weapons: [{ id: 'longsword', name: 'Longsword' }],

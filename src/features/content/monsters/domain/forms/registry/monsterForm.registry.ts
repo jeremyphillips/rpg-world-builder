@@ -6,7 +6,6 @@ import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import { numberRange, type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
 import type { MonsterFormValues } from '../types/monsterForm.types';
-import { getAlignmentFormSelectOptions } from '@/features/content/shared/domain/vocab/alignment.vocab';
 import type { AlignmentId } from '@/features/content/shared/domain/types';
 import {
   PROFICIENCY_BONUS_MAX,
@@ -102,6 +101,16 @@ export const MONSTER_FORM_FIELDS = [
     format: (v: unknown) => (v ?? '') as MonsterFormValues['type'],
   },
   {
+    name: 'subtype' as const,
+    label: 'Subtype',
+    kind: 'select' as const,
+    options: [],
+    placeholder: 'Select subtype (optional)',
+    defaultValue: '' as MonsterFormValues['subtype'],
+    parse: (v: unknown) => (v ? (v as MonsterInput['subtype']) : undefined),
+    format: (v: unknown) => (v ?? '') as MonsterFormValues['subtype'],
+  },
+  {
     name: 'sizeCategory' as const,
     label: 'Size Category',
     kind: 'select' as const,
@@ -178,7 +187,7 @@ export const MONSTER_FORM_FIELDS = [
     label: 'Alignment',
     kind: 'select' as const,
     path: 'lore.alignment',
-    options: getAlignmentFormSelectOptions(),
+    options: [],
     placeholder: 'Select alignment',
     defaultValue: '' as MonsterFormValues['alignment'],
     parse: (v: unknown) => (v ? (v as AlignmentId) : undefined),

@@ -6,7 +6,7 @@
 import type { Coin } from '@/shared/money/types'
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import type { AlignmentId } from '@/features/content/shared/domain/types'
-import type { ProficiencyAdjustment } from '@/features/character/domain/types'
+import type { AuthoredExpertiseProficiency } from '@/shared/domain/proficiency/authoredCreatureProficiencies'
 import type {
   CharacterCardSummary,
   CharacterClassReadSource,
@@ -45,7 +45,7 @@ export type CharacterDocForDetail = {
   classes: CharacterClassReadSource[]
   totalLevel?: number
   abilityScores?: Record<string, number>
-  proficiencies?: { skills?: Record<string, ProficiencyAdjustment> }
+  proficiencies?: { skills?: Partial<Record<string, AuthoredExpertiseProficiency>> }
   equipment?: {
     armor?: string[]
     weapons?: string[]
@@ -137,9 +137,13 @@ export function toCharacterDetailDto(
   const classes = (char.classes ?? []).map((cls) => toCharacterClassSummary(cls, refs))
 
   const skillIds = getSkillIds(char.proficiencies)
+  const skillsRecord = char.proficiencies?.skills ?? {}
   const proficiencies = skillIds.map((id) => {
     const entry = refs.proficiencyById.get(id)
-    return { id, name: entry?.name ?? id }
+    const tier = skillsRecord[id]
+    const proficiency: AuthoredExpertiseProficiency =
+      tier === 'expertise' || tier === 'proficient' ? tier : 'proficient'
+    return { id, name: entry?.name ?? id, proficiency }
   })
 
   const armorIds = char.equipment?.armor ?? []
@@ -226,9 +230,7 @@ export function toCharacterForEngine(dto: CharacterDetailDto): import('@/feature
     hitPoints: dto.hitPoints,
     combat: dto.combat,
     proficiencies: {
-      skills: Object.fromEntries(
-        dto.proficiencies.map((p) => [p.id, { proficiencyLevel: 1 }]),
-      ),
+      skills: Object.fromEntries(dto.proficiencies.map((p) => [p.id, p.proficiency])),
     },
     feats: dto.feats?.map((f) => f.id),
     spells: dto.spells,

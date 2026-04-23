@@ -36,7 +36,7 @@ describe('resolveWeaponAttackBonus', () => {
     )
 
     expect(result.bonus).toBe(5)
-    expect(result.proficiencyLevel).toBe(1)
+    expect(result.proficiencyMode).toBe('proficient')
     expect(result.proficiencyBonus).toBe(2)
     expect(result.proficiencyContribution).toBe(2)
     expect(result.breakdown).toEqual([
@@ -50,26 +50,26 @@ describe('resolveWeaponAttackBonus', () => {
       createContext(5),
       { type: 'melee' },
       [],
-      { proficiencyLevel: 1, proficiencyBonus: 3 }
+      { proficiencyMode: 'proficient', proficiencyBonus: 3 }
     )
 
     expect(result.bonus).toBe(6)
     expect(result.proficiencyContribution).toBe(3)
   })
 
-  it('supports proficiency multipliers for monster weapon attacks', () => {
+  it('supports expertise mode for monster weapon attacks', () => {
     const result = resolveWeaponAttackBonus(
       createContext(5),
       { type: 'melee' },
       [],
-      { proficiencyLevel: 2, proficiencyBonus: 3 }
+      { proficiencyMode: 'expertise', proficiencyBonus: 3 }
     )
 
     expect(result.bonus).toBe(9)
     expect(result.proficiencyContribution).toBe(6)
     expect(result.breakdown).toEqual([
       { label: 'STR', value: '+3', type: 'ability' },
-      { label: 'Prof (2x3)', value: '+6', type: 'proficiency' },
+      { label: 'Prof (expertise, 3)', value: '+6', type: 'proficiency' },
     ])
   })
 })

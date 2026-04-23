@@ -24,7 +24,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         passivePerception: 10,
       },
       proficiencies: {
-        skills: { stealth: { proficiencyLevel: 2 } },
+        skills: { stealth: 'expertise' },
       },
       proficiencyBonus: 2,
       immunities: ['poison', 'exhaustion', 'petrified'],
@@ -400,7 +400,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         passivePerception: 14,
       },
       proficiencies: {
-        skills: { perception: { proficiencyLevel: 2 }, stealth: { proficiencyLevel: 2 } },
+        skills: { perception: 'expertise', stealth: 'expertise' },
       },
       proficiencyBonus: 2,
       traits: [
@@ -519,10 +519,10 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         passivePerception: 9,
       },
       proficiencies: {
-        skills: { stealth: { proficiencyLevel: 2 } },
+        skills: { stealth: 'expertise' },
         weapons: {
-          scimitar: { proficiencyLevel: 1 },
-          shortbow: { proficiencyLevel: 1 },
+          scimitar: 'proficient',
+          shortbow: 'proficient',
         },
       },
       proficiencyBonus: 2,
@@ -610,8 +610,8 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         passivePerception: 9,
       },
       proficiencies: {
-        skills: { stealth: { proficiencyLevel: 2 } },
-        weapons: { dagger: { proficiencyLevel: 1 } },
+        skills: { stealth: 'expertise' },
+        weapons: { dagger: 'proficient' },
       },
       proficiencyBonus: 2,
       actions: [{ kind: 'weapon', weaponRef: 'dagger' }],
@@ -681,10 +681,10 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         passivePerception: 9,
       },
       proficiencies: {
-        skills: { stealth: { proficiencyLevel: 2 } },
+        skills: { stealth: 'expertise' },
         weapons: {
-          scimitar: { proficiencyLevel: 1 },
-          shortbow: { proficiencyLevel: 1 },
+          scimitar: 'proficient',
+          shortbow: 'proficient',
         },
       },
       proficiencyBonus: 2,
@@ -753,7 +753,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
           },
         ],
       }],
-      proficiencies: { weapons: { longbow: { proficiencyLevel: 1 } } },
+      proficiencies: { weapons: { longbow: 'proficient' } },
       proficiencyBonus: 2,
       equipment: {
         weapons: { 'bone-bow': { weaponId: "longbow", aliasName: "Bone Bow", damageOverride: "1d10", notes: "Uses a monster-specific bow profile." } },
@@ -786,8 +786,8 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         weapons: {
-          greatsword: { proficiencyLevel: 1 },
-          longbow: { proficiencyLevel: 1 },
+          greatsword: 'proficient',
+          longbow: 'proficient',
         },
       },
       proficiencyBonus: 2,
@@ -876,8 +876,8 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         weapons: {
-          longsword: { proficiencyLevel: 1 },
-          longbow: { proficiencyLevel: 1 },
+          longsword: 'proficient',
+          longbow: 'proficient',
         },
       },
       proficiencyBonus: 2,
@@ -1039,7 +1039,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         passivePerception: 16,
       },
       proficiencies: {
-        skills: { perception: { proficiencyLevel: 2 } },
+        skills: { perception: 'expertise' },
       },
       proficiencyBonus: 3,
       immunities: [

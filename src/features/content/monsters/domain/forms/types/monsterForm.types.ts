@@ -2,10 +2,12 @@
  * Shared form types for Monster Create/Edit routes.
  */
 import type { ContentFormValues } from '@/features/content/shared/domain/types';
-import type { MonsterType, MonsterSizeCategory } from '@/features/content/monsters/domain/types';
+import type { MonsterType, MonsterSizeCategory, MonsterSubtype } from '@/features/content/monsters/domain/types';
 
 export type MonsterFormValues = ContentFormValues & {
   type: MonsterType | '';
+  /** Subtype tag; options depend on `type` (see getMonsterFieldConfigs). */
+  subtype: MonsterSubtype | '';
   sizeCategory: MonsterSizeCategory | '';
   /** Individual JSON fields for mechanics and lore subfields */
   description: string;

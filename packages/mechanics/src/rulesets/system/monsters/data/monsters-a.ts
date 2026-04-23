@@ -19,14 +19,14 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
       armorClass: { kind: 'natural', offset: 8 },
       movement: { ground: 10, swim: 40 },
       abilities: { str: 21, dex: 9, con: 15, int: 18, wis: 15, cha: 18 },
-      savingThrows: {
-        dex: { proficiencyLevel: 1 },
-        con: { proficiencyLevel: 1 },
-        int: { proficiencyLevel: 1 },
-        wis: { proficiencyLevel: 1 },
-      },
       proficiencies: {
-        skills: { history: { proficiencyLevel: 2 }, perception: { proficiencyLevel: 2 } },
+        saves: {
+        dex: 'proficient',
+        con: 'proficient',
+        int: 'proficient',
+        wis: 'proficient',
+      },
+        skills: { history: 'expertise', perception: 'expertise' },
       },
       senses: {
         special: [{ type: 'darkvision', range: 120 }],
@@ -476,19 +476,19 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
       armorClass: { kind: 'equipment', armorRefs: ['studded-leather'] },
       movement: { ground: 30 },
       abilities: { str: 11, dex: 18, con: 14, int: 16, wis: 11, cha: 10 },
-      savingThrows: {
-        dex: { proficiencyLevel: 1 },
-        int: { proficiencyLevel: 1 },
-      },
       proficiencies: {
+        saves: {
+        dex: 'proficient',
+        int: 'proficient',
+      },
         skills: {
-          acrobatics: { proficiencyLevel: 1 },
-          perception: { proficiencyLevel: 1 },
-          stealth: { proficiencyLevel: 2 },
+          acrobatics: 'proficient',
+          perception: 'proficient',
+          stealth: 'expertise',
         },
         weapons: {
-          shortsword: { proficiencyLevel: 1 },
-          'light-crossbow': { proficiencyLevel: 1 },
+          shortsword: 'proficient',
+          'light-crossbow': 'proficient',
         },
       },
       senses: { passivePerception: 16 },
@@ -692,8 +692,10 @@ export const MONSTERS_A: readonly MonsterCatalogEntry[] = [
       armorClass: { kind: 'natural', offset: 6 },
       movement: { ground: 30 },
       abilities: { str: 17, dex: 12, con: 15, int: 12, wis: 13, cha: 10 },
-      savingThrows: {
-        con: { proficiencyLevel: 1 },
+      proficiencies: {
+        saves: {
+          con: 'proficient',
+        },
       },
       senses: { passivePerception: 11 },
       proficiencyBonus: 2,

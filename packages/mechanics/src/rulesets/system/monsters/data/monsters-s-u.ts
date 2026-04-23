@@ -42,8 +42,8 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         weapons: {
-          shortsword: { proficiencyLevel: 1 },
-          shortbow: { proficiencyLevel: 1 },
+          shortsword: 'proficient',
+          shortbow: 'proficient',
         },
       },
       proficiencyBonus: 2,
@@ -82,7 +82,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
         passivePerception: 10,
       },
       proficiencies: {
-        skills: { stealth: { proficiencyLevel: 1 } },
+        skills: { stealth: 'proficient' },
       },
       proficiencyBonus: 2,
       immunities: ['fire', 'poison', 'exhaustion'],
@@ -284,7 +284,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
         }
       ],
       proficiencies: {
-        skills: { perception: { proficiencyLevel: 2 } },
+        skills: { perception: 'expertise' },
       },
       proficiencyBonus: 3,
     },

@@ -1,5 +1,5 @@
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
-import type { ProficiencyAdjustment } from '@/features/character/domain/types'
+import type { CharacterProficiencies } from '@/features/character/domain/types'
 
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -11,9 +11,9 @@ import Divider from '@mui/material/Divider'
 import Tooltip from '@mui/material/Tooltip'
 import EditIcon from '@mui/icons-material/Edit'
 
-type ProficiencyItem = { id: string; name: string }
+type ProficiencyItem = { id: string; name: string; proficiency?: 'proficient' | 'expertise' }
 type ProficienciesCardProps = {
-  proficiencies: { skills?: Record<string, ProficiencyAdjustment> } | ProficiencyItem[]
+  proficiencies: CharacterProficiencies | ProficiencyItem[]
   wealth: { gp?: number; sp?: number; cp?: number; baseBudget?: unknown }
   onEdit?: () => void
   editDisabled?: boolean
@@ -24,7 +24,7 @@ export default function ProficienciesCard({ proficiencies, wealth, onEdit, editD
   const isResolved = Array.isArray(proficiencies)
   const items = isResolved
     ? (proficiencies as ProficiencyItem[])
-    : getSkillIds(proficiencies as { skills?: Record<string, ProficiencyAdjustment> }).map((id) => ({ id, name: id }))
+    : getSkillIds(proficiencies as CharacterProficiencies).map((id) => ({ id, name: id }))
 
   return (
     <Card variant="outlined" sx={{ height: '100%' }}>
@@ -51,7 +51,16 @@ export default function ProficienciesCard({ proficiencies, wealth, onEdit, editD
         {items.length > 0 ? (
           <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.5 }}>
             {items.map((item) => (
-              <Chip key={item.id} label={item.name} size="small" variant="outlined" />
+              <Chip
+                key={item.id}
+                label={
+                  'proficiency' in item && item.proficiency === 'expertise'
+                    ? `${item.name} (expertise)`
+                    : item.name
+                }
+                size="small"
+                variant="outlined"
+              />
             ))}
           </Stack>
         ) : (
