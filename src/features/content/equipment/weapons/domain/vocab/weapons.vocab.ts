@@ -1,3 +1,5 @@
+import { PHYSICAL_DAMAGE_TYPE_OPTIONS } from '@/features/content/shared/domain/vocab/damage/physicalDamageTypes.vocab';
+
 export const WEAPON_CATEGORY_OPTIONS = [
   { id: 'simple', name: 'Simple' },
   { id: 'martial', name: 'Martial' },
@@ -28,10 +30,8 @@ export const WEAPON_PROPERTY_OPTIONS = [
 export type WeaponProperty = (typeof WEAPON_PROPERTY_OPTIONS)[number]['id'];
 
 export const WEAPON_DAMAGE_TYPE_OPTIONS = [
-  { id: 'bludgeoning', name: 'Bludgeoning' },
-  { id: 'piercing', name: 'Piercing' },
-  { id: 'slashing', name: 'Slashing' },
-  { id: 'none', name: 'None' },
+  ...PHYSICAL_DAMAGE_TYPE_OPTIONS.map((o) => ({ id: o.id, name: o.name })),
+  { id: 'none' as const, name: 'None' },
 ] as const;
 
 export type WeaponDamageType = (typeof WEAPON_DAMAGE_TYPE_OPTIONS)[number]['id'];

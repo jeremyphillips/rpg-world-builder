@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { getEffectConditionById } from '@/features/content/shared/domain/vocab/effectConditions.vocab';
 import type { EffectConditionId } from '@/features/content/shared/domain/vocab/effectConditions.vocab';
 import type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
-import { DAMAGE_TYPE_ROWS } from '@/features/mechanics/domain/damage/damageTypeUi';
+import { DAMAGE_TYPE_ROWS } from '@/features/content/shared/domain/vocab/damage';
 import type { Spell } from '@/features/content/spells/domain/types';
 import { SPELL_FUNCTION_TAG_OPTIONS } from '@/features/content/spells/domain/vocab/spellFunctionTags.vocab';
 import { SPELL_ROLE_TAG_OPTIONS } from '@/features/content/spells/domain/vocab/spellRoleTags.vocab';

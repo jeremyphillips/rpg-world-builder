@@ -4,6 +4,7 @@ export * from './areaOfEffect.vocab';
 export * from './creatureSenses.vocab';
 export * from './creatureSenses.types';
 export * from './creatureSenses.selectors';
+export * from './damage';
 export * from './effectConditions.vocab';
 export * from './effectKinds.vocab';
 export * from './magicSchools.vocab';

@@ -1,6 +1,6 @@
 /** Shared string helpers for monster detail display (no React). */
 
-import { getDamageTypeDisplayName } from '@/features/mechanics/domain/damage/damageTypeUi';
+import { getDamageTypeDisplayName } from '@/features/content/shared/domain/vocab/damage';
 
 export function humanizeKebabCase(id: string): string {
   return id

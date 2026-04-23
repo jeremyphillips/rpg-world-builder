@@ -1,6 +1,6 @@
 /**
  * Creature sense type ids, display names, and lookups. Same role as
- * {@link damageTypesSelect.vocab} — mapping lives in `.vocab`, not `.types`.
+ * {@link damage/damageTypesSelect.vocab} — mapping lives in `.vocab`, not `.types`.
  */
 
 /** Canonical rows: ids + labels. The union {@link CreatureSenseType} is derived from this table. */

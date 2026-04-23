@@ -7,7 +7,7 @@ import {
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { CombatantInstance } from '@/features/mechanics/domain/combat'
 import { MONSTER_TYPE_OPTIONS } from '@/features/content/monsters/domain/vocab/monster.vocab'
-import { ENERGY_DAMAGE_TYPES } from '@/features/mechanics/domain/damage/energyDamageTypes'
+import { ENERGY_DAMAGE_TYPES } from '@/features/content/shared/domain/vocab/damage'
 import { WEAPON_DAMAGE_TYPE_OPTIONS } from '@/features/content/equipment/weapons/domain/vocab/weapons.vocab'
 import type { PreviewChip } from '../../view/tactical-preview.types'
 import type { PresentableCombatEffect } from '../../effects/presentable-effects.types'

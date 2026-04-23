@@ -4,7 +4,7 @@ import type {
   ImmunityType,
 } from '@/features/content/monsters/domain/types';
 import { getConditionImmunityDisplayName } from '@/features/mechanics/domain/conditions/effect-condition-definitions';
-import { getDamageTypeDisplayName } from '@/features/mechanics/domain/damage/damageTypeUi';
+import { getDamageTypeDisplayName } from '@/features/content/shared/domain/vocab/damage';
 
 import { humanizeKebabCase } from '@/features/content/monsters/domain/details/display/monsterDisplayFormatUtils';
 
