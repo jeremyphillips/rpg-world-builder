@@ -17,7 +17,10 @@ import {
   CREATURE_IMMUNITY_PICKER_OPTIONS,
   CREATURE_VULNERABILITY_PICKER_OPTIONS,
 } from '@/features/content/shared/domain/vocab/creatureImmunitiesForm.vocab';
-import { MONSTER_TYPE_OPTIONS, MONSTER_SIZE_CATEGORY_OPTIONS } from '@/features/content/monsters/domain/vocab/monster.vocab';
+import {
+  getCreatureSizeSelectOptions,
+  getCreatureTypeSelectOptions,
+} from '@/features/content/creatures/domain/options/creatureTaxonomyOptions';
 
 const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
 const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);
@@ -92,7 +95,7 @@ export const MONSTER_FORM_FIELDS = [
     name: 'type' as const,
     label: 'Type',
     kind: 'select' as const,
-    options: MONSTER_TYPE_OPTIONS.map((o) => ({ value: o.id, label: o.name })),
+    options: getCreatureTypeSelectOptions(),
     placeholder: 'Select type',
     defaultValue: '' as MonsterFormValues['type'],
     parse: (v: unknown) => (v ? (v as MonsterInput['type']) : undefined),
@@ -102,7 +105,7 @@ export const MONSTER_FORM_FIELDS = [
     name: 'sizeCategory' as const,
     label: 'Size Category',
     kind: 'select' as const,
-    options: MONSTER_SIZE_CATEGORY_OPTIONS.map((o) => ({ value: o.id, label: o.name })),
+    options: getCreatureSizeSelectOptions(),
     placeholder: 'Select size',
     defaultValue: '' as MonsterFormValues['sizeCategory'],
     parse: (v: unknown) => (v ? (v as MonsterInput['sizeCategory']) : undefined),

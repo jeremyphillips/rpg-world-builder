@@ -11,7 +11,7 @@ import type {
   ConditionImmunityId,
   EffectConditionId,
 } from '../conditions/effect-condition-definitions';
-import type { MonsterSizeCategory, MonsterType } from '@/features/content/monsters/domain/vocab/monster.vocab';
+import type { CreatureSizeId, CreatureTypeId } from '@/features/content/creatures/domain/values';
 import type { ActionEconomyKind } from '@/features/content/shared/domain/vocab/actionEconomy.vocab';
 import type { EffectNoteCategory } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { AreaOfEffectTemplate } from './area.types';
@@ -50,7 +50,7 @@ export type SaveDcSpec = number | { kind: '5-plus-damage-taken' };
 
 export type EffectMode = 'add' | 'set' | 'multiply';
 
-export type EffectSizeCategory = MonsterSizeCategory;
+export type EffectSizeCategory = CreatureSizeId;
 
 /**
  * Shared optional metadata for every effect.
@@ -291,7 +291,7 @@ export type TargetingEffect = EffectBase<'targeting'> & {
    * Willing is approximated as allies until explicit consent is modeled.
    */
   requiresWilling?: boolean;
-  creatureTypeFilter?: MonsterType[];
+  creatureTypeFilter?: CreatureTypeId[];
   rangeFeet?: number;
   requiresSight?: boolean;
   count?: number;
@@ -406,7 +406,7 @@ export type FormEffect = EffectBase<'form'> & {
 
 /** Filter for random spawn from the merged monster catalog (e.g. Conjure Woodland Beings). */
 export type SpawnPoolFilter = {
-  creatureType: MonsterType;
+  creatureType: CreatureTypeId;
   maxChallengeRating: number;
 };
 
@@ -414,7 +414,7 @@ export type SpawnPoolFilter = {
 export type SpawnPoolFromCasterOptionSpec = {
   count: number;
   maxChallengeRating: number;
-  creatureType: MonsterType;
+  creatureType: CreatureTypeId;
 };
 
 export type SpawnSummonInitiativeMode = 'group' | 'share-caster' | 'individual';

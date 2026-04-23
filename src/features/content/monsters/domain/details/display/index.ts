@@ -9,3 +9,4 @@ export * from './monsterTraitsDisplay';
 export * from './monsterProficienciesDisplay';
 export * from './monsterEquipmentDisplay';
 export * from './monsterDamageTypesDisplay';
+export * from './monsterTaxonomyDisplay';

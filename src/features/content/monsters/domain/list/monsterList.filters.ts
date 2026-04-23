@@ -1,9 +1,9 @@
 import type { AppDataGridFilter } from '@/ui/patterns';
 import type { MonsterListRow } from './monsterList.types';
 import {
-  MONSTER_SIZE_CATEGORY_OPTIONS,
+  MONSTER_SIZE_FILTER_OPTIONS,
   MONSTER_TYPE_FILTER_OPTIONS,
-} from '@/features/content/monsters/domain/vocab/monster.vocab';
+} from '@/features/content/monsters/domain/list/monsterList.filterOptions';
 
 import { formatChallengeRatingDisplay } from './challengeRatingDisplay';
 
@@ -24,10 +24,7 @@ export function buildMonsterCustomFilters(params: {
       id: 'sizeCategory',
       label: 'Size Category',
       type: 'select',
-      options: [
-        { label: 'All', value: 'all' },
-        ...MONSTER_SIZE_CATEGORY_OPTIONS.map((c) => ({ label: c.name, value: c.id })),
-      ],
+      options: [...MONSTER_SIZE_FILTER_OPTIONS],
       accessor: (row) => row.sizeCategory ?? '',
       defaultValue: 'all',
     },

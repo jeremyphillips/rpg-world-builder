@@ -8,7 +8,7 @@ import {
 } from '@/features/content/monsters/utils/formatters';
 import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
-import { getMonsterTypeDisplayName } from '@/features/content/monsters/domain/vocab/monster.vocab';
+import { getMonsterTypeDisplayName } from '@/features/content/monsters/domain/details/display/monsterTaxonomyDisplay';
 import { AppTooltip } from '@/ui/primitives';
 
 function getActionsDisplay(actions?: MonsterAction[]): string {

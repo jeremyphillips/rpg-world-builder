@@ -120,7 +120,7 @@ Follow [effects.md §5 `note`](../effects.md), [§8](../effects.md), and **Resol
 
 ## Monster types (vocabulary)
 
-Before assigning a new **`type`** on a stat block, add its **id** and display **name** to [`MONSTER_TYPE_OPTIONS`](../../../src/features/content/monsters/domain/vocab/monster.vocab.ts) in [`monster.vocab.ts`](../../../src/features/content/monsters/domain/vocab/monster.vocab.ts). `MonsterType` is derived from that list, so catalog entries and UI options stay aligned.
+Before assigning a new **`type`** on a stat block, add its **id** and display **name** to `CREATURE_TYPE_DEFINITIONS` in [`creatureTaxonomy.ts`](../../../src/features/content/creatures/domain/values/creatureTaxonomy.ts) (shared creature taxonomy). `MonsterType` is an alias of `CreatureTypeId`, so catalog entries and UI options stay aligned.
 
 ## System catalog
 

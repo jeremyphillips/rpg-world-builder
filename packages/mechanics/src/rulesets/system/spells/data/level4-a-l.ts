@@ -1,4 +1,4 @@
-import { EXTRAPLANAR_CREATURE_TYPE_IDS } from '@/features/content/monsters/domain/vocab/monster.vocab';
+import { EXTRAPLANAR_CREATURE_TYPE_IDS } from '@/features/content/creatures/domain/values/creatureTaxonomy';
 import type { SpellEntry } from '../types';
 /**
  * Level 4 spells A–L — authoring status:

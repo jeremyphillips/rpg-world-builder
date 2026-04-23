@@ -8,7 +8,8 @@ import type {
 import type { MonsterAbilityScoreMap, AbilityId } from '@/features/mechanics/domain/character';
 import type { ProficiencyBonus } from '@/shared/domain/proficiency';
 import type { AlignmentId } from "@/features/content/shared/domain/types";
-import type { MonsterType, MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
+import type { CreatureTypeId, CreatureSizeId, CreatureSubtypeId } from '@/features/content/creatures/domain/values';
+
 import type {
   CharacterProficiencies,
   ProficiencySkillAdjustment,
@@ -48,10 +49,9 @@ type MonsterLanguage = {
   speaks?: boolean;
 };
 
-export type MonsterSubtype =
-  | 'goblinoid'
-  | 'aquatic'
-  | 'gnome';
+export type MonsterType = CreatureTypeId
+export type MonsterSizeCategory = CreatureSizeId
+export type MonsterSubtype = CreatureSubtypeId
 
 export type MonsterChallengeRating =
   | 0 | 0.125 | 0.25 | 0.5 | 1

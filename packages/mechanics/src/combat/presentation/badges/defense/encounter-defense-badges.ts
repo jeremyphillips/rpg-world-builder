@@ -6,7 +6,7 @@ import {
 } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import type { CombatantInstance } from '@/features/mechanics/domain/combat'
-import { MONSTER_TYPE_OPTIONS } from '@/features/content/monsters/domain/vocab/monster.vocab'
+import { CREATURE_TYPE_DEFINITIONS } from '@/features/content/creatures/domain/values/creatureTaxonomy'
 import { ENERGY_DAMAGE_TYPES } from '@/features/content/shared/domain/vocab/damage'
 import { WEAPON_DAMAGE_TYPE_OPTIONS } from '@/features/content/equipment/weapons/domain/vocab/weapons.vocab'
 import type { PreviewChip } from '../../view/tactical-preview.types'
@@ -66,7 +66,7 @@ function conditionImmunityDisplayName(id: ConditionImmunityId): string {
 }
 
 function monsterTypeLabel(id: string): string {
-  return MONSTER_TYPE_OPTIONS.find((m) => m.id === id)?.name ?? id
+  return CREATURE_TYPE_DEFINITIONS.find((m) => m.id === id)?.name ?? id
 }
 
 /** Human-readable scope for defense tooltips (Phase 1: presentation only). */

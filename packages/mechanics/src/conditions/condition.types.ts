@@ -1,5 +1,5 @@
 import type { TriggerType } from '../triggers/trigger.types'
-import type { MonsterType } from '@/features/content/monsters/domain/vocab/monster.vocab'
+import type { CreatureTypeId } from '@/features/content/creatures/domain/values'
 
 export type ConditionTarget = 'self' | 'target' | 'source' | 'ally'
 
@@ -42,5 +42,5 @@ type EventCondition = {
 export type CreatureTypeCondition = {
   kind: 'creature-type'
   target: ConditionTarget
-  creatureTypes: MonsterType[]
+  creatureTypes: CreatureTypeId[]
 }

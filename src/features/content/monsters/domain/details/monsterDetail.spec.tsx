@@ -24,7 +24,7 @@ import { formatMonsterChallengeRatingLine } from '@/features/content/monsters/do
 import {
   getMonsterSubtypeDisplayName,
   getMonsterTypeDisplayName,
-} from '@/features/content/monsters/domain/vocab/monster.vocab';
+} from '@/features/content/monsters/domain/details/display/monsterTaxonomyDisplay';
 import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
 
