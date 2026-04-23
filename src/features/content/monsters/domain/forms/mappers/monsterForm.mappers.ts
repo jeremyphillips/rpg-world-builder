@@ -3,10 +3,19 @@
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
+import { toIdStringArray } from '@/features/content/shared/forms/toIdStringArray';
 import {
   buildToInput,
   buildDefaultFormValues,
 } from '@/features/content/shared/forms/registry';
+import type {
+  CreatureVulnerabilityDamageType,
+  ImmunityType,
+} from '@/features/mechanics/domain/creatures/immunities.types';
+import {
+  filterToAllowedCreatureImmunityIds,
+  filterToAllowedVulnerabilityIds,
+} from '@/features/content/shared/domain/vocab/creatureImmunitiesForm.vocab';
 import { isProficiencyBonus } from '@/shared/domain/proficiency';
 import { MONSTER_FORM_FIELDS } from '../registry/monsterForm.registry';
 import type { MonsterFormValues } from '../types/monsterForm.types';
@@ -72,8 +81,8 @@ export const monsterToFormValues = (monster: Monster): MonsterFormValues => {
     proficiencies: formatJson(m?.proficiencies),
     proficiencyBonus: numToStr(m?.proficiencyBonus),
     equipment: formatJson(m?.equipment),
-    immunities: formatJson(m?.immunities),
-    vulnerabilities: formatJson(m?.vulnerabilities),
+    immunities: toIdStringArray(m?.immunities),
+    vulnerabilities: toIdStringArray(m?.vulnerabilities),
     alignment: l?.alignment != null ? String(l.alignment) : '',
     challengeRating: formatJson(l?.challengeRating),
     xpValue: formatJson(l?.xpValue),
@@ -112,10 +121,15 @@ export const toMonsterInput = (values: MonsterFormValues): MonsterInput => {
   if (pb !== undefined && isProficiencyBonus(pb)) mechanics.proficiencyBonus = pb;
   const eq = parseJson(values.equipment);
   if (eq !== undefined) mechanics.equipment = eq;
-  const imm = parseJson(values.immunities);
-  if (imm !== undefined) mechanics.immunities = imm;
-  const vuln = parseJson(values.vulnerabilities);
-  if (vuln !== undefined) mechanics.vulnerabilities = vuln;
+  if (Array.isArray(values.immunities)) {
+    const imm = filterToAllowedCreatureImmunityIds(values.immunities) as ImmunityType[];
+    mechanics.immunities = imm;
+  }
+  if (Array.isArray(values.vulnerabilities)) {
+    const vuln =
+      filterToAllowedVulnerabilityIds(values.vulnerabilities) as CreatureVulnerabilityDamageType[];
+    mechanics.vulnerabilities = vuln;
+  }
 
   if (values.alignment) lore.alignment = values.alignment;
   const cr = parseJson(values.challengeRating);

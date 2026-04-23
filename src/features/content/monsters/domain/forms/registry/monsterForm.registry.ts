@@ -13,6 +13,10 @@ import {
   PROFICIENCY_BONUS_MIN,
   isProficiencyBonus,
 } from '@/shared/domain/proficiency';
+import {
+  CREATURE_IMMUNITY_PICKER_OPTIONS,
+  CREATURE_VULNERABILITY_PICKER_OPTIONS,
+} from '@/features/content/shared/domain/vocab/creatureImmunitiesForm.vocab';
 import { MONSTER_TYPE_OPTIONS, MONSTER_SIZE_CATEGORY_OPTIONS } from '@/features/content/monsters/domain/vocab/monster.vocab';
 
 const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
@@ -50,12 +54,16 @@ const formatJson = (v: unknown): string => {
   return '';
 };
 
+type MonsterPatchPathPrefix = 'mechanics' | 'lore';
+
+/** JSON subfields. `patchPathPrefix` sets `path` for system patch mode (`mechanics.*` / `lore.*`); RHF still uses flat names via mapper. */
 const jsonField = <K extends keyof MonsterFormValues>(
   name: K,
   label: string,
   placeholder: string,
   minRows = 2,
-  maxRows = 8
+  maxRows = 8,
+  patchPathPrefix?: MonsterPatchPathPrefix
 ): FieldSpec<MonsterFormValues, MonsterInput & Record<string, unknown>, Monster & Record<string, unknown>> => ({
   name,
   label,
@@ -63,6 +71,7 @@ const jsonField = <K extends keyof MonsterFormValues>(
   placeholder,
   minRows,
   maxRows,
+  ...(patchPathPrefix !== undefined && { path: `${patchPathPrefix}.${String(name)}` }),
   defaultValue: '' as MonsterFormValues[K],
   parse: (v: unknown) => parseJson(v),
   format: (v: unknown) => formatJson(v),
@@ -110,20 +119,21 @@ export const MONSTER_FORM_FIELDS = [
   },
   jsonField('description', 'Description', JSON.stringify({ short: '', long: '' }, null, 2), 3, 6),
   jsonField('languages', 'Languages', '[]', 2, 4),
-  jsonField('hitPoints', 'Hit Points', JSON.stringify({ count: 1, die: 8, modifier: 0 }, null, 2), 2, 4),
-  jsonField('armorClass', 'Armor Class', JSON.stringify({ kind: 'natural' }, null, 2), 2, 4),
-  jsonField('movement', 'Movement', JSON.stringify({ ground: 30 }, null, 2), 2, 4),
-  jsonField('actions', 'Actions', '[]', 3, 12),
-  jsonField('bonusActions', 'Bonus Actions', '[]', 2, 8),
-  jsonField('legendaryActions', 'Legendary Actions', '{}', 2, 10),
-  jsonField('traits', 'Traits', '[]', 2, 8),
-  jsonField('abilities', 'Abilities', '{}', 2, 6),
-  jsonField('senses', 'Senses', '{}', 2, 4),
-  jsonField('proficiencies', 'Proficiencies', '{}', 2, 6),
+  jsonField('hitPoints', 'Hit Points', JSON.stringify({ count: 1, die: 8, modifier: 0 }, null, 2), 2, 4, 'mechanics'),
+  jsonField('armorClass', 'Armor Class', JSON.stringify({ kind: 'natural' }, null, 2), 2, 4, 'mechanics'),
+  jsonField('movement', 'Movement', JSON.stringify({ ground: 30 }, null, 2), 2, 4, 'mechanics'),
+  jsonField('actions', 'Actions', '[]', 3, 12, 'mechanics'),
+  jsonField('bonusActions', 'Bonus Actions', '[]', 2, 8, 'mechanics'),
+  jsonField('legendaryActions', 'Legendary Actions', '{}', 2, 10, 'mechanics'),
+  jsonField('traits', 'Traits', '[]', 2, 8, 'mechanics'),
+  jsonField('abilities', 'Abilities', '{}', 2, 6, 'mechanics'),
+  jsonField('senses', 'Senses', '{}', 2, 4, 'mechanics'),
+  jsonField('proficiencies', 'Proficiencies', '{}', 2, 6, 'mechanics'),
   {
     name: 'proficiencyBonus' as const,
     label: 'Proficiency Bonus',
     kind: 'numberText' as const,
+    path: 'mechanics.proficiencyBonus',
     placeholder: 'e.g. 2',
     defaultValue: '' as MonsterFormValues['proficiencyBonus'],
     required: true,
@@ -135,21 +145,44 @@ export const MONSTER_FORM_FIELDS = [
     },
     format: (v: unknown) => numToStr(v) as MonsterFormValues['proficiencyBonus'],
   },
-  jsonField('equipment', 'Equipment', '{}', 2, 6),
-  jsonField('immunities', 'Immunities', '[]', 2, 4),
-  jsonField('vulnerabilities', 'Vulnerabilities', '[]', 2, 4),
+  jsonField('equipment', 'Equipment', '{}', 2, 6, 'mechanics'),
+  {
+    name: 'immunities' as const,
+    label: 'Immunities',
+    kind: 'optionPicker' as const,
+    path: 'mechanics.immunities',
+    pickerOptions: CREATURE_IMMUNITY_PICKER_OPTIONS,
+    valueMode: 'array' as const,
+    renderSelectedAs: 'chip' as const,
+    placeholder: 'Add immunities…',
+    defaultValue: [] as unknown as MonsterFormValues['immunities'],
+    helperText: 'Damage and condition types (e.g. poison, charmed) as in a stat block.',
+  },
+  {
+    name: 'vulnerabilities' as const,
+    label: 'Vulnerabilities',
+    kind: 'optionPicker' as const,
+    path: 'mechanics.vulnerabilities',
+    pickerOptions: CREATURE_VULNERABILITY_PICKER_OPTIONS,
+    valueMode: 'array' as const,
+    renderSelectedAs: 'chip' as const,
+    placeholder: 'Add damage vulnerabilities…',
+    defaultValue: [] as unknown as MonsterFormValues['vulnerabilities'],
+    helperText: 'Creature damage types that deal extra damage to this creature.',
+  },
   {
     name: 'alignment' as const,
     label: 'Alignment',
     kind: 'select' as const,
+    path: 'lore.alignment',
     options: getAlignmentFormSelectOptions(),
     placeholder: 'Select alignment',
     defaultValue: '' as MonsterFormValues['alignment'],
     parse: (v: unknown) => (v ? (v as AlignmentId) : undefined),
     format: (v: unknown) => (v != null ? String(v) : '') as MonsterFormValues['alignment'],
   },
-  jsonField('challengeRating', 'Challenge Rating', '0.25', 1, 2),
-  jsonField('xpValue', 'XP Value', '50', 1, 2),
+  jsonField('challengeRating', 'Challenge Rating', '0.25', 1, 2, 'lore'),
+  jsonField('xpValue', 'XP Value', '50', 1, 2, 'lore'),
   {
     name: 'accessPolicy' as const,
     label: 'Visibility',

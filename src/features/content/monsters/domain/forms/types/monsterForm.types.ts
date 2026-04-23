@@ -22,8 +22,8 @@ export type MonsterFormValues = ContentFormValues & {
   proficiencies: string;
   proficiencyBonus: string;
   equipment: string;
-  immunities: string;
-  vulnerabilities: string;
+  immunities: string[];
+  vulnerabilities: string[];
   alignment: string;
   challengeRating: string;
   xpValue: string;
