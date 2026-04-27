@@ -16,9 +16,3 @@ export type DieFaceDefinition = (typeof DIE_FACE_DEFINITIONS)[number];
 export type DieFace = DieFaceDefinition['id'];
 
 export const DIE_FACES = DIE_FACE_DEFINITIONS.map((d) => d.id) as readonly DieFace[];
-
-/** RHF / select-friendly options (value is numeric id as string). */
-export const DIE_FACE_OPTIONS = DIE_FACE_DEFINITIONS.map((d) => ({
-  value: String(d.id),
-  label: d.label,
-})) as ReadonlyArray<{ value: string; label: string }>;

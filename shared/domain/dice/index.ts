@@ -1,6 +1,5 @@
 export {
   DIE_FACE_DEFINITIONS,
-  DIE_FACE_OPTIONS,
   DIE_FACES,
   type DieFace,
   type DieFaceDefinition,

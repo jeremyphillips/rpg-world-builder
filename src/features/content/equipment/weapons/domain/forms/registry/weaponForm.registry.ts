@@ -7,14 +7,13 @@
  */
 import type { Weapon, WeaponInput } from '@/features/content/equipment/weapons/domain/types';
 import { getBaseContentFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
+import { DIE_FACE_OPTIONS } from '@/features/content/shared/forms/dice/diceOptions';
 import {
-  DIE_FACE_OPTIONS,
-  parseXdY,
-  buildXdY,
-  toCount,
-  toCountOrZero,
-  toDieFace,
-} from '@/shared/domain/dice';
+  createOptionalXdYCountBinding,
+  createOptionalXdYDieBinding,
+  createRequiredXdYCountBinding,
+  createRequiredXdYDieBinding,
+} from '@/features/content/shared/forms/dice/dicePatchBindings';
 import {
   WEAPON_CATEGORY_OPTIONS,
   WEAPON_MODE_OPTIONS,
@@ -30,6 +29,8 @@ const isVersatile = when.contains('properties', 'versatile');
 
 const arrOrEmpty = (v: unknown): string[] =>
   Array.isArray(v) ? (v as string[]) : [];
+
+const versatileParseOptions = { defaultCount: 0, defaultDie: 8 as const };
 
 export const WEAPON_FORM_FIELDS = [
   ...getBaseContentFieldSpecs<
@@ -78,15 +79,11 @@ export const WEAPON_FORM_FIELDS = [
     group: { id: 'damageDiceDefault', label: 'Damage (Default)' },
     width: 2,
     required: true,
-    patchBinding: {
+    patchBinding: createRequiredXdYCountBinding({
       domainPath: 'damage.default',
-      parse: (v) => String(parseXdY(v as string).count),
-      serialize: (uiVal, current) =>
-        buildXdY({
-          count: toCount(uiVal, 1),
-          die: toDieFace(parseXdY(current as string).die, 6),
-        }),
-    },
+      countFallback: 1,
+      dieFallback: 6,
+    }),
   },
   {
     name: 'damageDefaultDie',
@@ -97,15 +94,10 @@ export const WEAPON_FORM_FIELDS = [
     group: { id: 'damageDiceDefault', label: 'Damage (Default)' },
     width: 3,
     required: true,
-    patchBinding: {
+    patchBinding: createRequiredXdYDieBinding({
       domainPath: 'damage.default',
-      parse: (v) => String(parseXdY(v as string).die),
-      serialize: (uiVal, current) =>
-        buildXdY({
-          count: parseXdY(current as string).count,
-          die: toDieFace(uiVal, 6),
-        }),
-    },
+      dieFallback: 6,
+    }),
   },
   {
     name: 'damageType',
@@ -128,17 +120,11 @@ export const WEAPON_FORM_FIELDS = [
     visibleWhen: isVersatile,
     group: { id: 'damageDiceVersatile', label: 'Damage (Versatile)', helperText: 'Optional. Only used for versatile weapons.' },
     width: 2,
-    patchBinding: {
+    patchBinding: createOptionalXdYCountBinding({
       domainPath: 'damage.versatile',
-      parse: (v) =>
-        String(parseXdY(v as string, { defaultCount: 0, defaultDie: 8 }).count),
-      serialize: (uiVal, current) => {
-        const vCount = toCountOrZero(uiVal, 0);
-        if (vCount === 0) return undefined;
-        const parsed = parseXdY(current as string, { defaultCount: 0, defaultDie: 8 });
-        return buildXdY({ count: vCount, die: parsed.die });
-      },
-    },
+      parseOptions: versatileParseOptions,
+      countZeroFallback: 0,
+    }),
   },
   {
     name: 'damageVersatileDie',
@@ -149,17 +135,12 @@ export const WEAPON_FORM_FIELDS = [
     visibleWhen: isVersatile,
     group: { id: 'damageDiceVersatile', label: 'Damage (Versatile)' },
     width: 3,
-    patchBinding: {
+    patchBinding: createOptionalXdYDieBinding({
       domainPath: 'damage.versatile',
-      parse: (v) =>
-        String(parseXdY(v as string, { defaultCount: 0, defaultDie: 8 }).die),
-      serialize: (uiVal, current) => {
-        const parsed = parseXdY(current as string, { defaultCount: 0, defaultDie: 8 });
-        const vCount = toCountOrZero(parsed.count, 0);
-        if (vCount === 0) return undefined;
-        return buildXdY({ count: vCount, die: toDieFace(uiVal, 8) });
-      },
-    },
+      parseOptions: versatileParseOptions,
+      countZeroFallback: 0,
+      dieFallback: 8,
+    }),
   },
   {
     name: 'rangeNormal',

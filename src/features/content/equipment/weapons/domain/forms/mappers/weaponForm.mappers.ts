@@ -75,7 +75,7 @@ export const toWeaponInput = (values: WeaponFormValues): WeaponInput => {
   };
   const vCount = toCountOrZero(values.damageVersatileCount, 0);
   if (vCount > 0) {
-    const vDie = toDieFace(values.damageVersatileDie, 6);
+    const vDie = toDieFace(values.damageVersatileDie, 8);
     damage.versatile = buildXdY({ count: vCount, die: vDie }) as NonNullable<WeaponFields['damage']['versatile']>;
   }
 

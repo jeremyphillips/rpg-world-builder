@@ -6,7 +6,7 @@ import { DynamicFormRenderer, type FieldConfig } from '@/ui/patterns';
 import DynamicField from '@/ui/patterns/form/DynamicField';
 import DriverField from '@/ui/patterns/form/DriverField';
 import type { PatchDriver } from '@/ui/patterns/form/patchDriver.types';
-import { DIE_FACE_OPTIONS } from '@/shared/domain/dice';
+import { DIE_FACE_OPTIONS } from '@/features/content/shared/forms/dice/diceOptions';
 import { DAMAGE_TYPE_SELECT_OPTIONS } from '@/features/content/shared/domain/vocab/damage';
 import { EFFECT_CONDITION_DEFINITIONS } from '@/features/content/shared/domain/vocab/effectConditions.vocab';
 import { RESOURCE_RECHARGE_OPTIONS } from '@/features/content/shared/domain/vocab/resourceRecharge.vocab';
