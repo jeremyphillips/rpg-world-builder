@@ -68,7 +68,14 @@ export default function AuthLayout() {
   // which would overwrite campaigns state with a second object reference and
   // trigger an unnecessary re-render of the sidebar campaign selector.
   useEffect(() => {
+    if (!user) {
+      setCampaigns([])
+      setCampaignsLoading(false)
+      return
+    }
+
     const controller = new AbortController()
+    setCampaignsLoading(true)
     apiFetch<{ campaigns: Campaign[] }>('/api/campaigns', { signal: controller.signal })
       .then((data) => {
         if (!controller.signal.aborted) setCampaigns(data.campaigns ?? [])
@@ -80,7 +87,7 @@ export default function AuthLayout() {
         if (!controller.signal.aborted) setCampaignsLoading(false)
       })
     return () => controller.abort()
-  }, [])
+  }, [user])
 
   const handleCampaignChange = (value: string) => {
     if (value === '') {

@@ -6,7 +6,7 @@ import mongoose from 'mongoose'
 import { env } from '../config/env'
 import { getCampaignById } from '../../features/campaign/services/campaign.service'
 import { isPlatformAdmin as checkPlatformAdmin } from './platformAdmin'
-import type { CampaignRole, CampaignMemberStoredRole } from '../../shared/types'
+import type { CampaignRole, CampaignMemberStoredRole } from '../../../shared/types'
 
 const db = () => mongoose.connection.useDb(env.DB_NAME)
 const campaignMembersCollection = () => db().collection('campaignMembers')

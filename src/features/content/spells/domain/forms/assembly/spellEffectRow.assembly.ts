@@ -1,6 +1,7 @@
 import {
   buildXdY,
   type DiceOrFlat,
+  parseXdY,
   toCount,
   toDieFace,
 } from '@/shared/domain/dice';
@@ -64,12 +65,22 @@ export function damageToDraftFields(damage: DiceOrFlat): Pick<
   const m = s.match(/^(\d+)d(\d+)([+-]\d+)?$/i);
   if (m) {
     const modPart = m[3];
-    const modDisplay = modPart ? String(parseInt(modPart, 10)) : '';
+    if (modPart) {
+      const modDisplay = String(parseInt(modPart, 10));
+      return {
+        damageFormat: 'dice',
+        damageDiceCount: m[1] ?? '1',
+        damageDieFace: m[2] ?? '6',
+        damageModifier: modDisplay,
+        damageFlatValue: '',
+      };
+    }
+    const { count, die } = parseXdY(s);
     return {
       damageFormat: 'dice',
-      damageDiceCount: m[1],
-      damageDieFace: m[2],
-      damageModifier: modDisplay,
+      damageDiceCount: String(count),
+      damageDieFace: String(die),
+      damageModifier: '',
       damageFlatValue: '',
     };
   }

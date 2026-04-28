@@ -11,6 +11,7 @@ import {
 import { useLocation, useNavigate, matchPath } from 'react-router-dom'
 import { apiFetch } from '../api'
 import type { Campaign } from '@/shared/types/campaign.types'
+import { useAuth } from './AuthProvider'
 
 interface ActiveCampaignContextType {
   campaign: Campaign | null,
@@ -35,6 +36,7 @@ export const ActiveCampaignProvider = ({
 }: {
   children: ReactNode
 }) => {
+  const { user, loading: authLoading } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [campaign, setCampaign] = useState<Campaign | null>(null)
@@ -60,6 +62,8 @@ export const ActiveCampaignProvider = ({
   }, [location.pathname, campaignId])
 
   useEffect(() => {
+    if (authLoading || !user) return
+
     const controller = new AbortController()
     apiFetch<{ campaigns: { _id: string }[] }>('/api/campaigns', { signal: controller.signal })
       .then((data) => {
@@ -75,7 +79,7 @@ export const ActiveCampaignProvider = ({
       })
       .catch(() => {})
     return () => controller.abort()
-  }, [])
+  }, [user, authLoading])
 
   useEffect(() => {
     const match = matchPath(
@@ -112,6 +116,14 @@ export const ActiveCampaignProvider = ({
   }, [])
 
   useEffect(() => {
+    if (authLoading) return
+
+    if (!user) {
+      setCampaign(null)
+      setLoading(false)
+      return
+    }
+
     if (!resolvedCampaignId) {
       setCampaign(null)
       setLoading(false)
@@ -134,7 +146,7 @@ export const ActiveCampaignProvider = ({
       })
 
     return () => controller.abort()
-  }, [resolvedCampaignId])
+  }, [resolvedCampaignId, user, authLoading])
 
   const value = useMemo(() => ({
     campaignId: resolvedCampaignId,
