@@ -8,7 +8,7 @@ import {
 } from '@/features/content/monsters/utils/formatters';
 import { calculateMonsterArmorClass } from '../mechanics/calculateMonsterArmorClass';
 import type { CreatureArmorCatalogEntry } from '@/features/mechanics/domain/equipment/armorClass';
-import { MONSTER_TYPE_OPTIONS } from '@/features/content/monsters/domain/vocab/monster.vocab';
+import { getMonsterTypeDisplayName } from '@/features/content/monsters/domain/details/display/monsterTaxonomyDisplay';
 import { AppTooltip } from '@/ui/primitives';
 
 function getActionsDisplay(actions?: MonsterAction[]): string {
@@ -30,22 +30,6 @@ function getTraitsDisplay(traits?: { name: string }[]): string {
   return traits.map((t) => t.name).join(', ');
 }
 
-function getEquipmentDisplay(row: MonsterListRow): string {
-  const eq = row.mechanics?.equipment;
-  if (!eq) return '—';
-  const weapons = Object.keys(eq.weapons ?? {});
-  const armor = Object.keys(eq.armor ?? {});
-  const keys = [...weapons, ...armor];
-  return keys.length > 0 ? keys.join(', ') : '—';
-}
-
-function getMonsterTypeDisplay(row: MonsterListRow): string {
-  const id = row.type;
-  if (!id) return '—';
-  const opt = MONSTER_TYPE_OPTIONS.find((o) => o.id === id);
-  return opt?.name ?? id;
-}
-
 export function buildMonsterCustomColumns(
   armorById: Record<string, CreatureArmorCatalogEntry>,
 ): AppDataGridColumn<MonsterListRow>[] {
@@ -54,7 +38,7 @@ export function buildMonsterCustomColumns(
       field: 'monsterType',
       headerName: 'Type',
       width: 120,
-      accessor: getMonsterTypeDisplay,
+      accessor: (row) => getMonsterTypeDisplayName(row.type),
     },
     {
       field: 'hitPoints',
@@ -105,18 +89,18 @@ export function buildMonsterCustomColumns(
     },
     {
       field: 'challengeRating',
-      headerName: 'Challenge Rating',
+      headerName: 'CR',
       width: 100,
       accessor: (row) => row.lore.challengeRating ? 
         `${row.lore.challengeRating.toString()}` : '—',
         // (XP: ${row.lore.xpValue?.toLocaleString()})
     },
-    {
-      field: 'equipment',
-      headerName: 'Equipment',
-      flex: 1,
-      minWidth: 120,
-      accessor: getEquipmentDisplay,
-    },
+    // {
+    //   field: 'equipment',
+    //   headerName: 'Equipment',
+    //   flex: 1,
+    //   minWidth: 120,
+    //   accessor: getEquipmentDisplay,
+    // },
   ];
 }

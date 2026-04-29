@@ -1,17 +1,16 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
-import AddIcon from '@mui/icons-material/Add';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import {
   ContentTypeListPage,
   buildCampaignContentColumns,
   buildCampaignContentFilters,
+  getMutedRowClassNameForDisallowedCampaignContent,
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
@@ -29,19 +28,17 @@ import {
   type LocationSummary,
 } from '@/features/content/locations/domain';
 import type { ContentSummary } from '@/features/content/shared/domain/types';
-import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
 export default function LocationListRoute() {
+  const { loading: authLoading } = useAuth();
   const { campaign, campaignId } = useActiveCampaign();
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/locations`;
 
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
-  const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
@@ -93,6 +90,7 @@ export default function LocationListRoute() {
   const columns = useMemo(
     () =>
       buildCampaignContentColumns<LocationListRow>({
+        imageContentType: 'location',
         canManage,
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
@@ -109,11 +107,12 @@ export default function LocationListRoute() {
         onToggleAllowedInCampaign: handleToggleAllowed,
         customFilters,
         hasCampaignSources,
+        viewerContext: controller.viewerContext,
       }),
-    [canManage, handleToggleAllowed, customFilters, hasCampaignSources],
+    [canManage, handleToggleAllowed, customFilters, hasCampaignSources, controller.viewerContext],
   );
 
-  if (controller.loading) {
+  if (controller.loading || authLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress />
@@ -122,68 +121,47 @@ export default function LocationListRoute() {
   }
 
   return (
-    <Stack spacing={2}>
-      {validationBlocked &&
-        (validationBlocked.blockingEntities.length > 0 ? (
-          <ValidationBlockedAlert
-            contentType="location"
-            mode="disallow"
-            blockingEntities={validationBlocked.blockingEntities}
-            onClose={() => setValidationBlocked(null)}
-          />
-        ) : (
-          <AppAlert tone="warning" onClose={() => setValidationBlocked(null)}>
-            {validationBlocked.message ?? 'Cannot disable this location.'}
-          </AppAlert>
-        ))}
-      <ContentTypeListPage<LocationSummary>
-        typeLabel="Location"
-        typeLabelPlural="Locations"
-        headline="Locations"
-        breadcrumbData={breadcrumbs}
-        actions={[
-          <Button
-            key="back"
-            component={Link}
-            to={`/campaigns/${campaignId}/world`}
-            size="small"
-            startIcon={<ArrowBackIcon />}
-          >
-            World
-          </Button>,
-        ]}
-        rows={items}
-        columns={columns}
-        filters={filters}
-        getRowId={(r) => r.id}
-        getDetailLink={controller.getDetailLink}
-        getRowClassName={
-          canManage
-            ? (params: GridRowClassNameParams) =>
-                (params.row as LocationListRow).allowedInCampaign === false
-                  ? 'AppDataGrid-row--disabled'
-                  : ''
-            : undefined
-        }
-        loading={controller.loading}
-        error={controller.error}
-        toolbar={
-          canManage ? (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={controller.onAdd}
-            >
-              Add Location
-            </Button>
-          ) : undefined
-        }
-        searchPlaceholder="Search locations…"
-        emptyMessage="No locations found."
-        density="compact"
-        height={560}
-      />
-    </Stack>
+    <ContentTypeListPage<LocationSummary>
+      page={{
+        typeLabel: 'Location',
+        typeLabelPlural: 'Locations',
+        headline: 'Locations',
+        breadcrumbData: breadcrumbs,
+        canManage,
+        onAdd: controller.onAdd,
+        addButtonLabel: 'Add Location',
+        topBanner:
+          validationBlocked ? (
+            validationBlocked.blockingEntities.length > 0 ? (
+              <ValidationBlockedAlert
+                contentType="location"
+                mode="disallow"
+                blockingEntities={validationBlocked.blockingEntities}
+                onClose={() => setValidationBlocked(null)}
+              />
+            ) : (
+              <AppAlert tone="warning" onClose={() => setValidationBlocked(null)}>
+                {validationBlocked.message ?? 'Cannot disable this location.'}
+              </AppAlert>
+            )
+          ) : undefined,
+      }}
+      grid={{
+        rows: items,
+        columns,
+        filters,
+        getRowId: (r) => r.id,
+        getDetailLink: controller.getDetailLink,
+        getRowClassName: getMutedRowClassNameForDisallowedCampaignContent<LocationListRow>(canManage),
+        loading: controller.loading,
+        error: controller.error,
+        searchPlaceholder: 'Search locations…',
+        emptyMessage: 'No locations found.',
+        density: 'compact',
+        height: 560,
+      }}
+      preferences={{ contentListPreferencesKey: 'locations' }}
+      viewerContext={controller.viewerContext}
+    />
   );
 }

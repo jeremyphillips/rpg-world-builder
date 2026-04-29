@@ -64,12 +64,12 @@ export async function updateMe(req: Request, res: Response) {
 
   const {
     firstName, lastName, username, avatarKey,
-    bio, website, email, notificationPreferences,
+    bio, website, email, preferences,
   } = req.body
 
   const user = await updateProfile(req.userId, {
     firstName, lastName, username, avatarKey,
-    bio, website, email, notificationPreferences,
+    bio, website, email, preferences,
   })
   res.json({ user })
 }

@@ -10,7 +10,11 @@
  * - NPC validation
  */
 import type { CharacterDoc } from '@/features/character/domain/types'
-import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
+import {
+  buildCharacterQueryContext,
+  isProficientInSkill,
+  type CharacterQuerySource,
+} from '@/features/character/domain/query'
 import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
@@ -26,8 +30,8 @@ type CharacterWithProficiencies = Pick<
 /**
  * Validates whether a skill proficiency can be deleted or disabled.
  *
- * Checks characters in the campaign. If any active character owns the
- * proficiency id (has it in proficiencies.skills), returns allowed: false.
+ * Checks characters in the campaign. If any active character is proficient
+ * in the skill id per the character query layer, returns allowed: false.
  */
 export async function validateSkillProficiencyChange(params: {
   campaignId: string;
@@ -43,6 +47,9 @@ export async function validateSkillProficiencyChange(params: {
     includeNpcs,
     contentType: 'skill proficiency',
     matcher: (c) =>
-      getSkillIds(c.proficiencies).includes(skillProficiencyId),
+      isProficientInSkill(
+        buildCharacterQueryContext(c as CharacterQuerySource),
+        skillProficiencyId,
+      ),
   });
 }

@@ -21,7 +21,7 @@ todos:
     content: Add/adjust tests for AC, resistances wiring, and shared resolution types if needed
     status: completed
   - id: doc-reference
-    content: Write docs/reference/monster-authoring.md; cross-link docs/reference/effects.md; document resolution subtype + escape hatches; deprecate maxDexBonus in authoring guidance
+    content: Write docs/reference/content/monster-authoring.md; cross-link docs/reference/effects.md; document resolution subtype + escape hatches; deprecate maxDexBonus in authoring guidance
     status: completed
   - id: natural-armor-offset
     content: "Refactor `kind: 'natural'` monster armor: replace `base` (absolute AC contribution) with `offset` (points above global unarmored AC baseline). Wire `calculateMonsterArmorClass` to baseline + offset; migrate `monsters.ts` + `monsters-catalog-append.ts`; update `monster-equipment.types.ts`, tests, and monster-authoring.md. Omit `offset` when 0 (same as today omitting `base` when 10)."
@@ -80,7 +80,7 @@ Reserve these for cases where **no** combination of structured effects, correct 
 - **Monsters — AC**: [`MonsterArmorClass`](src/features/content/monsters/domain/types/monster-equipment.types.ts) `kind: 'fixed'`, and `override` on natural/equipment — **only** when matching printed AC without lying is otherwise impossible. Prefer adjusting **`kind: 'natural'`** (see **`offset`** refactor below) and catalog **equipment** so DEX + armor math matches the book.
 - **Monsters — monster armor metadata**: Do not use removed fields like **`dexApplies`** on natural armor; PC-style DEX caps live in [`armorClass.ts`](src/features/mechanics/domain/equipment/armorClass.ts) for real armor, not on `MonsterArmorClass`.
 
-Document escape-hatch policy in [`docs/reference/monster-authoring.md`](docs/reference/monster-authoring.md) and tie resolution metadata to [effects.md](docs/reference/effects.md) §8.
+Document escape-hatch policy in [`docs/reference/content/monster-authoring.md`](docs/reference/content/monster-authoring.md) and tie resolution metadata to [effects.md](docs/reference/effects.md) §8.
 
 ### Authoring rules for new monster content
 
@@ -111,7 +111,7 @@ Match printed AC via `kind: 'natural'` with appropriate **natural contribution +
 
 **Computation:** `defaultBaseAC = globalUnarmoredAcBaseline + (armorClass.offset ?? 0)` passed into [`calculateCreatureArmorClass`](src/features/mechanics/domain/equipment/armorClass.ts) (same hook as today’s `defaultBaseAC: armorClass.base ?? 10`).
 
-**Work:** Types in [`monster-equipment.types.ts`](src/features/content/monsters/domain/types/monster-equipment.types.ts); [`calculateMonsterArmorClass.ts`](src/features/content/monsters/domain/mechanics/calculateMonsterArmorClass.ts); migrate all `base` in [`monsters.ts`](src/features/mechanics/domain/rulesets/system/monsters.ts) and [`monsters-catalog-append.ts`](src/features/mechanics/domain/rulesets/system/monsters-catalog-append.ts) to `offset = base - 10` (or relative to chosen baseline constant); tests + [`docs/reference/monster-authoring.md`](docs/reference/monster-authoring.md).
+**Work:** Types in [`monster-equipment.types.ts`](src/features/content/monsters/domain/types/monster-equipment.types.ts); [`calculateMonsterArmorClass.ts`](src/features/content/monsters/domain/mechanics/calculateMonsterArmorClass.ts); migrate all `base` in [`monsters.ts`](src/features/mechanics/domain/rulesets/system/monsters.ts) and [`monsters-catalog-append.ts`](src/features/mechanics/domain/rulesets/system/monsters-catalog-append.ts) to `offset = base - 10` (or relative to chosen baseline constant); tests + [`docs/reference/content/monster-authoring.md`](docs/reference/content/monster-authoring.md).
 
 ## Creatures to add
 
@@ -119,7 +119,7 @@ Ghoul, Giant Centipede, Giant Spider, Giant Wasp, Goblin Minion, Air/Earth/Fire/
 
 ## Reference documentation
 
-- [`docs/reference/monster-authoring.md`](docs/reference/monster-authoring.md): cross-link [docs/reference/effects.md](docs/reference/effects.md); **`ContentResolutionMeta`**, optional **`subtype`**, escape hatches; after **`offset`** refactor, document natural **`offset`** vs global baseline.
+- [`docs/reference/content/monster-authoring.md`](docs/reference/content/monster-authoring.md): cross-link [docs/reference/effects.md](docs/reference/effects.md); **`ContentResolutionMeta`**, optional **`subtype`**, escape hatches; after **`offset`** refactor, document natural **`offset`** vs global baseline.
 - Optionally add a bullet in [docs/reference/effects.md](docs/reference/effects.md) pointing to [`content-resolution.types.ts`](src/features/mechanics/domain/resolution/content-resolution.types.ts).
 
 ## Dependency / file touch list
@@ -132,7 +132,7 @@ Ghoul, Giant Centipede, Giant Spider, Giant Wasp, Goblin Minion, Air/Earth/Fire/
 | Resistances / combat | [`monster.types.ts`](src/features/content/monsters/domain/types/monster.types.ts); [`monster-combat.types.ts`](src/features/content/monsters/domain/types/monster-combat.types.ts); [`combatant-builders.ts`](src/features/encounter/helpers/combatant-builders.ts) |
 | Initiative | [`OpponentCombatantSetupPreviewCard.tsx`](src/features/encounter/components/OpponentCombatantSetupPreviewCard.tsx) |
 | Catalog | [`monsters.ts`](src/features/mechanics/domain/rulesets/system/monsters.ts) |
-| Docs | [`docs/reference/monster-authoring.md`](docs/reference/monster-authoring.md); optional [`docs/reference/effects.md`](docs/reference/effects.md) |
+| Docs | [`docs/reference/content/monster-authoring.md`](docs/reference/content/monster-authoring.md); optional [`docs/reference/effects.md`](docs/reference/effects.md) |
 
 ```mermaid
 flowchart TB

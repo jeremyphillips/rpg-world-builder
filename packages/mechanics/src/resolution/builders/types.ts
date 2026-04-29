@@ -1,7 +1,7 @@
 import type { EvaluationContext } from '../../conditions/evaluation-context.types'
 import type { Effect } from '../../effects/effects.types'
 import type { CreatureAbilityScores } from '../../character'
-import type { DieFace } from '../../dice/dice.types'
+import type { DieFace } from '@/shared/domain/dice';
 
 /**
  * Universal contract produced by builders and consumed by resolvers.

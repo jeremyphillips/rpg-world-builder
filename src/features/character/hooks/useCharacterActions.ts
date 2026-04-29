@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import type { CharacterPatchFields } from '@/features/character/domain/types/character.types'
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { LevelUpResult } from '@/features/character/levelUp'
 import { getXpForLevel } from '@/features/mechanics/domain/progression'
@@ -19,7 +20,7 @@ export interface CharacterActionDeps {
 
 export interface UseCharacterActionsReturn {
   approvingId: string | null
-  saveCharacter: (partial: Record<string, unknown>) => Promise<void>
+  saveCharacter: (partial: Partial<CharacterPatchFields>) => Promise<void>
   handleApprove: (campaignMemberId: string) => Promise<void>
   handleReject: (campaignMemberId: string) => Promise<void>
   handleAwardXp: (params: { newXp: number; triggersLevelUp: boolean; pendingLevel?: number }) => Promise<void>

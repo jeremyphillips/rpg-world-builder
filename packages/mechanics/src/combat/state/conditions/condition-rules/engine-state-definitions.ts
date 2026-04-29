@@ -7,8 +7,6 @@ import { cannotAct } from './condition-consequence-helpers'
  */
 export const ENGINE_STATE_RULES: Record<string, MarkerRule> = {
   banished: {
-    id: 'banished',
-    label: 'Banished',
     consequences: [
       ...cannotAct(),
       {
@@ -20,8 +18,6 @@ export const ENGINE_STATE_RULES: Record<string, MarkerRule> = {
   },
 
   'off-grid': {
-    id: 'off-grid',
-    label: 'Off-grid',
     consequences: [
       ...cannotAct(),
       {

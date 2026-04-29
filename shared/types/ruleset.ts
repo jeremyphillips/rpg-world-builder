@@ -10,6 +10,7 @@ import type { MagicItemRarity } from '@/features/content/equipment/magicItems/do
 import type { AbilityRef, AbilityId } from '@/features/mechanics/domain/character';
 import type { XpTable } from '@/features/mechanics/domain/progression';
 import type { Coin } from '../money';
+import type { ProficiencyBonus } from '@/shared/domain/proficiency';
 
 export type {
   ResolveMode,
@@ -169,7 +170,7 @@ export type MagicItemBudget = {
 
 export type ProficiencyBonusTier = {
   levelRange: [number, number];
-  bonus: number;
+  bonus: ProficiencyBonus;
 };
 
 export type Progression = {

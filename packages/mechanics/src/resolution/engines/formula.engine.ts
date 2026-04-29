@@ -2,7 +2,10 @@ import type { StatTarget } from '../types'
 import type { EffectBase } from '../../effects/effects.types'
 import type { EvaluationContext } from '../../conditions/evaluation-context.types'
 import { getAbilityModifier } from '../../abilities/getAbilityModifier'
-import { resolveProficiencyContribution } from '@/features/mechanics/domain/progression'
+import {
+  resolveProficiencyContribution,
+  type ResolvedProficiencyMode,
+} from '@/features/mechanics/domain/progression'
 import type { AbilityKey, AbilityId } from '../../character'
 import { abilityIdToKey } from '../../character/abilities/abilities.utils'
 
@@ -16,7 +19,7 @@ export type FormulaDefinition = {
     | AbilityId[]
   /** Cap ability contribution (e.g. medium armor: min(dex, 2)) */
   maxAbilityContribution?: number
-  proficiency?: true | { level?: number; bonus?: number }
+  proficiency?: true | { mode?: ResolvedProficiencyMode; bonus?: number }
   perLevel?: number
 }
 
@@ -37,17 +40,17 @@ export function resolveFormulaProficiency(
 
   if (proficiency === true) {
     return {
-      value: resolveProficiencyContribution(baseBonus, 1),
+      value: resolveProficiencyContribution(baseBonus, 'proficient'),
       label: 'Prof',
     }
   }
 
-  const level = proficiency.level ?? 1
+  const mode: ResolvedProficiencyMode = proficiency.mode ?? 'proficient'
   const bonus = proficiency.bonus ?? baseBonus
 
   return {
-    value: resolveProficiencyContribution(bonus, level),
-    label: level === 1 && bonus === baseBonus ? 'Prof' : `Prof (${level}x${bonus})`,
+    value: resolveProficiencyContribution(bonus, mode),
+    label: mode === 'proficient' && bonus === baseBonus ? 'Prof' : `Prof (${mode}, ${bonus})`,
   }
 }
 

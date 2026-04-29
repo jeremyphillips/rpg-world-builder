@@ -238,21 +238,25 @@ export default function GameSessionListRoute() {
         columns={columns}
         getRowId={(row) => row.id}
         getDetailLink={(row) => campaignGameSessionLobbyPath(campaignId, row.id)}
-        filters={[statusFilter]}
-        searchable
-        searchPlaceholder="Search sessions…"
-        searchColumns={['title']}
-        loading={loading}
-        emptyMessage="No live sessions yet."
-        height={480}
-        density="standard"
-        toolbar={
-          canManage ? (
+        toolbarConfig={{
+          filters: { definitions: [statusFilter] },
+          search: {
+            enabled: true,
+            placeholder: 'Search sessions…',
+            columns: ['title'],
+          },
+          actions: canManage ? (
             <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate} disabled={creating}>
               {creating ? 'Creating…' : 'New live session'}
             </Button>
-          ) : undefined
-        }
+          ) : undefined,
+        }}
+        presentation={{
+          loading,
+          emptyMessage: 'No live sessions yet.',
+          height: 480,
+          density: 'standard',
+        }}
       />
     </Box>
   )

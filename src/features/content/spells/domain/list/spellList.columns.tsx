@@ -1,12 +1,16 @@
 import type { AppDataGridColumn } from '@/ui/patterns';
 // import { makeBooleanGlyphColumn } from '@/features/content/shared/components';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab/magicSchools.vocab';
-import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 import { getSpellResolutionStatus } from '@/features/content/spells/domain/types';
 import type { SpellListRow } from './spellList.types';
+import {
+  formatSpellLevelShortFromUnknown,
+  SPELL_UI,
+  spellColumnHeaderName,
+} from '../spellPresentation';
 
 const schoolLabel = (value: string) =>
-  MAGIC_SCHOOL_OPTIONS.find((o) => o.value === value)?.label ?? value;
+  MAGIC_SCHOOL_OPTIONS.find((o) => o.id === value)?.name ?? value;
 
 const RESOLUTION_STATUS_LABELS: Record<string, string> = {
   stub: 'Stub',
@@ -21,39 +25,38 @@ export function buildSpellCustomColumns(
 ): AppDataGridColumn<SpellListRow>[] {
   return [
     {
-      field: 'school',
-      headerName: 'School',
+      field: SPELL_UI.school.key,
+      headerName: spellColumnHeaderName(SPELL_UI.school),
       width: 120,
       valueFormatter: (v) => (v ? schoolLabel(v as string) : '—'),
     },
     {
-      field: 'level',
-      headerName: 'Level',
+      field: SPELL_UI.level.key,
+      headerName: spellColumnHeaderName(SPELL_UI.level),
       width: 90,
       type: 'number',
-      valueFormatter: (v) =>
-        v === 0 ? 'Cantrip' : v != null ? String(v) : '—',
+      valueFormatter: (v) => formatSpellLevelShortFromUnknown(v),
     },
     {
-      field: 'classes',
-      headerName: 'Classes',
+      field: SPELL_UI.classes.key,
+      headerName: spellColumnHeaderName(SPELL_UI.classes),
       flex: 1,
       minWidth: 180,
       accessor: (row) => {
-        const allowed = filterAllowedIds(row.classes, classesById ?? {});
-        if (!allowed?.length) return EMPTY_PLACEHOLDER;
-        return allowed
-          .map((id) => classesById?.[id]?.name ?? id)
-          .join(', ');
+        const byId = classesById ?? {};
+        const allowed = (row.classes ?? []).filter((id) => id in byId);
+        if (!allowed.length) return EMPTY_PLACEHOLDER;
+        return allowed.map((id) => byId[id]?.name ?? id).join(', ');
       },
       valueFormatter: (v) => (v != null && v !== '' ? String(v) : EMPTY_PLACEHOLDER),
     },
     {
-      field: 'resolutionStatus',
-      headerName: 'Status',
+      field: SPELL_UI.resolutionStatus.key,
+      headerName: spellColumnHeaderName(SPELL_UI.resolutionStatus),
       width: 100,
       accessor: (row) => getSpellResolutionStatus(row),
       valueFormatter: (v) => RESOLUTION_STATUS_LABELS[v as string] ?? '—',
+      visibility: SPELL_UI.resolutionStatus.ui.visibility,
     },
   ];
 }

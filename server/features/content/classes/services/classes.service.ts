@@ -11,6 +11,7 @@ export type CampaignClassDoc = {
   classId: string;
   name: string;
   description: string;
+  imageKey: string;
   accessPolicy?: AccessPolicy;
   data: Record<string, unknown>;
   createdAt: string;
@@ -23,6 +24,11 @@ type ValidationError = {
   message: string;
 };
 
+function normalizeImageKey(body: Record<string, unknown>): string {
+  if (body.imageKey === undefined || body.imageKey === null) return '';
+  return String(body.imageKey).trim();
+}
+
 function validateInput(body: Record<string, unknown>): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -34,6 +40,10 @@ function validateInput(body: Record<string, unknown>): ValidationError[] {
 
   if (body.description !== undefined && typeof body.description !== 'string') {
     errors.push({ path: 'description', code: 'INVALID_TYPE', message: 'description must be a string' });
+  }
+
+  if (body.imageKey !== undefined && body.imageKey !== null && typeof body.imageKey !== 'string') {
+    errors.push({ path: 'imageKey', code: 'INVALID_TYPE', message: 'imageKey must be a string' });
   }
 
   if (body.classId !== undefined) {
@@ -63,6 +73,8 @@ function toDoc(doc: Record<string, unknown>): CampaignClassDoc {
     classId: doc.classId as string,
     name: doc.name as string,
     description: (doc.description as string) ?? '',
+    imageKey:
+      doc.imageKey === undefined || doc.imageKey === null ? '' : String(doc.imageKey).trim(),
     accessPolicy: doc.accessPolicy as AccessPolicy | undefined,
     data: (doc.data as Record<string, unknown>) ?? {},
     createdAt: String(doc.createdAt),
@@ -111,6 +123,7 @@ export async function create(
   const name = (body.name as string).trim();
   const classId = (body.classId as string | undefined)?.trim() || generateClassId(name);
   const description = ((body.description as string) ?? '').trim();
+  const imageKey = normalizeImageKey(body);
   const accessPolicy = body.accessPolicy as AccessPolicy | undefined;
   const data = extractData(body);
 
@@ -126,6 +139,7 @@ export async function create(
     classId,
     name,
     description,
+    imageKey,
     accessPolicy,
     data,
   });
@@ -142,10 +156,11 @@ export async function update(
 
   const name = (body.name as string).trim();
   const description = ((body.description as string) ?? '').trim();
+  const imageKey = normalizeImageKey(body);
   const accessPolicy = body.accessPolicy as AccessPolicy | undefined;
   const data = extractData(body);
 
-  const $set: Record<string, unknown> = { name, description, data };
+  const $set: Record<string, unknown> = { name, description, imageKey, data };
   if (accessPolicy !== undefined) $set.accessPolicy = accessPolicy;
 
   const doc = await CampaignClass.findOneAndUpdate(

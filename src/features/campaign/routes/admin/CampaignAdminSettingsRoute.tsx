@@ -11,7 +11,7 @@ import {
 import {
   AppForm,
   TabbedFormLayout,
-  FormActions,
+  AppFormActions,
   type FieldConfig,
   type FormSection
 } from '@/ui/patterns'
@@ -86,7 +86,7 @@ export default function CampaignAdminSettingsRoute() {
 
       <AppForm<CampaignSettings> defaultValues={data} onSubmit={update}>
         <TabbedFormLayout sections={sections} fields={fields} />
-        <FormActions submitLabel="Save" showReset />
+        <AppFormActions submitLabel="Save" showReset />
       </AppForm>
     </Box>
   )

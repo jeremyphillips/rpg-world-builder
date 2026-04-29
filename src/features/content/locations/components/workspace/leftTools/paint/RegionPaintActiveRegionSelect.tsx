@@ -3,7 +3,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import Box from '@mui/material/Box';
 
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
-import FormSelectField from '@/ui/patterns/form/FormSelectField';
+import AppFormSelect from '@/ui/patterns/form/AppFormSelect';
 
 type ActiveRegionFieldValues = {
   activeRegionId: string;
@@ -42,7 +42,7 @@ export function RegionPaintActiveRegionSelect({
   return (
     <FormProvider {...methods}>
       <Box sx={{ '& .MuiOutlinedInput-root': { borderRadius: 0 } }}>
-        <FormSelectField
+        <AppFormSelect
           name="activeRegionId"
           label="Choose region"
           placeholder="Select…"

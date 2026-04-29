@@ -2,7 +2,7 @@ import { Link, Outlet } from 'react-router-dom'
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
-import Container from '@mui/material/Container'
+import { AppContainer } from '@/ui/primitives'
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import { ROUTES } from '../../routes'
@@ -40,9 +40,9 @@ export default function PublicLayout() {
         </Toolbar>
       </AppBar>
 
-      <Container component="main" maxWidth="lg" sx={{ flex: 1, py: 4 }}>
+      <AppContainer component="main">
         <Outlet />
-      </Container>
+      </AppContainer>
     </Box>
   )
 }

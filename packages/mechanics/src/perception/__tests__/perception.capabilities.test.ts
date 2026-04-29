@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
+import { buildCreatureSensesFromResolvedRace } from '@/features/character/domain/derived/grants/raceSenseGrants'
 import { buildMonsterCombatantInstance } from '@/features/encounter/helpers/combatants'
 import type { Monster } from '@/features/content/monsters/domain/types'
+import { getSystemRace } from '@/features/mechanics/domain/rulesets/system/races'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import type { CombatantInstance } from '@/features/mechanics/domain/combat/state/types'
 
 import {
@@ -82,6 +85,30 @@ describe('getCombatantDarkvisionRangeFt', () => {
       senses: { special: [{ type: 'darkvision', range: 120 }] },
     }
     expect(getCombatantDarkvisionRangeFt(c)).toBe(120)
+  })
+
+  it('resolves darkvision 60 from system elf race grant shape on a PC-like combatant', () => {
+    const race = getSystemRace(DEFAULT_SYSTEM_RULESET_ID, 'elf')
+    const senses = buildCreatureSensesFromResolvedRace(race)
+    const c: CombatantInstance = {
+      instanceId: 'pc-elf',
+      side: 'party',
+      source: { kind: 'pc', sourceId: 'c1', label: 'Elf' },
+      stats: {
+        armorClass: 10,
+        maxHitPoints: 10,
+        currentHitPoints: 10,
+        initiativeModifier: 0,
+      },
+      attacks: [],
+      activeEffects: [],
+      runtimeEffects: [],
+      turnHooks: [],
+      conditions: [],
+      states: [],
+      senses,
+    }
+    expect(getCombatantDarkvisionRangeFt(c)).toBe(60)
   })
 })
 

@@ -20,7 +20,8 @@ import { calculateMonsterArmorClass } from '@/features/content/monsters/domain/m
 import { getAbilityScoreValue } from '@/features/mechanics/domain/character/abilities/abilityScoreMap'
 import { getAbilityModifier } from '@/features/mechanics/domain/abilities/getAbilityModifier'
 import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog'
-import type { RulesetLike } from '@/features/mechanics/domain/rulesets/types/ruleset.types'
+import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
+import type { RulesetLike, SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types'
 import { DEFAULT_PICK_LOCK_COMBAT_ACTION } from '@/features/mechanics/domain/combat/resolution/combat-action.types'
 import type { CombatantInstance, CombatantSide } from '@/features/mechanics/domain/combat'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
@@ -35,15 +36,24 @@ import {
  * (e.g. Pick Lock), then {@link buildCharacterCombatantInstance}. Used by game-session startup,
  * server persistence, and encounter simulator roster preview — keep in sync by editing here only.
  */
-export function buildCharacterCombatantForGameSession(args: {
+export type BuildCharacterCombatantForGameSessionArgs = {
   character: CharacterDetailDto
   catalog: CampaignCatalogAdmin
   ruleset: RulesetLike
   runtimeId: string
   side: CombatantSide
   sourceKind: 'pc' | 'npc'
-}): CombatantInstance {
-  const { character, catalog, ruleset, runtimeId, side, sourceKind } = args
+  /**
+   * Campaign system ruleset id (e.g. `CampaignRulesetPatch.systemId`). Not on {@link RulesetLike}.
+   * When omitted, {@link buildCharacterCombatantInstance} falls back to {@link DEFAULT_SYSTEM_RULESET_ID}.
+   */
+  systemId?: SystemRulesetId
+}
+
+export function buildCharacterCombatantForGameSession(
+  args: BuildCharacterCombatantForGameSessionArgs,
+): CombatantInstance {
+  const { character, catalog, ruleset, runtimeId, side, sourceKind, systemId } = args
   const engineCharacter = toCharacterForEngine(character)
   const combatStats = computeCombatStatsFromCharacter(engineCharacter, catalog, ruleset)
 
@@ -84,6 +94,8 @@ export function buildCharacterCombatantForGameSession(args: {
     attacks,
     extraActions: [...spellActions, ...skillAffordanceActions, DEFAULT_PICK_LOCK_COMBAT_ACTION],
     turnHooks,
+    racesById: catalog.racesById,
+    systemRulesetId: systemId ?? DEFAULT_SYSTEM_RULESET_ID,
   })
 }
 

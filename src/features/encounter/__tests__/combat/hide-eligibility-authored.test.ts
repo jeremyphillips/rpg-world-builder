@@ -49,8 +49,8 @@ function minimalCharacter(overrides: Partial<CharacterDetailDto> = {}): Characte
       charisma: 10,
     },
     proficiencies: [
-      { id: 'perception', name: 'Perception' },
-      { id: 'stealth', name: 'Stealth' },
+      { id: 'perception', name: 'Perception', proficiency: 'proficient' },
+      { id: 'stealth', name: 'Stealth', proficiency: 'proficient' },
     ],
     equipment: { armor: [], weapons: [], gear: [] },
     wealth: {},

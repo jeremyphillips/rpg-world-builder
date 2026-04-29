@@ -7,7 +7,7 @@ import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 
-import FormSelectField from '@/ui/patterns/form/FormSelectField'
+import AppFormSelect from '@/ui/patterns/form/AppFormSelect'
 import {
   ATMOSPHERE_TAGS,
   ENVIRONMENT_SETTINGS,
@@ -88,7 +88,7 @@ function EnvironmentSetupSelectFields({
   return (
     <FormProvider {...methods}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-        <FormSelectField
+        <AppFormSelect
           name="setting"
           label="Setting"
           options={settingOptions}
@@ -97,7 +97,7 @@ function EnvironmentSetupSelectFields({
             onChange({ ...values, setting: v as EncounterEnvironmentSetting })
           }
         />
-        <FormSelectField
+        <AppFormSelect
           name="lightingLevel"
           label="Lighting"
           options={lightingOptions}
@@ -106,7 +106,7 @@ function EnvironmentSetupSelectFields({
             onChange({ ...values, lightingLevel: v as EncounterLightingLevel })
           }
         />
-        <FormSelectField
+        <AppFormSelect
           name="terrainMovement"
           label="Terrain"
           options={terrainOptions}
@@ -115,7 +115,7 @@ function EnvironmentSetupSelectFields({
             onChange({ ...values, terrainMovement: v as EncounterTerrainMovement })
           }
         />
-        <FormSelectField
+        <AppFormSelect
           name="visibilityObscured"
           label="Visibility"
           options={visibilityOptions}

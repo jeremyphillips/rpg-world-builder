@@ -8,6 +8,7 @@ import { type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { ClassFormValues, ClassInput } from '../types/classForm.types';
 
 const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
+const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);
 const strOrEmpty = (v: unknown): string => (v != null ? String(v) : '');
 
 const parseJsonObject = (v: unknown): unknown => {
@@ -121,6 +122,15 @@ export const CLASS_FORM_FIELDS = [
     defaultValue: '' as ClassFormValues['description'],
     parse: (v: unknown) => (trim(v) || undefined) as ClassInput['description'],
     format: (v: unknown) => strOrEmpty(v) as ClassFormValues['description'],
+  },
+  {
+    name: 'imageKey',
+    label: 'Image',
+    kind: 'imageUpload' as const,
+    helperText: '/assets/... or CDN key',
+    defaultValue: '' as ClassFormValues['imageKey'],
+    parse: (v: unknown) => trimOrNull(v) as ClassInput['imageKey'],
+    format: (v: unknown) => strOrEmpty(v) as ClassFormValues['imageKey'],
   },
   {
     name: 'accessPolicy',

@@ -2,6 +2,8 @@
  * Generates toInput, toFormValues, and defaultFormValues from FieldSpec[].
  */
 import type { FieldSpec } from './fieldSpec.types';
+import type { FormNodeSpec } from './formNodeSpec.types';
+import { isCustomFormNodeSpec, isRepeatableGroupSpec } from './formNodeSpec.types';
 
 /**
  * Builds default form values from specs (for initial state / fallbacks).
@@ -15,6 +17,32 @@ export const buildDefaultFormValues = <
 ): Partial<FormValues> => {
   const out: Record<string, unknown> = {};
   for (const spec of specs) {
+    if (spec.defaultValue !== undefined) {
+      out[spec.name] = spec.defaultValue;
+    }
+  }
+  return out as Partial<FormValues>;
+};
+
+/**
+ * Default values for a FormNodeSpec tree (repeatable groups default to `[]`).
+ */
+export const buildDefaultFormValuesFromFormNodes = <
+  FormValues extends Record<string, unknown>,
+  InputShape extends Record<string, unknown>,
+  ItemShape extends Record<string, unknown>,
+>(
+  specs: readonly FormNodeSpec<FormValues, InputShape, ItemShape>[],
+): Partial<FormValues> => {
+  const out: Record<string, unknown> = {};
+  for (const spec of specs) {
+    if (isCustomFormNodeSpec(spec)) {
+      continue;
+    }
+    if (isRepeatableGroupSpec(spec)) {
+      out[spec.name] = [];
+      continue;
+    }
     if (spec.defaultValue !== undefined) {
       out[spec.name] = spec.defaultValue;
     }

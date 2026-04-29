@@ -1,27 +1,34 @@
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailAdvancedAccordion,
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { spellRepo } from '@/features/content/spells/domain';
 import type { Spell } from '@/features/content/spells/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 import { SPELL_DETAIL_SPECS } from '@/features/content/spells/domain';
 
 export default function SpellDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { spellId } = useParams<{ spellId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: spell, loading, error, notFound } = useCampaignContentEntry<Spell>({
     campaignId: campaignId ?? undefined,
@@ -41,38 +48,40 @@ export default function SpellDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Spell not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/spells`;
-  const editPath = `${listPath}/${spellId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/spells/${spellId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(SPELL_DETAIL_SPECS, spell, {});
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
+    specs: SPELL_DETAIL_SPECS,
+    item: spell,
+    ctx: {},
+    viewer,
+  });
 
   return (
     <ContentDetailScaffold
       title={spell.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={spell.source}
       accessPolicy={spell.accessPolicy}
+      hideAccessPolicyBadge
     >
-      {spell.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
+      <ContentDetailMetaRow items={metaItems} />
 
-      {spell.description.full && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {spell.description.full}
-        </Typography>
-      )}
+      <ContentDetailImageKeyValueGrid
+        imageContentType="spell"
+        imageKey={spell.imageKey}
+        alt={spell.name}
+      >
+        <KeyValueSection title="" items={mainItems} columns={4} sx={{ mb: 0 }} />
+      </ContentDetailImageKeyValueGrid>
 
-      <KeyValueSection
-        title="Spell Details"
-        items={items}
-        columns={2}
-        sx={{ mt: 2 }}
+      <ContentDetailAdvancedAccordion
+        items={advancedItems}
+        sectionTitle="Advanced spell data"
+        idPrefix="spell"
       />
     </ContentDetailScaffold>
   );

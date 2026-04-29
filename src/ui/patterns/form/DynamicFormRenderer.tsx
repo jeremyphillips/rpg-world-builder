@@ -3,10 +3,13 @@ import FormHelperText from '@mui/material/FormHelperText';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import type { FieldConfig } from './form.types';
+import type { FieldConfig, FormLayoutNode } from './form.types';
 import DynamicField from './DynamicField';
 import DriverField from './DriverField';
 import type { PatchDriver } from './DriverField';
+import { FormLayoutStretchProvider } from './FormLayoutStretchContext';
+import RepeatableGroupField from './RepeatableGroupField';
+import { chunkFormLayoutNodes, getAutoGroupWidth } from './formLayoutChunking';
 
 export type FormDriver =
   | { kind: 'rhf' }
@@ -18,7 +21,7 @@ export type FormDriver =
     };
 
 type DynamicFormRendererProps = {
-  fields: FieldConfig[];
+  fields: FormLayoutNode[];
   spacing?: number;
   /**
    * When omitted or kind: 'rhf', uses react-hook-form (FormProvider must wrap).
@@ -26,47 +29,6 @@ type DynamicFormRendererProps = {
    */
   driver?: FormDriver;
 };
-
-function getAutoGroupWidth(count: number): number {
-  if (count <= 1) return 12;
-  return Math.floor(12 / count);
-}
-
-type Chunk =
-  | { type: 'single'; field: FieldConfig }
-  | {
-      type: 'group';
-      fields: FieldConfig[];
-      direction: 'row' | 'column';
-      label?: string;
-      helperText?: string;
-      spacing?: number;
-    };
-
-function chunkFields(fields: FieldConfig[]): Chunk[] {
-  const chunks: Chunk[] = [];
-  let i = 0;
-  while (i < fields.length) {
-    const f = fields[i];
-    if (f.type === 'hidden' || !f.group) {
-      chunks.push({ type: 'single', field: f });
-      i++;
-      continue;
-    }
-    const groupId = f.group.id;
-    const groupFields: FieldConfig[] = [];
-    const direction = f.group.direction ?? 'row';
-    const label = f.group.label;
-    const helperText = f.group.helperText;
-    const spacing = f.group.spacing;
-    while (i < fields.length && fields[i].group?.id === groupId) {
-      groupFields.push(fields[i]);
-      i++;
-    }
-    chunks.push({ type: 'group', fields: groupFields, direction, label, helperText, spacing });
-  }
-  return chunks;
-}
 
 function renderField(
   field: FieldConfig,
@@ -93,6 +55,27 @@ function renderField(
   );
 }
 
+/** Fills the grid cell so nested `FieldWithDescription` + outlined fields can stretch to row height. */
+function GridFieldCell({
+  field,
+  usePatchDriver,
+  patchDriver,
+}: {
+  field: FieldConfig;
+  usePatchDriver: boolean;
+  patchDriver: PatchDriver | null;
+}) {
+  const content =
+    usePatchDriver && patchDriver ? (
+      <DriverField field={field} driver={patchDriver} />
+    ) : (
+      <DynamicField field={field} />
+    );
+  return (
+    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>{content}</Box>
+  );
+}
+
 /**
  * Pure rendering layer: takes a FieldConfig[] and renders the
  * correct field primitive for each entry. No business logic,
@@ -105,11 +88,33 @@ export default function DynamicFormRenderer({
 }: DynamicFormRendererProps) {
   const usePatchDriver = driver?.kind === 'patch';
   const patchDriver = usePatchDriver ? (driver as PatchDriver) : null;
-  const chunks = chunkFields(fields);
+  const chunks = chunkFormLayoutNodes(fields);
 
   return (
     <Stack spacing={spacing}>
       {chunks.map((chunk) => {
+        if (chunk.type === 'custom') {
+          return (
+            <Box key={chunk.node.key}>
+              {chunk.node.render({
+                rowPrefix: '',
+                usePatchDriver: !!usePatchDriver,
+                patchDriver,
+              })}
+            </Box>
+          );
+        }
+        if (chunk.type === 'repeatable') {
+          return (
+            <RepeatableGroupField
+              key={chunk.group.name}
+              config={chunk.group}
+              arrayPath={chunk.group.name}
+              usePatchDriver={!!usePatchDriver}
+              patchDriver={patchDriver}
+            />
+          );
+        }
         if (chunk.type === 'single') {
           const field = chunk.field;
           if (field.type === 'hidden') {
@@ -126,24 +131,41 @@ export default function DynamicFormRenderer({
               {groupFields.map((f) => renderField(f, !!usePatchDriver, patchDriver))}
             </Stack>
           ) : (
-            <Grid container spacing={spacingVal}>
-              {groupFields.map((f) => {
-                const width = f.width ?? getAutoGroupWidth(groupFields.length);
-                return (
-                  <Grid key={f.name} size={{ xs: width }}>
-                    {renderField(f, !!usePatchDriver, patchDriver)}
-                  </Grid>
-                );
-              })}
-            </Grid>
+            <FormLayoutStretchProvider value>
+              <Grid container spacing={spacingVal} sx={{ alignItems: 'stretch' }}>
+                {groupFields.map((f) => {
+                  const width = f.width ?? getAutoGroupWidth(groupFields.length);
+                  return (
+                    <Grid
+                      key={f.name}
+                      size={{ xs: width }}
+                      sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
+                    >
+                      <GridFieldCell field={f} usePatchDriver={!!usePatchDriver} patchDriver={patchDriver} />
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </FormLayoutStretchProvider>
           );
         const hasHeader = (label != null && label !== '') || (helperText != null && helperText !== '');
+        const hasGroupHelper = helperText != null && helperText !== '';
         return (
-          <Box key={groupKey}>
+          <Box
+            key={groupKey}
+            sx={(theme) => ({
+              pb: 4,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+            })}
+          >
             {hasHeader && (
               <Box sx={{ mb: 1 }}>
                 {label != null && label !== '' && (
-                  <Typography variant="subtitle2" color="text.secondary">
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    sx={{ mb: hasGroupHelper ? 0.5 : 2 }}
+                  >
                     {label}
                   </Typography>
                 )}

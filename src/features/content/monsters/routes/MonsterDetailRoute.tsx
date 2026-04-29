@@ -3,26 +3,33 @@ import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
-import { ContentDetailScaffold } from '@/features/content/shared/components';
+import {
+  ContentDetailAdvancedAccordion,
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import type { Monster } from '@/features/content/monsters/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
 import { monsterRepo, MONSTER_DETAIL_SPECS, type MonsterDetailCtx } from '@/features/content/monsters/domain';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
-import { resolveImageUrl } from '@/shared/lib/media';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 
 export default function MonsterDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { catalog } = useCampaignRules();
   const { monsterId } = useParams<{ monsterId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: monster, loading, error, notFound } = useCampaignContentEntry<Monster>({
     campaignId: campaignId ?? undefined,
@@ -42,40 +49,44 @@ export default function MonsterDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Monster not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/monsters`;
-  const editPath = `${listPath}/${monsterId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/monsters/${monsterId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, monster, {
+  const detailCtx = {
     armorById: catalog.armorById,
-  } satisfies MonsterDetailCtx);
+  } satisfies MonsterDetailCtx;
+
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
+    specs: MONSTER_DETAIL_SPECS,
+    item: monster,
+    ctx: detailCtx,
+    viewer,
+  });
 
   return (
     <ContentDetailScaffold
       title={monster.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={monster.source}
       accessPolicy={monster.accessPolicy}
+      hideAccessPolicyBadge
     >
-      {monster.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
+      <ContentDetailMetaRow items={metaItems} />
 
-      {monster?.imageKey && (
-        <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(monster.imageKey)} alt={monster.name} style={{ maxHeight: 500 }} />
-        </Box>
-      )}
+      <ContentDetailImageKeyValueGrid
+        imageContentType="monster"
+        imageKey={monster.imageKey}
+        alt={monster.name}
+      >
+        <KeyValueSection title="" items={mainItems} columns={2} />
+      </ContentDetailImageKeyValueGrid>
 
-      <KeyValueSection
-        title="Monster Details"
-        items={items}
-        columns={2}
-        sx={{ mt: 2 }}
+      <ContentDetailAdvancedAccordion
+        items={advancedItems}
+        sectionTitle="Advanced Monster Data"
+        idPrefix="monster"
       />
     </ContentDetailScaffold>
   );

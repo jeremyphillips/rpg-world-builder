@@ -11,28 +11,23 @@ import {
   FormGroup,
   FormHelperText,
   FormLabel,
-  InputLabel,
-  MenuItem,
   Radio,
   RadioGroup,
-  Select,
-  TextField,
   Typography,
 } from '@mui/material';
+import { AppSelect, AppTextField } from '@/ui/primitives';
 import type { FieldConfig } from './form.types';
 import type { Visibility } from '@/shared/types/visibility';
+import { formGridStretchOutlinedSx, useFormLayoutStretch } from './FormLayoutStretchContext';
 import { usePatchValidation } from './validation/PatchValidationContext';
-import ImageUploadField from './ImageUploadField';
-import JsonPreviewField from './JsonPreviewField';
+import { AppImageUploadField } from '@/ui/primitives';
+import { AppJsonPreviewField } from '@/ui/primitives';
 import VisibilityField from './VisibilityField';
 import OptionPickerField from './OptionPickerField';
 import { pickerArrayToFormValue, pickerValueToArray } from './optionPickerBridge';
+import type { PatchDriver } from './patchDriver.types';
 
-export type PatchDriver = {
-  getValue(path: string): unknown;
-  setValue(path: string, value: unknown): void;
-  unsetValue?(path: string): void;
-};
+export type { PatchDriver } from './patchDriver.types';
 
 type DriverFieldProps = {
   field: FieldConfig;
@@ -77,6 +72,10 @@ function usePatchValue(
 }
 
 export default function DriverField({ field, driver }: DriverFieldProps) {
+  const stretch = useFormLayoutStretch();
+  const stretchColumnSx = stretch
+    ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' as const }
+    : undefined;
   const path = getPath(field);
   const patchValidation = usePatchValidation();
   const errorMessage = patchValidation?.getError(field.name);
@@ -117,10 +116,11 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
   switch (field.type) {
     case 'text':
       return (
-        <Box>
-          <TextField
+        <Box sx={stretchColumnSx}>
+          <AppTextField
           label={field.label}
           fullWidth
+          sx={stretch && !field.multiline ? formGridStretchOutlinedSx : undefined}
           value={String(displayValue ?? '')}
           onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
@@ -140,7 +140,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
     case 'textarea':
       return (
         <Box>
-          <TextField
+          <AppTextField
             label={field.label}
             fullWidth
             multiline
@@ -160,31 +160,22 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
 
     case 'select':
       return (
-        <Box>
-          <FormControl fullWidth disabled={field.disabled} required={field.required} error={hasError}>
-            <InputLabel>{field.label}</InputLabel>
-            <Select
-              label={field.label}
-              value={String(displayValue ?? '')}
-              onChange={(e) => handleChange(e.target.value)}
-              onBlur={handleBlur}
-              displayEmpty
-            >
-              {field.placeholder && (
-                <MenuItem value="" disabled>
-                  {field.placeholder}
-                </MenuItem>
-              )}
-              {field.options.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {(helperText || hasError) && (
-              <FormHelperText error={hasError}>{helperText}</FormHelperText>
-            )}
-          </FormControl>
+        <Box sx={stretchColumnSx}>
+          <AppSelect
+            label={field.label}
+            options={field.options}
+            value={String(displayValue ?? '')}
+            onChange={(v) => handleChange(v)}
+            onBlur={handleBlur}
+            disabled={field.disabled}
+            required={field.required}
+            placeholder={field.placeholder}
+            emptyMenuItemDisabled={Boolean(field.placeholder)}
+            error={hasError}
+            helperText={helperText || undefined}
+            size="medium"
+            sx={stretch ? formGridStretchOutlinedSx : undefined}
+          />
           {FieldDescription}
         </Box>
       );
@@ -279,7 +270,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
     case 'imageUpload':
       return (
         <Box>
-          <ImageUploadField
+          <AppImageUploadField
             value={displayValue as string | null | undefined}
             onChange={(v) => handleChange(v)}
             label={field.label}
@@ -294,7 +285,7 @@ export default function DriverField({ field, driver }: DriverFieldProps) {
     case 'datetime':
       return (
         <Box>
-          <TextField
+          <AppTextField
             label={field.label}
             fullWidth
             type="datetime-local"
@@ -454,7 +445,7 @@ function DriverJsonField({
       const parsed = JSON.parse(next);
       driver.setValue(path, parsed);
     } catch {
-      // Invalid JSON: do not commit. JsonPreviewField shows inline error.
+      // Invalid JSON: do not commit. AppJsonPreviewField shows inline error.
     }
   };
 
@@ -462,7 +453,7 @@ function DriverJsonField({
 
   return (
     <Box>
-      <JsonPreviewField
+      <AppJsonPreviewField
         label={field.label}
         value={text}
         onChange={handleChange}

@@ -1,4 +1,4 @@
-import type { DieFace } from "@/features/mechanics/domain/dice/dice.types";
+import type { DieFace } from '@/shared/domain/dice';
 import type { CreatureAbilityScores } from '@/features/mechanics/domain/character';
 import type { TriggerType } from "../triggers/trigger.types";
 

@@ -1,5 +1,5 @@
 /**
- * Audit touch-range spells whose root `targeting` is `one-creature` without
+ * Audit touch-range spells whose root `targeting` is single creature (`selection: 'one'`, `targetType: 'creature'`) without
  * `requiresWilling`, while `deriveSpellHostility` is still `unknown`.
  *
  * Those spells map to hostile `single-target` in encounter by default (same-side
@@ -18,13 +18,14 @@
 
 /** Reviewed: not an error for this heuristic (see comments). */
 const AUDIT_ALLOWLIST = new Set<string>([
-  // Authored as one-creature; RAW targets an object. Revisit if object targeting is added.
+  // Authored as single creature; RAW targets an object. Revisit if object targeting is added.
   'light',
   // RAW: "You touch a creature" — not willing-only; ally buff may need resolution.hostileIntent instead.
   'longstrider',
   // RAW: "creature you touch" — not explicitly willing.
   'tongues',
 ])
+import { getPrimarySpellTargeting } from '../src/features/content/spells/domain/spellEffectGroups'
 import { getSystemSpells } from '../packages/mechanics/src/rulesets/system/spells'
 import { DEFAULT_SYSTEM_RULESET_ID } from '../packages/mechanics/src/rulesets/ids/systemIds'
 import { deriveSpellHostility } from '../src/features/encounter/helpers/spells'
@@ -34,10 +35,9 @@ function findSuspiciousTouchSpells(spells: readonly Spell[]): Spell[] {
   const out: Spell[] = []
   for (const spell of spells) {
     if (spell.range?.kind !== 'touch') continue
-    const root = spell.effects ?? []
-    const targeting = root.find((e) => e.kind === 'targeting')
-    if (targeting?.kind !== 'targeting') continue
-    if (targeting.target !== 'one-creature') continue
+    const targeting = getPrimarySpellTargeting(spell)
+    if (!targeting) continue
+    if (targeting.selection !== 'one' || targeting.targetType !== 'creature') continue
     if (targeting.requiresWilling) continue
     if (deriveSpellHostility(spell) !== 'unknown') continue
     out.push(spell)

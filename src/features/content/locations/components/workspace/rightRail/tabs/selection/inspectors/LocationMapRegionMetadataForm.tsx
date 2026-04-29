@@ -15,7 +15,7 @@ import {
 } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
 import type { LocationMapRegionColorKey } from '@/features/content/locations/domain/model/map/locationMapRegionColors.types';
 import type { LocationMapRegionAuthoringEntry } from '@/shared/domain/locations';
-import FormSelectField from '@/ui/patterns/form/FormSelectField';
+import AppFormSelect from '@/ui/patterns/form/AppFormSelect';
 
 import {
   normalizeRegionDescriptionForDraft,
@@ -164,7 +164,7 @@ export function LocationMapRegionMetadataForm({
             </Typography>
           ) : null}
           <RailNameDescriptionFormFields nameRequired onNameAfterChange={patchName} />
-          <FormSelectField
+          <AppFormSelect
             name="colorKey"
             label="Color"
             options={colorOptions}

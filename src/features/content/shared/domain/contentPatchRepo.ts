@@ -74,14 +74,35 @@ export async function upsertContentPatch(
 /**
  * Extract the patch for a single entry from a patch document.
  * Returns null if no patch exists for the given content type + entry id.
+ *
+ * Prefer this (or {@link resolveSystemEntryWithPatch}) for `getEntry`-style
+ * resolution instead of indexing `patchDoc.patches` manually.
  */
 export function getEntryPatch<T = unknown>(
-  patchDoc: CampaignContentPatch | null,
+  patchDoc: CampaignContentPatch | null | undefined,
   contentTypeKey: ContentTypeKey,
   entryId: string,
 ): T | null {
   const entry = patchDoc?.patches?.[contentTypeKey]?.[entryId];
   return (entry as T) ?? null;
+}
+
+/** All stored patches for a content type, keyed by entry id. */
+export function getPatchMapForType(
+  patchDoc: CampaignContentPatch | null | undefined,
+  contentTypeKey: ContentTypeKey,
+): Record<string, unknown> {
+  const raw = patchDoc?.patches?.[contentTypeKey];
+  if (!raw || typeof raw !== 'object') return {};
+  return raw as Record<string, unknown>;
+}
+
+export function hasEntryPatch(
+  patchDoc: CampaignContentPatch | null | undefined,
+  contentTypeKey: ContentTypeKey,
+  entryId: string,
+): boolean {
+  return Boolean(getPatchMapForType(patchDoc, contentTypeKey)[entryId]);
 }
 
 /**

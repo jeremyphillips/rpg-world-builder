@@ -4,7 +4,7 @@
  * - source === 'system': field-config patch form via contentPatchRepo
  * - source === 'campaign': real form editor with delete support
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FormProvider, useForm } from 'react-hook-form';
 import Box from '@mui/material/Box';
@@ -14,6 +14,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import {
@@ -24,6 +25,8 @@ import {
   SPELL_FORM_DEFAULTS,
   spellToFormValues,
   toSpellInput,
+  buildSpellPatchDriverBase,
+  normalizeSpellPatchInitialPatch,
 } from '@/features/content/spells/domain';
 import type { Spell } from '@/features/content/spells/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
@@ -46,6 +49,13 @@ export default function SpellEditRoute() {
   const { spellId } = useParams<{ spellId: string }>();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
+  const { catalog } = useCampaignRules();
+  const classesById = catalog.classesById;
+
+  const fieldConfigs = useMemo(
+    () => getSpellFieldConfigs({ policyCharacters, classesById }),
+    [policyCharacters, classesById],
+  );
 
   const viewer = campaign?.viewer;
   const canDelete = Boolean(
@@ -91,27 +101,47 @@ export default function SpellEditRoute() {
     'spells'
   );
 
-  useCampaignEntryFormReset(spell, isCampaign ?? false, reset, spellToFormValues);
+  const spellToFormValuesBound = useCallback(
+    (s: Spell) => spellToFormValues(s, { classesById }),
+    [classesById],
+  );
+
+  useCampaignEntryFormReset(spell, isCampaign ?? false, reset, spellToFormValuesBound);
   useResetEditFeedbackOnChange(watch, clearFeedback);
 
   const { policyValue, handlePolicyChange } = useAccessPolicyField<SpellFormValues>(watch, setValue);
 
+  const patchDriverBase = useMemo(
+    () => (spell ? buildSpellPatchDriverBase(spell) : null),
+    [spell],
+  );
+
+  const patchInitialForDriver = useMemo(
+    () => normalizeSpellPatchInitialPatch(initialPatch),
+    [initialPatch],
+  );
+
   const driver = usePatchDriverState(
-    spell ? (spell as unknown as Record<string, unknown>) : null,
-    initialPatch,
+    patchDriverBase,
+    patchInitialForDriver,
     onPatchChange,
     clearFeedback
   );
 
   const validationApiRef = useRef<{ validateAll: () => boolean } | null>(null);
 
+  const toSpellInputBound = useCallback(
+    (values: SpellFormValues) => toSpellInput(values, { classesById }),
+    [classesById],
+  );
+
   const handleCampaignSubmit = useCampaignEntrySubmit({
     campaignId: campaignId ?? undefined,
     entryId: spellId,
     updateEntry: spellRepo.updateEntry,
     reset,
-    toFormValues: spellToFormValues,
-    toInput: toSpellInput,
+    toFormValues: spellToFormValuesBound,
+    toInput: toSpellInputBound,
     feedback: { setSaving, setSuccess, setErrors },
   });
 
@@ -154,8 +184,6 @@ export default function SpellEditRoute() {
     return (
       <AppAlert tone="danger">{error ?? 'Spell not found.'}</AppAlert>
     );
-
-  const fieldConfigs = getSpellFieldConfigs({ policyCharacters });
 
   if (isSystem && driver) {
     return (

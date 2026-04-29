@@ -33,8 +33,8 @@ export const MONSTERS_J_L: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         weapons: {
-          dagger: { proficiencyLevel: 1 },
-          sling: { proficiencyLevel: 1 },
+          dagger: 'proficient',
+          sling: 'proficient',
         },
       },
       proficiencyBonus: 2,

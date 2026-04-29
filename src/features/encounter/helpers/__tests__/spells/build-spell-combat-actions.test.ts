@@ -5,6 +5,7 @@ import { isHostileAction } from '@/features/mechanics/domain/combat'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import { getSystemSpell } from '@/features/mechanics/domain/rulesets/system/spells'
 import { buildSpellCombatActions, deriveSpellHostility } from '../../spells'
+
 describe('buildSpellCombatActions', () => {
   const baseArgs = {
     runtimeId: 'pc-1',
@@ -13,17 +14,19 @@ describe('buildSpellCombatActions', () => {
     casterLevel: 1,
   }
 
-  function makeSpell(partial: Partial<Spell> & Pick<Spell, 'id' | 'name' | 'effects'>): Spell {
+  function makeSpell(partial: Partial<Spell> & Pick<Spell, 'id' | 'name'>): Spell {
+    const { effectGroups, ...rest } = partial
     return {
       school: 'evocation',
       level: 0,
       classes: ['wizard'],
-      castingTime: { normal: { value: 1, unit: 'action' } },
+      castingTime: { normal: { value: 1, unit: 'action' }, canBeCastAsRitual: false },
       range: { kind: 'distance', value: { value: 120, unit: 'ft' } },
       duration: { kind: 'instantaneous' },
       components: { verbal: true, somatic: true },
       description: { full: '', summary: '' },
-      ...partial,
+      ...rest,
+      effectGroups: effectGroups ?? [],
     } as Spell
   }
 
@@ -31,12 +34,16 @@ describe('buildSpellCombatActions', () => {
     const spell = makeSpell({
       id: 'sacred-flame',
       name: 'Sacred Flame',
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      effectGroups: [
         {
-          kind: 'save',
-          save: { ability: 'dex' },
-          onFail: [{ kind: 'damage', damage: '1d8', damageType: 'radiant' }],
+          targeting: { selection: 'one', targetType: 'creature' },
+          effects: [
+            {
+              kind: 'save',
+              save: { ability: 'dex' },
+              onFail: [{ kind: 'damage', damage: '1d8', damageType: 'radiant' }],
+            },
+          ],
         },
       ],
     })
@@ -58,15 +65,19 @@ describe('buildSpellCombatActions', () => {
       id: 'find-familiar',
       name: 'Find Familiar',
       range: { kind: 'self' },
-      effects: [
+      effectGroups: [
         {
-          kind: 'spawn',
-          creature: 'familiar',
-          count: 1,
-          location: 'self-space',
-          actsWhen: 'immediately-after-source-turn',
+          effects: [
+            {
+              kind: 'spawn',
+              creature: 'familiar',
+              count: 1,
+              location: 'self-space',
+              actsWhen: 'immediately-after-source-turn',
+            },
+            { kind: 'note', text: 'Familiar is CR 0 Beast form.', category: 'under-modeled' },
+          ],
         },
-        { kind: 'note', text: 'Familiar is CR 0 Beast form.', category: 'under-modeled' },
       ],
     })
 
@@ -103,21 +114,25 @@ describe('buildSpellCombatActions', () => {
           },
         ],
       },
-      effects: [
+      effectGroups: [
         {
-          kind: 'spawn',
-          count: 1,
-          mapMonsterIdFromCasterOption: {
-            fieldId: 'giant-insect-form',
-            valueToMonsterId: {
-              centipede: 'giant-centipede',
-              spider: 'giant-spider',
-              wasp: 'giant-wasp',
+          effects: [
+            {
+              kind: 'spawn',
+              count: 1,
+              mapMonsterIdFromCasterOption: {
+                fieldId: 'giant-insect-form',
+                valueToMonsterId: {
+                  centipede: 'giant-centipede',
+                  spider: 'giant-spider',
+                  wasp: 'giant-wasp',
+                },
+              },
+              initiativeMode: 'share-caster',
             },
-          },
-          initiativeMode: 'share-caster',
+            { kind: 'note', text: 'Stat block', category: 'flavor' as const },
+          ],
         },
-        { kind: 'note', text: 'Stat block', category: 'flavor' as const },
       ],
     })
 
@@ -149,12 +164,16 @@ describe('buildSpellCombatActions', () => {
     const spell = makeSpell({
       id: 'charm-person',
       name: 'Charm Person',
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      effectGroups: [
         {
-          kind: 'save',
-          save: { ability: 'wis' },
-          onFail: [{ kind: 'condition', conditionId: 'charmed' }],
+          targeting: { selection: 'one', targetType: 'creature' },
+          effects: [
+            {
+              kind: 'save',
+              save: { ability: 'wis' },
+              onFail: [{ kind: 'condition', conditionId: 'charmed' }],
+            },
+          ],
         },
       ],
     })
@@ -177,9 +196,11 @@ describe('buildSpellCombatActions', () => {
       id: 'fire-bolt',
       name: 'Fire Bolt',
       deliveryMethod: 'ranged-spell-attack',
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-        { kind: 'damage', damage: '1d10', damageType: 'fire' },
+      effectGroups: [
+        {
+          targeting: { selection: 'one', targetType: 'creature' },
+          effects: [{ kind: 'damage', damage: '1d10', damageType: 'fire' }],
+        },
       ],
     })
 
@@ -202,9 +223,18 @@ describe('buildSpellCombatActions', () => {
       name: 'Scorching Ray',
       level: 2,
       deliveryMethod: 'ranged-spell-attack',
-      effects: [
-        { kind: 'targeting', target: 'chosen-creatures', targetType: 'creature' },
-        { kind: 'damage', damage: '2d6', damageType: 'fire', instances: { count: 3, canSplitTargets: true, canStackOnSingleTarget: true } },
+      effectGroups: [
+        {
+          targeting: { selection: 'chosen', targetType: 'creature' },
+          effects: [
+            {
+              kind: 'damage',
+              damage: '2d6',
+              damageType: 'fire',
+              instances: { count: 3, canSplitTargets: true, canStackOnSingleTarget: true },
+            },
+          ],
+        },
       ],
     })
 
@@ -227,14 +257,24 @@ describe('buildSpellCombatActions', () => {
       id: 'eldritch-blast',
       name: 'Eldritch Blast',
       deliveryMethod: 'ranged-spell-attack',
-      effects: [
-        { kind: 'targeting', target: 'chosen-creatures', targetType: 'creature' },
+      effectGroups: [
         {
-          kind: 'damage',
-          damage: '1d10',
-          damageType: 'force',
-          instances: { count: 1, canSplitTargets: true, canStackOnSingleTarget: true },
-          levelScaling: { thresholds: [{ level: 5, instances: 2 }, { level: 11, instances: 3 }, { level: 17, instances: 4 }] },
+          targeting: { selection: 'chosen', targetType: 'creature' },
+          effects: [
+            {
+              kind: 'damage',
+              damage: '1d10',
+              damageType: 'force',
+              instances: { count: 1, canSplitTargets: true, canStackOnSingleTarget: true },
+              levelScaling: {
+                thresholds: [
+                  { level: 5, instances: 2 },
+                  { level: 11, instances: 3 },
+                  { level: 17, instances: 4 },
+                ],
+              },
+            },
+          ],
         },
       ],
     })
@@ -262,7 +302,7 @@ describe('buildSpellCombatActions', () => {
     const spell = makeSpell({
       id: 'mage-hand',
       name: 'Mage Hand',
-      effects: [{ kind: 'note', text: '' }],
+      effectGroups: [{ effects: [{ kind: 'note', text: '' }] }],
     })
 
     const actions = buildSpellCombatActions({
@@ -279,7 +319,7 @@ describe('buildSpellCombatActions', () => {
     const spell = makeSpell({
       id: 'target-only',
       name: 'Target Only',
-      effects: [{ kind: 'targeting', target: 'one-creature', targetType: 'creature' }],
+      effectGroups: [{ targeting: { selection: 'one', targetType: 'creature' }, effects: [] }],
     })
 
     const actions = buildSpellCombatActions({
@@ -296,9 +336,11 @@ describe('buildSpellCombatActions', () => {
       id: 'magic-missile-test',
       name: 'Magic Missile Test',
       level: 1,
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-        { kind: 'damage', damage: '1d4+1', damageType: 'force' },
+      effectGroups: [
+        {
+          targeting: { selection: 'one', targetType: 'creature' },
+          effects: [{ kind: 'damage', damage: '1d4+1', damageType: 'force' }],
+        },
       ],
     })
 
@@ -318,12 +360,16 @@ describe('buildSpellCombatActions', () => {
       name: 'Protection Test',
       level: 1,
       range: { kind: 'touch' },
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      effectGroups: [
         {
-          kind: 'roll-modifier',
-          appliesTo: 'attack-rolls',
-          modifier: 'disadvantage',
+          targeting: { selection: 'one', targetType: 'creature' },
+          effects: [
+            {
+              kind: 'roll-modifier',
+              appliesTo: 'attack-rolls',
+              modifier: 'disadvantage',
+            },
+          ],
         },
       ],
     })
@@ -342,9 +388,11 @@ describe('buildSpellCombatActions', () => {
     const spell = makeSpell({
       id: 'condition-only',
       name: 'Condition Only',
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-        { kind: 'condition', conditionId: 'prone' },
+      effectGroups: [
+        {
+          targeting: { selection: 'one', targetType: 'creature' },
+          effects: [{ kind: 'condition', conditionId: 'prone' }],
+        },
       ],
     })
 
@@ -362,7 +410,7 @@ describe('buildSpellCombatActions', () => {
     const spell = makeSpell({
       id: 'state-only',
       name: 'State Only',
-      effects: [{ kind: 'state', stateId: 'banished' }],
+      effectGroups: [{ effects: [{ kind: 'state', stateId: 'banished' }] }],
     })
 
     const actions = buildSpellCombatActions({
@@ -380,24 +428,27 @@ describe('buildSpellCombatActions', () => {
       id: 'magic-missile',
       name: 'Magic Missile',
       level: 1,
-      effects: [
+      effectGroups: [
         {
-          kind: 'targeting',
-          target: 'chosen-creatures',
-          targetType: 'creature',
-          count: 3,
-          canSelectSameTargetMultipleTimes: true,
-        },
-        {
-          kind: 'damage',
-          damage: '1d4+1',
-          damageType: 'force',
-          instances: {
+          targeting: {
+            selection: 'chosen',
+            targetType: 'creature',
             count: 3,
-            simultaneous: true,
-            canSplitTargets: true,
-            canStackOnSingleTarget: true,
+            canSelectSameTargetMultipleTimes: true,
           },
+          effects: [
+            {
+              kind: 'damage',
+              damage: '1d4+1',
+              damageType: 'force',
+              instances: {
+                count: 3,
+                simultaneous: true,
+                canSplitTargets: true,
+                canStackOnSingleTarget: true,
+              },
+            },
+          ],
         },
       ],
     })
@@ -427,9 +478,11 @@ describe('buildSpellCombatActions', () => {
       id: 'pwk',
       name: 'Power Word Kill',
       level: 9,
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-        { kind: 'damage', damage: '100', damageType: 'psychic' },
+      effectGroups: [
+        {
+          targeting: { selection: 'one', targetType: 'creature' },
+          effects: [{ kind: 'damage', damage: '100', damageType: 'psychic' }],
+        },
       ],
       resolution: {
         hpThreshold: {
@@ -457,7 +510,7 @@ describe('buildSpellCombatActions', () => {
       name: 'Timed Buff',
       range: { kind: 'self' },
       duration: { kind: 'timed', value: 1, unit: 'minute', concentration: true },
-      effects: [{ kind: 'modifier', target: 'armor_class', mode: 'add', value: 1 }],
+      effectGroups: [{ effects: [{ kind: 'modifier', target: 'armor_class', mode: 'add', value: 1 }] }],
     })
 
     const actions = buildSpellCombatActions({
@@ -475,8 +528,8 @@ describe('buildSpellCombatActions', () => {
       id: 'healing-word',
       name: 'Healing Word',
       level: 1,
-      castingTime: { normal: { value: 1, unit: 'bonus-action' } },
-      effects: [{ kind: 'note', text: 'Heals 2d4 + modifier.' }],
+      castingTime: { normal: { value: 1, unit: 'bonus-action' }, canBeCastAsRitual: false },
+      effectGroups: [{ effects: [{ kind: 'note', text: 'Heals 2d4 + modifier.' }] }],
     })
 
     const actions = buildSpellCombatActions({
@@ -493,18 +546,21 @@ describe('buildSpellCombatActions', () => {
       id: 'hold-person-style',
       name: 'Hold Person Style',
       level: 2,
-      effects: [
+      effectGroups: [
         {
-          kind: 'targeting',
-          target: 'one-creature',
-          targetType: 'creature',
-          requiresSight: true,
-          condition: { kind: 'creature-type', target: 'target', creatureTypes: ['humanoid'] },
-        },
-        {
-          kind: 'save',
-          save: { ability: 'wis' },
-          onFail: [{ kind: 'condition', conditionId: 'paralyzed' }],
+          targeting: {
+            selection: 'one',
+            targetType: 'creature',
+            requiresSight: true,
+            condition: { kind: 'creature-type', target: 'target', creatureTypes: ['humanoid'] },
+          },
+          effects: [
+            {
+              kind: 'save',
+              save: { ability: 'wis' },
+              onFail: [{ kind: 'condition', conditionId: 'paralyzed' }],
+            },
+          ],
         },
       ],
     })
@@ -523,17 +579,20 @@ describe('buildSpellCombatActions', () => {
       id: 'charm-person',
       name: 'Charm Person',
       level: 1,
-      effects: [
+      effectGroups: [
         {
-          kind: 'targeting',
-          target: 'one-creature',
-          targetType: 'creature',
-          creatureTypeFilter: ['humanoid'],
-        },
-        {
-          kind: 'save',
-          save: { ability: 'wis' },
-          onFail: [{ kind: 'condition', conditionId: 'charmed' }],
+          targeting: {
+            selection: 'one',
+            targetType: 'creature',
+            creatureTypeFilter: ['humanoid'],
+          },
+          effects: [
+            {
+              kind: 'save',
+              save: { ability: 'wis' },
+              onFail: [{ kind: 'condition', conditionId: 'charmed' }],
+            },
+          ],
         },
       ],
     })
@@ -552,9 +611,18 @@ describe('buildSpellCombatActions', () => {
       id: 'fireball',
       name: 'Fireball',
       level: 3,
-      effects: [
-        { kind: 'targeting', target: 'creatures-in-area', area: { kind: 'sphere', size: 20 } },
-        { kind: 'save', save: { ability: 'dex' }, onFail: [{ kind: 'damage', damage: '8d6', damageType: 'fire' }], onSuccess: [{ kind: 'damage', damage: '4d6', damageType: 'fire' }] },
+      effectGroups: [
+        {
+          targeting: { selection: 'in-area', targetType: 'creature', area: { kind: 'sphere', size: 20 } },
+          effects: [
+            {
+              kind: 'save',
+              save: { ability: 'dex' },
+              onFail: [{ kind: 'damage', damage: '8d6', damageType: 'fire' }],
+              onSuccess: [{ kind: 'damage', damage: '4d6', damageType: 'fire' }],
+            },
+          ],
+        },
       ],
     })
 
@@ -575,13 +643,17 @@ describe('buildSpellCombatActions', () => {
       name: 'Thunderwave',
       level: 1,
       range: { kind: 'self' },
-      effects: [
-        { kind: 'targeting', target: 'creatures-in-area', targetType: 'creature', area: { kind: 'cube', size: 15 } },
+      effectGroups: [
         {
-          kind: 'save',
-          save: { ability: 'con' },
-          onFail: [{ kind: 'damage', damage: '2d8', damageType: 'thunder' }],
-          onSuccess: [{ kind: 'damage', damage: '1d8', damageType: 'thunder' }],
+          targeting: { selection: 'in-area', targetType: 'creature', area: { kind: 'cube', size: 15 } },
+          effects: [
+            {
+              kind: 'save',
+              save: { ability: 'con' },
+              onFail: [{ kind: 'damage', damage: '2d8', damageType: 'thunder' }],
+              onSuccess: [{ kind: 'damage', damage: '1d8', damageType: 'thunder' }],
+            },
+          ],
         },
       ],
     })
@@ -601,9 +673,17 @@ describe('buildSpellCombatActions', () => {
     const spell = makeSpell({
       id: 'sacred-flame',
       name: 'Sacred Flame',
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
-        { kind: 'save', save: { ability: 'dex' }, onFail: [{ kind: 'damage', damage: '1d8', damageType: 'radiant' }] },
+      effectGroups: [
+        {
+          targeting: { selection: 'one', targetType: 'creature' },
+          effects: [
+            {
+              kind: 'save',
+              save: { ability: 'dex' },
+              onFail: [{ kind: 'damage', damage: '1d8', damageType: 'radiant' }],
+            },
+          ],
+        },
       ],
     })
 
@@ -621,11 +701,25 @@ describe('buildSpellCombatActions', () => {
       id: 'shield',
       name: 'Shield',
       range: { kind: 'self' },
-      castingTime: { normal: { value: 1, unit: 'reaction' } },
+      castingTime: { normal: { value: 1, unit: 'reaction' }, canBeCastAsRitual: false },
       duration: { kind: 'until-turn-boundary', subject: 'self', turn: 'next', boundary: 'start' },
-      effects: [
-        { kind: 'modifier', target: 'armor_class', mode: 'add', value: 5 },
-        { kind: 'immunity', scope: 'spell', spellIds: ['magic-missile'], duration: { kind: 'until-turn-boundary', subject: 'self', turn: 'next', boundary: 'start' } },
+      effectGroups: [
+        {
+          effects: [
+            { kind: 'modifier', target: 'armor_class', mode: 'add', value: 5 },
+            {
+              kind: 'immunity',
+              scope: 'spell',
+              spellIds: ['magic-missile'],
+              duration: {
+                kind: 'until-turn-boundary',
+                subject: 'self',
+                turn: 'next',
+                boundary: 'start',
+              },
+            },
+          ],
+        },
       ],
     })
 
@@ -647,9 +741,23 @@ describe('buildSpellCombatActions', () => {
       name: 'Shield',
       range: { kind: 'self' },
       duration: { kind: 'until-turn-boundary', subject: 'self', turn: 'next', boundary: 'start' },
-      effects: [
-        { kind: 'modifier', target: 'armor_class', mode: 'add', value: 5 },
-        { kind: 'immunity', scope: 'spell', spellIds: ['magic-missile'], duration: { kind: 'until-turn-boundary', subject: 'self', turn: 'next', boundary: 'start' } },
+      effectGroups: [
+        {
+          effects: [
+            { kind: 'modifier', target: 'armor_class', mode: 'add', value: 5 },
+            {
+              kind: 'immunity',
+              scope: 'spell',
+              spellIds: ['magic-missile'],
+              duration: {
+                kind: 'until-turn-boundary',
+                subject: 'self',
+                turn: 'next',
+                boundary: 'start',
+              },
+            },
+          ],
+        },
       ],
     })
 
@@ -681,9 +789,11 @@ describe('buildSpellCombatActions', () => {
       id: 'mage-armor',
       name: 'Mage Armor',
       range: { kind: 'touch' },
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
-        { kind: 'modifier', target: 'armor_class', mode: 'set', value: 13 },
+      effectGroups: [
+        {
+          targeting: { selection: 'one', targetType: 'creature', requiresWilling: true },
+          effects: [{ kind: 'modifier', target: 'armor_class', mode: 'set', value: 13 }],
+        },
       ],
       description: {
         full: "You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 plus its Dexterity modifier.",
@@ -710,30 +820,32 @@ describe('buildSpellCombatActions', () => {
     const fireball = makeSpell({
       id: 'fireball',
       name: 'Fireball',
-      effects: [{ kind: 'damage', damage: '8d6', damageType: 'fire' }],
+      effectGroups: [{ effects: [{ kind: 'damage', damage: '8d6', damageType: 'fire' }] }],
     })
     expect(deriveSpellHostility(fireball)).toBe('hostile')
 
     const cure = makeSpell({
       id: 'cure',
       name: 'Cure',
-      effects: [{ kind: 'hit-points', mode: 'heal', value: '1d8' }],
+      effectGroups: [{ effects: [{ kind: 'hit-points', mode: 'heal', value: '1d8' }] }],
     })
     expect(deriveSpellHostility(cure)).toBe('non-hostile')
 
     const hallow = makeSpell({
       id: 'hallow',
       name: 'Hallow',
-      effects: [{ kind: 'state', stateId: 'hallowed', notes: 'ward' }],
+      effectGroups: [{ effects: [{ kind: 'state', stateId: 'hallowed', notes: 'ward' }] }],
     })
     expect(deriveSpellHostility(hallow)).toBe('non-hostile')
 
     const willing = makeSpell({
       id: 'inv',
       name: 'Invisibility',
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature', requiresWilling: true },
-        { kind: 'condition', conditionId: 'invisible' },
+      effectGroups: [
+        {
+          targeting: { selection: 'one', targetType: 'creature', requiresWilling: true },
+          effects: [{ kind: 'condition', conditionId: 'invisible' }],
+        },
       ],
     })
     expect(deriveSpellHostility(willing)).toBe('non-hostile')
@@ -743,12 +855,16 @@ describe('buildSpellCombatActions', () => {
     const spell = makeSpell({
       id: 'sacred-flame',
       name: 'Sacred Flame',
-      effects: [
-        { kind: 'targeting', target: 'one-creature', targetType: 'creature' },
+      effectGroups: [
         {
-          kind: 'save',
-          save: { ability: 'dex' },
-          onFail: [{ kind: 'damage', damage: '1d8', damageType: 'radiant' }],
+          targeting: { selection: 'one', targetType: 'creature' },
+          effects: [
+            {
+              kind: 'save',
+              save: { ability: 'dex' },
+              onFail: [{ kind: 'damage', damage: '1d8', damageType: 'radiant' }],
+            },
+          ],
         },
       ],
     })

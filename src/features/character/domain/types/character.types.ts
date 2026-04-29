@@ -3,7 +3,7 @@ import type { ClassId } from '@/shared/types/ruleset'
 import type { AlignmentId } from '@/features/content/shared/domain/types'
 import type { RaceId } from '@/features/content/races/domain/types'
 import type { AbilityScoreMapResolved } from '@/features/mechanics/domain/character'
-
+import type { AuthoredExpertiseProficiency } from '@/shared/domain/proficiency/authoredCreatureProficiencies'
 
 export type Wealth = {
   gp?: number | null
@@ -67,33 +67,8 @@ export type EquipmentLoadout = {
   weaponEnhancementId?: string
 }
 
-export type ProficiencyLevel = 0 | 1 | 2
-
-export type RollModifier = {
-  advantage?: boolean;
-  disadvantage?: boolean;
-};
-
-export type ProficiencyAdjustmentBase = {
-  proficiencyLevel?: ProficiencyLevel
-  // these may not be neccessary
-  // avoid using unless calculations do not match the expected output
-  bonus?: number
-  fixedBonus?: number
-}
-
-export type ProficiencySkillAdjustment = 
-  ProficiencyAdjustmentBase & RollModifier
-
-export type ProficiencyAdjustment = ProficiencySkillAdjustment
-
-export type ProficiencyWeaponAdjustment = ProficiencyAdjustmentBase
-
-export type ProficiencyArmorAdjustment = 
-  ProficiencyAdjustmentBase & RollModifier
-
 export type CharacterProficiencies = {
-  skills?: Record<string, ProficiencySkillAdjustment>
+  skills?: Partial<Record<string, AuthoredExpertiseProficiency>>
 }
 
 export type CharacterType = 'pc' | 'npc'
@@ -103,6 +78,8 @@ export type Character = {
   type: CharacterType
 
   race?: RaceId
+  /** Selected race definition options: keys are race definition group ids, values are option ids. */
+  raceChoices?: Record<string, string>
   alignment?: AlignmentId
 
   classes: CharacterClassInfo[]
@@ -143,4 +120,32 @@ export type NonPlayerCharacter = Character & {
  */
 export type CharacterSheet = Omit<Partial<Character>, 'classes'> & {
   classes: CharacterClassInfo[]
+}
+
+/** Fields accepted by PATCH /api/characters/:id (Mongo document subset). GET returns CharacterDetailDto with resolved names. */
+export type CharacterPatchFields = Pick<
+  Character,
+  | 'name'
+  | 'alignment'
+  | 'race'
+  | 'raceChoices'
+  | 'classes'
+  | 'xp'
+  | 'totalLevel'
+  | 'levelUpPending'
+  | 'pendingLevel'
+  | 'abilityScores'
+  | 'hitPoints'
+  | 'combat'
+  | 'proficiencies'
+  | 'feats'
+  | 'spells'
+  | 'equipment'
+  | 'wealth'
+  | 'narrative'
+> & {
+  imageKey?: string | null
+  /** Sent when completing level-up subclass selection */
+  subclassId?: string
+  armorClass?: ArmorClass
 }

@@ -1,6 +1,6 @@
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-
+import { AppContainer } from '@/ui/primitives'
 interface AppHeroProps {
   headline: string
   subheadline: string
@@ -53,27 +53,29 @@ const AppHero = ({ headline, subheadline, image }: AppHeroProps) => (
         p: { xs: 2, md: 3 },
       }}
     >
-      <Typography
-        variant="h4"
-        component="h1"
-        sx={{
-          color: 'white',
-          fontWeight: 700,
-          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-        }}
-      >
-        {headline}
-      </Typography>
-      <Typography
-        variant="body1"
-        sx={{
-          color: 'rgba(255,255,255,0.9)',
-          mt: 0.5,
-          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-        }}
-      >
-        {subheadline}
-      </Typography>
+      <AppContainer>
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            color: 'white',
+            fontWeight: 700,
+            textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+          }}
+        >
+          {headline}
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            color: 'rgba(255,255,255,0.9)',
+            mt: 0.5,
+            textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+          }}
+        >
+          {subheadline}
+        </Typography>
+      </AppContainer>
     </Box>
   </Box>
 )

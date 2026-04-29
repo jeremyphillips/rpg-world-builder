@@ -3,12 +3,26 @@
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
+import { toIdStringArray } from '@/features/content/shared/forms/toIdStringArray';
 import {
   buildToInput,
   buildDefaultFormValues,
 } from '@/features/content/shared/forms/registry';
+import type {
+  CreatureVulnerabilityDamageType,
+  ImmunityType,
+} from '@/features/mechanics/domain/creatures/immunities.types';
+import {
+  filterToAllowedCreatureImmunityIds,
+  filterToAllowedVulnerabilityIds,
+} from '@/features/content/shared/domain/vocab/creatureImmunitiesForm.vocab';
+import { isProficiencyBonus } from '@/shared/domain/proficiency';
+import { isSubtypeAllowedForCreatureType } from '@/features/content/creatures/domain/values/creatureTaxonomy';
+import { validateCreatureProficiencyGroups } from '@/shared/domain/proficiency/authoredCreatureProficiencies';
+import type { CreatureSubtypeId } from '@/features/content/creatures/domain/values';
 import { MONSTER_FORM_FIELDS } from '../registry/monsterForm.registry';
 import type { MonsterFormValues } from '../types/monsterForm.types';
+import { parseCreatureTypeId } from '../config/monsterForm.config';
 
 const toInput = buildToInput(MONSTER_FORM_FIELDS);
 const defaultFormValues = buildDefaultFormValues(MONSTER_FORM_FIELDS);
@@ -35,6 +49,15 @@ const parseJson = (v: unknown): unknown => {
   }
 };
 
+const numOrUndefined = (v: unknown): number | undefined => {
+  if (v === '' || v == null) return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+};
+
+const numToStr = (v: unknown): string =>
+  v != null && Number.isFinite(Number(v)) ? String(v) : '';
+
 /**
  * Converts a Monster domain object to form values.
  */
@@ -45,7 +68,9 @@ export const monsterToFormValues = (monster: Monster): MonsterFormValues => {
     ...(defaultFormValues as MonsterFormValues),
     name: monster.name,
     type: monster.type ?? '',
+    subtype: monster.subtype ?? '',
     sizeCategory: monster.sizeCategory ?? '',
+    imageKey: (monster.imageKey ?? '') as MonsterFormValues['imageKey'],
     accessPolicy: (monster.accessPolicy ?? DEFAULT_VISIBILITY_PUBLIC) as MonsterFormValues['accessPolicy'],
     description: formatJson(monster.description),
     languages: formatJson(monster.languages),
@@ -59,11 +84,11 @@ export const monsterToFormValues = (monster: Monster): MonsterFormValues => {
     abilities: formatJson(m?.abilities),
     senses: formatJson(m?.senses),
     proficiencies: formatJson(m?.proficiencies),
-    proficiencyBonus: formatJson(m?.proficiencyBonus),
+    proficiencyBonus: numToStr(m?.proficiencyBonus),
     equipment: formatJson(m?.equipment),
-    immunities: formatJson(m?.immunities),
-    vulnerabilities: formatJson(m?.vulnerabilities),
-    alignment: formatJson(l?.alignment),
+    immunities: toIdStringArray(m?.immunities),
+    vulnerabilities: toIdStringArray(m?.vulnerabilities),
+    alignment: l?.alignment != null ? String(l.alignment) : '',
     challengeRating: formatJson(l?.challengeRating),
     xpValue: formatJson(l?.xpValue),
   };
@@ -96,28 +121,44 @@ export const toMonsterInput = (values: MonsterFormValues): MonsterInput => {
   const sens = parseJson(values.senses);
   if (sens !== undefined) mechanics.senses = sens;
   const prof = parseJson(values.proficiencies);
-  if (prof !== undefined) mechanics.proficiencies = prof;
-  const pb = parseJson(values.proficiencyBonus);
-  if (pb !== undefined) mechanics.proficiencyBonus = pb;
+  if (prof !== undefined) {
+    const profErrors = validateCreatureProficiencyGroups(prof);
+    if (profErrors.length > 0) {
+      throw new Error(profErrors.map((e) => `${e.path}: ${e.message}`).join('; '));
+    }
+    mechanics.proficiencies = prof;
+  }
+  const pb = numOrUndefined(values.proficiencyBonus);
+  if (pb !== undefined && isProficiencyBonus(pb)) mechanics.proficiencyBonus = pb;
   const eq = parseJson(values.equipment);
   if (eq !== undefined) mechanics.equipment = eq;
-  const imm = parseJson(values.immunities);
-  if (imm !== undefined) mechanics.immunities = imm;
-  const vuln = parseJson(values.vulnerabilities);
-  if (vuln !== undefined) mechanics.vulnerabilities = vuln;
+  if (Array.isArray(values.immunities)) {
+    const imm = filterToAllowedCreatureImmunityIds(values.immunities) as ImmunityType[];
+    mechanics.immunities = imm;
+  }
+  if (Array.isArray(values.vulnerabilities)) {
+    const vuln =
+      filterToAllowedVulnerabilityIds(values.vulnerabilities) as CreatureVulnerabilityDamageType[];
+    mechanics.vulnerabilities = vuln;
+  }
 
-  const align = parseJson(values.alignment);
-  if (align !== undefined) lore.alignment = align;
+  if (values.alignment) lore.alignment = values.alignment;
   const cr = parseJson(values.challengeRating);
   if (cr !== undefined) lore.challengeRating = cr;
   const xp = parseJson(values.xpValue);
   if (xp !== undefined) lore.xpValue = xp;
+
+  const typeId = parseCreatureTypeId(values.type);
+  const sub = values.subtype ? (values.subtype as CreatureSubtypeId) : undefined;
+  const safeSubtype =
+    typeId && sub && isSubtypeAllowedForCreatureType(typeId, sub) ? sub : undefined;
 
   return {
     ...base,
     name: values.name,
     type: values.type || undefined,
     sizeCategory: values.sizeCategory || undefined,
+    subtype: safeSubtype,
     description: parseJson(values.description) as MonsterInput['description'],
     languages: parseJson(values.languages) as MonsterInput['languages'],
     mechanics: Object.keys(mechanics).length > 0 ? (mechanics as MonsterInput['mechanics']) : undefined,

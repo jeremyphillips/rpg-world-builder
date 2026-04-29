@@ -1,46 +1,68 @@
 import type { ClassId } from '@/shared/types/ruleset';
-import type { MagicSchool } from '@/features/content/shared/domain/vocab';
-import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
+import type {
+  ActionEconomyKind,
+  MagicSchool,
+  SpellRangeKind,
+} from '@/features/content/shared/domain/vocab';
+import type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
+import type { Effect, EffectConditionId } from '@/features/mechanics/domain/effects/effects.types';
+import type { SpellFunctionTag } from '../vocab/spellFunctionTags.vocab';
+import type { SpellRoleTag } from '../vocab/spellRoleTags.vocab';
 import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.types';
 import type { Visibility } from '@/shared/types/visibility';
 import type { ContentItem } from '@/features/content/shared/domain/types/content.types';
-import type { Distance } from '@/shared/distance';
+import type { Distance } from '@/shared/domain/distance';
 import type { Coin } from '@/shared/money/types';
-import type { TimeUnit } from '@/shared/time';
-import type { DiceOrFlat } from '@/features/mechanics/domain/dice'
+import type { SpellCastingTimeDurationUnit, TimeUnit } from '@/shared/domain/time';
+import type { DiceOrFlat } from '@/shared/domain/dice';
 import type { ContentResolutionMeta } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { CasterOptionField } from '@/features/mechanics/domain/spells/caster-options';
+import type { SpellLevel } from '../spellLevel.definitions';
 
-// later: Extract<Effect, ...>[]
-export type SpellEffects = Effect[];
+export type { SpellLevel };
 
-export type SpellLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+/** Authored spell outcomes — never `kind: 'targeting'` (targeting lives on the group). */
+export type SpellEffect = Exclude<Effect, { kind: 'targeting' }>;
+
+/** Targeting context for a spell effect group (same payload as `TargetingEffect` minus `kind`: `selection`, `targetType`, optional `area`, etc.). */
+export type SpellEffectTargeting = Omit<Extract<Effect, { kind: 'targeting' }>, 'kind'>;
+
+export type SpellEffectGroup = {
+  targeting?: SpellEffectTargeting;
+  effects: SpellEffect[];
+};
+
+export type SpellTags = {
+  damageTypes?: DamageType[];
+  conditions?: EffectConditionId[];
+  roles?: SpellRoleTag[];
+  functions?: SpellFunctionTag[];
+};
 
 export type SpellRange =
-  | { kind: 'self' }
-  | { kind: 'touch' }
-  | { kind: 'distance'; value: Distance }
-  | { kind: 'sight' }
-  | { kind: 'unlimited' }
-  | { kind: 'special'; description: string }
+  | { kind: Extract<SpellRangeKind, 'self'> }
+  | { kind: Extract<SpellRangeKind, 'touch'> }
+  | { kind: Extract<SpellRangeKind, 'distance'>; value: Distance }
+  | { kind: Extract<SpellRangeKind, 'sight'> }
+  | { kind: Extract<SpellRangeKind, 'unlimited'> }
+  | { kind: Extract<SpellRangeKind, 'special'>; description: string };
 
-export type CastingTimeUnit =
-  | 'action'
-  | 'bonus-action'
-  | 'reaction'
-  | 'minute'
-  | 'hour';
+/** Spell casting time unit: action economy (incl. special) or long-cast duration units from shared time. */
+export type CastingTimeUnit = ActionEconomyKind | SpellCastingTimeDurationUnit;
 
 export type SpellCastingTimeMode = {
   value: number;
   unit: CastingTimeUnit;
   trigger?: string;
-  ritual?: boolean;
+  /** Named variant for multi-mode spells (e.g. Overgrowth vs Enrichment). */
+  label?: string;
 };
 
 export type SpellCastingTime = {
   normal: SpellCastingTimeMode;
+  /** Only when the spell has multiple distinct casting-time modes in the rules. */
   alternate?: SpellCastingTimeMode[];
+  canBeCastAsRitual: boolean;
 };
 
 export type TimedDuration = {
@@ -106,8 +128,8 @@ export type SpellScalingRule = {
 /** Encounter/combat adapter extras; keep spell effects as the primary payload. */
 export type SpellHpThresholdResolution = {
   maxHp: number
-  /** When target current HP is **greater** than `maxHp`, these effects apply instead of the spell’s main `effects` (after targeting is stripped). */
-  aboveMaxHpEffects: SpellEffects
+  /** When target current HP is **greater** than `maxHp`, these effects apply instead of the spell’s main payload. */
+  aboveMaxHpEffects: SpellEffect[]
 }
 
 export type SpellResolutionMeta = ContentResolutionMeta & {
@@ -138,15 +160,23 @@ export interface SpellBase {
   duration: SpellDuration;
   components: SpellComponents;
   deliveryMethod?: SpellDeliveryMethod;
-  effects: SpellEffects;
+  effectGroups: SpellEffectGroup[];
   scaling?: SpellScalingRule[];
   resolution?: SpellResolutionMeta;
   description: {
     full: string;
     summary: string;
   }
+  /**
+   * Browse/filter metadata: damage types, conditions, tactical roles, and fantasy-purpose functions.
+   * Roles = play-pattern identity; functions = communication, utility, deception, etc.
+   */
+  tags?: SpellTags;
   imageKey?: string | null;
 }
+
+/** Alias for the authored spell definition (`Spell` adds `ContentItem`). */
+export type SpellDefinition = SpellBase;
 
 export type Spell = ContentItem & SpellBase;
 

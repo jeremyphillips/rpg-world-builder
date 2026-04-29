@@ -2,27 +2,33 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailAdvancedAccordion,
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import type { LocationContentItem } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { resolveImageUrl } from '@/shared/lib/media';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 import { locationRepo, listLocationMaps, LOCATION_DETAIL_SPECS } from '@/features/content/locations/domain';
 
 export default function LocationDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { locationId } = useParams<{ locationId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: loc, loading, error, notFound } = useCampaignContentEntry<LocationContentItem>({
     campaignId: campaignId ?? undefined,
@@ -68,46 +74,44 @@ export default function LocationDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Location not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/locations`;
-  const editPath = `${listPath}/${locationId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/locations/${locationId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(LOCATION_DETAIL_SPECS, loc, {
+  const detailCtx = {
     mapGridSummary,
+  };
+
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
+    specs: LOCATION_DETAIL_SPECS,
+    item: loc,
+    ctx: detailCtx,
+    viewer,
   });
 
   return (
     <ContentDetailScaffold
       title={loc.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={loc.source}
       accessPolicy={loc.accessPolicy}
+      hideAccessPolicyBadge
     >
-      {loc.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
+      <ContentDetailMetaRow items={metaItems} />
 
-      {loc.imageKey && (
-        <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(loc.imageKey)} alt={loc.name} style={{ maxHeight: 500 }} />
-        </Box>
-      )}
+      <ContentDetailImageKeyValueGrid
+        imageContentType="location"
+        imageKey={loc.imageKey}
+        alt={loc.name}
+      >
+        <KeyValueSection title="" items={mainItems} columns={2} />
+      </ContentDetailImageKeyValueGrid>
 
-      {loc.description && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {loc.description}
-        </Typography>
-      )}
-
-      <KeyValueSection
-        title="Location details"
-        items={items}
-        columns={2}
-        sx={{ mt: 2 }}
+      <ContentDetailAdvancedAccordion
+        items={advancedItems}
+        sectionTitle="Advanced location data"
+        idPrefix="location"
       />
     </ContentDetailScaffold>
   );

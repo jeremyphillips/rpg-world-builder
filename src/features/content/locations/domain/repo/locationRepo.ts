@@ -13,8 +13,15 @@ import type {
   LocationSummary,
 } from '@/features/content/locations/domain/model/location';
 import { getSystemLocation, getSystemLocations } from '@/features/mechanics/domain/rulesets/system/locations';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import type { LocationScaleId } from '@/shared/domain/locations';
 
@@ -237,19 +244,17 @@ export const locationRepo: CampaignContentRepo<LocationContentItem, LocationSumm
       getContentPatch(campaignId),
     ]);
 
-    const locationPatches = contentPatch?.patches?.locations ?? {};
     const campaignIds = new Set(campaign.map((l) => l.id));
-
-    const patchedSystem: LocationContentItem[] = system
-      .filter((l) => !campaignIds.has(l.id))
-      .map((l): LocationContentItem => {
-        const patch = locationPatches[l.id];
-        if (!patch) return { ...l, source: 'system', systemId } as LocationContentItem;
-        const merged = applyContentPatch<Location>(l, patch as Partial<Location>);
-        return { ...merged, source: 'system', systemId, patched: true } as LocationContentItem;
-      });
-
-    const merged: LocationContentItem[] = [...patchedSystem, ...campaign];
+    const mergedCore = mergeSystemCampaignWithPatches(
+      [...system],
+      campaign,
+      getPatchMapForType(contentPatch, 'locations'),
+    );
+    const merged: LocationContentItem[] = mergedCore.map((l): LocationContentItem =>
+      campaignIds.has(l.id)
+        ? (l as LocationContentItem)
+        : ({ ...l, source: 'system', systemId } as LocationContentItem),
+    );
 
     let results = merged
       .map((r) => toSummary(r, true))
@@ -271,11 +276,11 @@ export const locationRepo: CampaignContentRepo<LocationContentItem, LocationSumm
     if (!systemEntry) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const entryPatch = contentPatch?.patches?.locations?.[id];
-    if (!entryPatch) return { ...systemEntry, source: 'system', systemId } as LocationContentItem;
-
-    const merged = applyContentPatch<Location>(systemEntry, entryPatch as Partial<Location>);
-    return { ...merged, source: 'system', systemId, patched: true } as LocationContentItem;
+    const patched = resolveSystemEntryWithPatch(
+      systemEntry,
+      getEntryPatch(contentPatch, 'locations', id),
+    );
+    return { ...patched, source: 'system', systemId } as LocationContentItem;
   },
 
   async createEntry(campaignId: string, input: LocationInput): Promise<LocationContentItem> {

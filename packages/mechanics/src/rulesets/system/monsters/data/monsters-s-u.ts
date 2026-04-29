@@ -42,8 +42,8 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         weapons: {
-          shortsword: { proficiencyLevel: 1 },
-          shortbow: { proficiencyLevel: 1 },
+          shortsword: 'proficient',
+          shortbow: 'proficient',
         },
       },
       proficiencyBonus: 2,
@@ -82,7 +82,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
         passivePerception: 10,
       },
       proficiencies: {
-        skills: { stealth: { proficiencyLevel: 1 } },
+        skills: { stealth: 'proficient' },
       },
       proficiencyBonus: 2,
       immunities: ['fire', 'poison', 'exhaustion'],
@@ -136,7 +136,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
             'Constitution Saving Throw: DC 10, each creature in a 15-foot Cone. Failure: 5 (2d4) Fire damage, and the target’s Speed decreases by 10 feet until the end of the mephit’s next turn. Success: Half damage only. Failure or Success: Being underwater doesn’t grant Resistance to this Fire damage.',
           save: { ability: 'con', dc: 10 },
           area: { kind: 'cone', size: 15 },
-          target: 'creatures-in-area',
+          target: { selection: 'in-area', targetType: 'creature' },
           damage: '2d4',
           damageType: 'fire',
           halfDamageOnSave: true,
@@ -284,7 +284,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
         }
       ],
       proficiencies: {
-        skills: { perception: { proficiencyLevel: 2 } },
+        skills: { perception: 'expertise' },
       },
       proficiencyBonus: 3,
     },

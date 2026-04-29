@@ -1,21 +1,26 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
-import AddIcon from '@mui/icons-material/Add';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { useViewerEquipment } from '@/features/campaign/hooks';
+import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useCampaignMembers } from '@/features/campaign/hooks/useCampaignMembers';
+import { getOwnedIdsForCampaignContentListKey } from '@/features/character/domain/query';
 import {
   ContentTypeListPage,
   buildCampaignContentColumns,
   buildCampaignContentFilters,
+  getMutedRowClassNameForDisallowedCampaignContent,
   ValidationBlockedAlert,
 } from '@/features/content/shared/components';
+import ViewerOwnedCharacterScopeSelect from '@/features/content/shared/components/ViewerOwnedCharacterScopeSelect';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
+import { useDmPartyCharacterOwnedQuery } from '@/features/content/shared/hooks/useDmPartyCharacterOwnedQuery';
+import { useCampaignViewerOwnedCharacterQuery } from '@/features/content/shared/hooks/useCampaignViewerOwnedCharacterQuery';
+import { campaignContentToolbarLayoutForRole } from '@/features/content/shared/toolbar/campaignContentListToolbarLayoutForRole';
+import { getCampaignContentListToolbarLayout } from '@/features/content/shared/toolbar/campaignContentListToolbarLayouts';
 import {
   useValidatedAllowedToggle,
   type ValidationBlockedState,
@@ -23,28 +28,33 @@ import {
 import { useCampaignPartyCharacterNameMap } from '@/features/content/shared/hooks/useCampaignPartyCharacterNameMap';
 import { weaponRepo } from '../domain/repo/weaponRepo';
 import { validateWeaponChange } from '../domain/validation/validateWeaponChange';
-import {
-  buildWeaponCustomColumns,
-  buildWeaponCustomFilters,
-  type WeaponListRow,
-} from '../domain/list';
+import { buildWeaponCustomColumns, buildWeaponCustomFilters, type WeaponListRow } from '../domain/list';
 import type { ContentSummary } from '@/features/content/shared/domain/types/content.types';
-import type { GridRowClassNameParams } from '@mui/x-data-grid';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { AppAlert } from '@/ui/primitives';
 
 export default function WeaponsListRoute() {
+  const { loading: authLoading } = useAuth();
   const { campaign, campaignId } = useActiveCampaign();
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/equipment/weapons`;
 
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
-  const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? [];
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerCharacterIds = useActiveCampaignViewerCharacterIds();
+  const { approvedCharacters } = useCampaignMembers();
 
-  const { weapons: ownedIds } = useViewerEquipment();
-  const hasViewer = ownedIds.size > 0;
+  const {
+    mergedContext: viewerCtx,
+    ready: viewerQueryReady,
+    showOwnershipScopePicker,
+    ownershipScope,
+    setOwnershipScope,
+    ownershipScopeOptions,
+  } = useCampaignViewerOwnedCharacterQuery(campaignId, viewerCharacterIds);
+  const ownedIds = getOwnedIdsForCampaignContentListKey(viewerCtx, 'weapons');
+
+  const { dmOwnedByCharacterFilterConfig, onDmOwnedByCharacterFilterChange } =
+    useDmPartyCharacterOwnedQuery(canManage, approvedCharacters, 'weapons');
 
   const listSummaries = useCallback(
     (cid: string, sid: string) =>
@@ -96,10 +106,12 @@ export default function WeaponsListRoute() {
   const columns = useMemo(
     () =>
       buildCampaignContentColumns<WeaponListRow>({
+        imageContentType: 'weapon',
         canManage,
         characterNameById: canManage ? characterNameById : undefined,
         onToggleAllowedInCampaign: handleToggleAllowed,
-        ownedIds: hasViewer ? ownedIds : undefined,
+        ownedIds,
+        viewerContext: controller.viewerContext,
         customColumns,
         hasCampaignSources,
       }),
@@ -107,8 +119,8 @@ export default function WeaponsListRoute() {
       canManage,
       characterNameById,
       handleToggleAllowed,
-      hasViewer,
       ownedIds,
+      controller.viewerContext,
       customColumns,
       hasCampaignSources,
     ],
@@ -119,14 +131,29 @@ export default function WeaponsListRoute() {
       buildCampaignContentFilters<WeaponListRow>({
         canManage,
         onToggleAllowedInCampaign: handleToggleAllowed,
-        ownedIds: hasViewer ? ownedIds : undefined,
+        ownedIds,
         customFilters,
         hasCampaignSources,
+        dmOwnedByCharacter: dmOwnedByCharacterFilterConfig,
+        viewerContext: controller.viewerContext,
       }),
-    [canManage, handleToggleAllowed, hasViewer, ownedIds, customFilters, hasCampaignSources],
+    [
+      canManage,
+      handleToggleAllowed,
+      ownedIds,
+      customFilters,
+      hasCampaignSources,
+      dmOwnedByCharacterFilterConfig,
+      controller.viewerContext,
+    ],
   );
 
-  if (controller.loading) {
+  const toolbarLayout = useMemo(
+    () => campaignContentToolbarLayoutForRole(getCampaignContentListToolbarLayout('weapons'), canManage),
+    [canManage],
+  );
+
+  if (controller.loading || authLoading || !viewerQueryReady) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
         <CircularProgress />
@@ -135,72 +162,61 @@ export default function WeaponsListRoute() {
   }
 
   return (
-    <Stack spacing={2}>
-      {validationBlocked && (
-        validationBlocked.blockingEntities.length > 0 ? (
-          <ValidationBlockedAlert
-            contentType="weapon"
-            mode="disallow"
-            blockingEntities={validationBlocked.blockingEntities}
-            onClose={() => setValidationBlocked(null)}
-          />
-        ) : (
-          <AppAlert
-            tone="warning"
-            onClose={() => setValidationBlocked(null)}
-          >
-            {validationBlocked.message ?? 'Cannot disable this weapon.'}
-          </AppAlert>
-        )
-      )}
-      <ContentTypeListPage<WeaponListRow>
-        typeLabel="Weapon"
-        typeLabelPlural="Weapons"
-        headline="Weapons"
-        breadcrumbData={breadcrumbs}
-        actions={[
-          <Button
-            key="back"
-            component={Link}
-            to={`/campaigns/${campaignId}/world/equipment`}
-            size="small"
-            startIcon={<ArrowBackIcon />}
-          >
-            Equipment
-          </Button>,
-        ]}
-        rows={items}
-        columns={columns}
-        filters={filters}
-        getRowId={(r) => r.id}
-        getDetailLink={controller.getDetailLink}
-        getRowClassName={
-          canManage
-            ? (params: GridRowClassNameParams) =>
-                (params.row as WeaponListRow).allowedInCampaign === false
-                  ? 'AppDataGrid-row--disabled'
-                  : ''
-            : undefined
-        }
-        loading={controller.loading}
-        error={controller.error}
-        toolbar={
-          canManage ? (
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={controller.onAdd}
-            >
-              Add Weapon
-            </Button>
-          ) : undefined
-        }
-        searchPlaceholder="Search weapons…"
-        emptyMessage="No weapons found."
-        density="compact"
-        height={560}
-      />
-    </Stack>
+    <ContentTypeListPage<WeaponListRow>
+      page={{
+        typeLabel: 'Weapon',
+        typeLabelPlural: 'Weapons',
+        headline: 'Weapons',
+        breadcrumbData: breadcrumbs,
+        actions: showOwnershipScopePicker
+          ? [
+              <ViewerOwnedCharacterScopeSelect
+                key="viewer-owned-scope"
+                value={ownershipScope}
+                onChange={setOwnershipScope}
+                characterOptions={ownershipScopeOptions}
+              />,
+            ]
+          : undefined,
+        canManage,
+        onAdd: controller.onAdd,
+        addButtonLabel: 'Add Weapon',
+        topBanner:
+          validationBlocked ? (
+            validationBlocked.blockingEntities.length > 0 ? (
+              <ValidationBlockedAlert
+                contentType="weapon"
+                mode="disallow"
+                blockingEntities={validationBlocked.blockingEntities}
+                onClose={() => setValidationBlocked(null)}
+              />
+            ) : (
+              <AppAlert tone="warning" onClose={() => setValidationBlocked(null)}>
+                {validationBlocked.message ?? 'Cannot disable this weapon.'}
+              </AppAlert>
+            )
+          ) : undefined,
+      }}
+      grid={{
+        rows: items,
+        columns,
+        filters,
+        getRowId: (r) => r.id,
+        getDetailLink: controller.getDetailLink,
+        getRowClassName: getMutedRowClassNameForDisallowedCampaignContent<WeaponListRow>(canManage),
+        loading: controller.loading,
+        error: controller.error,
+        searchPlaceholder: 'Search weapons…',
+        emptyMessage: 'No weapons found.',
+        density: 'compact',
+        height: 560,
+        toolbarLayout,
+      }}
+      preferences={{
+        contentListPreferencesKey: 'weapons',
+        onFilterValueChange: onDmOwnedByCharacterFilterChange,
+      }}
+      viewerContext={controller.viewerContext}
+    />
   );
 }

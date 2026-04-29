@@ -15,7 +15,7 @@ import { getXpForLevel } from '@/features/mechanics/domain/progression'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { CampaignHorizontalCard }from '@/features/campaign/components'
 import { EditableTextField } from '@/ui/patterns'
-import { ImageUploadField } from '@/ui/patterns'
+import { AppImageUploadField } from '@/ui/primitives'
 import { resolveXpTable } from '@/features/mechanics/domain/progression'
 import { formatCharacterIdentityLine } from '@/features/character/formatters'
 
@@ -102,7 +102,7 @@ export default function IdentityBanner({
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2.5}>
           {/* Portrait */}
           <Box sx={{ width: { xs: '100%', sm: 160 }, flexShrink: 0 }}>
-            <ImageUploadField
+            <AppImageUploadField
               value={imageKey}
               onChange={(key) => { onSetImageKey(key); onSave({ imageKey: key }) }}
               label=""

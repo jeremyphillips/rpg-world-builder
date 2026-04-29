@@ -11,6 +11,7 @@ export type CampaignSkillProficiencyDoc = {
   skillProficiencyId: string;
   name: string;
   description: string;
+  imageKey: string;
   ability: string;
   suggestedClasses: string[];
   examples: string[];
@@ -26,6 +27,11 @@ type ValidationError = {
   message: string;
 };
 
+function normalizeImageKey(body: Record<string, unknown>): string {
+  if (body.imageKey === undefined || body.imageKey === null) return '';
+  return String(body.imageKey).trim();
+}
+
 function validateInput(body: Record<string, unknown>): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -37,6 +43,10 @@ function validateInput(body: Record<string, unknown>): ValidationError[] {
 
   if (body.description !== undefined && typeof body.description !== 'string') {
     errors.push({ path: 'description', code: 'INVALID_TYPE', message: 'description must be a string' });
+  }
+
+  if (body.imageKey !== undefined && body.imageKey !== null && typeof body.imageKey !== 'string') {
+    errors.push({ path: 'imageKey', code: 'INVALID_TYPE', message: 'imageKey must be a string' });
   }
 
   if (typeof body.ability !== 'string' || !VALID_ABILITIES.includes(body.ability as (typeof VALID_ABILITIES)[number])) {
@@ -88,6 +98,8 @@ function toDoc(doc: Record<string, unknown>): CampaignSkillProficiencyDoc {
     skillProficiencyId: doc.skillProficiencyId as string,
     name: doc.name as string,
     description: (doc.description as string) ?? '',
+    imageKey:
+      doc.imageKey === undefined || doc.imageKey === null ? '' : String(doc.imageKey).trim(),
     ability: doc.ability as string,
     suggestedClasses: Array.isArray(doc.suggestedClasses) ? (doc.suggestedClasses as string[]) : [],
     examples: Array.isArray(doc.examples) ? (doc.examples as string[]) : [],
@@ -122,6 +134,7 @@ export async function create(
   const name = (body.name as string).trim();
   const skillProficiencyId = (body.skillProficiencyId as string | undefined)?.trim() || generateSkillProficiencyId(name);
   const description = ((body.description as string) ?? '').trim();
+  const imageKey = normalizeImageKey(body);
   const ability = body.ability as string;
   const suggestedClasses = Array.isArray(body.suggestedClasses) ? (body.suggestedClasses as string[]) : [];
   const examples = Array.isArray(body.examples) ? (body.examples as string[]) : [];
@@ -140,6 +153,7 @@ export async function create(
     skillProficiencyId,
     name,
     description,
+    imageKey,
     ability,
     suggestedClasses,
     examples,
@@ -159,13 +173,14 @@ export async function update(
 
   const name = (body.name as string).trim();
   const description = ((body.description as string) ?? '').trim();
+  const imageKey = normalizeImageKey(body);
   const ability = body.ability as string;
   const suggestedClasses = Array.isArray(body.suggestedClasses) ? (body.suggestedClasses as string[]) : undefined;
   const examples = Array.isArray(body.examples) ? (body.examples as string[]) : undefined;
   const tags = Array.isArray(body.tags) ? (body.tags as string[]) : undefined;
   const accessPolicy = body.accessPolicy as AccessPolicy | undefined;
 
-  const $set: Record<string, unknown> = { name, description, ability };
+  const $set: Record<string, unknown> = { name, description, imageKey, ability };
   if (suggestedClasses !== undefined) $set.suggestedClasses = suggestedClasses;
   if (examples !== undefined) $set.examples = examples;
   if (tags !== undefined) $set.tags = tags;

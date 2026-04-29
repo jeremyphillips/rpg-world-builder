@@ -224,7 +224,6 @@ export {
   getActiveConsequencesWithOrigin,
   type BattlefieldAbsenceConsequence,
   type ConditionConsequence,
-  type ConditionRule,
   type MarkerRule,
   type SourceRelativeRestriction,
   type ConsequenceWithOrigin,

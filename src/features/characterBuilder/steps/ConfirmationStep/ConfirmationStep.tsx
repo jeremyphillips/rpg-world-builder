@@ -2,6 +2,7 @@ import { useCharacterBuilder } from '../../context'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
 import type { ClassProgression } from '@/features/content/classes/domain/types'
+import { formatSpellLevelHeadingUnsafe } from '@/features/content/spells/domain/spellPresentation'
 import type { StepId } from '../../types'
 import { skillProficiencyIdToName } from '@/features/mechanics/domain/character'
 
@@ -9,7 +10,7 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/primitives'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
@@ -160,7 +161,7 @@ const ConfirmationStep = () => {
         <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.65rem', letterSpacing: '0.08em' }}>
           Character Name
         </Typography>
-        <TextField
+        <AppTextField
           fullWidth
           size="small"
           placeholder="Optional — will be generated"
@@ -296,7 +297,7 @@ const ConfirmationStep = () => {
                   .map(([level, names]) => (
                     <Box key={level} sx={{ mb: 0.75 }}>
                       <Typography variant="caption" color="text.secondary">
-                        {level === 0 ? 'Cantrips' : `Level ${level}`}
+                        {formatSpellLevelHeadingUnsafe(level)}
                       </Typography>
                       <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mt: 0.25 }}>
                         {names.sort().map(name => (

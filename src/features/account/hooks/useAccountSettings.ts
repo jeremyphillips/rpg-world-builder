@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 import { useAuth } from '@/app/providers/AuthProvider'
+import {
+  DEFAULT_NOTIFICATION_PREFS,
+  type NotificationPreferences,
+} from '@/shared'
 
-export type NotificationPreferences = {
-  sessionScheduled: boolean
-  inviteReceived: boolean
-  mentionedInChat: boolean
-}
+export type { NotificationPreferences }
 
 export type AccountSettings = {
   firstName: string
@@ -15,13 +15,9 @@ export type AccountSettings = {
   bio: string
   website: string
   email: string
-  notificationPreferences: NotificationPreferences
-}
-
-const DEFAULT_NOTIFICATION_PREFS: NotificationPreferences = {
-  sessionScheduled: true,
-  inviteReceived: true,
-  mentionedInChat: true,
+  preferences: {
+    notifications: NotificationPreferences
+  }
 }
 
 /**
@@ -41,9 +37,11 @@ export function useAccountSettings() {
       bio: user.bio ?? '',
       website: user.website ?? '',
       email: user.email ?? '',
-      notificationPreferences: {
-        ...DEFAULT_NOTIFICATION_PREFS,
-        ...user.notificationPreferences,
+      preferences: {
+        notifications: {
+          ...DEFAULT_NOTIFICATION_PREFS,
+          ...user.preferences?.notifications,
+        },
       },
     }
   }, [user])

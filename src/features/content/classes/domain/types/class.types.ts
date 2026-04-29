@@ -30,6 +30,8 @@ export interface CharacterClass {
   id: string
   name: string
   description?: string
+  /** Storage key or asset path for list/detail thumbnails (campaign entries). */
+  imageKey?: string | null
   definitions?: SubclassSelection
   requirements: ClassRequirement
   proficiencies: ClassProficiencies

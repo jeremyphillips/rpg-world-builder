@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
-
 import type { Visibility } from '@/shared/types/visibility';
 import type { ContentSource } from '@/features/content/shared/domain/types';
 import { AppPageHeader, VisibilityBadge } from '@/ui/patterns';
@@ -14,22 +11,27 @@ import { AppAlert } from '@/ui/primitives';
 interface ContentDetailScaffoldProps {
   title: string;
   breadcrumbData: BreadcrumbItem[];
-  listPath: string;
   editPath: string;
-  canEdit: boolean;
+  /** When true, shows the primary Edit action in the page header (e.g. `canManageContent(viewer)`). */
+  canManage: boolean;
   source: ContentSource;
   accessPolicy?: Visibility;
+  /**
+   * When true, omit the standalone non-public VisibilityBadge below the header.
+   * Use when the route renders spec-driven meta (e.g. ContentDetailMetaRow) for visibility.
+   */
+  hideAccessPolicyBadge?: boolean;
   children: React.ReactNode;
 }
 
 const ContentDetailScaffold = ({
   title,
   breadcrumbData,
-  listPath,
   editPath,
-  canEdit,
+  canManage,
   source,
   accessPolicy,
+  hideAccessPolicyBadge = false,
   children,
 }: ContentDetailScaffoldProps) => {
   const policyScope = accessPolicy?.scope;
@@ -40,24 +42,23 @@ const ContentDetailScaffold = ({
       <AppPageHeader
         headline={title}
         breadcrumbData={breadcrumbData}
-        actions={[
-          <Button
-            key="back"
-            component={Link}
-            to={listPath}
-            size="small"
-            startIcon={<ArrowBackIcon />}
-          >
-            Back to list
-          </Button>,
-        ]}
+        actions={
+          canManage
+            ? [
+                <Button
+                  key="edit"
+                  component={Link}
+                  to={editPath}
+                  variant="contained"
+                  size="small"
+                  startIcon={<EditIcon />}
+                >
+                  Edit
+                </Button>,
+              ]
+            : []
+        }
       />
-
-      {/* {source === 'system' && (
-        <AppAlert tone="info" sx={{ mb: 2 }}>
-          This is a system entry and is not editable.
-        </Alert>
-      )} */}
 
       {isRestricted && source === 'campaign' && (
         <AppAlert tone="warning" sx={{ mb: 2 }}>
@@ -65,24 +66,11 @@ const ContentDetailScaffold = ({
         </AppAlert>
       )}
 
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-        <Stack direction="row" spacing={1} alignItems="center">
-          {canEdit && (
-            <Button
-              component={Link}
-              to={editPath}
-              variant="contained"
-              size="small"
-              startIcon={<EditIcon />}
-            >
-              Edit
-            </Button>
-          )}
-          {accessPolicy && accessPolicy.scope !== 'public' && (
-            <VisibilityBadge visibility={accessPolicy} />
-          )}
-        </Stack>
-      </Stack>
+      {!hideAccessPolicyBadge && accessPolicy && accessPolicy.scope !== 'public' && (
+        <Box sx={{ mb: 3 }}>
+          <VisibilityBadge visibility={accessPolicy} />
+        </Box>
+      )}
 
       {children}
     </Box>

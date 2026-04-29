@@ -9,6 +9,7 @@ export type CampaignRaceDoc = {
   raceId: string;
   name: string;
   description: string;
+  imageKey: string;
   accessPolicy?: AccessPolicy;
   createdAt: string;
   updatedAt: string;
@@ -19,6 +20,11 @@ type ValidationError = {
   code: string;
   message: string;
 };
+
+function normalizeImageKey(body: Record<string, unknown>): string {
+  if (body.imageKey === undefined || body.imageKey === null) return '';
+  return String(body.imageKey).trim();
+}
 
 function validateInput(body: Record<string, unknown>): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -31,6 +37,10 @@ function validateInput(body: Record<string, unknown>): ValidationError[] {
 
   if (body.description !== undefined && typeof body.description !== 'string') {
     errors.push({ path: 'description', code: 'INVALID_TYPE', message: 'description must be a string' });
+  }
+
+  if (body.imageKey !== undefined && body.imageKey !== null && typeof body.imageKey !== 'string') {
+    errors.push({ path: 'imageKey', code: 'INVALID_TYPE', message: 'imageKey must be a string' });
   }
 
   if (body.raceId !== undefined) {
@@ -60,6 +70,8 @@ function toDoc(doc: Record<string, unknown>): CampaignRaceDoc {
     raceId: doc.raceId as string,
     name: doc.name as string,
     description: (doc.description as string) ?? '',
+    imageKey:
+      doc.imageKey === undefined || doc.imageKey === null ? '' : String(doc.imageKey).trim(),
     accessPolicy: doc.accessPolicy as AccessPolicy | undefined,
     createdAt: String(doc.createdAt),
     updatedAt: String(doc.updatedAt),
@@ -94,6 +106,7 @@ export async function create(
   const name = (body.name as string).trim();
   const raceId = (body.raceId as string | undefined)?.trim() || generateRaceId(name);
   const description = ((body.description as string) ?? '').trim();
+  const imageKey = normalizeImageKey(body);
   const accessPolicy = body.accessPolicy as AccessPolicy | undefined;
 
   const existing = await CampaignRace.findOne({ campaignId, raceId }).lean();
@@ -101,7 +114,7 @@ export async function create(
     return { errors: [{ path: 'raceId', code: 'DUPLICATE', message: `A race with id "${raceId}" already exists in this campaign` }] };
   }
 
-  const doc = await CampaignRace.create({ campaignId, raceId, name, description, accessPolicy });
+  const doc = await CampaignRace.create({ campaignId, raceId, name, description, imageKey, accessPolicy });
   return { race: toDoc(doc.toObject()) };
 }
 
@@ -115,9 +128,10 @@ export async function update(
 
   const name = (body.name as string).trim();
   const description = ((body.description as string) ?? '').trim();
+  const imageKey = normalizeImageKey(body);
   const accessPolicy = body.accessPolicy as AccessPolicy | undefined;
 
-  const $set: Record<string, unknown> = { name, description };
+  const $set: Record<string, unknown> = { name, description, imageKey };
   if (accessPolicy !== undefined) $set.accessPolicy = accessPolicy;
 
   const doc = await CampaignRace.findOneAndUpdate(

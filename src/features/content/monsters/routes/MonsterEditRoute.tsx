@@ -4,7 +4,7 @@
  * - source === 'system': field-config patch form via contentPatchRepo
  * - source === 'campaign': real form editor with delete support
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FormProvider, useForm } from 'react-hook-form';
 import Box from '@mui/material/Box';
@@ -14,6 +14,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import type { Monster } from '@/features/content/monsters/domain/types';
@@ -24,8 +25,11 @@ import {
   getMonsterFieldConfigs,
   MONSTER_FORM_DEFAULTS,
   monsterToFormValues,
+  parseCreatureTypeId,
   toMonsterInput,
 } from '@/features/content/monsters/domain';
+import { isSubtypeAllowedForCreatureType } from '@/features/content/creatures/domain/values/creatureTaxonomy';
+import type { CreatureSubtypeId } from '@/features/content/creatures/domain/values';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
@@ -43,6 +47,7 @@ const FORM_ID = 'monster-edit-form';
 
 export default function MonsterEditRoute() {
   const { campaignId, campaign } = useActiveCampaign();
+  const { ruleset } = useCampaignRules();
   const { monsterId } = useParams<{ monsterId: string }>();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
@@ -64,6 +69,8 @@ export default function MonsterEditRoute() {
     reValidateMode: 'onChange',
   });
   const { reset, setValue, watch, formState: { isDirty } } = methods;
+  const typeWatch = watch('type');
+  const subtypeWatch = watch('subtype');
 
   const {
     saving,
@@ -144,6 +151,56 @@ export default function MonsterEditRoute() {
     [navigate, campaignId],
   );
 
+  const selectedCreatureType: string | undefined = (() => {
+    if (isSystem && driver) {
+      const t = driver.getValue('type');
+      return typeof t === 'string' && t ? t : undefined;
+    }
+    if (typeof typeWatch === 'string' && typeWatch) return typeWatch;
+    return undefined;
+  })();
+
+  const fieldConfigs = useMemo(
+    () => getMonsterFieldConfigs({ policyCharacters, selectedCreatureType, ruleset }),
+    [policyCharacters, selectedCreatureType, ruleset],
+  );
+
+  const patchTypeSnapshot = isSystem && driver ? driver.getValue('type') : null;
+  const patchSubtypeSnapshot = isSystem && driver ? driver.getValue('subtype') : null;
+
+  useEffect(() => {
+    if (isSystem && driver) {
+      const t = driver.getValue('type');
+      const s = driver.getValue('subtype');
+      const tStr = typeof t === 'string' ? t : '';
+      const sStr = typeof s === 'string' ? s : '';
+      if (!sStr) return;
+      const tid = parseCreatureTypeId(tStr);
+      if (!tid || !isSubtypeAllowedForCreatureType(tid, sStr as CreatureSubtypeId)) {
+        driver.setValue('subtype', '');
+      }
+    } else if (isCampaign) {
+      if (!subtypeWatch) return;
+      const tid = parseCreatureTypeId(typeof typeWatch === 'string' ? typeWatch : '');
+      if (!tid) {
+        setValue('subtype', '', { shouldValidate: true });
+        return;
+      }
+      if (!isSubtypeAllowedForCreatureType(tid, subtypeWatch as CreatureSubtypeId)) {
+        setValue('subtype', '', { shouldValidate: true });
+      }
+    }
+  }, [
+    isSystem,
+    isCampaign,
+    driver,
+    typeWatch,
+    subtypeWatch,
+    setValue,
+    patchTypeSnapshot,
+    patchSubtypeSnapshot,
+  ]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -154,8 +211,6 @@ export default function MonsterEditRoute() {
   if (error || notFound || !monster) {
     return <AppAlert tone="danger">{error ?? 'Monster not found.'}</AppAlert>;
   }
-
-  const fieldConfigs = getMonsterFieldConfigs({ policyCharacters });
 
   if (isSystem && driver) {
     return (

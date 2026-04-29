@@ -21,11 +21,9 @@ import Radio from '@mui/material/Radio'
 import RadioGroup from '@mui/material/RadioGroup'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Link from '@mui/material/Link'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
 import Tooltip from '@mui/material/Tooltip'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import { StatShield } from '@/ui/primitives'
+import { AppSelect, StatShield } from '@/ui/primitives'
 import Divider from '@mui/material/Divider'
 import type { BreakdownToken } from '@/features/mechanics/domain/resolution'
 
@@ -266,37 +264,31 @@ export default function CombatStatsCard({
 
         <Collapse in={weaponPickerOpen}>
           <Box sx={{ mb: 2, px: 0.5 }}>
-            <Typography variant="caption" fontWeight={600} sx={{ mb: 0.5, display: 'block' }}>
-              Main Hand
-            </Typography>
-            <Select
-              size="small"
-              fullWidth
+            <AppSelect
+              label="Main hand"
+              placeholder="None"
               value={wieldedWeaponIds[0] ?? ''}
-              onChange={(e) => handleWeaponChange('mainHandWeaponId', e.target.value)}
-              sx={{ fontSize: '0.8rem', mb: 1 }}
-            >
-              <MenuItem value=""><em>None</em></MenuItem>
-              {weaponOptions.map((w: WeaponPickerOption) => (
-                <MenuItem key={w.weaponId} value={w.weaponId}>{w.name}</MenuItem>
-              ))}
-            </Select>
-
-            <Typography variant="caption" fontWeight={600} sx={{ mb: 0.5, display: 'block' }}>
-              Off Hand
-            </Typography>
-            <Select
+              onChange={(v) => handleWeaponChange('mainHandWeaponId', v)}
+              options={weaponOptions.map((w: WeaponPickerOption) => ({
+                value: w.weaponId,
+                label: w.name,
+              }))}
               size="small"
-              fullWidth
+              sx={{ fontSize: '0.8rem', mb: 1 }}
+            />
+
+            <AppSelect
+              label="Off hand"
+              placeholder="None"
               value={wieldedWeaponIds[1] ?? ''}
-              onChange={(e) => handleWeaponChange('offHandWeaponId', e.target.value)}
+              onChange={(v) => handleWeaponChange('offHandWeaponId', v)}
+              options={weaponOptions.map((w: WeaponPickerOption) => ({
+                value: w.weaponId,
+                label: w.name,
+              }))}
+              size="small"
               sx={{ fontSize: '0.8rem' }}
-            >
-              <MenuItem value=""><em>None</em></MenuItem>
-              {weaponOptions.map((w: WeaponPickerOption) => (
-                <MenuItem key={w.weaponId} value={w.weaponId}>{w.name}</MenuItem>
-              ))}
-            </Select>
+            />
           </Box>
         </Collapse>
 

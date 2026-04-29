@@ -6,7 +6,10 @@ import { normalizeCampaignRulesetPatch } from '@/features/mechanics/domain/rules
 import { resolveCampaignRuleset } from '@/features/mechanics/domain/rulesets/resolve/ruleset'
 import { buildCampaignCatalog, type CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog'
 import { getSystemRuleset, systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog'
-import type { CampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/types/ruleset.types'
+import type {
+  CampaignRulesetPatch,
+  SystemRulesetId,
+} from '@/features/mechanics/domain/rulesets/types/ruleset.types'
 import type { Ruleset } from '@/shared/types/ruleset'
 
 import { getPatchByCampaignId } from '../../campaign/services/rulesetPatch.service'
@@ -36,14 +39,24 @@ function campaignSpellDocToSpell(d: spellsService.CampaignSpellDoc): Spell {
     id: d.spellId,
     name: d.name,
     description: d.description,
-    imageKey: d.imageKey,
-    school: d.school,
+    imageKey: d.imageKey || undefined,
+    school: d.school as Spell['school'],
     level: d.level,
     classes: d.classes,
-    ritual: d.ritual,
-    concentration: d.concentration,
-    effects: d.effects as Spell['effects'],
-  } as Spell
+    castingTime: d.castingTime,
+    range: d.range,
+    duration: d.duration,
+    components: d.components,
+    effectGroups: d.effectGroups as Spell['effectGroups'],
+    ...(d.scaling !== undefined && { scaling: d.scaling as Spell['scaling'] }),
+    ...(d.resolution !== undefined && { resolution: d.resolution as Spell['resolution'] }),
+    ...(d.deliveryMethod !== undefined && {
+      deliveryMethod: d.deliveryMethod as Spell['deliveryMethod'],
+    }),
+    source: 'campaign',
+    campaignId: d.campaignId,
+    accessPolicy: d.accessPolicy as Spell['accessPolicy'],
+  }
 }
 
 /**
@@ -52,7 +65,7 @@ function campaignSpellDocToSpell(d: spellsService.CampaignSpellDoc): Spell {
  */
 export async function resolveCampaignRulesAndCatalogForGameSession(
   campaignId: string,
-): Promise<{ ruleset: Ruleset; catalog: CampaignCatalogAdmin }> {
+): Promise<{ ruleset: Ruleset; catalog: CampaignCatalogAdmin; systemId: SystemRulesetId }> {
   const patchDoc = await getPatchByCampaignId(campaignId)
   const rawPatch: CampaignRulesetPatch = patchDoc
     ? (patchDoc as unknown as CampaignRulesetPatch)
@@ -80,5 +93,5 @@ export async function resolveCampaignRulesAndCatalogForGameSession(
   }
 
   const catalog = buildCampaignCatalog(systemCatalog, overrides, ruleset)
-  return { ruleset, catalog }
+  return { ruleset, catalog, systemId: rawPatch.systemId }
 }

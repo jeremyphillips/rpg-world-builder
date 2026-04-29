@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/primitives'
 import Button from '@mui/material/Button'
 import SaveIcon from '@mui/icons-material/Save'
 import EditableField from './EditableField'
@@ -39,7 +39,7 @@ export default function EditableTextField({
       renderDisplay={(v) => v || '—'}
       renderEdit={({ onSave: save, onClose, saving }) => (
         <>
-          <TextField
+          <AppTextField
             value={local}
             onChange={(e) => setLocal(e.target.value)}
             size="small"

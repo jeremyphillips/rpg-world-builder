@@ -100,8 +100,7 @@ describe('system catalog normalization', () => {
     expect(glare?.effects).toEqual([
       {
         kind: 'targeting',
-        target: 'one-creature',
-        targetType: 'creature',
+        selection: 'one', targetType: 'creature',
         rangeFeet: 60,
         requiresSight: true,
       },

@@ -4,10 +4,7 @@ import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getMagicItemBudgetTier } from '@/features/characterBuilder/domain/equipment/magicItems'
 import { ButtonGroup } from '@/ui/patterns'
 import { ConfirmModal } from '@/ui/patterns'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
+import { AppSelect } from '@/ui/primitives'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
@@ -245,10 +242,10 @@ const MagicItemsStep = () => {
   const allMagicItems = useMemo(() => {
     const items = Object.values(catalog.magicItemsById) as MagicItem[]
     if (!budgetTier?.maxRarity) return items
-    const maxIdx = MAGIC_ITEM_RARITY_OPTIONS.findIndex(option => option.value === budgetTier.maxRarity)
+    const maxIdx = MAGIC_ITEM_RARITY_OPTIONS.findIndex(option => option.id === budgetTier.maxRarity)
     return items.filter(item => {
       if (!item.rarity) return true
-      return MAGIC_ITEM_RARITY_OPTIONS.findIndex(option => option.value === item.rarity) <= maxIdx
+      return MAGIC_ITEM_RARITY_OPTIONS.findIndex(option => option.id === item.rarity) <= maxIdx
     })
   }, [catalog.magicItemsById, budgetTier])
 
@@ -400,36 +397,30 @@ const MagicItemsStep = () => {
                     {getInstanceLabel(inst, activeInstanceKind)}
                   </Typography>
 
-                  <FormControl size="small" sx={{ minWidth: 220 }}>
-                    <InputLabel>Enhancement</InputLabel>
-                    <Select
-                      label="Enhancement"
-                      value={inst.enhancementTemplateId ?? ''}
-                      onChange={e =>
-                        handleEnhChange(
-                          inst.instanceId,
-                          activeInstanceKind,
-                          inst.enhancementTemplateId,
-                          e.target.value as string,
-                        )
+                  <AppSelect
+                    label="Enhancement"
+                    value={inst.enhancementTemplateId ?? ''}
+                    onChange={(v) =>
+                      handleEnhChange(
+                        inst.instanceId,
+                        activeInstanceKind,
+                        inst.enhancementTemplateId,
+                        v,
+                      )
+                    }
+                    placeholder="No Enhancement"
+                    options={availableTemplates.map((t) => {
+                      const costSuffix = t.cost ? ` (${t.cost.value} ${t.cost.coin})` : ''
+                      return {
+                        value: t.id,
+                        label: `${t.name}${costSuffix}`,
+                        disabled: disabled.has(t.id),
                       }
-                    >
-                      <MenuItem value="">No Enhancement</MenuItem>
-                      {availableTemplates.map(t => {
-                        const costSuffix = t.cost ? ` (${t.cost.value} ${t.cost.coin})` : ''
-                        return (
-                          <MenuItem
-                            key={t.id}
-                            value={t.id}
-                            disabled={disabled.has(t.id)}
-                          >
-                            {t.name}
-                            {costSuffix}
-                          </MenuItem>
-                        )
-                      })}
-                    </Select>
-                  </FormControl>
+                    })}
+                    size="small"
+                    fullWidth={false}
+                    sx={{ minWidth: 220 }}
+                  />
                 </Box>
               )
             })
@@ -442,20 +433,18 @@ const MagicItemsStep = () => {
           {/* Add copy */}
           {addCopyOpts[activeEnhGroup].length > 0 && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-              <FormControl size="small" sx={{ minWidth: 180 }}>
-                <InputLabel>Add copy of…</InputLabel>
-                <Select
-                  label="Add copy of…"
-                  value={addCopyBaseId}
-                  onChange={e => setAddCopyBaseId(e.target.value as string)}
-                >
-                  {addCopyOpts[activeEnhGroup].map(o => (
-                    <MenuItem key={o.value} value={o.value}>
-                      {o.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <AppSelect
+                label="Add copy of…"
+                value={addCopyBaseId}
+                onChange={(v) => setAddCopyBaseId(v)}
+                options={addCopyOpts[activeEnhGroup].map((o) => ({
+                  value: o.value,
+                  label: o.label,
+                }))}
+                size="small"
+                fullWidth={false}
+                sx={{ minWidth: 180 }}
+              />
               <Button
                 variant="outlined"
                 size="small"

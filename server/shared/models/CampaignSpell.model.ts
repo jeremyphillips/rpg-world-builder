@@ -13,6 +13,11 @@ const accessPolicySchema = new Schema(
   { _id: false },
 );
 
+/**
+ * Campaign-owned spell — persisted shape matches SpellInput / SpellBase nested fields.
+ * `description` may be legacy string or { full, summary }; use normalize on read.
+ * Optional `ritual` / `concentration` are legacy only; new writes omit them.
+ */
 const campaignSpellSchema = new Schema(
   {
     campaignId: {
@@ -29,8 +34,8 @@ const campaignSpellSchema = new Schema(
       required: true,
     },
     description: {
-      type: String,
-      default: '',
+      type: Schema.Types.Mixed,
+      default: () => ({ full: '', summary: '' }),
     },
     imageKey: {
       type: String,
@@ -48,18 +53,27 @@ const campaignSpellSchema = new Schema(
       type: [String],
       default: [],
     },
+    /** @deprecated legacy — read only via normalize */
     ritual: {
       type: Boolean,
-      default: false,
+      required: false,
     },
+    /** @deprecated legacy — read only via normalize */
     concentration: {
       type: Boolean,
-      default: false,
+      required: false,
     },
-    effects: {
+    castingTime: { type: Schema.Types.Mixed, required: true },
+    range: { type: Schema.Types.Mixed, required: true },
+    duration: { type: Schema.Types.Mixed, required: true },
+    components: { type: Schema.Types.Mixed, required: true },
+    effectGroups: {
       type: Schema.Types.Mixed,
       default: [],
     },
+    scaling: { type: Schema.Types.Mixed, required: false },
+    resolution: { type: Schema.Types.Mixed, required: false },
+    deliveryMethod: { type: String, required: false },
     accessPolicy: {
       type: accessPolicySchema,
       default: () => ({ scope: 'public', allowCharacterIds: [] }),

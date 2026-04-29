@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { EFFECT_CONDITION_IDS } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
+import { EFFECT_CONDITION_IDS } from '@/features/content/shared/domain/vocab/effectConditions.vocab'
 
 import {
   COMBAT_STATE_MARKER_UI_MAP,

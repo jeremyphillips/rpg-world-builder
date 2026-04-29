@@ -1,26 +1,33 @@
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailAdvancedAccordion,
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { classRepo, type ClassContentItem } from '@/features/content/classes/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 import { CLASS_DETAIL_SPECS } from '@/features/content/classes/domain/forms';
 
 export default function ClassDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { classId } = useParams<{ classId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: charClass, loading, error, notFound } = useCampaignContentEntry<ClassContentItem>({
     campaignId: campaignId ?? undefined,
@@ -40,10 +47,15 @@ export default function ClassDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Class not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/classes`;
-  const editPath = `${listPath}/${classId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/classes/${classId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(CLASS_DETAIL_SPECS, charClass, {});
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
+    specs: CLASS_DETAIL_SPECS,
+    item: charClass,
+    ctx: {},
+    viewer,
+  });
 
   const source = charClass.source ?? 'system';
 
@@ -51,29 +63,26 @@ export default function ClassDetailRoute() {
     <ContentDetailScaffold
       title={charClass.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={source}
       accessPolicy={charClass.accessPolicy}
+      hideAccessPolicyBadge
     >
-      {charClass.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
+      <ContentDetailMetaRow items={metaItems} />
 
-      {charClass.description && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {charClass.description}
-        </Typography>
-      )}
+      <ContentDetailImageKeyValueGrid
+        imageContentType="class"
+        imageKey={charClass.imageKey}
+        alt={charClass.name}
+      >
+        <KeyValueSection title="" items={mainItems} columns={2} />
+      </ContentDetailImageKeyValueGrid>
 
-      <KeyValueSection
-        title="Class Details"
-        items={items}
-        columns={2}
-        sx={{ mt: 2 }}
+      <ContentDetailAdvancedAccordion
+        items={advancedItems}
+        sectionTitle="Advanced class data"
+        idPrefix="class"
       />
     </ContentDetailScaffold>
   );

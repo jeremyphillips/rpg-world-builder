@@ -268,6 +268,15 @@ export const SKILL_PROFICIENCIES_RAW = [
   },
 ] as const
 
+const SKILL_PROFICIENCY_NAME_BY_ID: ReadonlyMap<string, string> = new Map(
+  SKILL_PROFICIENCIES_RAW.map((s) => [s.id, s.name]),
+)
+
+/** Display name from {@link SKILL_PROFICIENCIES_RAW} (system SRD catalog). */
+export function getSkillProficiencyCatalogDisplayName(id: string): string | undefined {
+  return SKILL_PROFICIENCY_NAME_BY_ID.get(id)
+}
+
 // ---------------------------------------------------------------------------
 // Mapper
 // ---------------------------------------------------------------------------

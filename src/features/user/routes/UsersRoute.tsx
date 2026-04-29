@@ -7,8 +7,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import { apiFetch, ApiError } from '@/app/api'
 import { FormModal } from '@/ui/patterns'
 import { AppDataGrid } from '@/ui/patterns'
-import type { AppDataGridColumn } from '@/ui/patterns'
-import type { FilterOption } from '@/ui/patterns'
+import type { AppDataGridColumn, AppDataGridFilter, FilterOption } from '@/ui/patterns'
 import type { FieldConfig } from '@/ui/patterns'
 import { AppAlert } from '@/ui/primitives'
 
@@ -59,6 +58,17 @@ const columns: AppDataGridColumn<UserRow>[] = [
 const roleFilterOptions: FilterOption[] = [
   { value: '', label: 'All roles' },
   ...ROLES.map((r) => ({ value: r, label: r.charAt(0).toUpperCase() + r.slice(1) })),
+]
+
+const roleFilters: AppDataGridFilter<UserRow>[] = [
+  {
+    id: 'role',
+    label: 'Role',
+    type: 'select',
+    options: roleFilterOptions,
+    accessor: (row) => String(row.role ?? ''),
+    defaultValue: roleFilterOptions[0]?.value,
+  },
 ]
 
 // ---------------------------------------------------------------------------
@@ -146,20 +156,24 @@ export default function UsersRoute() {
         rows={rows}
         columns={columns}
         getRowId={(row) => row.id}
-        filterColumn="role"
-        filterOptions={roleFilterOptions}
-        filterLabel="Role"
-        searchable
-        searchPlaceholder="Search users…"
-        searchColumns={['username', 'email']}
-        loading={loading}
-        pageSizeOptions={[10, 25, 50]}
-        emptyMessage="No users found."
-        toolbar={
-          <Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setOpen(true)}>
-            Add User
-          </Button>
-        }
+        toolbarConfig={{
+          filters: { definitions: roleFilters },
+          search: {
+            enabled: true,
+            placeholder: 'Search users…',
+            columns: ['username', 'email'],
+          },
+          actions: (
+            <Button variant="contained" startIcon={<PersonAddIcon />} onClick={() => setOpen(true)}>
+              Add User
+            </Button>
+          ),
+        }}
+        presentation={{
+          loading,
+          pageSizeOptions: [10, 25, 50],
+          emptyMessage: 'No users found.',
+        }}
       />
 
       <FormModal

@@ -1,10 +1,13 @@
 import { useMemo } from 'react'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
+import { useActiveCampaignViewerCharacterIds } from '@/app/providers/useActiveCampaignViewerCharacterIds'
+
+const EMPTY_MEMBERS: CampaignMemberView[] = []
 import type { CampaignMemberView, CampaignMembersPayload } from '@/shared/types/campaign.types'
 
 export interface CampaignMembersResult {
   members: CampaignMemberView[]
-  viewerCharacterIds: string[]
+  viewerCharacterIds: readonly string[]
   counts: CampaignMembersPayload['counts'] | null
   /** Approved characters as { id, name } — convenience for policy / visibility pickers. */
   approvedCharacters: { id: string; name: string }[]
@@ -17,9 +20,9 @@ export interface CampaignMembersResult {
  */
 export function useCampaignMembers(): CampaignMembersResult {
   const { campaign, loading } = useActiveCampaign()
+  const viewerCharacterIds = useActiveCampaignViewerCharacterIds()
 
-  const members = campaign?.members?.items ?? []
-  const viewerCharacterIds = campaign?.members?.viewerCharacterIds ?? []
+  const members = campaign?.members?.items ?? EMPTY_MEMBERS
   const counts = campaign?.members?.counts ?? null
 
   const approvedCharacters = useMemo(

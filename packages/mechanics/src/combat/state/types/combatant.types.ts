@@ -5,6 +5,8 @@ import type { TurnBoundary } from '@/features/mechanics/domain/effects/timing.ty
 import type { AbilityKey, AbilityRef } from '@/features/mechanics/domain/character'
 import type { BreakdownToken } from '@/features/mechanics/domain/resolution/resolvers/stat-resolver'
 import type { CombatActionDefinition } from '@/features/mechanics/domain/combat/resolution/combat-action.types'
+import type { CreatureSenses } from '@/features/content/shared/domain/vocab/creatureSenses.types'
+import type { ResolvedProficiencyMode } from '@/features/mechanics/domain/progression'
 
 export type CombatantSide = 'party' | 'enemies'
 
@@ -31,9 +33,6 @@ export interface CombatantAttackEntry {
   notes?: string
   range?: CombatantAttackRange
 }
-
-/** 0 = none, 1 = proficient, 2 = expertise (same semantics as character `ProficiencyLevel`). */
-export type CombatantSkillProficiencyLevel = 0 | 1 | 2
 
 /**
  * Minimal Perception / Stealth runtime seam for encounter rules (no generalized skill engine).
@@ -65,21 +64,18 @@ export type CombatantHideEligibilityFeatureFlagsRuntime = {
 }
 
 /**
- * Snapshot of authored senses on a combatant (e.g. from monster stat block). Used for darkvision / blindsight
- * range in viewer perception; optional on PCs until character/race wiring exists.
+ * Snapshot of authored senses on a combatant (e.g. monster stat block or character race grants).
+ * Used for darkvision / blindsight range in viewer perception.
  */
-export type CombatantSensesSnapshot = {
-  special?: Array<{ type: string; range?: number; notes?: string }>
-  passivePerception?: number
-}
+export type CombatantSensesSnapshot = CreatureSenses
 
 export type CombatantSkillRuntimeSnapshot = {
-  /** Ruleset or creature proficiency bonus; used as `bonus × proficiencyLevel` for skills when deriving modifiers. */
+  /** Ruleset or creature proficiency bonus; used with resolved proficiency mode for skills. */
   proficiencyBonus?: number
-  /** Wisdom (Perception): proficiency level for passive Perception derivation. */
-  perceptionProficiencyLevel?: CombatantSkillProficiencyLevel
-  /** Dexterity (Stealth): proficiency level for Stealth check modifier derivation. */
-  stealthProficiencyLevel?: CombatantSkillProficiencyLevel
+  /** Wisdom (Perception): resolved proficiency for passive Perception derivation. */
+  perceptionProficiencyMode?: ResolvedProficiencyMode
+  /** Dexterity (Stealth): resolved proficiency for Stealth check modifier derivation. */
+  stealthProficiencyMode?: ResolvedProficiencyMode
   /** Authoritative passive Perception when authored (e.g. monster senses). Takes precedence over derivation. */
   passivePerception?: number
   /** From authored senses (e.g. monster `darkvision` range); feeds encounter viewer perception only. */

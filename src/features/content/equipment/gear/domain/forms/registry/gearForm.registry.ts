@@ -24,7 +24,7 @@ export const GEAR_FORM_FIELDS = [
     label: 'Category',
     kind: 'select',
     required: true,
-    options: GEAR_CATEGORY_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+    options: GEAR_CATEGORY_OPTIONS.map((o) => ({ value: o.id, label: o.name })),
     placeholder: 'Select category',
     defaultValue: 'adventuring-utility' as GearFormValues['category'],
     parse: (v) => (v ? (v as GearInput['category']) : undefined),

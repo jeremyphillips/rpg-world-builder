@@ -2,7 +2,10 @@ import type { EvaluationContext } from '../../conditions/evaluation-context.type
 import type { Effect } from '../../effects/effects.types'
 import { getAbilityModifier } from '../../abilities/getAbilityModifier'
 import { getWeaponAttackAbility } from '../../attacks/getWeaponAttackAbility'
-import { resolveProficiencyContribution } from '@/features/mechanics/domain/progression'
+import {
+  resolveProficiencyContribution,
+  type ResolvedProficiencyMode,
+} from '@/features/mechanics/domain/progression'
 import { resolveStatDetailed, type BreakdownToken } from './stat-resolver'
 import type { WeaponDamageType } from '@/features/content/equipment/weapons/domain/vocab'
 import type { AbilityKey } from '@/features/mechanics/domain/character'
@@ -15,7 +18,8 @@ export type AttackHand = 'main' | 'off'
 
 export type AttackOptions = {
   hand?: AttackHand
-  proficiencyLevel?: number
+  /** Default when omitted: proficient (matches prior default multiplier 1). */
+  proficiencyMode?: ResolvedProficiencyMode
   proficiencyBonus?: number
 }
 
@@ -31,7 +35,7 @@ export type AttackBonusResult = {
   bonus: number
   abilityUsed: AbilityKey
   abilityMod: number
-  proficiencyLevel: number
+  proficiencyMode: ResolvedProficiencyMode
   proficiencyBonus: number
   proficiencyContribution: number
   breakdown: BreakdownToken[]
@@ -86,9 +90,9 @@ export function resolveWeaponAttackBonus(
 ): AttackBonusResult {
   const abilityUsed = getWeaponAttackAbility(context, weapon)
   const abilityMod = getAbilityModifier(context.self, abilityUsed)
-  const proficiencyLevel = options.proficiencyLevel ?? 1
+  const proficiencyMode: ResolvedProficiencyMode = options.proficiencyMode ?? 'proficient'
   const proficiencyBonus = options.proficiencyBonus ?? context.self.proficiencyBonus ?? 0
-  const proficiencyContribution = resolveProficiencyContribution(proficiencyBonus, proficiencyLevel)
+  const proficiencyContribution = resolveProficiencyContribution(proficiencyBonus, proficiencyMode)
 
   const weaponFormula: Effect = {
     kind: 'formula',
@@ -96,7 +100,7 @@ export function resolveWeaponAttackBonus(
     formula: {
       ability: abilityUsed,
       proficiency: {
-        level: proficiencyLevel,
+        mode: proficiencyMode,
         bonus: proficiencyBonus,
       },
     },
@@ -109,7 +113,7 @@ export function resolveWeaponAttackBonus(
     bonus: result.value,
     abilityUsed,
     abilityMod,
-    proficiencyLevel,
+    proficiencyMode,
     proficiencyBonus,
     proficiencyContribution,
     breakdown: result.breakdown,

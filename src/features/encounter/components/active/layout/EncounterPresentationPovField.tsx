@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { FormProvider, useForm, useWatch } from 'react-hook-form'
 import Box from '@mui/material/Box'
 
-import { FormSelectField } from '@/ui/patterns'
+import { AppFormSelect } from '@/ui/patterns'
 
 import type { EncounterSimulatorViewerMode } from '../../../domain'
 
@@ -21,7 +21,7 @@ export type EncounterPresentationPovFieldProps = {
 
 /**
  * Grid/sidebar/header presentation POV — not turn ownership.
- * Uses {@link FormSelectField} with react-hook-form; keeps form state in sync with parent `simulatorViewerMode`.
+ * Uses {@link AppFormSelect} with react-hook-form; keeps form state in sync with parent `simulatorViewerMode`.
  */
 export function EncounterPresentationPovField({
   simulatorViewerMode,
@@ -51,7 +51,7 @@ export function EncounterPresentationPovField({
         aria-label="Viewing as — battlefield presentation point of view"
         sx={{ maxWidth: '100%', minWidth: 160 }}
       >
-        <FormSelectField
+        <AppFormSelect
           name="viewerMode"
           label="Viewing as"
           options={POV_OPTIONS.map((o) => ({ label: o.label, value: o.value }))}

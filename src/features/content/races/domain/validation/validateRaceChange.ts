@@ -11,6 +11,10 @@
  */
 import type { CharacterDoc } from '@/features/character/domain/types';
 import {
+  buildCharacterQueryContext,
+  type CharacterQuerySource,
+} from '@/features/character/domain/query';
+import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
 } from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
@@ -41,6 +45,7 @@ export async function validateRaceChange(params: {
     mode,
     includeNpcs,
     contentType: 'race',
-    matcher: (c) => c.race === raceId,
+    matcher: (c) =>
+      buildCharacterQueryContext(c as CharacterQuerySource).identity.raceId === raceId,
   });
 }

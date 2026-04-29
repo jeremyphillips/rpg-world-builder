@@ -2,22 +2,28 @@
  * Spell form field configs for AppForm + DynamicFormRenderer.
  * Registry-backed.
  */
-import type { FieldConfig } from '@/ui/patterns';
+import type { FormLayoutNode } from '@/ui/patterns';
 import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { buildFieldConfigs } from '@/features/content/shared/forms/registry';
-import { SPELL_FORM_FIELDS } from '../registry/spellForm.registry';
+import { buildFormLayout } from '@/features/content/shared/forms/registry';
+import type { CharacterClass } from '@/features/content/classes/domain/types';
+import { getSpellFormFields } from '../registry/spellForm.registry';
 import type { SpellFormValues } from '../types/spellForm.types';
 
 export type GetSpellFieldConfigsOptions = {
   policyCharacters?: { id: string; name: string }[];
+  /** Campaign catalog `classesById` — merged system + campaign, policy-filtered. */
+  classesById?: Record<string, CharacterClass> | undefined;
 };
 
 /**
- * Returns FieldConfig[] for spell Create/Edit forms.
+ * Returns FormLayoutNode[] for spell Create/Edit forms.
  */
 export const getSpellFieldConfigs = (
   options: GetSpellFieldConfigsOptions = {}
-): FieldConfig[] => buildFieldConfigs(SPELL_FORM_FIELDS, options);
+): FormLayoutNode[] => {
+  const { policyCharacters = [], classesById } = options;
+  return buildFormLayout(getSpellFormFields({ classesById }), { policyCharacters });
+};
 
 /**
  * Default values for spell forms (RHF defaultValues).

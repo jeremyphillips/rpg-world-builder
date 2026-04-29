@@ -3,7 +3,7 @@ export { useUpdateCampaignSettings } from './useUpdateCampaignSettings'
 export { useCampaigns } from './useCampaigns'
 export { useCampaignParty, type PartyMember } from './useCampaignParty'
 export { useCampaignMembers } from './useCampaignMembers'
-export { useViewerEquipment } from './useViewerEquipment'
-export type { ViewerEquipmentSets } from './useViewerEquipment'
-export { useViewerProficiencies } from './useViewerProficiencies'
-export { useViewerSpells } from './useViewerSpells'
+export {
+  useViewerCharacterQuery,
+  type UseViewerCharacterQueryOptions,
+} from './useViewerCharacterQuery'

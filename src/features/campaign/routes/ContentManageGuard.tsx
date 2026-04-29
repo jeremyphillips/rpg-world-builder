@@ -3,19 +3,17 @@ import { Box, Stack, Typography, Button } from '@mui/material'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider'
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent'
 import { ROUTES } from '@/app/routes'
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities'
 import { AppAlert } from '@/ui/primitives'
 
 export default function ContentManageGuard() {
   const { user } = useAuth()
-  const { campaignId, campaign, loading } = useActiveCampaign()
+  const { campaignId, loading } = useActiveCampaign()
+  const canAccess = useActiveCampaignCanManageContent()
 
   if (!user) return <Navigate to={ROUTES.LOGIN} replace />
   if (loading) return null
-
-  const ctx = toViewerContext(campaign?.viewer)
-  const canAccess = canManageContent(ctx)
 
   if (!canAccess) {
     return (

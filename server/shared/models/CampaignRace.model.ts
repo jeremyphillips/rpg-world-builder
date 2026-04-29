@@ -32,6 +32,10 @@ const campaignRaceSchema = new Schema(
       type: String,
       default: '',
     },
+    imageKey: {
+      type: String,
+      default: '',
+    },
     accessPolicy: {
       type: accessPolicySchema,
       default: () => ({ scope: 'public', allowCharacterIds: [] }),
