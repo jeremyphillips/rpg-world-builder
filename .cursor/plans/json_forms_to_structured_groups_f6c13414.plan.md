@@ -31,7 +31,7 @@ todos:
     status: completed
   - id: phase-3-class-progression
     content: "Phase 3: class progression composites (hitDie/attackProgression/spellcasting/savingThrows/asiLevels/extraAttackLevel) + features[] repeatable; ClassProgressionSummary + ClassFeatureList detail sections"
-    status: pending
+    status: completed
   - id: phase-4-monster-stat-block
     content: "Phase 4: monster hitPoints/armorClass/movement/abilities flat composites"
     status: pending
@@ -194,10 +194,7 @@ Tests (all pass, all green):
 
 ## Phase 3 — Class: progression composites + features[]
 
-- Composite scalars on `progression.*`:
-  - `hitDie` (select 4/6/8/10/12), `attackProgression` (select good/average/poor), `spellcasting` (select full/half/pact/none), `savingThrows` (checkboxGroup ability ids), `asiLevels` (chip-input or text), `extraAttackLevel` (numberText).
-- Repeatable: `progression.features` via `createNamedDescriptionGroup({ extras: [{ name: 'level', kind: 'numberText', required: true }] })`. `effects[]` preserved as opaque per MVP.
-- New `ClassView/sections/{ClassProgressionSummary,ClassFeatureList}.tsx` replacing `classProgressionFriendly` ([`classDetail.spec.tsx:63-84`](src/features/content/classes/domain/details/classDetail.spec.tsx)).
+**Status: COMPLETED.** JSON `progression` removed from `CLASS_FORM_FIELDS`; grouped fields + `progressionFeatures` repeatable are injected after Proficiencies alongside the Phase 2 definitions block. Mapper merges over `original.progression` so `spellProgression`, `hpPerLevel`, and `features[].effects` MVP extras persist. Detail uses `ClassProgressionSummary`, `ClassFeatureList`, and `structuredMainAndAdvanced`. Tests in `classForm.mappers.progression.test.ts`; presentation asserts fighter hit die in main.
 
 ## Phase 4 — Monster stat block composites (no repeatable groups)
 

@@ -1,7 +1,10 @@
 import type { ClassContentItem } from '@/features/content/classes/domain/repo/classRepo';
-import { SubclassOptionsSummary } from '@/features/content/classes/components/views/ClassView/sections';
+import {
+  ClassFeatureList,
+  ClassProgressionSummary,
+  SubclassOptionsSummary,
+} from '@/features/content/classes/components/views/ClassView/sections';
 import type { ClassProficiencies } from '@/features/content/classes/domain/types/proficiencies.types';
-import type { ClassProgression } from '@/features/content/classes/domain/types/progression.types';
 import type { ClassRequirement } from '@/features/content/classes/domain/types/requirements.types';
 import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import {
@@ -9,27 +12,13 @@ import {
   type DetailSpec,
 } from '@/features/content/shared/forms/registry';
 import { abilityIdToName, type AbilityId } from '@/features/mechanics/domain/character';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 
 export type ClassDetailCtx = Record<string, never>;
 
 const primaryAbilitiesLabel = (ids: AbilityId[]): string =>
   ids?.length ? ids.map((id) => abilityIdToName(id)).join(', ') : '—';
-
-function attackProgressionLabel(v: ClassProgression['attackProgression']): string {
-  if (v === 'good') return 'Good';
-  if (v === 'average') return 'Average';
-  return 'Poor';
-}
-
-function spellcastingLabel(v: NonNullable<ClassProgression['spellcasting']>): string {
-  const labels = {
-    full: 'Full caster',
-    half: 'Half caster',
-    pact: 'Pact magic',
-    none: 'None',
-  } as const;
-  return labels[v];
-}
 
 function classProficienciesFriendly(p: ClassProficiencies): string {
   const lines: string[] = [];
@@ -60,29 +49,6 @@ function classProficienciesFriendly(p: ClassProficiencies): string {
     lines.push(`Tools: ${p.tools.items.join(', ')}`);
   }
 
-  return lines.join('\n');
-}
-
-function classProgressionFriendly(p: ClassProgression): string {
-  const lines: string[] = [];
-  lines.push(`Hit die: d${p.hitDie}`);
-  lines.push(`Attack: ${attackProgressionLabel(p.attackProgression)}`);
-  if (p.savingThrows?.length) {
-    lines.push(`Saving throws: ${p.savingThrows.map((id) => abilityIdToName(id)).join(', ')}`);
-  }
-  if (p.spellcasting && p.spellcasting !== 'none') {
-    lines.push(`Spellcasting: ${spellcastingLabel(p.spellcasting)}`);
-  }
-  const featCount = p.features?.length ?? 0;
-  if (featCount) {
-    lines.push(`Class features: ${featCount}`);
-  }
-  if (p.asiLevels?.length) {
-    lines.push(`ASI levels: ${p.asiLevels.join(', ')}`);
-  }
-  if (p.extraAttackLevel != null) {
-    lines.push(`Extra Attack: level ${p.extraAttackLevel}`);
-  }
   return lines.join('\n');
 }
 
@@ -164,11 +130,17 @@ export const CLASS_DETAIL_SPECS: DetailSpec<ClassContentItem, ClassDetailCtx>[] 
     key: 'progression',
     label: 'Progression',
     order: 50,
-    render: (c) => (
-      <span style={{ whiteSpace: 'pre-line' }}>
-        {classProgressionFriendly(c.progression)}
-      </span>
+    getValue: (c) => c.progression,
+    renderFriendly: (_v, c) => (
+      <Stack spacing={2}>
+        <ClassProgressionSummary progression={c.progression} />
+        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+          Class features
+        </Typography>
+        <ClassFeatureList features={c.progression?.features} />
+      </Stack>
     ),
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'definitions',

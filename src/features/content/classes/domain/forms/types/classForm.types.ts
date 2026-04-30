@@ -3,12 +3,21 @@
  * Extends CharacterClass shape — json fields use string for form representation.
  */
 import type { CharacterClass } from '@/features/content/classes/domain/types';
+import type { AttackProgression, SpellcastingAbility } from '@/features/content/classes/domain/types/progression.types';
 import type { Visibility } from '@/shared/types/visibility';
+import type { AbilityId } from '@/features/mechanics/domain/character';
 import type { NamedDescriptionFormRow } from '@/features/content/shared/forms/groups/createNamedDescriptionGroup';
 
 /** One authored subclass row; `features` and other extras merge-preserved via `__rowId`. */
 export type ClassSubclassOptionFormRow = NamedDescriptionFormRow & {
   id: string;
+};
+
+/** One class feature row (`progression.features[]`); `effects` merges via extras. */
+export type ClassProgressionFeatureFormRow = NamedDescriptionFormRow & {
+  id: string;
+  /** RHF numberText string */
+  level: string;
 };
 
 export type ClassFormValues = Pick<CharacterClass, 'name' | 'description'> & {
@@ -19,8 +28,15 @@ export type ClassFormValues = Pick<CharacterClass, 'name' | 'description'> & {
   generation: string;
   /** JSON string for AppFormJsonPreviewField. */
   proficiencies: string;
-  /** JSON string for AppFormJsonPreviewField. */
-  progression: string;
+  /** Hit die faces (select value text, e.g. `"8"`). */
+  progressionHitDie: string;
+  progressionAttackProgression: AttackProgression | '';
+  progressionSpellcasting: SpellcastingAbility | '';
+  progressionSavingThrows: AbilityId[];
+  /** Comma-/space-separated class levels with an ASI (e.g. `4, 8, 12`). */
+  progressionAsiLevels: string;
+  progressionExtraAttackLevel: string;
+  progressionFeatures: ClassProgressionFeatureFormRow[];
   /** Structured subclass selection scaffold (paths `definitions.*` / patch parity). */
   definitionsId: string;
   definitionsName: string;

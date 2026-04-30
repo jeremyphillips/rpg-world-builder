@@ -1,4 +1,9 @@
-export type { ClassFormValues, ClassInput } from './types/classForm.types';
+export type {
+  ClassFormValues,
+  ClassInput,
+  ClassSubclassOptionFormRow,
+  ClassProgressionFeatureFormRow,
+} from './types/classForm.types';
 export {
   getClassFieldConfigs,
   CLASS_FORM_DEFAULTS,

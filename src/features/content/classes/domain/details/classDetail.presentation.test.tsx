@@ -63,6 +63,15 @@ describe('class detail presentation', () => {
     expect(advanced).toHaveLength(0);
   });
 
+  it('buildDetailItemsFromSpecs main shows progression scaffolding (structured friendly)', () => {
+    const cls = sampleFighter();
+    const main = buildDetailItemsFromSpecs(CLASS_DETAIL_SPECS, cls, ctx, { section: 'main' });
+    const prog = main.find((row) => row.label === 'Progression');
+    expect(prog?.value).toBeDefined();
+    const { container } = render(<Fragment>{prog?.value}</Fragment>);
+    expect(container.textContent).toMatch(/Hit die:\s*d10/i);
+  });
+
   it('buildDetailItemsFromSpecs advanced section includes full record JSON for platform admins', () => {
     const cls = sampleFighter();
     const advanced = buildDetailItemsFromSpecs(CLASS_DETAIL_SPECS, cls, ctx, {

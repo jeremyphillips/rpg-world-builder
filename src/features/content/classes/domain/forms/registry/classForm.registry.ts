@@ -3,7 +3,10 @@
  * Non-standard object and array fields use kind: 'json' per content form pattern.
  */
 import type { CharacterClass } from '@/features/content/classes/domain/types';
+import type { ClassFeature } from '@/features/content/classes/domain/types/progression.types';
 import type { Subclass } from '@/features/content/classes/domain/types/subclass.types';
+import { ABILITIES } from '@/features/mechanics/domain/character';
+import { DIE_FACES } from '@/shared/domain/dice';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import {
   createJsonFieldSpec,
@@ -70,19 +73,6 @@ const PROFICIENCIES_PLACEHOLDER = JSON.stringify(
   2
 );
 
-const PROGRESSION_PLACEHOLDER = JSON.stringify(
-  {
-    hitDie: 8,
-    attackProgression: 'good',
-    savingThrows: ['str', 'dex'],
-    spellcasting: 'none',
-    asiLevels: [4, 8, 12, 16, 19],
-    features: [{ id: 'feature_1', level: 1, name: 'Feature Name', description: '' }],
-  },
-  null,
-  2
-);
-
 const GENERATION_PLACEHOLDER = JSON.stringify({ primaryAbilities: ['str', 'dex'] }, null, 2);
 
 const DEFAULT_REQUIREMENTS_JSON = JSON.stringify(
@@ -95,18 +85,6 @@ const DEFAULT_PROFICIENCIES_JSON = JSON.stringify(
     skills: { type: 'choice', choose: 2, level: 1 },
     weapons: { type: 'fixed', level: 1, categories: ['simple', 'martial'] },
     armor: { type: 'fixed', level: 1, categories: ['light', 'medium'] },
-  },
-  null,
-  2
-);
-const DEFAULT_PROGRESSION_JSON = JSON.stringify(
-  {
-    hitDie: 8,
-    attackProgression: 'good',
-    savingThrows: ['str', 'dex'],
-    spellcasting: 'none',
-    asiLevels: [4, 8, 12, 16, 19],
-    features: [],
   },
   null,
   2
@@ -178,16 +156,6 @@ export const CLASS_FORM_FIELDS = [
     formatForDisplay: (v) =>
       v != null && typeof v === 'object' ? 'Configured' : '—',
   }),
-  classJsonField('progression', {
-    label: 'Progression',
-    placeholder: PROGRESSION_PLACEHOLDER,
-    helperText: 'Hit die, features, spellcasting, ASI levels.',
-    minRows: 8,
-    maxRows: 24,
-    defaultValue: DEFAULT_PROGRESSION_JSON as ClassFormValues['progression'],
-    formatForDisplay: (v) =>
-      v != null && typeof v === 'object' ? 'Configured' : '—',
-  }),
   classJsonField('requirements', {
     label: 'Requirements',
     placeholder: REQUIREMENTS_PLACEHOLDER,
@@ -198,6 +166,170 @@ export const CLASS_FORM_FIELDS = [
     formatForDisplay: (v) =>
       v != null && typeof v === 'object' ? 'Configured' : '—',
   }),
+] as const satisfies readonly FieldSpec<
+  ClassFormValues,
+  ClassInput & Record<string, unknown>,
+  CharacterClass & Record<string, unknown>
+>[];
+
+const PROGRESSION_FORM_GROUP = {
+  id: 'class-progression',
+  label: 'Progression',
+  direction: 'column' as const,
+};
+
+const HIT_DIE_FIELD_OPTIONS = DIE_FACES.map((d) => ({
+  value: String(d),
+  label: `d${d}`,
+}));
+
+const ABILITY_SAVING_THROW_OPTIONS = ABILITIES.map((a) => ({
+  value: a.id,
+  label: a.name,
+}));
+
+const classProgressionFeaturesGroupInner = createNamedDescriptionGroup<
+  ClassFeature & Record<string, unknown>,
+  ClassFormValues,
+  ClassInput & Record<string, unknown>,
+  CharacterClass & Record<string, unknown>
+>({
+  name: 'progressionFeatures',
+  domainPath: 'progression.features',
+  label: 'Class features',
+  itemLabel: 'Feature',
+  extras: [
+    {
+      name: 'id',
+      label: 'Feature id',
+      kind: 'text',
+      required: true,
+      defaultValue: '' as ClassFormValues['definitionsId'],
+    },
+    {
+      name: 'level',
+      label: 'Level',
+      kind: 'numberText',
+      required: true,
+      defaultValue: '' as ClassFormValues['progressionExtraAttackLevel'],
+    },
+  ],
+  ownedKeys: ['id', 'level', 'name', 'description'],
+});
+
+export const classProgressionFeaturesGroup = {
+  ...classProgressionFeaturesGroupInner,
+  defaultItem: {
+    ...classProgressionFeaturesGroupInner.defaultItem,
+    id: '',
+    level: '',
+  },
+};
+
+const CLASS_PROGRESSION_SCALAR_SPECS = [
+  {
+    name: 'progressionHitDie',
+    label: 'Hit die',
+    kind: 'select' as const,
+    path: 'progression.hitDie',
+    group: PROGRESSION_FORM_GROUP,
+    options: HIT_DIE_FIELD_OPTIONS,
+    placeholder: 'Select hit die',
+    defaultValue: '8' as ClassFormValues['progressionHitDie'],
+    patchBinding: {
+      domainPath: 'progression.hitDie',
+      parse: (v: unknown) =>
+        (v == null ? '' : String(v)) as ClassFormValues['progressionHitDie'],
+      serialize: (uiValue: unknown, currentDomainValue: unknown) => {
+        const n = Number(uiValue);
+        if (!Number.isFinite(n)) return currentDomainValue;
+        return n;
+      },
+    },
+  },
+  {
+    name: 'progressionAttackProgression',
+    label: 'Attack progression',
+    kind: 'select' as const,
+    path: 'progression.attackProgression',
+    group: PROGRESSION_FORM_GROUP,
+    options: [
+      { value: 'good', label: 'Good' },
+      { value: 'average', label: 'Average' },
+      { value: 'poor', label: 'Poor' },
+    ],
+    placeholder: 'Select progression',
+    defaultValue: 'good' as ClassFormValues['progressionAttackProgression'],
+  },
+  {
+    name: 'progressionSpellcasting',
+    label: 'Spellcasting',
+    kind: 'select' as const,
+    path: 'progression.spellcasting',
+    group: PROGRESSION_FORM_GROUP,
+    options: [
+      { value: 'none', label: 'None' },
+      { value: 'full', label: 'Full caster' },
+      { value: 'half', label: 'Half caster' },
+      { value: 'pact', label: 'Pact magic' },
+    ],
+    defaultValue: 'none' as ClassFormValues['progressionSpellcasting'],
+  },
+  {
+    name: 'progressionSavingThrows',
+    label: 'Saving throws',
+    kind: 'checkboxGroup' as const,
+    path: 'progression.savingThrows',
+    group: PROGRESSION_FORM_GROUP,
+    options: ABILITY_SAVING_THROW_OPTIONS,
+    defaultValue: [] as ClassFormValues['progressionSavingThrows'],
+  },
+  {
+    name: 'progressionAsiLevels',
+    label: 'ASI levels',
+    kind: 'text' as const,
+    path: 'progression.asiLevels',
+    group: PROGRESSION_FORM_GROUP,
+    helperText: 'Comma-separated class levels (e.g. 4, 8, 12, 16, 19).',
+    placeholder: '4, 8, 12, 16, 19',
+    defaultValue: '' as ClassFormValues['progressionAsiLevels'],
+    patchBinding: {
+      domainPath: 'progression.asiLevels',
+      parse: (v: unknown) =>
+        (Array.isArray(v) ? (v as number[]).map(String).join(', ') : '') as ClassFormValues['progressionAsiLevels'],
+      serialize: (uiValue: unknown, currentDomainValue: unknown) => {
+        if (typeof uiValue !== 'string' || uiValue.trim() === '') return undefined;
+        const parts = uiValue
+          .split(/[\s,]+/)
+          .map((p) => p.trim())
+          .filter(Boolean);
+        const nums = parts
+          .map((p) => Number(p))
+          .filter((n) => Number.isFinite(n) && Number.isInteger(n));
+        return nums.length > 0 ? nums : currentDomainValue;
+      },
+    },
+  },
+  {
+    name: 'progressionExtraAttackLevel',
+    label: 'Extra Attack level',
+    kind: 'numberText' as const,
+    path: 'progression.extraAttackLevel',
+    group: PROGRESSION_FORM_GROUP,
+    helperText: 'Leave empty if this class never gains Extra Attack.',
+    defaultValue: '' as ClassFormValues['progressionExtraAttackLevel'],
+    patchBinding: {
+      domainPath: 'progression.extraAttackLevel',
+      parse: (v: unknown) =>
+        (v == null ? '' : String(v)) as ClassFormValues['progressionExtraAttackLevel'],
+      serialize: (uiValue: unknown, currentDomainValue: unknown) => {
+        if (uiValue === '' || uiValue == null) return undefined;
+        const n = Number(uiValue);
+        if (!Number.isFinite(n)) return currentDomainValue;
+        return n;
+      },
+    },
+  },
 ] as const satisfies readonly FieldSpec<
   ClassFormValues,
   ClassInput & Record<string, unknown>,
@@ -289,8 +421,7 @@ const CLASS_DEFINITION_SCALAR_SPECS = [
 >[];
 
 /**
- * Full form node list: flat registry fields plus structured subclass definitions
- * (inserted after `progression`; Phase 2).
+ * Full layout: structured progression (Phase 3) + definitions block (Phase 2) after proficiencies JSON.
  */
 export function getClassFormFields(): FormNodeSpec<
   ClassFormValues,
@@ -304,7 +435,9 @@ export function getClassFormFields(): FormNodeSpec<
   >[] = [];
   for (const spec of CLASS_FORM_FIELDS) {
     out.push(spec);
-    if (spec.name === 'progression') {
+    if (spec.name === 'proficiencies') {
+      out.push(...CLASS_PROGRESSION_SCALAR_SPECS);
+      out.push(classProgressionFeaturesGroup);
       out.push(...CLASS_DEFINITION_SCALAR_SPECS);
       out.push(classDefinitionsOptionsGroup);
     }
