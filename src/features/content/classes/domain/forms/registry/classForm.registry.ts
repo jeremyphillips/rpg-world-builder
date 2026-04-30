@@ -68,7 +68,7 @@ const PROGRESSION_PLACEHOLDER = JSON.stringify(
     savingThrows: ['str', 'dex'],
     spellcasting: 'none',
     asiLevels: [4, 8, 12, 16, 19],
-    features: [{ id: 'feature_1', level: 1, name: 'Feature Name' }],
+    features: [{ id: 'feature_1', level: 1, name: 'Feature Name', description: '' }],
   },
   null,
   2

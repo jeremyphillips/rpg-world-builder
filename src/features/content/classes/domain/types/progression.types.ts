@@ -13,7 +13,7 @@ export interface ClassFeature {
   id: string
   level: number
   name: string
-  description?: string
+  description: string
   effects?: ClassFeatureEffects
 }
 
