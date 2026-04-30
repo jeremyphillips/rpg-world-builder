@@ -121,6 +121,7 @@ export default function ClassEditRoute() {
     reset,
     toFormValues: classToFormValues,
     toInput: toClassInput,
+    originalEntry: charClass,
     feedback: { setSaving, setSuccess, setErrors },
   });
 

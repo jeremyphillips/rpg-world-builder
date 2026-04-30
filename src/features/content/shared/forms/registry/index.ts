@@ -62,3 +62,7 @@ export {
   buildDefaultFormValues,
   buildDefaultFormValuesFromFormNodes,
 } from './buildMappers';
+export {
+  createJsonFieldSpec,
+  type CreateJsonFieldSpecOptions,
+} from './createJsonFieldSpec';

@@ -49,6 +49,11 @@ export { default as ContentDetailImageKeyValueGrid } from './ContentDetailImageK
 export type { ContentDetailImageKeyValueGridProps } from './ContentDetailImageKeyValueGrid';
 export { default as ContentDetailAdvancedAccordion } from './detail/ContentDetailAdvancedAccordion';
 export type { ContentDetailAdvancedAccordionProps } from './detail/ContentDetailAdvancedAccordion';
+export {
+  default as NamedEntryList,
+  type NamedEntry,
+  type NamedEntryListProps,
+} from './detail/NamedEntryList';
 export { DetailInlineTooltip, type DetailInlineTooltipProps } from './DetailInlineTooltip';
 export {
   EntryFormEditorLayout,

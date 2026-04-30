@@ -21,14 +21,12 @@ import {
   WEAPON_DAMAGE_TYPE_OPTIONS,
 } from '@/features/content/equipment/weapons/domain/vocab';
 import type { FieldSpec } from '@/features/content/shared/forms/registry';
+import { arrOrEmpty } from '@/features/content/shared/forms/parsers';
 import type { WeaponFormValues } from '../types/weaponForm.types';
 import { when } from '@/ui/patterns';
 
 const isRanged = when.eq('mode', 'ranged');
 const isVersatile = when.contains('properties', 'versatile');
-
-const arrOrEmpty = (v: unknown): string[] =>
-  Array.isArray(v) ? (v as string[]) : [];
 
 const versatileParseOptions = { defaultCount: 0, defaultDie: 8 as const };
 

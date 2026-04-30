@@ -127,6 +127,7 @@ export default function MonsterEditRoute() {
     reset,
     toFormValues: monsterToFormValues,
     toInput: toMonsterInput,
+    originalEntry: monster,
     feedback: { setSaving, setSuccess, setErrors },
   });
 

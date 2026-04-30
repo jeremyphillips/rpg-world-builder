@@ -43,6 +43,13 @@ import {
   SPELL_TIME_UNIT_OPTIONS,
   SPELL_TRIGGER_SELECT_OPTIONS,
 } from '../options/spellForm.options';
+import {
+  arrOrEmpty,
+  numToStr,
+  strOrEmpty,
+  trim,
+  trimOrNull,
+} from '@/features/content/shared/forms/parsers';
 
 const SPELL_LEVEL_SELECT_OPTIONS = SPELL_LEVEL_DEFINITIONS.map((row) => ({
   value: String(row.id),
@@ -74,16 +81,6 @@ export function buildSpellClassCheckboxOptions(
     allowedById: Object.fromEntries(options.map((o) => [o.value, true])),
   };
 }
-
-const numToStr = (v: unknown): string =>
-  v != null && Number.isFinite(Number(v)) ? String(v) : '';
-
-const arrOrEmpty = (v: unknown): string[] =>
-  Array.isArray(v) ? (v as string[]) : [];
-
-const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
-const strOrEmpty = (v: unknown): string => (v != null ? String(v) : '');
-const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);
 
 const parseEffectGroupsForInput = (v: unknown): SpellInput['effectGroups'] | undefined => {
   if (v == null) return undefined;

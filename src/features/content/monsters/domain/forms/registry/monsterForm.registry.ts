@@ -3,7 +3,17 @@
  * Standard fields (name, type, sizeCategory) + individual JSON fields for each mechanics/lore subfield.
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { numberRange, type FieldSpec } from '@/features/content/shared/forms/registry';
+import {
+  createJsonFieldSpec,
+  numberRange,
+  type FieldSpec,
+} from '@/features/content/shared/forms/registry';
+import {
+  numOrUndefined,
+  numToStr,
+  strOrEmpty,
+  trimOrNull,
+} from '@/features/content/shared/forms/parsers';
 import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
 import type { MonsterFormValues } from '../types/monsterForm.types';
 import type { AlignmentId } from '@/features/content/shared/domain/types';
@@ -21,63 +31,36 @@ import {
   getCreatureTypeSelectOptions,
 } from '@/features/content/creatures/domain/options/creatureTaxonomyOptions';
 
-const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
-const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);
-const strOrEmpty = (v: unknown): string => (v != null ? String(v) : '');
-
-const numOrUndefined = (v: unknown): number | undefined => {
-  if (v === '' || v == null) return undefined;
-  const n = Number(v);
-  return Number.isFinite(n) ? n : undefined;
-};
-
-const numToStr = (v: unknown): string =>
-  v != null && Number.isFinite(Number(v)) ? String(v) : '';
-
-const parseJson = (v: unknown): unknown => {
-  if (v == null || v === '') return undefined;
-  if (typeof v !== 'string') return typeof v === 'object' && v !== null ? v : undefined;
-  try {
-    return JSON.parse(v);
-  } catch {
-    return undefined;
-  }
-};
-
-const formatJson = (v: unknown): string => {
-  if (v == null) return '';
-  if (typeof v === 'object') {
-    try {
-      return JSON.stringify(v, null, 2);
-    } catch {
-      return '';
-    }
-  }
-  return '';
-};
-
 type MonsterPatchPathPrefix = 'mechanics' | 'lore';
 
-/** JSON subfields. `patchPathPrefix` sets `path` for system patch mode (`mechanics.*` / `lore.*`); RHF still uses flat names via mapper. */
+/**
+ * Thin wrapper that pins the monster registry's generic params for
+ * {@link createJsonFieldSpec} and the `patchPathPrefix` to the union of
+ * monster-allowed prefixes (`mechanics` | `lore`).
+ *
+ * @deprecated Transitional — see {@link createJsonFieldSpec}.
+ */
 const jsonField = <K extends keyof MonsterFormValues>(
   name: K,
   label: string,
   placeholder: string,
   minRows = 2,
   maxRows = 8,
-  patchPathPrefix?: MonsterPatchPathPrefix
-): FieldSpec<MonsterFormValues, MonsterInput & Record<string, unknown>, Monster & Record<string, unknown>> => ({
-  name,
-  label,
-  kind: 'json' as const,
-  placeholder,
-  minRows,
-  maxRows,
-  ...(patchPathPrefix !== undefined && { path: `${patchPathPrefix}.${String(name)}` }),
-  defaultValue: '' as MonsterFormValues[K],
-  parse: (v: unknown) => parseJson(v),
-  format: (v: unknown) => formatJson(v),
-});
+  patchPathPrefix?: MonsterPatchPathPrefix,
+): FieldSpec<MonsterFormValues, MonsterInput & Record<string, unknown>, Monster & Record<string, unknown>> =>
+  createJsonFieldSpec<
+    MonsterFormValues,
+    MonsterInput & Record<string, unknown>,
+    Monster & Record<string, unknown>,
+    K
+  >({
+    name,
+    label,
+    placeholder,
+    minRows,
+    maxRows,
+    ...(patchPathPrefix !== undefined ? { patchPathPrefix } : {}),
+  });
 
 export const MONSTER_FORM_FIELDS = [
   {
