@@ -19,6 +19,7 @@ import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import type { Monster } from '@/features/content/monsters/domain/types';
 import {
+  fetchMonsterDetailEntry,
   monsterRepo,
   validateMonsterChange,
   type MonsterFormValues,
@@ -30,6 +31,7 @@ import {
 } from '@/features/content/monsters/domain';
 import { isSubtypeAllowedForCreatureType } from '@/features/content/creatures/domain/values/creatureTaxonomy';
 import type { CreatureSubtypeId } from '@/features/content/creatures/domain/values';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
@@ -47,20 +49,26 @@ const FORM_ID = 'monster-edit-form';
 
 export default function MonsterEditRoute() {
   const { campaignId, campaign } = useActiveCampaign();
-  const { ruleset } = useCampaignRules();
-  const { monsterId } = useParams<{ monsterId: string }>();
+  const { ruleset, catalog } = useCampaignRules();
+  const { monsterSlug } = useParams<{ monsterSlug: string }>();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
 
   const viewer = campaign?.viewer;
   const canDelete = Boolean(
-    monsterId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner),
+    monsterSlug && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner),
+  );
+
+  const fetchMonster = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchMonsterDetailEntry(cid, sid, key, catalog),
+    [catalog],
   );
 
   const { entry: monster, loading, error, notFound } = useCampaignContentEntry<Monster>({
     campaignId: campaignId ?? undefined,
-    entryId: monsterId,
-    fetchEntry: monsterRepo.getEntry,
+    entryKey: monsterSlug,
+    fetchEntry: fetchMonster,
   });
 
   const methods = useForm<MonsterFormValues>({
@@ -92,7 +100,7 @@ export default function MonsterEditRoute() {
     onPatchChange,
   } = useSystemEntryPatchState(
     campaignId ?? undefined,
-    monsterId,
+    monsterSlug,
     monster,
     !!isSystem,
     'monsters'
@@ -114,7 +122,7 @@ export default function MonsterEditRoute() {
 
   const handleCampaignSubmit = useCampaignEntrySubmit({
     campaignId: campaignId ?? undefined,
-    entryId: monsterId,
+    entryId: monsterSlug,
     updateEntry: monsterRepo.updateEntry,
     reset,
     toFormValues: monsterToFormValues,
@@ -125,7 +133,7 @@ export default function MonsterEditRoute() {
   const { savePatch: handlePatchSave, removePatch: handleRemovePatch } =
     useSystemPatchActions({
       campaignId: campaignId ?? undefined,
-      entryId: monsterId,
+      entryId: monsterSlug,
       collectionKey: 'monsters',
       driver,
       setInitialPatch,
@@ -135,16 +143,16 @@ export default function MonsterEditRoute() {
 
   const handleDelete = useEntryDeleteAction({
     campaignId: campaignId ?? undefined,
-    entryId: monsterId,
+    entryId: monsterSlug,
     deleteEntry: (cid, eid) => monsterRepo.deleteEntry(cid, eid).then(() => {}),
     navigate,
     backPath: `/campaigns/${campaignId}/world/monsters`,
   });
 
   const handleValidateDelete = useCallback(async () => {
-    if (!campaignId || !monsterId) return { allowed: true as const };
-    return validateMonsterChange({ campaignId, monsterId, mode: 'delete' });
-  }, [campaignId, monsterId]);
+    if (!campaignId || !monsterSlug) return { allowed: true as const };
+    return validateMonsterChange({ campaignId, monsterId: monsterSlug, mode: 'delete' });
+  }, [campaignId, monsterSlug]);
 
   const handleBack = useCallback(
     () => navigate(`/campaigns/${campaignId}/world/monsters`),

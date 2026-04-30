@@ -48,7 +48,7 @@ export const ROUTES = {
   WORLD_NPCS: '/campaigns/:id/world/npcs',
   WORLD_NPC: '/campaigns/:id/world/npcs/:npcId',
   WORLD_MONSTERS: '/campaigns/:id/world/monsters',
-  WORLD_MONSTER: '/campaigns/:id/world/monsters/:monsterId',
+  WORLD_MONSTER: '/campaigns/:id/world/monsters/:monsterSlug',
   WORLD_SKILL_PROFICIENCIES: '/campaigns/:id/world/skill-proficiencies',
   WORLD_SPELLS: '/campaigns/:id/world/spells',
   WORLD_SPELL: '/campaigns/:id/world/spells/:spellId',

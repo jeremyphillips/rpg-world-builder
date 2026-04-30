@@ -22,6 +22,7 @@ import {
   summariesFromCatalogWithPatches,
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
 
 type CampaignMonsterDto = {
   _id: string;
@@ -142,6 +143,67 @@ function matchesSearch(name: string, search: string): boolean {
   return name.toLowerCase().includes(search.toLowerCase());
 }
 
+async function loadSystemMonsterWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<Monster | null> {
+  const systemMonster = getSystemMonster(systemId, key) ?? null;
+  if (!systemMonster) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  return resolveSystemEntryWithPatch(
+    systemMonster,
+    getEntryPatch(contentPatch, 'monsters', key),
+  );
+}
+
+/** Ruleset-only custom monsters (no system row) — apply content patch if present. */
+async function loadCatalogOnlyMonster(campaignId: string, key: string, meta: Monster): Promise<Monster> {
+  const contentPatch = await getContentPatch(campaignId);
+  const patch = getEntryPatch(contentPatch, 'monsters', key);
+  if (patch == null) return meta;
+  return resolveSystemEntryWithPatch(meta, patch);
+}
+
+async function resolveMonsterEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin | undefined,
+): Promise<Monster | null> {
+  const meta = catalog?.monstersAllById?.[key] as Monster | undefined;
+
+  if (meta?.source === 'campaign') {
+    return getCampaignMonster(campaignId, key);
+  }
+
+  if (meta?.source === 'system') {
+    return loadSystemMonsterWithPatch(campaignId, systemId, key);
+  }
+
+  if (meta) {
+    if (getSystemMonster(systemId, key)) {
+      return loadSystemMonsterWithPatch(campaignId, systemId, key);
+    }
+    return loadCatalogOnlyMonster(campaignId, key, meta);
+  }
+
+  const campaignMonster = await getCampaignMonster(campaignId, key);
+  if (campaignMonster) return campaignMonster;
+
+  return loadSystemMonsterWithPatch(campaignId, systemId, key);
+}
+
+/** Catalog-aware fetch for detail routes — avoids campaign GET 404 for system monsters. */
+export async function fetchMonsterDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<Monster | null> {
+  return resolveMonsterEntry(campaignId, systemId, key, catalog);
+}
+
 export const monsterRepo: CampaignContentRepo<Monster, MonsterSummary, MonsterInput> = {
   async listSummaries(
     campaignId: string,
@@ -196,17 +258,7 @@ export const monsterRepo: CampaignContentRepo<Monster, MonsterSummary, MonsterIn
     systemId: SystemRulesetId,
     id: string,
   ): Promise<Monster | null> {
-    const campaignMonster = await getCampaignMonster(campaignId, id);
-    if (campaignMonster) return campaignMonster;
-
-    const systemMonster = getSystemMonster(systemId, id) ?? null;
-    if (!systemMonster) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    return resolveSystemEntryWithPatch(
-      systemMonster,
-      getEntryPatch(contentPatch, 'monsters', id),
-    );
+    return resolveMonsterEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(campaignId: string, input: MonsterInput): Promise<Monster> {

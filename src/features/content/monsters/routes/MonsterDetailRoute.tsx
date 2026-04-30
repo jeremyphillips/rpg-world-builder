@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -17,7 +18,12 @@ import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCamp
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { monsterRepo, MONSTER_DETAIL_SPECS, type MonsterDetailCtx } from '@/features/content/monsters/domain';
+import {
+  fetchMonsterDetailEntry,
+  MONSTER_DETAIL_SPECS,
+  type MonsterDetailCtx,
+} from '@/features/content/monsters/domain';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import {
   buildContentDetailSectionsFromSpecs,
   toDetailSpecViewer,
@@ -28,13 +34,19 @@ export default function MonsterDetailRoute() {
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
   const { catalog } = useCampaignRules();
-  const { monsterId } = useParams<{ monsterId: string }>();
+  const { monsterSlug } = useParams<{ monsterSlug: string }>();
   const breadcrumbs = useBreadcrumbs();
+
+  const fetchMonster = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchMonsterDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
 
   const { entry: monster, loading, error, notFound } = useCampaignContentEntry<Monster>({
     campaignId: campaignId ?? undefined,
-    entryId: monsterId,
-    fetchEntry: monsterRepo.getEntry,
+    entryKey: monsterSlug,
+    fetchEntry: fetchMonster,
   });
 
   if (loading) {
@@ -49,7 +61,7 @@ export default function MonsterDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Monster not found.'}</AppAlert>;
   }
 
-  const editPath = `/campaigns/${campaignId}/world/monsters/${monsterId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/monsters/${monsterSlug}/edit`;
 
   const detailCtx = {
     armorById: catalog.armorById,

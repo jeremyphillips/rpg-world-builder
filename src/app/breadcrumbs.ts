@@ -67,7 +67,7 @@ export const BREADCRUMB_CONFIG: Record<string, BreadcrumbRouteConfig> = {
   '/campaigns/:id/world/npcs':                     { label: 'NPCs' },
   '/campaigns/:id/world/npcs/:npcId':              { label: 'NPC' },
   '/campaigns/:id/world/monsters':                 { label: 'Monsters' },
-  '/campaigns/:id/world/monsters/:monsterId':      { label: 'Monster' },
+  '/campaigns/:id/world/monsters/:monsterSlug':      { label: 'Monster' },
 
   // Equipment subtree
   '/campaigns/:id/world/equipment':                            { label: 'Equipment' },

@@ -1,5 +1,6 @@
 export {
   monsterRepo,
+  fetchMonsterDetailEntry,
   listCampaignMonsters,
   getCampaignMonster,
   createCampaignMonster,
