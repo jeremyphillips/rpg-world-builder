@@ -28,6 +28,11 @@ import {
   resolveSystemEntryWithPatch,
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import {
+  patchedCatalogMetaEntry,
+  resolveCatalogSourcedCampaignEntry,
+} from '@/features/content/shared/domain/repo/resolveCatalogSourcedCampaignEntry';
 
 // ---------------------------------------------------------------------------
 // API response shapes
@@ -178,6 +183,48 @@ function matchesSearch(name: string, search: string): boolean {
   return name.toLowerCase().includes(search.toLowerCase());
 }
 
+async function loadSystemSkillProficiencyWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<SkillProficiency | null> {
+  const systemEntry = getSystemSkillProficiency(systemId, key) ?? null;
+  if (!systemEntry) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  return resolveSystemEntryWithPatch(
+    systemEntry,
+    getEntryPatch(contentPatch, 'skillProficiencies', key),
+  );
+}
+
+async function resolveSkillProficiencyEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin | undefined,
+): Promise<SkillProficiency | null> {
+  const meta = catalog?.skillProficienciesAllById?.[key] as SkillProficiency | undefined;
+
+  return resolveCatalogSourcedCampaignEntry<SkillProficiency, SkillProficiency>({
+    meta,
+    getCampaign: () => getCampaignSkillProficiency(campaignId, key),
+    loadSystemWithPatch: () => loadSystemSkillProficiencyWithPatch(campaignId, systemId, key),
+    systemRowExists: () => Boolean(getSystemSkillProficiency(systemId, key)),
+    loadCatalogOnly: (m) =>
+      patchedCatalogMetaEntry(campaignId, key, m, 'skillProficiencies'),
+  });
+}
+
+/** Catalog-aware fetch for detail/edit routes. */
+export async function fetchSkillProficiencyDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<SkillProficiency | null> {
+  return resolveSkillProficiencyEntry(campaignId, systemId, key, catalog);
+}
+
 export const skillProficiencyRepo: CampaignContentRepo<
   SkillProficiency,
   SkillProficiencySummary,
@@ -214,17 +261,7 @@ export const skillProficiencyRepo: CampaignContentRepo<
     systemId: SystemRulesetId,
     id: string,
   ): Promise<SkillProficiency | null> {
-    const campaignEntry = await getCampaignSkillProficiency(campaignId, id);
-    if (campaignEntry) return campaignEntry;
-
-    const systemEntry = getSystemSkillProficiency(systemId, id) ?? null;
-    if (!systemEntry) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    return resolveSystemEntryWithPatch(
-      systemEntry,
-      getEntryPatch(contentPatch, 'skillProficiencies', id),
-    );
+    return resolveSkillProficiencyEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(

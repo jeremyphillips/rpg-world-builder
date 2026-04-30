@@ -24,6 +24,11 @@ import {
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import type { LocationScaleId } from '@/shared/domain/locations';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import {
+  patchedCatalogMetaEntry,
+  resolveCatalogSourcedCampaignEntry,
+} from '@/features/content/shared/domain/repo/resolveCatalogSourcedCampaignEntry';
 
 type CampaignLocationDto = {
   id: string;
@@ -206,6 +211,69 @@ function matchesSearch(name: string, search: string): boolean {
   return name.toLowerCase().includes(search.toLowerCase());
 }
 
+/** Future: `locations` may join merged campaign catalog (`locationsAllById`). */
+type CatalogMaybeLocations = CampaignCatalogAdmin & {
+  locationsAllById?: Record<string, LocationContentItem>;
+};
+
+async function loadSystemLocationEntryWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<LocationContentItem | null> {
+  const systemEntry = getSystemLocation(systemId, key) ?? null;
+  if (!systemEntry) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  const patched = resolveSystemEntryWithPatch(
+    systemEntry,
+    getEntryPatch(contentPatch, 'locations', key),
+  );
+  return { ...patched, source: 'system', systemId } as LocationContentItem;
+}
+
+async function loadCatalogOnlyLocationEntry(
+  campaignId: string,
+  key: string,
+  meta: LocationContentItem,
+  systemId: SystemRulesetId,
+): Promise<LocationContentItem> {
+  const patched = await patchedCatalogMetaEntry(
+    campaignId,
+    key,
+    meta as Location,
+    'locations',
+  );
+  return { ...patched, source: 'system', systemId } as LocationContentItem;
+}
+
+async function resolveLocationEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CatalogMaybeLocations | undefined,
+): Promise<LocationContentItem | null> {
+  const meta = catalog?.locationsAllById?.[key];
+
+  return resolveCatalogSourcedCampaignEntry<LocationContentItem, LocationContentItem>({
+    meta,
+    getCampaign: () => getCampaignLocation(campaignId, key),
+    loadSystemWithPatch: () =>
+      loadSystemLocationEntryWithPatch(campaignId, systemId, key),
+    systemRowExists: () => Boolean(getSystemLocation(systemId, key)),
+    loadCatalogOnly: (m) => loadCatalogOnlyLocationEntry(campaignId, key, m, systemId),
+  });
+}
+
+/** Catalog-aware when `locationsAllById` exists; otherwise equals legacy getEntry. */
+export async function fetchLocationDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<LocationContentItem | null> {
+  return resolveLocationEntry(campaignId, systemId, key, catalog as CatalogMaybeLocations);
+}
+
 function locationInputToBody(input: LocationInput): Record<string, unknown> {
   const body: Record<string, unknown> = {
     name: input.name,
@@ -269,18 +337,7 @@ export const locationRepo: CampaignContentRepo<LocationContentItem, LocationSumm
   },
 
   async getEntry(campaignId: string, systemId: SystemRulesetId, id: string): Promise<LocationContentItem | null> {
-    const campaignEntry = await getCampaignLocation(campaignId, id);
-    if (campaignEntry) return campaignEntry;
-
-    const systemEntry = getSystemLocation(systemId, id) ?? null;
-    if (!systemEntry) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    const patched = resolveSystemEntryWithPatch(
-      systemEntry,
-      getEntryPatch(contentPatch, 'locations', id),
-    );
-    return { ...patched, source: 'system', systemId } as LocationContentItem;
+    return resolveLocationEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(campaignId: string, input: LocationInput): Promise<LocationContentItem> {

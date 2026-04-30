@@ -33,6 +33,11 @@ import {
   summariesFromCatalogWithPatches,
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import {
+  patchedCatalogMetaEntry,
+  resolveCatalogSourcedCampaignEntry,
+} from '@/features/content/shared/domain/repo/resolveCatalogSourcedCampaignEntry';
 
 // ---------------------------------------------------------------------------
 // API response shapes
@@ -180,6 +185,48 @@ function matchesSearch(name: string, search: string): boolean {
   return name.toLowerCase().includes(search.toLowerCase());
 }
 
+async function loadSystemRaceWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<Race | null> {
+  const systemRace = getSystemRace(systemId, key) ?? null;
+  if (!systemRace) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  return resolveSystemEntryWithPatch(
+    systemRace,
+    getEntryPatch(contentPatch, 'races', key),
+  );
+}
+
+async function resolveRaceEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin | undefined,
+): Promise<Race | null> {
+  const meta = catalog?.racesAllById?.[key] as Race | undefined;
+
+  return resolveCatalogSourcedCampaignEntry<Race, Race>({
+    meta,
+    getCampaign: () => getCampaignRace(campaignId, key),
+    loadSystemWithPatch: () => loadSystemRaceWithPatch(campaignId, systemId, key),
+    systemRowExists: () => Boolean(getSystemRace(systemId, key)),
+    loadCatalogOnly: (m) =>
+      patchedCatalogMetaEntry(campaignId, key, m, 'races'),
+  });
+}
+
+/** Catalog-aware fetch for detail/edit routes — avoids campaign GET 404 for system races. */
+export async function fetchRaceDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<Race | null> {
+  return resolveRaceEntry(campaignId, systemId, key, catalog);
+}
+
 // ---------------------------------------------------------------------------
 // Implementation
 // ---------------------------------------------------------------------------
@@ -241,17 +288,7 @@ export const raceRepo: CampaignContentRepo<Race, RaceSummary, RaceInput> = {
     systemId: SystemRulesetId,
     id: string,
   ): Promise<Race | null> {
-    const campaignRace = await getCampaignRace(campaignId, id);
-    if (campaignRace) return campaignRace;
-
-    const systemRace = getSystemRace(systemId, id) ?? null;
-    if (!systemRace) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    return resolveSystemEntryWithPatch(
-      systemRace,
-      getEntryPatch(contentPatch, 'races', id),
-    );
+    return resolveRaceEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(

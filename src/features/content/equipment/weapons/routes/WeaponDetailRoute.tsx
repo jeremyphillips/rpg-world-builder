@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
@@ -11,7 +13,8 @@ import {
   ContentDetailMetaRow,
   ContentDetailScaffold,
 } from '@/features/content/shared/components';
-import { weaponRepo } from '../domain/repo/weaponRepo';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { fetchWeaponDetailEntry } from '../domain/repo/weaponRepo';
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -27,13 +30,20 @@ export default function WeaponDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
+  const { catalog } = useCampaignRules();
   const { weaponId } = useParams<{ weaponId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
+  const fetchWeaponEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchWeaponDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: weapon, loading, error, notFound } = useCampaignContentEntry<Weapon>({
     campaignId: campaignId ?? undefined,
-    entryId: weaponId,
-    fetchEntry: weaponRepo.getEntry,
+    entryKey: weaponId,
+    fetchEntry: fetchWeaponEntry,
   });
 
   if (loading) {

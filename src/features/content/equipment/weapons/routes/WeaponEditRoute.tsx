@@ -18,9 +18,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { weaponRepo } from '../domain/repo/weaponRepo';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { weaponRepo, fetchWeaponDetailEntry } from '../domain/repo/weaponRepo';
 import { validateWeaponChange } from '../domain/validation/validateWeaponChange';
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
@@ -56,11 +58,19 @@ export default function WeaponEditRoute() {
     weaponId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner)
   );
 
+  const { catalog } = useCampaignRules();
+
+  const fetchWeaponEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchWeaponDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: weapon, loading, error, notFound } =
     useCampaignContentEntry<Weapon>({
       campaignId: campaignId ?? undefined,
-      entryId: weaponId,
-      fetchEntry: weaponRepo.getEntry,
+      entryKey: weaponId,
+      fetchEntry: fetchWeaponEntry,
     });
 
   const methods = useForm<WeaponFormValues>({

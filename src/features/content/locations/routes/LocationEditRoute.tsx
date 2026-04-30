@@ -6,7 +6,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { locationRepo } from '@/features/content/locations/domain';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { locationRepo, fetchLocationDetailEntry } from '@/features/content/locations/domain';
 import type { Location } from '@/features/content/locations/domain/model/location';
 import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
@@ -92,10 +94,18 @@ export default function LocationEditRoute() {
   const { campaignId } = useActiveCampaign();
   const { locationId } = useParams<{ locationId: string }>();
 
+  const { catalog } = useCampaignRules();
+
+  const fetchLocationEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchLocationDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: loc, loading, error, notFound } = useCampaignContentEntry<LocationContentItem>({
     campaignId: campaignId ?? undefined,
-    entryId: locationId,
-    fetchEntry: locationRepo.getEntry,
+    entryKey: locationId,
+    fetchEntry: fetchLocationEntry,
   });
 
   const model = useLocationEditWorkspaceModel({

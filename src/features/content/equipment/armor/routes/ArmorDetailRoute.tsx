@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
@@ -11,7 +13,8 @@ import {
   ContentDetailMetaRow,
   ContentDetailScaffold,
 } from '@/features/content/shared/components';
-import { armorRepo } from '../domain/repo/armorRepo';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { fetchArmorDetailEntry } from '../domain/repo/armorRepo';
 import type { Armor } from '@/features/content/equipment/armor/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -27,13 +30,20 @@ export default function ArmorDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
+  const { catalog } = useCampaignRules();
   const { armorId } = useParams<{ armorId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
+  const fetchArmorEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchArmorDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: armor, loading, error, notFound } = useCampaignContentEntry<Armor>({
     campaignId: campaignId ?? undefined,
-    entryId: armorId,
-    fetchEntry: armorRepo.getEntry,
+    entryKey: armorId,
+    fetchEntry: fetchArmorEntry,
   });
 
   if (loading) {

@@ -20,6 +20,11 @@ import {
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import { moneyToCp } from '@/shared/money';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import {
+  patchedCatalogMetaEntry,
+  resolveCatalogSourcedCampaignEntry,
+} from '@/features/content/shared/domain/repo/resolveCatalogSourcedCampaignEntry';
 
 function toSummary(item: MagicItem): MagicItemSummary {
   const base = {
@@ -62,6 +67,51 @@ function matchesSearch(name: string, search: string): boolean {
   return name.toLowerCase().includes(search.toLowerCase());
 }
 
+async function loadSystemMagicItemWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<MagicItem | null> {
+  const systemItem = getSystemMagicItem(systemId, key) ?? null;
+  if (!systemItem) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  return resolveSystemEntryWithPatch(
+    systemItem,
+    getEntryPatch(contentPatch, 'magicItems', key),
+  );
+}
+
+async function resolveMagicItemEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin | undefined,
+): Promise<MagicItem | null> {
+  const meta = catalog?.magicItemsAllById?.[key] as MagicItem | undefined;
+
+  return resolveCatalogSourcedCampaignEntry<MagicItem, MagicItem>({
+    meta,
+    getCampaign: async () => {
+      const e = await campaignMagicItemRepo.get(campaignId, key);
+      return e ? campaignEntryToMagicItem(e) : null;
+    },
+    loadSystemWithPatch: () => loadSystemMagicItemWithPatch(campaignId, systemId, key),
+    systemRowExists: () => Boolean(getSystemMagicItem(systemId, key)),
+    loadCatalogOnly: (m) =>
+      patchedCatalogMetaEntry(campaignId, key, m, 'magicItems'),
+  });
+}
+
+/** Catalog-aware fetch for detail/edit routes. */
+export async function fetchMagicItemDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<MagicItem | null> {
+  return resolveMagicItemEntry(campaignId, systemId, key, catalog);
+}
+
 export const magicItemRepo: CampaignContentRepo<MagicItem, MagicItemSummary, MagicItemInput> = {
 
   async listSummaries(
@@ -95,17 +145,7 @@ export const magicItemRepo: CampaignContentRepo<MagicItem, MagicItemSummary, Mag
     systemId: SystemRulesetId,
     id: string,
   ): Promise<MagicItem | null> {
-    const campaignEntry = await campaignMagicItemRepo.get(campaignId, id);
-    if (campaignEntry) return campaignEntryToMagicItem(campaignEntry);
-
-    const systemItem = getSystemMagicItem(systemId, id) ?? null;
-    if (!systemItem) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    return resolveSystemEntryWithPatch(
-      systemItem,
-      getEntryPatch(contentPatch, 'magicItems', id),
-    );
+    return resolveMagicItemEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(

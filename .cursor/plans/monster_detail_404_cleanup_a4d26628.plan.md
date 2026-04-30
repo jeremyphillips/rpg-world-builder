@@ -176,4 +176,62 @@ There are on the order of **10 feature `*Repo.ts` files** under `src/features/co
 
 **Definition of done (Phase 2, whole program):** For each migrated content type’s **system-detail** route, Chrome shows **zero** deliberate **campaign REST 404** responses on cold load while catalog + rules are healthy; **`getEntry(undefined catalog)`** call sites audited or intentional.
 
+### Phase 2 — repeatable PR recipe (monster as stencil)
+
+For one content type per PR:
+
+1. **Repo** (`*Repo.ts`): Extract **`resolve*Entry(cid, sid, key, catalog?)`** mirroring [`resolveMonsterEntry`](src/features/content/monsters/domain/repo/monsterRepo.ts) — swap `monstersAllById` → the row’s **`*AllById`** field, **`getCampaign*`** getter, **`getSystem*`** / list lookup, [`getEntryPatch(contentPatch, contentTypeKey, key)`](src/features/content/shared/domain/contentPatchRepo.ts), and **`resolveSystemEntryWithPatch`**. Export **`fetch*DetailEntry(cid, sid, key, catalog)`** for routes; keep **`monsterRepo`-style `getEntry` → `resolve(..., undefined)`** unless the shared [`CampaignContentRepo`](src/features/content/shared/domain/repo/contentRepo.types.ts) type is deliberately extended repo-wide later.
+2. **Domain barrel** (`domain/index.ts` or equivalent): Re-export **`fetch*DetailEntry`** next to **`XRepo`** if other modules need it (match [`src/features/content/monsters/domain/index.ts`](src/features/content/monsters/domain/index.ts)).
+3. **Detail + edit routes:** `const { catalog } = useCampaignRules()`; **`useCallback((cid, sid, k) => fetch*DetailEntry(cid, sid, k, catalog), [catalog])`**; **`useCampaignContentEntry({ entryKey: *Slug, ... })`** — same pattern as [`MonsterDetailRoute.tsx`](src/features/content/monsters/routes/MonsterDetailRoute.tsx).
+4. **Router / `routes.ts` / `breadcrumbs.ts`:** Rename `useParams` key to **`*Slug`** only where the segment is catalog id (URLs stay the same unless you intentionally change paths).
+5. **Verify:** Same manual network checks as Phase 1 for that REST resource (system row → **no campaign 404**; invalid slug → **notFound**; campaign override → campaign GET succeeds).
+
+Micro-checklist to paste into each Phase 2 PR description:
+
+- [ ] `fetch*DetailEntry` wired from detail **and** edit (if edit loads entry via hook)
+- [ ] `getEntry`/non-catalog callers unchanged or audited
+- [ ] `contentPatch` **304** untouched for system branch
+
+### Investigation commands
+
+From repo root (adjust path filters as needed):
+
+```bash
+rg "useCampaignContentEntry" src/features/content --glob "*.tsx"
+rg "\.getEntry\(" src/features/content --glob "*Repo*.ts"
+rg 'fetch[A-Za-z]+DetailEntry' src/features/content
+rg "summariesFromCatalogWithPatches|AllById" src/features/content -g "*.ts"
+```
+
+Use the first hit to enumerate **detail routes** still passing **`repo.getEntry`** into the hook instead of a catalog-backed fetch wrapper.
+
+### Pitfalls (Phase 1 and 2)
+
+- **`catalog` staleness:** `useCallback(..., [catalog])` must include **`catalog`** (reference equality updates when rules reload); otherwise a brief window can call an outdated branch after overrides change without remount.
+- **`systemId` default:** [`useCampaignContentEntry`](src/features/content/shared/hooks/useCampaignContentEntry.ts) defaults to [`DEFAULT_SYSTEM_RULESET_ID`](src/features/mechanics/domain/rulesets/ids/systemIds.ts); callers that omit **`systemId`** must still match **`fetchEntry`**/`catalog` assumptions for the active campaign ruleset if multi-ruleset UX appears later.
+- **List vs detail:** If **`listSummaries`** already uses **`opts?.catalog` + summariesFromCatalogWithPatches** but **`getEntry`** does not yet branch on the admin **`*AllById`** map for that type, Phase 2 closes that mismatch (list and detail agree on **`source`**).
+- **Enchantment vs catalog `enhancements`:** Ruleset catalog defines [`enhancementsAllById`](packages/mechanics/src/rulesets/campaign/buildCatalog.ts) for equipment merges; [`enchantmentRepo`](src/features/content/enchantments/domain/repo/enchantmentRepo.ts) is **stub / no campaign REST** today — treat as **out of scope** for the classic “campaign GET then system fallback” fix until APIs and routes align.
+
+### `CampaignCatalogAdmin` `*AllById` quick reference
+
+Authoritative typings: [`CampaignCatalogAdmin`](packages/mechanics/src/rulesets/campaign/buildCatalog.ts) (lines ~59–80). Common fields used for **`meta = catalog?<map>[key]`** routing:
+
+| Map field | Typical content |
+|-----------|----------------|
+| `racesAllById` | Races merged system+campaign |
+| `classesAllById` | Classes |
+| `spellsAllById` | Spells |
+| `skillProficienciesAllById` | Skill proficiencies |
+| `weaponsAllById` / `armorAllById` / `gearAllById` / `magicItemsAllById` | Equipment categories |
+| `monstersAllById` | Monsters (Phase 1 reference) |
+| `enhancementsAllById` | Ruleset enhancements (not the same layer as enchantment stubs — verify before reuse) |
+
+Category wiring for **filtered vs admin** maps is enumerated in **`CATALOG_CATEGORY_CONFIG`** (same file).
+
+### Phase 3 (optional — after Phase 2 stabilizes)
+
+- Migrate **all** `useCampaignContentEntry` callers to **`entryKey` only** and deprecate **`entryId`** once grep-clean.
+- Factor a **narrow** **`resolveCampaignContentEntry`** helper (explicit `catalog` + `patchType` + getters) **only if** ≥3 repos share identical branching with no special mid-branch logic — keep monster/equipment one-offs outside the helper.
+- Add **minimal Vitest per repo** for `fetch*DetailEntry` branches the way Phase 1 documents for monsters.
+
 After Phase 2, the older follow-up bullet “Apply the same catalog `*AllById[source]` routing…” is superseded by this section for the listed types.

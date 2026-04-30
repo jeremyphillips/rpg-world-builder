@@ -14,9 +14,12 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import {
+  fetchSkillProficiencyDetailEntry,
   skillProficiencyRepo,
   validateSkillProficiencyChange,
   type SkillProficiencyFormValues,
@@ -54,11 +57,19 @@ export default function SkillProficiencyEditRoute() {
       (viewer?.isPlatformAdmin || viewer?.isOwner),
   );
 
+  const { catalog } = useCampaignRules();
+
+  const fetchSkillProf = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchSkillProficiencyDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: skillProficiency, loading, error, notFound } =
     useCampaignContentEntry<SkillProficiency>({
       campaignId: campaignId ?? undefined,
-      entryId: skillProficiencyId,
-      fetchEntry: skillProficiencyRepo.getEntry,
+      entryKey: skillProficiencyId,
+      fetchEntry: fetchSkillProf,
     });
 
   const methods = useForm<SkillProficiencyFormValues>({

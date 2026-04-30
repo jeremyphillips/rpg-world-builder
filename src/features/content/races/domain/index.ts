@@ -1,6 +1,7 @@
 export { collectRaceCreatureSenses } from './grants/collectRaceCreatureSenses';
 export {
   raceRepo,
+  fetchRaceDetailEntry,
   listCampaignRaces,
   getCampaignRace,
   createCampaignRace,

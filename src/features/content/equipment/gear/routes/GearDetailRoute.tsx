@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
@@ -11,7 +13,8 @@ import {
   ContentDetailMetaRow,
   ContentDetailScaffold,
 } from '@/features/content/shared/components';
-import { gearRepo } from '../domain/repo/gearRepo';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { fetchGearDetailEntry } from '../domain/repo/gearRepo';
 import type { Gear } from '@/features/content/equipment/gear/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -27,13 +30,20 @@ export default function GearDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
+  const { catalog } = useCampaignRules();
   const { gearId } = useParams<{ gearId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
+  const fetchGearEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchGearDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: gear, loading, error, notFound } = useCampaignContentEntry<Gear>({
     campaignId: campaignId ?? undefined,
-    entryId: gearId,
-    fetchEntry: gearRepo.getEntry,
+    entryKey: gearId,
+    fetchEntry: fetchGearEntry,
   });
 
   if (loading) {

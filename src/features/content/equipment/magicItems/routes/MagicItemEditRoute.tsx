@@ -14,9 +14,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { magicItemRepo } from '../domain/repo/magicItemRepo';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { magicItemRepo, fetchMagicItemDetailEntry } from '../domain/repo/magicItemRepo';
 import { validateMagicItemChange } from '../domain/validation/validateMagicItemChange';
 import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
@@ -52,10 +54,18 @@ export default function MagicItemEditRoute() {
     magicItemId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner)
   );
 
+  const { catalog } = useCampaignRules();
+
+  const fetchMagicItemEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchMagicItemDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: item, loading, error, notFound } = useCampaignContentEntry<MagicItem>({
     campaignId: campaignId ?? undefined,
-    entryId: magicItemId,
-    fetchEntry: magicItemRepo.getEntry,
+    entryKey: magicItemId,
+    fetchEntry: fetchMagicItemEntry,
   });
 
   const methods = useForm<MagicItemFormValues>({

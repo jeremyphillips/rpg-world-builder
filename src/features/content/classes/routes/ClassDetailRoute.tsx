@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
@@ -11,7 +13,8 @@ import {
   ContentDetailMetaRow,
   ContentDetailScaffold,
 } from '@/features/content/shared/components';
-import { classRepo, type ClassContentItem } from '@/features/content/classes/domain';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { fetchClassDetailEntry, type ClassContentItem } from '@/features/content/classes/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
 import { AppAlert } from '@/ui/primitives';
@@ -26,13 +29,20 @@ export default function ClassDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
+  const { catalog } = useCampaignRules();
   const { classId } = useParams<{ classId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
+  const fetchClassEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchClassDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: charClass, loading, error, notFound } = useCampaignContentEntry<ClassContentItem>({
     campaignId: campaignId ?? undefined,
-    entryId: classId,
-    fetchEntry: classRepo.getEntry,
+    entryKey: classId,
+    fetchEntry: fetchClassEntry,
   });
 
   if (loading) {

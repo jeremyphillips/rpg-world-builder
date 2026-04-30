@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
@@ -11,7 +13,8 @@ import {
   ContentDetailMetaRow,
   ContentDetailScaffold,
 } from '@/features/content/shared/components';
-import { spellRepo } from '@/features/content/spells/domain';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { fetchSpellDetailEntry } from '@/features/content/spells/domain';
 import type { Spell } from '@/features/content/spells/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -27,13 +30,20 @@ export default function SpellDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
+  const { catalog } = useCampaignRules();
   const { spellId } = useParams<{ spellId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
+  const fetchSpellEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchSpellDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: spell, loading, error, notFound } = useCampaignContentEntry<Spell>({
     campaignId: campaignId ?? undefined,
-    entryId: spellId,
-    fetchEntry: spellRepo.getEntry,
+    entryKey: spellId,
+    fetchEntry: fetchSpellEntry,
   });
 
   if (loading) {

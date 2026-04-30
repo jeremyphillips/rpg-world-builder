@@ -29,6 +29,11 @@ import {
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import { moneyToCp } from '@/shared/money';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import {
+  patchedCatalogMetaEntry,
+  resolveCatalogSourcedCampaignEntry,
+} from '@/features/content/shared/domain/repo/resolveCatalogSourcedCampaignEntry';
 
 function toSummary(weapon: Weapon): WeaponSummary {
   const base = {
@@ -73,6 +78,51 @@ function matchesSearch(name: string, search: string): boolean {
   return name.toLowerCase().includes(search.toLowerCase());
 }
 
+async function loadSystemWeaponWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<Weapon | null> {
+  const systemWeapon = getSystemWeapon(systemId, key) ?? null;
+  if (!systemWeapon) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  return resolveSystemEntryWithPatch(
+    systemWeapon,
+    getEntryPatch(contentPatch, 'weapons', key),
+  );
+}
+
+async function resolveWeaponEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin | undefined,
+): Promise<Weapon | null> {
+  const meta = catalog?.weaponsAllById?.[key] as Weapon | undefined;
+
+  return resolveCatalogSourcedCampaignEntry<Weapon, Weapon>({
+    meta,
+    getCampaign: async () => {
+      const e = await campaignWeaponRepo.get(campaignId, key);
+      return e ? campaignEntryToWeapon(e) : null;
+    },
+    loadSystemWithPatch: () => loadSystemWeaponWithPatch(campaignId, systemId, key),
+    systemRowExists: () => Boolean(getSystemWeapon(systemId, key)),
+    loadCatalogOnly: (m) =>
+      patchedCatalogMetaEntry(campaignId, key, m, 'weapons'),
+  });
+}
+
+/** Catalog-aware fetch for detail/edit routes. */
+export async function fetchWeaponDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<Weapon | null> {
+  return resolveWeaponEntry(campaignId, systemId, key, catalog);
+}
+
 export const weaponRepo: CampaignContentRepo<Weapon, WeaponSummary, WeaponInput> = {
 
   async listSummaries(
@@ -106,17 +156,7 @@ export const weaponRepo: CampaignContentRepo<Weapon, WeaponSummary, WeaponInput>
     systemId: SystemRulesetId,
     id: string,
   ): Promise<Weapon | null> {
-    const campaignEntry = await campaignWeaponRepo.get(campaignId, id);
-    if (campaignEntry) return campaignEntryToWeapon(campaignEntry);
-
-    const systemWeapon = getSystemWeapon(systemId, id) ?? null;
-    if (!systemWeapon) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    return resolveSystemEntryWithPatch(
-      systemWeapon,
-      getEntryPatch(contentPatch, 'weapons', id),
-    );
+    return resolveWeaponEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(

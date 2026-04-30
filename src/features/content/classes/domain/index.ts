@@ -1,5 +1,6 @@
 export {
   classRepo,
+  fetchClassDetailEntry,
   listCampaignClasses,
   type ClassContentItem,
   type ClassSummary,

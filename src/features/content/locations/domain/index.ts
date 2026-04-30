@@ -1,6 +1,7 @@
 export {
   listCampaignLocations,
   locationRepo,
+  fetchLocationDetailEntry,
   type LocationContentItem,
 } from './repo/locationRepo';
 export {

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
@@ -12,6 +13,7 @@ import {
   ContentDetailMetaRow,
   ContentDetailScaffold,
 } from '@/features/content/shared/components';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import type { LocationContentItem } from '@/features/content/locations/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -21,19 +23,26 @@ import {
   buildContentDetailSectionsFromSpecs,
   toDetailSpecViewer,
 } from '@/features/content/shared/forms/registry';
-import { locationRepo, listLocationMaps, LOCATION_DETAIL_SPECS } from '@/features/content/locations/domain';
+import { fetchLocationDetailEntry, listLocationMaps, LOCATION_DETAIL_SPECS } from '@/features/content/locations/domain';
 
 export default function LocationDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
+  const { catalog } = useCampaignRules();
   const { locationId } = useParams<{ locationId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
+  const fetchLocationEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchLocationDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: loc, loading, error, notFound } = useCampaignContentEntry<LocationContentItem>({
     campaignId: campaignId ?? undefined,
-    entryId: locationId,
-    fetchEntry: locationRepo.getEntry,
+    entryKey: locationId,
+    fetchEntry: fetchLocationEntry,
   });
 
   const [campaignMapSummary, setCampaignMapSummary] = useState<string | null>(null);

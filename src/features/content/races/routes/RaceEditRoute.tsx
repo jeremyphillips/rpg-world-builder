@@ -14,12 +14,15 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import type { Race } from '@/features/content/races/domain/types';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import {
   raceRepo,
   validateRaceChange,
+  fetchRaceDetailEntry,
   type RaceFormValues,
   getRaceFieldConfigs,
   RACE_FORM_DEFAULTS,
@@ -52,10 +55,18 @@ export default function RaceEditRoute() {
     raceId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner),
   );
 
+  const { catalog } = useCampaignRules();
+
+  const fetchRace = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchRaceDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: race, loading, error, notFound } = useCampaignContentEntry<Race>({
     campaignId: campaignId ?? undefined,
-    entryId: raceId,
-    fetchEntry: raceRepo.getEntry,
+    entryKey: raceId,
+    fetchEntry: fetchRace,
   });
 
   const methods = useForm<RaceFormValues>({

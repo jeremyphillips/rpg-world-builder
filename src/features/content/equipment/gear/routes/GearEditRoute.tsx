@@ -14,9 +14,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { gearRepo } from '../domain/repo/gearRepo';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { gearRepo, fetchGearDetailEntry } from '../domain/repo/gearRepo';
 import { validateGearChange } from '../domain/validation/validateGearChange';
 import type { Gear } from '@/features/content/equipment/gear/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
@@ -52,10 +54,18 @@ export default function GearEditRoute() {
     gearId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner)
   );
 
+  const { catalog } = useCampaignRules();
+
+  const fetchGearEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchGearDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: gear, loading, error, notFound } = useCampaignContentEntry<Gear>({
     campaignId: campaignId ?? undefined,
-    entryId: gearId,
-    fetchEntry: gearRepo.getEntry,
+    entryKey: gearId,
+    fetchEntry: fetchGearEntry,
   });
 
   const methods = useForm<GearFormValues>({

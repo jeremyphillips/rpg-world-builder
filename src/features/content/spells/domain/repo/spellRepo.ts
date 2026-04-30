@@ -32,6 +32,11 @@ import {
   resolveSystemEntryWithPatch,
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import {
+  patchedCatalogMetaEntry,
+  resolveCatalogSourcedCampaignEntry,
+} from '@/features/content/shared/domain/repo/resolveCatalogSourcedCampaignEntry';
 import type { ClassId } from '@/shared/types/ruleset';
 import type { MagicSchool } from '@/features/content/shared/domain/vocab';
 import type { AccessPolicy } from '@/shared/domain/accessPolicy';
@@ -193,6 +198,48 @@ function matchesSearch(name: string, search: string): boolean {
   return name.toLowerCase().includes(search.toLowerCase());
 }
 
+async function loadSystemSpellWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<Spell | null> {
+  const systemSpell = getSystemSpell(systemId, key) ?? null;
+  if (!systemSpell) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  return resolveSystemEntryWithPatch(
+    systemSpell,
+    getEntryPatch(contentPatch, 'spells', key),
+  );
+}
+
+async function resolveSpellEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin | undefined,
+): Promise<Spell | null> {
+  const meta = catalog?.spellsAllById?.[key] as Spell | undefined;
+
+  return resolveCatalogSourcedCampaignEntry<Spell, Spell>({
+    meta,
+    getCampaign: () => getCampaignSpell(campaignId, key),
+    loadSystemWithPatch: () => loadSystemSpellWithPatch(campaignId, systemId, key),
+    systemRowExists: () => Boolean(getSystemSpell(systemId, key)),
+    loadCatalogOnly: (m) =>
+      patchedCatalogMetaEntry(campaignId, key, m, 'spells'),
+  });
+}
+
+/** Catalog-aware fetch for detail/edit routes. */
+export async function fetchSpellDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<Spell | null> {
+  return resolveSpellEntry(campaignId, systemId, key, catalog);
+}
+
 export const spellRepo = {
   async listSummaries(
     campaignId: string,
@@ -206,7 +253,7 @@ export const spellRepo = {
     ]);
 
     const merged = mergeSystemCampaignWithPatches(
-      system,
+      [...system],
       campaign,
       getPatchMapForType(contentPatch, 'spells'),
     );
@@ -225,17 +272,7 @@ export const spellRepo = {
     systemId: SystemRulesetId,
     id: string,
   ): Promise<Spell | null> {
-    const campaignEntry = await getCampaignSpell(campaignId, id);
-    if (campaignEntry) return campaignEntry;
-
-    const systemSpell = getSystemSpell(systemId, id) ?? null;
-    if (!systemSpell) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    return resolveSystemEntryWithPatch(
-      systemSpell,
-      getEntryPatch(contentPatch, 'spells', id),
-    );
+    return resolveSpellEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(

@@ -17,8 +17,10 @@ import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import {
   spellRepo,
+  fetchSpellDetailEntry,
   validateSpellChange,
   type SpellFormValues,
   getSpellFieldConfigs,
@@ -62,10 +64,16 @@ export default function SpellEditRoute() {
     spellId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner),
   );
 
+  const fetchSpellEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchSpellDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: spell, loading, error, notFound } = useCampaignContentEntry<Spell>({
     campaignId: campaignId ?? undefined,
-    entryId: spellId,
-    fetchEntry: spellRepo.getEntry,
+    entryKey: spellId,
+    fetchEntry: fetchSpellEntry,
   });
 
   const methods = useForm<SpellFormValues>({

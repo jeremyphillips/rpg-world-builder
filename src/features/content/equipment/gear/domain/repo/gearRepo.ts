@@ -21,6 +21,11 @@ import {
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import { moneyToCp } from '@/shared/money';
 import { weightToLb } from '@/shared/weight';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import {
+  patchedCatalogMetaEntry,
+  resolveCatalogSourcedCampaignEntry,
+} from '@/features/content/shared/domain/repo/resolveCatalogSourcedCampaignEntry';
 
 function toSummary(gear: Gear): GearSummary {
   const base = {
@@ -63,6 +68,51 @@ function matchesSearch(name: string, search: string): boolean {
   return name.toLowerCase().includes(search.toLowerCase());
 }
 
+async function loadSystemGearWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<Gear | null> {
+  const systemGear = getSystemGearEntry(systemId, key) ?? null;
+  if (!systemGear) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  return resolveSystemEntryWithPatch(
+    systemGear,
+    getEntryPatch(contentPatch, 'gear', key),
+  );
+}
+
+async function resolveGearEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin | undefined,
+): Promise<Gear | null> {
+  const meta = catalog?.gearAllById?.[key] as Gear | undefined;
+
+  return resolveCatalogSourcedCampaignEntry<Gear, Gear>({
+    meta,
+    getCampaign: async () => {
+      const e = await campaignGearRepo.get(campaignId, key);
+      return e ? campaignEntryToGear(e) : null;
+    },
+    loadSystemWithPatch: () => loadSystemGearWithPatch(campaignId, systemId, key),
+    systemRowExists: () => Boolean(getSystemGearEntry(systemId, key)),
+    loadCatalogOnly: (m) =>
+      patchedCatalogMetaEntry(campaignId, key, m, 'gear'),
+  });
+}
+
+/** Catalog-aware fetch for detail/edit routes. */
+export async function fetchGearDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<Gear | null> {
+  return resolveGearEntry(campaignId, systemId, key, catalog);
+}
+
 export const gearRepo: CampaignContentRepo<Gear, GearSummary, GearInput> = {
 
   async listSummaries(
@@ -96,17 +146,7 @@ export const gearRepo: CampaignContentRepo<Gear, GearSummary, GearInput> = {
     systemId: SystemRulesetId,
     id: string,
   ): Promise<Gear | null> {
-    const campaignEntry = await campaignGearRepo.get(campaignId, id);
-    if (campaignEntry) return campaignEntryToGear(campaignEntry);
-
-    const systemGear = getSystemGearEntry(systemId, id) ?? null;
-    if (!systemGear) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    return resolveSystemEntryWithPatch(
-      systemGear,
-      getEntryPatch(contentPatch, 'gear', id),
-    );
+    return resolveGearEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(

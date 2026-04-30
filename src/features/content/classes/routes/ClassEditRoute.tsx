@@ -14,10 +14,12 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { validateClassChange } from '@/features/content/classes/domain/validation/validateClassChange';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { classRepo, type ClassContentItem } from '@/features/content/classes/domain';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { classRepo, fetchClassDetailEntry, type ClassContentItem } from '@/features/content/classes/domain';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { AppAlert, AppBadge } from '@/ui/primitives';
@@ -51,10 +53,18 @@ export default function ClassEditRoute() {
     classId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner)
   );
 
+  const { catalog } = useCampaignRules();
+
+  const fetchCharClass = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchClassDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: charClass, loading, error, notFound } = useCampaignContentEntry<ClassContentItem>({
     campaignId: campaignId ?? undefined,
-    entryId: classId,
-    fetchEntry: classRepo.getEntry,
+    entryKey: classId,
+    fetchEntry: fetchCharClass,
   });
 
   const methods = useForm<ClassFormValues>({

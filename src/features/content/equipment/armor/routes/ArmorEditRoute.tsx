@@ -14,9 +14,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
-import { armorRepo } from '../domain/repo/armorRepo';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { armorRepo, fetchArmorDetailEntry } from '../domain/repo/armorRepo';
 import { validateArmorChange } from '../domain/validation/validateArmorChange';
 import type { Armor } from '@/features/content/equipment/armor/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
@@ -52,10 +54,18 @@ export default function ArmorEditRoute() {
     armorId && campaignId && (viewer?.isPlatformAdmin || viewer?.isOwner)
   );
 
+  const { catalog } = useCampaignRules();
+
+  const fetchArmorEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchArmorDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: armor, loading, error, notFound } = useCampaignContentEntry<Armor>({
     campaignId: campaignId ?? undefined,
-    entryId: armorId,
-    fetchEntry: armorRepo.getEntry,
+    entryKey: armorId,
+    fetchEntry: fetchArmorEntry,
   });
 
   const methods = useForm<ArmorFormValues>({

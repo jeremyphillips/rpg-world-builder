@@ -21,6 +21,11 @@ import {
   resolveSystemEntryWithPatch,
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import {
+  patchedCatalogMetaEntry,
+  resolveCatalogSourcedCampaignEntry,
+} from '@/features/content/shared/domain/repo/resolveCatalogSourcedCampaignEntry';
 
 // ---------------------------------------------------------------------------
 // API response shapes
@@ -195,6 +200,63 @@ export type ClassInput = Omit<CharacterClass, 'id'> & {
   accessPolicy?: import('@/shared/types/visibility').Visibility;
 };
 
+async function loadSystemClassEntryWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<ClassContentItem | null> {
+  const systemClass = getSystemClass(systemId, key) ?? null;
+  if (!systemClass) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  const patched = resolveSystemEntryWithPatch(
+    systemClass,
+    getEntryPatch(contentPatch, 'classes', key),
+  );
+  return { ...patched, source: 'system', systemId } as ClassContentItem;
+}
+
+async function loadCatalogOnlyClassEntry(
+  campaignId: string,
+  key: string,
+  meta: ClassContentItem,
+  systemId: SystemRulesetId,
+): Promise<ClassContentItem> {
+  const patched = await patchedCatalogMetaEntry(
+    campaignId,
+    key,
+    meta as CharacterClass,
+    'classes',
+  );
+  return { ...patched, source: 'system', systemId } as ClassContentItem;
+}
+
+async function resolveClassEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin | undefined,
+): Promise<ClassContentItem | null> {
+  const meta = catalog?.classesAllById?.[key] as ClassContentItem | undefined;
+
+  return resolveCatalogSourcedCampaignEntry<ClassContentItem, ClassContentItem>({
+    meta,
+    getCampaign: () => getCampaignClass(campaignId, key),
+    loadSystemWithPatch: () => loadSystemClassEntryWithPatch(campaignId, systemId, key),
+    systemRowExists: () => Boolean(getSystemClass(systemId, key)),
+    loadCatalogOnly: (m) => loadCatalogOnlyClassEntry(campaignId, key, m, systemId),
+  });
+}
+
+/** Catalog-aware fetch for detail/edit routes. */
+export async function fetchClassDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<ClassContentItem | null> {
+  return resolveClassEntry(campaignId, systemId, key, catalog);
+}
+
 export const classRepo = {
   async listSummaries(
     campaignId: string,
@@ -233,18 +295,7 @@ export const classRepo = {
     systemId: SystemRulesetId,
     id: string,
   ): Promise<ClassContentItem | null> {
-    const campaignEntry = await getCampaignClass(campaignId, id);
-    if (campaignEntry) return campaignEntry;
-
-    const systemClass = getSystemClass(systemId, id) ?? null;
-    if (!systemClass) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    const patched = resolveSystemEntryWithPatch(
-      systemClass,
-      getEntryPatch(contentPatch, 'classes', id),
-    );
-    return { ...patched, source: 'system', systemId } as ClassContentItem;
+    return resolveClassEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(campaignId: string, input: ClassInput): Promise<ClassContentItem> {

@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
@@ -11,8 +13,9 @@ import {
   ContentDetailMetaRow,
   ContentDetailScaffold,
 } from '@/features/content/shared/components';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import {
-  skillProficiencyRepo,
+  fetchSkillProficiencyDetailEntry,
   SKILL_PROFICIENCY_DETAIL_SPECS,
 } from '@/features/content/skillProficiencies/domain';
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
@@ -29,13 +32,20 @@ export default function SkillProficiencyDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
+  const { catalog } = useCampaignRules();
   const { skillProficiencyId } = useParams<{ skillProficiencyId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
+  const fetchSkillProf = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchSkillProficiencyDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: skillProficiency, loading, error, notFound } = useCampaignContentEntry<SkillProficiency>({
     campaignId: campaignId ?? undefined,
-    entryId: skillProficiencyId,
-    fetchEntry: skillProficiencyRepo.getEntry,
+    entryKey: skillProficiencyId,
+    fetchEntry: fetchSkillProf,
   });
 
   if (loading) {

@@ -20,6 +20,11 @@ import {
 } from '@/features/content/shared/domain/patches/patchedContentResolution';
 import { moneyToCp } from '@/shared/money';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
+import type { CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
+import {
+  patchedCatalogMetaEntry,
+  resolveCatalogSourcedCampaignEntry,
+} from '@/features/content/shared/domain/repo/resolveCatalogSourcedCampaignEntry';
 
 function toSummary(armor: Armor): ArmorSummary {
   const base = {
@@ -65,6 +70,51 @@ function matchesSearch(name: string, search: string): boolean {
   return name.toLowerCase().includes(search.toLowerCase());
 }
 
+async function loadSystemArmorWithPatch(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+): Promise<Armor | null> {
+  const systemArmor = getSystemArmorEntry(systemId, key) ?? null;
+  if (!systemArmor) return null;
+  const contentPatch = await getContentPatch(campaignId);
+  return resolveSystemEntryWithPatch(
+    systemArmor,
+    getEntryPatch(contentPatch, 'armor', key),
+  );
+}
+
+async function resolveArmorEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin | undefined,
+): Promise<Armor | null> {
+  const meta = catalog?.armorAllById?.[key] as Armor | undefined;
+
+  return resolveCatalogSourcedCampaignEntry<Armor, Armor>({
+    meta,
+    getCampaign: async () => {
+      const e = await campaignArmorRepo.get(campaignId, key);
+      return e ? campaignEntryToArmor(e) : null;
+    },
+    loadSystemWithPatch: () => loadSystemArmorWithPatch(campaignId, systemId, key),
+    systemRowExists: () => Boolean(getSystemArmorEntry(systemId, key)),
+    loadCatalogOnly: (m) =>
+      patchedCatalogMetaEntry(campaignId, key, m, 'armor'),
+  });
+}
+
+/** Catalog-aware fetch for detail/edit routes. */
+export async function fetchArmorDetailEntry(
+  campaignId: string,
+  systemId: SystemRulesetId,
+  key: string,
+  catalog: CampaignCatalogAdmin,
+): Promise<Armor | null> {
+  return resolveArmorEntry(campaignId, systemId, key, catalog);
+}
+
 export const armorRepo: CampaignContentRepo<Armor, ArmorSummary, ArmorInput> = {
 
   async listSummaries(
@@ -98,17 +148,7 @@ export const armorRepo: CampaignContentRepo<Armor, ArmorSummary, ArmorInput> = {
     systemId: SystemRulesetId,
     id: string,
   ): Promise<Armor | null> {
-    const campaignEntry = await campaignArmorRepo.get(campaignId, id);
-    if (campaignEntry) return campaignEntryToArmor(campaignEntry);
-
-    const systemArmor = getSystemArmorEntry(systemId, id) ?? null;
-    if (!systemArmor) return null;
-
-    const contentPatch = await getContentPatch(campaignId);
-    return resolveSystemEntryWithPatch(
-      systemArmor,
-      getEntryPatch(contentPatch, 'armor', id),
-    );
+    return resolveArmorEntry(campaignId, systemId, id, undefined);
   },
 
   async createEntry(

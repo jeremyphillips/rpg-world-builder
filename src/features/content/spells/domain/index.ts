@@ -1,5 +1,6 @@
 export {
   spellRepo,
+  fetchSpellDetailEntry,
   listCampaignSpells,
   type SpellSummary,
 } from './repo/spellRepo';

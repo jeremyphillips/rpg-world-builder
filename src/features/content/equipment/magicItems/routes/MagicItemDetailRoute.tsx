@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
@@ -11,7 +13,8 @@ import {
   ContentDetailMetaRow,
   ContentDetailScaffold,
 } from '@/features/content/shared/components';
-import { magicItemRepo } from '../domain/repo/magicItemRepo';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { fetchMagicItemDetailEntry } from '../domain/repo/magicItemRepo';
 import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
@@ -27,13 +30,20 @@ export default function MagicItemDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
+  const { catalog } = useCampaignRules();
   const { magicItemId } = useParams<{ magicItemId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
+  const fetchMagicItemEntry = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchMagicItemDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: item, loading, error, notFound } = useCampaignContentEntry<MagicItem>({
     campaignId: campaignId ?? undefined,
-    entryId: magicItemId,
-    fetchEntry: magicItemRepo.getEntry,
+    entryKey: magicItemId,
+    fetchEntry: fetchMagicItemEntry,
   });
 
   if (loading) {

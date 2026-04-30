@@ -1,8 +1,10 @@
+import { useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
 import {
@@ -20,19 +22,27 @@ import {
   buildContentDetailSectionsFromSpecs,
   toDetailSpecViewer,
 } from '@/features/content/shared/forms/registry';
-import { raceRepo, RACE_DETAIL_SPECS } from '@/features/content/races/domain';
+import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
+import { RACE_DETAIL_SPECS, fetchRaceDetailEntry } from '@/features/content/races/domain';
 
 export default function RaceDetailRoute() {
   const { campaignId } = useActiveCampaign();
   const canManage = useActiveCampaignCanManageContent();
   const viewerContext = useActiveCampaignViewerContext();
+  const { catalog } = useCampaignRules();
   const { raceId } = useParams<{ raceId: string }>();
   const breadcrumbs = useBreadcrumbs();
 
+  const fetchRace = useCallback(
+    (cid: string, sid: SystemRulesetId, key: string) =>
+      fetchRaceDetailEntry(cid, sid, key, catalog),
+    [catalog],
+  );
+
   const { entry: race, loading, error, notFound } = useCampaignContentEntry<Race>({
     campaignId: campaignId ?? undefined,
-    entryId: raceId,
-    fetchEntry: raceRepo.getEntry,
+    entryKey: raceId,
+    fetchEntry: fetchRace,
   });
 
   if (loading) {
