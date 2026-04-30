@@ -38,6 +38,7 @@ import {
   updateLocation,
   deleteLocation,
 } from '../controllers/settingData.controller'
+import { getCampaignCatalogOverrides } from '../controllers/catalogOverrides.controller'
 const router = Router()
 
 // All campaign routes require authentication
@@ -46,6 +47,9 @@ router.use(requireAuth)
 // Campaign list & create
 router.get('/', asyncHandler(getCampaigns))
 router.post('/', requireRole('admin', 'superadmin'), asyncHandler(createCampaign))
+
+// Merged catalog payload (single round-trip for CampaignRulesProvider)
+router.get('/:id/catalog-overrides', requireCampaignRole('observer'), asyncHandler(getCampaignCatalogOverrides))
 
 // Campaign detail — any member can view
 router.get('/:id', requireCampaignRole('observer'), asyncHandler(getCampaign))

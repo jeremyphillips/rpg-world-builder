@@ -61,7 +61,7 @@ function campaignSpellDocToSpell(d: spellsService.CampaignSpellDoc): Spell {
 
 /**
  * Resolves campaign ruleset + merged catalog (system + campaign monsters/spells) for mechanics.
- * Intentionally mirrors client `CampaignRulesProvider` + `loadCampaignCatalogOverrides` at a smaller scope.
+ * Intentionally mirrors a subset of `resolveCampaignCatalogForCampaign` (monsters + spells only).
  */
 export async function resolveCampaignRulesAndCatalogForGameSession(
   campaignId: string,

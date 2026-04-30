@@ -92,7 +92,7 @@ function toCharacterClass(dto: CampaignClassDto): CharacterClass & { source: 'ca
 // Campaign CRUD helpers
 // ---------------------------------------------------------------------------
 
-/** Exported for loadCampaignCatalogOverrides. */
+/** Exported for callers that need the campaign class list API (e.g. catalog assembly). */
 export async function listCampaignClasses(
   campaignId: string,
 ): Promise<(CharacterClass & { source: 'campaign'; campaignId: string; accessPolicy?: Visibility })[]> {

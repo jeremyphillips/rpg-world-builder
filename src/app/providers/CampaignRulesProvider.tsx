@@ -26,7 +26,7 @@ import {
   buildCampaignCatalog,
   type CampaignCatalogAdmin,
 } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog';
-import { loadCampaignCatalogOverrides } from '@/features/mechanics/domain/rulesets/campaign/patch/loadOverrides';
+import { fetchCampaignCatalogOverrides } from '@/app/api/campaignCatalogOverrides';
 import type { Ruleset } from '@/shared/types/ruleset';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 
@@ -54,7 +54,7 @@ export const CampaignRulesProvider = ({ children }: { children: ReactNode }) => 
 
     Promise.all([
       getResolvedCampaignRuleset(campaignId).catch(() => null),
-      loadCampaignCatalogOverrides(campaignId).catch(() => ({} as Partial<CampaignCatalog>)),
+      fetchCampaignCatalogOverrides(campaignId).catch(() => ({} as Partial<CampaignCatalog>)),
     ])
       .then(([resolvedRuleset, overrides]) => {
         if (cancelled) return;

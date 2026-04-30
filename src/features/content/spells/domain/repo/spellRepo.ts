@@ -109,7 +109,7 @@ function toSpell(dto: CampaignSpellDto): Spell {
 // Campaign CRUD helpers
 // ---------------------------------------------------------------------------
 
-/** Exported for loadCampaignCatalogOverrides. */
+/** Exported for callers that need the campaign spell list API (e.g. tools/tests). */
 export async function listCampaignSpells(campaignId: string): Promise<Spell[]> {
   const data = await apiFetch<{ spells: CampaignSpellDto[] }>(
     `/api/campaigns/${campaignId}/spells`,

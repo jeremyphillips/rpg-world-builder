@@ -1,61 +1,16 @@
 import { CampaignSpell } from '../../../../shared/models/CampaignSpell.model';
-import type { AccessPolicy } from '../../../../../shared/domain/accessPolicy';
-import type {
-  SpellCastingTime,
-  SpellComponents,
-  SpellDuration,
-  SpellRange,
-} from '../../../../../src/features/content/spells/domain/types/spell.types';
 import { resolveCampaignCatalogForCampaign } from '../../../campaign/services/resolveCampaignCatalog.server';
-import { normalizeRawCampaignSpellToCanonical } from './campaignSpell.normalize';
 import { validateSpellInputBody, type SpellValidationError } from './campaignSpell.validate';
+import {
+  type CampaignSpellDoc,
+  sanitizeSpellClasses,
+  toApiSpellDoc,
+} from './campaignSpellDocs.server';
 
-export type CampaignSpellDoc = {
-  _id: string;
-  campaignId: string;
-  spellId: string;
-  name: string;
-  description: { full: string; summary: string };
-  imageKey: string;
-  school: string;
-  level: number;
-  classes: string[];
-  castingTime: SpellCastingTime;
-  range: SpellRange;
-  duration: SpellDuration;
-  components: SpellComponents;
-  effectGroups: unknown[];
-  accessPolicy?: AccessPolicy;
-  scaling?: unknown;
-  resolution?: unknown;
-  deliveryMethod?: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-function toApiSpellDoc(doc: Record<string, unknown>): CampaignSpellDoc {
-  const canonical = normalizeRawCampaignSpellToCanonical(doc);
-  return {
-    _id: String(doc._id),
-    campaignId: String(doc.campaignId),
-    spellId: String(doc.spellId),
-    ...canonical,
-    accessPolicy: doc.accessPolicy as AccessPolicy | undefined,
-    createdAt: String(doc.createdAt),
-    updatedAt: String(doc.updatedAt),
-  };
-}
+export type { CampaignSpellDoc } from './campaignSpellDocs.server';
 
 function generateSpellId(name: string): string {
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-}
-
-/** Keeps only class ids present in the campaign-allowed class catalog (buildCampaignCatalog). */
-function sanitizeSpellClasses(
-  classIds: string[],
-  classesById: Record<string, unknown>,
-): string[] {
-  return classIds.filter((id) => id in classesById);
 }
 
 export async function listByCampaign(campaignId: string): Promise<CampaignSpellDoc[]> {

@@ -81,7 +81,7 @@ function toRace(dto: CampaignRaceDto): Race {
 // Campaign CRUD helpers
 // ---------------------------------------------------------------------------
 
-/** Exported for loadCampaignCatalogOverrides and domain index. */
+/** Exported for callers that need the campaign race list API (e.g. catalog assembly). */
 export async function listCampaignRaces(campaignId: string): Promise<Race[]> {
   const data = await apiFetch<{ races: CampaignRaceDto[] }>(
     `/api/campaigns/${campaignId}/races`,
