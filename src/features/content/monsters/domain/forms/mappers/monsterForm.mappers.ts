@@ -4,6 +4,13 @@
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
 import type { MonsterTrait } from '@/features/content/monsters/domain/types/monster-traits.types';
+import type { MonsterArmorClass } from '@/features/content/monsters/domain/types/monster-equipment.types';
+import type { MonsterAction, MonsterNaturalAttackAction, MonsterSpecialAction } from '@/features/content/monsters/domain/types/monster-actions.types';
+import type { MonsterLegendaryActions } from '@/features/content/monsters/domain/types/monster-legendary.types';
+import type { Movement } from '@/features/mechanics/domain/movement';
+import type { MonsterAbilityScoreMap } from '@/features/mechanics/domain/character';
+import type { DieFace } from '@/shared/domain/dice';
+import { DIE_FACES } from '@/shared/domain/dice';
 import { toIdStringArray } from '@/features/content/shared/forms/toIdStringArray';
 import {
   buildToInput,
@@ -11,6 +18,7 @@ import {
 } from '@/features/content/shared/forms/registry';
 import {
   mergePreserveExtras,
+  stripRowIdsDeep,
   tagRowsWithIds,
 } from '@/features/content/shared/forms/assembly/mergePreserveExtras';
 import type {
@@ -26,9 +34,22 @@ import { isSubtypeAllowedForCreatureType } from '@/features/content/creatures/do
 import { validateCreatureProficiencyGroups } from '@/shared/domain/proficiency/authoredCreatureProficiencies';
 import type { CreatureSubtypeId } from '@/features/content/creatures/domain/values';
 import { MONSTER_FORM_FIELDS } from '../registry/monsterForm.registry';
+import {
+  filterLegendaryInlineByActionKind,
+  legendaryInlineNaturalsToFormRows,
+  legendaryInlineSpecialsToFormRows,
+  rebuildLegendaryActionsFromSplit,
+  rebuildMechanicsMonsterActionsArray,
+  stringifyLegendaryMetaEnvelope,
+  parseLegendaryMetaJsonText,
+  isNontrivialLegendaryBlock,
+  type MonsterMechanicsActionRowWithId,
+} from '../registry/monsterForm.actionPools';
 import type {
   MonsterFormValues,
   MonsterTraitFormRow,
+  MonsterSpecialActionFormRow,
+  MonsterNaturalActionFormRow,
 } from '../types/monsterForm.types';
 import { parseCreatureTypeId } from '../config/monsterForm.config';
 
@@ -69,6 +90,131 @@ const numOrUndefined = (v: unknown): number | undefined => {
 const numToStr = (v: unknown): string =>
   v != null && Number.isFinite(Number(v)) ? String(v) : '';
 
+const MONSTER_FORM_ABILITY_IDS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
+
+const MONSTER_ABILITY_FORM_KEY: {
+  [K in (typeof MONSTER_FORM_ABILITY_IDS)[number]]: keyof MonsterFormValues;
+} = {
+  str: 'abilityStr',
+  dex: 'abilityDex',
+  con: 'abilityCon',
+  int: 'abilityInt',
+  wis: 'abilityWis',
+  cha: 'abilityCha',
+};
+
+function parseHitDieFace(raw: string): DieFace | undefined {
+  if (raw === '') return undefined;
+  const n = Number(raw);
+  return (DIE_FACES as readonly number[]).includes(n) ? (n as DieFace) : undefined;
+}
+
+function pickMonsterArmorClassBase(
+  original: MonsterArmorClass | undefined,
+): { notes?: string; override?: number } {
+  if (!original || typeof original !== 'object') return {};
+  const o: { notes?: string; override?: number } = {};
+  if ('notes' in original && original.notes !== undefined) o.notes = original.notes;
+  if ('override' in original && original.override !== undefined) o.override = original.override;
+  return o;
+}
+
+function monsterArmorClassFromForm(
+  values: MonsterFormValues,
+  original: MonsterArmorClass | undefined,
+): MonsterArmorClass | undefined {
+  const kind = values.armorClassKind;
+  if (kind !== 'natural' && kind !== 'equipment' && kind !== 'fixed') {
+    return original;
+  }
+  const shared = pickMonsterArmorClassBase(original);
+
+  if (kind === 'equipment') {
+    if (original?.kind === 'equipment') return { ...original, ...shared };
+    return { kind: 'equipment', ...shared };
+  }
+
+  if (kind === 'natural') {
+    const offset = numOrUndefined(values.armorClassNaturalOffset);
+    return {
+      kind: 'natural',
+      ...shared,
+      ...(offset !== undefined ? { offset } : {}),
+    };
+  }
+
+  const value = numOrUndefined(values.armorClassFixedValue);
+  if (value === undefined) {
+    return original?.kind === 'fixed' ? original : undefined;
+  }
+  return { kind: 'fixed', value, ...shared };
+}
+
+function monsterAbilitiesFromForm(
+  values: MonsterFormValues,
+  original: MonsterAbilityScoreMap | undefined,
+): MonsterAbilityScoreMap | undefined {
+  const merged: MonsterAbilityScoreMap = { ...(original ?? {}) };
+  for (const id of MONSTER_FORM_ABILITY_IDS) {
+    const raw = values[MONSTER_ABILITY_FORM_KEY[id]];
+    if (raw === '' || raw == null) {
+      delete merged[id];
+    } else {
+      const n = numOrUndefined(raw);
+      if (n !== undefined) merged[id] = n as MonsterAbilityScoreMap[typeof id];
+    }
+  }
+  return Object.keys(merged).length > 0 ? merged : undefined;
+}
+
+function monsterMovementFromForm(values: MonsterFormValues): Movement | undefined {
+  const movement: Movement = {};
+  const g = numOrUndefined(values.movementGround);
+  if (g !== undefined) movement.ground = g;
+  const swim = numOrUndefined(values.movementSwim);
+  if (swim !== undefined) movement.swim = swim;
+  const fly = numOrUndefined(values.movementFly);
+  if (fly !== undefined) movement.fly = fly;
+  const climb = numOrUndefined(values.movementClimb);
+  if (climb !== undefined) movement.climb = climb;
+  const burrow = numOrUndefined(values.movementBurrow);
+  if (burrow !== undefined) movement.burrow = burrow;
+  return Object.keys(movement).length > 0 ? movement : undefined;
+}
+
+const monsterMechanicsSpecialRowsToFormValues = (
+  actions: ReadonlyArray<MonsterSpecialAction & { __rowId?: string }> | undefined,
+): MonsterSpecialActionFormRow[] => {
+  if (!actions || actions.length === 0) return [];
+  const tagged = tagRowsWithIds(actions as readonly Record<string, unknown>[]);
+  return tagged.map((row, i) => {
+    const sourceRow = actions[i];
+    const fallbackId = (row as { __rowId: string }).__rowId;
+    const id = sourceRow.__rowId ?? fallbackId;
+    return {
+      __rowId: id,
+      name: sourceRow.name ?? '',
+      description: sourceRow.description ?? '',
+    };
+  });
+};
+
+const monsterMechanicsNaturalRowsToFormValues = (
+  actions: ReadonlyArray<MonsterNaturalAttackAction & { __rowId?: string }> | undefined,
+): MonsterNaturalActionFormRow[] => {
+  if (!actions || actions.length === 0) return [];
+  const tagged = tagRowsWithIds(actions as readonly Record<string, unknown>[]);
+  return tagged.map((row, i) => {
+    const sourceRow = actions[i];
+    const fallbackId = (row as { __rowId: string }).__rowId;
+    const id = sourceRow.__rowId ?? fallbackId;
+    return {
+      __rowId: id,
+      name: sourceRow.name ?? sourceRow.attackType ?? '',
+    };
+  });
+};
+
 /**
  * Form-side projection of a domain trait. Each row carries an opaque
  * `__rowId` so save-time `mergePreserveExtras` can round-trip domain extras
@@ -108,17 +254,43 @@ const monsterTraitsToFormRows = (
  * re-tagged source.
  */
 export function tagMonsterForEditing(monster: Monster): Monster {
-  const traits = monster.mechanics?.traits;
-  if (!traits || traits.length === 0) return monster;
-  if (monster.mechanics === undefined) return monster;
-  const tagged = tagRowsWithIds(traits as readonly Record<string, unknown>[]) as MonsterTrait[];
-  return {
-    ...monster,
-    mechanics: {
-      ...monster.mechanics,
-      traits: tagged,
-    },
-  };
+  const mechanics = monster.mechanics;
+  if (!mechanics) return monster;
+
+  const mechanicsNext = { ...mechanics };
+  let changed = false;
+
+  if (Array.isArray(mechanics.traits) && mechanics.traits.length > 0) {
+    mechanicsNext.traits = tagRowsWithIds(mechanics.traits as readonly Record<string, unknown>[]) as MonsterTrait[];
+    changed = true;
+  }
+
+  if (Array.isArray(mechanics.actions) && mechanics.actions.length > 0) {
+    mechanicsNext.actions = tagRowsWithIds(
+      mechanics.actions as readonly Record<string, unknown>[],
+    ) as MonsterAction[];
+    changed = true;
+  }
+
+  if (Array.isArray(mechanics.bonusActions) && mechanics.bonusActions.length > 0) {
+    mechanicsNext.bonusActions = tagRowsWithIds(
+      mechanics.bonusActions as readonly Record<string, unknown>[],
+    ) as MonsterAction[];
+    changed = true;
+  }
+
+  const leg = mechanics.legendaryActions;
+  if (leg?.actions?.length) {
+    mechanicsNext.legendaryActions = {
+      ...leg,
+      actions: tagRowsWithIds(
+        leg.actions as readonly Record<string, unknown>[],
+      ) as typeof leg.actions,
+    };
+    changed = true;
+  }
+
+  return changed ? { ...monster, mechanics: mechanicsNext } : monster;
 }
 
 /**
@@ -137,14 +309,47 @@ export const monsterToFormValues = (monster: Monster): MonsterFormValues => {
     accessPolicy: (monster.accessPolicy ?? DEFAULT_VISIBILITY_PUBLIC) as MonsterFormValues['accessPolicy'],
     description: formatJson(monster.description),
     languages: formatJson(monster.languages),
-    hitPoints: formatJson(m?.hitPoints),
-    armorClass: formatJson(m?.armorClass),
-    movement: formatJson(m?.movement),
-    actions: formatJson(m?.actions),
-    bonusActions: formatJson(m?.bonusActions),
-    legendaryActions: formatJson(m?.legendaryActions),
+    hitPointsCount: m?.hitPoints?.count != null ? String(m.hitPoints.count) : '',
+    hitPointsDie:
+      m?.hitPoints?.die != null ? String(m.hitPoints.die) : defaultFormValues.hitPointsDie ?? '8',
+    hitPointsModifier: numToStr(m?.hitPoints?.modifier),
+    armorClassKind: (m?.armorClass?.kind ?? 'natural') as MonsterFormValues['armorClassKind'],
+    armorClassNaturalOffset:
+      m?.armorClass?.kind === 'natural' ? numToStr(m.armorClass.offset) : '',
+    armorClassFixedValue: m?.armorClass?.kind === 'fixed' ? numToStr(m.armorClass.value) : '',
+    movementGround: numToStr(m?.movement?.ground),
+    movementSwim: numToStr(m?.movement?.swim),
+    movementFly: numToStr(m?.movement?.fly),
+    movementClimb: numToStr(m?.movement?.climb),
+    movementBurrow: numToStr(m?.movement?.burrow),
+    specialActions: monsterMechanicsSpecialRowsToFormValues(
+      (m?.actions ?? []).filter((a): a is MonsterSpecialAction & { __rowId?: string } => a.kind === 'special'),
+    ),
+    naturalActions: monsterMechanicsNaturalRowsToFormValues(
+      (m?.actions ?? []).filter((a): a is MonsterNaturalAttackAction & { __rowId?: string } => a.kind === 'natural'),
+    ),
+    bonusSpecialActions: monsterMechanicsSpecialRowsToFormValues(
+      (m?.bonusActions ?? []).filter((a): a is MonsterSpecialAction & { __rowId?: string } =>
+        a.kind === 'special'),
+    ),
+    bonusNaturalActions: monsterMechanicsNaturalRowsToFormValues(
+      (m?.bonusActions ?? []).filter((a): a is MonsterNaturalAttackAction & { __rowId?: string } =>
+        a.kind === 'natural'),
+    ),
+    legendaryActionsMeta: stringifyLegendaryMetaEnvelope(m?.legendaryActions),
+    legendarySpecialActions: legendaryInlineSpecialsToFormRows(
+      filterLegendaryInlineByActionKind(m?.legendaryActions, 'special'),
+    ),
+    legendaryNaturalActions: legendaryInlineNaturalsToFormRows(
+      filterLegendaryInlineByActionKind(m?.legendaryActions, 'natural'),
+    ),
     traits: monsterTraitsToFormRows(m?.traits),
-    abilities: formatJson(m?.abilities),
+    abilityStr: numToStr(m?.abilities?.str),
+    abilityDex: numToStr(m?.abilities?.dex),
+    abilityCon: numToStr(m?.abilities?.con),
+    abilityInt: numToStr(m?.abilities?.int),
+    abilityWis: numToStr(m?.abilities?.wis),
+    abilityCha: numToStr(m?.abilities?.cha),
     senses: formatJson(m?.senses),
     proficiencies: formatJson(m?.proficiencies),
     proficiencyBonus: numToStr(m?.proficiencyBonus),
@@ -172,18 +377,72 @@ export const toMonsterInput = (
   const mechanics: Record<string, unknown> = {};
   const lore: Record<string, unknown> = {};
 
-  const hp = parseJson(values.hitPoints);
-  if (hp !== undefined) mechanics.hitPoints = hp;
-  const ac = parseJson(values.armorClass);
-  if (ac !== undefined) mechanics.armorClass = ac;
-  const mov = parseJson(values.movement);
-  if (mov !== undefined) mechanics.movement = mov;
-  const acts = parseJson(values.actions);
-  if (acts !== undefined) mechanics.actions = acts;
-  const bonusActs = parseJson(values.bonusActions);
-  if (bonusActs !== undefined) mechanics.bonusActions = bonusActs;
-  const leg = parseJson(values.legendaryActions);
-  if (leg !== undefined) mechanics.legendaryActions = leg;
+  const hpCount = numOrUndefined(values.hitPointsCount);
+  const hpDie = parseHitDieFace(values.hitPointsDie);
+  if (hpCount !== undefined && hpDie !== undefined) {
+    const hpMod = numOrUndefined(values.hitPointsModifier);
+    mechanics.hitPoints = {
+      count: hpCount,
+      die: hpDie,
+      ...(hpMod !== undefined ? { modifier: hpMod } : {}),
+    };
+  }
+  const acBuilt = monsterArmorClassFromForm(values, original?.mechanics?.armorClass);
+  if (acBuilt !== undefined) mechanics.armorClass = acBuilt;
+  const movBuilt = monsterMovementFromForm(values);
+  if (movBuilt !== undefined) mechanics.movement = movBuilt;
+
+  const origActions = original?.mechanics?.actions as MonsterMechanicsActionRowWithId[] | undefined;
+  const mergedActs = rebuildMechanicsMonsterActionsArray(
+    'natural',
+    values.naturalActions,
+    rebuildMechanicsMonsterActionsArray('special', values.specialActions, origActions ?? []),
+  );
+  if (mergedActs.length > 0) {
+    mechanics.actions = stripRowIdsDeep(mergedActs) as NonNullable<
+      MonsterInput['mechanics']
+    >['actions'];
+  }
+
+  const origBonus = original?.mechanics?.bonusActions as MonsterMechanicsActionRowWithId[] | undefined;
+  const mergedBonusActs = rebuildMechanicsMonsterActionsArray(
+    'natural',
+    values.bonusNaturalActions,
+    rebuildMechanicsMonsterActionsArray('special', values.bonusSpecialActions, origBonus ?? []),
+  );
+  if (mergedBonusActs.length > 0) {
+    mechanics.bonusActions = stripRowIdsDeep(mergedBonusActs) as NonNullable<
+      MonsterInput['mechanics']
+    >['bonusActions'];
+  }
+
+  const seededLegendBase: MonsterLegendaryActions =
+    original?.mechanics?.legendaryActions != null
+      ? { ...original.mechanics.legendaryActions }
+      : { uses: 0, actions: [] };
+
+  let legendaryDraft: MonsterLegendaryActions = {
+    ...seededLegendBase,
+    ...parseLegendaryMetaJsonText(values.legendaryActionsMeta),
+    actions: original?.mechanics?.legendaryActions?.actions ?? [],
+  };
+
+  legendaryDraft = rebuildLegendaryActionsFromSplit(
+    'special',
+    values.legendarySpecialActions,
+    legendaryDraft,
+  );
+  legendaryDraft = rebuildLegendaryActionsFromSplit(
+    'natural',
+    values.legendaryNaturalActions,
+    legendaryDraft,
+  );
+
+  const legendaryStripReady = stripRowIdsDeep(legendaryDraft) as MonsterLegendaryActions;
+  if (isNontrivialLegendaryBlock(legendaryStripReady)) {
+    mechanics.legendaryActions = legendaryStripReady;
+  }
+
   if (Array.isArray(values.traits)) {
     mechanics.traits = mergePreserveExtras<MonsterTrait>(
       values.traits as ReadonlyArray<MonsterTraitFormRow & Partial<MonsterTrait>>,
@@ -193,8 +452,8 @@ export const toMonsterInput = (
       TRAIT_OWNED_KEYS,
     );
   }
-  const ab = parseJson(values.abilities);
-  if (ab !== undefined) mechanics.abilities = ab;
+  const abMerged = monsterAbilitiesFromForm(values, original?.mechanics?.abilities);
+  if (abMerged !== undefined) mechanics.abilities = abMerged;
   const sens = parseJson(values.senses);
   if (sens !== undefined) mechanics.senses = sens;
   const prof = parseJson(values.proficiencies);

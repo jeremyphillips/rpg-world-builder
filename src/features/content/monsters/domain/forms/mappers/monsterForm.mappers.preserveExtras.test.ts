@@ -16,7 +16,8 @@ import {
   monsterToFormValues,
   tagMonsterForEditing,
   toMonsterInput,
-} from './monsterForm.mappers';
+  MONSTER_FORM_DEFAULTS,
+} from '@/features/content/monsters/domain';
 
 function loadAbolethTagged(): Monster {
   const aboleth = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'aboleth');
@@ -174,31 +175,9 @@ describe('monster traits — preserve extras', () => {
       description: 'no source to merge with',
     };
     const stub = {
+      ...MONSTER_FORM_DEFAULTS,
       name: 'New Monster',
-      type: '' as const,
-      subtype: '' as const,
-      sizeCategory: '' as const,
-      imageKey: '',
-      accessPolicy: undefined as unknown as never,
-      description: '',
-      languages: '',
-      hitPoints: '',
-      armorClass: '',
-      movement: '',
-      actions: '',
-      bonusActions: '',
-      legendaryActions: '',
       traits: [newForm],
-      abilities: '',
-      senses: '',
-      proficiencies: '',
-      proficiencyBonus: '',
-      equipment: '',
-      immunities: [],
-      vulnerabilities: [],
-      alignment: '',
-      challengeRating: '',
-      xpValue: '',
     };
 
     const input = toMonsterInput(stub as never);

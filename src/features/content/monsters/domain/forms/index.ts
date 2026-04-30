@@ -1,6 +1,10 @@
 export type {
   MonsterFormValues,
   MonsterTraitFormRow,
+  MonsterSpecialActionFormRow,
+  MonsterNaturalActionFormRow,
+  MonsterLegendarySpecialInlineFormRow,
+  MonsterLegendaryNaturalInlineFormRow,
 } from './types/monsterForm.types';
 export {
   getMonsterFieldConfigs,
