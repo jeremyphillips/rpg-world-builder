@@ -1,4 +1,5 @@
 import type { Monster } from '@/features/content/monsters/domain/types'
+import { normalizeAuthoredCreatureProficienciesForRead } from '@/shared/domain/proficiency/authoredCreatureProficiencies'
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import { assertSystemRulesetId } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import { createDefaultCampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/campaign/repo'
@@ -23,7 +24,15 @@ function keyById<T extends { id: string }>(items: readonly T[]): Record<string, 
 }
 
 function campaignMonsterDocToMonster(d: monstersService.CampaignMonsterDoc): Monster {
-  const data = d.data ?? {}
+  const data = { ...(d.data ?? {}) }
+  const mechanics = data.mechanics
+  if (mechanics && typeof mechanics === 'object' && !Array.isArray(mechanics)) {
+    const m = mechanics as Record<string, unknown>
+    if (m.proficiencies !== undefined) {
+      const normalized = normalizeAuthoredCreatureProficienciesForRead(m.proficiencies)
+      data.mechanics = { ...m, proficiencies: normalized ?? m.proficiencies }
+    }
+  }
   return {
     id: d.monsterId,
     name: d.name,

@@ -32,10 +32,7 @@ export const MONSTERS_J_L: readonly MonsterCatalogEntry[] = [
         passivePerception: 8,
       },
       proficiencies: {
-        weapons: {
-          dagger: 'proficient',
-          sling: 'proficient',
-        },
+        weapons: ['dagger', 'sling'],
       },
       proficiencyBonus: 2,
       equipment: {

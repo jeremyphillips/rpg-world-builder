@@ -55,9 +55,7 @@ const MONSTER_WEAPON_TEST = {
     abilities: { str: 8, dex: 14, con: 10, int: 10, wis: 10, cha: 10 },
     proficiencyBonus: 2,
     proficiencies: {
-      weapons: {
-        longbow: 'proficient',
-      },
+      weapons: ['longbow'],
     },
     equipment: {
       weapons: {

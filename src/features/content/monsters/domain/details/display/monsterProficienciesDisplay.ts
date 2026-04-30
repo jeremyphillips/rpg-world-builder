@@ -21,23 +21,19 @@ function formatSkillLine(prof: MonsterProficiencies | undefined): string | undef
 
 function formatSavingThrowsLine(prof: MonsterProficiencies | undefined): string | undefined {
   const st = prof?.saves;
-  if (!st || Object.keys(st).length === 0) return undefined;
+  if (!st || st.length === 0) return undefined;
 
-  const parts = Object.entries(st).map(([abilityId]) => {
-    return abilityIdToAbbrev(abilityId as AbilityId);
-  });
+  const parts = st.map((abilityId) => abilityIdToAbbrev(abilityId as AbilityId));
 
   return parts.join(', ');
 }
 
 function formatWeaponProficienciesLine(monster: Monster): string | undefined {
   const weapons = monster.mechanics.proficiencies?.weapons;
-  if (!weapons || Object.keys(weapons).length === 0) return undefined;
+  if (!weapons || weapons.length === 0) return undefined;
 
   const pb = monster.mechanics.proficiencyBonus;
-  return Object.keys(weapons)
-    .map((id) => `${humanizeKebabCase(id)} (PB +${pb})`)
-    .join(', ');
+  return weapons.map((id) => `${humanizeKebabCase(id)} (PB +${pb})`).join(', ');
 }
 
 export type MonsterProficienciesSummaryParts = {

@@ -145,10 +145,7 @@ export const MONSTERS_D: readonly MonsterCatalogEntry[] = [
         passivePerception: 12,
       },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        wis: 'proficient',
-      },
+        saves: ['dex', 'wis'],
         skills: { perception: 'proficient', stealth: 'proficient' },
       },
       proficiencyBonus: 2,

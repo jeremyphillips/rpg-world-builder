@@ -122,10 +122,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
           perception: 'proficient',
           stealth: 'proficient',
         },
-        weapons: {
-          longsword: 'proficient',
-          longbow: 'proficient',
-        },
+        weapons: ['longsword', 'longbow'],
       },
       proficiencyBonus: 2,
       resistances: ['necrotic'],
@@ -588,12 +585,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
         passivePerception: 18,
       },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: { 
           perception: 'expertise',
           stealth: 'proficient'

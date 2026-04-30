@@ -24,6 +24,7 @@ import {
   resolveProficiencyContribution,
   type ResolvedProficiencyMode,
 } from '@/features/mechanics/domain/progression'
+import { hasCreatureStandardProficiency } from '@/shared/domain/proficiency/authoredCreatureProficiencies'
 import {
   type CombatActionDefinition,
   type CombatantAttackEntry,
@@ -338,38 +339,45 @@ export function buildMonsterCombatantInstance(args: {
           }
         : undefined,
       savingThrowModifiers: monster.mechanics.abilities
-        ? {
-            strength: toSavingThrowModifier(
-              monster.mechanics.abilities.str,
-              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.str),
-              monster.mechanics.proficiencyBonus,
-            ),
-            dexterity: toSavingThrowModifier(
-              monster.mechanics.abilities.dex,
-              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.dex),
-              monster.mechanics.proficiencyBonus,
-            ),
-            constitution: toSavingThrowModifier(
-              monster.mechanics.abilities.con,
-              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.con),
-              monster.mechanics.proficiencyBonus,
-            ),
-            intelligence: toSavingThrowModifier(
-              monster.mechanics.abilities.int,
-              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.int),
-              monster.mechanics.proficiencyBonus,
-            ),
-            wisdom: toSavingThrowModifier(
-              monster.mechanics.abilities.wis,
-              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.wis),
-              monster.mechanics.proficiencyBonus,
-            ),
-            charisma: toSavingThrowModifier(
-              monster.mechanics.abilities.cha,
-              authoredStandardToResolved(monster.mechanics.proficiencies?.saves?.cha),
-              monster.mechanics.proficiencyBonus,
-            ),
-          }
+        ? (() => {
+            const saves = monster.mechanics.proficiencies?.saves
+            const saveMode = (abbrev: string) =>
+              authoredStandardToResolved(
+                hasCreatureStandardProficiency(saves, abbrev) ? 'proficient' : undefined,
+              )
+            return {
+              strength: toSavingThrowModifier(
+                monster.mechanics.abilities.str,
+                saveMode('str'),
+                monster.mechanics.proficiencyBonus,
+              ),
+              dexterity: toSavingThrowModifier(
+                monster.mechanics.abilities.dex,
+                saveMode('dex'),
+                monster.mechanics.proficiencyBonus,
+              ),
+              constitution: toSavingThrowModifier(
+                monster.mechanics.abilities.con,
+                saveMode('con'),
+                monster.mechanics.proficiencyBonus,
+              ),
+              intelligence: toSavingThrowModifier(
+                monster.mechanics.abilities.int,
+                saveMode('int'),
+                monster.mechanics.proficiencyBonus,
+              ),
+              wisdom: toSavingThrowModifier(
+                monster.mechanics.abilities.wis,
+                saveMode('wis'),
+                monster.mechanics.proficiencyBonus,
+              ),
+              charisma: toSavingThrowModifier(
+                monster.mechanics.abilities.cha,
+                saveMode('cha'),
+                monster.mechanics.proficiencyBonus,
+              ),
+            }
+          })()
         : undefined,
       speeds: monster.mechanics.movement,
       skillRuntime: {

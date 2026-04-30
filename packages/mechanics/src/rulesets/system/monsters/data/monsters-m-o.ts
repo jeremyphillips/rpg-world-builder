@@ -152,10 +152,7 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
         armor: { hide: { armorId: "hide" } },
       },
       proficiencies: {
-        weapons: {
-          greataxe: 'proficient',
-          javelin: 'proficient',
-        },
+        weapons: ['greataxe', 'javelin'],
         skills: { intimidation: 'proficient' },
       },
       proficiencyBonus: 2,
@@ -354,13 +351,8 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
         },
       },
       proficiencies: {
-        saves: {
-        wis: 'proficient',
-      },
-        weapons: {
-          greatclub: 'proficient',
-          javelin: 'proficient',
-        },
+        saves: ['wis'],
+        weapons: ['greatclub', 'javelin'],
       },
       proficiencyBonus: 2,
     },

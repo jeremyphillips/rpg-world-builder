@@ -10,6 +10,7 @@ import {
   resolveWeaponDamage,
 } from '@/features/mechanics/domain/resolution'
 import { authoredStandardToResolved } from '@/features/mechanics/domain/progression'
+import { hasCreatureStandardProficiency } from '@/shared/domain/proficiency/authoredCreatureProficiencies'
 import {
   buildActiveMonsterEffects,
   type CombatActionDefinition,
@@ -92,9 +93,10 @@ function resolveMonsterWeaponAttack(args: {
   if (!weapon) return null
 
   const { context } = buildMonsterEvaluationContext(monster)
-  const weaponProf = monster.mechanics.proficiencies?.weapons?.[proficiencyWeaponId]
-  const proficiencyMode =
-    weaponProf !== undefined ? authoredStandardToResolved(weaponProf) : 'proficient'
+  const weapons = monster.mechanics.proficiencies?.weapons
+  const proficiencyMode = hasCreatureStandardProficiency(weapons, proficiencyWeaponId)
+    ? authoredStandardToResolved('proficient')
+    : 'proficient'
   const proficiencyBonus = monster.mechanics.proficiencyBonus ?? 2
   const weaponInput = {
     type: weapon.mode,

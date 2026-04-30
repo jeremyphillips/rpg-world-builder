@@ -19,12 +19,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, burrow: 30, fly: 80 },
       abilities: { str: 25, dex: 10, con: 23, int: 16, wis: 15, cha: 20 },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: { perception: 'expertise', stealth: 'proficient' },
       },
       senses: {
@@ -153,12 +148,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, burrow: 30, fly: 80 },
       abilities: { str: 23, dex: 10, con: 21, int: 14, wis: 13, cha: 17 },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: {
           history: 'proficient',
           perception: 'expertise',
@@ -296,12 +286,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, fly: 80, swim: 40 },
       abilities: { str: 25, dex: 10, con: 23, int: 16, wis: 15, cha: 20 },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: { insight: 'proficient', perception: 'expertise', stealth: 'proficient' },
       },
       senses: {
@@ -439,12 +424,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, burrow: 40, fly: 80 },
       abilities: { str: 29, dex: 10, con: 27, int: 18, wis: 17, cha: 25 },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: { perception: 'expertise', stealth: 'proficient' },
       },
       senses: {
@@ -566,12 +546,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, burrow: 40, fly: 80 },
       abilities: { str: 27, dex: 10, con: 25, int: 16, wis: 15, cha: 22 },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: {
           history: 'proficient',
           perception: 'expertise',
@@ -709,12 +684,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, fly: 80, swim: 40 },
       abilities: { str: 29, dex: 10, con: 27, int: 18, wis: 17, cha: 25 },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: { insight: 'proficient', perception: 'expertise', stealth: 'proficient' },
       },
       senses: {
@@ -978,14 +948,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, fly: 40 },
       abilities: { str: 18, dex: 16, con: 18, int: 13, wis: 14, cha: 16 },
       proficiencies: {
-        saves: {
-        str: 'proficient',
-        dex: 'proficient',
-        con: 'proficient',
-        int: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['str', 'dex', 'con', 'int', 'wis', 'cha'],
         skills: { deception: 'proficient', insight: 'proficient' },
       },
       senses: {
@@ -1221,7 +1184,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       abilities: { str: 17, dex: 14, con: 14, int: 11, wis: 12, cha: 11 },
       proficiencies: {
         skills: { stealth: 'expertise', survival: 'proficient' },
-        weapons: { javelin: 'proficient', morningstar: 'proficient' },
+        weapons: ['javelin', 'morningstar'],
       },
       senses: {
         special: [{ type: 'darkvision', range: 60 }],
@@ -1341,7 +1304,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       ],
       proficiencies: {
         skills: { stealth: 'expertise', survival: 'proficient' },
-        weapons: { 'light-hammer': 'proficient' },
+        weapons: ['light-hammer'],
       },
       proficiencyBonus: 2,
       equipment: {
@@ -1387,12 +1350,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, burrow: 20, fly: 80 },
       abilities: { str: 21, dex: 10, con: 19, int: 14, wis: 13, cha: 17 },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: { perception: 'expertise', stealth: 'proficient' },
       },
       senses: {
@@ -1459,12 +1417,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, burrow: 20, fly: 80 },
       abilities: { str: 19, dex: 10, con: 17, int: 12, wis: 11, cha: 15 },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: {
           perception: 'expertise',
           persuasion: 'proficient',
@@ -1544,12 +1497,7 @@ export const MONSTERS_B: readonly MonsterCatalogEntry[] = [
       movement: { ground: 40, fly: 80, swim: 40 },
       abilities: { str: 21, dex: 10, con: 19, int: 14, wis: 13, cha: 17 },
       proficiencies: {
-        saves: {
-        dex: 'proficient',
-        con: 'proficient',
-        wis: 'proficient',
-        cha: 'proficient',
-      },
+        saves: ['dex', 'con', 'wis', 'cha'],
         skills: { insight: 'proficient', perception: 'expertise', stealth: 'proficient' },
       },
       senses: {

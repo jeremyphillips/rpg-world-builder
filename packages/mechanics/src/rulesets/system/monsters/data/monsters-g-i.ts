@@ -520,10 +520,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         skills: { stealth: 'expertise' },
-        weapons: {
-          scimitar: 'proficient',
-          shortbow: 'proficient',
-        },
+        weapons: ['scimitar', 'shortbow'],
       },
       proficiencyBonus: 2,
       traits: [
@@ -611,7 +608,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         skills: { stealth: 'expertise' },
-        weapons: { dagger: 'proficient' },
+        weapons: ['dagger'],
       },
       proficiencyBonus: 2,
       actions: [{ kind: 'weapon', weaponRef: 'dagger' }],
@@ -682,10 +679,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         skills: { stealth: 'expertise' },
-        weapons: {
-          scimitar: 'proficient',
-          shortbow: 'proficient',
-        },
+        weapons: ['scimitar', 'shortbow'],
       },
       proficiencyBonus: 2,
       equipment: {
@@ -753,7 +747,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
           },
         ],
       }],
-      proficiencies: { weapons: { longbow: 'proficient' } },
+      proficiencies: { weapons: ['longbow'] },
       proficiencyBonus: 2,
       equipment: {
         weapons: { 'bone-bow': { weaponId: "longbow", aliasName: "Bone Bow", damageOverride: "1d10", notes: "Uses a monster-specific bow profile." } },
@@ -785,10 +779,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         passivePerception: 10,
       },
       proficiencies: {
-        weapons: {
-          greatsword: 'proficient',
-          longbow: 'proficient',
-        },
+        weapons: ['greatsword', 'longbow'],
       },
       proficiencyBonus: 2,
       traits: [
@@ -875,10 +866,7 @@ export const MONSTERS_G_I: readonly MonsterCatalogEntry[] = [
         passivePerception: 10,
       },
       proficiencies: {
-        weapons: {
-          longsword: 'proficient',
-          longbow: 'proficient',
-        },
+        weapons: ['longsword', 'longbow'],
       },
       proficiencyBonus: 2,
       traits: [

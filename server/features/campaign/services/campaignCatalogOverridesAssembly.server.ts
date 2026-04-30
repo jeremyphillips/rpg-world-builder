@@ -10,6 +10,7 @@ import type { Race } from '@/features/content/races/domain/types';
 import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import type { Visibility } from '@/shared/types/visibility';
+import { normalizeAuthoredCreatureProficienciesForRead } from '@/shared/domain/proficiency/authoredCreatureProficiencies';
 import * as racesService from '../../content/races/services/races.service';
 import * as classesService from '../../content/classes/services/classes.service';
 import * as equipmentService from '../../content/equipment/services/equipment.service';
@@ -91,7 +92,15 @@ function equipmentDocToCatalogShape(
 }
 
 function campaignMonsterDocToMonster(doc: monstersService.CampaignMonsterDoc) {
-  const data = doc.data ?? {};
+  const data = { ...(doc.data ?? {}) };
+  const mechanics = data.mechanics;
+  if (mechanics && typeof mechanics === 'object' && !Array.isArray(mechanics)) {
+    const m = mechanics as Record<string, unknown>;
+    if (m.proficiencies !== undefined) {
+      const normalized = normalizeAuthoredCreatureProficienciesForRead(m.proficiencies);
+      data.mechanics = { ...m, proficiencies: normalized ?? m.proficiencies };
+    }
+  }
   return {
     id: doc.monsterId,
     name: doc.name,

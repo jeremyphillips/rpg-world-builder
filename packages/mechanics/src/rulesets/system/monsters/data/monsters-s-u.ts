@@ -41,10 +41,7 @@ export const MONSTERS_S_U: readonly MonsterCatalogEntry[] = [
         },
       },
       proficiencies: {
-        weapons: {
-          shortsword: 'proficient',
-          shortbow: 'proficient',
-        },
+        weapons: ['shortsword', 'shortbow'],
       },
       proficiencyBonus: 2,
       abilities: { str: 10, dex: 16, con: 15, int: 6, wis: 8, cha: 5 },
