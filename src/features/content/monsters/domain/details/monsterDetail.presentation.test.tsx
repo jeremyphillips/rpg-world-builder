@@ -6,6 +6,7 @@ import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/
 import { getSystemArmor } from '@/features/mechanics/domain/rulesets/system/armor';
 import { getSystemMonster } from '@/features/mechanics/domain/rulesets/system/monsters';
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { metaRowsIncludePatchedText } from '@/features/content/shared/domain/details/detailMeta.test.helpers';
 
 import {
   MonsterAbilitiesSummary,
@@ -58,13 +59,13 @@ describe('monster detail presentation', () => {
       section: 'meta',
       viewer: { isPlatformAdmin: false, campaignRole: null },
     });
-    expect(metaPlayer.find((row) => row.label === 'Patched')).toBeUndefined();
+    expect(metaRowsIncludePatchedText(metaPlayer)).toBe(false);
 
     const metaDm = buildDetailItemsFromSpecs(MONSTER_DETAIL_SPECS, patched, ctx, {
       section: 'meta',
       viewer: { isPlatformAdmin: false, campaignRole: 'dm' },
     });
-    expect(metaDm.find((row) => row.label === 'Patched')).toBeDefined();
+    expect(metaRowsIncludePatchedText(metaDm)).toBe(true);
   });
 
   it('buildDetailItemsFromSpecs main section includes friendly Actions content for a system monster', () => {

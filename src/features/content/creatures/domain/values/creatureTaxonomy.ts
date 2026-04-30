@@ -23,6 +23,7 @@ export const CREATURE_SUBTYPE_DEFINITIONS = [
   { id: 'lycanthrope', name: 'Lycanthrope' },
   { id: 'metallic', name: 'Metallic' },
   // { id: 'orc', name: 'Orc' },
+  { id: 'shapechanger', name: 'Shapechanger' },
   { id: 'swarm', name: 'Swarm' },
   { id: 'titan', name: 'Titan' },
   { id: 'wizard', name: 'Wizard' },

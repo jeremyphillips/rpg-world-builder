@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import { metaRowsIncludePatchedText } from '@/features/content/shared/domain/details/detailMeta.test.helpers';
 import type { Gear } from '@/features/content/equipment/gear/domain/types/gear.types';
 
 import { GEAR_DETAIL_SPECS, type GearDetailCtx } from './gearDetail.spec';
@@ -55,13 +56,13 @@ describe('gear detail presentation', () => {
       section: 'meta',
       viewer: { isPlatformAdmin: false, campaignRole: null },
     });
-    expect(metaPlayer.find((row) => row.label === 'Patched')).toBeUndefined();
+    expect(metaRowsIncludePatchedText(metaPlayer)).toBe(false);
 
     const metaDm = buildDetailItemsFromSpecs(GEAR_DETAIL_SPECS, gear, ctx, {
       section: 'meta',
       viewer: { isPlatformAdmin: false, campaignRole: 'dm' },
     });
-    expect(metaDm.find((row) => row.label === 'Patched')).toBeDefined();
+    expect(metaRowsIncludePatchedText(metaDm)).toBe(true);
   });
 
   it('buildDetailItemsFromSpecs advanced section is empty for non–platform admins (platformOwner raw rows)', () => {

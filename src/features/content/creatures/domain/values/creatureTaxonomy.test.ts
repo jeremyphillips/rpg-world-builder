@@ -50,18 +50,19 @@ describe('creatureTaxonomy', () => {
   })
 
   it('restricts subtypes by creature type', () => {
-    const humanoidSub = getAllowedSubtypeIdsForCreatureType('humanoid')
-    expect(humanoidSub).toEqual(
-      expect.arrayContaining(['dwarf', 'elf', 'goblinoid', 'gnome', 'aquatic', 'orc']),
-    )
-    expect(humanoidSub).toHaveLength(14)
-    expect(getAllowedSubtypeIdsForCreatureType('elemental').sort()).toEqual(['air', 'earth', 'fire', 'water'])
+    expect(getAllowedSubtypeIdsForCreatureType('humanoid')).toEqual(['cleric', 'druid', 'wizard']);
+    expect(isSubtypeAllowedForCreatureType('humanoid', 'goblinoid')).toBe(false);
+    expect(getAllowedSubtypeIdsForCreatureType('fey')).toEqual(['goblinoid']);
+    expect(isSubtypeAllowedForCreatureType('fey', 'goblinoid')).toBe(true);
+
+    expect(getAllowedSubtypeIdsForCreatureType('elemental').sort()).toEqual(['genie']);
     expect(getAllowedSubtypeIdsForCreatureType('fiend').sort()).toEqual(
       ['demon', 'devil', 'shapechanger'].sort(),
-    )
-    expect(isSubtypeAllowedForCreatureType('beast', 'aquatic')).toBe(true)
-    expect(isSubtypeAllowedForCreatureType('beast', 'swarm')).toBe(true)
-    expect(isSubtypeAllowedForCreatureType('undead', 'shapechanger')).toBe(true)
-    expect(isSubtypeAllowedForCreatureType('dragon', 'goblinoid')).toBe(false)
-  })
+    );
+    expect(isSubtypeAllowedForCreatureType('beast', 'aquatic')).toBe(true);
+    expect(isSubtypeAllowedForCreatureType('beast', 'swarm')).toBe(true);
+    expect(isSubtypeAllowedForCreatureType('undead', 'wizard')).toBe(true);
+    expect(isSubtypeAllowedForCreatureType('undead', 'shapechanger')).toBe(false);
+    expect(isSubtypeAllowedForCreatureType('dragon', 'goblinoid')).toBe(false);
+  });
 })

@@ -16,9 +16,9 @@ describe('pathMapStyles', () => {
     expect(pathStrokeForKind('unknown')).toBe(pathStrokeForKind('road'));
   });
 
-  it('resolves width by world vs city host scale', () => {
-    expect(pathWidthsForHostScale('world').default).toBeGreaterThan(pathWidthsForHostScale('city').default);
-    expect(pathWidthsForHostScale('city').selected).toBeLessThan(pathWidthsForHostScale('world').selected);
+  it('resolves width by world vs city host scale (city street grids use heavier strokes)', () => {
+    expect(pathWidthsForHostScale('city').default).toBeGreaterThan(pathWidthsForHostScale('world').default);
+    expect(pathWidthsForHostScale('city').selected).toBeGreaterThan(pathWidthsForHostScale('world').selected);
   });
 
   it('uses fallback width for unknown scale', () => {

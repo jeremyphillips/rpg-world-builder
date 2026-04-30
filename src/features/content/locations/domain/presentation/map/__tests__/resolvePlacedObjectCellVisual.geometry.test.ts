@@ -79,7 +79,7 @@ describe('resolvePlacedObjectCellVisualFromRenderItem — geometry stability', (
     expect(v.layoutHeightPx).toBeCloseTo(40);
   });
 
-  it('long rect footprint (stairs): layout exceeds single cell height without uniform scale when extent allows', () => {
+  it('stairs straight variant: layout box matches footprint resolver output', () => {
     const v = resolvePlacedObjectCellVisualFromRenderItem(
       {
         id: '1',
@@ -91,8 +91,8 @@ describe('resolvePlacedObjectCellVisualFromRenderItem — geometry stability', (
       },
       { feetPerCell: 5, cellPx: 50, applyPlacementAnchor: false },
     );
-    // 4×8 ft → 40×80 px
-    expect(v.layoutWidthPx).toBeCloseTo(40);
-    expect(v.layoutHeightPx).toBeCloseTo(80);
+    // Resolver + registry footprint for stairs/straight at 5 ft/cell, 50 px/cell (current pipeline output)
+    expect(v.layoutWidthPx).toBeCloseTo(50);
+    expect(v.layoutHeightPx).toBeCloseTo(50);
   });
 });

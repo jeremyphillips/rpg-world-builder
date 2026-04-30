@@ -9,17 +9,17 @@ import {
 import type { Monster } from '@/features/content/monsters/domain/types';
 import { getAllowedSubtypeOptionsForCreatureType } from '@/features/content/creatures/domain/options/creatureTaxonomyOptions';
 
-const minimalMonster = {
+const minimalFeyGoblinoid = {
   id: 'm1',
   name: 'Goblin',
-  type: 'humanoid',
+  type: 'fey',
   subtype: 'goblinoid' as const,
   sizeCategory: 'small',
 } as unknown as Monster;
 
 describe('monsterForm.mappers', () => {
-  it('round-trips subtype for a humanoid with goblinoid', () => {
-    const form = monsterToFormValues(minimalMonster);
+  it('round-trips subtype for fey with goblinoid', () => {
+    const form = monsterToFormValues(minimalFeyGoblinoid);
     expect(form.subtype).toBe('goblinoid');
     const input = toMonsterInput({ ...form, name: 'Goblin' });
     expect(input.subtype).toBe('goblinoid');
@@ -39,13 +39,20 @@ describe('monsterForm.mappers', () => {
 });
 
 describe('getMonsterFieldConfigs (subtype options)', () => {
-  it('exposes goblinoid for humanoid and fiend options from taxonomy (not duplicated labels)', () => {
+  it('exposes goblinoid for fey and fiend options from taxonomy (not duplicated labels)', () => {
+    const fey = getMonsterFieldConfigs({ selectedCreatureType: 'fey' });
+    const subFey = fey.find((c) => c.name === 'subtype' && c.type === 'select');
+    expect(subFey).toBeDefined();
+    if (subFey && subFey.type === 'select') {
+      expect(subFey.options).toEqual(getAllowedSubtypeOptionsForCreatureType('fey'));
+      expect(subFey.options.some((o) => o.value === 'goblinoid')).toBe(true);
+    }
     const humanoid = getMonsterFieldConfigs({ selectedCreatureType: 'humanoid' });
-    const subField = humanoid.find((c) => c.name === 'subtype' && c.type === 'select');
-    expect(subField).toBeDefined();
-    if (subField && subField.type === 'select') {
-      expect(subField.options).toEqual(getAllowedSubtypeOptionsForCreatureType('humanoid'));
-      expect(subField.options.some((o) => o.value === 'goblinoid')).toBe(true);
+    const subHumanoid = humanoid.find((c) => c.name === 'subtype' && c.type === 'select');
+    expect(subHumanoid).toBeDefined();
+    if (subHumanoid && subHumanoid.type === 'select') {
+      expect(subHumanoid.options).toEqual(getAllowedSubtypeOptionsForCreatureType('humanoid'));
+      expect(subHumanoid.options.some((o) => o.value === 'goblinoid')).toBe(false);
     }
     const fiend = getMonsterFieldConfigs({ selectedCreatureType: 'fiend' });
     const subFiend = fiend.find((c) => c.name === 'subtype' && c.type === 'select');
