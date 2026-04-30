@@ -3,10 +3,12 @@
  * Non-standard object and array fields use kind: 'json' per content form pattern.
  */
 import type { CharacterClass } from '@/features/content/classes/domain/types';
+import type { Subclass } from '@/features/content/classes/domain/types/subclass.types';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import {
   createJsonFieldSpec,
   type FieldSpec,
+  type FormNodeSpec,
 } from '@/features/content/shared/forms/registry';
 import {
   formatJsonObject,
@@ -15,6 +17,7 @@ import {
   trim,
   trimOrNull,
 } from '@/features/content/shared/forms/parsers';
+import { createNamedDescriptionGroup } from '@/features/content/shared/forms/groups/createNamedDescriptionGroup';
 import type { ClassFormValues, ClassInput } from '../types/classForm.types';
 
 /**
@@ -50,17 +53,6 @@ const classJsonField = <K extends keyof ClassFormValues>(
     format: formatJsonObject,
     ...options,
   });
-
-const DEFINITIONS_PLACEHOLDER = JSON.stringify(
-  {
-    id: 'subclass_selection',
-    name: 'Subclass',
-    selectionLevel: 3,
-    options: [{ id: 'option_1', name: 'Option 1', description: '' }],
-  },
-  null,
- 2
-);
 
 const REQUIREMENTS_PLACEHOLDER = JSON.stringify(
   { allowedRaces: 'all', allowedAlignments: 'any' },
@@ -196,22 +188,6 @@ export const CLASS_FORM_FIELDS = [
     formatForDisplay: (v) =>
       v != null && typeof v === 'object' ? 'Configured' : '—',
   }),
-  classJsonField('definitions', {
-    label: 'Definitions',
-    placeholder: DEFINITIONS_PLACEHOLDER,
-    helperText: 'Subclass selection and options.',
-    minRows: 6,
-    maxRows: 24,
-    defaultValue: '{}' as ClassFormValues['definitions'],
-    formatForDisplay: (v) => {
-      const obj = typeof v === 'object' && v !== null ? v : null;
-      const opts =
-        obj && 'options' in obj && Array.isArray((obj as { options?: unknown[] }).options)
-          ? (obj as { options: unknown[] }).options
-          : [];
-      return opts.length > 0 ? `${opts.length} option(s)` : '—';
-    },
-  }),
   classJsonField('requirements', {
     label: 'Requirements',
     placeholder: REQUIREMENTS_PLACEHOLDER,
@@ -227,3 +203,111 @@ export const CLASS_FORM_FIELDS = [
   ClassInput & Record<string, unknown>,
   CharacterClass & Record<string, unknown>
 >[];
+
+const DEFINITIONS_FORM_GROUP = {
+  id: 'class-definitions',
+  label: 'Definitions',
+  direction: 'column' as const,
+};
+
+const classDefinitionsOptionsGroupInner =
+  createNamedDescriptionGroup<
+    Subclass,
+    ClassFormValues,
+    ClassInput & Record<string, unknown>,
+    CharacterClass & Record<string, unknown>
+  >({
+    name: 'definitionsOptions',
+    domainPath: 'definitions.options',
+    label: 'Subclass options',
+    itemLabel: 'Subclass option',
+    extras: [
+      {
+        name: 'id',
+        label: 'Option id',
+        kind: 'text',
+        required: true,
+        defaultValue: '' as ClassFormValues['definitionsId'],
+      },
+    ],
+    ownedKeys: ['id', 'name', 'description'],
+  });
+
+/**
+ * Structured `definitions.options[]` — subclasses with merge-preserved extras (`features`, …).
+ */
+export const classDefinitionsOptionsGroup = {
+  ...classDefinitionsOptionsGroupInner,
+  defaultItem: {
+    ...classDefinitionsOptionsGroupInner.defaultItem,
+    id: '',
+  },
+};
+
+const CLASS_DEFINITION_SCALAR_SPECS = [
+  {
+    name: 'definitionsId',
+    label: 'Subclass selection id',
+    kind: 'text' as const,
+    path: 'definitions.id',
+    placeholder: 'e.g. fighter_subclasses',
+    group: DEFINITIONS_FORM_GROUP,
+    defaultValue: '' as ClassFormValues['definitionsId'],
+  },
+  {
+    name: 'definitionsName',
+    label: 'Subclass selection name',
+    kind: 'text' as const,
+    path: 'definitions.name',
+    placeholder: 'e.g. Fighter subclasses',
+    group: DEFINITIONS_FORM_GROUP,
+    defaultValue: '' as ClassFormValues['definitionsName'],
+  },
+  {
+    name: 'definitionsSelectionLevel',
+    label: 'Selection level',
+    kind: 'numberText' as const,
+    helperText: 'Character level when the player picks a subclass (leave empty if not used).',
+    group: DEFINITIONS_FORM_GROUP,
+    defaultValue: '' as ClassFormValues['definitionsSelectionLevel'],
+    patchBinding: {
+      domainPath: 'definitions.selectionLevel',
+      parse: (v: unknown) =>
+        v == null || v === '' ? '' : String(v) as ClassFormValues['definitionsSelectionLevel'],
+      serialize: (uiValue: unknown, currentDomainValue: unknown) => {
+        if (uiValue === '' || uiValue == null) return null;
+        const n = Number(uiValue);
+        if (!Number.isFinite(n)) return currentDomainValue;
+        return n;
+      },
+    },
+  },
+] as const satisfies readonly FieldSpec<
+  ClassFormValues,
+  ClassInput & Record<string, unknown>,
+  CharacterClass & Record<string, unknown>
+>[];
+
+/**
+ * Full form node list: flat registry fields plus structured subclass definitions
+ * (inserted after `progression`; Phase 2).
+ */
+export function getClassFormFields(): FormNodeSpec<
+  ClassFormValues,
+  ClassInput & Record<string, unknown>,
+  CharacterClass & Record<string, unknown>
+>[] {
+  const out: FormNodeSpec<
+    ClassFormValues,
+    ClassInput & Record<string, unknown>,
+    CharacterClass & Record<string, unknown>
+  >[] = [];
+  for (const spec of CLASS_FORM_FIELDS) {
+    out.push(spec);
+    if (spec.name === 'progression') {
+      out.push(...CLASS_DEFINITION_SCALAR_SPECS);
+      out.push(classDefinitionsOptionsGroup);
+    }
+  }
+  return out;
+}

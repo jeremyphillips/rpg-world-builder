@@ -28,7 +28,7 @@ todos:
     status: completed
   - id: phase-2-class-definitions
     content: "Phase 2: class definitions.options[] + selectionLevel composite; SubclassOptionsSummary detail section"
-    status: pending
+    status: completed
   - id: phase-3-class-progression
     content: "Phase 3: class progression composites (hitDie/attackProgression/spellcasting/savingThrows/asiLevels/extraAttackLevel) + features[] repeatable; ClassProgressionSummary + ClassFeatureList detail sections"
     status: pending
@@ -190,10 +190,7 @@ Tests (all pass, all green):
 
 ## Phase 2 — Class: definitions.options[]
 
-- Replace JSON `definitions` with:
-  - composite group: `definitions.id` text + `definitions.name` text + `definitions.selectionLevel` numberText.
-  - `createNamedDescriptionGroup({ name: 'definitions.options', domainPath: 'definitions.options', itemLabel: 'Subclass option', extras: [{ name: 'id', kind: 'text', required: true }] })`.
-- [`classDetail.spec.tsx:108-113,177-183`](src/features/content/classes/domain/details/classDetail.spec.tsx): replace `classDefinitionsFriendly` with a new `ClassView/sections/SubclassOptionsSummary.tsx` using `<NamedEntryList>` + `selectionLevel` callout.
+**Status: COMPLETED.** Definitions JSON replaced with grouped scalar fields (`definitionsId`, `definitionsName`, `definitionsSelectionLevel` + patch binding on level), repeatable `definitionsOptions` built from `createNamedDescriptionGroup`, and `SubclassOptionsSummary` wired to `structuredMainAndAdvanced` in class detail specs. Mapper uses `mergePreserveExtras`/`tagClassForEditing` as in Phase 1. Tests live in `classForm.mappers.subclassOptions.test.ts`.
 
 ## Phase 3 — Class: progression composites + features[]
 

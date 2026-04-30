@@ -4,5 +4,9 @@ export {
   CLASS_FORM_DEFAULTS,
   type GetClassFieldConfigsOptions,
 } from './config/classForm.config';
-export { classToFormValues, toClassInput } from './mappers/classForm.mappers';
+export {
+  classToFormValues,
+  tagClassForEditing,
+  toClassInput,
+} from './mappers/classForm.mappers';
 export { CLASS_DETAIL_SPECS, type ClassDetailCtx } from '../details/classDetail.spec';

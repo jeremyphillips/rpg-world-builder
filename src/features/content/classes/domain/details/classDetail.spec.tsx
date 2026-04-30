@@ -1,10 +1,13 @@
 import type { ClassContentItem } from '@/features/content/classes/domain/repo/classRepo';
-import type { CharacterClass } from '@/features/content/classes/domain/types/class.types';
+import { SubclassOptionsSummary } from '@/features/content/classes/components/views/ClassView/sections';
 import type { ClassProficiencies } from '@/features/content/classes/domain/types/proficiencies.types';
 import type { ClassProgression } from '@/features/content/classes/domain/types/progression.types';
 import type { ClassRequirement } from '@/features/content/classes/domain/types/requirements.types';
 import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
-import type { DetailSpec } from '@/features/content/shared/forms/registry';
+import {
+  structuredMainAndAdvanced,
+  type DetailSpec,
+} from '@/features/content/shared/forms/registry';
 import { abilityIdToName, type AbilityId } from '@/features/mechanics/domain/character';
 
 export type ClassDetailCtx = Record<string, never>;
@@ -105,13 +108,6 @@ function classRequirementsFriendly(r: ClassRequirement): string {
   return lines.join('\n');
 }
 
-function classDefinitionsFriendly(d: CharacterClass['definitions']): string {
-  if (!d) return '—';
-  const n = d.options?.length ?? 0;
-  const lvl = d.selectionLevel;
-  return `${d.name}: ${n} option(s)${lvl != null ? ` · choice at level ${lvl}` : ''}`;
-}
-
 function classAdvancedRecord(c: ClassContentItem): Record<string, unknown> {
   const scopeMeta: Record<string, unknown> =
     c.source === 'system'
@@ -178,8 +174,11 @@ export const CLASS_DETAIL_SPECS: DetailSpec<ClassContentItem, ClassDetailCtx>[] 
     key: 'definitions',
     label: 'Subclass',
     order: 60,
-    hidden: (c) => !c.definitions,
-    render: (c) => classDefinitionsFriendly(c.definitions),
+    getValue: (c) => c.definitions,
+    renderFriendly: (_v, c) => (
+      <SubclassOptionsSummary definitions={c.definitions} />
+    ),
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'requirements',

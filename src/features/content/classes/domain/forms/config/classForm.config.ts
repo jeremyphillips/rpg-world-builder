@@ -1,11 +1,13 @@
 /**
  * Class form field configs for AppForm + DynamicFormRenderer.
  * Registry-backed.
+ *
+ * Uses `buildFormLayout` so structured groups (`definitions`) render alongside legacy JSON fields.
  */
-import type { FieldConfig } from '@/ui/patterns';
+import type { FormLayoutNode } from '@/ui/patterns';
 import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { buildFieldConfigs } from '@/features/content/shared/forms/registry';
-import { CLASS_FORM_FIELDS } from '../registry/classForm.registry';
+import { buildFormLayout } from '@/features/content/shared/forms/registry';
+import { getClassFormFields } from '../registry/classForm.registry';
 import type { ClassFormValues } from '../types/classForm.types';
 
 export type GetClassFieldConfigsOptions = {
@@ -13,11 +15,11 @@ export type GetClassFieldConfigsOptions = {
 };
 
 /**
- * Returns FieldConfig[] for class Create/Edit forms.
+ * Returns FormLayoutNode[] for class Create/Edit forms.
  */
 export const getClassFieldConfigs = (
   options: GetClassFieldConfigsOptions = {}
-): FieldConfig[] => buildFieldConfigs(CLASS_FORM_FIELDS, options);
+): FormLayoutNode[] => buildFormLayout(getClassFormFields(), options);
 
 /**
  * Default values for class forms (RHF defaultValues).

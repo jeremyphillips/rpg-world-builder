@@ -4,7 +4,7 @@
  * - source === 'system': field-config patch form via contentPatchRepo
  * - source === 'campaign': real form editor with delete support
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FormProvider, useForm } from 'react-hook-form';
 import Box from '@mui/material/Box';
@@ -28,6 +28,7 @@ import {
   getClassFieldConfigs,
   CLASS_FORM_DEFAULTS,
   classToFormValues,
+  tagClassForEditing,
   toClassInput,
 } from '@/features/content/classes/domain/forms';
 import { useEditRouteFeedbackState } from '@/features/content/shared/hooks/useEditRouteFeedbackState';
@@ -61,11 +62,16 @@ export default function ClassEditRoute() {
     [catalog],
   );
 
-  const { entry: charClass, loading, error, notFound } = useCampaignContentEntry<ClassContentItem>({
+  const { entry: rawCharClass, loading, error, notFound } = useCampaignContentEntry<ClassContentItem>({
     campaignId: campaignId ?? undefined,
     entryKey: classId,
     fetchEntry: fetchCharClass,
   });
+
+  const charClass = useMemo(
+    () => (rawCharClass ? tagClassForEditing(rawCharClass) : rawCharClass),
+    [rawCharClass],
+  );
 
   const methods = useForm<ClassFormValues>({
     defaultValues: CLASS_FORM_DEFAULTS,
