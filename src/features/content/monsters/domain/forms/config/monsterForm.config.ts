@@ -1,11 +1,15 @@
 /**
  * Monster form field configs for AppForm + DynamicFormRenderer.
  * Registry-backed.
+ *
+ * Phase 1: switched from `buildFieldConfigs` (flat) to `buildFormLayout`
+ * (FormNodeSpec tree) so structured repeatable groups (e.g. traits) can be
+ * rendered alongside the remaining flat JSON fields.
  */
-import type { FieldConfig } from '@/ui/patterns';
+import type { FormLayoutNode } from '@/ui/patterns';
 import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { buildFieldConfigs } from '@/features/content/shared/forms/registry';
-import { MONSTER_FORM_FIELDS } from '../registry/monsterForm.registry';
+import { buildFormLayout } from '@/features/content/shared/forms/registry';
+import { getMonsterFormFields } from '../registry/monsterForm.registry';
 import type { MonsterFormValues } from '../types/monsterForm.types';
 import { getAllowedSubtypeOptionsForCreatureType } from '@/features/content/creatures/domain/options/creatureTaxonomyOptions';
 import {
@@ -40,25 +44,32 @@ export function parseCreatureTypeId(
 }
 
 /**
- * Returns FieldConfig[] for monster Create/Edit forms.
+ * Returns FormLayoutNode[] for monster Create/Edit forms.
  * Subtype options are replaced from taxonomy using `selectedCreatureType`.
  */
 export const getMonsterFieldConfigs = (
   options: GetMonsterFieldConfigsOptions = {}
-): FieldConfig[] => {
-  const configs = buildFieldConfigs(MONSTER_FORM_FIELDS, options);
+): FormLayoutNode[] => {
+  const configs = buildFormLayout(getMonsterFormFields(), options);
   const typeId = parseCreatureTypeId(options.selectedCreatureType);
-  const subtypeOptions = typeId ? getAllowedSubtypeOptionsForCreatureType(typeId) : [];
-  const alignmentOptions = getAlignmentFormSelectOptionsForRuleset(options.ruleset);
-  return configs.map((c) => {
-    if (c.name === 'subtype' && c.type === 'select') {
+  /**
+   * `getAllowedSubtypeOptionsForCreatureType` and the alignment vocab return
+   * `readonly` arrays — clone into mutable arrays so the spread below stays
+   * assignable to the (mutable) `SelectOption[]` shape on FieldConfig.
+   */
+  const subtypeOptions = typeId
+    ? [...getAllowedSubtypeOptionsForCreatureType(typeId)]
+    : [];
+  const alignmentOptions = [...getAlignmentFormSelectOptionsForRuleset(options.ruleset)];
+  return configs.map((c): FormLayoutNode => {
+    if ('name' in c && c.name === 'subtype' && 'type' in c && c.type === 'select') {
       return {
         ...c,
         options: subtypeOptions,
         disabled: subtypeOptions.length === 0,
       };
     }
-    if (c.name === 'alignment' && c.type === 'select') {
+    if ('name' in c && c.name === 'alignment' && 'type' in c && c.type === 'select') {
       return { ...c, options: alignmentOptions };
     }
     return c;

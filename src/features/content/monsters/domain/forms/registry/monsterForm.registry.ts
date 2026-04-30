@@ -1,12 +1,20 @@
 /**
  * Monster form field registry.
- * Standard fields (name, type, sizeCategory) + individual JSON fields for each mechanics/lore subfield.
+ *
+ * Mix of flat {@link FieldSpec}s for scalar/JSON fields and structured
+ * {@link RepeatableGroupSpec}s for migrated sections (Phase 1: `traits`).
+ *
+ * The flat tuple `MONSTER_FORM_FIELDS` is consumed by `buildToInput` /
+ * `buildDefaultFormValues` for the non-structured fields. The `getMonsterFormFields()`
+ * factory composes the same flat fields with structured groups into a `FormNodeSpec`
+ * tree for `buildFormLayout` (which the route consumes).
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import {
   createJsonFieldSpec,
   numberRange,
   type FieldSpec,
+  type FormNodeSpec,
 } from '@/features/content/shared/forms/registry';
 import {
   numOrUndefined,
@@ -14,7 +22,9 @@ import {
   strOrEmpty,
   trimOrNull,
 } from '@/features/content/shared/forms/parsers';
+import { createNamedDescriptionGroup } from '@/features/content/shared/forms/groups/createNamedDescriptionGroup';
 import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
+import type { MonsterTrait } from '@/features/content/monsters/domain/types/monster-traits.types';
 import type { MonsterFormValues } from '../types/monsterForm.types';
 import type { AlignmentId } from '@/features/content/shared/domain/types';
 import {
@@ -120,7 +130,9 @@ export const MONSTER_FORM_FIELDS = [
   jsonField('actions', 'Actions', '[]', 3, 12, 'mechanics'),
   jsonField('bonusActions', 'Bonus Actions', '[]', 2, 8, 'mechanics'),
   jsonField('legendaryActions', 'Legendary Actions', '{}', 2, 10, 'mechanics'),
-  jsonField('traits', 'Traits', '[]', 2, 8, 'mechanics'),
+  // `traits` migrated to a structured repeatable group; see `monsterTraitsGroup`
+  // / `getMonsterFormFields()` below. Intentionally absent from this flat tuple
+  // so `buildToInput` does not try to JSON-parse a `MonsterTraitFormRow[]`.
   jsonField('abilities', 'Abilities', '{}', 2, 6, 'mechanics'),
   jsonField('senses', 'Senses', '{}', 2, 4, 'mechanics'),
   jsonField('proficiencies', 'Proficiencies', '{}', 2, 6, 'mechanics'),
@@ -188,3 +200,57 @@ export const MONSTER_FORM_FIELDS = [
     format: (v: unknown) => (v ?? DEFAULT_VISIBILITY_PUBLIC) as MonsterFormValues['accessPolicy'],
   },
 ] as const satisfies readonly FieldSpec<MonsterFormValues, MonsterInput & Record<string, unknown>, Monster & Record<string, unknown>>[];
+
+/**
+ * Structured repeatable group for `mechanics.traits[]` (Phase 1 pilot).
+ *
+ * MVP authors `name` + `description` only; domain extras (`trigger`, `effects`,
+ * `uses`, `resolution.caveats`, …) are preserved per row at save time via
+ * `mergePreserveExtras` (see {@link toMonsterInput}).
+ */
+export const monsterTraitsGroup = createNamedDescriptionGroup<
+  MonsterTrait,
+  MonsterFormValues,
+  MonsterInput & Record<string, unknown>,
+  Monster & Record<string, unknown>
+>({
+  name: 'traits',
+  domainPath: 'mechanics.traits',
+  itemLabel: 'Trait',
+  label: 'Traits',
+});
+
+/**
+ * Returns the full FormNodeSpec tree for monster Create/Edit forms — flat
+ * fields + structured groups (currently just `traits`). Consumed by
+ * `getMonsterFieldConfigs` via `buildFormLayout`.
+ *
+ * Insertion point for `traits` mirrors the legacy `jsonField('traits', …)`
+ * position so the on-screen field order is preserved.
+ */
+export function getMonsterFormFields(): FormNodeSpec<
+  MonsterFormValues,
+  MonsterInput & Record<string, unknown>,
+  Monster & Record<string, unknown>
+>[] {
+  const before: FormNodeSpec<
+    MonsterFormValues,
+    MonsterInput & Record<string, unknown>,
+    Monster & Record<string, unknown>
+  >[] = [];
+  const after: FormNodeSpec<
+    MonsterFormValues,
+    MonsterInput & Record<string, unknown>,
+    Monster & Record<string, unknown>
+  >[] = [];
+  let seenLegendary = false;
+  for (const spec of MONSTER_FORM_FIELDS) {
+    if (seenLegendary) {
+      after.push(spec);
+    } else {
+      before.push(spec);
+      if (spec.name === 'legendaryActions') seenLegendary = true;
+    }
+  }
+  return [...before, monsterTraitsGroup, ...after];
+}

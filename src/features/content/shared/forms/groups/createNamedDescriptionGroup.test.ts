@@ -90,7 +90,7 @@ describe('createNamedDescriptionGroup', () => {
     expect(group.patchBinding!.parse({})).toEqual([]);
   });
 
-  it('serialize() preserves extras for matched rows', () => {
+  it('serialize() preserves extras for matched rows and keeps __rowId on the patch state', () => {
     const group = createNamedDescriptionGroup<TraitDomain>({
       name: 'traits',
       domainPath: 'mechanics.traits',
@@ -102,14 +102,20 @@ describe('createNamedDescriptionGroup', () => {
     ];
     const formRows = [{ __rowId: 'r1', name: 'A', description: 'edited' }];
 
-    const out = group.patchBinding!.serialize(formRows, sourceRows) as TraitDomain[];
+    const out = group.patchBinding!.serialize(formRows, sourceRows) as Array<
+      TraitDomain & { __rowId?: string }
+    >;
 
-    expect(out).toEqual([
-      { name: 'A', description: 'edited', trigger: 'always' },
-    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toEqual({
+      __rowId: 'r1',
+      name: 'A',
+      description: 'edited',
+      trigger: 'always',
+    });
   });
 
-  it('serialize() drops __rowId from output', () => {
+  it('serialize() retains form-row __rowId for new rows so subsequent parse cycles still match', () => {
     const group = createNamedDescriptionGroup<TraitDomain>({
       name: 'traits',
       domainPath: 'mechanics.traits',
@@ -122,8 +128,25 @@ describe('createNamedDescriptionGroup', () => {
     ) as Array<Record<string, unknown>>;
 
     expect(out).toHaveLength(1);
-    expect(out[0]).not.toHaveProperty('__rowId');
-    expect(out[0]).toEqual({ name: 'B', description: 'B' });
+    expect(out[0]).toEqual({ __rowId: 'new1', name: 'B', description: 'B' });
+  });
+
+  it('serialize() mints a fresh __rowId when a form row lacks one', () => {
+    const group = createNamedDescriptionGroup<TraitDomain>({
+      name: 'traits',
+      domainPath: 'mechanics.traits',
+      itemLabel: 'Trait',
+    });
+
+    const out = group.patchBinding!.serialize(
+      [{ name: 'C', description: 'C' }],
+      undefined,
+    ) as Array<{ __rowId?: string; name: string; description: string }>;
+
+    expect(out).toHaveLength(1);
+    expect(out[0].__rowId).toBeDefined();
+    expect(out[0].__rowId!.length).toBeGreaterThan(0);
+    expect(out[0].name).toBe('C');
   });
 
   it('respects custom ownedKeys (e.g. when extras edit domain values)', () => {
@@ -149,9 +172,12 @@ describe('createNamedDescriptionGroup', () => {
       { __rowId: 'r1', name: 'Cleave', description: 'edited', level: 6 },
     ];
 
-    const out = group.patchBinding!.serialize(formRows, sourceRows) as Feature[];
+    const out = group.patchBinding!.serialize(formRows, sourceRows) as Array<
+      Feature & { __rowId?: string }
+    >;
     expect(out).toEqual([
       {
+        __rowId: 'r1',
         name: 'Cleave',
         description: 'edited',
         level: 6,

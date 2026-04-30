@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { FormLayoutNode } from '@/ui/patterns';
 import {
   getMonsterFieldConfigs,
   monsterToFormValues,
@@ -39,25 +40,36 @@ describe('monsterForm.mappers', () => {
 });
 
 describe('getMonsterFieldConfigs (subtype options)', () => {
+  /**
+   * `getMonsterFieldConfigs` now returns `FormLayoutNode[]` (Phase 1 swap to
+   * `buildFormLayout`). The union includes nodes that lack a top-level `name`
+   * (custom nodes) so we narrow before accessing field-specific keys.
+   */
+  const findSubtypeSelect = (nodes: FormLayoutNode[]) =>
+    nodes.find(
+      (c): c is FormLayoutNode & { name: 'subtype'; type: 'select' } =>
+        'name' in c && c.name === 'subtype' && 'type' in c && c.type === 'select',
+    );
+
   it('exposes goblinoid for fey and fiend options from taxonomy (not duplicated labels)', () => {
     const fey = getMonsterFieldConfigs({ selectedCreatureType: 'fey' });
-    const subFey = fey.find((c) => c.name === 'subtype' && c.type === 'select');
+    const subFey = findSubtypeSelect(fey);
     expect(subFey).toBeDefined();
-    if (subFey && subFey.type === 'select') {
+    if (subFey) {
       expect(subFey.options).toEqual(getAllowedSubtypeOptionsForCreatureType('fey'));
       expect(subFey.options.some((o) => o.value === 'goblinoid')).toBe(true);
     }
     const humanoid = getMonsterFieldConfigs({ selectedCreatureType: 'humanoid' });
-    const subHumanoid = humanoid.find((c) => c.name === 'subtype' && c.type === 'select');
+    const subHumanoid = findSubtypeSelect(humanoid);
     expect(subHumanoid).toBeDefined();
-    if (subHumanoid && subHumanoid.type === 'select') {
+    if (subHumanoid) {
       expect(subHumanoid.options).toEqual(getAllowedSubtypeOptionsForCreatureType('humanoid'));
       expect(subHumanoid.options.some((o) => o.value === 'goblinoid')).toBe(false);
     }
     const fiend = getMonsterFieldConfigs({ selectedCreatureType: 'fiend' });
-    const subFiend = fiend.find((c) => c.name === 'subtype' && c.type === 'select');
+    const subFiend = findSubtypeSelect(fiend);
     expect(subFiend).toBeDefined();
-    if (subFiend && subFiend.type === 'select') {
+    if (subFiend) {
       expect(subFiend.options).toEqual(getAllowedSubtypeOptionsForCreatureType('fiend'));
     }
   });

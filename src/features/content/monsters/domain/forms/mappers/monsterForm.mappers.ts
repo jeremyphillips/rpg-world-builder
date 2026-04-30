@@ -3,11 +3,16 @@
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
+import type { MonsterTrait } from '@/features/content/monsters/domain/types/monster-traits.types';
 import { toIdStringArray } from '@/features/content/shared/forms/toIdStringArray';
 import {
   buildToInput,
   buildDefaultFormValues,
 } from '@/features/content/shared/forms/registry';
+import {
+  mergePreserveExtras,
+  tagRowsWithIds,
+} from '@/features/content/shared/forms/assembly/mergePreserveExtras';
 import type {
   CreatureVulnerabilityDamageType,
   ImmunityType,
@@ -21,8 +26,14 @@ import { isSubtypeAllowedForCreatureType } from '@/features/content/creatures/do
 import { validateCreatureProficiencyGroups } from '@/shared/domain/proficiency/authoredCreatureProficiencies';
 import type { CreatureSubtypeId } from '@/features/content/creatures/domain/values';
 import { MONSTER_FORM_FIELDS } from '../registry/monsterForm.registry';
-import type { MonsterFormValues } from '../types/monsterForm.types';
+import type {
+  MonsterFormValues,
+  MonsterTraitFormRow,
+} from '../types/monsterForm.types';
 import { parseCreatureTypeId } from '../config/monsterForm.config';
+
+/** Domain-side keys that the trait form authoritatively owns (Phase 1 MVP). */
+const TRAIT_OWNED_KEYS = ['name', 'description'] as const satisfies readonly (keyof MonsterTrait & string)[];
 
 const toInput = buildToInput(MONSTER_FORM_FIELDS);
 const defaultFormValues = buildDefaultFormValues(MONSTER_FORM_FIELDS);
@@ -59,6 +70,58 @@ const numToStr = (v: unknown): string =>
   v != null && Number.isFinite(Number(v)) ? String(v) : '';
 
 /**
+ * Form-side projection of a domain trait. Each row carries an opaque
+ * `__rowId` so save-time `mergePreserveExtras` can round-trip domain extras
+ * (`trigger`, `effects`, `uses`, `resolution.caveats`, …) the form does not
+ * author yet.
+ *
+ * If a source row already carries `__rowId` (e.g. via {@link tagMonsterForEditing}),
+ * that id is reused so the merge at save time finds the same source row.
+ * Otherwise a fresh id is generated.
+ */
+const monsterTraitsToFormRows = (
+  traits: ReadonlyArray<MonsterTrait & { __rowId?: string }> | undefined,
+): MonsterTraitFormRow[] => {
+  if (!traits || traits.length === 0) return [];
+  const tagged = tagRowsWithIds(traits as readonly Record<string, unknown>[]);
+  return tagged.map((row, i) => {
+    const sourceRow = traits[i];
+    const fallbackId = (row as { __rowId: string }).__rowId;
+    const id = sourceRow.__rowId ?? fallbackId;
+    return {
+      __rowId: id,
+      name: sourceRow.name ?? '',
+      description: sourceRow.description ?? '',
+    };
+  });
+};
+
+/**
+ * Tag a Monster's structured-group rows with transient `__rowId`s for editing.
+ *
+ * The route memoizes this once when the entry loads and uses the same instance
+ * for both `monsterToFormValues` (load) and `toMonsterInput` (save), so the
+ * form-row ids resolve to the same source rows when `mergePreserveExtras` runs.
+ *
+ * Callers should re-run this whenever the loaded entry changes; subsequent
+ * calls produce new ids and form values must be reset together with the
+ * re-tagged source.
+ */
+export function tagMonsterForEditing(monster: Monster): Monster {
+  const traits = monster.mechanics?.traits;
+  if (!traits || traits.length === 0) return monster;
+  if (monster.mechanics === undefined) return monster;
+  const tagged = tagRowsWithIds(traits as readonly Record<string, unknown>[]) as MonsterTrait[];
+  return {
+    ...monster,
+    mechanics: {
+      ...monster.mechanics,
+      traits: tagged,
+    },
+  };
+}
+
+/**
  * Converts a Monster domain object to form values.
  */
 export const monsterToFormValues = (monster: Monster): MonsterFormValues => {
@@ -80,7 +143,7 @@ export const monsterToFormValues = (monster: Monster): MonsterFormValues => {
     actions: formatJson(m?.actions),
     bonusActions: formatJson(m?.bonusActions),
     legendaryActions: formatJson(m?.legendaryActions),
-    traits: formatJson(m?.traits),
+    traits: monsterTraitsToFormRows(m?.traits),
     abilities: formatJson(m?.abilities),
     senses: formatJson(m?.senses),
     proficiencies: formatJson(m?.proficiencies),
@@ -96,8 +159,15 @@ export const monsterToFormValues = (monster: Monster): MonsterFormValues => {
 
 /**
  * Converts form values to MonsterInput for create/update.
+ *
+ * `original` is threaded through from the loaded domain entry; it is required
+ * to preserve per-row extras for structured groups (Phase 1: traits) since the
+ * form does not author every domain field yet. New entries pass `undefined`.
  */
-export const toMonsterInput = (values: MonsterFormValues): MonsterInput => {
+export const toMonsterInput = (
+  values: MonsterFormValues,
+  original?: Monster | undefined,
+): MonsterInput => {
   const base = toInput(values) as Record<string, unknown>;
   const mechanics: Record<string, unknown> = {};
   const lore: Record<string, unknown> = {};
@@ -114,8 +184,15 @@ export const toMonsterInput = (values: MonsterFormValues): MonsterInput => {
   if (bonusActs !== undefined) mechanics.bonusActions = bonusActs;
   const leg = parseJson(values.legendaryActions);
   if (leg !== undefined) mechanics.legendaryActions = leg;
-  const tr = parseJson(values.traits);
-  if (tr !== undefined) mechanics.traits = tr;
+  if (Array.isArray(values.traits)) {
+    mechanics.traits = mergePreserveExtras<MonsterTrait>(
+      values.traits as ReadonlyArray<MonsterTraitFormRow & Partial<MonsterTrait>>,
+      original?.mechanics?.traits as
+        | ReadonlyArray<MonsterTrait & { __rowId?: string }>
+        | undefined,
+      TRAIT_OWNED_KEYS,
+    );
+  }
   const ab = parseJson(values.abilities);
   if (ab !== undefined) mechanics.abilities = ab;
   const sens = parseJson(values.senses);

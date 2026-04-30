@@ -5,6 +5,7 @@ import {
 } from '@/features/content/shared/domain/contentPatchRepo';
 import type { ContentTypeKey } from '@/features/content/shared/domain/patches/contentPatch.types';
 import type { PatchDriver } from '@/features/content/shared/editor/patchDriver';
+import { stripRowIdsDeep } from '@/features/content/shared/forms/assembly/mergePreserveExtras';
 import type { ValidationError } from './editRoute.types';
 
 type FeedbackSetters = {
@@ -42,7 +43,13 @@ export function useSystemPatchActions(params: {
     setSaving(true);
     setSuccess(false);
     setErrors([]);
-    const next = driver.getPatch();
+    /**
+     * Structured form groups (see `createNamedDescriptionGroup`) keep transient
+     * `__rowId` keys on the patch state so successive `parse → serialize` cycles
+     * can match form rows back to their domain source. Strip them at the persist
+     * boundary so they never leak into stored patches.
+     */
+    const next = stripRowIdsDeep(driver.getPatch());
     try {
       await upsertEntryPatch(campaignId, collectionKey, entryId, next);
       setInitialPatch(next);

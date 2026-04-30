@@ -19,7 +19,11 @@
  */
 
 import type { RepeatableGroupSpec, NestedFieldSpec } from '../registry/formNodeSpec.types';
-import { mergePreserveExtras, tagRowsWithIds } from '../assembly/mergePreserveExtras';
+import {
+  createRowId,
+  mergePreserveExtras,
+  tagRowsWithIds,
+} from '../assembly/mergePreserveExtras';
 
 /**
  * Form-side row shape for `name + description` (and friends). Extra keys are
@@ -131,6 +135,18 @@ export function createNamedDescriptionGroup<
         if (!Array.isArray(domainValue)) return [];
         return tagRowsWithIds(domainValue as TItem[]);
       },
+      /**
+       * Merge form rows back over the domain source while preserving extras,
+       * then re-attach each row's transient `__rowId` on the merged output.
+       *
+       * Keeping `__rowId` in the patch state is required so subsequent
+       * `parse` cycles can match the same row again (the patch-driver
+       * replaces array values wholesale, so without ids on the patch state
+       * the next render mints fresh ids that no longer match anything).
+       *
+       * The persist boundary is responsible for stripping these transient
+       * ids before saving (see `stripRowIdsDeep` and the slice mappers).
+       */
       serialize: (uiValue: unknown, currentDomainValue: unknown) => {
         const formRows = Array.isArray(uiValue)
           ? (uiValue as ReadonlyArray<NamedDescriptionFormRow & Partial<TItem>>)
@@ -138,7 +154,11 @@ export function createNamedDescriptionGroup<
         const sourceRows = Array.isArray(currentDomainValue)
           ? (currentDomainValue as ReadonlyArray<TItem & { __rowId?: string }>)
           : undefined;
-        return mergePreserveExtras<TItem>(formRows, sourceRows, ownedKeys);
+        const merged = mergePreserveExtras<TItem>(formRows, sourceRows, ownedKeys);
+        return merged.map((row, i) => ({
+          ...row,
+          __rowId: formRows[i]?.__rowId ?? createRowId(),
+        }));
       },
     },
   };

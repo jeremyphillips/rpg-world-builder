@@ -88,8 +88,13 @@ export function mergePreserveExtras<T extends Record<string, unknown>>(
 }
 
 /**
- * Tag each row in `rows` with a fresh `__rowId` (UUID). Returns a shallow-cloned
+ * Tag each row in `rows` with a transient `__rowId`. Returns a shallow-cloned
  * array of objects with the id set; original rows are not mutated.
+ *
+ * If a row already carries a non-empty `__rowId`, it is preserved as-is —
+ * critical for the patch-driver path, where `parse()` runs on every render but
+ * the rows must keep the same identity across renders so a later `serialize()`
+ * can match them back to the source via {@link mergePreserveExtras}.
  *
  * Callers should keep a reference to the tagged rows (e.g. as form values) and
  * pass the same tagged source array to {@link mergePreserveExtras} at save time.
@@ -98,7 +103,13 @@ export function tagRowsWithIds<T extends Record<string, unknown>>(
   rows: ReadonlyArray<T> | undefined,
 ): (T & RowWithId)[] {
   if (!rows) return [];
-  return rows.map((row) => ({ ...row, __rowId: createRowId() }));
+  return rows.map((row) => {
+    const existing = (row as RowWithId).__rowId;
+    if (typeof existing === 'string' && existing.length > 0) {
+      return { ...row, __rowId: existing };
+    }
+    return { ...row, __rowId: createRowId() };
+  });
 }
 
 /**
@@ -110,4 +121,29 @@ export function createRowId(): string {
     return crypto.randomUUID();
   }
   return `row_${Math.random().toString(36).slice(2)}_${Date.now().toString(36)}`;
+}
+
+const ROW_ID_KEY = '__rowId';
+
+/**
+ * Recursively remove every `__rowId` key from `value`, returning a deep-cloned
+ * structure with no transient ids. Arrays and plain objects are walked; other
+ * values pass through unchanged.
+ *
+ * Used at persist boundaries (server send / patch save) to ensure the ids that
+ * power form-row identity never leak into stored data.
+ */
+export function stripRowIdsDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return (value as unknown[]).map((v) => stripRowIdsDeep(v)) as unknown as T;
+  }
+  if (value !== null && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (k === ROW_ID_KEY) continue;
+      out[k] = stripRowIdsDeep(v);
+    }
+    return out as T;
+  }
+  return value;
 }

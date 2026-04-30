@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createRowId,
   mergePreserveExtras,
+  stripRowIdsDeep,
   tagRowsWithIds,
 } from './mergePreserveExtras';
 
@@ -37,6 +38,28 @@ describe('tagRowsWithIds', () => {
     tagRowsWithIds(rows);
     expect(rows[0]).not.toHaveProperty('__rowId');
   });
+
+  it('preserves an existing __rowId when present (idempotent on repeated calls)', () => {
+    const rows = [
+      { __rowId: 'stable-1', name: 'a', description: 'A' },
+      { __rowId: 'stable-2', name: 'b', description: 'B' },
+    ];
+    const tagged = tagRowsWithIds(rows);
+    expect(tagged.map((r) => r.__rowId)).toEqual(['stable-1', 'stable-2']);
+    const taggedAgain = tagRowsWithIds(tagged);
+    expect(taggedAgain.map((r) => r.__rowId)).toEqual(['stable-1', 'stable-2']);
+  });
+
+  it('mints a fresh id only for rows missing __rowId', () => {
+    const rows = [
+      { __rowId: 'stable', name: 'a', description: 'A' },
+      { name: 'b', description: 'B' },
+    ];
+    const tagged = tagRowsWithIds(rows);
+    expect(tagged[0].__rowId).toBe('stable');
+    expect(tagged[1].__rowId).toBeDefined();
+    expect(tagged[1].__rowId).not.toBe('stable');
+  });
 });
 
 describe('createRowId', () => {
@@ -45,6 +68,46 @@ describe('createRowId', () => {
     const b = createRowId();
     expect(a).not.toEqual(b);
     expect(a.length).toBeGreaterThan(0);
+  });
+});
+
+describe('stripRowIdsDeep', () => {
+  it('removes top-level __rowId keys', () => {
+    const input = { __rowId: 'r1', name: 'A' };
+    expect(stripRowIdsDeep(input)).toEqual({ name: 'A' });
+  });
+
+  it('removes __rowId from nested arrays of objects', () => {
+    const input = {
+      mechanics: {
+        traits: [
+          { __rowId: 'r1', name: 'A', description: 'A' },
+          { __rowId: 'r2', name: 'B', description: 'B' },
+        ],
+      },
+    };
+    expect(stripRowIdsDeep(input)).toEqual({
+      mechanics: {
+        traits: [
+          { name: 'A', description: 'A' },
+          { name: 'B', description: 'B' },
+        ],
+      },
+    });
+  });
+
+  it('preserves non-object values (strings, numbers, null, undefined)', () => {
+    expect(stripRowIdsDeep('plain')).toBe('plain');
+    expect(stripRowIdsDeep(42)).toBe(42);
+    expect(stripRowIdsDeep(null)).toBe(null);
+    expect(stripRowIdsDeep(undefined)).toBe(undefined);
+  });
+
+  it('does not mutate the input', () => {
+    const input = { __rowId: 'r1', nested: { __rowId: 'r2', x: 1 } };
+    stripRowIdsDeep(input);
+    expect(input.__rowId).toBe('r1');
+    expect(input.nested.__rowId).toBe('r2');
   });
 });
 

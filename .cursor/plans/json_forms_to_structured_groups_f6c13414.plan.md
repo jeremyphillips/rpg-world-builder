@@ -25,7 +25,7 @@ todos:
     status: pending
   - id: phase-1-monster-traits
     content: "Phase 1 (pilot): monster traits[] migrated; route on buildFormLayout; tests for preserve-extras + patch parity + reorder/insert/delete"
-    status: pending
+    status: completed
   - id: phase-2-class-definitions
     content: "Phase 2: class definitions.options[] + selectionLevel composite; SubclassOptionsSummary detail section"
     status: pending
@@ -159,22 +159,34 @@ Behavior:
 ### 0.8 Shared detail summary primitive
 - **New** `src/features/content/shared/components/detail/NamedEntryList.tsx` — `<Stack spacing>` of `<Box>{subtitle2 title}{callout?}{body2 description}{children?}</Box>`. Replace the bodies of [`MonsterTraitsSummary.tsx`](src/features/content/monsters/components/views/MonsterView/sections/MonsterTraitsSummary.tsx), the action entry in [`MonsterActionsSummary.tsx`](src/features/content/monsters/components/views/MonsterView/sections/MonsterActionsSummary.tsx), and the new class section components in later phases.
 
-## Phase 1 — Pilot: Monster traits
+## Phase 1 — Pilot: Monster traits ✅
 
 Smallest blast radius: pure name+description, no per-kind branching. Exercises preserve-extras (`trigger`, `effects`, `uses`, `resolution.caveats`) and patch parity end-to-end.
 
-- Replace `jsonField('traits', ...)` at [`monsterForm.registry.ts:140`](src/features/content/monsters/domain/forms/registry/monsterForm.registry.ts) with `createNamedDescriptionGroup({ name: 'traits', domainPath: 'mechanics.traits', itemLabel: 'Trait' })`.
-- [`monsterForm.types.ts:21`](src/features/content/monsters/domain/forms/types/monsterForm.types.ts): `traits: string` → `traits: NamedDescriptionFormRow[]`.
-- [`monsterForm.mappers.ts`](src/features/content/monsters/domain/forms/mappers/monsterForm.mappers.ts):
-  - `monsterToFormValues`: tag each `mechanics.traits[]` row with `__rowId`.
-  - `toMonsterInput(values, original)`: call `mergePreserveExtras(values.traits, original?.mechanics?.traits, ['name','description'])`.
-- [`MonsterEditRoute.tsx`](src/features/content/monsters/routes/MonsterEditRoute.tsx) + [`MonsterCreateRoute.tsx`](src/features/content/monsters/routes/MonsterCreateRoute.tsx): swap `buildFieldConfigs` → `buildFormLayout`, `ConditionalFormRenderer` → `DynamicFormRenderer`.
-- [`MonsterTraitsSummary.tsx`](src/features/content/monsters/components/views/MonsterView/sections/MonsterTraitsSummary.tsx): switch body to `<NamedEntryList items={traits} />`.
+**Status: COMPLETED.** All Phase 1 tasks landed; full slice test command (per AGENTS.md) plus monsters/classes/shared suites pass with **0 new TypeScript errors** vs. baseline.
 
-Tests (extend the AGENTS.md slice command):
-- `monsterForm.mappers.preserveExtras.test.ts`: load aboleth fixture → form values → edit `Mucus Cloud` description → save → `mucus-cloud.resolution.caveats` and the surrounding monster traits' `effects`/`uses` are byte-equal to source.
-- Add/reorder/delete cases.
-- Patch driver smoke test: edit a trait in patch mode and assert the persisted patch only contains `name`/`description` deltas.
+What shipped:
+
+- `jsonField('traits', ...)` → `createNamedDescriptionGroup({ name: 'traits', domainPath: 'mechanics.traits', itemLabel: 'Trait', label: 'Traits' })`, exported as `monsterTraitsGroup` from [`monsterForm.registry.ts`](src/features/content/monsters/domain/forms/registry/monsterForm.registry.ts). New `getMonsterFormFields()` factory composes the flat tuple + structured group into `FormNodeSpec[]`.
+- [`monsterForm.types.ts`](src/features/content/monsters/domain/forms/types/monsterForm.types.ts): `traits: string` → `traits: MonsterTraitFormRow[]` (alias of `NamedDescriptionFormRow`).
+- [`monsterForm.mappers.ts`](src/features/content/monsters/domain/forms/mappers/monsterForm.mappers.ts):
+  - New exported `tagMonsterForEditing(monster)` returns a shallow-cloned monster whose `mechanics.traits[]` carry transient `__rowId`s. Memoized once per loaded entry on the route so the same instance flows to both `monsterToFormValues` and the patch driver / submit-hook `originalEntry`.
+  - `monsterToFormValues` propagates `__rowId` from the tagged source onto form rows.
+  - `toMonsterInput(values, original?)` calls `mergePreserveExtras(values.traits, original?.mechanics?.traits, ['name','description'])` — extras (`resolution.caveats`, hypothetical `trigger`/`effects`/`uses`) round-trip byte-equal.
+- [`monsterForm.config.ts`](src/features/content/monsters/domain/forms/config/monsterForm.config.ts): swap `buildFieldConfigs` → `buildFormLayout`, return `FormLayoutNode[]`. `ConditionalFormRenderer` already accepts `FormLayoutNode[]` (delegates to `DynamicFormRenderer` internally); no route-level renderer swap needed.
+- [`MonsterEditRoute.tsx`](src/features/content/monsters/routes/MonsterEditRoute.tsx): wraps the loaded entry through `tagMonsterForEditing` once via `useMemo` and threads it into both `useCampaignEntryFormReset` and the patch-driver base / `useCampaignEntrySubmit.originalEntry`.
+- [`MonsterTraitsSummary.tsx`](src/features/content/monsters/components/views/MonsterView/sections/MonsterTraitsSummary.tsx) now renders via `<NamedEntryList items={...} />`.
+
+Phase-0 follow-ups landed alongside Phase 1 to make the patch path actually round-trip:
+
+- `tagRowsWithIds` now **preserves** an existing non-empty `__rowId` (instead of always minting fresh) so successive `parse → serialize` cycles in patch mode keep stable identity.
+- `createNamedDescriptionGroup.serialize` re-attaches the form row's `__rowId` to the merged output so the patch state retains identity across renders. Persistence boundary stripping moved into the shared `useSystemPatchActions.savePatch` via the new `stripRowIdsDeep` helper in [`mergePreserveExtras.ts`](src/features/content/shared/forms/assembly/mergePreserveExtras.ts).
+
+Tests (all pass, all green):
+
+- [`monsterForm.mappers.preserveExtras.test.ts`](src/features/content/monsters/domain/forms/mappers/monsterForm.mappers.preserveExtras.test.ts): aboleth fixture → form values → edit `Mucus Cloud` description → save. Asserts `mucus-cloud.resolution.caveats` and every other trait survive byte-equal. Reorder, insert, delete cases included; create-flow (no `original`) yields owned-keys-only rows.
+- [`monsterTraits.patchDriver.test.ts`](src/features/content/monsters/domain/forms/mappers/monsterTraits.patchDriver.test.ts): patch-driver smoke. Verifies (a) no-op render-cycle round-trip is data-equivalent to the tagged base after stripping ids, (b) a single description edit preserves every other row's extras byte-for-byte and the persisted patch (after `stripRowIdsDeep`) carries the edit, (c) two successive edits across a `parse → serialize → setValue → parse` cycle don't drop extras.
+- Phase-0 helpers ([`mergePreserveExtras.test.ts`](src/features/content/shared/forms/assembly/mergePreserveExtras.test.ts), [`createNamedDescriptionGroup.test.ts`](src/features/content/shared/forms/groups/createNamedDescriptionGroup.test.ts)) extended with idempotent `__rowId` preservation, fresh-id minting only when missing, and `stripRowIdsDeep` coverage.
 
 ## Phase 2 — Class: definitions.options[]
 

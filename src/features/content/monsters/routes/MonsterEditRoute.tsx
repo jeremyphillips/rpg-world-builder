@@ -27,6 +27,7 @@ import {
   MONSTER_FORM_DEFAULTS,
   monsterToFormValues,
   parseCreatureTypeId,
+  tagMonsterForEditing,
   toMonsterInput,
 } from '@/features/content/monsters/domain';
 import { isSubtypeAllowedForCreatureType } from '@/features/content/creatures/domain/values/creatureTaxonomy';
@@ -65,11 +66,22 @@ export default function MonsterEditRoute() {
     [catalog],
   );
 
-  const { entry: monster, loading, error, notFound } = useCampaignContentEntry<Monster>({
+  const { entry: rawMonster, loading, error, notFound } = useCampaignContentEntry<Monster>({
     campaignId: campaignId ?? undefined,
     entryKey: monsterSlug,
     fetchEntry: fetchMonster,
   });
+
+  /**
+   * Tag structured-group rows with transient `__rowId`s once per loaded entry.
+   * The same instance flows to both `monsterToFormValues` (via
+   * `useCampaignEntryFormReset`) and `originalEntry` on the submit hook so
+   * `mergePreserveExtras` can match form rows back to source rows at save time.
+   */
+  const monster = useMemo(
+    () => (rawMonster ? tagMonsterForEditing(rawMonster) : rawMonster),
+    [rawMonster],
+  );
 
   const methods = useForm<MonsterFormValues>({
     defaultValues: MONSTER_FORM_DEFAULTS,
