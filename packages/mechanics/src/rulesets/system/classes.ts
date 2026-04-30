@@ -21,7 +21,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       id: 'fighter_subclasses',
       name: 'Fighter Subclasses',
       selectionLevel: 3,
-      options: [{ id: 'champion', name: 'Champion' }],
+      options: [{ id: 'champion', name: 'Champion', description: '' }],
     },
     generation: { primaryAbilities: ['str', 'dex'] },
     progression: {
@@ -68,9 +68,10 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       name: 'Cleric Subclasses',
       selectionLevel: 3,
       options: [
-        { 
+        {
           id: 'life_domain',
           name: 'Life Domain',
+          description: '',
           features: [
             {
               id: 'life_domain.feature.life_domain_spells',
@@ -132,7 +133,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       name: 'Rogue Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'thief', name: 'Thief' },
+        { id: 'thief', name: 'Thief', description: '' },
       ],
     },
     generation: { primaryAbilities: ['dex'] },
@@ -163,6 +164,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
         {
           id: 'oath_of_devotion',
           name: 'Oath of Devotion',
+          description: '',
           features: [
             {
               id: 'oath_of_devotion.feature.sacred_weapon',
@@ -223,7 +225,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       name: 'Bard Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'college_of_lore', name: 'College of Lore' },
+        { id: 'college_of_lore', name: 'College of Lore', description: '' },
       ],
     },
     generation: { primaryAbilities: ['cha'] },
@@ -255,7 +257,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       name: 'Ranger Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'hunter', name: 'Hunter' },
+        { id: 'hunter', name: 'Hunter', description: '' },
       ],
     },
     generation: { primaryAbilities: ['dex', 'wis'] },
@@ -299,7 +301,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       name: 'Monk Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'way_of_the_open_hand', name: 'Way of the Open Hand' },
+        { id: 'way_of_the_open_hand', name: 'Way of the Open Hand', description: '' },
       ],
     },
     generation: { primaryAbilities: ['dex', 'wis'] },
@@ -327,7 +329,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       name: 'Druid Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'circle_of_the_land', name: 'Circle of the Land' },
+        { id: 'circle_of_the_land', name: 'Circle of the Land', description: '' },
       ],
     },
     generation: { primaryAbilities: ['wis'] },
@@ -359,7 +361,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       name: 'Warlock Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'fiend_patron', name: 'Fiend Patron' },
+        { id: 'fiend_patron', name: 'Fiend Patron', description: '' },
       ],
     },
     generation: { primaryAbilities: ['cha'] },
@@ -409,6 +411,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
         {
           id: 'draconic_bloodline',
           name: 'Draconic Bloodline',
+          description: '',
           features: [
             {
               name: 'Draconic Ancestry',
@@ -478,7 +481,12 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       name: 'Barbarian Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'berserker', name: 'Path of the Berserker', source: 'PHB' },
+        {
+          id: 'berserker',
+          name: 'Path of the Berserker',
+          description:
+            'Channel Rage into Violent Fury. Barbarians who walk the Path of the Berserker direct their Rage primarily toward violence. Their path is one of untrammeled fury, and they thrill in the chaos of battle as they allow their Rage to seize and empower them.',
+        },
       ],
     },
     generation: { primaryAbilities: ['str', 'con'] },
@@ -539,7 +547,7 @@ const CLASSES_RAW: readonly CharacterClass[] = [
       name: 'Wizard Subclasses',
       selectionLevel: 3,
       options: [
-        { id: 'evoker', name: 'Evoker' },
+        { id: 'evoker', name: 'Evoker', description: '' },
       ],
     },
     generation: { primaryAbilities: ['int'] },

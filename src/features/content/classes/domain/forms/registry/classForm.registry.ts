@@ -39,7 +39,7 @@ const DEFINITIONS_PLACEHOLDER = JSON.stringify(
     id: 'subclass_selection',
     name: 'Subclass',
     selectionLevel: 3,
-    options: [{ id: 'option_1', name: 'Option 1', source: 'PHB' }],
+    options: [{ id: 'option_1', name: 'Option 1', description: '' }],
   },
   null,
  2

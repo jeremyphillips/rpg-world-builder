@@ -50,7 +50,7 @@ export type SubclassFeature =
 export interface Subclass {
   id: string
   name: string
-  source?: string
+  description: string
   features?: SubclassFeature[]
 }
 
