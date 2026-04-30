@@ -1,6 +1,6 @@
 ---
 name: Monster detail 404 cleanup
-overview: "Eliminate expected `/api/campaigns/.../monsters/{key}` 404s on successful system-monster detail loads via catalog-aware `resolveMonsterEntry` + exported `fetchMonsterDetailEntry`; route param `monsterSlug`; `useCampaignContentEntry` `entryKey` + missing-param guard. Phase 2 rolls the same pattern to other content repos."
+overview: Eliminate expected `/api/campaigns/.../monsters/{key}` 404s on successful system-monster detail loads via catalog-aware `resolveMonsterEntry` + exported `fetchMonsterDetailEntry`; route param `monsterSlug`; `useCampaignContentEntry` `entryKey` + missing-param guard. Phase 2 rolls the same pattern to other content repos.
 todos:
   - id: repo-resolve
     content: "`resolveMonsterEntry` + `fetchMonsterDetailEntry` in monsterRepo; `getEntry` → resolve without catalog (fallback)"

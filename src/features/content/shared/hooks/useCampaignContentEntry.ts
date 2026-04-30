@@ -13,13 +13,13 @@ export interface UseCampaignContentEntryResult<T> {
 
 export interface UseCampaignContentEntryOptions<T> {
   campaignId: string | undefined;
-  /**
-   * Stable content key from the route (may be an id or slug depending on the route).
-   * Prefer `entryKey` when the segment is not a database id.
-   */
-  entryId?: string | undefined;
-  entryKey?: string | undefined;
-  fetchEntry: (campaignId: string, systemId: SystemRulesetId, entryId: string) => Promise<T | null>;
+  /** Route segment / catalog key used to load the entry (not necessarily a DB `_id`). */
+  entryKey: string | undefined;
+  fetchEntry: (
+    campaignId: string,
+    systemId: SystemRulesetId,
+    entryKey: string,
+  ) => Promise<T | null>;
   systemId?: SystemRulesetId;
 }
 
@@ -28,13 +28,10 @@ export function useCampaignContentEntry<T>(
 ): UseCampaignContentEntryResult<T> {
   const {
     campaignId,
-    entryId,
     entryKey,
     fetchEntry,
     systemId = DEFAULT_SYSTEM_RULESET_ID,
   } = options;
-
-  const effectiveEntryId = entryKey ?? entryId;
 
   const [entry, setEntry] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +42,7 @@ export function useCampaignContentEntry<T>(
   const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
 
   useEffect(() => {
-    if (!campaignId || !effectiveEntryId) {
+    if (!campaignId || !entryKey) {
       setLoading(false);
       setEntry(null);
       setError(null);
@@ -58,7 +55,7 @@ export function useCampaignContentEntry<T>(
     setError(null);
     setNotFound(false);
 
-    fetchEntry(campaignId, systemId, effectiveEntryId)
+    fetchEntry(campaignId, systemId, entryKey)
       .then((loaded) => {
         if (cancelled) return;
         if (!loaded) {
@@ -80,7 +77,7 @@ export function useCampaignContentEntry<T>(
       });
 
     return () => { cancelled = true; };
-  }, [campaignId, effectiveEntryId, fetchEntry, systemId, refreshKey]);
+  }, [campaignId, entryKey, fetchEntry, systemId, refreshKey]);
 
   return { entry, loading, error, notFound, refetch };
 }
