@@ -1,5 +1,5 @@
 /**
- * Phase 5 — mechanics.actions / bonusActions / legendaryActions split arrays.
+ * mechanics.actions / bonusActions / legendaryActions split arrays round-trips.
  */
 import { describe, expect, it } from 'vitest';
 
@@ -16,7 +16,7 @@ import {
   monsterToFormValues,
   tagMonsterForEditing,
   toMonsterInput,
-} from './monsterForm.mappers';
+} from '../monsterForm.mappers';
 
 function loadTagged(id: string): Monster {
   const m = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, id);
@@ -24,7 +24,7 @@ function loadTagged(id: string): Monster {
   return tagMonsterForEditing(m);
 }
 
-describe('monster actions Phase 5', () => {
+describe('monster actions (standard, bonus, legendary)', () => {
   it('round-trips aboleth mechanics.actions, bonusActions, and legendary block', () => {
     const tagged = loadTagged('aboleth');
     const beforeActs = tagged.mechanics?.actions;

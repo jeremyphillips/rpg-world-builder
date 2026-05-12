@@ -9,6 +9,12 @@ import type {
   MonsterSubtype,
 } from '@/features/content/monsters/domain/types';
 import type { NamedDescriptionFormRow } from '@/features/content/shared/forms/groups/createNamedDescriptionGroup';
+import type {
+  MonsterEquipmentArmorFormRow,
+  MonsterEquipmentWeaponFormRow,
+  MonsterLanguageFormRow,
+  MonsterSenseSpecialFormRow,
+} from '@/features/content/monsters/domain/forms/registry/monsterForm.phase6.assembly';
 
 /**
  * Form-side row for a monster trait. Carries an opaque `__rowId` (created at
@@ -38,9 +44,11 @@ export type MonsterFormValues = ContentFormValues & {
   /** Subtype tag; options depend on `type` (see getMonsterFieldConfigs). */
   subtype: MonsterSubtype | '';
   sizeCategory: MonsterSizeCategory | '';
-  /** Individual JSON fields for mechanics and lore subfields */
-  description: string;
-  languages: string;
+  /** Phase 6: `description.{short,long}` */
+  descriptionShort: string;
+  descriptionLong: string;
+  /** Phase 6: `languages[]` */
+  languageRows: MonsterLanguageFormRow[];
   /** Phase 4: flat `mechanics.hitPoints.{count,die,modifier}` */
   hitPointsCount: string;
   hitPointsDie: string;
@@ -75,10 +83,16 @@ export type MonsterFormValues = ContentFormValues & {
   abilityInt: string;
   abilityWis: string;
   abilityCha: string;
-  senses: string;
+  /** Phase 6: `mechanics.senses.passivePerception` */
+  sensesPassivePerception: string;
+  /** Phase 6: `mechanics.senses.special[]` */
+  senseSpecialRows: MonsterSenseSpecialFormRow[];
   proficiencies: string;
   proficiencyBonus: string;
-  equipment: string;
+  /** Phase 6: `mechanics.equipment.weapons` */
+  equipmentWeaponRows: MonsterEquipmentWeaponFormRow[];
+  /** Phase 6: `mechanics.equipment.armor` */
+  equipmentArmorRows: MonsterEquipmentArmorFormRow[];
   immunities: string[];
   vulnerabilities: string[];
   alignment: string;

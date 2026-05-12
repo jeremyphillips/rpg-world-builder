@@ -16,8 +16,8 @@ import { createPatchDriver } from '@/features/content/shared/editor/patchDriver'
 import { stripRowIdsDeep } from '@/features/content/shared/forms/assembly/mergePreserveExtras';
 import type { MonsterTrait } from '@/features/content/monsters/domain/types/monster-traits.types';
 
-import { tagMonsterForEditing } from './monsterForm.mappers';
-import { monsterTraitsGroup } from '../registry/monsterForm.registry';
+import { tagMonsterForEditing } from '../monsterForm.mappers';
+import { monsterTraitsGroup } from '../../registry/monsterForm.registry';
 
 function getAbolethBase(): Record<string, unknown> {
   const aboleth = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'aboleth');

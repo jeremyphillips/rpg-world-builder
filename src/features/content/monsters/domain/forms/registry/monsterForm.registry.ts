@@ -40,6 +40,12 @@ import {
   monsterMechanicsSpecialActionsGroup,
 } from '@/features/content/monsters/domain/forms/registry/monsterForm.actionPools';
 import {
+  monsterEquipmentArmorGroup,
+  monsterEquipmentWeaponsGroup,
+  monsterLanguagesGroup,
+  monsterSenseSpecialGroup,
+} from '@/features/content/monsters/domain/forms/registry/monsterForm.phase6Groups';
+import {
   PROFICIENCY_BONUS_MAX,
   PROFICIENCY_BONUS_MIN,
   isProficiencyBonus,
@@ -205,8 +211,28 @@ export const MONSTER_FORM_FIELDS = [
     parse: (v: unknown) => trimOrNull(v) as MonsterInput['imageKey'],
     format: (v: unknown) => strOrEmpty(v) as MonsterFormValues['imageKey'],
   },
-  jsonField('description', 'Description', JSON.stringify({ short: '', long: '' }, null, 2), 3, 6),
-  jsonField('languages', 'Languages', '[]', 2, 4),
+  {
+    name: 'descriptionShort' as const,
+    label: 'Description (short)',
+    kind: 'text' as const,
+    path: 'description.short',
+    placeholder: 'One-line summary',
+    defaultValue: '' as MonsterFormValues['descriptionShort'],
+    parse: () => undefined,
+    format: (v: unknown) => strOrEmpty(v) as MonsterFormValues['descriptionShort'],
+  },
+  {
+    name: 'descriptionLong' as const,
+    label: 'Description (long)',
+    kind: 'textarea' as const,
+    path: 'description.long',
+    placeholder: 'Fluff / read-aloud',
+    defaultValue: '' as MonsterFormValues['descriptionLong'],
+    minRows: 3,
+    maxRows: 12,
+    parse: () => undefined,
+    format: (v: unknown) => strOrEmpty(v) as MonsterFormValues['descriptionLong'],
+  },
   {
     name: 'hitPointsCount' as const,
     label: 'HP dice count',
@@ -378,7 +404,16 @@ export const MONSTER_FORM_FIELDS = [
     placeholder: '—',
     defaultValue: '' as MonsterFormValues['abilityCha'],
   },
-  jsonField('senses', 'Senses', '{}', 2, 4, 'mechanics'),
+  {
+    name: 'sensesPassivePerception' as const,
+    label: 'Passive Perception',
+    kind: 'numberText' as const,
+    path: 'mechanics.senses.passivePerception',
+    placeholder: 'e.g. 10',
+    defaultValue: '' as MonsterFormValues['sensesPassivePerception'],
+    parse: () => undefined,
+    format: (v: unknown) => numToStr(v) as MonsterFormValues['sensesPassivePerception'],
+  },
   jsonField('proficiencies', 'Proficiencies', '{}', 2, 6, 'mechanics'),
   {
     name: 'proficiencyBonus' as const,
@@ -396,7 +431,6 @@ export const MONSTER_FORM_FIELDS = [
     },
     format: (v: unknown) => numToStr(v) as MonsterFormValues['proficiencyBonus'],
   },
-  jsonField('equipment', 'Equipment', '{}', 2, 6, 'mechanics'),
   {
     name: 'immunities' as const,
     label: 'Immunities',
@@ -477,16 +511,56 @@ export function getMonsterFormFields(): FormNodeSpec<
   MonsterInput & Record<string, unknown>,
   Monster & Record<string, unknown>
 >[] {
+  const idxHitPoints = MONSTER_FORM_FIELDS.findIndex((s) => s.name === 'hitPointsCount');
   const idxAbilityStr = MONSTER_FORM_FIELDS.findIndex((s) => s.name === 'abilityStr');
-  if (idxAbilityStr < 0) {
-    throw new Error('monster registry: abilityStr anchor missing');
+  if (idxHitPoints < 0 || idxAbilityStr < 0) {
+    throw new Error('monster registry: hitPointsCount / abilityStr anchors missing');
   }
-  const prefixThroughMovement = MONSTER_FORM_FIELDS.slice(0, idxAbilityStr) as unknown as FormNodeSpec<
+
+  const prefixThroughDescription = MONSTER_FORM_FIELDS.slice(0, idxHitPoints) as unknown as FormNodeSpec<
     MonsterFormValues,
     MonsterInput & Record<string, unknown>,
     Monster & Record<string, unknown>
   >[];
-  const fromAbilitiesOn = MONSTER_FORM_FIELDS.slice(idxAbilityStr) as unknown as FormNodeSpec<
+  const hitPointsThroughMovement = MONSTER_FORM_FIELDS.slice(idxHitPoints, idxAbilityStr) as unknown as FormNodeSpec<
+    MonsterFormValues,
+    MonsterInput & Record<string, unknown>,
+    Monster & Record<string, unknown>
+  >[];
+
+  const fromAbilitiesOn = MONSTER_FORM_FIELDS.slice(idxAbilityStr) as unknown as FieldSpec<
+    MonsterFormValues,
+    MonsterInput & Record<string, unknown>,
+    Monster & Record<string, unknown>
+  >[];
+
+  const idxSensePassive = fromAbilitiesOn.findIndex((s) => s.name === 'sensesPassivePerception');
+  const idxProficiencies = fromAbilitiesOn.findIndex((s) => s.name === 'proficiencies');
+  if (idxSensePassive < 0 || idxProficiencies < 0) {
+    throw new Error('monster registry: sensesPassivePerception / proficiencies anchors missing');
+  }
+
+  const abilitiesOnly = fromAbilitiesOn.slice(0, idxSensePassive) as unknown as FormNodeSpec<
+    MonsterFormValues,
+    MonsterInput & Record<string, unknown>,
+    Monster & Record<string, unknown>
+  >[];
+  const sensesPassiveFields = fromAbilitiesOn.slice(idxSensePassive, idxProficiencies) as unknown as FormNodeSpec<
+    MonsterFormValues,
+    MonsterInput & Record<string, unknown>,
+    Monster & Record<string, unknown>
+  >[];
+  const fromProficienciesOn = fromAbilitiesOn.slice(idxProficiencies);
+  const idxImmunities = fromProficienciesOn.findIndex((s) => s.name === 'immunities');
+  if (idxImmunities < 0) {
+    throw new Error('monster registry: immunities anchor missing');
+  }
+  const proficienciesThroughProfBonus = fromProficienciesOn.slice(0, idxImmunities) as unknown as FormNodeSpec<
+    MonsterFormValues,
+    MonsterInput & Record<string, unknown>,
+    Monster & Record<string, unknown>
+  >[];
+  const fromImmunitiesOn = fromProficienciesOn.slice(idxImmunities) as unknown as FormNodeSpec<
     MonsterFormValues,
     MonsterInput & Record<string, unknown>,
     Monster & Record<string, unknown>
@@ -513,5 +587,19 @@ export function getMonsterFormFields(): FormNodeSpec<
     monsterLegendaryNaturalActionsGroup,
   ];
 
-  return [...prefixThroughMovement, ...phase5AttackPools, ...phase5Legendary, monsterTraitsGroup, ...fromAbilitiesOn];
+  return [
+    ...prefixThroughDescription,
+    monsterLanguagesGroup,
+    ...hitPointsThroughMovement,
+    ...phase5AttackPools,
+    ...phase5Legendary,
+    monsterTraitsGroup,
+    ...abilitiesOnly,
+    ...sensesPassiveFields,
+    monsterSenseSpecialGroup,
+    ...proficienciesThroughProfBonus,
+    monsterEquipmentWeaponsGroup,
+    monsterEquipmentArmorGroup,
+    ...fromImmunitiesOn,
+  ];
 }

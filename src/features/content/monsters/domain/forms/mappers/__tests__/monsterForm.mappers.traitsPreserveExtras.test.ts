@@ -1,5 +1,5 @@
 /**
- * Phase 1 (monster traits) preserve-extras tests.
+ * Monster traits preserve-extras tests.
  *
  * Verifies that the structured `traits` group round-trips domain extras
  * (`resolution.caveats`, hypothetical `effects`/`uses`/`trigger`) through the

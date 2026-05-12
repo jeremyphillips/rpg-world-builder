@@ -1,5 +1,5 @@
 /**
- * Phase 4 — monster stat block composites (hit points, AC, movement, abilities).
+ * Monster stat block composites (hit points, AC, movement, abilities).
  */
 import { describe, expect, it } from 'vitest';
 
@@ -7,7 +7,7 @@ import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/
 import { getSystemMonster } from '@/features/mechanics/domain/rulesets/system/monsters';
 import type { Monster } from '@/features/content/monsters/domain/types';
 
-import { monsterToFormValues, toMonsterInput } from './monsterForm.mappers';
+import { monsterToFormValues, toMonsterInput } from '../monsterForm.mappers';
 
 function loadAboleth(): Monster {
   const m = getSystemMonster(DEFAULT_SYSTEM_RULESET_ID, 'aboleth');
@@ -15,7 +15,7 @@ function loadAboleth(): Monster {
   return m;
 }
 
-describe('monster stat block (Phase 4)', () => {
+describe('monster stat block', () => {
   it('round-trips aboleth hit points, AC, movement, and abilities via form', () => {
     const monster = loadAboleth();
     const form = monsterToFormValues(monster);

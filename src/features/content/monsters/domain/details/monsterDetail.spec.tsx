@@ -1,4 +1,6 @@
 import type { Monster } from '@/features/content/monsters/domain/types';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import { structuredMainAndAdvanced, type DetailSpec } from '@/features/content/shared/forms/registry';
 import { getAlignmentDisplayName } from '@/features/content/shared/domain/vocab/alignment.vocab';
@@ -47,13 +49,32 @@ export const MONSTER_DETAIL_SPECS: DetailSpec<Monster, MonsterDetailCtx>[] = [
     renderFriendly: (_v, m) => <MonsterAbilitiesSummary monster={m} />,
     ...structuredMainAndAdvanced,
   },
-  // TODO: determine if this should display
-  // {
-  //   key: 'description.long',
-  //   label: 'Description',
-  //   order: 70,
-  //   render: (m) => m.description?.long ?? '—',
-  // },
+  {
+    key: 'description',
+    label: 'Description',
+    order: 70,
+    getValue: (m) => m.description,
+    renderFriendly: (_v, m) => {
+      const short = m.description?.short;
+      const long = m.description?.long;
+      if (!short && !long) return '—';
+      return (
+        <Stack spacing={0.75} component="div">
+          {short ? (
+            <Typography variant="body2" component="div">
+              {short}
+            </Typography>
+          ) : null}
+          {long ? (
+            <Typography variant="body2" color="text.secondary" component="div" sx={{ whiteSpace: 'pre-wrap' }}>
+              {long}
+            </Typography>
+          ) : null}
+        </Stack>
+      );
+    },
+    ...structuredMainAndAdvanced,
+  },
   {
     key: 'hitPoints',
     label: 'Hit Points',

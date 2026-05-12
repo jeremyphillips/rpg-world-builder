@@ -40,7 +40,7 @@ export type IntelligenceCategory =
   | 'low-to-very'
   | 'semi-to-average';
 
-type MonsterLanguage = {
+export type MonsterLanguage = {
   id: string;
   speaks?: boolean;
 };
