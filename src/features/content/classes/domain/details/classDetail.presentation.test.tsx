@@ -72,17 +72,17 @@ describe('class detail presentation', () => {
     expect(container.textContent).toMatch(/Hit die:\s*d10/i);
   });
 
-  it('buildDetailItemsFromSpecs advanced section includes full record JSON for platform admins', () => {
+  it('buildDetailItemsFromSpecs advanced section includes per-field raw JSON for platform admins', () => {
     const cls = sampleFighter();
     const advanced = buildDetailItemsFromSpecs(CLASS_DETAIL_SPECS, cls, ctx, {
       section: 'advanced',
       viewer: { isPlatformAdmin: true },
     });
-    const raw = advanced.find((row) => row.label === 'Full record (JSON)');
-    expect(raw?.value).toBeDefined();
-    const { container } = render(<Fragment>{raw?.value}</Fragment>);
+    const profRaw = advanced.find((row) => row.label === 'Proficiencies');
+    expect(profRaw?.value).toBeDefined();
+    const { container } = render(<Fragment>{profRaw?.value}</Fragment>);
     const pre = container.querySelector('pre');
     expect(pre).toBeTruthy();
-    expect(pre?.textContent).toMatch(/"name"\s*:/);
+    expect(pre?.textContent).toMatch(/skills/i);
   });
 });

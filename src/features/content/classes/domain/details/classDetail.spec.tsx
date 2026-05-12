@@ -20,29 +20,6 @@ export type ClassDetailCtx = Record<string, never>;
 const primaryAbilitiesLabel = (ids: AbilityId[]): string =>
   ids?.length ? ids.map((id) => abilityIdToName(id)).join(', ') : '—';
 
-function classAdvancedRecord(c: ClassContentItem): Record<string, unknown> {
-  const scopeMeta: Record<string, unknown> =
-    c.source === 'system'
-      ? { systemId: c.systemId }
-      : { campaignId: c.campaignId };
-
-  return {
-    id: c.id,
-    name: c.name,
-    source: c.source,
-    patched: c.patched,
-    ...scopeMeta,
-    accessPolicy: c.accessPolicy,
-    description: c.description,
-    imageKey: c.imageKey,
-    generation: c.generation,
-    proficiencies: c.proficiencies,
-    progression: c.progression,
-    definitions: c.definitions,
-    requirements: c.requirements,
-  };
-}
-
 export const CLASS_DETAIL_SPECS: DetailSpec<ClassContentItem, ClassDetailCtx>[] = [
   ...contentDetailMetaSpecs<ClassContentItem, ClassDetailCtx>(),
   ...contentDetailPatchedMetaSpecs<ClassContentItem, ClassDetailCtx>(),
@@ -107,13 +84,5 @@ export const CLASS_DETAIL_SPECS: DetailSpec<ClassContentItem, ClassDetailCtx>[] 
       <ClassRequirementsSummary requirements={c.requirements} />
     ),
     ...structuredMainAndAdvanced,
-  },
-  {
-    key: 'classRawRecord',
-    label: 'Full record (JSON)',
-    order: 2000,
-    placement: 'advanced',
-    rawAudience: 'platformOwner',
-    getValue: (c) => classAdvancedRecord(c),
   },
 ];

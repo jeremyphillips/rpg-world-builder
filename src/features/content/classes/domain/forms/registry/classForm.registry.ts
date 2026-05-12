@@ -12,11 +12,7 @@ import {
 } from '@/features/mechanics/domain/rulesets/system/catalog';
 import { DIE_FACES } from '@/shared/domain/dice';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import {
-  createJsonFieldSpec,
-  type FieldSpec,
-  type FormNodeSpec,
-} from '@/features/content/shared/forms/registry';
+import { type FieldSpec, type FormNodeSpec } from '@/features/content/shared/forms/registry';
 import {
   formatJsonObject,
   parseJsonObject,
@@ -30,40 +26,6 @@ import {
   getClassProficiencyPhase7Specs,
   getClassRequirementPhase7Specs,
 } from './classForm.phase7.registry';
-
-/**
- * Local wrapper around {@link createJsonFieldSpec} that pins generic params and
- * defaults the parser/formatter to the object-only variants used by class.
- *
- * @deprecated Transitional — fields move off `kind: 'json'` per phase plan.
- */
-const classJsonField = <K extends keyof ClassFormValues>(
-  name: K,
-  options: {
-    label: string;
-    placeholder: string;
-    helperText?: string;
-    minRows?: number;
-    maxRows?: number;
-    defaultValue?: ClassFormValues[K];
-    formatForDisplay?: (v: unknown) => React.ReactNode;
-  },
-): FieldSpec<
-  ClassFormValues,
-  ClassInput & Record<string, unknown>,
-  CharacterClass & Record<string, unknown>
-> =>
-  createJsonFieldSpec<
-    ClassFormValues,
-    ClassInput & Record<string, unknown>,
-    CharacterClass & Record<string, unknown>,
-    K
-  >({
-    name,
-    parse: parseJsonObject,
-    format: formatJsonObject,
-    ...options,
-  });
 
 const GENERATION_PLACEHOLDER = JSON.stringify({ primaryAbilities: ['str', 'dex'] }, null, 2);
 
@@ -105,13 +67,17 @@ export const CLASS_FORM_FIELDS = [
     parse: (v: unknown) => (v ?? DEFAULT_VISIBILITY_PUBLIC) as ClassInput['accessPolicy'],
     format: (v: unknown) => (v ?? DEFAULT_VISIBILITY_PUBLIC) as ClassFormValues['accessPolicy'],
   },
-  classJsonField('generation', {
+  {
+    name: 'generation',
     label: 'Generation',
+    kind: 'json' as const,
     placeholder: GENERATION_PLACEHOLDER,
     helperText: 'Primary abilities for character generation.',
     minRows: 2,
     maxRows: 8,
     defaultValue: GENERATION_PLACEHOLDER as ClassFormValues['generation'],
+    parse: (v: unknown) => parseJsonObject(v),
+    format: (v: unknown) => formatJsonObject(v) as ClassFormValues['generation'],
     formatForDisplay: (v) => {
       const obj = typeof v === 'object' && v !== null ? v : null;
       const arr =
@@ -122,7 +88,7 @@ export const CLASS_FORM_FIELDS = [
           : [];
       return arr.length > 0 ? arr.join(', ') : '—';
     },
-  }),
+  },
 ] as const satisfies readonly FieldSpec<
   ClassFormValues,
   ClassInput & Record<string, unknown>,

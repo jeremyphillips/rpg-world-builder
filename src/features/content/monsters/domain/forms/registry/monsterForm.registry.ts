@@ -10,16 +10,13 @@
  * tree for `buildFormLayout` (which the route consumes).
  */
 import { DEFAULT_VISIBILITY_PUBLIC, when } from '@/ui/patterns';
-import {
-  createJsonFieldSpec,
-  numberRange,
-  type FieldSpec,
-  type FormNodeSpec,
-} from '@/features/content/shared/forms/registry';
+import { numberRange, type FieldSpec, type FormNodeSpec } from '@/features/content/shared/forms/registry';
 import { DIE_FACES } from '@/shared/domain/dice';
 import {
+  formatJson,
   numOrUndefined,
   numToStr,
+  parseJson,
   strOrEmpty,
   trimOrNull,
 } from '@/features/content/shared/forms/parsers';
@@ -61,13 +58,6 @@ import {
 
 type MonsterPatchPathPrefix = 'mechanics' | 'lore';
 
-/**
- * Thin wrapper that pins the monster registry's generic params for
- * {@link createJsonFieldSpec} and the `patchPathPrefix` to the union of
- * monster-allowed prefixes (`mechanics` | `lore`).
- *
- * @deprecated Transitional — see {@link createJsonFieldSpec}.
- */
 const MONSTER_HIT_DIE_OPTIONS = DIE_FACES.map((d) => ({
   value: String(d),
   label: `d${d}`,
@@ -139,6 +129,7 @@ function legendaryActionsMetaField(): FieldSpec<
 /** Inserted between Phase 5 action pools and repeatable legendary slices (see {@link getMonsterFormFields}). */
 export const monsterLegendaryMetaField = legendaryActionsMetaField();
 
+/** Remaining `kind: 'json'` fields (proficiencies, lore CR/XP) until structured migration. */
 const jsonField = <K extends keyof MonsterFormValues>(
   name: K,
   label: string,
@@ -146,20 +137,27 @@ const jsonField = <K extends keyof MonsterFormValues>(
   minRows = 2,
   maxRows = 8,
   patchPathPrefix?: MonsterPatchPathPrefix,
-): FieldSpec<MonsterFormValues, MonsterInput & Record<string, unknown>, Monster & Record<string, unknown>> =>
-  createJsonFieldSpec<
+): FieldSpec<MonsterFormValues, MonsterInput & Record<string, unknown>, Monster & Record<string, unknown>> => {
+  const spec: FieldSpec<
     MonsterFormValues,
     MonsterInput & Record<string, unknown>,
-    Monster & Record<string, unknown>,
-    K
-  >({
+    Monster & Record<string, unknown>
+  > = {
     name,
     label,
+    kind: 'json',
     placeholder,
     minRows,
     maxRows,
-    ...(patchPathPrefix !== undefined ? { patchPathPrefix } : {}),
-  });
+    defaultValue: '' as MonsterFormValues[K],
+    parse: (v) => parseJson(v),
+    format: (v) => formatJson(v) as MonsterFormValues[keyof MonsterFormValues],
+  };
+  if (patchPathPrefix !== undefined) {
+    spec.path = `${patchPathPrefix}.${name}`;
+  }
+  return spec;
+};
 
 export const MONSTER_FORM_FIELDS = [
   {
