@@ -1,11 +1,11 @@
 import type { ClassContentItem } from '@/features/content/classes/domain/repo/classRepo';
 import {
   ClassFeatureList,
+  ClassProficienciesSummary,
   ClassProgressionSummary,
+  ClassRequirementsSummary,
   SubclassOptionsSummary,
 } from '@/features/content/classes/components/views/ClassView/sections';
-import type { ClassProficiencies } from '@/features/content/classes/domain/types/proficiencies.types';
-import type { ClassRequirement } from '@/features/content/classes/domain/types/requirements.types';
 import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import {
   structuredMainAndAdvanced,
@@ -19,60 +19,6 @@ export type ClassDetailCtx = Record<string, never>;
 
 const primaryAbilitiesLabel = (ids: AbilityId[]): string =>
   ids?.length ? ids.map((id) => abilityIdToName(id)).join(', ') : '—';
-
-function classProficienciesFriendly(p: ClassProficiencies): string {
-  const lines: string[] = [];
-  const sk = p.skills;
-  lines.push(
-    `Skills: choose ${sk.choose} at level ${sk.level}${
-      sk.from?.length ? ` (${sk.from.length} suggested options)` : ''
-    }`,
-  );
-
-  const w = p.weapons;
-  if (w.categories?.length) {
-    lines.push(`Weapons: ${w.categories.join(', ')} (level ${w.level})`);
-  } else if (w.items?.length) {
-    lines.push(`Weapons: ${w.items.length} specific (level ${w.level})`);
-  } else {
-    lines.push(`Weapons: ${w.type} (level ${w.level})`);
-  }
-
-  const a = p.armor;
-  if (a.categories?.length) {
-    lines.push(`Armor: ${a.categories.join(', ')} (level ${a.level})`);
-  } else {
-    lines.push(`Armor: ${a.type} (level ${a.level})`);
-  }
-
-  if (p.tools?.items?.length) {
-    lines.push(`Tools: ${p.tools.items.join(', ')}`);
-  }
-
-  return lines.join('\n');
-}
-
-function classRequirementsFriendly(r: ClassRequirement): string {
-  const lines: string[] = [];
-  lines.push(
-    r.allowedRaces === 'all' ? 'Races: All' : `Races: ${r.allowedRaces.length} specific`,
-  );
-  lines.push(
-    r.allowedAlignments === 'any'
-      ? 'Alignments: Any'
-      : `Alignments: ${r.allowedAlignments.length} allowed`,
-  );
-  if (r.minStats) {
-    lines.push('Ability prerequisites: yes');
-  }
-  if (r.multiclassing) {
-    lines.push('Multiclassing: prerequisites apply');
-  }
-  if (r.generationNotes?.length) {
-    lines.push(`Notes: ${r.generationNotes.length}`);
-  }
-  return lines.join('\n');
-}
 
 function classAdvancedRecord(c: ClassContentItem): Record<string, unknown> {
   const scopeMeta: Record<string, unknown> =
@@ -120,11 +66,11 @@ export const CLASS_DETAIL_SPECS: DetailSpec<ClassContentItem, ClassDetailCtx>[] 
     key: 'proficiencies',
     label: 'Proficiencies',
     order: 40,
-    render: (c) => (
-      <span style={{ whiteSpace: 'pre-line' }}>
-        {classProficienciesFriendly(c.proficiencies)}
-      </span>
+    getValue: (c) => c.proficiencies,
+    renderFriendly: (_v, c) => (
+      <ClassProficienciesSummary proficiencies={c.proficiencies} />
     ),
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'progression',
@@ -156,11 +102,11 @@ export const CLASS_DETAIL_SPECS: DetailSpec<ClassContentItem, ClassDetailCtx>[] 
     key: 'requirements',
     label: 'Requirements',
     order: 70,
-    render: (c) => (
-      <span style={{ whiteSpace: 'pre-line' }}>
-        {classRequirementsFriendly(c.requirements)}
-      </span>
+    getValue: (c) => c.requirements,
+    renderFriendly: (_v, c) => (
+      <ClassRequirementsSummary requirements={c.requirements} />
     ),
+    ...structuredMainAndAdvanced,
   },
   {
     key: 'classRawRecord',

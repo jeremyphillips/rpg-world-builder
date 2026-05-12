@@ -3,6 +3,12 @@
  * Registry-backed.
  */
 import type { CharacterClass } from '@/features/content/classes/domain/types';
+import {
+  assembleProficienciesFromPhase7Form,
+  assembleRequirementsFromPhase7Form,
+  classPhase7ToFormFragments,
+  proficiencyDefaultsFromPlaceholder,
+} from './classForm.phase7.assembly';
 import type {
   ClassFeature,
   ClassProgression,
@@ -178,6 +184,8 @@ export const classToFormValues = (
         ? String(charClass.definitions.selectionLevel)
         : '',
     definitionsOptions: definitionsOptionsToFormRows(charClass.definitions?.options),
+
+    ...classPhase7ToFormFragments(charClass),
   };
 };
 
@@ -282,8 +290,24 @@ export const toClassInput = (
       }
     : undefined;
 
+  const baselineProficiencies = {
+    ...proficiencyDefaultsFromPlaceholder(),
+    ...(original?.proficiencies ?? {}),
+  };
+
+  const proficiencies = assembleProficienciesFromPhase7Form(values, baselineProficiencies);
+
+  const baselineRequirements = {
+    allowedRaces: 'all' as const,
+    allowedAlignments: 'any' as const,
+    ...(original?.requirements ?? {}),
+  };
+  const requirements = assembleRequirementsFromPhase7Form(values, baselineRequirements);
+
   return {
     ...base,
+    proficiencies,
+    requirements,
     definitions,
     progression,
   };

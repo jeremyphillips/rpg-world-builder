@@ -175,7 +175,7 @@ export default function ClassEditRoute() {
       <AppAlert tone="danger">{error ?? 'Class not found.'}</AppAlert>
     );
 
-  const fieldConfigs = getClassFieldConfigs({ policyCharacters });
+  const fieldConfigs = getClassFieldConfigs({ policyCharacters, catalog });
 
   if (isSystem && driver) {
     return (

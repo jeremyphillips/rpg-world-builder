@@ -26,8 +26,35 @@ export type ClassFormValues = Pick<CharacterClass, 'name' | 'description'> & {
   accessPolicy?: Visibility;
   /** JSON string for AppFormJsonPreviewField. */
   generation: string;
-  /** JSON string for AppFormJsonPreviewField. */
-  proficiencies: string;
+  proficiencySkillsType: 'choice' | 'fixed';
+  proficiencySkillsLevel: string;
+  /** When `skills.type` is `choice`. */
+  proficiencySkillsChoose: string;
+  /** One skill id/token per line / comma-separated; maps to `proficiencies.skills.from`. */
+  proficiencySkillsFromText: string;
+
+  proficiencyWeaponsType: 'choice' | 'fixed';
+  proficiencyWeaponsLevel: string;
+  proficiencyWeaponsCategories: string[];
+  proficiencyWeaponsItemsText: string;
+
+  proficiencyArmorType: 'choice' | 'fixed';
+  proficiencyArmorLevel: string;
+  proficiencyArmorCategories: string[];
+  proficiencyArmorItemsText: string;
+  proficiencyArmorDisallowedMaterials: string[];
+
+  proficiencyToolsType: 'choice' | 'fixed';
+  proficiencyToolsLevel: string;
+  proficiencyToolsItems: string[];
+
+  /** Empty means all races. */
+  requirementsAllowedRaceIds: string[];
+  /** Empty means any alignment. */
+  requirementsAllowedAlignmentIds: string[];
+
+  requirementsMulticlassingJson: string;
+  requirementsMinStatsJson: string;
   /** Hit die faces (select value text, e.g. `"8"`). */
   progressionHitDie: string;
   progressionAttackProgression: AttackProgression | '';
@@ -43,8 +70,6 @@ export type ClassFormValues = Pick<CharacterClass, 'name' | 'description'> & {
   /** Level when the player chooses a subclass; empty = none (domain `null`). */
   definitionsSelectionLevel: string;
   definitionsOptions: ClassSubclassOptionFormRow[];
-  /** JSON string for AppFormJsonPreviewField. */
-  requirements: string;
 };
 
 /** Input for create/update — domain shape. */

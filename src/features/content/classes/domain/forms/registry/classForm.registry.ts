@@ -6,6 +6,10 @@ import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { ClassFeature } from '@/features/content/classes/domain/types/progression.types';
 import type { Subclass } from '@/features/content/classes/domain/types/subclass.types';
 import { ABILITIES } from '@/features/mechanics/domain/character';
+import {
+  systemCatalog,
+  type CampaignCatalog,
+} from '@/features/mechanics/domain/rulesets/system/catalog';
 import { DIE_FACES } from '@/shared/domain/dice';
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import {
@@ -22,6 +26,10 @@ import {
 } from '@/features/content/shared/forms/parsers';
 import { createNamedDescriptionGroup } from '@/features/content/shared/forms/groups/createNamedDescriptionGroup';
 import type { ClassFormValues, ClassInput } from '../types/classForm.types';
+import {
+  getClassProficiencyPhase7Specs,
+  getClassRequirementPhase7Specs,
+} from './classForm.phase7.registry';
 
 /**
  * Local wrapper around {@link createJsonFieldSpec} that pins generic params and
@@ -57,38 +65,7 @@ const classJsonField = <K extends keyof ClassFormValues>(
     ...options,
   });
 
-const REQUIREMENTS_PLACEHOLDER = JSON.stringify(
-  { allowedRaces: 'all', allowedAlignments: 'any' },
-  null,
-  2
-);
-
-const PROFICIENCIES_PLACEHOLDER = JSON.stringify(
-  {
-    skills: { type: 'choice', choose: 2, level: 1 },
-    weapons: { type: 'fixed', level: 1, categories: ['simple', 'martial'] },
-    armor: { type: 'fixed', level: 1, categories: ['light', 'medium'] },
-  },
-  null,
-  2
-);
-
 const GENERATION_PLACEHOLDER = JSON.stringify({ primaryAbilities: ['str', 'dex'] }, null, 2);
-
-const DEFAULT_REQUIREMENTS_JSON = JSON.stringify(
-  { allowedRaces: 'all', allowedAlignments: 'any' },
-  null,
-  2
-);
-const DEFAULT_PROFICIENCIES_JSON = JSON.stringify(
-  {
-    skills: { type: 'choice', choose: 2, level: 1 },
-    weapons: { type: 'fixed', level: 1, categories: ['simple', 'martial'] },
-    armor: { type: 'fixed', level: 1, categories: ['light', 'medium'] },
-  },
-  null,
-  2
-);
 
 export const CLASS_FORM_FIELDS = [
   {
@@ -145,26 +122,6 @@ export const CLASS_FORM_FIELDS = [
           : [];
       return arr.length > 0 ? arr.join(', ') : '—';
     },
-  }),
-  classJsonField('proficiencies', {
-    label: 'Proficiencies',
-    placeholder: PROFICIENCIES_PLACEHOLDER,
-    helperText: 'Skills, weapons, and armor proficiencies.',
-    minRows: 6,
-    maxRows: 16,
-    defaultValue: DEFAULT_PROFICIENCIES_JSON as ClassFormValues['proficiencies'],
-    formatForDisplay: (v) =>
-      v != null && typeof v === 'object' ? 'Configured' : '—',
-  }),
-  classJsonField('requirements', {
-    label: 'Requirements',
-    placeholder: REQUIREMENTS_PLACEHOLDER,
-    helperText: 'Allowed races, alignments, multiclassing.',
-    minRows: 4,
-    maxRows: 16,
-    defaultValue: DEFAULT_REQUIREMENTS_JSON as ClassFormValues['requirements'],
-    formatForDisplay: (v) =>
-      v != null && typeof v === 'object' ? 'Configured' : '—',
   }),
 ] as const satisfies readonly FieldSpec<
   ClassFormValues,
@@ -421,9 +378,12 @@ const CLASS_DEFINITION_SCALAR_SPECS = [
 >[];
 
 /**
- * Full layout: structured progression (Phase 3) + definitions block (Phase 2) after proficiencies JSON.
+ * Full layout: generation + structured proficiencies/requirements (Phase 7),
+ * progression (Phase 3), definitions (Phase 2).
  */
-export function getClassFormFields(): FormNodeSpec<
+export function getClassFormFields(
+  catalog: CampaignCatalog = systemCatalog,
+): FormNodeSpec<
   ClassFormValues,
   ClassInput & Record<string, unknown>,
   CharacterClass & Record<string, unknown>
@@ -435,11 +395,13 @@ export function getClassFormFields(): FormNodeSpec<
   >[] = [];
   for (const spec of CLASS_FORM_FIELDS) {
     out.push(spec);
-    if (spec.name === 'proficiencies') {
+    if (spec.name === 'generation') {
+      out.push(...getClassProficiencyPhase7Specs(catalog));
       out.push(...CLASS_PROGRESSION_SCALAR_SPECS);
       out.push(classProgressionFeaturesGroup);
       out.push(...CLASS_DEFINITION_SCALAR_SPECS);
       out.push(classDefinitionsOptionsGroup);
+      out.push(...getClassRequirementPhase7Specs(catalog));
     }
   }
   return out;
