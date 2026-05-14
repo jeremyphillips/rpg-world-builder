@@ -5,7 +5,6 @@
 import type { CampaignCatalog } from '@/features/mechanics/domain/rulesets/system/catalog';
 import type { CharacterClass } from '@/features/content/classes/domain/types';
 import { when } from '@/ui/patterns';
-import { when } from '@/ui/patterns';
 import type { FieldSpec } from '@/features/content/shared/forms/registry';
 import type { ClassFormValues, ClassInput } from '../types/classForm.types';
 import {
