@@ -1,15 +1,15 @@
 import type { CreatureTypeCondition } from '@/features/mechanics/domain/conditions/condition.types'
 import {
+  CREATURE_TYPE_DEFINITIONS,
   EXTRAPLANAR_CREATURE_TYPE_IDS,
-  MONSTER_TYPE_OPTIONS,
   type ExtraplanarCreatureTypeId,
-  type MonsterType,
-} from '@/features/content/monsters/domain/vocab/monster.vocab'
+} from '@/features/content/creatures/domain/values/creatureTaxonomy'
+import type { CreatureTypeId } from '@/features/content/creatures/domain/values'
 
 export { EXTRAPLANAR_CREATURE_TYPE_IDS, type ExtraplanarCreatureTypeId }
 
-function monsterTypeName(id: MonsterType): string {
-  return MONSTER_TYPE_OPTIONS.find((m) => m.id === id)?.name ?? id
+function monsterTypeName(id: CreatureTypeId): string {
+  return CREATURE_TYPE_DEFINITIONS.find((m) => m.id === id)?.name ?? id
 }
 
 /** Use on effect `condition` where the **source** (e.g. attacker) must be one of these types — not for spell target selection. */

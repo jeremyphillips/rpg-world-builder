@@ -20,10 +20,6 @@ export const MONSTERS_D: readonly MonsterCatalogEntry[] = [
       armorClass: { kind: 'natural', offset: 5 },
       movement: { ground: 30, fly: 90 },
       abilities: { str: 21, dex: 15, con: 22, int: 15, wis: 16, cha: 20 },
-      savingThrows: {
-        dex: { proficiencyLevel: 1 },
-        wis: { proficiencyLevel: 1 },
-      },
       senses: {
         special: [{ type: 'darkvision', range: 120 }],
         passivePerception: 13,
@@ -149,7 +145,11 @@ export const MONSTERS_D: readonly MonsterCatalogEntry[] = [
         passivePerception: 12,
       },
       proficiencies: {
-        skills: { perception: { proficiencyLevel: 1 }, stealth: { proficiencyLevel: 1 } },
+        saves: {
+        dex: 'proficient',
+        wis: 'proficient',
+      },
+        skills: { perception: 'proficient', stealth: 'proficient' },
       },
       proficiencyBonus: 2,
       vulnerabilities: ['fire'],
@@ -192,7 +192,7 @@ export const MONSTERS_D: readonly MonsterCatalogEntry[] = [
             'Dexterity Saving Throw: DC 10, each creature in a 15-foot Cone. Failure: The target has the Blinded condition until the end of the mephit’s next turn.',
           save: { ability: 'dex', dc: 10 },
           area: { kind: 'cone', size: 15 },
-          target: 'creatures-in-area',
+          target: { selection: 'in-area', targetType: 'creature' },
           recharge: { min: 6, max: 6 },
           onFail: [{ kind: 'condition', conditionId: 'blinded' }],
           resolution: {

@@ -1,8 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ConditionalFormRenderer } from '@/ui/patterns';
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useCampaignRules } from '@/app/providers/CampaignRulesProvider';
 import { EntryEditorLayout } from '@/features/content/shared/components';
 import { useCampaignMembers } from '@/features/campaign/hooks';
 import { useAccessPolicyField } from '@/features/content/shared/hooks/useAccessPolicyField';
@@ -22,6 +23,8 @@ export default function SpellCreateRoute() {
   const { campaignId } = useActiveCampaign();
   const navigate = useNavigate();
   const { approvedCharacters: policyCharacters } = useCampaignMembers();
+  const { catalog } = useCampaignRules();
+  const classesById = catalog.classesById;
 
   const methods = useForm<SpellFormValues>({
     defaultValues: SPELL_FORM_DEFAULTS,
@@ -36,6 +39,11 @@ export default function SpellCreateRoute() {
   const { policyValue, handlePolicyChange } =
     useAccessPolicyField<SpellFormValues>(watch, setValue);
 
+  const toSpellInputBound = useCallback(
+    (values: SpellFormValues) => toSpellInput(values, { classesById }),
+    [classesById],
+  );
+
   const handleSubmit = useCreateEntrySubmit<
     SpellFormValues,
     Parameters<typeof spellRepo.createEntry>[1],
@@ -44,7 +52,7 @@ export default function SpellCreateRoute() {
     campaignId,
     navigate,
     createEntry: spellRepo.createEntry,
-    toInput: toSpellInput,
+    toInput: toSpellInputBound,
     getSuccessPath: (cid, created) =>
       `/campaigns/${cid}/world/spells/${created.id}`,
     setSaving,
@@ -55,7 +63,10 @@ export default function SpellCreateRoute() {
     navigate(`/campaigns/${campaignId}/world/spells`);
   }, [navigate, campaignId]);
 
-  const fieldConfigs = getSpellFieldConfigs({ policyCharacters });
+  const fieldConfigs = useMemo(
+    () => getSpellFieldConfigs({ policyCharacters, classesById }),
+    [policyCharacters, classesById],
+  );
 
   return (
     <FormProvider {...methods}>

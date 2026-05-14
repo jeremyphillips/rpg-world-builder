@@ -4,12 +4,44 @@
  */
 import { useRef, useEffect } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import type { FieldConfig } from './form.types';
+import type { FieldConfig, FormLayoutNode } from './form.types';
 import type { FormDriver } from './DynamicFormRenderer';
 import type { PatchValidationApi } from './validation/PatchValidationContext';
 import { evaluateCondition } from './conditions';
 import { PatchValidationProvider } from './validation/PatchValidationContext';
 import DynamicFormRenderer from './DynamicFormRenderer';
+
+function isLeafFieldConfig(n: FormLayoutNode): n is FieldConfig {
+  if ('type' in n && n.type === 'repeatable-group') return false;
+  if ('type' in n && n.type === 'custom') return false;
+  return true;
+}
+
+/**
+ * `visibleWhen` paths are form field names (e.g. `castingTimeUnit`). Patch `driver.getValue(name)`
+ * resolves domain keys on the merged entry, so map through `FieldConfig.path` / `patchBinding`
+ * the same way `DriverField` does.
+ */
+function resolvePatchConditionValue(
+  fields: FormLayoutNode[],
+  path: string,
+  driver: { getValue: (p: string) => unknown },
+): unknown {
+  const field = fields.find(
+    (f) => isLeafFieldConfig(f) && f.name === path,
+  ) as FieldConfig | undefined;
+  if (field?.patchBinding) {
+    const domainVal = driver.getValue(field.patchBinding.domainPath);
+    return field.patchBinding.parse(domainVal);
+  }
+  if (field?.path) {
+    return driver.getValue(field.path);
+  }
+  if (field) {
+    return driver.getValue(field.name);
+  }
+  return driver.getValue(path);
+}
 
 function getAtPath(obj: Record<string, unknown>, path: string): unknown {
   const segments = path.split('.');
@@ -32,7 +64,7 @@ function getFieldPathForUnset(field: FieldConfig): string {
 }
 
 type ConditionalFormRendererProps = {
-  fields: FieldConfig[];
+  fields: FormLayoutNode[];
   spacing?: number;
   driver?: FormDriver;
   onValidationApi?: (api: PatchValidationApi) => void;
@@ -49,24 +81,28 @@ function ConditionalFormRendererPatch({
   const prevVisibleRef = useRef<Record<string, boolean>>({});
   const isInitialRenderRef = useRef(true);
 
-  const getValue = (path: string) => driver.getValue(path);
+  const getValue = (path: string) => resolvePatchConditionValue(fields, path, driver);
   const visibleFields = fields.filter((f) => {
+    if (!isLeafFieldConfig(f)) return true;
     if (!f.visibleWhen) return true;
     return evaluateCondition(f.visibleWhen, getValue);
   });
 
+  const leafVisibleFields = visibleFields.filter(isLeafFieldConfig);
+
   useEffect(() => {
     if (isInitialRenderRef.current) {
       isInitialRenderRef.current = false;
-      visibleFields.forEach((f) => {
+      leafVisibleFields.forEach((f) => {
         prevVisibleRef.current[f.name] = true;
       });
       return;
     }
 
-    const nowVisible = new Set(visibleFields.map((f) => f.name));
+    const nowVisible = new Set(leafVisibleFields.map((f) => f.name));
 
     for (const field of fields) {
+      if (!isLeafFieldConfig(field)) continue;
       const wasVisible = prevVisibleRef.current[field.name];
       const isVisible = nowVisible.has(field.name);
 
@@ -75,11 +111,11 @@ function ConditionalFormRendererPatch({
       }
       prevVisibleRef.current[field.name] = isVisible;
     }
-  }, [fields, visibleFields, driver]);
+  }, [fields, leafVisibleFields, driver]);
 
   return (
     <PatchValidationProvider
-      visibleFields={visibleFields}
+      visibleFields={leafVisibleFields}
       driver={driver}
       onValidationApi={onValidationApi}
     >
@@ -106,6 +142,7 @@ function ConditionalFormRendererRHF({
     getAtPath((watchValues ?? {}) as Record<string, unknown>, path);
 
   const visibleFields = fields.filter((f) => {
+    if (!isLeafFieldConfig(f)) return true;
     if (!f.visibleWhen) return true;
     return evaluateCondition(f.visibleWhen, getValue);
   });
@@ -113,15 +150,18 @@ function ConditionalFormRendererRHF({
   useEffect(() => {
     if (isInitialRenderRef.current) {
       isInitialRenderRef.current = false;
-      visibleFields.forEach((f) => {
+      visibleFields.filter(isLeafFieldConfig).forEach((f) => {
         prevVisibleRef.current[f.name] = true;
       });
       return;
     }
 
-    const nowVisible = new Set(visibleFields.map((f) => f.name));
+    const nowVisible = new Set(
+      visibleFields.filter(isLeafFieldConfig).map((f) => f.name),
+    );
 
     for (const field of fields) {
+      if (!isLeafFieldConfig(field)) continue;
       const wasVisible = prevVisibleRef.current[field.name];
       const isVisible = nowVisible.has(field.name);
 

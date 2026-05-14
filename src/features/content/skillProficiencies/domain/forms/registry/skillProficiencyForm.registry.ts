@@ -1,7 +1,7 @@
 /**
  * Skill Proficiency form field registry — single source of truth for config + mapping.
- * JSON fields (examples, tags, suggestedClasses) use placeholders that FormJsonField
- * renders as "Insert example" in JsonPreviewField.
+ * JSON fields (examples, tags, suggestedClasses) use placeholders that AppFormJsonPreviewField
+ * renders as "Insert example" in AppJsonPreviewField.
  */
 import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
@@ -11,6 +11,10 @@ import { type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { SkillProficiencyFormValues } from '../types/skillProficiencyForm.types';
 
 const ABILITY_OPTIONS = ABILITIES.map((a) => ({ value: a.id, label: a.name }));
+
+const trim = (v: unknown): string => (typeof v === 'string' ? v.trim() : '');
+const trimOrNull = (v: unknown): string | null => (trim(v) ? trim(v) : null);
+const strOrEmpty = (v: unknown): string => (v != null ? String(v) : '');
 
 const parseJsonArray = (v: unknown): string[] | undefined => {
   if (v == null || v === '') return undefined;
@@ -32,17 +36,17 @@ const formatJsonArray = (v: unknown): string => {
   }
 };
 
-/** Example for suggestedClasses — used as placeholder in FormJsonField. */
+/** Example for suggestedClasses — used as placeholder in AppFormJsonPreviewField. */
 const SUGGESTED_CLASSES_EXAMPLE = '["barbarian", "fighter", "paladin"]';
 
-/** Example for examples — used as placeholder in FormJsonField. */
+/** Example for examples — used as placeholder in AppFormJsonPreviewField. */
 const EXAMPLES_EXAMPLE = [
   'Climbing a sheer cliff or scaling a castle wall',
   'Swimming across a rushing river or escaping a whirlpool',
   'Grappling an opponent or breaking free from restraints',
 ];
 
-/** Example for tags — used as placeholder in FormJsonField. */
+/** Example for tags — used as placeholder in AppFormJsonPreviewField. */
 const TAGS_EXAMPLE = ['physical', 'strength', 'climbing', 'swimming', 'grappling', 'athletic'];
 
 export const SKILL_PROFICIENCY_FORM_FIELDS = [
@@ -75,6 +79,15 @@ export const SKILL_PROFICIENCY_FORM_FIELDS = [
     defaultValue: '' as SkillProficiencyFormValues['description'],
     parse: (v: unknown) => (typeof v === 'string' ? v.trim() : undefined),
     format: (v: unknown) => (v != null ? String(v) : '') as SkillProficiencyFormValues['description'],
+  },
+  {
+    name: 'imageKey',
+    label: 'Image',
+    kind: 'imageUpload' as const,
+    helperText: '/assets/... or CDN key',
+    defaultValue: '' as SkillProficiencyFormValues['imageKey'],
+    parse: (v: unknown) => trimOrNull(v) as SkillProficiencyInput['imageKey'],
+    format: (v: unknown) => strOrEmpty(v) as SkillProficiencyFormValues['imageKey'],
   },
   {
     name: 'suggestedClasses',

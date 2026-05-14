@@ -1,12 +1,10 @@
-export type TimeUnit =
-  | 'turn'
-  | 'round'
-  | 'minute'
-  | 'hour'
-  | 'day'
-  | 'week'
-  | 'month'
-  | 'year'
+import { TIME_UNIT_DEFINITIONS, type TimeUnit as CalendarTimeUnit } from '@/shared/domain/time';
+
+/** Combat-scale units not modeled in {@link TIME_UNIT_DEFINITIONS} (calendar / wall-time ids live in shared time). */
+export type CombatRoundTimeUnit = 'turn' | 'round';
+
+/** Effect timing: combat round units plus shared calendar time units. */
+export type TimeUnit = CombatRoundTimeUnit | CalendarTimeUnit;
 
 /** Turn boundary for duration tick and hook trigger timing. */
 export type TurnBoundary = 'start' | 'end'
@@ -47,8 +45,14 @@ export type RechargeSpec = {
   max: number
 }
 
-const FIXED_DURATION_PATTERN =
-  /^(?<value>\d+)\s+(?<unit>turn|round|minute|hour|day|week|month|year)s?$/
+const FIXED_DURATION_UNIT_ALTERNATION = [
+  ...(['turn', 'round'] as const satisfies readonly CombatRoundTimeUnit[]),
+  ...TIME_UNIT_DEFINITIONS.map((r) => r.id),
+].join('|');
+
+const FIXED_DURATION_PATTERN = new RegExp(
+  `^(?<value>\\d+)\\s+(?<unit>${FIXED_DURATION_UNIT_ALTERNATION})s?$`,
+);
 
 export function normalizeDuration(
   duration?: EffectDurationInput | null,

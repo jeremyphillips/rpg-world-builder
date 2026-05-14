@@ -1,4 +1,5 @@
 import type { Spell } from '@/features/content/spells/domain/types/spell.types'
+import { flattenSpellEffects, getPrimarySpellTargeting } from '@/features/content/spells/domain/spellEffectGroups'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types'
 import { walkNestedEffects } from './spell-resolution-audit'
 
@@ -21,9 +22,9 @@ export function deriveSpellHostility(spell: Spell): SpellHostilityDerivation {
   if (resolution?.hostileIntent === true) return 'hostile'
   if (resolution?.hostileIntent === false) return 'non-hostile'
 
-  const root = spell.effects ?? []
-  const targeting = root.find((e) => e.kind === 'targeting')
-  if (targeting?.kind === 'targeting' && targeting.requiresWilling) return 'non-hostile'
+  const root = flattenSpellEffects(spell)
+  const targeting = getPrimarySpellTargeting(spell)
+  if (targeting?.requiresWilling) return 'non-hostile'
 
   if (root.some((e) => e.kind === 'hit-points' && e.mode === 'heal')) {
     return 'non-hostile'

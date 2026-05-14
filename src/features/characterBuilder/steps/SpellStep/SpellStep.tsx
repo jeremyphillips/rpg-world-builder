@@ -9,21 +9,13 @@ import {
   isSpellLevelFull,
   toggleSpellSelection,
 } from '@/features/mechanics/domain/spells/selection'
+import { formatSpellLevelHeadingUnsafe } from '@/features/content/spells/domain/spellPresentation'
 
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Divider from '@mui/material/Divider'
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function levelHeading(level: number): string {
-  if (level === 0) return 'Cantrips'
-  return `${level}${level === 1 ? 'st' : level === 2 ? 'nd' : level === 3 ? 'rd' : 'th'} Level`
-}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -99,7 +91,7 @@ const SpellStep = () => {
             return (
               <Chip
                 key={level}
-                label={`${levelHeading(level)}: ${count} / ${max}`}
+                label={`${formatSpellLevelHeadingUnsafe(level)}: ${count} / ${max}`}
                 size="small"
                 color={full ? 'success' : 'default'}
                 variant="outlined"
@@ -128,7 +120,7 @@ const SpellStep = () => {
           <Box key={level} sx={{ mb: 3 }}>
             <Divider sx={{ mb: 1.5 }} />
             <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-              {levelHeading(level)}
+              {formatSpellLevelHeadingUnsafe(level)}
               <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
                 ({spells.length} available)
               </Typography>

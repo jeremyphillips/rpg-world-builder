@@ -1,6 +1,8 @@
 # Phased Plan: Skill Proficiency Shape Refactor
 
-This document outlines the migration from `proficiencies.skills` as `string[]` to a `Record<string, ProficiencyAdjustment>` shape. Legacy `skills?: string[]` support will be removed entirely. Data migration uses a one-time DB script.
+> **Superseded (2026):** Skills are now `Record<string, 'proficient' | 'expertise'>` (no `proficiencyLevel`, no adjustment wrapper). See [`authoredCreatureProficiencies.ts`](../../shared/domain/proficiency/authoredCreatureProficiencies.ts) and `scripts/migrateAuthoredProficiencyModes.ts`. The sections below describe the intermediate migration only.
+
+This document outlined the migration from `proficiencies.skills` as `string[]` to a record shape. Legacy `skills?: string[]` support is removed. Data migration uses `scripts/migrateAuthoredProficiencyModes.ts`.
 
 ---
 

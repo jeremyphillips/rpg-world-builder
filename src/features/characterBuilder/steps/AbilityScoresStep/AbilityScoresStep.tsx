@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
+import { AppTextField } from '@/ui/primitives';
 import Typography from '@mui/material/Typography';
 import { useCharacterBuilder } from '@/features/characterBuilder/context';
 import { ABILITY_KEYS, type AbilityKey, type AbilityScoreValue } from '@/features/mechanics/domain/character';
@@ -41,7 +41,7 @@ const AbilityScoresStep = () => {
 
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, maxWidth: 360 }}>
         {ABILITY_KEYS.map(id => (
-          <TextField
+          <AppTextField
             key={id}
             label={formatAbilityLabel(id)}
             type="number"

@@ -1,5 +1,6 @@
 import { useCampaignParty } from '@/features/campaign/hooks'
 import { CharacterMediaTopCard } from '@/features/character/components'
+import { resolveContentImageUrl } from '@/shared/lib/media'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { AppAlert } from '@/ui/primitives'
@@ -72,7 +73,7 @@ export default function CampaignPartySection({
                   name={char.name}
                   race={char.race?.name ?? '—'}
                   classes={char.classes}
-                  imageUrl={char.imageUrl ?? undefined}
+                  imageUrl={resolveContentImageUrl('character', char.imageKey ?? char.imageUrl)}
                   status={char.status}
                   isPresent={isPresent}
                   attribution={{ name: char.ownerName, imageUrl: char.ownerAvatarUrl ?? undefined }}

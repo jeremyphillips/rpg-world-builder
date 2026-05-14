@@ -1,5 +1,6 @@
 import { createBrowserRouter, Outlet, Navigate } from 'react-router-dom'
 import { ROUTES } from './routes'
+import type { AppRouteHandle } from './routing/layoutWidth'
 import { AppProviders } from './providers/AppProviders'
 
 // MUI Layouts
@@ -16,7 +17,8 @@ import {
   CharactersRoute,
   CharacterRoute,
   CampaignsRoute,
-  CampaignRoute,
+  CampaignLayoutRoute,
+  CampaignHubRoute,
   InviteRoute,
   EncounterLayout,
   EncounterIndexRedirect,
@@ -117,8 +119,13 @@ export const router = createBrowserRouter([
           { path: ROUTES.CAMPAIGNS, element: <CampaignsRoute /> },
           {
             path: ROUTES.CAMPAIGN,
-            element: <CampaignRoute />,
+            element: <CampaignLayoutRoute />,
             children: [
+              {
+                index: true,
+                element: <CampaignHubRoute />,
+                handle: { layoutWidth: 'full' } satisfies AppRouteHandle,
+              },
               {
                 path: 'world',
                 element: <WorldLayout />,

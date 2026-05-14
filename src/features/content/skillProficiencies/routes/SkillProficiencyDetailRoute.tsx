@@ -1,10 +1,16 @@
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailAdvancedAccordion,
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import {
   skillProficiencyRepo,
   SKILL_PROFICIENCY_DETAIL_SPECS,
@@ -12,18 +18,19 @@ import {
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 
 export default function SkillProficiencyDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { skillProficiencyId } = useParams<{ skillProficiencyId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: skillProficiency, loading, error, notFound } = useCampaignContentEntry<SkillProficiency>({
     campaignId: campaignId ?? undefined,
@@ -43,38 +50,40 @@ export default function SkillProficiencyDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Skill proficiency not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/skill-proficiencies`;
-  const editPath = `${listPath}/${skillProficiencyId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/skill-proficiencies/${skillProficiencyId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(SKILL_PROFICIENCY_DETAIL_SPECS, skillProficiency, {});
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
+    specs: SKILL_PROFICIENCY_DETAIL_SPECS,
+    item: skillProficiency,
+    ctx: {},
+    viewer,
+  });
 
   return (
     <ContentDetailScaffold
       title={skillProficiency.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={skillProficiency.source}
       accessPolicy={skillProficiency.accessPolicy}
+      hideAccessPolicyBadge
     >
-      {skillProficiency.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
+      <ContentDetailMetaRow items={metaItems} />
 
-      {skillProficiency.description && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {skillProficiency.description}
-        </Typography>
-      )}
+      <ContentDetailImageKeyValueGrid
+        imageContentType="skillProficiencies"
+        imageKey={skillProficiency.imageKey}
+        alt={skillProficiency.name}
+      >
+        <KeyValueSection title="" items={mainItems} columns={2} />
+      </ContentDetailImageKeyValueGrid>
 
-      <KeyValueSection
-        title="Skill Details"
-        items={items}
-        columns={2}
-        sx={{ mt: 2 }}
+      <ContentDetailAdvancedAccordion
+        items={advancedItems}
+        sectionTitle="Advanced skill proficiency data"
+        idPrefix="skill-proficiency"
       />
     </ContentDetailScaffold>
   );

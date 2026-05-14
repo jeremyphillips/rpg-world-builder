@@ -111,13 +111,10 @@ const VisibilityField = ({
   // ── Editable display ───────────────────────────────────────────────
 
   return (
-    <Box>
-      <Typography
-        variant="overline"
-        sx={{ display: 'block', mb: 0.5, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'text.secondary' }}
-      >
+    <Box sx={{ mt: 3 }}>
+      <label htmlFor="visibility">
         Visibility{required && ' *'}
-      </Typography>
+      </label>
 
       <RadioGroup
         value={value.scope}

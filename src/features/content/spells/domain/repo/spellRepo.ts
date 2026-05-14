@@ -7,11 +7,30 @@
  * 3) Raw system entry
  */
 import { apiFetch, ApiError } from '@/app/api';
-import type { Spell, SpellCastingTime, SpellComponents, SpellDuration, SpellEffects, SpellInput, SpellLevel, SpellRange, SpellScalingRule } from '@/features/content/spells/domain/types';
+import type {
+  Spell,
+  SpellCastingTime,
+  SpellComponents,
+  SpellDeliveryMethod,
+  SpellDuration,
+  SpellEffectGroup,
+  SpellInput,
+  SpellLevel,
+  SpellRange,
+  SpellResolutionMeta,
+  SpellScalingRule,
+} from '@/features/content/spells/domain/types';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 import { getSystemSpells, getSystemSpell } from '@/features/mechanics/domain/rulesets/system/spells';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import type { ListOptions } from '@/features/content/shared/domain/repo/contentRepo.types';
 import type { ClassId } from '@/shared/types/ruleset';
 import type { MagicSchool } from '@/features/content/shared/domain/vocab';
@@ -21,6 +40,7 @@ import type { AccessPolicy } from '@/shared/domain/accessPolicy';
 // API response shapes
 // ---------------------------------------------------------------------------
 
+/** Mirrors server [`CampaignSpellDoc`](server/features/content/spells/services/spells.service.ts) JSON. */
 type CampaignSpellDto = {
   _id: string;
   campaignId: string;
@@ -34,11 +54,13 @@ type CampaignSpellDto = {
   school: MagicSchool;
   level: SpellLevel;
   classes: ClassId[];
-  effects: SpellEffects;
+  effectGroups: SpellEffectGroup[];
   accessPolicy?: AccessPolicy;
   duration: SpellDuration;
   components: SpellComponents;
   scaling?: SpellScalingRule[];
+  resolution?: SpellResolutionMeta;
+  deliveryMethod?: SpellDeliveryMethod;
   castingTime: SpellCastingTime;
   range: SpellRange;
   createdAt: string;
@@ -69,7 +91,9 @@ function toSpell(dto: CampaignSpellDto): Spell {
     duration: dto.duration,
     components: dto.components,
     scaling: dto.scaling,
-    effects: dto.effects as Spell['effects'],
+    resolution: dto.resolution,
+    deliveryMethod: dto.deliveryMethod,
+    effectGroups: dto.effectGroups as Spell['effectGroups'],
     source: 'campaign',
     campaignId: dto.campaignId,
     accessPolicy: dto.accessPolicy as Spell['accessPolicy'],
@@ -181,19 +205,11 @@ export const spellRepo = {
       getContentPatch(campaignId),
     ]);
 
-    const spellPatches = contentPatch?.patches?.spells ?? {};
-    const campaignIds = new Set(campaign.map((c) => c.id));
-
-    const patchedSystem: Spell[] = system
-      .filter((s) => !campaignIds.has(s.id))
-      .map((s): Spell => {
-        const patch = spellPatches[s.id];
-        if (!patch) return s;
-        const merged = applyContentPatch<Spell>(s, patch as Partial<Spell>);
-        return { ...merged, patched: true };
-      });
-
-    const merged: Spell[] = [...patchedSystem, ...campaign];
+    const merged = mergeSystemCampaignWithPatches(
+      system,
+      campaign,
+      getPatchMapForType(contentPatch, 'spells'),
+    );
 
     let results = [...merged];
 
@@ -216,11 +232,10 @@ export const spellRepo = {
     if (!systemSpell) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const spellPatch = contentPatch?.patches?.spells?.[id];
-    if (!spellPatch) return systemSpell;
-
-    const merged = applyContentPatch<Spell>(systemSpell, spellPatch as Partial<Spell>);
-    return { ...merged, patched: true };
+    return resolveSystemEntryWithPatch(
+      systemSpell,
+      getEntryPatch(contentPatch, 'spells', id),
+    );
   },
 
   async createEntry(

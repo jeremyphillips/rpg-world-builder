@@ -24,7 +24,7 @@ export const lightPalette: PaletteOptions = {
     primary: colorPrimitives.gray[400],
     secondary: colorPrimitives.gray[200],
   },
-  divider: 'rgba(0, 0, 0, 0.12)',
+  divider: colorPrimitives.gray[200],
 }
 
 export const darkPalette: PaletteOptions = {
@@ -49,5 +49,5 @@ export const darkPalette: PaletteOptions = {
     primary: 'rgba(255, 255, 255, 0.87)',
     secondary: 'rgba(255, 255, 255, 0.60)',
   },
-  divider: 'rgba(255, 255, 255, 0.12)',
+  divider: 'rgba(23, 14, 14, 0.12)',
 }

@@ -31,6 +31,7 @@ export type SkillProficiencySummary = ContentItem & SkillProficiencyFields
 export type SkillProficiencyInput = Partial<SkillProficiencyFields> & {
   name: string
   description?: string
+  imageKey?: string | null
   ability: AbilityId
   suggestedClasses?: string[]
   examples?: string[]

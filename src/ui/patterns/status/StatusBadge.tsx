@@ -4,11 +4,12 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'
 import CancelIcon from '@mui/icons-material/Cancel'
 import { AppBadge } from '@/ui/primitives'
 import type { AppBadgeTone } from '@/ui/types'
+import type { ChipBadgeSize } from '@/ui/sizes'
 import type { StatusType } from '@/shared/types/status'
 
 export interface StatusBadgeProps {
   status: StatusType
-  size?: 'small' | 'medium'
+  size?: ChipBadgeSize
   variant?: ChipProps['variant']
 }
 

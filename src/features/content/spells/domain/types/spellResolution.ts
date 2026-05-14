@@ -1,7 +1,8 @@
+import { flattenSpellEffects } from '../spellEffectGroups';
 import type { SpellBase, SpellResolutionStatus } from './spell.types';
 
 export function getSpellResolutionStatus(spell: SpellBase): SpellResolutionStatus {
-  const effects = spell.effects ?? [];
+  const effects = flattenSpellEffects(spell);
   const hasStructured = effects.some((e) => e.kind !== 'note');
   if (!hasStructured) return 'stub';
 

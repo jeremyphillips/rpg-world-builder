@@ -1,13 +1,7 @@
-import type { TurnHookKind } from './turn-hooks.types';
+import type { TriggerId } from '@/features/content/shared/domain/vocab/triggers.vocab';
 
-export type TriggerType =
-  | 'attack'
-  | 'weapon-hit'
-  | 'hit'
-  | 'damage-dealt'
-  | 'damage-taken'
-  | TurnHookKind
-  | 'spell-cast'
+/** Canonical effect / condition trigger id (shared vocab). */
+export type TriggerType = TriggerId;
 
 export type TriggerInput =
   | TriggerType
@@ -24,12 +18,12 @@ export type TriggerInput =
   | 'damage_taken'
   | 'turn_start'
   | 'turn_end'
-  | 'spell_cast'
+  | 'spell_cast';
 
 const TRIGGER_INPUT_MAP: Record<TriggerInput, TriggerType> = {
-  'attack': 'attack',
+  attack: 'attack',
   'weapon-hit': 'weapon-hit',
-  'hit': 'hit',
+  hit: 'hit',
   'damage-dealt': 'damage-dealt',
   'damage-taken': 'damage-taken',
   'turn-start': 'turn-start',
@@ -49,8 +43,8 @@ const TRIGGER_INPUT_MAP: Record<TriggerInput, TriggerType> = {
   turn_start: 'turn-start',
   turn_end: 'turn-end',
   spell_cast: 'spell-cast',
-}
+};
 
 export function normalizeTriggerType(trigger: TriggerInput): TriggerType {
-  return TRIGGER_INPUT_MAP[trigger]
+  return TRIGGER_INPUT_MAP[trigger];
 }

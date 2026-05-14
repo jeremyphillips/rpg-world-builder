@@ -13,7 +13,7 @@ import type {
   WeaponProperty,
   WeaponDamageType,
 } from '../vocab/weapons.vocab';
-import type { DiceOrFlat } from '@/features/mechanics/domain/dice';
+import type { DiceOrFlat } from '@/shared/domain/dice';
 
 export type { WeaponCategory, WeaponMode, WeaponProperty, WeaponDamageType };
 

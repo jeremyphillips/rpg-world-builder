@@ -5,7 +5,7 @@ import { ROUTES } from '@/app/routes'
 import {
   AppForm,
   DynamicFormRenderer,
-  FormActions,
+  AppFormActions,
   type FieldConfig,
 } from '@/ui/patterns'
 
@@ -79,7 +79,7 @@ export default function LoginRoute() {
 
       <AppForm<LoginFormData> defaultValues={defaultValues} onSubmit={handleSubmit}>
         <DynamicFormRenderer fields={fields} />
-        <FormActions submitLabel="Sign In" />
+        <AppFormActions submitLabel="Sign In" />
       </AppForm>
     </Box>
   )

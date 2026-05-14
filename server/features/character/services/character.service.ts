@@ -6,6 +6,11 @@ import * as campaignMemberService from '../../campaign/services/campaignMember.s
 import * as notificationService from '../../notification/services/notification.service'
 import { getCampaignById } from '../../campaign/services/campaign.service'
 import { resolveCharacterAccess } from '../../../shared/auth/resolveCharacterAccess'
+import { narrowCharacterPatchForOwner } from '../../../../src/features/character/domain/characterPatchPolicy'
+import type {
+  CharacterPatchFields,
+  CharacterProficiencies,
+} from '../../../../src/features/character/domain/types/character.types'
 import type { CharacterDoc } from '../../../../src/features/character/domain/types/characterDoc.types'
 import { getPublicUrl } from '../../../shared/services/image.service'
 import {
@@ -76,7 +81,7 @@ export async function getCharacterDetail(characterId: string): Promise<Character
     classes: (character.classes as CharacterDocForDetail['classes']) ?? [],
     totalLevel: character.totalLevel as number | undefined,
     abilityScores: character.abilityScores as Record<string, number> | undefined,
-    proficiencies: character.proficiencies as { skills?: string[] } | undefined,
+    proficiencies: character.proficiencies as CharacterProficiencies | undefined,
     equipment: character.equipment as CharacterDocForDetail['equipment'] | undefined,
     wealth: character.wealth as CharacterDocForDetail['wealth'] | undefined,
     hitPoints: character.hitPoints as CharacterDocForDetail['hitPoints'] | undefined,
@@ -87,6 +92,7 @@ export async function getCharacterDetail(characterId: string): Promise<Character
     levelUpPending: character.levelUpPending as boolean | undefined,
     pendingLevel: character.pendingLevel as number | undefined,
     xp: character.xp as number | undefined,
+    raceChoices: character.raceChoices as Record<string, string> | undefined,
   }
 
   const refs = await loadCharacterReadReferences({
@@ -172,11 +178,15 @@ export async function createCharacter(userId: string, data: CharacterDoc) {
     wealth: data.wealth ?? { gp: 0, sp: 0, cp: 0 },
     abilityScores: data.abilityScores ?? {},
     hitPoints: data.hitPoints ?? {},
-    proficiencies: data.proficiencies ?? [],
+    proficiencies:
+      data.proficiencies != null && !Array.isArray(data.proficiencies)
+        ? data.proficiencies
+        : { skills: {} },
     spells: data.spells ?? [],
     narrative: data.narrative ?? {},
     ai: data.ai ?? {},
     generation: data.generation ?? {},
+    ...(data.raceChoices != null ? { raceChoices: data.raceChoices } : {}),
     createdAt: now,
     updatedAt: now,
   })
@@ -272,23 +282,11 @@ export async function createCharacterWithCampaignLink(
   return character
 }
 
-export type UpdateCharacterBody = Partial<{
-  name: string
-  imageKey: string | null
-  narrative: Record<string, unknown>
-  combat: Record<string, unknown>
-  totalLevel: number
-  classes: unknown[]
-  hitPoints: Record<string, unknown>
-  spells: string[]
-  levelUpPending: boolean
-  pendingLevel: number
-  subclassId: string
-}>
+export type UpdateCharacterBody = Partial<CharacterPatchFields>
 
 /**
  * Update character with access policy and level-up cancel notification.
- * Non-admins are restricted to name, imageKey, narrative, combat, and level-up fields.
+ * Non–campaign-admins are restricted to owner-safe sheet fields; level-up class/HP fields apply only while level-up is pending.
  * Throws ApiError on 404 or 403.
  */
 export async function updateCharacterWithPolicy(
@@ -311,33 +309,10 @@ export async function updateCharacterWithPolicy(
 
   let updateData: UpdateCharacterBody = body
   if (!isCampaignAdmin && !access.isPlatformAdmin) {
-    const {
-      name,
-      imageKey,
-      narrative,
-      combat,
-      totalLevel,
-      classes,
-      hitPoints,
-      spells,
-      levelUpPending,
-      pendingLevel,
-      subclassId,
-    } = body
-    updateData = {}
-    if (name !== undefined) updateData.name = name
-    if (imageKey !== undefined) updateData.imageKey = imageKey
-    if (narrative !== undefined) updateData.narrative = narrative
-    if (combat !== undefined) updateData.combat = combat
-    if (spells !== undefined) updateData.spells = spells
-    if ((character as { levelUpPending?: boolean }).levelUpPending) {
-      if (totalLevel !== undefined) updateData.totalLevel = totalLevel
-      if (classes !== undefined) updateData.classes = classes
-      if (hitPoints !== undefined) updateData.hitPoints = hitPoints
-      if (levelUpPending !== undefined) updateData.levelUpPending = levelUpPending
-      if (pendingLevel !== undefined) updateData.pendingLevel = pendingLevel
-      if (subclassId !== undefined) updateData.subclassId = subclassId
-    }
+    updateData = narrowCharacterPatchForOwner(
+      body,
+      (character as { levelUpPending?: boolean }).levelUpPending === true,
+    )
   }
 
   const updated = await updateCharacter(characterId, updateData)
@@ -365,7 +340,7 @@ export async function updateCharacterWithPolicy(
   return updated
 }
 
-export async function updateCharacter(id: string, data: Partial<CharacterData>) {
+export async function updateCharacter(id: string, data: Partial<CharacterPatchFields>) {
   // Strip out undefined values so we don't overwrite with undefined
   const cleaned = Object.fromEntries(
     Object.entries(data).filter(([_, v]) => v !== undefined)

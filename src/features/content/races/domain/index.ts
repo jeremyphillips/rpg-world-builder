@@ -1,3 +1,4 @@
+export { collectRaceCreatureSenses } from './grants/collectRaceCreatureSenses';
 export {
   raceRepo,
   listCampaignRaces,

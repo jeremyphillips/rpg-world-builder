@@ -5,13 +5,10 @@ import Box from '@mui/material/Box'
 import Badge from '@mui/material/Badge'
 import Collapse from '@mui/material/Collapse'
 import Divider from '@mui/material/Divider'
-import FormControl from '@mui/material/FormControl'
 import List from '@mui/material/List'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
 import Typography from '@mui/material/Typography'
 import ChatIcon from '@mui/icons-material/Chat'
 import DashboardIcon from '@mui/icons-material/Dashboard'
@@ -23,8 +20,10 @@ import GavelIcon from '@mui/icons-material/Gavel'
 import PlaceIcon from '@mui/icons-material/Place'
 import SettingsIcon from '@mui/icons-material/Settings'
 import ShieldIcon from '@mui/icons-material/Shield'
+
 import { ROUTES } from '@/app/routes'
 import type { Campaign } from '@/shared/types/campaign.types'
+import { AppSelect } from '@/ui/primitives'
 
 type DrawerCampaignSectionProps = {
   pathname: string
@@ -57,35 +56,21 @@ export function DrawerCampaignSection({
         bgcolor: (theme) => alpha(theme.palette.primary.main, 0.08),
       }}
     >
-      <Typography variant="overline" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.7rem' }}>
-        Campaign
-      </Typography>
-
-      <FormControl fullWidth size="small">
-        <Select
-          value={activeCampaignId ?? ''}
-          onChange={(e) => onCampaignChange(e.target.value)}
-          displayEmpty
-          disabled={!campaignsLoading && campaigns.length === 0}
-          renderValue={(value) => {
-            if (!value) return campaignsLoading ? 'Loading…' : campaigns.length === 0 ? 'No Campaigns' : 'Select Campaign'
-            return campaigns.find((c) => c._id === value)?.identity?.name ?? 'Select Campaign'
-          }}
-          sx={{ fontSize: '0.9rem' }}
-        >
-          {campaignsLoading ? (
-            <MenuItem disabled>Loading…</MenuItem>
-          ) : campaigns.length === 0 ? (
-            <MenuItem disabled>No Campaigns</MenuItem>
-          ) : (
-            campaigns.map((c) => (
-              <MenuItem key={c._id} value={c._id}>
-                {c.identity?.name ?? c._id}
-              </MenuItem>
-            ))
-          )}
-        </Select>
-      </FormControl>
+      <AppSelect
+        label="Campaign"
+        value={activeCampaignId ?? ''}
+        onChange={onCampaignChange}
+        disabled={!campaignsLoading && campaigns.length === 0}
+        placeholder={
+          campaignsLoading ? 'Loading…' : campaigns.length === 0 ? 'No Campaigns' : 'Select Campaign'
+        }
+        options={campaigns.map((c) => ({
+          value: c._id,
+          label: c.identity?.name ?? c._id,
+        }))}
+        size="large"
+        sx={{ fontSize: '0.9rem' }}
+      />
 
       {campaigns.length > 0 && (
         <List component="nav" disablePadding sx={{ mt: 1 }}>

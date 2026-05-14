@@ -16,7 +16,7 @@ import CardActions from '@mui/material/CardActions'
 import Typography from '@mui/material/Typography'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/primitives'
 import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import Stack from '@mui/material/Stack'
@@ -310,7 +310,7 @@ const ClassStep = () => {
                           <RemoveIcon />
                         </IconButton>
 
-                        <TextField
+                        <AppTextField
                           value={cls.level}
                           size="small"
                           type="number"

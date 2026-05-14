@@ -1,4 +1,5 @@
-import type { CharacterProficiencies, ProficiencyAdjustment } from '@/features/character/domain/types'
+import type { CharacterProficiencies } from '@/features/character/domain/types'
+import type { AuthoredExpertiseProficiency } from '@/shared/domain/proficiency/authoredCreatureProficiencies'
 
 /**
  * Extract skill IDs from proficiencies (record shape).
@@ -10,9 +11,9 @@ export function getSkillIds(proficiencies: CharacterProficiencies | undefined): 
   return Object.keys(skills)
 }
 
-/**
- * Convert array of skill IDs to record shape with proficiencyLevel: 1 per entry.
- */
-export function toSkillProficienciesRecord(ids: string[]): Record<string, ProficiencyAdjustment> {
-  return Object.fromEntries(ids.map((id) => [id, { proficiencyLevel: 1 }]))
+/** Convert array of skill IDs to proficient entries (class skill picks). */
+export function toSkillProficienciesRecord(
+  ids: string[],
+): Record<string, AuthoredExpertiseProficiency> {
+  return Object.fromEntries(ids.map((id) => [id, 'proficient' as const]))
 }

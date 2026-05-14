@@ -153,10 +153,10 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         weapons: {
-          greataxe: { proficiencyLevel: 1 },
-          javelin: { proficiencyLevel: 1 },
+          greataxe: 'proficient',
+          javelin: 'proficient',
         },
-        skills: { intimidation: { proficiencyLevel: 1 } },
+        skills: { intimidation: 'proficient' },
       },
       proficiencyBonus: 2,
     },
@@ -190,9 +190,6 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
       },
       movement: { ground: 20 },
       abilities: { str: 16, dex: 8, con: 15, int: 6, wis: 12, cha: 12 },
-      savingThrows: {
-        wis: { proficiencyLevel: 1 },
-      },
       actions: [
         {
           kind: "special",
@@ -294,7 +291,7 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
           effects: [
             {
               kind: "targeting",
-              target: "one-creature",
+              selection: "one",
               targetType: "creature",
               rangeFeet: 60,
               requiresSight: true,
@@ -357,9 +354,12 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
         },
       },
       proficiencies: {
+        saves: {
+        wis: 'proficient',
+      },
         weapons: {
-          greatclub: { proficiencyLevel: 1 },
-          javelin: { proficiencyLevel: 1 },
+          greatclub: 'proficient',
+          javelin: 'proficient',
         },
       },
       proficiencyBonus: 2,
@@ -415,7 +415,7 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
         }
       ],
       proficiencies: {
-        skills: { perception: { proficiencyLevel: 2 } },
+        skills: { perception: 'expertise' },
       },
       proficiencyBonus: 2,
       senses: {
@@ -536,7 +536,7 @@ export const MONSTERS_M_O: readonly MonsterCatalogEntry[] = [
         passivePerception: 11,
       },
       proficiencies: {
-        skills: { stealth: { proficiencyLevel: 2 } },
+        skills: { stealth: 'expertise' },
       },
       proficiencyBonus: 2,
       immunities: ["acid", "prone"],

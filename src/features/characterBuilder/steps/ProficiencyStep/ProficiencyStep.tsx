@@ -12,7 +12,7 @@ import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 import { getSuggestedSkillProficienciesByClass } from '@/features/characterBuilder/domain/classes'
 import { skillProficiencyIdToName } from '@/features/mechanics/domain/character'
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
-import type { ProficiencyAdjustment } from '@/features/character/domain/types'
+import type { AuthoredExpertiseProficiency } from '@/shared/domain/proficiency/authoredCreatureProficiencies'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -80,13 +80,13 @@ const ProficiencyStep = () => {
       if (isSelected && isLocked) return
 
       const currentSkills = proficiencies?.skills ?? {}
-      let next: Record<string, ProficiencyAdjustment>
+      let next: Partial<Record<string, AuthoredExpertiseProficiency>>
       if (isSelected) {
         const { [skillId]: _, ...rest } = currentSkills
         next = rest
       } else {
         if (selectedSkills.length >= totalSlots) return
-        next = { ...currentSkills, [skillId]: { proficiencyLevel: 1 } }
+        next = { ...currentSkills, [skillId]: 'proficient' }
       }
       setProficiencies({ ...proficiencies, skills: next })
     },

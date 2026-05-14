@@ -1,4 +1,4 @@
-import type { DiceOrFlat } from '@/features/mechanics/domain/dice';
+import type { DiceOrFlat } from '@/shared/domain/dice';
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
 import type { ContentResolutionMeta } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { OffTurnTiming, TurnHookKind } from '@/features/mechanics/domain/triggers/turn-hooks.types';

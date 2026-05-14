@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/primitives'
 import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import SaveIcon from '@mui/icons-material/Save'
@@ -45,7 +45,7 @@ export default function EditableSelect({
       renderDisplay={() => displayLabel}
       renderEdit={({ onSave: save, onClose, saving }) => (
         <>
-          <TextField
+          <AppTextField
             select
             value={local}
             onChange={(e) => setLocal(e.target.value)}
@@ -58,7 +58,7 @@ export default function EditableSelect({
                 {opt.label}
               </MenuItem>
             ))}
-          </TextField>
+          </AppTextField>
           <Button size="small" variant="contained" startIcon={<SaveIcon />} onClick={() => save(local)} disabled={saving}>
             {saving ? '…' : 'Save'}
           </Button>

@@ -17,11 +17,17 @@ export type ContentType =
 
 export type ListOptions = {
   search?: string;
-  /** When provided, repos may use catalog for list building (e.g. races uses racesAllById, raceAllowedIds). */
+  /**
+   * When provided, repos may build lists from a preloaded catalog instead of
+   * fetching system + campaign + patch. Only the fields relevant to that repo
+   * are set (e.g. races vs monsters).
+   */
   catalog?: {
     racesAllById?: Record<string, { id: string }>;
     raceAllowedIds?: string[];
     racesById?: Record<string, { id: string }>;
+    monstersAllById?: Record<string, { id: string }>;
+    monsterAllowedIds?: string[];
   };
 };
 

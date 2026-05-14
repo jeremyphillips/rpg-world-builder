@@ -119,12 +119,12 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
       },
       proficiencies: {
         skills: {
-          perception: { proficiencyLevel: 1 },
-          stealth: { proficiencyLevel: 1 },
+          perception: 'proficient',
+          stealth: 'proficient',
         },
         weapons: {
-          longsword: { proficiencyLevel: 1 },
-          longbow: { proficiencyLevel: 1 },
+          longsword: 'proficient',
+          longbow: 'proficient',
         },
       },
       proficiencyBonus: 2,
@@ -305,7 +305,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
         passivePerception: 16,
       },
       proficiencies: {
-        skills: { perception: { proficiencyLevel: 2 }, stealth: { proficiencyLevel: 2 } },
+        skills: { perception: 'expertise', stealth: 'expertise' },
       },
       proficiencyBonus: 3,
       immunities: ['poison', 'paralyzed', 'petrified'],
@@ -464,15 +464,9 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
         passivePerception: 16,
       },
       proficiencies: {
-        skills: { perception: { proficiencyLevel: 2 }, stealth: { proficiencyLevel: 1 } },
+        skills: { perception: 'expertise', stealth: 'proficient' },
       },
       proficiencyBonus: 3,
-      savingThrows: {
-        dex: { proficiencyLevel: 1 },
-        con: { proficiencyLevel: 1 },
-        wis: { proficiencyLevel: 1 },
-        cha: { proficiencyLevel: 1 },
-      },
       immunities: ['acid'],
       traits: [
         {
@@ -505,7 +499,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
           description:
             'Dexterity Saving Throw: DC 14, each creature in a 30-foot-long, 5-foot-wide Line. Failure: 49 (14d6) Acid damage. Success: Half damage.',
           save: { ability: 'dex', dc: 14 },
-          target: 'creatures-in-area',
+          target: { selection: 'in-area', targetType: 'creature' },
           area: { kind: 'line', size: 30 },
           damage: '14d6',
           damageType: 'acid',
@@ -582,7 +576,7 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
           damageType: "fire",
           halfDamageOnSave: true,
           area: { kind: "cone", size: 30 },
-          target: "creatures-in-area",
+          target: { selection: 'in-area', targetType: 'creature' },
           recharge: { min: 5, max: 6 }
         }
       ],
@@ -594,17 +588,19 @@ export const MONSTERS_V_Z: readonly MonsterCatalogEntry[] = [
         passivePerception: 18,
       },
       proficiencies: {
+        saves: {
+        dex: 'proficient',
+        con: 'proficient',
+        wis: 'proficient',
+        cha: 'proficient',
+      },
         skills: { 
-          perception: { proficiencyLevel: 2 },
-          stealth: { proficiencyLevel: 1 }
+          perception: 'expertise',
+          stealth: 'proficient'
         }
       },
       proficiencyBonus: 4,
       abilities: { str: 23, dex: 10, con: 17, int: 12, wis: 11, cha: 15 },
-      savingThrows: {
-        dex: { proficiencyLevel: 1 },
-        wis: { proficiencyLevel: 1 },
-      },
       immunities: ["fire"],
     },
     lore: {

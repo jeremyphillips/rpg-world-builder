@@ -99,7 +99,7 @@ describe('passive-perception / stealth snapshot helpers', () => {
       stats: {
         ...baseStats(),
         abilityScores: { ...baseStats().abilityScores!, wisdom: 14 },
-        skillRuntime: { proficiencyBonus: 2, perceptionProficiencyLevel: 1 },
+        skillRuntime: { proficiencyBonus: 2, perceptionProficiencyMode: 'proficient' },
       },
       attacks: [],
       activeEffects: [],
@@ -120,7 +120,7 @@ describe('passive-perception / stealth snapshot helpers', () => {
       stats: {
         ...baseStats(),
         abilityScores: { ...baseStats().abilityScores!, wisdom: 14 },
-        skillRuntime: { perceptionProficiencyLevel: 1 },
+        skillRuntime: { perceptionProficiencyMode: 'proficient' },
       },
       attacks: [],
       activeEffects: [],
@@ -139,7 +139,7 @@ describe('passive-perception / stealth snapshot helpers', () => {
       source: { kind: 'pc', sourceId: '1', label: 'A' },
       stats: {
         ...baseStats(),
-        skillRuntime: { stealthCheckModifierOverride: 7, proficiencyBonus: 2, stealthProficiencyLevel: 1 },
+        skillRuntime: { stealthCheckModifierOverride: 7, proficiencyBonus: 2, stealthProficiencyMode: 'proficient' },
       },
       attacks: [],
       activeEffects: [],
@@ -158,7 +158,7 @@ describe('passive-perception / stealth snapshot helpers', () => {
       source: { kind: 'pc', sourceId: '1', label: 'A' },
       stats: {
         ...baseStats(),
-        skillRuntime: { proficiencyBonus: 2, stealthProficiencyLevel: 1 },
+        skillRuntime: { proficiencyBonus: 2, stealthProficiencyMode: 'proficient' },
       },
       attacks: [],
       activeEffects: [],
@@ -208,8 +208,8 @@ describe('combatant builders thread Perception / Stealth runtime', () => {
       charisma: 10,
     },
     proficiencies: [
-      { id: 'perception', name: 'Perception' },
-      { id: 'stealth', name: 'Stealth' },
+      { id: 'perception', name: 'Perception', proficiency: 'proficient' },
+      { id: 'stealth', name: 'Stealth', proficiency: 'proficient' },
     ],
     equipment: { armor: [], weapons: [], gear: [] },
     wealth: {},
@@ -247,8 +247,8 @@ describe('combatant builders thread Perception / Stealth runtime', () => {
       turnHooks: [],
     })
     expect(c.stats.skillRuntime?.proficiencyBonus).toBe(3)
-    expect(c.stats.skillRuntime?.perceptionProficiencyLevel).toBe(1)
-    expect(c.stats.skillRuntime?.stealthProficiencyLevel).toBe(1)
+    expect(c.stats.skillRuntime?.perceptionProficiencyMode).toBe('proficient')
+    expect(c.stats.skillRuntime?.stealthProficiencyMode).toBe('proficient')
     expect(c.stats.skillRuntime?.hideEligibilityFeatureFlags).toBeUndefined()
     expect(getPassivePerceptionScore(c)).toBe(10 + 2 + 3)
     expect(getStealthCheckModifier(c)).toBe(3 + 3)
@@ -282,8 +282,8 @@ describe('combatant builders thread Perception / Stealth runtime', () => {
         proficiencyBonus: 2,
         proficiencies: {
           skills: {
-            perception: { proficiencyLevel: 1 },
-            stealth: { proficiencyLevel: 2 },
+            perception: 'proficient',
+            stealth: 'expertise',
           },
         },
         senses: { passivePerception: 13 },
@@ -304,8 +304,8 @@ describe('combatant builders thread Perception / Stealth runtime', () => {
     })
     expect(m.stats.skillRuntime?.passivePerception).toBe(13)
     expect(m.stats.skillRuntime?.proficiencyBonus).toBe(2)
-    expect(m.stats.skillRuntime?.perceptionProficiencyLevel).toBe(1)
-    expect(m.stats.skillRuntime?.stealthProficiencyLevel).toBe(2)
+    expect(m.stats.skillRuntime?.perceptionProficiencyMode).toBe('proficient')
+    expect(m.stats.skillRuntime?.stealthProficiencyMode).toBe('expertise')
     expect(getPassivePerceptionScore(m)).toBe(13)
     // Dex 14 → +2; stealth expertise 2×PB → +4; total +6
     expect(getStealthCheckModifier(m)).toBe(6)

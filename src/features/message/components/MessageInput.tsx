@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import Box from '@mui/material/Box'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/primitives'
 import IconButton from '@mui/material/IconButton'
 
 import SendIcon from '@mui/icons-material/Send'
@@ -38,7 +38,7 @@ export const MessageInput = ({ onSend }: MessageInputProps) => {
 
   return (
     <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider', display: 'flex', gap: 1, alignItems: 'flex-end' }}>
-      <TextField
+      <AppTextField
         fullWidth
         multiline
         maxRows={4}

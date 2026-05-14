@@ -4,12 +4,8 @@ import { env } from '../../../shared/config/env'
 import { badRequest } from '../../../shared/errors/ApiError'
 import { signToken } from '../../../shared/utils/jwt'
 import { getPublicUrl, normalizeImageKey } from '../../../shared/services/image.service'
-
-interface NotificationPreferences {
-  sessionScheduled: boolean
-  inviteReceived: boolean
-  mentionedInChat: boolean
-}
+import { authUserPreferencesFromDb } from '@/shared/auth/authUserPreferences'
+import type { AuthUserPreferences } from '@/shared'
 
 interface AuthUserPayload {
   id: string
@@ -22,13 +18,7 @@ interface AuthUserPayload {
   avatarUrl?: string
   bio?: string
   website?: string
-  notificationPreferences: NotificationPreferences
-}
-
-const DEFAULT_NOTIFICATION_PREFS: NotificationPreferences = {
-  sessionScheduled: true,
-  inviteReceived: true,
-  mentionedInChat: true,
+  preferences: AuthUserPreferences
 }
 
 interface LoginResult {
@@ -60,10 +50,7 @@ export async function loginUser(email: string, password: string): Promise<LoginR
       avatarUrl: getPublicUrl(user.avatarKey as string),
       bio: (user.bio as string) ?? undefined,
       website: (user.website as string) ?? undefined,
-      notificationPreferences: {
-        ...DEFAULT_NOTIFICATION_PREFS,
-        ...(user.notificationPreferences as Partial<NotificationPreferences> | undefined),
-      },
+      preferences: authUserPreferencesFromDb(user.preferences),
     },
   }
 }
@@ -88,10 +75,7 @@ export async function getUserById(userId: string) {
     avatarUrl: getPublicUrl(user.avatarKey as string),
     bio: (user.bio as string) ?? undefined,
     website: (user.website as string) ?? undefined,
-    notificationPreferences: {
-      ...DEFAULT_NOTIFICATION_PREFS,
-      ...(user.notificationPreferences as Partial<NotificationPreferences> | undefined),
-    },
+    preferences: authUserPreferencesFromDb(user.preferences),
   }
 }
 
@@ -198,6 +182,59 @@ export async function acceptInviteToken(
   }
 }
 
+function applyPreferencesPatch(
+  $set: Record<string, unknown>,
+  preferences: Partial<AuthUserPreferences>,
+) {
+  if (preferences.notifications) {
+    for (const [key, val] of Object.entries(preferences.notifications)) {
+      if (val !== undefined) {
+        $set[`preferences.notifications.${key}`] = val
+      }
+    }
+  }
+  const hideSpells = preferences.ui?.contentLists?.spells?.hideDisallowed
+  if (hideSpells !== undefined) {
+    $set['preferences.ui.contentLists.spells.hideDisallowed'] = hideSpells
+  }
+  const hideClasses = preferences.ui?.contentLists?.classes?.hideDisallowed
+  if (hideClasses !== undefined) {
+    $set['preferences.ui.contentLists.classes.hideDisallowed'] = hideClasses
+  }
+  const hideRaces = preferences.ui?.contentLists?.races?.hideDisallowed
+  if (hideRaces !== undefined) {
+    $set['preferences.ui.contentLists.races.hideDisallowed'] = hideRaces
+  }
+  const hideMonsters = preferences.ui?.contentLists?.monsters?.hideDisallowed
+  if (hideMonsters !== undefined) {
+    $set['preferences.ui.contentLists.monsters.hideDisallowed'] = hideMonsters
+  }
+  const hideLocations = preferences.ui?.contentLists?.locations?.hideDisallowed
+  if (hideLocations !== undefined) {
+    $set['preferences.ui.contentLists.locations.hideDisallowed'] = hideLocations
+  }
+  const hideSkillProficiencies = preferences.ui?.contentLists?.skillProficiencies?.hideDisallowed
+  if (hideSkillProficiencies !== undefined) {
+    $set['preferences.ui.contentLists.skillProficiencies.hideDisallowed'] = hideSkillProficiencies
+  }
+  const hideArmor = preferences.ui?.contentLists?.armor?.hideDisallowed
+  if (hideArmor !== undefined) {
+    $set['preferences.ui.contentLists.armor.hideDisallowed'] = hideArmor
+  }
+  const hideGear = preferences.ui?.contentLists?.gear?.hideDisallowed
+  if (hideGear !== undefined) {
+    $set['preferences.ui.contentLists.gear.hideDisallowed'] = hideGear
+  }
+  const hideWeapons = preferences.ui?.contentLists?.weapons?.hideDisallowed
+  if (hideWeapons !== undefined) {
+    $set['preferences.ui.contentLists.weapons.hideDisallowed'] = hideWeapons
+  }
+  const hideMagicItems = preferences.ui?.contentLists?.magicItems?.hideDisallowed
+  if (hideMagicItems !== undefined) {
+    $set['preferences.ui.contentLists.magicItems.hideDisallowed'] = hideMagicItems
+  }
+}
+
 export async function updateProfile(
   userId: string,
   data: {
@@ -208,7 +245,7 @@ export async function updateProfile(
     bio?: string
     website?: string
     email?: string
-    notificationPreferences?: Partial<NotificationPreferences>
+    preferences?: Partial<AuthUserPreferences>
   },
 ) {
   const db = mongoose.connection.useDb(env.DB_NAME)
@@ -222,12 +259,8 @@ export async function updateProfile(
   if (data.website !== undefined) $set.website = data.website
   if (data.email !== undefined) $set.email = data.email
 
-  if (data.notificationPreferences) {
-    for (const [key, val] of Object.entries(data.notificationPreferences)) {
-      if (val !== undefined) {
-        $set[`notificationPreferences.${key}`] = val
-      }
-    }
+  if (data.preferences) {
+    applyPreferencesPatch($set, data.preferences)
   }
 
   if (Object.keys($set).length === 0) return getUserById(userId)

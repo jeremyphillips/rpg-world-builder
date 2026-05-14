@@ -1,28 +1,34 @@
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailAdvancedAccordion,
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { magicItemRepo } from '../domain/repo/magicItemRepo';
 import type { MagicItem } from '@/features/content/equipment/magicItems/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { resolveImageUrl } from '@/shared/lib/media';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 import { MAGIC_ITEM_DETAIL_SPECS } from '../domain/details/magicItemDetail.spec';
 
 export default function MagicItemDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { magicItemId } = useParams<{ magicItemId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: item, loading, error, notFound } = useCampaignContentEntry<MagicItem>({
     campaignId: campaignId ?? undefined,
@@ -31,63 +37,52 @@ export default function MagicItemDetailRoute() {
   });
 
   if (loading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error || notFound || !item) {
     return <AppAlert tone="danger">{error ?? 'Magic item not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/equipment/magic-items`;
-  const editPath = `${listPath}/${magicItemId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/equipment/magic-items/${magicItemId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(MAGIC_ITEM_DETAIL_SPECS, item, {});
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
+    specs: MAGIC_ITEM_DETAIL_SPECS,
+    item,
+    ctx: {},
+    viewer,
+  });
 
   return (
     <ContentDetailScaffold
       title={item.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={item.source}
       accessPolicy={item.accessPolicy}
+      hideAccessPolicyBadge
     >
-      {item.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
+      <ContentDetailMetaRow items={metaItems} />
 
-      {item.imageKey && (
-        <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(item.imageKey)} alt={item.name} style={{ maxHeight: 200 }} />
-        </Box>
-      )}
+      <ContentDetailImageKeyValueGrid
+        imageContentType="equipment"
+        imageKey={item.imageKey}
+        alt={item.name}
+      >
+        <KeyValueSection title="" items={mainItems} columns={2} />
+      </ContentDetailImageKeyValueGrid>
 
-      {item.description && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {item.description}
-        </Typography>
-      )}
-
-      <KeyValueSection
-        title="Magic Item Details"
-        items={items}
-        columns={2}
-        sx={{ mt: 2 }}
+      <ContentDetailAdvancedAccordion
+        items={advancedItems}
+        sectionTitle="Advanced magic item data"
+        idPrefix="magic-item"
       />
-
-      {item.effects && item.effects.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
-            Effects
-          </Typography>
-          <Box component="pre" sx={{ fontFamily: 'monospace', fontSize: 13, bgcolor: 'grey.50', p: 2, borderRadius: 1, overflow: 'auto' }}>
-            {JSON.stringify(item.effects, null, 2)}
-          </Box>
-        </Box>
-      )}
     </ContentDetailScaffold>
   );
 }

@@ -47,7 +47,21 @@ export function seedMemoryStore(patches: CampaignRulesetPatch[]): void {
 // API-backed implementation
 // ---------------------------------------------------------------------------
 
+/** Coalesces concurrent GETs — e.g. `getResolvedCampaignRuleset` + `useCampaignContentListController`. */
+const inflightRulesetPatchGet = new Map<string, Promise<CampaignRulesetPatch | null>>();
+
 async function apiGet(campaignId: string): Promise<CampaignRulesetPatch | null> {
+  const cached = inflightRulesetPatchGet.get(campaignId);
+  if (cached) return cached;
+
+  const p = fetchRulesetPatchOnce(campaignId).finally(() => {
+    inflightRulesetPatchGet.delete(campaignId);
+  });
+  inflightRulesetPatchGet.set(campaignId, p);
+  return p;
+}
+
+async function fetchRulesetPatchOnce(campaignId: string): Promise<CampaignRulesetPatch | null> {
   try {
     const data = await apiFetch<{ patch: CampaignRulesetPatch }>(
       `/api/campaigns/${campaignId}/ruleset-patch`,

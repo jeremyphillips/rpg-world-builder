@@ -9,13 +9,13 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
 import { weaponRepo } from '@/features/content/equipment/weapons/domain/repo/weaponRepo';
 import { armorRepo } from '@/features/content/equipment/armor/domain/repo/armorRepo';
 import { gearRepo } from '@/features/content/equipment/gear/domain/repo/gearRepo';
 import { magicItemRepo } from '@/features/content/equipment/magicItems/domain/repo/magicItemRepo';
 import { AppPageHeader } from '@/ui/patterns';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 
 interface EquipmentCategoryCard {
@@ -60,12 +60,10 @@ const EquipmentCategoryCardView = ({ card, canManageContent }: {
 );
 
 export default function EquipmentHubRoute() {
-  const { campaign, campaignId } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
   const breadcrumbs = useBreadcrumbs();
   const basePath = `/campaigns/${campaignId}/world/equipment`;
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const [counts, setCounts] = useState<Record<string, number | null>>({
     weapons: null,

@@ -3,6 +3,7 @@ import Typography from '@mui/material/Typography'
 
 import { AppBadge, AppTooltipWrap } from '@/ui/primitives'
 import type { AppBadgeTone } from '@/ui/types'
+import type { ChipBadgeSize } from '@/ui/sizes'
 import type { CombatStateTone } from '@/features/mechanics/domain/combat/presentation/effects/presentable-effects.types'
 import type {
   CombatantStatBadge,
@@ -21,15 +22,13 @@ export function combatToneToAppBadgeTone(
   return tone
 }
 
-type StatBadgeSize = 'small' | 'medium'
-
 export function CombatantStatBadgeRow({
   stats,
   size = 'medium',
   stackSpacing = 1,
 }: {
   stats: CombatantStatBadge[]
-  size?: StatBadgeSize
+  size?: ChipBadgeSize
   stackSpacing?: number
 }) {
   if (stats.length === 0) return null
@@ -55,7 +54,7 @@ export function CombatantTrackedPartBadgeRow({
   stackSpacing = 1,
 }: {
   parts: CombatantTrackedPartBadge[]
-  size?: StatBadgeSize
+  size?: ChipBadgeSize
   stackSpacing?: number
 }) {
   if (parts.length === 0) return null
@@ -83,7 +82,7 @@ export function CombatantCoreBadgeRow({
 }: {
   stats: CombatantStatBadge[]
   trackedParts?: CombatantTrackedPartBadge[]
-  size?: StatBadgeSize
+  size?: ChipBadgeSize
 }) {
   const hasParts = trackedParts && trackedParts.length > 0
   if (stats.length === 0 && !hasParts) return null

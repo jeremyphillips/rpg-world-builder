@@ -1,6 +1,5 @@
 import type { AppDataGridColumn } from '@/ui/patterns';
 import { ABILITIES } from '@/features/mechanics/domain/character';
-import { filterAllowedIds } from '@/features/content/shared/domain/utils';
 import type { SkillProficiencyListRow } from './skillProficiencyList.types';
 
 const ABILITY_ID_TO_ABBREV = Object.fromEntries(
@@ -37,10 +36,9 @@ export function buildSkillProficiencyCustomColumns(
       flex: 1,
       minWidth: 200,
       valueFormatter: (v) => {
-        const arr = (v as string[] | undefined) ?? [];
-        const allowedIds = filterAllowedIds(arr, classesById ?? {});
-        if (!allowedIds?.length) return '—';
         const byId = classesById ?? {};
+        const allowedIds = ((v as string[] | undefined) ?? []).filter((id) => id in byId);
+        if (!allowedIds.length) return '—';
         return allowedIds.map((id) => byId[id]?.name ?? id).join(', ');
       },
     },

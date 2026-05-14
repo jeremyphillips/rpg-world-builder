@@ -3,7 +3,7 @@ import type { TriggerType } from '../triggers/trigger.types';
 import type { TurnHookKind, TurnHookSelfTrigger } from '../triggers/turn-hooks.types';
 import type { StatTarget } from '../resolution/resolvers/stat-resolver';
 import type { FormulaEffect } from '../resolution/engines/formula.engine';
-import type { DiceOrFlat } from '../dice/dice.types';
+import type { DiceOrFlat } from '@/shared/domain/dice';
 import type { AbilityKey, AbilityRef } from '../character';
 import type { EffectDuration } from './timing.types';
 import type { DamageType, EnergyDamageType } from '../damage/damage.types';
@@ -11,15 +11,20 @@ import type {
   ConditionImmunityId,
   EffectConditionId,
 } from '../conditions/effect-condition-definitions';
-import type { MonsterSizeCategory, MonsterType } from '@/features/content/monsters/domain/vocab/monster.vocab';
+import type { CreatureSizeId, CreatureTypeId } from '@/features/content/creatures/domain/values';
+import type { ActionEconomyKind } from '@/features/content/shared/domain/vocab/actionEconomy.vocab';
 import type { EffectNoteCategory } from '@/features/mechanics/domain/resolution/content-resolution.types';
 import type { AreaOfEffectTemplate } from './area.types';
-import type { TargetingEffectTarget } from './targeting.types';
+import type {
+  TargetEligibilityKind,
+  TargetSelectionKind,
+} from '@/features/content/shared/domain/vocab/spellTargeting.vocab';
 import type { AttachedEnvironmentZoneProfile } from '../environment/environment.types';
 
 export type { FormulaDefinition, FormulaEffect } from '../resolution/engines/formula.engine';
 export type { AreaOfEffectTemplate } from './area.types';
-export type { TargetingEffectTarget, MonsterSpecialActionTarget } from './targeting.types';
+export type { MonsterSpecialActionTarget } from './targeting.types';
+export type { TargetEligibilityKind, TargetSelectionKind } from '@/features/content/shared/domain/vocab/spellTargeting.vocab';
 export type { DamageType, EnergyDamageType } from '../damage/damage.types';
 export type { EffectConditionId, ConditionImmunityId, ConditionImmunityOnlyId } from '../conditions/effect-condition-definitions';
 export {
@@ -27,6 +32,7 @@ export {
   CONDITION_IMMUNITY_ONLY_DEFINITIONS,
   EFFECT_CONDITION_IDS,
   CONDITION_IMMUNITY_ONLY_IDS,
+  getEffectConditionById,
   getEffectConditionRulesText,
   getEffectConditionRulesTextForKey,
 } from '../conditions/effect-condition-definitions';
@@ -38,12 +44,13 @@ export type ResourceCost = {
   amount: number;
 };
 
-export type ActivationKind = 'action' | 'bonus-action' | 'reaction' | 'special';
+/** Effect activation cost; aligned with shared action-economy vocabulary. */
+export type ActivationKind = ActionEconomyKind;
 export type SaveDcSpec = number | { kind: '5-plus-damage-taken' };
 
 export type EffectMode = 'add' | 'set' | 'multiply';
 
-export type EffectSizeCategory = MonsterSizeCategory;
+export type EffectSizeCategory = CreatureSizeId;
 
 /**
  * Shared optional metadata for every effect.
@@ -276,14 +283,15 @@ export type StateEffect = EffectBase<'state'> & {
 };
 
 export type TargetingEffect = EffectBase<'targeting'> & {
-  target: TargetingEffectTarget;
-  targetType?: 'creature';
+  selection: TargetSelectionKind;
+  /** What may be targeted (creature, dead creature, object). */
+  targetType: TargetEligibilityKind;
   /**
    * Touch-style buffs ("willing creature"): combat maps to same-side targets only (caster + allies).
    * Willing is approximated as allies until explicit consent is modeled.
    */
   requiresWilling?: boolean;
-  creatureTypeFilter?: MonsterType[];
+  creatureTypeFilter?: CreatureTypeId[];
   rangeFeet?: number;
   requiresSight?: boolean;
   count?: number;
@@ -398,7 +406,7 @@ export type FormEffect = EffectBase<'form'> & {
 
 /** Filter for random spawn from the merged monster catalog (e.g. Conjure Woodland Beings). */
 export type SpawnPoolFilter = {
-  creatureType: MonsterType;
+  creatureType: CreatureTypeId;
   maxChallengeRating: number;
 };
 
@@ -406,7 +414,7 @@ export type SpawnPoolFilter = {
 export type SpawnPoolFromCasterOptionSpec = {
   count: number;
   maxChallengeRating: number;
-  creatureType: MonsterType;
+  creatureType: CreatureTypeId;
 };
 
 export type SpawnSummonInitiativeMode = 'group' | 'share-caster' | 'individual';

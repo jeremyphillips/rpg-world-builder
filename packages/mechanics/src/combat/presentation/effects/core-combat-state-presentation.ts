@@ -1,8 +1,8 @@
+import { CONDITION_IMMUNITY_ONLY_DEFINITIONS } from '@/features/mechanics/domain/conditions/effect-condition-definitions'
 import {
-  CONDITION_IMMUNITY_ONLY_DEFINITIONS,
   EFFECT_CONDITION_DEFINITIONS,
   type EffectConditionId,
-} from '@/features/mechanics/domain/conditions/effect-condition-definitions'
+} from '@/features/content/shared/domain/vocab/effectConditions.vocab'
 import type { CombatStatePresentation } from './presentable-effects.types'
 
 /**

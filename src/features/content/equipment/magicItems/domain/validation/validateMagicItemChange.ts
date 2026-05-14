@@ -10,6 +10,11 @@
  */
 import type { CharacterDoc } from '@/features/character/domain/types';
 import {
+  buildCharacterQueryContext,
+  ownsItem,
+  type CharacterQuerySource,
+} from '@/features/character/domain/query';
+import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
 } from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
@@ -25,7 +30,7 @@ type CharacterWithMagicItems = Pick<
  * Validates whether a magic item can be deleted or disabled.
  *
  * Checks characters in the campaign. A character "owns" a magic item if
- * it appears in their equipment.magicItems array.
+ * the id is in the character query inventory (magic items).
  *
  * TODO: extend to also check NPC usage once NPC magic item support exists
  */
@@ -43,6 +48,6 @@ export async function validateMagicItemChange(params: {
     includeNpcs,
     contentType: 'magic item',
     matcher: (c) =>
-      c.equipment?.magicItems?.includes(magicItemId) ?? false,
+      ownsItem(buildCharacterQueryContext(c as CharacterQuerySource), 'magicItems', magicItemId),
   });
 }

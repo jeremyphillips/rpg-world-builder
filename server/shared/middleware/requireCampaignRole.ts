@@ -1,10 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
-import { env } from '../config/env'
 import { getCampaignById } from '../../features/campaign/services/campaign.service'
 import { resolveCampaignViewerContext } from '../auth/resolveCampaignViewerContext'
-import type { CampaignRole } from '../../shared/types'
-
-const isDev = env.NODE_ENV === 'development'
+import type { CampaignRole } from '../../../shared/types'
 
 const ROLE_HIERARCHY: CampaignRole[] = ['observer', 'pc', 'dm']
 
@@ -36,7 +33,8 @@ export function requireCampaignRole(...requiredRoles: CampaignRole[]) {
   const minLevel = Math.min(...requiredRoles.map((r) => ROLE_HIERARCHY.indexOf(r)))
 
   return async (req: Request, res: Response, next: NextFunction) => {
-    const campaignId = req.params.id
+    const rawId = req.params.id
+    const campaignId = Array.isArray(rawId) ? rawId[0] : rawId
 
     if (!campaignId) {
       res.status(400).json({ error: 'Campaign ID is required' })
@@ -70,23 +68,10 @@ export function requireCampaignRole(...requiredRoles: CampaignRole[]) {
       }
     }
 
-    req.campaign = campaign
+    req.campaign = campaign as NonNullable<Request['campaign']>
     req.campaignRole = ctx.campaignRole ?? undefined
     req.isOwner = ctx.isOwner
     req.viewerContext = ctx
-
-    if (isDev) {
-      console.log('[requireCampaignRole] viewer context', {
-        userId: req.userId,
-        userRole: req.userRole,
-        campaignRole: ctx.campaignRole,
-        isPlatformAdmin: ctx.isPlatformAdmin,
-        isOwner: ctx.isOwner,
-        campaignId,
-        ownerId: campaign.membership?.ownerId?.toString(),
-        viewerCharacterIds: ctx.characterIds,
-      })
-    }
 
     next()
   }

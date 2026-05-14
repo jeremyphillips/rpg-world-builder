@@ -10,6 +10,11 @@
  */
 import type { CharacterDoc } from '@/features/character/domain/types';
 import {
+  buildCharacterQueryContext,
+  knowsSpell,
+  type CharacterQuerySource,
+} from '@/features/character/domain/query';
+import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
 } from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
@@ -22,7 +27,7 @@ type CharacterWithSpells = Pick<CharacterDoc, '_id' | 'name' | 'spells'>;
  * Validates whether a spell can be deleted or disabled.
  *
  * Checks characters in the campaign. A character "owns" a spell if
- * it appears in their spells array.
+ * they know it per the character query layer (known spells).
  *
  * TODO: extend to also check NPC usage once NPC spell support exists
  */
@@ -39,6 +44,7 @@ export async function validateSpellChange(params: {
     mode,
     includeNpcs,
     contentType: 'spell',
-    matcher: (c) => c.spells?.includes(spellId) ?? false,
+    matcher: (c) =>
+      knowsSpell(buildCharacterQueryContext(c as CharacterQuerySource), spellId),
   });
 }

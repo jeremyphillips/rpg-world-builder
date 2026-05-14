@@ -60,6 +60,116 @@ function compileNumberTextRules(
 }
 
 /**
+ * Maps a single FieldSpec (or nested leaf) to FieldConfig, or null if skipInForm / unsupported.
+ */
+export const fieldSpecToFieldConfig = <
+  FormValues extends Record<string, unknown>,
+  InputShape extends Record<string, unknown> = Record<string, unknown>,
+  ItemShape extends Record<string, unknown> = Record<string, unknown>,
+>(
+  spec: FieldSpec<FormValues, InputShape, ItemShape>,
+  options: BuildFieldConfigsOptions = {},
+): FieldConfig | null => {
+  const { policyCharacters = [], optionPickerOptionsByField = {} } = options;
+
+  if (spec.skipInForm) return null;
+
+  const base = {
+    name: spec.name,
+    label: spec.label,
+    required: spec.required,
+    placeholder: spec.placeholder,
+    helperText: spec.helperText,
+    ...(spec.fieldDescription !== undefined && { fieldDescription: spec.fieldDescription }),
+    ...(spec.defaultValue !== undefined && { defaultValue: spec.defaultValue }),
+    ...(spec.defaultFromOptions && { defaultFromOptions: spec.defaultFromOptions }),
+    ...(spec.visibleWhen && { visibleWhen: spec.visibleWhen }),
+    ...(spec.path !== undefined && { path: spec.path }),
+    ...(spec.patchBinding !== undefined && { patchBinding: spec.patchBinding }),
+    ...(spec.group && { group: spec.group }),
+    ...(spec.width !== undefined && { width: spec.width }),
+  };
+
+  switch (spec.kind) {
+    case 'text':
+      return { ...base, type: 'text' };
+    case 'textarea':
+      return {
+        ...base,
+        type: 'textarea',
+        rows: 4,
+      };
+    case 'select':
+      return {
+        ...base,
+        type: 'select',
+        options: spec.options
+          ? spec.options.map((o) => ({ value: o.value, label: o.label }))
+          : [],
+      };
+    case 'optionPicker': {
+      const mergedOptions: PickerOption[] =
+        optionPickerOptionsByField[spec.name] ?? spec.pickerOptions ?? [];
+      return {
+        ...base,
+        type: 'optionPicker',
+        options: [...mergedOptions],
+        maxItems: spec.maxItems,
+        valueMode: spec.valueMode ?? 'array',
+        emptyMessage: spec.emptyMessage,
+        noResultsMessage: spec.noResultsMessage,
+        renderSelectedAs: spec.renderSelectedAs,
+      };
+    }
+    case 'checkbox':
+      return { ...base, type: 'checkbox' };
+    case 'checkboxGroup':
+      return {
+        ...base,
+        type: 'checkboxGroup',
+        options: spec.options
+          ? spec.options.map((o) => ({ value: o.value, label: o.label }))
+          : [],
+        row: true,
+      };
+    case 'numberText': {
+      const rules = spec.validation
+        ? compileNumberTextRules(spec.label, spec.required, spec.validation)
+        : (spec.required ? { required: `${spec.label} is required` } : {});
+      return {
+        ...base,
+        type: 'text',
+        inputType: 'number',
+        ...(Object.keys(rules).length > 0 && { rules }),
+      };
+    }
+    case 'imageUpload':
+      return {
+        ...base,
+        type: 'imageUpload',
+        helperText: spec.helperText ?? '/assets/... or CDN key',
+      };
+    case 'visibility':
+      return {
+        ...base,
+        type: 'visibility',
+        characters: policyCharacters,
+        allowHidden: false,
+      };
+    case 'json':
+      return {
+        ...base,
+        type: 'json',
+        placeholder: spec.placeholder,
+        minRows: spec.minRows ?? 4,
+        maxRows: spec.maxRows ?? 16,
+      };
+    default:
+      return null;
+  }
+};
+
+/**
  * Builds FieldConfig[] from FieldSpec[], skipping specs with skipInForm.
  */
 export const buildFieldConfigs = <
@@ -68,118 +178,13 @@ export const buildFieldConfigs = <
   ItemShape extends Record<string, unknown> = Record<string, unknown>,
 >(
   specs: readonly FieldSpec<FormValues, InputShape, ItemShape>[],
-  options: BuildFieldConfigsOptions = {}
+  options: BuildFieldConfigsOptions = {},
 ): FieldConfig[] => {
-  const { policyCharacters = [], optionPickerOptionsByField = {} } = options;
-
   const configs: FieldConfig[] = [];
 
   for (const spec of specs) {
-    if (spec.skipInForm) continue;
-
-    const base = {
-      name: spec.name,
-      label: spec.label,
-      required: spec.required,
-      placeholder: spec.placeholder,
-      helperText: spec.helperText,
-      ...(spec.fieldDescription !== undefined && { fieldDescription: spec.fieldDescription }),
-      ...(spec.defaultValue !== undefined && { defaultValue: spec.defaultValue }),
-      ...(spec.defaultFromOptions && { defaultFromOptions: spec.defaultFromOptions }),
-      ...(spec.visibleWhen && { visibleWhen: spec.visibleWhen }),
-      ...(spec.path !== undefined && { path: spec.path }),
-      ...(spec.patchBinding !== undefined && { patchBinding: spec.patchBinding }),
-      ...(spec.group && { group: spec.group }),
-      ...(spec.width !== undefined && { width: spec.width }),
-    };
-
-    switch (spec.kind) {
-      case 'text':
-        configs.push({ ...base, type: 'text' });
-        break;
-      case 'textarea':
-        configs.push({
-          ...base,
-          type: 'textarea',
-          rows: 4,
-        });
-        break;
-      case 'select':
-        configs.push({
-          ...base,
-          type: 'select',
-          options: spec.options
-            ? spec.options.map((o) => ({ value: o.value, label: o.label }))
-            : [],
-        });
-        break;
-      case 'optionPicker': {
-        const mergedOptions: PickerOption[] =
-          optionPickerOptionsByField[spec.name] ?? spec.pickerOptions ?? [];
-        configs.push({
-          ...base,
-          type: 'optionPicker',
-          options: [...mergedOptions],
-          maxItems: spec.maxItems,
-          valueMode: spec.valueMode ?? 'array',
-          emptyMessage: spec.emptyMessage,
-          noResultsMessage: spec.noResultsMessage,
-          renderSelectedAs: spec.renderSelectedAs,
-        });
-        break;
-      }
-      case 'checkbox':
-        configs.push({ ...base, type: 'checkbox' });
-        break;
-      case 'checkboxGroup':
-        configs.push({
-          ...base,
-          type: 'checkboxGroup',
-          options: spec.options
-            ? spec.options.map((o) => ({ value: o.value, label: o.label }))
-            : [],
-          row: true,
-        });
-        break;
-      case 'numberText': {
-        const rules = spec.validation
-          ? compileNumberTextRules(spec.label, spec.required, spec.validation)
-          : (spec.required ? { required: `${spec.label} is required` } : {});
-        configs.push({
-          ...base,
-          type: 'text',
-          inputType: 'number',
-          ...(Object.keys(rules).length > 0 && { rules }),
-        });
-        break;
-      }
-      case 'imageUpload':
-        configs.push({
-          ...base,
-          type: 'imageUpload',
-          helperText: spec.helperText ?? '/assets/... or CDN key',
-        });
-        break;
-      case 'visibility':
-        configs.push({
-          ...base,
-          type: 'visibility',
-          characters: policyCharacters,
-          allowHidden: false,
-        });
-        break;
-      case 'json':
-        configs.push({
-          ...base,
-          type: 'json',
-          placeholder: spec.placeholder,
-          minRows: spec.minRows ?? 4,
-          maxRows: spec.maxRows ?? 16,
-        });
-        break;
-      default:
-        break;
-    }
+    const c = fieldSpecToFieldConfig(spec, options);
+    if (c) configs.push(c);
   }
 
   return configs;

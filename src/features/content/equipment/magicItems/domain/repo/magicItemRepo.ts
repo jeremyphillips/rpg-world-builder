@@ -9,8 +9,15 @@ import type { CampaignContentRepo, ListOptions } from '@/features/content/shared
 import type { MagicItem, MagicItemSummary, MagicItemInput, MagicItemFields } from '@/features/content/equipment/magicItems/domain/types';
 import { getSystemMagicItems, getSystemMagicItem } from '@/features/mechanics/domain/rulesets/system/magicItems';
 import { campaignMagicItemRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import { moneyToCp } from '@/shared/money';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
@@ -68,22 +75,11 @@ export const magicItemRepo: CampaignContentRepo<MagicItem, MagicItemSummary, Mag
       getContentPatch(campaignId),
     ]);
 
-    const magicItemPatches = contentPatch?.patches?.magicItems ?? {};
-    const campaignIds = new Set(campaign.map(c => c.id));
-
-    const patchedSystem: MagicItem[] = system
-      .filter(m => !campaignIds.has(m.id))
-      .map((m): MagicItem => {
-        const patch = magicItemPatches[m.id];
-        if (!patch) return m;
-        const merged = applyContentPatch<MagicItem>(m, patch as Partial<MagicItem>);
-        return { ...merged, patched: true };
-      });
-
-    const merged: MagicItem[] = [
-      ...patchedSystem,
-      ...campaign.map(campaignEntryToMagicItem),
-    ];
+    const merged = mergeSystemCampaignWithPatches(
+      system,
+      campaign.map(campaignEntryToMagicItem),
+      getPatchMapForType(contentPatch, 'magicItems'),
+    );
 
     let results = merged.map(toSummary);
 
@@ -106,11 +102,10 @@ export const magicItemRepo: CampaignContentRepo<MagicItem, MagicItemSummary, Mag
     if (!systemItem) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const itemPatch = contentPatch?.patches?.magicItems?.[id];
-    if (!itemPatch) return systemItem;
-
-    const merged = applyContentPatch<MagicItem>(systemItem, itemPatch as Partial<MagicItem>);
-    return { ...merged, patched: true };
+    return resolveSystemEntryWithPatch(
+      systemItem,
+      getEntryPatch(contentPatch, 'magicItems', id),
+    );
   },
 
   async createEntry(

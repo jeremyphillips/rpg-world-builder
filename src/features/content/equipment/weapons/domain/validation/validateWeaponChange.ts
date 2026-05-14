@@ -10,6 +10,11 @@
  */
 import type { CharacterDoc } from '@/features/character/domain/types';
 import {
+  buildCharacterQueryContext,
+  ownsItem,
+  type CharacterQuerySource,
+} from '@/features/character/domain/query';
+import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
 } from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
@@ -22,7 +27,7 @@ type CharacterWithWeapons = Pick<CharacterDoc, '_id' | 'name' | 'equipment'>;
  * Validates whether a weapon can be deleted or disabled.
  *
  * Checks characters in the campaign. A character "owns" a weapon if
- * it appears in their equipment.weapons array.
+ * the weapon id is in the character query inventory (weapons).
  *
  * TODO: extend to also check NPC usage once NPC weapon support exists
  */
@@ -39,6 +44,7 @@ export async function validateWeaponChange(params: {
     mode,
     includeNpcs,
     contentType: 'weapon',
-    matcher: (c) => c.equipment?.weapons?.includes(weaponId) ?? false,
+    matcher: (c) =>
+      ownsItem(buildCharacterQueryContext(c as CharacterQuerySource), 'weapons', weaponId),
   });
 }

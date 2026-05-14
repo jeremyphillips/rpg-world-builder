@@ -1,29 +1,34 @@
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailAdvancedAccordion,
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import { gearRepo } from '../domain/repo/gearRepo';
 import type { Gear } from '@/features/content/equipment/gear/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppBadge } from '@/ui/primitives';
-import { KeyValueSection } from '@/ui/patterns';
-import { resolveImageUrl } from '@/shared/lib/media';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
-import { GEAR_DETAIL_SPECS } from '../domain/details/gearDetail.spec';
 import { AppAlert } from '@/ui/primitives';
+import { KeyValueSection } from '@/ui/patterns';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
+import { GEAR_DETAIL_SPECS } from '../domain/details/gearDetail.spec';
 
 export default function GearDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { gearId } = useParams<{ gearId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: gear, loading, error, notFound } = useCampaignContentEntry<Gear>({
     campaignId: campaignId ?? undefined,
@@ -32,51 +37,51 @@ export default function GearDetailRoute() {
   });
 
   if (loading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error || notFound || !gear) {
     return <AppAlert tone="danger">{error ?? 'Gear not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/equipment/gear`;
-  const editPath = `${listPath}/${gearId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/equipment/gear/${gearId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(GEAR_DETAIL_SPECS, gear, {});
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
+    specs: GEAR_DETAIL_SPECS,
+    item: gear,
+    ctx: {},
+    viewer,
+  });
 
   return (
     <ContentDetailScaffold
       title={gear.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={gear.source}
       accessPolicy={gear.accessPolicy}
+      hideAccessPolicyBadge
     >
-      {gear.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
+      <ContentDetailMetaRow items={metaItems} />
 
-      {gear.imageKey && (
-        <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(gear.imageKey)} alt={gear.name} style={{ maxHeight: 200 }} />
-        </Box>
-      )}
+      <ContentDetailImageKeyValueGrid
+        imageContentType="gear"
+        imageKey={gear.imageKey}
+        alt={gear.name}
+      >
+        <KeyValueSection title="" items={mainItems} columns={2} />
+      </ContentDetailImageKeyValueGrid>
 
-      {gear.description && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {gear.description}
-        </Typography>
-      )}
-
-      <KeyValueSection
-        title="Gear Details"
-        items={items}
-        columns={2}
-        sx={{ mt: 2 }}
+      <ContentDetailAdvancedAccordion
+        items={advancedItems}
+        sectionTitle="Advanced gear data"
+        idPrefix="gear"
       />
     </ContentDetailScaffold>
   );

@@ -1,6 +1,5 @@
 export type {
   ConditionConsequence,
-  ConditionRule,
   MarkerRule,
   ActionLimitConsequence,
   MovementConsequence,

@@ -1,4 +1,4 @@
-import { resolveImageUrl } from '@/shared/lib/media'
+import { resolveContentImageUrl } from '@/shared/lib/media'
 import { useCharacters } from '@/features/character/hooks'
 import { NpcMediaTopCard } from '@/features/character/components'
 import Box from '@mui/material/Box'
@@ -34,7 +34,7 @@ export default function NpcGallerySection() {
               key={npc._id}
               name={npc.name}
               classes={npc.classes}
-              imageUrl={resolveImageUrl(npc.imageKey)}
+              imageUrl={resolveContentImageUrl('character', npc.imageKey)}
               status={(npc as { status?: 'pending' | 'approved' }).status}
               link={`/npcs/${npc._id}`}
               race={npc.race ?? ''}

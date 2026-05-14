@@ -5,11 +5,12 @@ import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { ChatContainer } from '@/chat'
 import type { CharacterType } from '@/features/character/domain/types'
+import type { MuiButtonSize } from '@/ui/sizes'
 
 type CharacterBuilderLauncherProps = {
   buttonLabel?: string
   variant?: 'contained' | 'outlined' | 'text'
-  size?: 'small' | 'medium' | 'large'
+  size?: MuiButtonSize
   onCharacterCreated?: (character: unknown) => void
   characterType?: CharacterType
 }

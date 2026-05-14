@@ -20,19 +20,40 @@ type ValidationError = {
   message: string;
 };
 
-function validateInput(body: Record<string, unknown>): ValidationError[] {
-  const errors: ValidationError[] = [];
+/** Top-level / reserved keys — never persisted inside `data` (mirrors create “rest → data”). */
+const RESERVED_MONSTER_KEYS = new Set(['name', 'monsterId', 'id', 'accessPolicy', 'data']);
 
-  if (typeof body.name !== 'string' || body.name.trim().length === 0) {
-    errors.push({ path: 'name', code: 'REQUIRED', message: 'name is required' });
-  } else if (body.name.trim().length > 200) {
-    errors.push({ path: 'name', code: 'OUT_OF_RANGE', message: 'name must be 200 characters or fewer' });
+function validateInput(
+  body: Record<string, unknown>,
+  options?: { isUpdate?: boolean },
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+  const isUpdate = options?.isUpdate === true;
+
+  if (!isUpdate) {
+    if (typeof body.name !== 'string' || body.name.trim().length === 0) {
+      errors.push({ path: 'name', code: 'REQUIRED', message: 'name is required' });
+    } else if (body.name.trim().length > 200) {
+      errors.push({ path: 'name', code: 'OUT_OF_RANGE', message: 'name must be 200 characters or fewer' });
+    }
+  } else {
+    if (body.name !== undefined) {
+      if (typeof body.name !== 'string' || body.name.trim().length === 0) {
+        errors.push({ path: 'name', code: 'REQUIRED', message: 'name cannot be empty' });
+      } else if (body.name.trim().length > 200) {
+        errors.push({ path: 'name', code: 'OUT_OF_RANGE', message: 'name must be 200 characters or fewer' });
+      }
+    }
   }
 
   if (body.monsterId !== undefined) {
     if (typeof body.monsterId !== 'string' || body.monsterId.trim().length === 0) {
       errors.push({ path: 'monsterId', code: 'INVALID_TYPE', message: 'monsterId must be a non-empty string' });
     }
+  }
+
+  if (body.imageKey !== undefined && body.imageKey !== null && typeof body.imageKey !== 'string') {
+    errors.push({ path: 'imageKey', code: 'INVALID_TYPE', message: 'imageKey must be a string' });
   }
 
   if (body.accessPolicy !== undefined && body.accessPolicy !== null) {
@@ -91,8 +112,15 @@ export async function create(
   const monsterId = (body.monsterId as string | undefined)?.trim() || (body.id as string | undefined)?.trim() || generateMonsterId(name);
   const accessPolicy = body.accessPolicy as AccessPolicy | undefined;
 
-  const { name: _n, monsterId: _m, id: _i, accessPolicy: _a, ...rest } = body;
-  const data = Object.keys(rest).length > 0 ? rest : (body.data as Record<string, unknown>) ?? {};
+  const { name: _n, monsterId: _m, id: _i, accessPolicy: _a, data: nestedData, ...flatRest } = body;
+  const data =
+    nestedData !== undefined && typeof nestedData === 'object' && nestedData !== null && !Array.isArray(nestedData)
+      ? Object.keys(flatRest).length > 0
+        ? { ...(nestedData as Record<string, unknown>), ...flatRest }
+        : { ...(nestedData as Record<string, unknown>) }
+      : Object.keys(flatRest).length > 0
+        ? flatRest
+        : {};
 
   const existing = await CampaignMonster.findOne({ campaignId, monsterId }).lean();
   if (existing) {
@@ -108,17 +136,40 @@ export async function update(
   monsterId: string,
   body: Record<string, unknown>,
 ): Promise<{ monster: CampaignMonsterDoc } | { errors: ValidationError[] } | null> {
-  const errors = validateInput({ ...body, monsterId });
+  const errors = validateInput({ ...body, monsterId }, { isUpdate: true });
   if (errors.length > 0) return { errors };
 
-  const name = (body.name as string)?.trim();
-  const data = body.data as Record<string, unknown> | undefined;
-  const accessPolicy = body.accessPolicy as AccessPolicy | undefined;
+  const existing = await CampaignMonster.findOne({ campaignId, monsterId }).lean();
+  if (!existing) return null;
 
-  const $set: Record<string, unknown> = {};
-  if (name !== undefined) $set.name = name;
-  if (data !== undefined) $set.data = data;
-  if (accessPolicy !== undefined) $set.accessPolicy = accessPolicy;
+  /**
+   * PATCH contract:
+   * - Top-level fields (except name, monsterId, id, accessPolicy, `data`) are **shallow-merged**
+   *   into the existing `data` document (same keys as create’s “rest → data”).
+   * - If the body includes a plain object `data`, it **replaces** the entire stored `data` object
+   *   (escape hatch for callers that send nested payloads only). Flat keys in the same body are
+   *   ignored when `data` is present, except reserved top-level fields below.
+   */
+  const existingData = ((existing as Record<string, unknown>).data as Record<string, unknown>) ?? {};
+
+  let nextData: Record<string, unknown>;
+  if (body.data !== undefined && body.data !== null && typeof body.data === 'object' && !Array.isArray(body.data)) {
+    nextData = { ...(body.data as Record<string, unknown>) };
+  } else {
+    nextData = { ...existingData };
+    for (const [key, value] of Object.entries(body)) {
+      if (RESERVED_MONSTER_KEYS.has(key)) continue;
+      nextData[key] = value;
+    }
+  }
+
+  const $set: Record<string, unknown> = { data: nextData };
+  if (body.name !== undefined && typeof body.name === 'string') {
+    $set.name = body.name.trim();
+  }
+  if (body.accessPolicy !== undefined) {
+    $set.accessPolicy = body.accessPolicy;
+  }
 
   const doc = await CampaignMonster.findOneAndUpdate(
     { campaignId, monsterId },

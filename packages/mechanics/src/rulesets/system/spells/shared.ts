@@ -1,4 +1,4 @@
-import type { DiceOrFlat, dY } from '@/features/mechanics/domain/dice';
+import type { DiceOrFlat, dY } from '@/shared/domain/dice';
 import { ABILITIES } from '@/features/mechanics/domain/character/abilities/abilities';
 
 /** Enhance Ability, Contagion (disadvantage on saves), etc. — excludes Constitution where spell text says so. */

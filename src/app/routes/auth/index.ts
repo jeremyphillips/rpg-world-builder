@@ -2,7 +2,8 @@ export { CharactersRoute, CharacterRoute, NewCharacterRoute, NpcsRoute, NpcRoute
 export {
   CampaignsRoute,
   DashboardRoute,
-  CampaignRoute,
+  CampaignLayoutRoute,
+  CampaignHubRoute,
   PartyRoute,
   RulesRoute,
   WorldLayout,

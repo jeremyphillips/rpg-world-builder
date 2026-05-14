@@ -35,6 +35,8 @@ export function pathStrokeForKind(kind: string): string {
 
 export function pathWidthsForHostScale(scale: string): { default: number; selected: number } {
   if (!isValidLocationScaleId(scale)) return PATH_WIDTH_FALLBACK_PX;
-  const w = pathMapPalette.widthPxByHostScale[scale as LocationScaleId];
-  return w ?? PATH_WIDTH_FALLBACK_PX;
+  const byScale = pathMapPalette.widthPxByHostScale as Partial<
+    Record<LocationScaleId, { default: number; selected: number }>
+  >;
+  return byScale[scale] ?? PATH_WIDTH_FALLBACK_PX;
 }

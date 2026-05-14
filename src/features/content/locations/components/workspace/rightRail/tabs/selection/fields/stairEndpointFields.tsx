@@ -20,7 +20,7 @@ import {
   parseStairObjectOptionValue,
 } from '@/features/content/locations/domain/model/building/listStairObjectsOnFloorMap';
 
-import { FormSelectField } from '@/ui/patterns';
+import { AppFormSelect } from '@/ui/patterns';
 import type { SelectOption } from '@/ui/patterns/form/form.types';
 
 import type { LocationCellObjectDraft } from '../../../../../authoring/draft/locationGridDraft.types';
@@ -78,7 +78,7 @@ function StairPairingLinkFormFields({
 
   return (
     <>
-      <FormSelectField
+      <AppFormSelect
         name="remoteFloorId"
         label="Other floor"
         options={floorOptions}
@@ -86,7 +86,7 @@ function StairPairingLinkFormFields({
         size="small"
         onAfterChange={() => setValue('remoteStairKey', '')}
       />
-      <FormSelectField
+      <AppFormSelect
         name="remoteStairKey"
         label="Stair on that floor"
         options={stairOpts}
@@ -305,7 +305,7 @@ export function LocationMapStairEndpointInspectForm({
   return (
     <FormProvider {...stairMethods}>
       <Stack spacing={2}>
-        <FormSelectField
+        <AppFormSelect
           name="direction"
           label="Direction"
           options={directionOptions}
@@ -329,7 +329,7 @@ export function LocationMapStairEndpointInspectForm({
         />
         {!hideLegacyTargetFloor ? (
           <>
-            <FormSelectField
+            <AppFormSelect
               name="targetFloorId"
               label="Target floor (unpaired)"
               options={targetOptions}

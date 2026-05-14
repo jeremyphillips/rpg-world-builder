@@ -43,7 +43,7 @@ describe('monster armor class display', () => {
     expect(goblin).toBeDefined()
     const armorSpec = MONSTER_DETAIL_SPECS.find((spec) => spec.key === 'armorClass')
 
-    render(<span>{armorSpec?.render(goblin!, { armorById })}</span>)
+    render(<span>{armorSpec?.render?.(goblin!, { armorById })}</span>)
 
     expect(
       screen.getByText('15 (Leather 11 + Shield 2 + DEX 2)'),

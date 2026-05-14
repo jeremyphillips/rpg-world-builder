@@ -13,6 +13,9 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
+/** See `patchDriver` — spell `components` must replace wholesale when patched. */
+const REPLACE_ON_PATCH_KEYS = new Set(['components']);
+
 /**
  * Deep-merge `patch` into `base`.
  *
@@ -22,6 +25,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * - Undefined patch keys are treated as no-op (base value kept).
  * - If patch contains `__delete__: true` the base is returned as-is;
  *   the caller is responsible for setting the `patched` metadata flag.
+ * - `components` (spell) replaces the whole object when present in patch (not deep-merged).
  */
 function deepMerge<T extends Record<string, unknown>>(
   base: T,
@@ -36,6 +40,14 @@ function deepMerge<T extends Record<string, unknown>>(
     if (patchVal === undefined) continue;
 
     const baseVal = (base as Record<string, unknown>)[key];
+
+    if (
+      REPLACE_ON_PATCH_KEYS.has(key) &&
+      isPlainObject(patchVal)
+    ) {
+      (result as Record<string, unknown>)[key] = patchVal;
+      continue;
+    }
 
     if (isPlainObject(patchVal) && isPlainObject(baseVal)) {
       (result as Record<string, unknown>)[key] = deepMerge(

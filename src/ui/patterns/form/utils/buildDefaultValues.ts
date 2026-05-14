@@ -1,16 +1,33 @@
 /**
- * Builds RHF defaultValues from FieldConfig[].
+ * Builds RHF defaultValues from FieldConfig[] / FormLayoutNode[].
  * Uses field.defaultValue, or field.defaultFromOptions === 'first' for option-based fields.
  */
-import type { FieldConfig } from '../form.types';
+import type { FormLayoutNode } from '../form.types';
+
+function isRepeatableGroup(
+  n: FormLayoutNode,
+): n is Extract<FormLayoutNode, { type: 'repeatable-group' }> {
+  return 'type' in n && n.type === 'repeatable-group';
+}
+
+function isCustomNode(n: FormLayoutNode): n is Extract<FormLayoutNode, { type: 'custom' }> {
+  return 'type' in n && n.type === 'custom';
+}
 
 export function buildDefaultValues<T extends Record<string, unknown>>(
-  fields: FieldConfig[],
+  fields: FormLayoutNode[],
   overrides?: Partial<T>,
 ): T {
   const out: Record<string, unknown> = {};
 
   for (const field of fields) {
+    if (isCustomNode(field)) {
+      continue;
+    }
+    if (isRepeatableGroup(field)) {
+      out[field.name] = [];
+      continue;
+    }
     if (field.type === 'hidden') continue;
 
     if (field.type === 'optionPicker') {

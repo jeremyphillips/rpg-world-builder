@@ -11,6 +11,7 @@ import {
 import { useLocation, useNavigate, matchPath } from 'react-router-dom'
 import { apiFetch } from '../api'
 import type { Campaign } from '@/shared/types/campaign.types'
+import { useAuth } from './AuthProvider'
 
 interface ActiveCampaignContextType {
   campaign: Campaign | null,
@@ -35,6 +36,7 @@ export const ActiveCampaignProvider = ({
 }: {
   children: ReactNode
 }) => {
+  const { user, loading: authLoading } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [campaign, setCampaign] = useState<Campaign | null>(null)
@@ -47,7 +49,21 @@ export const ActiveCampaignProvider = ({
 
   const [loading, setLoading] = useState(() => !!campaignId)
 
+  // Resolve from URL synchronously so client navigations to /campaigns/:id don't render before
+  // useEffect syncs persisted campaignId (which caused a false "Campaign not found").
+  const resolvedCampaignId = useMemo(() => {
+    const match = matchPath(
+      { path: '/campaigns/:campaignId/*' },
+      location.pathname
+    )
+    const id = match?.params?.campaignId
+    if (id && isValidObjectId(id)) return id
+    return campaignId
+  }, [location.pathname, campaignId])
+
   useEffect(() => {
+    if (authLoading || !user) return
+
     const controller = new AbortController()
     apiFetch<{ campaigns: { _id: string }[] }>('/api/campaigns', { signal: controller.signal })
       .then((data) => {
@@ -63,7 +79,7 @@ export const ActiveCampaignProvider = ({
       })
       .catch(() => {})
     return () => controller.abort()
-  }, [])
+  }, [user, authLoading])
 
   useEffect(() => {
     const match = matchPath(
@@ -100,8 +116,17 @@ export const ActiveCampaignProvider = ({
   }, [])
 
   useEffect(() => {
-    if (!campaignId) {
+    if (authLoading) return
+
+    if (!user) {
       setCampaign(null)
+      setLoading(false)
+      return
+    }
+
+    if (!resolvedCampaignId) {
+      setCampaign(null)
+      setLoading(false)
       return
     }
 
@@ -109,7 +134,7 @@ export const ActiveCampaignProvider = ({
 
     setLoading(true)
 
-    apiFetch<{ campaign: Campaign }>(`/api/campaigns/${campaignId}`, { signal: controller.signal })
+    apiFetch<{ campaign: Campaign }>(`/api/campaigns/${resolvedCampaignId}`, { signal: controller.signal })
       .then((data) => {
         if (!controller.signal.aborted) setCampaign(data.campaign ?? null)
       })
@@ -121,16 +146,16 @@ export const ActiveCampaignProvider = ({
       })
 
     return () => controller.abort()
-  }, [campaignId])
+  }, [resolvedCampaignId, user, authLoading])
 
   const value = useMemo(() => ({
-    campaignId,
+    campaignId: resolvedCampaignId,
     campaign,
     campaignName: campaign?.identity?.name ?? null,
     loading,
     setActiveCampaign,
     clearActiveCampaign
-  }), [campaignId, campaign, loading, setActiveCampaign, clearActiveCampaign])
+  }), [resolvedCampaignId, campaign, loading, setActiveCampaign, clearActiveCampaign])
 
   return (
     <ActiveCampaignContext.Provider value={value}>

@@ -1,24 +1,24 @@
 export const GEAR_CATEGORY_OPTIONS = [
-  { value: 'packs-containers', label: 'Packs & Containers' },
-  { value: 'lighting-fuel', label: 'Lighting & Fuel' },
-  { value: 'rope-climbing', label: 'Rope & Climbing' },
-  { value: 'tools-utility', label: 'Tools & Utility' },
-  { value: 'adventuring-utility', label: 'Adventuring Utility' },
-  { value: 'writing-knowledge', label: 'Writing & Knowledge' },
-  { value: 'kits-focuses', label: 'Kits & Focuses' },
-  { value: 'rations-consumables', label: 'Rations & Consumables' },
-  { value: 'clothing', label: 'Clothing' },
-  { value: 'misc-tools', label: 'Misc Tools' },
-  { value: 'cases-quivers', label: 'Cases & Quivers' },
-  { value: 'tent-camp', label: 'Tent & Camp' },
-  { value: 'luxury-special', label: 'Luxury & Special' },
-  { value: 'potions-alchemical', label: 'Potions & Alchemical' },
+  { id: 'packs-containers', name: 'Packs & Containers' },
+  { id: 'lighting-fuel', name: 'Lighting & Fuel' },
+  { id: 'rope-climbing', name: 'Rope & Climbing' },
+  { id: 'tools-utility', name: 'Tools & Utility' },
+  { id: 'adventuring-utility', name: 'Adventuring Utility' },
+  { id: 'writing-knowledge', name: 'Writing & Knowledge' },
+  { id: 'kits-focuses', name: 'Kits & Focuses' },
+  { id: 'rations-consumables', name: 'Rations & Consumables' },
+  { id: 'clothing', name: 'Clothing' },
+  { id: 'misc-tools', name: 'Misc Tools' },
+  { id: 'cases-quivers', name: 'Cases & Quivers' },
+  { id: 'tent-camp', name: 'Tent & Camp' },
+  { id: 'luxury-special', name: 'Luxury & Special' },
+  { id: 'potions-alchemical', name: 'Potions & Alchemical' },
 ] as const;
 
-export type GearCategory = (typeof GEAR_CATEGORY_OPTIONS)[number]['value'];
+export type GearCategory = (typeof GEAR_CATEGORY_OPTIONS)[number]['id'];
 
 export const GEAR_PROPERTY_OPTIONS = [
-  { value: 'magnification', label: 'Magnification' },
+  { id: 'magnification', name: 'Magnification' },
 ] as const;
 
-export type GearProperty = (typeof GEAR_PROPERTY_OPTIONS)[number]['value'];
+export type GearProperty = (typeof GEAR_PROPERTY_OPTIONS)[number]['id'];

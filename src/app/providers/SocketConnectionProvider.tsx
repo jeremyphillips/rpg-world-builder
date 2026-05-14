@@ -8,6 +8,7 @@ import {
 } from 'react'
 import { io, type Socket } from 'socket.io-client'
 import { apiFetch } from '../api'
+import { useAuth } from './AuthProvider'
 
 const SOCKET_URL = import.meta.env.DEV ? '' : window.location.origin
 
@@ -18,10 +19,18 @@ type SocketConnectionContextValue = {
 const SocketConnectionContext = createContext<SocketConnectionContextValue | undefined>(undefined)
 
 export function SocketConnectionProvider({ children }: { children: ReactNode }) {
+  const { user, loading: authLoading } = useAuth()
   const [socket, setSocket] = useState<Socket | null>(null)
   const socketRef = useRef<Socket | null>(null)
 
   useEffect(() => {
+    if (authLoading || !user) {
+      socketRef.current?.disconnect()
+      socketRef.current = null
+      setSocket(null)
+      return
+    }
+
     let cancelled = false
 
     const connect = async () => {
@@ -47,7 +56,7 @@ export function SocketConnectionProvider({ children }: { children: ReactNode }) 
       socketRef.current = null
       setSocket(null)
     }
-  }, [])
+  }, [user, authLoading])
 
   return (
     <SocketConnectionContext.Provider value={{ socket }}>

@@ -25,7 +25,7 @@ export async function buildCombatStartupInputFromGameSession(
   campaignId: string,
   options: { presentUserIds: string[] },
 ): Promise<BuildCombatStartupFromGameSessionResult> {
-  const { ruleset, catalog } = await resolveCampaignRulesAndCatalogForGameSession(campaignId)
+  const { ruleset, catalog, systemId } = await resolveCampaignRulesAndCatalogForGameSession(campaignId)
 
   const roster = await getPartyCharacters(campaignId, 'approved')
   if (roster.length === 0) {
@@ -67,6 +67,7 @@ export async function buildCombatStartupInputFromGameSession(
         character: detail,
         catalog,
         ruleset,
+        systemId,
         runtimeId: `party-${row.id}`,
         side: 'party',
         sourceKind: detail.type === 'npc' ? 'npc' : 'pc',
@@ -106,6 +107,7 @@ export async function buildCombatStartupInputFromGameSession(
           character: detail,
           catalog,
           ruleset,
+          systemId,
           runtimeId: `npc-${id}`,
           side: 'enemies',
           sourceKind: 'npc',

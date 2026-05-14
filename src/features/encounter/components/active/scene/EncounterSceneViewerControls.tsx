@@ -2,12 +2,10 @@ import { useMemo, type Dispatch, type SetStateAction } from 'react'
 
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
+
+import { AppSelect } from '@/ui/primitives'
 
 import type { EncounterState } from '@/features/mechanics/domain/combat'
 import {
@@ -98,49 +96,39 @@ export function EncounterSceneViewerControls({
           </Typography>
           <Chip size="small" label={focusedLabel} variant="outlined" color="primary" />
           {multiSpace ? (
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel id="encounter-scene-select-label">Scene</InputLabel>
-              <Select
-                labelId="encounter-scene-select-label"
-                label="Scene"
-                value={focusedSpaceId}
-                onChange={(e) => {
-                  const id = String(e.target.value)
-                  const sp = registry[id]
-                  setFollowMode('manual')
-                  setSceneFocus({
-                    kind: 'pinnedScene',
-                    encounterSpaceId: id,
-                    sceneLocationId: sp?.locationId ?? null,
-                  })
-                }}
-              >
-                {scenes.map((s) => (
-                  <MenuItem key={s.id} value={s.id}>
-                    {s.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              label="Scene"
+              value={focusedSpaceId}
+              onChange={(id) => {
+                const sp = registry[id]
+                setFollowMode('manual')
+                setSceneFocus({
+                  kind: 'pinnedScene',
+                  encounterSpaceId: id,
+                  sceneLocationId: sp?.locationId ?? null,
+                })
+              }}
+              options={scenes.map((s) => ({ value: s.id, label: s.name }))}
+              size="small"
+              fullWidth={false}
+              sx={{ minWidth: 200 }}
+            />
           ) : null}
         </Stack>
 
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-          <FormControl size="small" sx={{ minWidth: 220 }}>
-            <InputLabel id="encounter-follow-mode-label">Camera</InputLabel>
-            <Select
-              labelId="encounter-follow-mode-label"
-              label="Camera"
-              value={followMode}
-              onChange={(e) => setFollowMode(e.target.value as SceneViewerFollowMode)}
-            >
-              {(Object.keys(FOLLOW_LABEL) as SceneViewerFollowMode[]).map((k) => (
-                <MenuItem key={k} value={k}>
-                  {FOLLOW_LABEL[k]}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <AppSelect
+            label="Camera"
+            value={followMode}
+            onChange={(v) => setFollowMode(v as SceneViewerFollowMode)}
+            options={(Object.keys(FOLLOW_LABEL) as SceneViewerFollowMode[]).map((k) => ({
+              value: k,
+              label: FOLLOW_LABEL[k],
+            }))}
+            size="small"
+            fullWidth={false}
+            sx={{ minWidth: 220 }}
+          />
         </Stack>
       </Stack>
 

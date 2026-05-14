@@ -43,6 +43,22 @@ export function canViewDmScoped(ctx: ViewerContext): boolean {
   return canBypassVisibility(ctx)
 }
 
+/**
+ * Whether the viewer may see **privileged content metadata** (patched state, restricted
+ * visibility meta, and similar DM/platform-admin signals) on any surface — detail meta rows,
+ * list filters, row badges, etc.
+ *
+ * Allowed: platform admin, or DM / co-DM. Not allowed for campaign owner alone without
+ * those roles. False when no viewer is present.
+ */
+export function canViewPrivilegedContentMeta(
+  viewer: Partial<Pick<ViewerContext, 'isPlatformAdmin' | 'campaignRole'>> | null | undefined,
+): boolean {
+  if (!viewer) return false
+  if (viewer.isPlatformAdmin) return true
+  return viewer.campaignRole != null && DM_LEVEL_ROLES.has(viewer.campaignRole)
+}
+
 export function canViewRestricted(
   ctx: ViewerContext,
   allowCharacterIds: string[],
@@ -95,15 +111,4 @@ export function canViewContent(
 
 export function canManageContent(ctx: ViewerContext): boolean {
   return ctx.isOwner || (ctx.campaignRole !== null && DM_LEVEL_ROLES.has(ctx.campaignRole));
-}
-
-/** @deprecated Use canManageContent instead. Will be removed in a future build. */
-export const canManageCampaignContent = canManageContent
-
-export function getCapabilities(ctx: ViewerContext) {
-  return {
-    canBypassVisibility: canBypassVisibility(ctx),
-    canViewDmScoped: canViewDmScoped(ctx),
-    canManageContent: canManageContent(ctx),
-  };
 }

@@ -6,6 +6,7 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { AppModal } from '@/ui/patterns'
+import { buildCharacterQueryContextFromDetailDto } from '@/features/character/domain/query'
 import type { CharacterDetailDto } from '@/features/character/read-model'
 import type { LevelUpState, LevelUpResult } from './levelUp.types'
 import { useLevelUpSteps } from './useLevelUpSteps'
@@ -52,7 +53,9 @@ function buildInitialState(character: CharacterDetailDto): LevelUpState {
     pendingLevel: character.pendingLevel ?? (character.totalLevel ?? character.level ?? 1) + 1,
     classes: (character.classes ?? []).map((c) => ({ classId: c.classId, subclassId: c.subclassId ?? undefined, level: c.level })),
     primaryClassId,
-    currentSpells: character.spells ?? [],
+    currentSpells: Array.from(
+      buildCharacterQueryContextFromDetailDto(character).spells.knownSpellIds,
+    ),
 
     hpGained: null,
     hpMethod: null,

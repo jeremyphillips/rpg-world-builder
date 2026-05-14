@@ -1,9 +1,10 @@
-/**
- * Canonical turn-boundary hooks shared by effects, spells, monster traits, and legendary actions.
- */
+import type { TriggerId } from '@/features/content/shared/domain/vocab/triggers.vocab';
 
-/** Start or end of a turn on the usual initiative timeline (repeat saves, regeneration, etc.). */
-export type TurnHookKind = 'turn-start' | 'turn-end';
+/**
+ * Start or end of a turn on the usual initiative timeline (repeat saves, regeneration, etc.).
+ * Aligned with canonical trigger ids in shared vocab.
+ */
+export type TurnHookKind = Extract<TriggerId, 'turn-start' | 'turn-end'>;
 
 /** Regeneration-style trigger: this creature’s turn boundary. */
 export type TurnHookSelfTrigger = {

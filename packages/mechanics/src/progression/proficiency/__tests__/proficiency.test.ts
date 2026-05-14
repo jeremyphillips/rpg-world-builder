@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Ruleset } from '@/shared/types/ruleset'
 import { CHARACTER_PROFICIENCY_BONUS_TABLE } from '../proficiencyBonusTable'
 import { resolveProficiencyBonusAtLevel } from '../resolveProficiencyBonusAtLevel'
-import { resolveProficiencyContribution } from '../resolveProficiencyContribution'
+import { resolveProficiencyContribution } from '../resolvedProficiencyMode'
 import { resolveCharacterProficiencyBonus } from '../resolveCharacterProficiencyBonus'
 
 const TEST_RULESET = {
@@ -47,14 +47,15 @@ describe('resolveProficiencyBonusAtLevel', () => {
 })
 
 describe('resolveProficiencyContribution', () => {
-  it('multiplies bonus by level', () => {
-    expect(resolveProficiencyContribution(2, 1)).toBe(2)
-    expect(resolveProficiencyContribution(3, 2)).toBe(6)
-    expect(resolveProficiencyContribution(4, 1)).toBe(4)
+  it('applies multiplier from resolved mode', () => {
+    expect(resolveProficiencyContribution(2, 'proficient')).toBe(2)
+    expect(resolveProficiencyContribution(3, 'expertise')).toBe(6)
+    expect(resolveProficiencyContribution(4, 'proficient')).toBe(4)
   })
 
-  it('returns 0 when proficiency level is 0', () => {
-    expect(resolveProficiencyContribution(3, 0)).toBe(0)
+  it('returns 0 for none or undefined', () => {
+    expect(resolveProficiencyContribution(3, 'none')).toBe(0)
+    expect(resolveProficiencyContribution(3, undefined)).toBe(0)
   })
 })
 

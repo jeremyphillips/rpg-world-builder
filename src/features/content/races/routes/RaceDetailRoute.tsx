@@ -1,27 +1,33 @@
 import { useParams } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
 
 import { useActiveCampaign } from '@/app/providers/ActiveCampaignProvider';
-import { ContentDetailScaffold } from '@/features/content/shared/components';
+import { useActiveCampaignCanManageContent } from '@/app/providers/useActiveCampaignCanManageContent';
+import { useActiveCampaignViewerContext } from '@/app/providers/useActiveCampaignViewerContext';
+import {
+  ContentDetailAdvancedAccordion,
+  ContentDetailImageKeyValueGrid,
+  ContentDetailMetaRow,
+  ContentDetailScaffold,
+} from '@/features/content/shared/components';
 import type { Race } from '@/features/content/races/domain/types';
 import { useCampaignContentEntry } from '@/features/content/shared/hooks/useCampaignContentEntry';
 import { useBreadcrumbs } from '@/app/navigation';
-import { toViewerContext, canManageContent } from '@/shared/domain/capabilities';
-import { AppAlert, AppBadge } from '@/ui/primitives';
+import { AppAlert } from '@/ui/primitives';
 import { KeyValueSection } from '@/ui/patterns';
-import { resolveImageUrl } from '@/shared/lib/media';
-import { buildDetailItemsFromSpecs } from '@/features/content/shared/forms/registry';
+import {
+  buildContentDetailSectionsFromSpecs,
+  toDetailSpecViewer,
+} from '@/features/content/shared/forms/registry';
 import { raceRepo, RACE_DETAIL_SPECS } from '@/features/content/races/domain';
 
 export default function RaceDetailRoute() {
-  const { campaignId, campaign } = useActiveCampaign();
+  const { campaignId } = useActiveCampaign();
+  const canManage = useActiveCampaignCanManageContent();
+  const viewerContext = useActiveCampaignViewerContext();
   const { raceId } = useParams<{ raceId: string }>();
   const breadcrumbs = useBreadcrumbs();
-
-  const ctx = toViewerContext(campaign?.viewer);
-  const canManage = canManageContent(ctx);
 
   const { entry: race, loading, error, notFound } = useCampaignContentEntry<Race>({
     campaignId: campaignId ?? undefined,
@@ -41,44 +47,40 @@ export default function RaceDetailRoute() {
     return <AppAlert tone="danger">{error ?? 'Race not found.'}</AppAlert>;
   }
 
-  const listPath = `/campaigns/${campaignId}/world/races`;
-  const editPath = `${listPath}/${raceId}/edit`;
+  const editPath = `/campaigns/${campaignId}/world/races/${raceId}/edit`;
 
-  const items = buildDetailItemsFromSpecs(RACE_DETAIL_SPECS, race, {});
+  const viewer = toDetailSpecViewer(viewerContext);
+  const { metaItems, mainItems, advancedItems } = buildContentDetailSectionsFromSpecs({
+    specs: RACE_DETAIL_SPECS,
+    item: race,
+    ctx: {},
+    viewer,
+  });
 
   return (
     <ContentDetailScaffold
       title={race.name}
       breadcrumbData={breadcrumbs}
-      listPath={listPath}
       editPath={editPath}
-      canEdit={canManage}
+      canManage={canManage}
       source={race.source}
       accessPolicy={race.accessPolicy}
+      hideAccessPolicyBadge
     >
-      {race.patched && (
-        <Box sx={{ mb: 2 }}>
-          <AppBadge label="Patched" tone="warning" size="small" />
-        </Box>
-      )}
+      <ContentDetailMetaRow items={metaItems} />
 
-      {race.imageKey && (
-        <Box sx={{ mb: 2 }}>
-          <img src={resolveImageUrl(race.imageKey)} alt={race.name} style={{ maxHeight: 500 }} />
-        </Box>
-      )}
+      <ContentDetailImageKeyValueGrid
+        imageContentType="race"
+        imageKey={race.imageKey}
+        alt={race.name}
+      >
+        <KeyValueSection title="" items={mainItems} columns={2} />
+      </ContentDetailImageKeyValueGrid>
 
-      {race.description && (
-        <Typography variant="body1" sx={{ whiteSpace: 'pre-line', mb: 3 }}>
-          {race.description}
-        </Typography>
-      )}
-
-      <KeyValueSection
-        title="Race Details"
-        items={items}
-        columns={2}
-        sx={{ mt: 2 }}
+      <ContentDetailAdvancedAccordion
+        items={advancedItems}
+        sectionTitle="Advanced race data"
+        idPrefix="race"
       />
     </ContentDetailScaffold>
   );

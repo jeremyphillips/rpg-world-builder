@@ -9,8 +9,15 @@ import type { CampaignContentRepo, ListOptions } from '@/features/content/shared
 import type { Armor, ArmorSummary, ArmorInput, ArmorFields } from '@/features/content/equipment/armor/domain/types';
 import { getSystemArmor, getSystemArmorEntry } from '@/features/mechanics/domain/rulesets/system/armor';
 import { campaignArmorRepo, type CampaignEquipmentEntry } from '@/features/content/equipment/shared/domain/campaignEquipmentApi';
-import { getContentPatch } from '@/features/content/shared/domain/contentPatchRepo';
-import { applyContentPatch } from '@/features/content/shared/domain/patches/applyContentPatch';
+import {
+  getContentPatch,
+  getEntryPatch,
+  getPatchMapForType,
+} from '@/features/content/shared/domain/contentPatchRepo';
+import {
+  mergeSystemCampaignWithPatches,
+  resolveSystemEntryWithPatch,
+} from '@/features/content/shared/domain/patches/patchedContentResolution';
 import { moneyToCp } from '@/shared/money';
 import type { SystemRulesetId } from '@/features/mechanics/domain/rulesets';
 
@@ -71,22 +78,11 @@ export const armorRepo: CampaignContentRepo<Armor, ArmorSummary, ArmorInput> = {
       getContentPatch(campaignId),
     ]);
 
-    const armorPatches = contentPatch?.patches?.armor ?? {};
-    const campaignIds = new Set(campaign.map(c => c.id));
-
-    const patchedSystem: Armor[] = system
-      .filter(a => !campaignIds.has(a.id))
-      .map((a): Armor => {
-        const patch = armorPatches[a.id];
-        if (!patch) return a;
-        const merged = applyContentPatch<Armor>(a, patch as Partial<Armor>);
-        return { ...merged, patched: true };
-      });
-
-    const merged: Armor[] = [
-      ...patchedSystem,
-      ...campaign.map(campaignEntryToArmor),
-    ];
+    const merged = mergeSystemCampaignWithPatches(
+      system,
+      campaign.map(campaignEntryToArmor),
+      getPatchMapForType(contentPatch, 'armor'),
+    );
 
     let results = merged.map(toSummary);
 
@@ -109,11 +105,10 @@ export const armorRepo: CampaignContentRepo<Armor, ArmorSummary, ArmorInput> = {
     if (!systemArmor) return null;
 
     const contentPatch = await getContentPatch(campaignId);
-    const armorPatch = contentPatch?.patches?.armor?.[id];
-    if (!armorPatch) return systemArmor;
-
-    const merged = applyContentPatch<Armor>(systemArmor, armorPatch as Partial<Armor>);
-    return { ...merged, patched: true };
+    return resolveSystemEntryWithPatch(
+      systemArmor,
+      getEntryPatch(contentPatch, 'armor', id),
+    );
   },
 
   async createEntry(

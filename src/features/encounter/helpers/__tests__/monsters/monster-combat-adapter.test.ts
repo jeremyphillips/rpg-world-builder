@@ -56,7 +56,7 @@ const MONSTER_WEAPON_TEST = {
     proficiencyBonus: 2,
     proficiencies: {
       weapons: {
-        longbow: { proficiencyLevel: 1 },
+        longbow: 'proficient',
       },
     },
     equipment: {
@@ -294,7 +294,7 @@ describe('combat simulation monster action helpers', () => {
             save: { ability: 'dex', dc: 13 },
             damage: '4d6',
             damageType: 'fire',
-            target: 'creatures-in-area',
+            target: { selection: 'in-area', targetType: 'creature' },
             recharge: { min: 5, max: 6 },
             uses: { count: 1, period: 'day' },
           },
@@ -338,7 +338,7 @@ describe('combat simulation monster action helpers', () => {
             kind: 'special',
             name: 'Engulf',
             description: 'The cube moves through creature spaces and engulfs them.',
-            target: 'creatures-entered-during-move',
+            target: { selection: 'entered-during-move', targetType: 'creature' },
             movement: {
               upToSpeed: true,
               noOpportunityAttacks: true,

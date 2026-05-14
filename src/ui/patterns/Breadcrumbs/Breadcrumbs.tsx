@@ -25,7 +25,7 @@ const Breadcrumbs = ({ items }: BreadcrumbsProps) => (
   <MuiBreadcrumbs
     separator={<NavigateNextIcon fontSize="small" sx={{ color: 'text.disabled' }} />}
     aria-label="breadcrumb"
-    sx={{ mb: 2 }}
+    sx={{ mb: 3 }}
   >
     {items && items.length > 0 && items.map((item, i) => {
       const isLast = i === items.length - 1

@@ -1,13 +1,2 @@
-export * from './dice.types';
-export * from './dice.constants';
-export {
-  parseXdY,
-  buildXdY,
-  toDieFace,
-  toCount,
-  toCountOrZero,
-  type ParsedXdY,
-  type ParseXdYOptions,
-} from './dice.parse';
-
+export * from '@/shared/domain/dice';
 export { rollHitDie } from './rollHitDie';

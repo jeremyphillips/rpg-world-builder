@@ -33,7 +33,7 @@ export function getCombatantAbilityScore(stats: CombatantInstance['stats'], key:
 /**
  * Passive Perception — precedence (see tests):
  * 1. Explicit runtime override: `stats.skillRuntime.passivePerception`, then legacy `stats.passivePerception`
- * 2. Skill-derived (when `proficiencyBonus` is a positive number): `10 + Wis mod + (PB × perceptionProficiencyLevel)`
+ * 2. Skill-derived (when `proficiencyBonus` is a positive number): `10 + Wis mod + proficiency contribution from perception mode`
  * 3. Fallback: `10 + Wisdom modifier`
  *
  * Future: a precomputed Perception skill modifier (before passive conversion) can slot between (1) and (2)
@@ -51,10 +51,10 @@ export function getPassivePerceptionScore(combatant: CombatantInstance): number 
   const wis = getCombatantAbilityScore(combatant.stats, 'wisdom')
   const wisMod = getAbilityModifier(wis)
   const pb = sr?.proficiencyBonus
-  const level = sr?.perceptionProficiencyLevel ?? 0
+  const mode = sr?.perceptionProficiencyMode ?? 'none'
 
   if (typeof pb === 'number' && pb > 0) {
-    return 10 + wisMod + resolveProficiencyContribution(pb, level)
+    return 10 + wisMod + resolveProficiencyContribution(pb, mode)
   }
   return 10 + wisMod
 }
@@ -62,7 +62,7 @@ export function getPassivePerceptionScore(combatant: CombatantInstance): number 
 /**
  * Stealth check modifier — precedence:
  * 1. Explicit override: `stats.skillRuntime.stealthCheckModifierOverride` when set
- * 2. Proficiency-based: Dex mod + `(PB × stealthProficiencyLevel)` when `proficiencyBonus` is a positive number
+ * 2. Proficiency-based: Dex mod + PB contribution from stealth mode when `proficiencyBonus` is a positive number
  * 3. Fallback: Dexterity modifier only
  *
  * Future: item / flat Stealth bonuses can extend step 2 or insert before the override when modeled on the snapshot.
@@ -76,10 +76,10 @@ export function getStealthCheckModifier(combatant: CombatantInstance): number {
   const dex = getCombatantAbilityScore(combatant.stats, 'dexterity')
   const dexMod = getAbilityModifier(dex)
   const pb = sr?.proficiencyBonus
-  const level = sr?.stealthProficiencyLevel ?? 0
+  const mode = sr?.stealthProficiencyMode ?? 'none'
 
   if (typeof pb === 'number' && pb > 0) {
-    return dexMod + resolveProficiencyContribution(pb, level)
+    return dexMod + resolveProficiencyContribution(pb, mode)
   }
   return dexMod
 }

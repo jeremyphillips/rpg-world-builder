@@ -64,6 +64,7 @@ export type CampaignCatalog = {
   enhancementsById:         Record<string, EnchantmentTemplate>
   spellsById:               Record<string, Spell>
   skillProficienciesById:   Record<string, SkillProficiency>
+  skillProficiencyIds:      readonly string[]
   monstersById:             Record<string, Monster>
 }
 
@@ -79,6 +80,7 @@ const gear = getSystemGear(DEFAULT_SYSTEM_RULESET_ID);
 const magicItems = getSystemMagicItems(DEFAULT_SYSTEM_RULESET_ID);
 
 const classes = getSystemClasses(DEFAULT_SYSTEM_RULESET_ID);
+const skillProficiencies = getSystemSkillProficiencies(DEFAULT_SYSTEM_RULESET_ID);
 
 export const systemCatalog: CampaignCatalog = {
   classesById:      keyBy(classes),
@@ -91,7 +93,8 @@ export const systemCatalog: CampaignCatalog = {
   magicItemsById:   keyBy(magicItems),
   enhancementsById: keyBy(getSystemEnchantmentTemplates(DEFAULT_SYSTEM_RULESET_ID)),
   spellsById:       keyBy(getSystemSpells(DEFAULT_SYSTEM_RULESET_ID)),
-  skillProficienciesById: keyBy(getSystemSkillProficiencies(DEFAULT_SYSTEM_RULESET_ID)),
+  skillProficienciesById: keyBy(skillProficiencies),
+  skillProficiencyIds:      skillProficiencies.map((s) => s.id),
   monstersById:     keyBy(getSystemMonsters(DEFAULT_SYSTEM_RULESET_ID)),
 }
 

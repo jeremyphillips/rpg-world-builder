@@ -1,4 +1,4 @@
-import { AppForm, DynamicFormRenderer, FormActions, type FieldConfig } from '@/ui/patterns'
+import { AppForm, AppFormActions, DynamicFormRenderer, type FieldConfig } from '@/ui/patterns'
 import type { RegisterFormData } from './register.types'
 
 interface RegisterFormProps {
@@ -27,7 +27,7 @@ export default function RegisterForm({ inviteToken = '', onSubmit, submitLabel =
   return (
     <AppForm<RegisterFormData> defaultValues={defaultValues} onSubmit={onSubmit}>
       <DynamicFormRenderer fields={fields} />
-      <FormActions submitLabel={submitLabel} />
+      <AppFormActions submitLabel={submitLabel} />
     </AppForm>
   )
 }

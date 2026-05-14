@@ -2,6 +2,7 @@ import type { Spell } from '@/features/content/spells/domain/types/spell.types'
 import type { Monster } from '@/features/content/monsters/domain/types'
 import type { EncounterState } from '../types'
 import type { CombatantInstance } from '../types'
+import { flattenSpellEffects } from '@/features/content/spells/domain/spellEffectGroups'
 import {
   combatantInsideAttachedSphereAura,
   getSpeedMultiplyProductFromEffects,
@@ -22,7 +23,7 @@ export type BattlefieldSpellContext = {
  * (e.g. Spirit Guardians 0.5 while in the emanation — applied spatially, not here per se).
  */
 export function getSpeedMultiplyProductFromSpell(spell: Spell): number {
-  return getSpeedMultiplyProductFromEffects(spell.effects ?? [])
+  return getSpeedMultiplyProductFromEffects(flattenSpellEffects(spell))
 }
 
 /**

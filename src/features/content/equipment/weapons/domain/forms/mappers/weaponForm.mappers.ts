@@ -15,7 +15,7 @@ import {
   toCount,
   toCountOrZero,
   toDieFace,
-} from '@/features/mechanics/domain/dice';
+} from '@/shared/domain/dice';
 import { WEAPON_FORM_FIELDS } from '../registry/weaponForm.registry';
 import type { WeaponFormValues } from '../types/weaponForm.types';
 
@@ -75,7 +75,7 @@ export const toWeaponInput = (values: WeaponFormValues): WeaponInput => {
   };
   const vCount = toCountOrZero(values.damageVersatileCount, 0);
   if (vCount > 0) {
-    const vDie = toDieFace(values.damageVersatileDie, 6);
+    const vDie = toDieFace(values.damageVersatileDie, 8);
     damage.versatile = buildXdY({ count: vCount, die: vDie }) as NonNullable<WeaponFields['damage']['versatile']>;
   }
 

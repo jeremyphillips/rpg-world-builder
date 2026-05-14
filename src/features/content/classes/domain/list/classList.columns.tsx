@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import Box from '@mui/material/Box';
 import type { AppDataGridColumn } from '@/ui/patterns';
 import { AppTooltip } from '@/ui/primitives';
+import type { AbilityRef } from '@/features/mechanics/domain/character';
 import { abilityIdToAbbrev } from '@/features/mechanics/domain/character';
 import type { ClassListRow } from './classList.types';
 
@@ -20,7 +21,7 @@ function formatSpellcasting(value: unknown): string {
 
 function formatPrimaryAbilities(ids: string[]): string {
   if (!ids.length) return '—';
-  return ids.map(abilityIdToAbbrev).join(', ');
+  return ids.map((id) => abilityIdToAbbrev(id as AbilityRef)).join(', ');
 }
 
 function renderSubclassCount(row: ClassListRow): ReactNode {

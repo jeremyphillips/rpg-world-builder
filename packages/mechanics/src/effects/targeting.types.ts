@@ -1,15 +1,13 @@
-/**
- * How a targeting effect selects subjects (spells, monster riders, etc.).
- */
-export type TargetingEffectTarget =
-  | 'one-creature'
-  | 'one-dead-creature'
-  | 'chosen-creatures'
-  | 'creatures-in-area'
-  | 'creatures-entered-during-move';
+import type {
+  TargetEligibilityKind,
+  TargetSelectionKind,
+} from '@/features/content/shared/domain/vocab/spellTargeting.vocab';
 
-/** Narrow subset used on monster `MonsterSpecialAction` stat blocks. */
-export type MonsterSpecialActionTarget = Extract<
-  TargetingEffectTarget,
-  'creatures-in-area' | 'creatures-entered-during-move'
->;
+/**
+ * Monster special actions that use the same selection/eligibility axes as spell AoE / movement triggers,
+ * limited to area-style selection on creatures.
+ */
+export type MonsterSpecialActionTarget = {
+  selection: Extract<TargetSelectionKind, 'in-area' | 'entered-during-move'>;
+  targetType: Extract<TargetEligibilityKind, 'creature'>;
+};

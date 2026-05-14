@@ -33,6 +33,10 @@ const campaignSkillProficiencySchema = new Schema(
       type: String,
       default: '',
     },
+    imageKey: {
+      type: String,
+      default: '',
+    },
     ability: {
       type: String,
       required: true,

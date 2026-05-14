@@ -7,3 +7,25 @@ export { validateSpellChange, type SpellValidationMode } from './validation/vali
 export * from './forms';
 export { SPELL_DETAIL_SPECS } from './details/spellDetail.spec';
 export * from './list';
+export type { SpellLevelDefinition } from './spellPresentation';
+export {
+  flattenSpellEffects,
+  getPrimarySpellTargeting,
+  findSpellTargetingWithArea,
+} from './spellEffectGroups';
+
+export {
+  SPELL_UI,
+  SPELL_LEVEL_DEFINITIONS,
+  SPELL_LEVEL_DEFINITION_BY_ID,
+  getSpellLevelDefinition,
+  getSpellLevelDefinitionOrUndefined,
+  isSpellLevel,
+  formatSpellLevelName,
+  formatSpellLevelHeading,
+  formatSpellLevelShort,
+  formatSpellLevelNameUnsafe,
+  formatSpellLevelHeadingUnsafe,
+  formatSpellLevelShortUnsafe,
+  formatSpellLevelShortFromUnknown,
+} from './spellPresentation';

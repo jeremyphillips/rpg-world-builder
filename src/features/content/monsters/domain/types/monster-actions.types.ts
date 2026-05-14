@@ -1,7 +1,7 @@
-import type { DiceOrFlat } from "@/features/mechanics/domain/dice";
+import type { DiceOrFlat } from '@/shared/domain/dice';
 import type { AbilityId } from '@/features/mechanics/domain/character';
 import type { Effect } from "@/features/mechanics/domain/effects/effects.types";
-import type { MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
+import type { MonsterSizeCategory } from './monster.types'
 import type { MonsterWeaponAction } from "./monster-equipment.types";
 import type { DamageType } from '@/features/mechanics/domain/damage/damage.types';
 import type { MonsterAttackType, AttackAbility } from "./monster-combat.types";

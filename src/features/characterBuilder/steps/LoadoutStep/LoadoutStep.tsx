@@ -4,14 +4,14 @@ import type { Armor } from '@/features/content/equipment/armor/domain/types'
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types'
 import { resolveLoadout } from '@/features/mechanics/domain/equipment/loadout'
 import { formatMoney } from '@/shared/money'
+import Box from '@mui/material/Box'
+import { AppSelect } from '@/ui/primitives'
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-type SelectOption = { value: string; label: string }
-
-const NONE_VALUE = ''
+type LoadoutOption = { value: string; label: string }
 
 function getOwnedItemsByIds<T extends { id: string }>(
   catalog: readonly T[],
@@ -39,12 +39,12 @@ function partitionArmor(
   return { armorItems, shieldItems }
 }
 
-function armorToOption(item: Armor): SelectOption {
+function armorToOption(item: Armor): LoadoutOption {
   const costSuffix = item.cost ? ` (${formatMoney(item.cost)})` : ''
   return { value: item.id, label: `${item.name}${costSuffix}` }
 }
 
-function weaponToOption(item: Weapon): SelectOption {
+function weaponToOption(item: Weapon): LoadoutOption {
   const costSuffix = item.cost ? ` (${formatMoney(item.cost)})` : ''
   return { value: item.id, label: `${item.name}${costSuffix}` }
 }
@@ -62,22 +62,20 @@ const LoadoutSelect = ({
 }: {
   label: string
   value: string | undefined
-  options: SelectOption[]
+  options: LoadoutOption[]
   allowNone?: boolean
   onChange: (val: string | undefined) => void
 }) => (
-  <div style={{ marginBottom: 8 }}>
-    <label style={{ display: 'block', fontWeight: 600, marginBottom: 2 }}>{label}</label>
-    <select
-      value={value ?? NONE_VALUE}
-      onChange={e => onChange(e.target.value || undefined)}
-    >
-      {allowNone && <option value={NONE_VALUE}>None</option>}
-      {options.map(o => (
-        <option key={o.value} value={o.value}>{o.label}</option>
-      ))}
-    </select>
-  </div>
+  <Box sx={{ mb: 1 }}>
+    <AppSelect
+      label={label}
+      value={value ?? ''}
+      onChange={(v) => onChange(v || undefined)}
+      options={options}
+      placeholder={allowNone ? 'None' : undefined}
+      size="small"
+    />
+  </Box>
 )
 
 // ---------------------------------------------------------------------------

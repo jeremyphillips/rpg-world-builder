@@ -55,11 +55,27 @@ function enchantmentEntryToCatalogShape(
   } as Record<string, unknown> & { id: string };
 }
 
+/** Coalesces concurrent loads (StrictMode overlap, overlapping providers). */
+const inflightCatalogOverrides = new Map<string, Promise<Partial<CampaignCatalog>>>();
+
 /**
  * Loads campaign content overrides for all catalog categories.
  * Returns Partial<CampaignCatalog> suitable for buildCampaignCatalog.
  */
 export async function loadCampaignCatalogOverrides(
+  campaignId: string,
+): Promise<Partial<CampaignCatalog>> {
+  const running = inflightCatalogOverrides.get(campaignId);
+  if (running) return running;
+
+  const p = loadCampaignCatalogOverridesImpl(campaignId).finally(() => {
+    inflightCatalogOverrides.delete(campaignId);
+  });
+  inflightCatalogOverrides.set(campaignId, p);
+  return p;
+}
+
+async function loadCampaignCatalogOverridesImpl(
   campaignId: string,
 ): Promise<Partial<CampaignCatalog>> {
   const [

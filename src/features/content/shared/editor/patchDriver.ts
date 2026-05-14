@@ -37,6 +37,13 @@ function getAtPath(obj: Record<string, unknown>, path: string): unknown {
 }
 
 /**
+ * Keys whose patch value replaces the base subtree entirely (not deep-merged).
+ * Spell `components` uses flat flags (verbal/somatic/material); deep-merge would keep
+ * base keys when the patch only lists remaining flags, so toggles off could not apply.
+ */
+const REPLACE_ON_PATCH_KEYS = new Set(['components']);
+
+/**
  * Deep merge: base + patch. Arrays are replaced, not merged.
  */
 function deepMerge(
@@ -47,6 +54,15 @@ function deepMerge(
   for (const key of Object.keys(patch)) {
     const patchVal = patch[key];
     const baseVal = base[key];
+    if (
+      REPLACE_ON_PATCH_KEYS.has(key) &&
+      patchVal != null &&
+      typeof patchVal === 'object' &&
+      !Array.isArray(patchVal)
+    ) {
+      result[key] = patchVal;
+      continue;
+    }
     if (
       patchVal != null &&
       typeof patchVal === 'object' &&
@@ -118,6 +134,8 @@ function pruneEmpty(obj: Record<string, unknown>): Record<string, unknown> {
     if (v != null && typeof v === 'object' && !Array.isArray(v)) {
       const pruned = pruneEmpty(v as Record<string, unknown>);
       if (Object.keys(pruned).length > 0) {
+        result[k] = pruned;
+      } else if (REPLACE_ON_PATCH_KEYS.has(k)) {
         result[k] = pruned;
       }
     } else {

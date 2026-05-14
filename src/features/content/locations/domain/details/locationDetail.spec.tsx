@@ -1,7 +1,6 @@
-import type { Location } from '@/features/content/locations/domain/model/location';
+import type { LocationContentItem } from '@/features/content/locations/domain/repo/locationRepo';
+import { contentDetailMetaSpecs, contentDetailPatchedMetaSpecs } from '@/features/content/shared/domain';
 import type { DetailSpec } from '@/features/content/shared/forms/registry';
-import { AppBadge } from '@/ui/primitives';
-import { VisibilityBadge } from '@/ui/patterns';
 
 export type LocationDetailCtx = {
   /** e.g. "16 × 12, 5ft" when a default map exists */
@@ -11,66 +10,87 @@ export type LocationDetailCtx = {
 const formatList = (v: string[] | undefined): string =>
   v?.length ? v.join(', ') : '—';
 
-export const LOCATION_DETAIL_SPECS: DetailSpec<Location, LocationDetailCtx>[] = [
+function locationAdvancedRecord(loc: LocationContentItem): Record<string, unknown> {
+  const scopeMeta: Record<string, unknown> =
+    loc.source === 'system'
+      ? { systemId: loc.systemId }
+      : { campaignId: loc.campaignId };
+
+  return {
+    id: loc.id,
+    name: loc.name,
+    source: loc.source,
+    patched: loc.patched,
+    ...scopeMeta,
+    accessPolicy: loc.accessPolicy,
+    description: loc.description,
+    imageKey: loc.imageKey,
+    scale: loc.scale,
+    category: loc.category,
+    parentId: loc.parentId,
+    ancestorIds: loc.ancestorIds,
+    sortOrder: loc.sortOrder,
+    label: loc.label,
+    aliases: loc.aliases,
+    tags: loc.tags,
+    connections: loc.connections,
+    buildingMeta: loc.buildingMeta,
+    buildingStructure: loc.buildingStructure,
+  };
+}
+
+export const LOCATION_DETAIL_SPECS: DetailSpec<LocationContentItem, LocationDetailCtx>[] = [
+  ...contentDetailMetaSpecs<LocationContentItem, LocationDetailCtx>(),
+  ...contentDetailPatchedMetaSpecs<LocationContentItem, LocationDetailCtx>(),
   {
-    key: 'source',
-    label: 'Source',
-    order: 10,
+    key: 'description',
+    label: 'Description',
+    order: 40,
+    hidden: (loc) => !loc.description?.trim(),
     render: (loc) => (
-      <AppBadge label={loc.source} tone={loc.source === 'system' ? 'info' : 'default'} />
+      <span style={{ whiteSpace: 'pre-line' }}>{loc.description}</span>
     ),
-  },
-  {
-    key: 'visibility',
-    label: 'Visibility',
-    order: 15,
-    render: (loc) =>
-      loc.accessPolicy && loc.accessPolicy.scope !== 'public' ? (
-        <VisibilityBadge visibility={loc.accessPolicy} />
-      ) : (
-        'Public'
-      ),
   },
   {
     key: 'scale',
     label: 'Scale',
-    order: 20,
+    order: 45,
     render: (loc) => loc.scale,
   },
   {
     key: 'category',
     label: 'Category',
-    order: 25,
+    order: 50,
     render: (loc) => loc.category ?? '—',
   },
   {
     key: 'mapGrid',
     label: 'Grid',
-    order: 26,
+    order: 52,
     render: (_loc, ctx) => ctx.mapGridSummary ?? '—',
   },
   {
     key: 'parentId',
     label: 'Parent',
-    order: 30,
+    order: 55,
     render: (loc) => loc.parentId ?? '—',
   },
   {
     key: 'ancestorIds',
     label: 'Ancestor ids',
-    order: 35,
+    order: 60,
     render: (loc) => formatList(loc.ancestorIds),
   },
   {
     key: 'sortOrder',
     label: 'Sort order',
-    order: 40,
+    order: 65,
     render: (loc) => (loc.sortOrder != null ? String(loc.sortOrder) : '—'),
   },
   {
     key: 'label',
     label: 'Label',
-    order: 45,
+    order: 70,
     render: (loc) =>
       loc.label?.short || loc.label?.number
         ? [loc.label?.short, loc.label?.number].filter(Boolean).join(' · ')
@@ -79,13 +99,21 @@ export const LOCATION_DETAIL_SPECS: DetailSpec<Location, LocationDetailCtx>[] = 
   {
     key: 'aliases',
     label: 'Aliases',
-    order: 50,
+    order: 75,
     render: (loc) => formatList(loc.aliases),
   },
   {
     key: 'tags',
     label: 'Tags',
-    order: 55,
+    order: 80,
     render: (loc) => formatList(loc.tags),
+  },
+  {
+    key: 'locationRawRecord',
+    label: 'Full record (JSON)',
+    order: 2000,
+    placement: 'advanced',
+    rawAudience: 'platformOwner',
+    getValue: (loc) => locationAdvancedRecord(loc),
   },
 ];

@@ -3,14 +3,15 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useFormContext, useWatch } from 'react-hook-form';
 import type { FieldConfig } from './form.types';
-import FormTextField from './FormTextField';
-import FormSelectField from './FormSelectField'
-import FormRadioField from './FormRadioField'
-import FormCheckboxField from './FormCheckboxField'
-import FormImageUploadField from './FormImageUploadField'
-import FormDateTimeField from './FormDateTimeField'
+import { useFormLayoutStretch } from './FormLayoutStretchContext';
+import AppFormTextField from './AppFormTextField';
+import AppFormSelect from './AppFormSelect'
+import AppFormRadioGroup from './AppFormRadioGroup'
+import AppFormCheckbox from './AppFormCheckbox'
+import AppFormImageUploadField from './AppFormImageUploadField'
+import AppFormDateTimePicker from './AppFormDateTimePicker'
 import FormVisibilityField from './FormVisibilityField'
-import FormJsonField from './FormJsonField'
+import AppFormJsonPreviewField from './AppFormJsonPreviewField'
 import FormOptionPickerField from './FormOptionPickerField'
 
 type DynamicFieldProps = {
@@ -44,8 +45,15 @@ function FieldWithDescription({
   field: FieldConfig;
   children: React.ReactNode;
 }) {
+  const stretch = useFormLayoutStretch();
   return (
-    <Box>
+    <Box
+      sx={
+        stretch
+          ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }
+          : undefined
+      }
+    >
       {children}
       {field.fieldDescription && (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -63,7 +71,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'text':
       return (
         <FieldWithDescription field={field}>
-          <FormTextField
+          <AppFormTextField
           name={field.name}
           label={field.label}
           required={field.required}
@@ -78,7 +86,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'textarea':
       return (
         <FieldWithDescription field={field}>
-          <FormTextField
+          <AppFormTextField
             name={field.name}
             label={field.label}
             required={field.required}
@@ -94,7 +102,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'select':
       return (
         <FieldWithDescription field={field}>
-          <FormSelectField
+          <AppFormSelect
             name={field.name}
             label={field.label}
             options={field.options}
@@ -108,7 +116,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'radio':
       return (
         <FieldWithDescription field={field}>
-          <FormRadioField
+          <AppFormRadioGroup
             name={field.name}
             label={field.label}
             options={field.options}
@@ -122,7 +130,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'checkbox':
       return (
         <FieldWithDescription field={field}>
-          <FormCheckboxField
+          <AppFormCheckbox
             name={field.name}
             label={field.label}
             required={field.required}
@@ -135,7 +143,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'checkboxGroup':
       return (
         <FieldWithDescription field={field}>
-          <FormCheckboxField
+          <AppFormCheckbox
             name={field.name}
             label={field.label}
             options={field.options}
@@ -150,7 +158,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'imageUpload':
       return (
         <FieldWithDescription field={field}>
-          <FormImageUploadField
+          <AppFormImageUploadField
             name={field.name}
             label={field.label}
             required={field.required}
@@ -163,7 +171,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'datetime':
       return (
         <FieldWithDescription field={field}>
-          <FormDateTimeField
+          <AppFormDateTimePicker
             name={field.name}
             label={field.label}
             required={field.required}
@@ -188,7 +196,7 @@ export default function DynamicField({ field }: DynamicFieldProps) {
     case 'json':
       return (
         <FieldWithDescription field={field}>
-          <FormJsonField
+          <AppFormJsonPreviewField
             name={field.name}
             label={field.label}
             required={field.required}

@@ -1,18 +1,16 @@
-import type { DieFace } from "@/features/mechanics/domain/dice";
+import type { DieFace } from '@/shared/domain/dice';
 import type {
   ContentId,
   ContentSummary,
   ContentItem,
   ContentInput,
 } from '@/features/content/shared/domain/types/content.types';
-import type { MonsterAbilityScoreMap, AbilityId } from '@/features/mechanics/domain/character';
+import type { MonsterAbilityScoreMap } from '@/features/mechanics/domain/character';
+import type { ProficiencyBonus } from '@/shared/domain/proficiency';
+import type { CreatureProficiencyGroups } from '@/shared/domain/proficiency/authoredCreatureProficiencies';
 import type { AlignmentId } from "@/features/content/shared/domain/types";
-import type { MonsterType, MonsterSizeCategory } from "@/features/content/monsters/domain/vocab/monster.vocab";
-import type {
-  CharacterProficiencies,
-  ProficiencySkillAdjustment,
-  ProficiencyWeaponAdjustment
-} from "@/features/character/domain/types";
+import type { CreatureTypeId, CreatureSizeId, CreatureSubtypeId } from '@/features/content/creatures/domain/values';
+
 import type { MonsterEquipment, MonsterArmorClass } from "./monster-equipment.types";
 import type { MonsterSenses } from "./monster-senses.types";
 import type { MonsterTrait } from "./monster-traits.types";
@@ -47,20 +45,17 @@ type MonsterLanguage = {
   speaks?: boolean;
 };
 
-export type MonsterSubtype =
-  | 'goblinoid'
-  | 'aquatic'
-  | 'gnome';
+export type MonsterType = CreatureTypeId
+export type MonsterSizeCategory = CreatureSizeId
+export type MonsterSubtype = CreatureSubtypeId
 
 export type MonsterChallengeRating =
   | 0 | 0.125 | 0.25 | 0.5 | 1
   | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
   | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18
-  | 19 | 20 | 21 | 22 | 23 | 24;
+  | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 | 30;
 
-export type MonsterProficiencies = CharacterProficiencies & {
-  weapons?: Record<string, ProficiencyWeaponAdjustment>;
-};
+export type MonsterProficiencies = CreatureProficiencyGroups;
 
 export interface MonsterFields {
   id: string;
@@ -84,14 +79,13 @@ export interface MonsterFields {
     armorClass: MonsterArmorClass;
     movement: Movement;
     abilities?: MonsterAbilityScoreMap;
-    savingThrows?: Partial<Record<AbilityId, ProficiencySkillAdjustment>>;
     traits?: MonsterTrait[];
     actions?: MonsterAction[];
     bonusActions?: MonsterAction[];
     legendaryActions?: MonsterLegendaryActions;
     senses?: MonsterSenses;
     proficiencies?: MonsterProficiencies;
-    proficiencyBonus: number;
+    proficiencyBonus: ProficiencyBonus;
     equipment?: MonsterEquipment;
     immunities?: ImmunityType[];
     resistances?: CreatureResistanceDamageType[];

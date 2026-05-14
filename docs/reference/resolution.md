@@ -181,7 +181,7 @@ Condition consequences model the mechanical rules of each `EffectConditionId` as
 
 | Module | Responsibility |
 |--------|----------------|
-| `condition-consequences.types` | `ConditionConsequence` discriminated union and `ConditionRule` type |
+| `condition-consequences.types` | `ConditionConsequence` discriminated union and `MarkerRule` type |
 | `condition-consequence-helpers` | Primitive consequence builders (`cannotAct`, `immobile`, `autoFailStrDexSaves`, etc.) for DRY composition |
 | `condition-definitions` | `CONDITION_RULES` record mapping all 14 `EffectConditionId` values to their consequence arrays |
 | `condition-queries` | Derived query helpers consumed by the resolution layer |

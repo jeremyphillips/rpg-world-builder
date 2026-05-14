@@ -14,7 +14,7 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
+import { AppTextField } from '@/ui/primitives'
 import Typography from '@mui/material/Typography'
 import MuiLink from '@mui/material/Link'
 
@@ -174,7 +174,7 @@ export default function OptionPickerField({
     >
       <ClickAwayListener onClickAway={() => setOpen(false)}>
         <Box>
-          <TextField
+          <AppTextField
             id={inputId}
             label={label}
             fullWidth

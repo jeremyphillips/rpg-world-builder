@@ -12,6 +12,11 @@
  * - campaign encounter validation
  */
 import {
+  buildCharacterQueryContext,
+  hasClass,
+  type CharacterQuerySource,
+} from '@/features/character/domain/query';
+import {
   validateCharacterReferenceChange,
   type ChangeValidationResult,
 } from '@/features/content/shared/domain/validation/validateCharacterReferenceChange';
@@ -41,6 +46,7 @@ export async function validateClassChange(params: {
     mode,
     includeNpcs,
     contentType: 'class',
-    matcher: (c) => c.classes?.some((cls) => cls.classId === classId) ?? false,
+    matcher: (c) =>
+      hasClass(buildCharacterQueryContext(c as CharacterQuerySource), classId),
   });
 }

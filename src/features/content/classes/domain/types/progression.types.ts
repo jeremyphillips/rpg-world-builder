@@ -1,4 +1,4 @@
-import type { DieFace } from '@/features/mechanics/domain/dice/dice.types'
+import type { DieFace } from '@/shared/domain/dice';
 import type { AbilityId } from '@/features/mechanics/domain/character'
 import type { Effect } from '@/features/mechanics/domain/effects/effects.types';
 

@@ -1,5 +1,5 @@
 import { getClassProgression } from './getClassProgression'
-import type { DieFace } from '@/features/mechanics/domain/dice/dice.types'
+import type { DieFace } from '@/shared/domain/dice';
 
 export interface HitPointInfo {
   hitDie: DieFace

@@ -12,11 +12,7 @@
  *   - Filtered view (*ById, *Ids): used by pickers/players (allowed only)
  *   - Admin view (*AllById, *AllowedIds): used by list pages for allowedInCampaign
  *
- * TODO: Add unit test file (e.g. buildCampaignCatalog.test.ts) to validate:
- *   - all_except excludes ids properly
- *   - only includes ids properly
- *   - custom entries appear in allById AND can be excluded by rules
- *   - campaign overrides system on id collision in allById and allowedById
+ * Tests: see buildCampaignCatalog.test.ts (skill proficiencies policy).
  */
 import type { CampaignCatalog } from '../system/catalog'
 import type { RulesetLike } from '../types/ruleset.types'
@@ -48,8 +44,13 @@ export const CATALOG_CATEGORY_CONFIG: CatalogCategoryConfig[] = [
   { key: 'enhancements', ruleKey: 'equipment', byIdField: 'enhancementsById' },
   { key: 'spells', ruleKey: 'spells', byIdField: 'spellsById' },
   { key: 'monsters', ruleKey: 'monsters', byIdField: 'monstersById' },
+  {
+    key: 'skillProficiencies',
+    ruleKey: 'skillProficiencies',
+    byIdField: 'skillProficienciesById',
+    idsField: 'skillProficiencyIds',
+  },
 ]
-// skillProficienciesById is system-only; add to config when campaign support is added
 
 // ---------------------------------------------------------------------------
 // Extended catalog type (admin fields)
@@ -74,6 +75,8 @@ export type CampaignCatalogAdmin = CampaignCatalog & {
   spellAllowedIds?: string[]
   monstersAllById?: Record<string, CampaignCatalog['monstersById'][string]>
   monsterAllowedIds?: string[]
+  skillProficienciesAllById?: Record<string, CampaignCatalog['skillProficienciesById'][string]>
+  skillProficiencyAllowedIds?: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -114,7 +117,7 @@ function resolveCategory<T extends { id: string }>(
   }
 
   // 1. Merge system + campaign (campaign wins on collision)
-  let allById: Record<string, T> = campaignById
+  const allById: Record<string, T> = campaignById
     ? { ...systemById, ...campaignById }
     : { ...systemById }
 
@@ -154,6 +157,7 @@ const BY_ID_TO_SINGULAR: Record<string, string> = {
   enhancementsById: 'enhancement',
   spellsById: 'spell',
   monstersById: 'monster',
+  skillProficienciesById: 'skillProficiency',
 }
 
 function getAdminFieldNames(byIdField: string): { allByIdField: string; allowedIdsField: string } {
@@ -175,9 +179,7 @@ export function buildCampaignCatalog(
   ruleset: RulesetLike,
 ): CampaignCatalogAdmin {
   const c = ruleset.content as RulesetContent
-  const result: Record<string, unknown> = {
-    skillProficienciesById: system.skillProficienciesById,
-  }
+  const result: Record<string, unknown> = {}
 
   for (const config of CATALOG_CATEGORY_CONFIG) {
     const systemById = system[config.byIdField] as Record<string, { id: string }> | undefined

@@ -34,7 +34,7 @@ import {
 import type { GridSizePreset } from '@/shared/domain/grid/gridPresets';
 import { GRID_SIZE_PRESETS } from '@/shared/domain/grid/gridPresets';
 import { AppModal } from '@/ui/patterns';
-import { AppForm, FormCheckboxField, FormSelectField, FormTextField } from '@/ui/patterns/form';
+import { AppForm, AppFormCheckbox, AppFormTextField, AppFormSelect } from '@/ui/patterns/form';
 import FormOptionPickerField from '@/ui/patterns/form/FormOptionPickerField';
 
 const FORM_ID = 'location-create-setup-form';
@@ -239,9 +239,9 @@ function LocationCreateSetupFormFields({
 
   return (
     <>
-      <FormTextField name="name" label="Name" required disabled={formDisabled} />
+      <AppFormTextField name="name" label="Name" required disabled={formDisabled} />
 
-      <FormSelectField
+      <AppFormSelect
         name="scale"
         label="Scale"
         placeholder="Select scale"
@@ -252,7 +252,7 @@ function LocationCreateSetupFormFields({
       />
 
       {showParent && (
-        <FormSelectField
+        <AppFormSelect
           name="parentId"
           label="Parent location"
           options={parentSelectOptions}
@@ -262,7 +262,7 @@ function LocationCreateSetupFormFields({
       )}
 
       {showCategory && scale && (
-        <FormSelectField
+        <AppFormSelect
           name="category"
           label="Category"
           options={getAllowedCategoryOptionsForScale(scale)}
@@ -272,7 +272,7 @@ function LocationCreateSetupFormFields({
       )}
 
       {showCellUnit && scale && (
-        <FormSelectField
+        <AppFormSelect
           name="gridCellUnit"
           label="Cell unit"
           options={getAllowedCellUnitOptionsForScale(scale)}
@@ -283,7 +283,7 @@ function LocationCreateSetupFormFields({
 
       {scale === 'building' ? (
         <>
-          <FormSelectField
+          <AppFormSelect
             name="buildingPrimaryType"
             label="Building type"
             options={BUILDING_TYPE_OPTIONS}
@@ -292,7 +292,7 @@ function LocationCreateSetupFormFields({
             disabled={formDisabled}
           />
           {buildingPrimaryType ? (
-            <FormSelectField
+            <AppFormSelect
               name="buildingPrimarySubtype"
               label="Building subtype"
               options={buildingSubtypeOptions}
@@ -310,13 +310,13 @@ function LocationCreateSetupFormFields({
             disabled={formDisabled}
             helperText="Optional. Mixed-use roles such as trade, lodging, or worship."
           />
-          <FormCheckboxField
+          <AppFormCheckbox
             name="buildingIsPublicStorefront"
             label="Open to the public"
             disabled={formDisabled}
             helperText="Shops, temples, guild halls, inns, and similar when visitors are welcome."
           />
-          <FormSelectField
+          <AppFormSelect
             name="buildingFormClassId"
             label="Building form"
             options={BUILDING_FORM_CLASS_MENU}
@@ -331,7 +331,7 @@ function LocationCreateSetupFormFields({
       ) : null}
 
       {scale && scale !== 'building' ? (
-        <FormSelectField
+        <AppFormSelect
           name="gridPresetKey"
           label="Grid size"
           options={PRESET_MENU}
