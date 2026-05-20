@@ -2,7 +2,7 @@
  * Converts FieldSpec[] -> FieldConfig[] for AppForm.
  */
 import type { RegisterOptions } from 'react-hook-form';
-import type { FieldConfig } from '@/ui/patterns';
+import type { FieldConfig } from '@/ui/patterns/form/form.types';
 import type { PickerOption } from '@/ui/patterns/form/OptionPickerField';
 import type { ValidationRule, ValidationSpec } from '@/ui/patterns';
 import type { FieldSpec } from './fieldSpec.types';

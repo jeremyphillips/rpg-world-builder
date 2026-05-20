@@ -10,7 +10,7 @@ import {
   getClassProgression,
   getSubclassUnlockLevel,
 } from '@/features/mechanics/domain/progression'
-import { getSystemRuleset } from '@/features/mechanics/domain/rulesets/system/catalog'
+import { getSystemRuleset } from '@/features/mechanics/domain/rulesets/system/systemRulesets'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 
 /**

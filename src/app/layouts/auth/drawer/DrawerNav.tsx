@@ -5,6 +5,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import List from '@mui/material/List'
 import { ROUTES } from '@/app/routes'
+import { prefetchOnIntent } from '@/app/routing/prefetchOnIntent'
 import { NAV_ITEMS } from './nav-items'
 
 type DrawerNavProps = {
@@ -20,6 +21,7 @@ export function DrawerNav({ pathname, userRole }: DrawerNavProps) {
           <ListItemButton
             component={NavLink}
             to={to}
+            {...prefetchOnIntent(to)}
             end={to === ROUTES.DASHBOARD || !!children}
             selected={
               to === ROUTES.DASHBOARD
@@ -40,6 +42,7 @@ export function DrawerNav({ pathname, userRole }: DrawerNavProps) {
                   key={child.to}
                   component={NavLink}
                   to={child.to}
+                  {...prefetchOnIntent(child.to)}
                   selected={pathname === child.to}
                   sx={{ pl: 4 }}
                 >

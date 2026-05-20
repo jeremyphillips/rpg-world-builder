@@ -2,7 +2,7 @@
  * Pure mappers for Armor form values ↔ domain types.
  * Registry-backed with required-field merging.
  */
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import type { Armor, ArmorInput } from '@/features/content/equipment/armor/domain/types';
 import type { ArmorFormValues } from '../types/armorForm.types';
 import {

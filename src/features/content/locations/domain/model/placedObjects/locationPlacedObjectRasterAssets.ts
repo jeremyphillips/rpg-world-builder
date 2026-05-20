@@ -1,6 +1,6 @@
 /**
  * Re-exports raster URL helpers. Actual URL registration:
- * - Browser: {@link ./locationPlacedObjectRasterAssets.vite} (imported from `main.tsx`)
+ * - Browser: {@link ./locationPlacedObjectRasterAssets.vite} (imported from campaign world layout)
  * - Node: {@link ./locationPlacedObjectRasterAssets.node} (imported from `server/index.ts`)
  */
 export {

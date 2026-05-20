@@ -8,7 +8,7 @@ import {
   buildSpellSelectionModel,
   isSpellLevelFull,
   toggleSpellSelection,
-} from '@/features/mechanics/domain/spells/selection'
+} from '@/features/mechanics/domain/spells/selection/spell-selection'
 import { formatSpellLevelHeadingUnsafe } from '@/features/content/spells/domain/spellPresentation'
 
 import Box from '@mui/material/Box'

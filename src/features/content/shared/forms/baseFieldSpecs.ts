@@ -2,7 +2,7 @@
  * Shared base FieldSpecs for all content types (name, description, imageKey, accessPolicy).
  * Single source of truth — add/remove a base field once, apply everywhere.
  */
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import type { ContentFormValues, ContentInput } from '@/features/content/shared/domain/types';
 import type { FieldSpec } from '@/features/content/shared/forms/registry';
 

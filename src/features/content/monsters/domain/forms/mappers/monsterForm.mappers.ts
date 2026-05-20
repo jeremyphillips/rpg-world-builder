@@ -1,7 +1,7 @@
 /**
  * Pure mappers for Monster form values ↔ domain types.
  */
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
 import { toIdStringArray } from '@/features/content/shared/forms/toIdStringArray';
 import {

@@ -46,7 +46,7 @@ import { deriveRecommendedActionsForTarget } from '@/features/mechanics/domain/c
 import { ActionRow } from '../action-row/ActionRow'
 import { deriveActionUnavailableHint } from '@/features/mechanics/domain/combat/presentation/actions/derive-action-unavailable-hint'
 import type { CombatantInstance } from '@/features/mechanics/domain/combat'
-import type { SelectEntityOption } from '@/ui/patterns'
+import type { SelectEntityOption } from '@/ui/patterns/modal/SelectEntityModal.types'
 import { AttachedEmanationSetupPanel } from './AttachedEmanationSetupPanel'
 
 /**

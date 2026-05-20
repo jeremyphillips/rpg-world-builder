@@ -1,5 +1,5 @@
 import type { AppDataGridColumn } from '@/ui/patterns';
-// import { makeBooleanGlyphColumn } from '@/features/content/shared/components';
+// import { makeBooleanGlyphColumn } from '@/features/content/shared/components/campaignList';
 import { MAGIC_SCHOOL_OPTIONS } from '@/features/content/shared/domain/vocab/magicSchools.vocab';
 import { getSpellResolutionStatus } from '@/features/content/spells/domain/types';
 import type { SpellListRow } from './spellList.types';

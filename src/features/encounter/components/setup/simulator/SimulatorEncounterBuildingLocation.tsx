@@ -8,7 +8,9 @@ import Typography from '@mui/material/Typography'
 
 import { LocationSummaryCard } from '@/features/content/locations/components'
 import type { Location } from '@/features/content/locations/domain/model/location'
-import { SelectedEntitiesLane, SelectEntityModal, type SelectEntityOption } from '@/ui/patterns'
+import { SelectedEntitiesLane } from '@/ui/patterns/selection/SelectedEntitiesLane'
+import { SelectEntityModal } from '@/ui/patterns/modal/SelectEntityModal'
+import type { SelectEntityOption } from '@/ui/patterns/modal/SelectEntityModal.types'
 import { resolveImageUrl } from '@/shared/lib/media'
 
 export type SimulatorEncounterBuildingLocationProps = {

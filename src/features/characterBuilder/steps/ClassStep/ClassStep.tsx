@@ -7,7 +7,7 @@ import { getSubclassUnlockLevel, getSubclassNameById } from '@/features/mechanic
 import { getAvailableSubclassesByLevel } from '@/features/mechanics/domain/progression/class'
 import { canAddClass } from '@/features/character/domain/validation'
 import type { ClassProgression } from '@/features/content/classes/domain/types'
-import { ButtonGroup } from '@/ui/patterns'
+import ButtonGroup from '@/ui/patterns/ButtonGroup/ButtonGroup'
 
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'

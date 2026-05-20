@@ -22,6 +22,8 @@ import SettingsIcon from '@mui/icons-material/Settings'
 import ShieldIcon from '@mui/icons-material/Shield'
 
 import { ROUTES } from '@/app/routes'
+import { prefetchOnIntent } from '@/app/routing/prefetchOnIntent'
+import { prefetchRouteChunkForPath } from '@/app/routing/routeChunkPrefetch'
 import type { Campaign } from '@/shared/types/campaign.types'
 import { AppSelect } from '@/ui/primitives'
 
@@ -77,6 +79,7 @@ export function DrawerCampaignSection({
           <ListItemButton
             component={NavLink}
             to={activeCampaignId ? ROUTES.CAMPAIGN.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
+            {...prefetchOnIntent(activeCampaignId ? ROUTES.CAMPAIGN.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS)}
             selected={activeCampaignId ? pathname === `/campaigns/${activeCampaignId}` : false}
             disabled={!activeCampaignId}
             sx={{ pl: 0 }}
@@ -100,6 +103,9 @@ export function DrawerCampaignSection({
           </ListItemButton>
           <ListItemButton
             onClick={() => activeCampaignId && onWorldExpandedChange((v) => !v)}
+            onMouseEnter={() => {
+              if (activeCampaignId) prefetchRouteChunkForPath(`/campaigns/${activeCampaignId}/world`)
+            }}
             disabled={!activeCampaignId}
             sx={{ pl: 0 }}
           >
@@ -115,6 +121,7 @@ export function DrawerCampaignSection({
                 <ListItemButton
                   component={NavLink}
                   to={ROUTES.WORLD_CLASSES.replace(':id', activeCampaignId)}
+                  {...prefetchOnIntent(ROUTES.WORLD_CLASSES.replace(':id', activeCampaignId))}
                   selected={pathname.startsWith(`/campaigns/${activeCampaignId}/world/classes`)}
                   sx={{ pl: 2 }}
                 >
@@ -123,6 +130,7 @@ export function DrawerCampaignSection({
                 <ListItemButton
                   component={NavLink}
                   to={ROUTES.WORLD_RACES.replace(':id', activeCampaignId)}
+                  {...prefetchOnIntent(ROUTES.WORLD_RACES.replace(':id', activeCampaignId))}
                   selected={pathname === `/campaigns/${activeCampaignId}/world/races`}
                   sx={{ pl: 2 }}
                 >
@@ -131,6 +139,9 @@ export function DrawerCampaignSection({
                 <ListItemButton
                   component={NavLink}
                   to={activeCampaignId ? ROUTES.WORLD_EQUIPMENT.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
+                  {...prefetchOnIntent(
+                    activeCampaignId ? ROUTES.WORLD_EQUIPMENT.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS,
+                  )}
                   selected={activeCampaignId ? pathname.startsWith(`/campaigns/${activeCampaignId}/equipment`) : false}
                   disabled={!activeCampaignId}
                   sx={{ pl: 2 }}
@@ -140,6 +151,7 @@ export function DrawerCampaignSection({
                 <ListItemButton
                   component={NavLink}
                   to={ROUTES.WORLD_LOCATIONS.replace(':id', activeCampaignId)}
+                  {...prefetchOnIntent(ROUTES.WORLD_LOCATIONS.replace(':id', activeCampaignId))}
                   selected={pathname === `/campaigns/${activeCampaignId}/world/locations`}
                   sx={{ pl: 2 }}
                 >
@@ -148,6 +160,7 @@ export function DrawerCampaignSection({
                 <ListItemButton
                   component={NavLink}
                   to={ROUTES.WORLD_NPCS.replace(':id', activeCampaignId)}
+                  {...prefetchOnIntent(ROUTES.WORLD_NPCS.replace(':id', activeCampaignId))}
                   selected={pathname.startsWith(`/campaigns/${activeCampaignId}/world/npcs`)}
                   sx={{ pl: 2 }}
                 >
@@ -156,6 +169,7 @@ export function DrawerCampaignSection({
                 <ListItemButton
                   component={NavLink}
                   to={ROUTES.WORLD_MONSTERS.replace(':id', activeCampaignId)}
+                  {...prefetchOnIntent(ROUTES.WORLD_MONSTERS.replace(':id', activeCampaignId))}
                   selected={pathname.startsWith(`/campaigns/${activeCampaignId}/world/monsters`)}
                   sx={{ pl: 2 }}
                 >
@@ -164,6 +178,7 @@ export function DrawerCampaignSection({
                 <ListItemButton
                   component={NavLink}
                   to={ROUTES.WORLD_SPELLS.replace(':id', activeCampaignId)}
+                  {...prefetchOnIntent(ROUTES.WORLD_SPELLS.replace(':id', activeCampaignId))}
                   selected={pathname.startsWith(`/campaigns/${activeCampaignId}/world/spells`)}
                   sx={{ pl: 2 }}
                 >
@@ -172,6 +187,7 @@ export function DrawerCampaignSection({
                 <ListItemButton
                   component={NavLink}
                   to={ROUTES.WORLD_SKILL_PROFICIENCIES.replace(':id', activeCampaignId)}
+                  {...prefetchOnIntent(ROUTES.WORLD_SKILL_PROFICIENCIES.replace(':id', activeCampaignId))}
                   selected={pathname.startsWith(`/campaigns/${activeCampaignId}/world/skill-proficiencies`)}
                   sx={{ pl: 2 }}
                 >
@@ -200,6 +216,9 @@ export function DrawerCampaignSection({
           <ListItemButton
             component={NavLink}
             to={activeCampaignId ? ROUTES.CAMPAIGN_GAME_SESSIONS.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
+            {...prefetchOnIntent(
+              activeCampaignId ? ROUTES.CAMPAIGN_GAME_SESSIONS.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS,
+            )}
             selected={activeCampaignId ? pathname.startsWith(`/campaigns/${activeCampaignId}/game-sessions`) : false}
             disabled={!activeCampaignId}
             sx={{ pl: 0 }}
@@ -212,6 +231,7 @@ export function DrawerCampaignSection({
           <ListItemButton
             component={NavLink}
             to={activeCampaignId ? ROUTES.MESSAGING.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS}
+            {...prefetchOnIntent(activeCampaignId ? ROUTES.MESSAGING.replace(':id', activeCampaignId) : ROUTES.CAMPAIGNS)}
             selected={activeCampaignId ? pathname.startsWith(`/campaigns/${activeCampaignId}/messages`) : false}
             disabled={!activeCampaignId}
             sx={{ pl: 0 }}

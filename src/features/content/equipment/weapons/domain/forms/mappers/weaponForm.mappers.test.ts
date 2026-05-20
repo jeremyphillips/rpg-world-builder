@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import type { Weapon } from '@/features/content/equipment/weapons/domain/types';
 import { buildDefaultFormValues } from '@/features/content/shared/forms/registry';
 import { WEAPON_FORM_FIELDS } from '../registry/weaponForm.registry';

@@ -16,19 +16,18 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
 
-import {
-  AppDataGrid,
+import AppDataGrid, {
   filterAppDataGridColumnsByVisibility,
   filterAppDataGridFiltersByVisibility,
-} from '@/ui/patterns';
+} from '@/ui/patterns/AppDataGrid';
 import type {
   AppDataGridColumn,
   AppDataGridFilter,
   AppDataGridToolbarLayout,
-} from '@/ui/patterns';
+} from '@/ui/patterns/AppDataGrid/types';
 import type { GridRowClassNameParams } from '@mui/x-data-grid';
-import { AppPageHeader } from '@/ui/patterns';
-import type { BreadcrumbItem } from '@/ui/patterns';
+import AppPageHeader from '@/ui/patterns/AppPageHeader/AppPageHeader';
+import type { BreadcrumbItem } from '@/ui/patterns/Breadcrumbs/Breadcrumbs';
 import { useBreadcrumbs } from '@/app/navigation';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { AppAlert } from '@/ui/primitives';

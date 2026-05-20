@@ -13,7 +13,7 @@ import {
   buildCampaignContentFilters,
   getMutedRowClassNameForDisallowedCampaignContent,
   ValidationBlockedAlert,
-} from '@/features/content/shared/components';
+} from '@/features/content/shared/components/campaignList';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
 import {
   useValidatedAllowedToggle,

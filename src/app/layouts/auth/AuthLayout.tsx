@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { Outlet, Navigate, useLocation, useMatches, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../providers/AuthProvider'
 import { useNotifications } from '../../providers/NotificationProvider'
@@ -28,6 +28,7 @@ import { isAuthMainFocusPath } from './auth-main-path'
 import { layoutWidthModeFromMatches } from '@/app/routing/layoutWidth'
 import { AppContainer } from '@/ui/primitives'
 import { AuthDrawer } from './drawer/AuthDrawer'
+import { RouteContentSuspenseFallback } from '@/app/RouteContentSuspenseFallback'
 
 const CHROME_MAIN_SX: SxProps<Theme> = {
   flex: 1,
@@ -261,13 +262,15 @@ export default function AuthLayout() {
         )}
 
         <Box key="main-outlet" component="main" sx={isFocus ? FOCUS_MAIN_SX : CHROME_MAIN_SX}>
-          {layoutWidthMode === 'contained' ? (
-            <AppContainer>
+          <Suspense fallback={<RouteContentSuspenseFallback />}>
+            {layoutWidthMode === 'contained' ? (
+              <AppContainer>
+                <Outlet />
+              </AppContainer>
+            ) : (
               <Outlet />
-            </AppContainer>
-          ) : (
-            <Outlet />
-          )}
+            )}
+          </Suspense>
         </Box>
       </Box>
     </Box>

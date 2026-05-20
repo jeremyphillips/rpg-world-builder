@@ -1,7 +1,7 @@
 /**
  * Location form values ↔ domain input.
  */
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import type {
   LocationBuildingFunctionId,
   LocationBuildingMeta,

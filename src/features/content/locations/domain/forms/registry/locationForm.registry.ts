@@ -21,7 +21,8 @@ import {
   LOCATION_BUILDING_PRIMARY_SUBTYPE_META,
   LOCATION_BUILDING_PRIMARY_TYPE_META,
 } from '../../model/building/locationBuilding.meta';
-import { DEFAULT_VISIBILITY_PUBLIC, when } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
+import { when } from '@/ui/patterns/form/conditions';
 import { getNameDescriptionFieldSpecs } from '@/features/content/shared/forms/baseFieldSpecs';
 import type { FieldSpec } from '@/features/content/shared/forms/registry';
 import type { LocationFormValues } from '../types/locationForm.types';

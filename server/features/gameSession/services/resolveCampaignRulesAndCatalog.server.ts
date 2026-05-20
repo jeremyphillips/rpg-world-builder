@@ -5,7 +5,8 @@ import { createDefaultCampaignRulesetPatch } from '@/features/mechanics/domain/r
 import { normalizeCampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/campaign/patch/normalize'
 import { resolveCampaignRuleset } from '@/features/mechanics/domain/rulesets/resolve/ruleset'
 import { buildCampaignCatalog, type CampaignCatalogAdmin } from '@/features/mechanics/domain/rulesets/campaign/buildCatalog'
-import { getSystemRuleset, systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog'
+import { getSystemRuleset } from '@/features/mechanics/domain/rulesets/system/catalog'
+import { systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog.sync'
 import type {
   CampaignRulesetPatch,
   SystemRulesetId,

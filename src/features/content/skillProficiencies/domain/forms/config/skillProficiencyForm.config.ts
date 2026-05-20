@@ -2,7 +2,7 @@
  * Skill Proficiency form field configs for AppForm + DynamicFormRenderer.
  * Registry-backed.
  */
-import type { FieldConfig } from '@/ui/patterns';
+import type { FieldConfig } from '@/ui/patterns/form/form.types';
 import { buildFieldConfigs, buildDefaultFormValues } from '@/features/content/shared/forms/registry';
 import { SKILL_PROFICIENCY_FORM_FIELDS } from '../registry/skillProficiencyForm.registry';
 import type { SkillProficiencyFormValues } from '../types/skillProficiencyForm.types';

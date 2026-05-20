@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 
 import type { Location } from '@/features/content/locations/domain/model/location'
-import type { SelectEntityOption } from '@/ui/patterns'
+import type { SelectEntityOption } from '@/ui/patterns/modal/SelectEntityModal.types'
 
 import { AllyRosterLane } from '../roster/AllyRosterLane'
 import { EncounterSetupView } from '../layout/EncounterSetupView'

@@ -7,7 +7,7 @@
 
 import { useMemo, useCallback } from 'react'
 import { getClassProgression, getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/progression/class'
-import { getSystemRuleset } from '@/features/mechanics/domain/rulesets/system/catalog'
+import { getSystemRuleset } from '@/features/mechanics/domain/rulesets/system/systemRulesets'
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds'
 import { groupSpellsByLevel } from '@/features/mechanics/domain/spells'
 import { getAvailableSpellsByClass } from '@/features/mechanics/domain/spells/selection'

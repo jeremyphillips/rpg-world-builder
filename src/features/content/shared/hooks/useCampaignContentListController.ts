@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { ContentSummary } from '@/features/content/shared/domain/types';
-import type { ContentListItem, ContentViewerContext } from '@/features/content/shared/components';
+import type { ContentListItem, ContentViewerContext } from '@/features/content/shared/components/campaignList';
 import type { ContentPolicy, ContentRule, RulesetContent } from '@/shared/types/ruleset';
 import type { CampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import type { CampaignViewer } from '@/shared/types/campaign.types';

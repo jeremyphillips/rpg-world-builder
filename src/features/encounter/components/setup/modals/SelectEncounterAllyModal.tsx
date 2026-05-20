@@ -3,7 +3,8 @@ import { useState } from 'react'
 import Tab from '@mui/material/Tab'
 import Tabs from '@mui/material/Tabs'
 
-import { SelectEntityModal, type SelectEntityOption } from '@/ui/patterns'
+import { SelectEntityModal } from '@/ui/patterns/modal/SelectEntityModal'
+import type { SelectEntityOption } from '@/ui/patterns/modal/SelectEntityModal.types'
 
 type SelectEncounterAllyModalProps = {
   open: boolean

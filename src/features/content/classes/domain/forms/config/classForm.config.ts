@@ -2,8 +2,9 @@
  * Class form field configs for AppForm + DynamicFormRenderer.
  * Registry-backed.
  */
-import type { FieldConfig } from '@/ui/patterns';
-import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import type { FieldConfig } from '@/ui/patterns/form/form.types';
+import { buildDefaultValues } from '@/ui/patterns/form/utils/buildDefaultValues';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import { buildFieldConfigs } from '@/features/content/shared/forms/registry';
 import { CLASS_FORM_FIELDS } from '../registry/classForm.registry';
 import type { ClassFormValues } from '../types/classForm.types';

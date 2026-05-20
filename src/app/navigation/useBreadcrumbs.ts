@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import { BREADCRUMB_CONFIG } from '@/app/breadcrumbs'
-import type { BreadcrumbItem } from '@/ui/patterns'
+import type { BreadcrumbItem } from '@/ui/patterns/Breadcrumbs/Breadcrumbs'
 
 // ---------------------------------------------------------------------------
 // Label cache — shared across all hook instances, survives re-renders.

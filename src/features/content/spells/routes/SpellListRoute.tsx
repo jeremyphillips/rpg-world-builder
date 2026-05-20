@@ -15,7 +15,7 @@ import {
   buildCampaignContentFilters,
   getMutedRowClassNameForDisallowedCampaignContent,
   ValidationBlockedAlert,
-} from '@/features/content/shared/components';
+} from '@/features/content/shared/components/campaignList';
 import ViewerOwnedCharacterScopeSelect from '@/features/content/shared/components/ViewerOwnedCharacterScopeSelect';
 import { useCampaignContentListController } from '@/features/content/shared/hooks/useCampaignContentListController';
 import { useDmPartyCharacterOwnedQuery } from '@/features/content/shared/hooks/useDmPartyCharacterOwnedQuery';

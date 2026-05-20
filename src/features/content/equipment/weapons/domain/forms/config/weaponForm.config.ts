@@ -2,8 +2,8 @@
  * Weapon form field configs for AppForm + DynamicFormRenderer.
  * Registry-backed.
  */
-import type { FieldConfig } from '@/ui/patterns';
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import type { FieldConfig } from '@/ui/patterns/form/form.types';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import { buildFieldConfigs, buildDefaultFormValues } from '@/features/content/shared/forms/registry';
 import { WEAPON_FORM_FIELDS } from '../registry/weaponForm.registry';
 import type { WeaponFormValues } from '../types/weaponForm.types';

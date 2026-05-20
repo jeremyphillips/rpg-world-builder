@@ -4,7 +4,7 @@
 import { apiFetch, ApiError } from '@/app/api';
 import type { CampaignRulesetPatch, SystemRulesetId } from '../types/ruleset.types';
 import type { Ruleset } from '@/shared/types/ruleset';
-import { getSystemRuleset } from '../system/catalog';
+import { getSystemRuleset } from '../system/systemRulesets';
 import { normalizeCampaignRulesetPatch } from './patch/normalize';
 import { validateCampaignRulesetPatch } from './patch/validate';
 import { resolveCampaignRuleset } from '../resolve/ruleset';

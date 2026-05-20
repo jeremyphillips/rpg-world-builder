@@ -4,13 +4,12 @@ export {
   type CatalogCategoryConfig,
   type CampaignCatalogAdmin,
 } from './campaign/buildCatalog';
+export type { CampaignCatalog } from './system/catalog';
 export {
-  systemCatalog,
-  type CampaignCatalog,
   getSystemRuleset,
   SYSTEM_RULESETS,
   startingWealthTiersDefault,
-} from './system/catalog';
+} from './system/systemRulesets';
 export {
   getSystemRaces,
   getSystemRace,

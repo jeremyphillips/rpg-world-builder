@@ -8,3 +8,9 @@
 - **Spell effect damage rows:** `damageToDraftFields` in [`spellEffectRow.assembly.ts`](src/features/content/spells/domain/forms/assembly/spellEffectRow.assembly.ts) uses `parseXdY` for **plain** `XdY` strings; strings with a modifier (`XdY+N`) use the existing regex path.
 
 **Tests for this area:** `npx vitest run shared/domain/dice/dice.parse.test.ts src/features/content/shared/forms/dice/ src/features/content/equipment/weapons/domain/forms/ src/features/content/spells/domain/forms/assembly/spellEffectRow.assembly.test.ts src/features/content/spells/domain/forms/__tests__/spellForm.effectGroups.test.ts` — A full `npx vitest run` may report unrelated failures elsewhere in the monorepo; use the slice above when working on dice/forms.
+
+## Bundle size baselines
+
+- **Regenerate:** `npm run build:baseline` (analyze build + summary).
+- **Phase 6 verify:** `npm run build:verify` (baseline + automated success-criteria checks).
+- **Recorded metrics:** [`docs/reference/build-baseline.md`](docs/reference/build-baseline.md).
