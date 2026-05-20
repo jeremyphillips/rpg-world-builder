@@ -12,4 +12,5 @@
 ## Bundle size baselines
 
 - **Regenerate:** `npm run build:baseline` (analyze build + summary).
+- **Phase 6 verify:** `npm run build:verify` (baseline + automated success-criteria checks).
 - **Recorded metrics:** [`docs/reference/build-baseline.md`](docs/reference/build-baseline.md).

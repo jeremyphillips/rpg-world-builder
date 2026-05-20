@@ -3,10 +3,11 @@ import { ROUTES } from './routes'
 import type { AppRouteHandle } from './routing/layoutWidth'
 import { lazyRoute } from '@/app/routing/lazyRoute'
 import { AppProviders } from './providers/AppProviders'
-import CharacterProvidersLayout from './providers/CharacterProvidersLayout'
+// MUI layouts — PublicLayout stays sync (tiny); AuthLayout lazy for public-path entry wins
+import PublicLayout from './layouts/public/PublicLayout'
 
-// MUI Layouts
-import { PublicLayout, AuthLayout } from './layouts'
+const AuthLayout = lazyRoute(() => import('./layouts/auth/AuthLayout'))
+const CharacterProvidersLayout = lazyRoute(() => import('./providers/CharacterProvidersLayout'))
 
 // Encounter + game-session: async chunks (pilot splitting)
 const EncounterLayout = lazyRoute(() => import('@/features/encounter/routes/EncounterLayout'))

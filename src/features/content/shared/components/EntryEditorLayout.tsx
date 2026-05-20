@@ -13,7 +13,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import type { Visibility } from '@/shared/types/visibility';
 import type { ChangeValidationResult } from '@/features/content/shared/domain/validation';
 import { AppAlert } from '@/ui/primitives';
-import { AppPageHeader, AppModal, ConfirmModal, VisibilityField } from '@/ui/patterns';
+import AppPageHeader from '@/ui/patterns/AppPageHeader/AppPageHeader';
+import AppModal from '@/ui/patterns/modals/AppModal';
+import ConfirmModal from '@/ui/patterns/modals/ConfirmModal';
+import VisibilityField from '@/ui/patterns/form/VisibilityField';
 import { useBreadcrumbs } from '@/app/navigation';
 
 

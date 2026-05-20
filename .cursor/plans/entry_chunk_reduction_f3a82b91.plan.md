@@ -22,10 +22,10 @@ todos:
     status: completed
   - id: phase5-shared-hoisting
     content: "Phase 5: Audit shared hoisting (content shared, form registry, @/ui/patterns); direct imports + optional mechanics manualChunk"
-    status: pending
+    status: completed
   - id: phase6-verify
     content: "Phase 6: vite build size check, smoke tests (public /, login, campaign hub, world list, character builder), no duplicate React"
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -195,7 +195,14 @@ import './features/content/locations/domain/model/placedObjects/locationPlacedOb
 
 ---
 
-## Phase 5 — Shared hoisting + import hygiene
+## Phase 5 — Shared hoisting + import hygiene (**done**)
+
+**Shipped:**
+
+- Lazy [`AuthLayout`](src/app/layouts/auth/AuthLayout.tsx) + [`CharacterProvidersLayout`](src/app/providers/CharacterProvidersLayout.tsx); sync [`PublicLayout`](src/app/layouts/public/PublicLayout.tsx) only.
+- [`campaignList.ts`](src/features/content/shared/components/campaignList.ts) — list routes no longer import editor scaffold via shared barrel.
+- Direct `@/ui/patterns/...` imports in `ContentTypeListPage`, `EntryEditorLayout`, `EntryFormEditorLayout`, character-builder steps, `ChatContainer`, `SpellHorizontalCard`.
+- Prefetch hooks for `authLayout` + `characterProviders` on `/characters` / `/dashboard` intent.
 
 **After Phases 1–3**, re-run visualizer. If `index-*.js` still large:
 
@@ -208,13 +215,19 @@ import './features/content/locations/domain/model/placedObjects/locationPlacedOb
 
 ---
 
-## Phase 6 — Verification
+## Phase 6 — Verification (**done**)
+
+**Shipped:**
+
+- `npm run verify:bundle` — [`scripts/verify-entry-chunk-phase6.mjs`](../../scripts/verify-entry-chunk-phase6.mjs) (success criteria vs Phase 0 baseline).
+- `npm run build:verify` — analyze + baseline + verify in one command.
+- **2026-05-20:** entry **67.9 KB** gzip (−75.7% vs ~279 KB); `buildCampaignCatalog` vitest 2/2; no circular-chunk warning on build.
 
 **Build:**
 
 ```bash
-npx vite build
-# Compare index-*.js gzip vs Phase 0 baseline
+npm run build:verify
+# or: npx vite build && npm run bundle:baseline
 ```
 
 **Manual smoke:**

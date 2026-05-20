@@ -1,6 +1,6 @@
 import { useCharacterBuilder } from '@/features/characterBuilder/context'
 import { InvalidationNotice } from '@/features/characterBuilder/components'
-import { ButtonGroup } from '@/ui/patterns'
+import ButtonGroup from '@/ui/patterns/ButtonGroup/ButtonGroup'
 import { useCampaignRules } from '@/app/providers/CampaignRulesProvider'
 
 const RaceStep = () => {

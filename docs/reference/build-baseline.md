@@ -24,6 +24,37 @@ After route splitting + vendor `manualChunks`, before deferring `systemCatalog`:
 
 SRD data (spells/monsters) lived inside the entry graph via static `systemCatalog` import.
 
+## Baseline — 2026-05-20 (after Phase 5 shared hoisting)
+
+| Chunk | Raw | Gzip | Notes |
+|-------|-----|------|--------|
+| **`index-UOsFBkLC.js`** (entry) | **266.2 KB** | **67.9 KB** | No builder, AuthLayout, or ChatContainer on public `/` |
+| `AuthLayout-*.js` | 44.7 KB | 8.3 KB | Lazy auth shell |
+| `CharacterProviders-*.js` | 11.1 KB | 4.0 KB | Rules + builder for `/characters/*` |
+| `system-catalog-*.js` | 662.1 KB | 146.3 KB | Deferred SRD |
+
+**Entry gzip vs pre–Phase 1 (~279 KB):** ~76% reduction. **vs post–Phase 3 (~105 KB):** ~35% further reduction.
+
+Entry treemap no longer includes `CharacterBuilderProvider` or wizard steps; remaining form modules (`DriverField`, …) are shared hoists for edit routes.
+
+### Phase 6 verification (automated)
+
+```bash
+npm run build:verify   # analyze + baseline summary + scripts/verify-entry-chunk-phase6.mjs
+```
+
+**Automated (2026-05-20):** entry gzip **67.9 KB** (75.7% below Phase 0); `system-catalog` / `AuthLayout` / `CharacterProviders` in separate chunks; `buildCampaignCatalog` vitest **2/2** pass; no Rollup circular-chunk warning on production build.
+
+### Smoke checklist (manual — browser)
+
+- [ ] `/` — home loads; **Create Character** opens builder chunk
+- [ ] `/login`, `/register` — no campaign/catalog providers
+- [ ] `/dashboard` → campaign → hub → world equipment list
+- [ ] `/characters` — builder launcher works
+- [ ] Encounter simulator — catalog + mechanics
+
+---
+
 ## Baseline — 2026-05-20 (after Phase 3–4 lazy home + location assets)
 
 | Chunk | Raw | Gzip | Notes |

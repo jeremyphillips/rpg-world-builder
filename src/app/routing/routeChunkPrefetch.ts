@@ -14,6 +14,8 @@ export function prefetchRouteChunk(key: string, loader: () => Promise<unknown>):
 }
 
 const loaders = {
+  authLayout: () => import('@/app/layouts/auth/AuthLayout'),
+  characterProviders: () => import('@/app/providers/CharacterProvidersLayout'),
   dashboard: () => import('@/features/campaign/routes/DashboardRoute'),
   characters: () => import('@/features/character/routes/CharactersRoute'),
   campaigns: () => import('@/features/campaign/routes/CampaignsRoute'),
@@ -64,11 +66,14 @@ export function prefetchRouteChunkForPath(path: string): void {
   }
 
   if (path.startsWith('/characters')) {
+    prefetchRouteChunk('authLayout', loaders.authLayout)
+    prefetchRouteChunk('characterProviders', loaders.characterProviders)
     prefetchRouteChunk('characters', loaders.characters)
     return
   }
 
   if (path === '/dashboard') {
+    prefetchRouteChunk('authLayout', loaders.authLayout)
     prefetchRouteChunk('dashboard', loaders.dashboard)
   }
 }
