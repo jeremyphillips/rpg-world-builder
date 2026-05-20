@@ -1,10 +1,23 @@
 import { createBrowserRouter, Outlet, Navigate } from 'react-router-dom'
 import { ROUTES } from './routes'
 import type { AppRouteHandle } from './routing/layoutWidth'
+import { lazyRoute } from '@/app/routing/lazyRoute'
 import { AppProviders } from './providers/AppProviders'
 
 // MUI Layouts
 import { PublicLayout, AuthLayout } from './layouts'
+
+// Encounter + game-session: async chunks (pilot splitting)
+const EncounterLayout = lazyRoute(() => import('@/features/encounter/routes/EncounterLayout'))
+const EncounterIndexRedirect = lazyRoute(() => import('@/features/encounter/routes/EncounterIndexRedirect'))
+const EncounterSetupRoute = lazyRoute(() => import('@/features/encounter/routes/EncounterSetupRoute'))
+const EncounterActiveRoute = lazyRoute(() => import('@/features/encounter/routes/EncounterActiveRoute'))
+const GameSessionListRoute = lazyRoute(() => import('@/features/game-session/routes/GameSessionListRoute'))
+const GameSessionLayout = lazyRoute(() => import('@/features/game-session/routes/GameSessionLayout'))
+const GameSessionIndexRedirect = lazyRoute(() => import('@/features/game-session/routes/GameSessionIndexRedirect'))
+const GameSessionLobbyRoute = lazyRoute(() => import('@/features/game-session/routes/GameSessionLobbyRoute'))
+const GameSessionSetupRoute = lazyRoute(() => import('@/features/game-session/routes/GameSessionSetupRoute'))
+const GameSessionPlayRoute = lazyRoute(() => import('@/features/game-session/routes/GameSessionPlayRoute'))
 
 // Route components
 import {
@@ -20,16 +33,6 @@ import {
   CampaignLayoutRoute,
   CampaignHubRoute,
   InviteRoute,
-  EncounterLayout,
-  EncounterIndexRedirect,
-  EncounterSetupRoute,
-  EncounterActiveRoute,
-  GameSessionListRoute,
-  GameSessionLayout,
-  GameSessionIndexRedirect,
-  GameSessionLobbyRoute,
-  GameSessionSetupRoute,
-  GameSessionPlayRoute,
   RulesRoute,
   PartyRoute,
   SessionsRoute,

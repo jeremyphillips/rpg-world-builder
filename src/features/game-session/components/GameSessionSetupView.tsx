@@ -27,13 +27,11 @@ import type { GameSession, GameSessionStatus } from '../domain/game-session.type
 import AppFormDateTimePicker from '@/ui/patterns/form/AppFormDateTimePicker'
 import AppFormSelect from '@/ui/patterns/form/AppFormSelect'
 import AppFormTextField from '@/ui/patterns/form/AppFormTextField'
-import {
-  ConfirmModal,
-  EntitySummaryCard,
-  SelectedEntitiesLane,
-  SelectEntityModal,
-  type SelectEntityOption,
-} from '@/ui/patterns'
+import ConfirmModal from '@/ui/patterns/modals/ConfirmModal'
+import { EntitySummaryCard } from '@/ui/patterns/cards/EntitySummaryCard/EntitySummaryCard'
+import { SelectedEntitiesLane } from '@/ui/patterns/selection/SelectedEntitiesLane'
+import { SelectEntityModal } from '@/ui/patterns/modal/SelectEntityModal'
+import type { SelectEntityOption } from '@/ui/patterns/modal/SelectEntityModal.types'
 import { AppAlert, AppAvatar } from '@/ui/primitives'
 import { resolveImageUrl } from '@/shared/lib/media'
 

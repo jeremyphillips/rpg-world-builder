@@ -8,7 +8,8 @@ import Typography from '@mui/material/Typography'
 
 import type { CombatantInstance } from '@/features/mechanics/domain/combat'
 import { getCombatantDisplayLabel } from '@/features/mechanics/domain/combat/state'
-import { SelectEntityModal, type SelectEntityOption } from '@/ui/patterns'
+import { SelectEntityModal } from '@/ui/patterns/modal/SelectEntityModal'
+import type { SelectEntityOption } from '@/ui/patterns/modal/SelectEntityModal.types'
 
 type AttachedEmanationSetupPanelProps = {
   actionLabel: string

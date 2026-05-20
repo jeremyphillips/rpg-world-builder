@@ -1,5 +1,5 @@
 import { AppBadge } from '@/ui/primitives'
-import { HorizontalCompactActionCard } from '@/ui/patterns'
+import { HorizontalCompactActionCard } from '@/ui/patterns/cards/HorizontalCompactActionCard'
 import type { ActionBadgeDescriptor } from '@/features/mechanics/domain/combat/presentation/badges/action/combat-action-badges.types'
 
 import { combatToneToAppBadgeTone } from '../cards/combatant-badges'
