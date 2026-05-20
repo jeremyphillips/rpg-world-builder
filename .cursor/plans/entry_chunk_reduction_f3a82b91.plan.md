@@ -4,7 +4,7 @@ overview: Shrink the primary index-*.js entry chunk (~1.2 MB / ~279 KB gzip post
 todos:
   - id: phase0-baseline
     content: "Phase 0: Add rollup-plugin-visualizer; record index + vendor gzip baseline; treemap top modules in index chunk"
-    status: pending
+    status: completed
   - id: phase1-async-catalog
     content: "Phase 1: Defer systemCatalog — dynamic import in CampaignRulesProvider; loading state; keep buildCampaignCatalog behavior"
     status: completed
@@ -35,14 +35,15 @@ isProject: false
 
 **Prerequisite:** [App-level code splitting](app-level_code_splitting_eeb37e85.plan.md) — route `lazyRoute()`, public-only router imports, vendor `manualChunks` — **completed**.
 
-**Current build shape (approx., after vendor split):**
+**Current build shape:** see [`docs/reference/build-baseline.md`](../../docs/reference/build-baseline.md) (regenerate with `npm run build:baseline`).
 
 | Asset | Raw | Gzip | Role |
 |-------|-----|------|------|
-| `index-*.js` | ~1,206 KB | ~279 KB | Entry + eager app graph + shared modules |
-| `vendor-mui-*.js` | ~535 KB | ~156 KB | MUI + Emotion (cacheable) |
-| `vendor-mui-x-data-grid-*.js` | ~424 KB | ~126 KB | Data grid (cacheable) |
-| `vendor-react-*.js` | ~396 KB | ~119 KB | React (cacheable) |
+| `index-*.js` | ~517 KB | ~126 KB | Entry (post Phase 1 catalog defer) |
+| `system-catalog-*.js` | ~662 KB | ~146 KB | Deferred SRD (`loadSystemCatalog`) |
+| `vendor-mui-*.js` | ~523 KB | ~152 KB | MUI + Emotion (cacheable) |
+| `vendor-mui-x-data-grid-*.js` | ~414 KB | ~123 KB | Data grid (cacheable) |
+| `vendor-react-*.js` | ~386 KB | ~116 KB | React (cacheable) |
 
 Vite still warns on chunks >500 KB — expected for vendor chunks; **the actionable target is `index-*.js`**, not silencing the warning via `chunkSizeWarningLimit`.
 
@@ -68,19 +69,15 @@ flowchart TB
 
 ---
 
-## Phase 0 — Baseline + analyzer (required first)
+## Phase 0 — Baseline + analyzer (**done**)
 
-**Goal:** Evidence-driven work; avoid guessing what is inside `index-*.js`.
+**Shipped:**
 
-**Tasks:**
+- **`rollup-plugin-visualizer`** in [`vite.config.ts`](vite.config.ts) when `ANALYZE=true` → `dist/stats.html` (treemap) + `dist/stats-data.json` (raw-data).
+- Scripts: `npm run build:analyze`, `npm run bundle:baseline`, `npm run build:baseline`.
+- Baseline doc: [`docs/reference/build-baseline.md`](../../docs/reference/build-baseline.md) with entry/vendor sizes and top-15 entry modules.
 
-1. Add **`rollup-plugin-visualizer`** (devDependency) to [`vite.config.ts`](vite.config.ts); emit `dist/stats.html` on `vite build` (or gated by `ANALYZE=true`).
-2. Record baseline in this plan or a short `docs/build-baseline.md`:
-   - `index-*.js` raw + gzip
-   - Top 15 modules in entry chunk by parsed size
-3. Re-run after each phase; target **meaningful gzip drop on `index-*.js`** (goal: **<200 KB gzip** initial app JS excluding vendors — adjust after Phase 0 treemap).
-
-**Do not** use `chunkSizeWarningLimit` as a substitute for shrinking entry code.
+Re-run `npm run build:baseline` after each phase. Do not use `chunkSizeWarningLimit` as a substitute for shrinking entry code.
 
 ---
 

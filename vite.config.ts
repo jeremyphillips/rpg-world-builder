@@ -1,10 +1,30 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { resolveManualChunk } from './src/app/routing/manualChunks'
 
+const analyze =
+  process.env.ANALYZE === 'true' || process.env.ANALYZE === '1'
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    analyze &&
+      visualizer({
+        filename: 'dist/stats.html',
+        gzipSize: true,
+        brotliSize: true,
+        open: false,
+        template: 'treemap',
+      }),
+    analyze &&
+      visualizer({
+        filename: 'dist/stats-data.json',
+        gzipSize: true,
+        template: 'raw-data',
+      }),
+  ].filter(Boolean),
   build: {
     rollupOptions: {
       output: {
