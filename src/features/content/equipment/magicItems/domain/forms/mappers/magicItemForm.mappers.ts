@@ -2,7 +2,7 @@
  * Pure mappers for Magic Item form values ↔ domain types.
  * Registry-backed with required-field merging.
  */
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import type { MagicItem, MagicItemInput } from '@/features/content/equipment/magicItems/domain/types';
 import type { MagicItemFormValues } from '../types/magicItemForm.types';
 import {

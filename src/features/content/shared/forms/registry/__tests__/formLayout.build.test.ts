@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildDefaultValues } from '@/ui/patterns';
+import { buildDefaultValues } from '@/ui/patterns/form/utils/buildDefaultValues';
 import { buildFormLayout } from '../buildFormLayout';
 import type { FormNodeSpec } from '../formNodeSpec.types';
 

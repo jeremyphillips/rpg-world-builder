@@ -22,7 +22,7 @@ import {
 } from '@/features/content/equipment/weapons/domain/vocab';
 import type { FieldSpec } from '@/features/content/shared/forms/registry';
 import type { WeaponFormValues } from '../types/weaponForm.types';
-import { when } from '@/ui/patterns';
+import { when } from '@/ui/patterns/form/conditions';
 
 const isRanged = when.eq('mode', 'ranged');
 const isVersatile = when.contains('properties', 'versatile');

@@ -3,7 +3,7 @@
  * `@/features/combat` (or `@/features/combat/components`) in new code — `CombatGrid as EncounterGrid`
  * below is a backwards-compatible alias only, not a second grid implementation.
  */
-export { SelectedEntitiesLane } from '@/ui/patterns'
+export { SelectedEntitiesLane } from '@/ui/patterns/selection/SelectedEntitiesLane'
 export { AllyRosterLane } from './setup/roster/AllyRosterLane'
 export { OpponentRosterLane } from './setup/roster/OpponentRosterLane'
 /** Temporary re-exports (Phase 3A). Prefer `@/features/combat/components` in new code. */

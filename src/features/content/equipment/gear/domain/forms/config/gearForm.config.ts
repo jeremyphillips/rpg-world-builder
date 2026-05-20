@@ -2,8 +2,9 @@
  * Gear form field configs for AppForm + DynamicFormRenderer.
  * Registry-backed.
  */
-import type { FieldConfig } from '@/ui/patterns';
-import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import type { FieldConfig } from '@/ui/patterns/form/form.types';
+import { buildDefaultValues } from '@/ui/patterns/form/utils/buildDefaultValues';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import { buildFieldConfigs } from '@/features/content/shared/forms/registry';
 import { GEAR_FORM_FIELDS } from '../registry/gearForm.registry';
 import type { GearFormValues } from '../types/gearForm.types';

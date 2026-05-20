@@ -4,7 +4,7 @@
  */
 import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
 import type { SpellFormValues } from '../types/spellForm.types';
-import { buildDefaultValues } from '@/ui/patterns';
+import { buildDefaultValues } from '@/ui/patterns/form/utils/buildDefaultValues';
 import {
   buildFormLayout,
   buildToInput,

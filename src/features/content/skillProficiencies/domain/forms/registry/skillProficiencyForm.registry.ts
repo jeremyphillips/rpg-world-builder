@@ -3,7 +3,7 @@
  * JSON fields (examples, tags, suggestedClasses) use placeholders that AppFormJsonPreviewField
  * renders as "Insert example" in AppJsonPreviewField.
  */
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import type { SkillProficiency } from '@/features/content/skillProficiencies/domain/types';
 import type { SkillProficiencyInput } from '../types/skillProficiencyForm.types';
 import { ABILITIES } from '@/features/mechanics/domain/character';

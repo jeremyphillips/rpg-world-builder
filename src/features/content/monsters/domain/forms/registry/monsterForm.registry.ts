@@ -2,7 +2,7 @@
  * Monster form field registry.
  * Standard fields (name, type, sizeCategory) + individual JSON fields for each mechanics/lore subfield.
  */
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import { numberRange, type FieldSpec } from '@/features/content/shared/forms/registry';
 import type { Monster, MonsterInput } from '@/features/content/monsters/domain/types';
 import type { MonsterFormValues } from '../types/monsterForm.types';

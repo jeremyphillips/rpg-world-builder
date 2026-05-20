@@ -1,9 +1,10 @@
 /**
  * Location form configs for ConditionalFormRenderer.
  */
-import type { FieldConfig } from '@/ui/patterns';
+import type { FieldConfig } from '@/ui/patterns/form/form.types';
 import type { PickerOption } from '@/ui/patterns/form/OptionPickerField';
-import { buildDefaultValues, DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
+import { buildDefaultValues } from '@/ui/patterns/form/utils/buildDefaultValues';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
 import { buildFieldConfigs } from '@/features/content/shared/forms/registry';
 import {
   LOCATION_FORM_FIELDS,

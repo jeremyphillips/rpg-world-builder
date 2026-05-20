@@ -3,8 +3,8 @@
  */
 import type { CharacterClass } from '@/features/content/classes/domain/types';
 import type { Spell, SpellInput } from '@/features/content/spells/domain/types';
-import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns';
-import { when } from '@/ui/patterns';
+import { DEFAULT_VISIBILITY_PUBLIC } from '@/ui/patterns/form/VisibilityField';
+import { when } from '@/ui/patterns/form/conditions';
 import type {
   FieldSpec,
   FormNodeSpec,
