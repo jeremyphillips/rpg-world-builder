@@ -1,14 +1,14 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import { resolveVendorManualChunk } from './src/app/routing/manualChunks'
+import { resolveManualChunk } from './src/app/routing/manualChunks'
 
 export default defineConfig({
   plugins: [react()],
   build: {
     rollupOptions: {
       output: {
-        manualChunks: resolveVendorManualChunk,
+        manualChunks: resolveManualChunk,
       },
     },
   },

@@ -10,6 +10,26 @@ export const VENDOR_CHUNK = {
   muiDatePickers: 'vendor-mui-x-date-pickers',
 } as const
 
+export const APP_CHUNK = {
+  /** SRD catalog + spells/monsters/equipment data; loaded via loadSystemCatalog(). */
+  systemCatalog: 'system-catalog',
+} as const
+
+/** Rollup manualChunks: vendors + deferred SRD catalog graph. */
+export function resolveManualChunk(id: string): string | undefined {
+  const normalized = id.replace(/\\/g, '/')
+
+  if (
+    normalized.includes('/rulesets/system/') &&
+    !normalized.includes('/rulesets/system/systemRulesets') &&
+    !normalized.includes('/rulesets/system/emptyCampaignCatalog')
+  ) {
+    return APP_CHUNK.systemCatalog
+  }
+
+  return resolveVendorManualChunk(normalized)
+}
+
 /** Assign node_modules imports to vendor chunks; app code stays in route/async chunks. */
 export function resolveVendorManualChunk(id: string): string | undefined {
   const normalized = id.replace(/\\/g, '/')

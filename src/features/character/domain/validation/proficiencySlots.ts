@@ -1,4 +1,3 @@
-import { systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog'
 import type { ClassProficiencySkillSelection, CharacterClass } from '@/features/content/classes/domain/types'
 import type { CharacterClassInfo, CharacterProficiencies } from '@/features/character/domain/types'
 import { getSkillIds } from '@/features/character/domain/utils/character-proficiency.utils'
@@ -29,11 +28,11 @@ function getClassSkillChoices(
 
 /**
  * Aggregate all skill choice entries for a character's class list.
- * Falls back to the full system catalog when no classesById is supplied.
+ * Caller should pass `catalog.classesById` from campaign rules when available.
  */
 export function getAllSkillChoices(
   characterClasses: CharacterClassInfo[],
-  classesById: Record<string, CharacterClass> = systemCatalog.classesById,
+  classesById: Record<string, CharacterClass> = {},
 ): ClassProficiencySkillSelection[] {
   return characterClasses.flatMap(c => getClassSkillChoices(c.classId, classesById))
 }
@@ -44,7 +43,7 @@ export function getAllSkillChoices(
 export function getProficiencySlotSummary(
   characterClasses: CharacterClassInfo[],
   proficiencies: CharacterProficiencies | undefined,
-  classesById: Record<string, CharacterClass> = systemCatalog.classesById,
+  classesById: Record<string, CharacterClass> = {},
 ): ProficiencySlotSummary {
   const choices = getAllSkillChoices(characterClasses, classesById)
   const totalSlots = choices.reduce((sum, e) => sum + (e.choose ?? 0), 0)

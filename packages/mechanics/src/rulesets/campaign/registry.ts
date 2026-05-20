@@ -1,6 +1,6 @@
 import type { Ruleset } from '@/shared/types/ruleset';
 import type { CampaignRulesetPatch } from '../types/ruleset.types';
-import { getSystemRuleset } from '../system/catalog';
+import { getSystemRuleset } from '../system/systemRulesets';
 import { resolveCampaignRuleset } from '../resolve/ruleset';
 import { normalizeCampaignRulesetPatch } from './patch/normalize';
 import { validateCampaignRulesetPatch } from './patch/validate';

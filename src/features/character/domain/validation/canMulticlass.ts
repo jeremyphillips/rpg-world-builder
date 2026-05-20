@@ -3,7 +3,7 @@ import type { AbilityRequirementGroup, RequirementExpr } from '@/features/conten
 import type { AbilityScoreMapResolved, AbilityScoreValue } from '@/features/mechanics/domain/character';
 import { getSystemClass } from '@/features/mechanics/domain/rulesets/system/classes';
 import { DEFAULT_SYSTEM_RULESET_ID } from '@/features/mechanics/domain/rulesets/ids/systemIds';
-import { resolveRule, type RuleResolveContext } from '@/features/mechanics/domain/rulesets';
+import { resolveRule, type RuleResolveContext } from '@/features/mechanics/domain/rulesets/config/ruleConfig';
 import { ABILITY_KEYS, abilityIdToKey } from '@/features/mechanics/domain/character';
 
 // ---------------------------------------------------------------------------

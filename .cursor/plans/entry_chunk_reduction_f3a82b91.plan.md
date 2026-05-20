@@ -7,7 +7,7 @@ todos:
     status: pending
   - id: phase1-async-catalog
     content: "Phase 1: Defer systemCatalog — dynamic import in CampaignRulesProvider; loading state; keep buildCampaignCatalog behavior"
-    status: pending
+    status: completed
   - id: phase1b-catalog-chunks
     content: "Phase 1b (optional): Split spells/monsters into separate async catalog sub-chunks via dynamic imports in catalog module"
     status: pending

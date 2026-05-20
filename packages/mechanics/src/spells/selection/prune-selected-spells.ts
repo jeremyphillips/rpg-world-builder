@@ -8,7 +8,7 @@ import type { Spell } from '@/features/content/spells/domain/types'
 import type { CharacterClass } from '@/features/content/classes/domain/types'
 import type { SpellcastingProgression } from '@/shared/types/ruleset'
 import { getClassSpellLimitsAtLevel } from '@/features/mechanics/domain/progression/class'
-import { systemCatalog, getSystemRuleset } from '../../rulesets/system/catalog'
+import { getSystemRuleset } from '../../rulesets/system/systemRulesets'
 import { DEFAULT_SYSTEM_RULESET_ID } from '../../rulesets/ids/systemIds'
 
 export type SpellPruneResult = {
@@ -31,8 +31,8 @@ export function pruneSelectedSpells(
   allSpells?: Record<string, Spell>,
   spellcastingConfig?: SpellcastingProgression,
 ): SpellPruneResult {
-  const resolvedClasses = classesById ?? systemCatalog.classesById
-  const resolvedSpells = allSpells ?? systemCatalog.spellsById
+  const resolvedClasses = classesById ?? {}
+  const resolvedSpells = allSpells ?? {}
   const resolvedSpellcasting =
     spellcastingConfig ??
     getSystemRuleset(DEFAULT_SYSTEM_RULESET_ID).mechanics.progression.spellcasting

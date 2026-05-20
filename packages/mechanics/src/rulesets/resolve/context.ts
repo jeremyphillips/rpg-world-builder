@@ -1,7 +1,8 @@
 import type { Campaign } from '@/shared/types/campaign.types';
 import type { Ruleset } from '@/shared/types/ruleset';
-import { getSystemRuleset, systemCatalog } from '../system/catalog';
 import { buildCampaignCatalog, type CampaignCatalogAdmin } from '../campaign/buildCatalog';
+import { emptyCampaignCatalog } from '../system/emptyCampaignCatalog';
+import { getSystemRuleset } from '../system/systemRulesets';
 import type { SystemRulesetId } from '../types/ruleset.types';
 import type { RulesetLike } from '../types/ruleset.types';
 import { DEFAULT_SYSTEM_RULESET_ID } from '../ids/systemIds';
@@ -11,6 +12,8 @@ export type CampaignRulesContext = {
   catalog: CampaignCatalogAdmin;
   /** True when viewer can manage campaign content (DM/owner). Used to gate useCampaignCatalogAdmin. */
   canManage: boolean;
+  /** True while the async SRD `systemCatalog` chunk is loading (client provider only). */
+  catalogLoading: boolean;
 };
 
 export function resolveCampaignRulesContext({
@@ -25,7 +28,7 @@ export function resolveCampaignRulesContext({
 }): CampaignRulesContext {
   const resolvedRuleset: RulesetLike = ruleset ?? getSystemRuleset(fallbackSystemId);
 
-  const catalog = buildCampaignCatalog(systemCatalog, {}, resolvedRuleset);
+  const catalog = buildCampaignCatalog(emptyCampaignCatalog, {}, resolvedRuleset);
 
-  return { ruleset: resolvedRuleset, catalog, canManage };
+  return { ruleset: resolvedRuleset, catalog, canManage, catalogLoading: false };
 }
