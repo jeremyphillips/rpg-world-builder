@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
 import type { EmailProvider, EmailMessage, EmailResult } from './types'
 
-const FROM = '"D&D Character Builder" <no-reply@dnd-character-builder.dev>'
+const FROM = '"RPG World Builder" <no-reply@rpg-world-builder.dev>'
 
 let transporter: Transporter | null = null
 
