@@ -1,4 +1,7 @@
+import 'dotenv/config'
 import { defineConfig, devices } from '@playwright/test'
+
+const clientUrl = process.env.CLIENT_URL ?? 'http://localhost:5173'
 
 export default defineConfig({
   testDir: './e2e',
@@ -8,7 +11,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: clientUrl,
     trace: 'on-first-retry',
   },
   projects: [
@@ -18,7 +21,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npm run dev:frontend',
-    url: 'http://localhost:5173',
+    url: clientUrl,
     reuseExistingServer: !process.env.CI,
   },
 })
