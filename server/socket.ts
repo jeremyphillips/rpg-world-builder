@@ -1,6 +1,7 @@
 import { Server as HttpServer } from 'http'
 import type { Socket } from 'socket.io'
 import { Server as SocketServer } from 'socket.io'
+import { env } from './shared/config/env'
 import { verifyToken } from './shared/utils/jwt'
 import { getGameSessionById } from './features/gameSession/services/gameSession.service'
 
@@ -104,7 +105,7 @@ export function emitGameSessionSync(payload: GameSessionSyncPayload) {
 export function initSocket(httpServer: HttpServer) {
   io = new SocketServer(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL ?? 'http://localhost:5173',
+      origin: env.CLIENT_URL,
       credentials: true,
     },
   })
