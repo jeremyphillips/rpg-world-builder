@@ -11,18 +11,31 @@ export const VENDOR_CHUNK = {
 } as const
 
 export const APP_CHUNK = {
-  /** SRD catalog + spells/monsters/equipment data; loaded via loadSystemCatalog(). */
+  /** SRD catalog core (classes, races, equipment) — loaded with loadSystemCatalog(). */
   systemCatalog: 'system-catalog',
+  /** Spell data shard — dynamic import from catalog.ts. */
+  systemCatalogSpells: 'system-catalog-spells',
+  /** Monster data shard — dynamic import from catalog.ts. */
+  systemCatalogMonsters: 'system-catalog-monsters',
 } as const
 
 /** Rollup manualChunks: vendors + deferred SRD catalog graph. */
 export function resolveManualChunk(id: string): string | undefined {
   const normalized = id.replace(/\\/g, '/')
 
+  if (normalized.includes('/rulesets/system/spells')) {
+    return APP_CHUNK.systemCatalogSpells
+  }
+
+  if (normalized.includes('/rulesets/system/monsters')) {
+    return APP_CHUNK.systemCatalogMonsters
+  }
+
   if (
     normalized.includes('/rulesets/system/') &&
     !normalized.includes('/rulesets/system/systemRulesets') &&
-    !normalized.includes('/rulesets/system/emptyCampaignCatalog')
+    !normalized.includes('/rulesets/system/emptyCampaignCatalog') &&
+    !normalized.includes('/rulesets/system/catalog.sync')
   ) {
     return APP_CHUNK.systemCatalog
   }

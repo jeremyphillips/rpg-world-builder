@@ -100,6 +100,8 @@ for (const a of assets.filter(
   (c) =>
     c.name.startsWith('vendor-') ||
     c.name.startsWith('system-catalog') ||
+    c.name.startsWith('system-catalog-spells') ||
+    c.name.startsWith('system-catalog-monsters') ||
     c.name === entry?.name,
 )) {
   console.log(

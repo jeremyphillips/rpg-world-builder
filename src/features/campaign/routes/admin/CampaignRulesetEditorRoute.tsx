@@ -20,7 +20,7 @@ import {
   saveCampaignRulesetPatch,
   createDefaultCampaignRulesetPatch
 } from '@/features/mechanics/domain/rulesets/campaign/repo';
-import { getSystemRuleset, systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog';
+import { getSystemRuleset, systemCatalogCore } from '@/features/mechanics/domain/rulesets/system/catalog';
 import { resolveCampaignRuleset } from '@/features/mechanics/domain/rulesets/resolve/ruleset';
 import { normalizeCampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/campaign/patch/normalize';
 import type { CampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
@@ -34,11 +34,11 @@ import { AppAlert } from '@/ui/primitives';
 
 type CatalogItem = { id: string; name: string };
 
-const CLASS_ITEMS: CatalogItem[] = Object.values(systemCatalog.classesById)
+const CLASS_ITEMS: CatalogItem[] = Object.values(systemCatalogCore.classesById)
   .map(c => ({ id: c.id, name: c.name }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
-const RACE_ITEMS: CatalogItem[] = Object.values(systemCatalog.racesById)
+const RACE_ITEMS: CatalogItem[] = Object.values(systemCatalogCore.racesById)
   .map(r => ({ id: r.id, name: r.name }))
   .sort((a, b) => a.name.localeCompare(b.name));
 

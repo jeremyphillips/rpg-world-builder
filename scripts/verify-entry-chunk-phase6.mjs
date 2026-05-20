@@ -105,6 +105,18 @@ if (hasChunkMatching(/^system-catalog-/)) {
   fail('Missing system-catalog-*.js chunk')
 }
 
+if (hasChunkMatching(/^system-catalog-spells-/)) {
+  pass('system-catalog-spells is a separate async sub-chunk (Phase 1b)')
+} else {
+  fail('Missing system-catalog-spells-*.js chunk')
+}
+
+if (hasChunkMatching(/^system-catalog-monsters-/)) {
+  pass('system-catalog-monsters is a separate async sub-chunk (Phase 1b)')
+} else {
+  fail('Missing system-catalog-monsters-*.js chunk')
+}
+
 if (hasChunkMatching(/^AuthLayout-/)) {
   pass('AuthLayout is lazy-loaded (separate chunk)')
 } else {

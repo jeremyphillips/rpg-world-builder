@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
 import { DEFAULT_SYSTEM_RULESET_ID } from '../ids/systemIds';
-import { getSystemRuleset, systemCatalog } from '../system/catalog';
+import { getSystemRuleset } from '../system/catalog';
+import { systemCatalog } from '../system/catalog.sync';
 import { buildCampaignCatalog } from './buildCatalog';
 
 describe('buildCampaignCatalog', () => {

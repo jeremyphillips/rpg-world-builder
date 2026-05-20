@@ -11,7 +11,8 @@ import {
 import { assertSystemRulesetId } from '@/features/mechanics/domain/rulesets/ids/systemIds';
 import { normalizeCampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/campaign/patch/normalize';
 import { resolveCampaignRuleset } from '@/features/mechanics/domain/rulesets/resolve/ruleset';
-import { getSystemRuleset, systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog';
+import { getSystemRuleset } from '@/features/mechanics/domain/rulesets/system/catalog';
+import { systemCatalog } from '@/features/mechanics/domain/rulesets/system/catalog.sync';
 import type { CampaignRulesetPatch } from '@/features/mechanics/domain/rulesets/types/ruleset.types';
 import type { Ruleset } from '@/shared/types/ruleset';
 

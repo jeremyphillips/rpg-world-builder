@@ -24,6 +24,23 @@ After route splitting + vendor `manualChunks`, before deferring `systemCatalog`:
 
 SRD data (spells/monsters) lived inside the entry graph via static `systemCatalog` import.
 
+## Baseline — 2026-05-20 (after Phase 1b catalog sub-chunks)
+
+| Chunk | Raw | Gzip | Notes |
+|-------|-----|------|--------|
+| **`index-DVgbRPlL.js`** (entry) | **265.7 KB** | **67.5 KB** | Unchanged vs Phase 5 |
+| `system-catalog-*.js` (core) | 73.6 KB | 17.7 KB | Classes, races, equipment (no spells/monsters) |
+| `system-catalog-spells-*.js` | 484.3 KB | 105.2 KB | Deferred spell SRD |
+| `system-catalog-monsters-*.js` | 122.3 KB | 25.7 KB | Deferred monster SRD |
+
+**Combined catalog gzip:** ~148.6 KB (was single `system-catalog` **146.3 KB**). Spells + monsters load in **parallel**; routes that only need `systemCatalogCore` avoid spell/monster bytes (e.g. ruleset editor).
+
+```bash
+npm run build:verify   # includes Phase 1b sub-chunk checks
+```
+
+---
+
 ## Baseline — 2026-05-20 (after Phase 5 shared hoisting)
 
 | Chunk | Raw | Gzip | Notes |

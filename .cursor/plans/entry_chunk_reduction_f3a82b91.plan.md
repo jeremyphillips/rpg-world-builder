@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: phase1b-catalog-chunks
     content: "Phase 1b (optional): Split spells/monsters into separate async catalog sub-chunks via dynamic imports in catalog module"
-    status: pending
+    status: completed
   - id: phase2-provider-scope
     content: "Phase 2: Route-scope providers — CampaignRules + CharacterBuilder under campaign/auth; Messaging/Socket under campaign subtree"
     status: completed
@@ -39,11 +39,13 @@ isProject: false
 
 | Asset | Raw | Gzip | Role |
 |-------|-----|------|------|
-| `index-*.js` | ~517 KB | ~126 KB | Entry (post Phase 1 catalog defer) |
-| `system-catalog-*.js` | ~662 KB | ~146 KB | Deferred SRD (`loadSystemCatalog`) |
-| `vendor-mui-*.js` | ~523 KB | ~152 KB | MUI + Emotion (cacheable) |
-| `vendor-mui-x-data-grid-*.js` | ~414 KB | ~123 KB | Data grid (cacheable) |
-| `vendor-react-*.js` | ~386 KB | ~116 KB | React (cacheable) |
+| `index-*.js` | ~266 KB | ~68 KB | Entry |
+| `system-catalog-*.js` (core) | ~74 KB | ~18 KB | Classes, races, equipment |
+| `system-catalog-spells-*.js` | ~484 KB | ~106 KB | Deferred spell SRD |
+| `system-catalog-monsters-*.js` | ~122 KB | ~26 KB | Deferred monster SRD |
+| `vendor-mui-*.js` | ~535 KB | ~156 KB | MUI + Emotion (cacheable) |
+| `vendor-mui-x-data-grid-*.js` | ~424 KB | ~126 KB | Data grid (cacheable) |
+| `vendor-react-*.js` | ~396 KB | ~119 KB | React (cacheable) |
 
 Vite still warns on chunks >500 KB — expected for vendor chunks; **the actionable target is `index-*.js`**, not silencing the warning via `chunkSizeWarningLimit`.
 
@@ -106,12 +108,16 @@ useEffect(() => {
 
 **Approach B (later / larger):** API-fetched catalog for client (`GET /api/campaigns/:id/catalog`) — aligns with server resolver; removes most SRD bytes from client bundle entirely. Defer unless Phase 1 gzip is insufficient.
 
-### Phase 1b — Split catalog sub-chunks (optional)
+### Phase 1b — Split catalog sub-chunks (**done**)
 
-If treemap shows spells + monsters dominate:
+**Shipped:**
 
-- Refactor [`catalog.ts`](packages/mechanics/src/rulesets/system/catalog.ts) to `import()` spell/monster getters in separate files.
-- Add [`manualChunks`](src/app/routing/manualChunks.ts) entries for `rulesets/system/spells` and `rulesets/system/monsters` **only if** those modules are dynamically imported (otherwise manualChunks won't shrink initial load).
+- [`catalogBase.ts`](packages/mechanics/src/rulesets/system/catalogBase.ts) — sync core (classes, races, equipment) without spells/monsters; `systemCatalogCore` for ruleset editor.
+- [`catalog.ts`](packages/mechanics/src/rulesets/system/catalog.ts) — `loadSystemCatalog()` parallel `import('./spells')` + `import('./monsters')`.
+- [`catalog.sync.ts`](packages/mechanics/src/rulesets/system/catalog.sync.ts) — full `systemCatalog` for server + vitest only.
+- [`manualChunks.ts`](src/app/routing/manualChunks.ts) — `system-catalog-spells`, `system-catalog-monsters`, `system-catalog` (core).
+
+**2026-05-20 build:** core **17.7 KB** gzip, spells **105.2 KB**, monsters **25.7 KB** (parallel fetch vs monolithic **146 KB** `system-catalog`).
 
 ---
 
