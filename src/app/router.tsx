@@ -3,6 +3,7 @@ import { ROUTES } from './routes'
 import type { AppRouteHandle } from './routing/layoutWidth'
 import { lazyRoute } from '@/app/routing/lazyRoute'
 import { AppProviders } from './providers/AppProviders'
+import CharacterProvidersLayout from './providers/CharacterProvidersLayout'
 
 // MUI Layouts
 import { PublicLayout, AuthLayout } from './layouts'
@@ -145,9 +146,14 @@ export const router = createBrowserRouter([
         children: [
           { path: ROUTES.DASHBOARD, element: <DashboardRoute /> },
           { path: ROUTES.USERS, element: <UsersRoute /> },
-          { path: ROUTES.CHARACTERS, element: <CharactersRoute /> },
-          { path: ROUTES.NEW_CHARACTER, element: <NewCharacterRoute /> },
-          { path: ROUTES.CHARACTER, element: <CharacterRoute /> },
+          {
+            element: <CharacterProvidersLayout />,
+            children: [
+              { path: ROUTES.CHARACTERS, element: <CharactersRoute /> },
+              { path: ROUTES.NEW_CHARACTER, element: <NewCharacterRoute /> },
+              { path: ROUTES.CHARACTER, element: <CharacterRoute /> },
+            ],
+          },
           { path: ROUTES.CAMPAIGNS, element: <CampaignsRoute /> },
           {
             path: ROUTES.CAMPAIGN,

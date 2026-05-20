@@ -13,13 +13,13 @@ todos:
     status: pending
   - id: phase2-provider-scope
     content: "Phase 2: Route-scope providers — CampaignRules + CharacterBuilder under campaign/auth; Messaging/Socket under campaign subtree"
-    status: pending
+    status: completed
   - id: phase3-lazy-home-builder
     content: "Phase 3: Lazy-load HomeRoute character builder (launcher/modal/wizard on intent, not at / import)"
-    status: pending
+    status: completed
   - id: phase4-defer-location-assets
     content: "Phase 4: Move locationPlacedObjectRasterAssets.vite off main.tsx; import from world/location routes only"
-    status: pending
+    status: completed
   - id: phase5-shared-hoisting
     content: "Phase 5: Audit shared hoisting (content shared, form registry, @/ui/patterns); direct imports + optional mechanics manualChunk"
     status: pending
@@ -115,7 +115,14 @@ If treemap shows spells + monsters dominate:
 
 ---
 
-## Phase 2 — Route-scoped providers
+## Phase 2 — Route-scoped providers (**done**)
+
+**Shipped:**
+
+- [`AppProviders`](src/app/providers/AppProviders.tsx): theme, auth, `ActiveCampaignProvider`, notifications only.
+- [`CampaignProviders`](src/app/providers/CampaignProviders.tsx): socket + messaging + [`CharacterProviders`](src/app/providers/CharacterProviders.tsx) — mounted in [`CampaignLayoutRoute`](src/features/campaign/routes/CampaignLayoutRoute.tsx).
+- [`CharacterProvidersLayout`](src/app/providers/CharacterProvidersLayout.tsx): rules + builder for `/characters/*`.
+- Public `/`: [`CharacterProviders`](src/app/providers/CharacterProviders.tsx) wrap [`HomeRoute`](src/app/routes/public/HomeRoute.tsx) only (launcher still eager until Phase 3).
 
 **Target:** Shrink the graph reachable from [`RootLayout`](src/app/router.tsx) → [`AppProviders`](src/app/providers/AppProviders.tsx).
 
@@ -150,7 +157,13 @@ flowchart TB
 
 ---
 
-## Phase 3 — Lazy public home builder
+## Phase 3 — Lazy public home builder (**done**)
+
+**Shipped:**
+
+- [`HomeRoute`](src/app/routes/public/HomeRoute.tsx): load-on-click → dynamic `import('./PublicHomeCharacterBuilder')`.
+- [`PublicHomeCharacterBuilder`](src/app/routes/public/PublicHomeCharacterBuilder.tsx): async chunk with `CharacterProviders` + launcher; `openOnMount` on [`CharacterBuilderLauncher`](src/features/characterBuilder/components/CharacterBuilderLauncher/CharacterBuilderLauncher.tsx).
+- Router: `/` no longer wraps `CharacterProviders` globally.
 
 **Target:** [`HomeRoute`](src/app/routes/public/HomeRoute.tsx) — remove static import of [`CharacterBuilderLauncher`](src/features/characterBuilder/components/CharacterBuilderLauncher/CharacterBuilderLauncher.tsx).
 
@@ -164,7 +177,9 @@ flowchart TB
 
 ---
 
-## Phase 4 — Defer location raster registration
+## Phase 4 — Defer location raster registration (**done**)
+
+**Shipped:** Side-effect import moved from [`main.tsx`](src/main.tsx) to [`WorldLayout`](src/features/campaign/routes/world/WorldLayout.tsx).
 
 **Target:** Remove from [`main.tsx`](src/main.tsx):
 

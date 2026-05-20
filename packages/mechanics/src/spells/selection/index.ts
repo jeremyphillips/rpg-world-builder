@@ -8,4 +8,6 @@ export {
   type ToggleResult,
 } from './spell-selection'
 
+export { pruneSelectedSpells, type SpellPruneResult } from './prune-selected-spells'
+
 export { getAvailableSpellsByClass } from './getAvailableSpellsByClass'

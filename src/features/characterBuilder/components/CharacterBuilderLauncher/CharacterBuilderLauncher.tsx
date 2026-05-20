@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '@mui/material/Button'
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 
@@ -13,6 +13,8 @@ type CharacterBuilderLauncherProps = {
   size?: MuiButtonSize
   onCharacterCreated?: (character: unknown) => void
   characterType?: CharacterType
+  /** Open builder modal on mount (e.g. after public home load-on-click). */
+  openOnMount?: boolean
 }
 
 const CharacterBuilderLauncher = ({
@@ -20,9 +22,16 @@ const CharacterBuilderLauncher = ({
   buttonLabel = 'Create Character',
   variant = 'contained',
   size = 'large',
+  openOnMount = false,
 }: CharacterBuilderLauncherProps) => {
   const [isModalOpen, setModalOpen] = useState(false)
   const { openBuilder } = useCharacterBuilder()
+
+  useEffect(() => {
+    if (!openOnMount) return
+    openBuilder(characterType)
+    setModalOpen(true)
+  }, [openOnMount, characterType, openBuilder])
 
   return (
     <>
