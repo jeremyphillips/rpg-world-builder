@@ -2,9 +2,10 @@ name: Auto PR
 
 on:
   push:
-    branches-ignore:
-      - main
-      - master
+    branches:
+      - feature/**
+      - fix/**
+      - chore/**
 
 permissions:
   contents: read
@@ -19,57 +20,35 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const branch = context.ref.replace('refs/heads/', '');
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const base = 'main';
+            const branch = context.ref.replace('refs/heads/', '')
+            const { owner, repo } = context.repo
+            const base = 'main'
 
-            core.info(`Owner: ${owner}`);
-            core.info(`Repo: ${repo}`);
-            core.info(`Branch: ${branch}`);
-            core.info(`Base: ${base}`);
-            core.info(`SHA: ${context.sha}`);
-
-            if (branch === base) {
-              core.info('Skipping base branch.');
-              return;
-            }
-
-            const { data: existing } = await github.rest.pulls.list({
+            const { data: existingPullRequests } = await github.rest.pulls.list({
               owner,
               repo,
               head: `${owner}:${branch}`,
               base,
               state: 'open',
-            });
+            })
 
-            if (existing.length > 0) {
-              core.info(`Open PR already exists for ${branch} → #${existing[0].number}`);
-              return;
+            if (existingPullRequests.length > 0) {
+              core.info(`Open PR already exists for ${branch}`)
+              return
             }
 
-            try {
-              const { data: pr } = await github.rest.pulls.create({
-                owner,
-                repo,
-                title: branch,
-                head: `${owner}:${branch}`,
-                base,
-                body: [
-                  'Auto-opened when this branch was pushed.',
-                  '',
-                  `- **Branch:** \`${branch}\``,
-                  `- **Commit:** ${context.sha}`,
-                ].join('\n'),
-              });
+            const { data: pullRequest } = await github.rest.pulls.create({
+              owner,
+              repo,
+              title: branch,
+              head: `${owner}:${branch}`,
+              base,
+              body: [
+                'Auto-opened when this branch was pushed.',
+                '',
+                `Branch: \`${branch}\``,
+                `Commit: ${context.sha}`,
+              ].join('\n'),
+            })
 
-              core.info(`Created PR #${pr.number}: ${branch} → ${base}`);
-            } catch (error) {
-              core.error(`Failed to create PR for ${branch} → ${base}`);
-
-              if (error.response?.data) {
-                core.error(JSON.stringify(error.response.data, null, 2));
-              }
-
-              throw error;
-            }
+            core.info(`Created PR #${pullRequest.number}: ${branch} → ${base}`)
